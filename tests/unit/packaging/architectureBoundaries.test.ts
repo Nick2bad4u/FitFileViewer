@@ -1321,9 +1321,9 @@ const directRenderSummarySchedulingRuntimeGlobalPattern =
 const directUserDeviceInfoBoxRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.getComputedStyle\b/u;
+    /\bdocument\b|\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directUpdateControlsStateRuntimeAmbientGetterPattern =
-    /\bget\s+getComputedStyle\s*\(\)\s*\{|\breturn\s+globalThis\.getComputedStyle\b/u;
+    /\bget\s+(?:document|getComputedStyle)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:document|getComputedStyle)\b|\bscope\.document\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directEnableTabButtonsDebugRuntimeAmbientFallbackPattern =
@@ -13170,8 +13170,8 @@ describe("architecture boundaries", () => {
         expect(renderSummaryRuntimeSource).toContain("getElementByIdFlexible(");
     });
 
-    it("keeps controls-state computed style reads behind the runtime facade", () => {
-        expect.assertions(4);
+    it("keeps controls-state document and computed style reads behind the runtime facade", () => {
+        expect.assertions(11);
 
         const violations = migratedUpdateControlsStateRuntimeFiles
             .filter((relativeFile) =>
@@ -13195,11 +13195,28 @@ describe("architecture boundaries", () => {
         expect(updateControlsStateSource).toContain(
             "updateControlsStateRuntime.js"
         );
+        expect(updateControlsStateSource).toContain("runtime.getDocument()");
+        expect(updateControlsStateSource).toContain(
+            "runtime.getComputedDisplay(wrapper)"
+        );
+        expect(updateControlsStateSource).not.toContain("document");
         expect(updateControlsStateRuntimeSource).not.toMatch(
             directUpdateControlsStateRuntimeAmbientGetterPattern
         );
         expect(updateControlsStateRuntimeSource).toContain(
             "defaultUpdateControlsStateRuntimeScope"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "getComputedStyle: (element) => globalThis.getComputedStyle(element)"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "updateControlsState requires a document runtime"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
+            "scope.document"
         );
     });
 

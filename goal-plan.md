@@ -485,6 +485,9 @@ instead of calling timer globals directly inside `getCurrentSettings.ts`, with f
 architecture guardrails blocking those direct timer globals from returning. Explicit current-settings runtime scopes
 must now provide timer primitives instead of falling back to `globalThis`, with focused coverage blocking those
 ambient fallbacks from returning.
+Controls-state chart settings DOM lookups and computed-style reads now route through
+`updateControlsStateRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
+`document` and computed-style globals from returning to `updateControlsState.ts`.
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.

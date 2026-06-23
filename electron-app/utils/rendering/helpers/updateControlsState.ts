@@ -13,10 +13,13 @@ import { getUpdateControlsStateRuntime } from "./updateControlsStateRuntime.js";
  * Initialize chart controls state management.
  */
 export function initializeControlsState(): void {
+    const runtime = getUpdateControlsStateRuntime();
+    const runtimeDocument = runtime.getDocument();
+
     // Subscribe to state changes to keep DOM in sync
     subscribeToRendererChartControlsVisible((controlsVisible) => {
-        const toggleBtn = getChartControlsToggle(document),
-            wrapper = getChartSettingsWrapper(document);
+        const toggleBtn = getChartControlsToggle(runtimeDocument),
+            wrapper = getChartSettingsWrapper(runtimeDocument);
 
         if (wrapper && toggleBtn) {
             wrapper.style.display = controlsVisible ? "block" : "none";
@@ -45,16 +48,17 @@ export function toggleChartControls(): void {
  * inconsistencies.
  */
 export function updateControlsState(): void {
-    const toggleBtn = getChartControlsToggle(document),
-        wrapper = getChartSettingsWrapper(document);
+    const runtime = getUpdateControlsStateRuntime();
+    const runtimeDocument = runtime.getDocument();
+    const toggleBtn = getChartControlsToggle(runtimeDocument),
+        wrapper = getChartSettingsWrapper(runtimeDocument);
 
     if (!wrapper || !toggleBtn) {
         return;
     }
 
     // Get the actual visibility from the DOM
-    const runtime = getUpdateControlsStateRuntime(),
-        computedDisplay = runtime.getComputedDisplay(wrapper),
+    const computedDisplay = runtime.getComputedDisplay(wrapper),
         isActuallyVisible =
             wrapper.style.display !== "none" &&
             computedDisplay !== "none" &&
