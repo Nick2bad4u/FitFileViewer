@@ -12928,7 +12928,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(22);
 
         const violations = migratedEnableTabButtonsHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -12971,6 +12971,9 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
             'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
@@ -12989,17 +12992,32 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
             "readonly getComputedStyle?:"
         );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "scope.document"
         );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "scope.getComputedStyle;"
         );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toMatch(
+            /\belement\s+instanceof\s+HTMLElement\b/u
+        );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
             "return scope.getDocument?.();"
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
             "return scope.getComputedStyleFunction?.();"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "enableTabButtonsHelpers requires an HTMLElement runtime"
         );
     });
 

@@ -39,6 +39,7 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         const runtime = getEnableTabButtonsHelpersRuntime({
             getComputedStyleFunction: () => getComputedStyle,
             getDocument: () => ({ querySelectorAll }),
+            getHTMLElement: () => HTMLElement,
             isRendererScope: () => true,
         });
 
@@ -68,6 +69,7 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
                 querySelectorAll: () =>
                     [first, second] as unknown as NodeListOf<Element>,
             }),
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(runtime.queryTabButtons()).toStrictEqual([first, second]);
@@ -82,9 +84,26 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
                 getElementsByClassName: () =>
                     [button] as unknown as HTMLCollectionOf<Element>,
             }),
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(runtime.queryTabButtons()).toStrictEqual([button]);
+    });
+
+    it("requires an HTMLElement provider before filtering tab button elements", () => {
+        expect.assertions(1);
+
+        const button = document.createElement("button");
+        const runtime = getEnableTabButtonsHelpersRuntime({
+            getDocument: () => ({
+                querySelectorAll: () =>
+                    [button] as unknown as NodeListOf<Element>,
+            }),
+        });
+
+        expect(() => runtime.queryTabButtons()).toThrow(
+            "enableTabButtonsHelpers requires an HTMLElement runtime"
+        );
     });
 
     it("returns no tab buttons when document APIs are unavailable", () => {
@@ -108,6 +127,7 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
             () => [button] as unknown as NodeListOf<Element>
         );
         const runtime = getEnableTabButtonsHelpersRuntime({
+            HTMLElement,
             document: { querySelectorAll },
             getComputedStyle,
             isRendererScope: () => true,

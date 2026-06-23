@@ -19,6 +19,9 @@ export interface EnableTabButtonsHelpersRuntimeScope {
     readonly getComputedStyleFunction?:
         | (() => EnableTabButtonsHelpersGetComputedStyle | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
     readonly isRendererScope?: (() => boolean) | undefined;
 }
 
@@ -33,6 +36,7 @@ const defaultEnableTabButtonsHelpersRuntimeScope: EnableTabButtonsHelpersRuntime
     {
         getComputedStyleFunction: () => globalThis.getComputedStyle,
         getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
         isRendererScope: () => Reflect.has(globalThis, "document"),
     };
 
@@ -48,18 +52,35 @@ function getDocument(
     return scope.getDocument?.();
 }
 
+function getHTMLElementConstructor(
+    scope: EnableTabButtonsHelpersRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError(
+            "enableTabButtonsHelpers requires an HTMLElement runtime"
+        );
+    }
+
+    return HTMLElementConstructor;
+}
+
 function isRendererScope(scope: EnableTabButtonsHelpersRuntimeScope): boolean {
     return scope.isRendererScope?.() === true;
 }
 
 function toHTMLElementArray(
+    scope: EnableTabButtonsHelpersRuntimeScope,
     elements: Readonly<ArrayLike<Element>>
 ): HTMLElement[] {
+    const HTMLElementConstructor = getHTMLElementConstructor(scope);
+
     return Array.from(
         { length: elements.length },
         (_, index) => elements[index]
     ).filter(
-        (element): element is HTMLElement => element instanceof HTMLElement
+        (element): element is HTMLElement =>
+            element instanceof HTMLElementConstructor
     );
 }
 
@@ -88,12 +109,14 @@ export function getEnableTabButtonsHelpersRuntime(
 
             if (typeof runtimeDocument.querySelectorAll === "function") {
                 return toHTMLElementArray(
+                    scope,
                     runtimeDocument.querySelectorAll(".tab-button")
                 );
             }
 
             if (typeof runtimeDocument.getElementsByClassName === "function") {
                 return toHTMLElementArray(
+                    scope,
                     runtimeDocument.getElementsByClassName("tab-button")
                 );
             }

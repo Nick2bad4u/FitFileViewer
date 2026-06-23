@@ -1082,6 +1082,9 @@ with architecture coverage blocking those direct setup mutations.
 The Playwright map elevation popup smoke path now installs and restores its temporary `window.open` override
 through the original property descriptor instead of assigning or deleting `window.open` directly, with
 architecture coverage blocking that popup-fixture mutation.
+Tab-button helper element filtering now resolves the HTMLElement constructor through
+`enableTabButtonsHelpersRuntime.ts` instead of checking the ambient constructor directly, with focused runtime
+coverage and architecture coverage blocking direct helper constructor access from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
