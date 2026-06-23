@@ -341,7 +341,8 @@ runtime coverage and architecture guardrails blocking the ambient controller fal
 Chart hover effects scheduling, abort-controller creation, and document listener wiring now use named runtime provider
 functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 Inline SVG creation now routes through focused runtime facades for the app icon factory, global fullscreen button,
-exit-fullscreen overlay, chart hover overlays, keyboard-shortcuts modal, settings modal icons, about modal icons,
+exit-fullscreen overlay, chart hover overlays, chart hover effect runtime SVG creation, keyboard-shortcuts modal,
+settings modal icons, about modal icons,
 map export/print controls, loading overlay, add-FIT-to-map control, marker-count selector, data-point filter icons, render-summary controls, map theme toggle,
 elevation-profile button, map fullscreen control, and map measurement toolbar instead of calling
 `document.createElementNS` directly, with architecture coverage blocking raw SVG DOM creation from returning to

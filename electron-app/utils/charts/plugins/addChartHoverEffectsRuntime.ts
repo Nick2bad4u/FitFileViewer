@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
 export type ChartHoverEffectsTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -17,9 +19,7 @@ export interface ChartHoverEffectsRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
-    readonly getDocument?:
-        | (() => Pick<Document, "createElementNS"> | undefined)
-        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
@@ -80,7 +80,7 @@ function getRequiredSetTimeout(
 
 function getRequiredDocument(
     scope: ChartHoverEffectsRuntimeScope
-): Pick<Document, "createElementNS"> {
+): Document {
     const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("chart hover effects require a document runtime");
@@ -106,6 +106,16 @@ function getRequiredDocumentEventTarget(
     }
 
     return documentEventTarget;
+}
+
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: ChartHoverEffectsRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getRequiredDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
 }
 
 export function getChartHoverEffectsRuntime(
@@ -141,10 +151,7 @@ export function getChartHoverEffectsRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getRequiredDocument(scope).createElementNS(
-                CHART_HOVER_EFFECTS_SVG_NAMESPACE,
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         removeDocumentKeydownListener(listener): void {
             getRequiredDocumentEventTarget(scope).removeEventListener(
