@@ -591,13 +591,7 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
  * Inject CSS for smooth theme transitions
  */
 function injectThemeTransitionCSS(): void {
-    if (document.querySelector("#theme-transition-styles")) {
-        return;
-    }
-
-    const style = document.createElement("style");
-    style.id = "theme-transition-styles";
-    style.textContent = `
+    themeRuntime.ensureThemeTransitionStyles(`
 		.theme-transitioning *,
 		.theme-transitioning *::before,
 		.theme-transitioning *::after {
@@ -614,8 +608,7 @@ function injectThemeTransitionCSS(): void {
 		.theme-transitioning iframe {
 			transition: none !important;
 		}
-	`;
-    document.head.append(style);
+	`);
 }
 
 /**
@@ -625,13 +618,7 @@ function updateMetaThemeColor(theme: ThemePreference): void {
     const effectiveTheme = getEffectiveTheme(theme),
         themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
 
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (!metaThemeColor) {
-        metaThemeColor = document.createElement("meta");
-        (metaThemeColor as HTMLMetaElement).name = "theme-color";
-        document.head.append(metaThemeColor);
-    }
-    (metaThemeColor as HTMLMetaElement).content = themeColor;
+    themeRuntime.updateMetaThemeColor(themeColor);
 }
 
 /**

@@ -7,6 +7,7 @@ export interface ThemeRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
@@ -19,12 +20,14 @@ export interface ThemeRuntimeScope {
 export interface ThemeRuntime {
     readonly clearTimeout: (timer: ThemeRuntimeTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly ensureThemeTransitionStyles: (cssText: string) => void;
     readonly getGlobalEventTarget: () => EventTarget | null;
     readonly getSystemThemeMediaQuery: () => MediaQueryList | null;
     readonly setTimeout: (
         callback: () => void,
         delayMs: number
     ) => ThemeRuntimeTimer;
+    readonly updateMetaThemeColor: (themeColor: string) => void;
 }
 
 function isEventTarget(candidate: unknown): candidate is EventTarget {
@@ -54,6 +57,7 @@ function getDefaultMatchMedia(): typeof globalThis.matchMedia | undefined {
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
     getGlobalEventTarget: getDefaultEventTarget,
     getMatchMedia: getDefaultMatchMedia,
     getSetTimeout: () => globalThis.setTimeout,
@@ -69,6 +73,19 @@ function getScopeClearTimeout(
     scope: ThemeRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getScopeDocument(scope: ThemeRuntimeScope): Document | undefined {
+    return scope.getDocument?.();
+}
+
+function getRequiredDocument(scope: ThemeRuntimeScope): Document {
+    const documentRef = getScopeDocument(scope);
+    if (!documentRef) {
+        throw new TypeError("theme core requires a document runtime");
+    }
+
+    return documentRef;
 }
 
 function getScopeGlobalEventTarget(
@@ -113,6 +130,17 @@ export function getThemeRuntime(
 
             return new AbortControllerConstructor();
         },
+        ensureThemeTransitionStyles(cssText): void {
+            const documentRef = getRequiredDocument(scope);
+            if (documentRef.querySelector("#theme-transition-styles")) {
+                return;
+            }
+
+            const style = documentRef.createElement("style");
+            style.id = "theme-transition-styles";
+            style.textContent = cssText;
+            documentRef.head.append(style);
+        },
         getGlobalEventTarget(): EventTarget | null {
             return getScopeGlobalEventTarget(scope) ?? null;
         },
@@ -131,6 +159,18 @@ export function getThemeRuntime(
             }
 
             return setTimeoutRef.call(scope, callback, delayMs);
+        },
+        updateMetaThemeColor(themeColor): void {
+            const documentRef = getRequiredDocument(scope);
+            let metaThemeColor = documentRef.querySelector<HTMLMetaElement>(
+                'meta[name="theme-color"]'
+            );
+            if (!metaThemeColor) {
+                metaThemeColor = documentRef.createElement("meta");
+                metaThemeColor.name = "theme-color";
+                documentRef.head.append(metaThemeColor);
+            }
+            metaThemeColor.content = themeColor;
         },
     };
 }

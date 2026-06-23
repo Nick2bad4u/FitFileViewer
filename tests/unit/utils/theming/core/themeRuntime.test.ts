@@ -55,7 +55,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -67,6 +67,8 @@ describe("getThemeRuntime", () => {
         const delayMs = Number("300");
         const timer = 91 as ReturnType<typeof globalThis.setTimeout>;
         const mediaQuery = { matches: true } as MediaQueryList;
+        const documentRef =
+            document.implementation.createHTMLDocument("theme runtime");
         const globalEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
@@ -80,12 +82,14 @@ describe("getThemeRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
+        const getDocument = vi.fn(() => documentRef);
         const getGlobalEventTarget = vi.fn(() => globalEventTarget);
         const getMatchMedia = vi.fn(() => matchMedia);
         const getSetTimeout = vi.fn(() => setTimeout);
         const runtime = getThemeRuntime({
             getAbortController,
             getClearTimeout,
+            getDocument,
             getGlobalEventTarget,
             getMatchMedia,
             getSetTimeout,
@@ -96,16 +100,25 @@ describe("getThemeRuntime", () => {
         runtime.clearTimeout(timer);
         expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
         expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
+        runtime.ensureThemeTransitionStyles(".theme-transitioning{}");
+        runtime.updateMetaThemeColor("#181a20");
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getDocument).toHaveBeenCalledTimes(2);
         expect(getMatchMedia).toHaveBeenCalledOnce();
         expect(getGlobalEventTarget).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+        expect(
+            documentRef.querySelector("#theme-transition-styles")
+        ).toBeInstanceOf(HTMLStyleElement);
+        expect(
+            documentRef.querySelector('meta[name="theme-color"]')
+        ).toHaveProperty("content", "#181a20");
         expect(callback).not.toHaveBeenCalled();
     });
 
@@ -137,6 +150,52 @@ describe("getThemeRuntime", () => {
             "(prefers-color-scheme: dark)"
         );
         expect(getThemeRuntime({}).getSystemThemeMediaQuery()).toBeNull();
+    });
+
+    it("updates theme DOM elements through the injected document runtime", () => {
+        expect.assertions(8);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("theme dom");
+        const runtime = getThemeRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.ensureThemeTransitionStyles(".theme-transitioning{color:red}");
+        runtime.ensureThemeTransitionStyles(".theme-transitioning{color:blue}");
+        runtime.updateMetaThemeColor("#181a20");
+        runtime.updateMetaThemeColor("#f8fafc");
+
+        const styleElements = documentRef.querySelectorAll(
+            "#theme-transition-styles"
+        );
+        const styleElement = styleElements[0];
+        const metaElements = documentRef.querySelectorAll(
+            'meta[name="theme-color"]'
+        );
+        const metaElement = metaElements[0];
+
+        expect(styleElements).toHaveLength(1);
+        expect(styleElement).toBeInstanceOf(HTMLStyleElement);
+        expect(styleElement?.textContent).toContain("color:red");
+        expect(styleElement?.textContent).not.toContain("color:blue");
+        expect(metaElements).toHaveLength(1);
+        expect(metaElement).toBeInstanceOf(HTMLMetaElement);
+        expect(metaElement?.content).toBe("#f8fafc");
+        expect(documentRef.head.contains(metaElement ?? null)).toBe(true);
+    });
+
+    it("does not borrow ambient documents for explicit DOM scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getThemeRuntime({});
+
+        expect(() => runtime.ensureThemeTransitionStyles("")).toThrow(
+            "theme core requires a document runtime"
+        );
+        expect(() => runtime.updateMetaThemeColor("#181a20")).toThrow(
+            "theme core requires a document runtime"
+        );
     });
 
     it("binds default system theme media queries to globalThis", () => {
@@ -181,7 +240,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -204,6 +263,7 @@ describe("getThemeRuntime", () => {
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
             clearTimeout,
+            document,
             globalEventTarget,
             matchMedia,
             setTimeout,
@@ -217,6 +277,12 @@ describe("getThemeRuntime", () => {
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
             "theme core requires a clearTimeout runtime"
+        );
+        expect(() => runtime.ensureThemeTransitionStyles("")).toThrow(
+            "theme core requires a document runtime"
+        );
+        expect(() => runtime.updateMetaThemeColor("#181a20")).toThrow(
+            "theme core requires a document runtime"
         );
         expect(runtime.getSystemThemeMediaQuery()).toBeNull();
         expect(runtime.getGlobalEventTarget()).toBeNull();

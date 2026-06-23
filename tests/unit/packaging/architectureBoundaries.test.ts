@@ -11643,7 +11643,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(48);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -11666,6 +11666,11 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("createAbortController");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
         expect(themeCoreSource).toContain("getGlobalEventTarget");
+        expect(themeCoreSource).toContain("ensureThemeTransitionStyles");
+        expect(themeCoreSource).toContain("updateMetaThemeColor");
+        expect(themeCoreSource).not.toContain("document.querySelector");
+        expect(themeCoreSource).not.toContain("document.createElement");
+        expect(themeCoreSource).not.toContain("document.head.append");
         expect(themeRuntimeSource).toContain("defaultThemeRuntimeScope");
         expect(themeRuntimeSource).not.toContain(
             "scope: ThemeRuntimeScope = globalThis"
@@ -11678,6 +11683,9 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(themeRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(themeRuntimeSource).toContain(
             "getMatchMedia: getDefaultMatchMedia"
@@ -11693,6 +11701,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain(
             "readonly globalEventTarget?:"
         );
+        expect(themeRuntimeSource).not.toContain("readonly document?:");
         expect(themeRuntimeSource).not.toMatch(
             /export interface ThemeRuntimeScope \{(?:(?!\n\})[\s\S])*readonly matchMedia\?:/
         );
@@ -11704,6 +11713,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain("browserGlobal");
         expect(themeRuntimeSource).not.toContain("scope.AbortController");
         expect(themeRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(themeRuntimeSource).not.toContain("scope.document");
         expect(themeRuntimeSource).not.toContain("scope.globalEventTarget");
         expect(themeRuntimeSource).not.toContain("scope.matchMedia");
         expect(themeRuntimeSource).not.toContain("scope.setTimeout");
@@ -11720,6 +11730,11 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).toContain(
             "theme core requires a setTimeout runtime"
         );
+        expect(themeRuntimeSource).toContain(
+            "theme core requires a document runtime"
+        );
+        expect(themeRuntimeSource).toContain("documentRef.createElement");
+        expect(themeRuntimeSource).toContain("documentRef.querySelector");
     });
 
     it("keeps accent color browser APIs behind the runtime facade", () => {

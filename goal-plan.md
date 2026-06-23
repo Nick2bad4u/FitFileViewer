@@ -386,6 +386,9 @@ primitives instead of falling back to `globalThis`, with focused runtime coverag
 those fallbacks from returning. Default media-query helpers now use typed provider picks instead of direct optional
 browser-global shapes, and the default media-query provider now binds `matchMedia` to `globalThis` without a
 module-level `browserGlobal` alias.
+Core theme transition-style injection and meta theme-color updates now also route through `themeRuntime.ts` instead
+of querying, creating, or appending through `document` directly inside `theme.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct theme DOM calls from returning.
 Accent color target lookup and persisted color storage access now route through `accentColorRuntime.ts` instead of
 probing `document`, `HTMLElement`, or `localStorage` directly inside `accentColor.ts`, with focused runtime/behavior
 coverage and architecture coverage blocking those direct browser/storage calls from returning.
