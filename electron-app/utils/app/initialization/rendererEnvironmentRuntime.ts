@@ -16,13 +16,28 @@ export interface RendererEnvironmentRuntime {
     getDefaultRendererEnvironmentInput: () => RendererEnvironmentInput;
 }
 
+interface RendererEnvironmentGlobalScope {
+    readonly __DEVELOPMENT__?: unknown;
+    readonly electronAPI?: unknown;
+}
+
 const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
     {
-        getDevelopmentFlag: () => Reflect.get(globalThis, "__DEVELOPMENT__"),
+        getDevelopmentFlag: getGlobalDevelopmentFlag,
         getDocument: () => globalThis.document,
-        getElectronAPI: () => Reflect.get(globalThis, "electronAPI"),
+        getElectronAPI: getGlobalElectronAPI,
         getLocation: () => globalThis.location,
     };
+
+function getGlobalDevelopmentFlag(): unknown {
+    const rendererGlobal = globalThis as RendererEnvironmentGlobalScope;
+    return rendererGlobal.__DEVELOPMENT__;
+}
+
+function getGlobalElectronAPI(): unknown {
+    const rendererGlobal = globalThis as RendererEnvironmentGlobalScope;
+    return rendererGlobal.electronAPI;
+}
 
 export function getRendererEnvironmentRuntime(
     scope: RendererEnvironmentRuntimeScope = defaultRendererEnvironmentRuntimeScope

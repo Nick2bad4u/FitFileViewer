@@ -4633,7 +4633,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
@@ -4666,16 +4666,28 @@ describe("architecture boundaries", () => {
             "defaultRendererEnvironmentRuntimeScope"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
-            'getDevelopmentFlag: () => Reflect.get(globalThis, "__DEVELOPMENT__")'
+            "getDevelopmentFlag: getGlobalDevelopmentFlag"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
-            'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
+            "getElectronAPI: getGlobalElectronAPI"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "getLocation: () => globalThis.location"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "return rendererGlobal.__DEVELOPMENT__;"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "return rendererGlobal.electronAPI;"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            'Reflect.get(globalThis, "__DEVELOPMENT__")'
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            'Reflect.get(globalThis, "electronAPI")'
         );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getGlobalScope"

@@ -1193,6 +1193,8 @@ blocking that broad helper from returning.
 Renderer environment detection now uses focused `RendererEnvironmentInput` values for location, document,
 development-flag, and Electron API dev-mode checks instead of receiving a broad renderer-global object through a
 `getGlobalScope` provider, with runtime tests and architecture coverage blocking that broad handoff from returning.
+The default development-flag and Electron API candidate providers now use named explicit global readers instead of
+generic `Reflect.get(globalThis, ...)` probes.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.
