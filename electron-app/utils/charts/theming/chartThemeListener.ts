@@ -1,4 +1,4 @@
-import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
+import { getRegisteredChartStateManager } from "../core/chartStateManagerRegistry.js";
 import { updateCharts } from "../core/chartUpdater.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
@@ -39,9 +39,9 @@ function updateChartsForTheme(
     unavailableMessage: string,
     theme?: string
 ): void {
-    const stateManager = importedChartStateManager;
+    const stateManager = getRegisteredChartStateManager();
 
-    if (stateManager) {
+    if (typeof stateManager?.handleThemeChange === "function") {
         stateManager.handleThemeChange(theme);
         return;
     }

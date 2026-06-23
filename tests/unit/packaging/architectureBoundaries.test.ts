@@ -5405,6 +5405,32 @@ describe("architecture boundaries", () => {
         expect(chartStateManagerSource).not.toContain("cleanup()");
     });
 
+    it("keeps chart update entrypoints on the chart state manager registry", () => {
+        expect.assertions(6);
+
+        const chartUpdaterSource = stripComments(
+            readRepositoryFile("electron-app/utils/charts/core/chartUpdater.ts")
+        );
+        const chartThemeListenerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/theming/chartThemeListener.ts"
+            )
+        );
+
+        expect(chartUpdaterSource).toContain("chartStateManagerRegistry.js");
+        expect(chartUpdaterSource).toContain("getRegisteredChartStateManager");
+        expect(chartUpdaterSource).not.toContain("./chartStateManager.js");
+        expect(chartThemeListenerSource).toContain(
+            "chartStateManagerRegistry.js"
+        );
+        expect(chartThemeListenerSource).toContain(
+            "getRegisteredChartStateManager"
+        );
+        expect(chartThemeListenerSource).not.toContain(
+            "../core/chartStateManager.js"
+        );
+    });
+
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
         expect.assertions(23);
 

@@ -12,11 +12,14 @@ const { mockedChartStateManager } = vi.hoisted(() => ({
 const updateChartsMock = vi.hoisted(() =>
     vi.fn<UpdateChartsHandler>(() => Promise.resolve(true))
 );
+const getRegisteredChartStateManagerMock = vi.hoisted(() =>
+    vi.fn(() => mockedChartStateManager)
+);
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        chartStateManager: mockedChartStateManager,
+        getRegisteredChartStateManager: getRegisteredChartStateManagerMock,
     })
 );
 
@@ -134,6 +137,8 @@ async function runWithCleanEnvironment(
     await resetManagedState();
     resetDocumentBody();
     mockedChartStateManager.handleThemeChange.mockReset();
+    getRegisteredChartStateManagerMock.mockReset();
+    getRegisteredChartStateManagerMock.mockReturnValue(mockedChartStateManager);
     updateChartsMock.mockReset();
     updateChartsMock.mockResolvedValue(true);
     vi.spyOn(console, "error").mockReturnValue(undefined);
@@ -213,8 +218,10 @@ describe("chartThemeListener", () => {
         await runWithCleanEnvironment(async () => {
             vi.resetModules();
             vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
+                import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
+                () => ({
+                    getRegisteredChartStateManager: () => null,
+                })
             );
             mockChartUpdaterModule();
 
@@ -245,8 +252,10 @@ describe("chartThemeListener", () => {
         await runWithCleanEnvironment(async () => {
             vi.resetModules();
             vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
+                import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
+                () => ({
+                    getRegisteredChartStateManager: () => null,
+                })
             );
             mockChartUpdaterModule();
 
@@ -282,8 +291,10 @@ describe("chartThemeListener", () => {
         await runWithCleanEnvironment(async () => {
             vi.resetModules();
             vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
+                import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
+                () => ({
+                    getRegisteredChartStateManager: () => null,
+                })
             );
             mockChartUpdaterModule();
 
@@ -347,8 +358,10 @@ describe("chartThemeListener", () => {
         await runWithCleanEnvironment(async () => {
             vi.resetModules();
             vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
+                import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
+                () => ({
+                    getRegisteredChartStateManager: () => null,
+                })
             );
             mockChartUpdaterModule();
 
@@ -374,8 +387,10 @@ describe("chartThemeListener", () => {
         await runWithCleanEnvironment(async () => {
             vi.resetModules();
             vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
+                import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
+                () => ({
+                    getRegisteredChartStateManager: () => null,
+                })
             );
             mockChartUpdaterModule();
 
@@ -409,8 +424,10 @@ describe("chartThemeListener", () => {
         await runWithCleanEnvironment(async () => {
             vi.resetModules();
             vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
+                import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
+                () => ({
+                    getRegisteredChartStateManager: () => null,
+                })
             );
             mockChartUpdaterModule();
 

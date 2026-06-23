@@ -1,6 +1,6 @@
-import { chartStateManager } from "./chartStateManager.js";
 import { destroyRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { renderChartJS } from "./renderChartJS.js";
+import { getRegisteredChartStateManager } from "./chartStateManagerRegistry.js";
 
 /**
  * Snapshot of chart updater availability and runtime wiring.
@@ -19,6 +19,8 @@ export type ChartUpdateSystemStatus = {
  * @returns Current chart update system status.
  */
 export function getChartUpdateSystemStatus(): ChartUpdateSystemStatus {
+    const chartStateManager = getRegisteredChartStateManager();
+
     return {
         chartStateManager: Boolean(chartStateManager),
         globalRenderChartJS: false,
@@ -34,10 +36,12 @@ export function getChartUpdateSystemStatus(): ChartUpdateSystemStatus {
  * @returns Whether the modern chart state manager can accept render requests.
  */
 export function isModernChartSystemAvailable(): boolean {
+    const chartStateManager = getRegisteredChartStateManager();
+
     return (
-        Boolean(chartStateManager) &&
+        chartStateManager !== null &&
         typeof chartStateManager.debouncedRender === "function" &&
-        chartStateManager.isInitialized
+        chartStateManager.isInitialized === true
     );
 }
 
@@ -58,6 +62,7 @@ export async function updateCharts(
     try {
         console.log(`[ChartUpdate] Triggering chart update: ${reason}`);
 
+        const chartStateManager = getRegisteredChartStateManager();
         if (
             chartStateManager &&
             typeof chartStateManager.debouncedRender === "function"
@@ -136,6 +141,7 @@ export async function updateChartsForThemeChange(
     try {
         console.log(`[ChartUpdate] Handling theme change to: ${newTheme}`);
 
+        const chartStateManager = getRegisteredChartStateManager();
         if (
             chartStateManager &&
             typeof chartStateManager.handleThemeChange === "function"

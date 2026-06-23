@@ -31,12 +31,14 @@ const chartStateManagerMock = vi.hoisted<ChartStateManagerMock>(() => ({
 const renderChartJSMock = vi.hoisted(() =>
     vi.fn<(container?: HTMLElement | null) => Promise<boolean>>()
 );
+const getRegisteredChartStateManagerMock = vi.hoisted(() =>
+    vi.fn<() => ChartStateManagerMock | null>(() => chartStateManagerMock)
+);
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        chartStateManager: chartStateManagerMock,
-        default: chartStateManagerMock,
+        getRegisteredChartStateManager: getRegisteredChartStateManagerMock,
     })
 );
 
@@ -62,6 +64,7 @@ import {
 } from "../../../../../electron-app/utils/charts/core/chartUpdater.js";
 
 function resetMocks(): void {
+    getRegisteredChartStateManagerMock.mockReturnValue(chartStateManagerMock);
     chartStateManagerMock.debouncedRender = debouncedRenderMock;
     chartStateManagerMock.handleThemeChange = handleThemeChangeMock;
     chartStateManagerMock.isInitialized = true;
@@ -70,6 +73,7 @@ function resetMocks(): void {
     forceRenderMock.mockClear();
     getChartInfoMock.mockClear();
     handleThemeChangeMock.mockClear();
+    getRegisteredChartStateManagerMock.mockClear();
     renderChartJSMock.mockReset();
     clearChartInstanceRegistryForTests();
 }

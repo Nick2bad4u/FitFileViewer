@@ -862,6 +862,9 @@ Chart request listener registration, fallback containers, HTMLElement checks, an
 runtime provider functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 Chart state-manager DOM and timer access now uses named runtime provider functions instead of a broad `globalThis`
 default scope or legacy direct scope properties.
+Chart updater status/update/theme-change paths and chart theme listener handoff now resolve the chart state
+manager through `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with
+architecture coverage blocking direct singleton imports from returning in those update entrypoints.
 State devtools tests no longer delete the retired `__stateDebug` debug global around cleanup or initialization;
 they now assert typed debug utilities stay off `globalThis`, and architecture coverage blocks that mutation
 from returning.
