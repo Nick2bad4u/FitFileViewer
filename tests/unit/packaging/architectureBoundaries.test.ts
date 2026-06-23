@@ -10064,7 +10064,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(24);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -10089,11 +10089,26 @@ describe("architecture boundaries", () => {
             "addFullScreenButtonRuntime.js"
         );
         expect(fullscreenButtonSource).toContain("createAbortController");
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime.getElementById("
+        );
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime.hasBodyClass("
+        );
+        expect(fullscreenButtonSource).not.toContain(
+            "const btn = document.getElementById(FULLSCREEN_BUTTON_ID)"
+        );
+        expect(fullscreenButtonSource).not.toContain(
+            'const hasFile = document.body.classList.contains("app-has-file")'
+        );
         expect(fullscreenButtonRuntimeSource).toContain(
             "defaultAddFullScreenButtonRuntimeScope"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
@@ -10108,6 +10123,9 @@ describe("architecture boundaries", () => {
             "readonly documentEventTarget?:"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
             "readonly globalEventTarget?:"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
@@ -10116,6 +10134,7 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
+        expect(fullscreenButtonRuntimeSource).not.toContain("scope.document");
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "scope.globalEventTarget"
         );
@@ -10123,6 +10142,9 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonRuntimeSource).not.toContain("documentTarget");
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "scope: AddFullScreenButtonRuntimeScope = {"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "addFullScreenButton requires a document runtime"
         );
     });
 

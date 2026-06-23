@@ -271,7 +271,9 @@ fields. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside
-`addFullScreenButton.ts`. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
+`addFullScreenButton.ts`. Fullscreen button loaded-file state now also resolves the button and body class through
+`addFullScreenButtonRuntime.ts` instead of reading `document.getElementById` and `document.body.classList` in that
+state update path. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge

@@ -57,8 +57,11 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
+        const staleDocument = document.implementation.createHTMLDocument(
+            "stale fullscreen button runtime"
+        );
         const staleDocumentEventTarget = new EventTarget();
         const staleWindowEventTarget = new EventTarget();
         const staleDocumentListenerController = new AbortController();
@@ -75,6 +78,7 @@ describe("getAddFullScreenButtonRuntime", () => {
                 },
                 removeEventListener: vi.fn(),
             },
+            document: staleDocument,
             globalEventTarget: {
                 addEventListener(type, listener, options) {
                     staleWindowAddEventListener(type, listener, options);
@@ -96,8 +100,33 @@ describe("getAddFullScreenButtonRuntime", () => {
         staleWindowEventTarget.dispatchEvent(new Event("keydown"));
 
         expect(handledEventTypes).toStrictEqual([]);
+        expect(() => runtime.getElementById("global-fullscreen-btn")).toThrow(
+            "addFullScreenButton requires a document runtime"
+        );
+        expect(() => runtime.hasBodyClass("app-has-file")).toThrow(
+            "addFullScreenButton requires a document runtime"
+        );
         expect(staleDocumentAddEventListener).not.toHaveBeenCalled();
         expect(staleWindowAddEventListener).not.toHaveBeenCalled();
+    });
+
+    it("reads fullscreen button state through the injected document runtime", () => {
+        expect.assertions(3);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "fullscreen button runtime"
+        );
+        const button = documentRef.createElement("button");
+        button.id = "global-fullscreen-btn";
+        documentRef.body.append(button);
+        const runtime = getAddFullScreenButtonRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.getElementById("global-fullscreen-btn")).toBe(button);
+        expect(runtime.hasBodyClass("app-has-file")).toBe(false);
+        documentRef.body.classList.add("app-has-file");
+        expect(runtime.hasBodyClass("app-has-file")).toBe(true);
     });
 
     it("creates abort controllers through the injected runtime", () => {

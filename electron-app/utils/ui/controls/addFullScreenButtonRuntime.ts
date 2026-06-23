@@ -5,6 +5,7 @@ export interface AddFullScreenButtonRuntimeScope {
     readonly getDocumentEventTarget?:
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getGlobalEventTarget?:
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
@@ -27,6 +28,8 @@ export interface AddFullScreenButtonRuntime {
         options?: Readonly<AddEventListenerOptions>
     ) => void;
     createAbortController: () => AbortController;
+    getElementById: (id: string) => HTMLElement | null;
+    hasBodyClass: (className: string) => boolean;
     removeDocumentEventListener: (
         type: string,
         listener: EventListener
@@ -53,6 +56,17 @@ function getDocumentEventTarget(
     return scope.getDocumentEventTarget?.();
 }
 
+function getDocument(scope: AddFullScreenButtonRuntimeScope): Document {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError(
+            "addFullScreenButton requires a document runtime"
+        );
+    }
+
+    return runtimeDocument;
+}
+
 function getGlobalEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
@@ -76,6 +90,7 @@ function isAddFullScreenButtonEventTarget(
 const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
         getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
         getDocumentEventTarget: () => globalThis.document,
         getGlobalEventTarget: () =>
             isAddFullScreenButtonEventTarget(globalThis)
@@ -101,6 +116,12 @@ export function getAddFullScreenButtonRuntime(
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        getElementById(id): HTMLElement | null {
+            return getDocument(scope).getElementById(id);
+        },
+        hasBodyClass(className): boolean {
+            return getDocument(scope).body.classList.contains(className);
         },
         removeDocumentEventListener(type, listener): void {
             const documentEventTarget = getDocumentEventTarget(scope);

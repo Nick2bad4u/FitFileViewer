@@ -651,9 +651,11 @@ function updateButtonState(button: HTMLElement, isFullscreen: boolean): void {
 // logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
 /** Updates fullscreen button state based on whether a file is loaded. */
 function updateFullscreenButtonState(): void {
-    const btn = document.getElementById(FULLSCREEN_BUTTON_ID);
+    const btn = addFullScreenButtonRuntime.getElementById(
+        FULLSCREEN_BUTTON_ID
+    );
     if (!btn) return;
-    const hasFile = document.body.classList.contains("app-has-file");
+    const hasFile = addFullScreenButtonRuntime.hasBodyClass("app-has-file");
     btn.setAttribute("tabindex", hasFile ? "0" : "-1");
     btn.dataset["tooltip"] = hasFile ? "Fullscreen (F11)" : "Load a file first";
 }
