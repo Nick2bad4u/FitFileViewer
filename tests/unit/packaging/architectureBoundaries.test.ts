@@ -4744,7 +4744,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(35);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -4762,6 +4762,18 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/utils/ui/browser/fileBrowserTabRuntime.ts"
             )
+        );
+        const openBrowserFileSource = browserTabSource.slice(
+            browserTabSource.indexOf("async function openBrowserFile"),
+            browserTabSource.indexOf("function parseMonthKey")
+        );
+        const refreshListingSource = browserTabSource.slice(
+            browserTabSource.indexOf("async function refreshListing"),
+            browserTabSource.indexOf("function createBrowserItemButton")
+        );
+        const browserItemButtonSource = browserTabSource.slice(
+            browserTabSource.indexOf("function createBrowserItemButton"),
+            browserTabSource.indexOf("function renderCalendarResults")
         );
 
         expect(violations).toStrictEqual([]);
@@ -4785,6 +4797,32 @@ describe("architecture boundaries", () => {
         expect(browserTabSource).not.toMatch(
             /document\.querySelector<HTMLElement>\(\s*"#fit-browser-(?:pick-folder|status|view-calendar|view-files|view-library)"/u
         );
+        expect(openBrowserFileSource).toContain(
+            'fileBrowserTabRuntime.getElement<HTMLElement>("#open_file_btn")'
+        );
+        expect(openBrowserFileSource).toContain(
+            "fileBrowserTabRuntime.isHTMLElement(openFileBtn)"
+        );
+        expect(openBrowserFileSource).not.toContain(
+            'document.querySelector<HTMLElement>("#open_file_btn")'
+        );
+        expect(openBrowserFileSource).not.toContain(
+            "openFileBtn instanceof HTMLElement"
+        );
+        expect(refreshListingSource).toMatch(
+            /fileBrowserTabRuntime\.getElement<HTMLElement>\(\s*"#fit-browser-current-path"\s*\)/u
+        );
+        expect(refreshListingSource).toMatch(
+            /fileBrowserTabRuntime\.getElement<HTMLElement>\(\s*"#fit-browser-list"\s*\)/u
+        );
+        expect(refreshListingSource).not.toContain("document.querySelector");
+        expect(browserItemButtonSource).toContain(
+            'fileBrowserTabRuntime.createElement("button")'
+        );
+        expect(browserItemButtonSource).not.toContain(
+            'document.createElement("button")'
+        );
+        expect(browserItemButtonSource).not.toContain("document.querySelector");
         expect(browserTabRuntimeSource).toContain(
             "defaultFileBrowserTabRuntimeScope"
         );

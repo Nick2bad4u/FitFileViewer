@@ -908,7 +908,7 @@ async function openBrowserFile(filePath: string): Promise<void> {
         }
 
         const openFileBtn =
-            document.querySelector<HTMLElement>("#open_file_btn");
+            fileBrowserTabRuntime.getElement<HTMLElement>("#open_file_btn");
         const openParams: {
             filePath: string;
             openFileBtn?: HTMLElement;
@@ -921,7 +921,7 @@ async function openBrowserFile(filePath: string): Promise<void> {
             filePath,
             showNotification,
         };
-        if (openFileBtn instanceof HTMLElement) {
+        if (fileBrowserTabRuntime.isHTMLElement(openFileBtn)) {
             openParams.openFileBtn = openFileBtn;
         }
         await openFitFileFromPath(openParams);
@@ -1073,10 +1073,11 @@ async function refreshActiveView(): Promise<void> {
 
 async function refreshListing(): Promise<void> {
     const api = getElectronAPI();
-    const pathEl = document.querySelector<HTMLElement>(
+    const pathEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-current-path"
     );
-    const listEl = document.querySelector<HTMLElement>("#fit-browser-list");
+    const listEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-browser-list");
 
     if (!pathEl || !listEl) {
         return;
@@ -1199,7 +1200,7 @@ function createBrowserItemButton(
     iconName: AppIconName,
     label: string
 ): HTMLButtonElement {
-    const button = document.createElement("button");
+    const button = fileBrowserTabRuntime.createElement("button");
     button.type = "button";
     button.className = `file-browser__item ${
         kind === "dir" ? "file-browser__item--dir" : "file-browser__item--file"
