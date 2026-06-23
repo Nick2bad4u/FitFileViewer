@@ -4233,7 +4233,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(36);
+        expect.assertions(46);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4283,8 +4283,36 @@ describe("architecture boundaries", () => {
             "getRendererScope: () => globalThis as RendererRuntimeScope"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
+            "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getClearInterval: () => globalThis.clearInterval.bind(globalThis)"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getConsole: () => globalThis.console"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            'getElectronApiCandidate: () => Reflect.get(globalThis, "electronAPI")'
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getRemoveEventListener: () =>"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getSetInterval: () => globalThis.setInterval.bind(globalThis)"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
             "readonly rendererGlobal: Window & typeof globalThis"
         );
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
+            "type RendererRuntimeEnvironmentScope =\n    | RendererRuntimeScope"
+        );
+        expect(rendererRuntimeEnvironmentSource).not.toContain("return scope;");
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "readonly windowTarget"
         );
