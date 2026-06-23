@@ -41,6 +41,9 @@ export interface UIStateManagerRuntimeScope {
     readonly getEventTarget?:
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
+    readonly getFileLoadingProgressElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getLoadingIndicatorElement?: UIStateManagerElementProvider | undefined;
     readonly getMainContentElement?: UIStateManagerElementProvider | undefined;
     readonly getMatchMedia?:
@@ -65,6 +68,7 @@ export interface UIStateManagerRuntime {
     ) => void;
     createAbortController: () => AbortController;
     getDefaultDocumentTitle: (fallbackTitle: string) => string;
+    getFileLoadingProgressElement: () => HTMLElement | null;
     getLoadingIndicatorElement: () => HTMLElement | null;
     getMainContentElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
@@ -83,6 +87,10 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
+    getFileLoadingProgressElement: () =>
+        globalThis.document.querySelector<HTMLElement>(
+            "#file-loading-progress"
+        ),
     getLoadingIndicatorElement: () =>
         globalThis.document.querySelector<HTMLElement>("#loading-indicator"),
     getMainContentElement: () =>
@@ -120,6 +128,12 @@ function getFileStateBody(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerFileStateBody | undefined {
     return scope.getFileStateBody?.();
+}
+
+function getFileLoadingProgressElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getFileLoadingProgressElement?.() ?? null;
 }
 
 function getLoadingIndicatorElement(
@@ -206,6 +220,9 @@ export function getUIStateManagerRuntime(
         },
         getDefaultDocumentTitle(fallbackTitle): string {
             return getDocumentTitle(scope) ?? fallbackTitle;
+        },
+        getFileLoadingProgressElement(): HTMLElement | null {
+            return getFileLoadingProgressElement(scope);
         },
         getLoadingIndicatorElement(): HTMLElement | null {
             return getLoadingIndicatorElement(scope);

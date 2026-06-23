@@ -139,22 +139,32 @@ describe("uiStateManagerRuntime", () => {
         expect(body.dataset).toStrictEqual({ hasFitFile: "true" });
     });
 
-    it("routes loading indicator element lookups through scoped providers", () => {
-        expect.assertions(6);
+    it("routes loading element lookups through scoped providers", () => {
+        expect.assertions(9);
 
+        const fileLoadingProgress = document.createElement("progress");
         const loadingIndicator = document.createElement("div");
         const mainContent = document.createElement("main");
+        const getFileLoadingProgressElement = vi.fn(() => fileLoadingProgress);
         const getLoadingIndicatorElement = vi.fn(() => loadingIndicator);
         const getMainContentElement = vi.fn(() => mainContent);
         const runtime = getUIStateManagerRuntime({
+            getFileLoadingProgressElement,
             getLoadingIndicatorElement,
             getMainContentElement,
         });
 
+        expect(runtime.getFileLoadingProgressElement()).toBe(
+            fileLoadingProgress
+        );
         expect(runtime.getLoadingIndicatorElement()).toBe(loadingIndicator);
         expect(runtime.getMainContentElement()).toBe(mainContent);
+        expect(getFileLoadingProgressElement).toHaveBeenCalledOnce();
         expect(getLoadingIndicatorElement).toHaveBeenCalledOnce();
         expect(getMainContentElement).toHaveBeenCalledOnce();
+        expect(
+            getUIStateManagerRuntime({}).getFileLoadingProgressElement()
+        ).toBeNull();
         expect(
             getUIStateManagerRuntime({}).getLoadingIndicatorElement()
         ).toBeNull();
@@ -261,7 +271,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(21);
+        expect.assertions(23);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -272,6 +282,7 @@ describe("uiStateManagerRuntime", () => {
         }
         const addEventListener = vi.fn();
         const fileStateToggle = vi.fn();
+        const fileLoadingProgressElement = document.createElement("progress");
         const loadingIndicatorElement = document.createElement("div");
         const mainContentElement = document.createElement("main");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
@@ -282,6 +293,7 @@ describe("uiStateManagerRuntime", () => {
                 TestAbortController as unknown as typeof AbortController,
             documentTitle: "Legacy title",
             eventTarget: { addEventListener },
+            fileLoadingProgressElement,
             fileStateBody: {
                 classList: { toggle: fileStateToggle },
                 dataset: {},
@@ -313,6 +325,7 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
             "Fit File Viewer"
         );
+        expect(runtime.getFileLoadingProgressElement()).toBeNull();
         expect(runtime.getLoadingIndicatorElement()).toBeNull();
         expect(runtime.getMainContentElement()).toBeNull();
         expect(runtime.getWindowState()).toBeNull();
@@ -323,6 +336,9 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(fileStateToggle).not.toHaveBeenCalled();
+        expect(runtime.getFileLoadingProgressElement()).not.toBe(
+            fileLoadingProgressElement
+        );
         expect(runtime.getLoadingIndicatorElement()).not.toBe(
             loadingIndicatorElement
         );

@@ -630,9 +630,7 @@ export class UIStateManager {
 
         const progressElement = (() => {
             try {
-                return document.querySelector<HTMLElement>(
-                    "#file-loading-progress"
-                );
+                return uiStateManagerRuntime.getFileLoadingProgressElement();
             } catch {
                 return null;
             }

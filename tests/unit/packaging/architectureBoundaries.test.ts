@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(52);
+        expect.assertions(57);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6603,6 +6603,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("getFileLoadingProgressElement");
         expect(uiStateManagerSource).toContain("getLoadingIndicatorElement");
         expect(uiStateManagerSource).toContain("getMainContentElement");
         expect(uiStateManagerSource).toContain("setAppHasFileState");
@@ -6615,6 +6616,9 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain('datasetRef["hasFitFile"]');
         expect(uiStateManagerSource).not.toContain(
             'document.querySelector<HTMLElement>(\n                    "#loading-indicator"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelector<HTMLElement>(\n                    "#file-loading-progress"'
         );
         expect(uiStateManagerSource).not.toContain(
             'document.querySelector<HTMLElement>("#main-content")'
@@ -6639,6 +6643,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getMatchMedia: () => globalThis.matchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            '"#file-loading-progress"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'globalThis.document.querySelector<HTMLElement>("#loading-indicator")'
@@ -6673,6 +6680,9 @@ describe("architecture boundaries", () => {
             "readonly fileStateBody?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly fileLoadingProgressElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly loadingIndicatorElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6701,6 +6711,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.fileStateBody"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.fileLoadingProgressElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.loadingIndicatorElement"

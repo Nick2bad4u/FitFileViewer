@@ -889,7 +889,7 @@ globals during cleanup, with architecture coverage blocking that fixture mutatio
 UI state manager theme tests now install and restore temporary `matchMedia` fixtures through a descriptor-scoped
 helper instead of defining or deleting `globalThis.matchMedia` directly, with architecture coverage blocking
 that fixture mutation pattern.
-UI state manager system-theme media-query lookup, document title reads/writes, active-file body state updates, loading indicator/main-content lookup, loading cursor updates, listener abort-controller creation, and module-level window
+UI state manager system-theme media-query lookup, document title reads/writes, active-file body state updates, loading indicator/main-content/progress lookup, loading cursor updates, listener abort-controller creation, and module-level window
 resize/beforeunload listener registration now route through `uiStateManagerRuntime.ts` instead of probing
 `globalThis.window`, probing `globalThis.matchMedia`, reading or writing `document.title`, toggling
 `document.body` file-state classes/dataset fields, querying loading-state DOM elements directly, writing
