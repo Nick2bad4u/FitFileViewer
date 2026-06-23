@@ -3498,7 +3498,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload app leaf modules on native imports", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const appModuleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadAppModuleLoader.ts")
@@ -3538,6 +3538,12 @@ describe("architecture boundaries", () => {
             'import { createThemeApi } from "./themeApi.js";'
         );
         expect(appModuleLoaderSource).not.toContain("requireModule");
+        expect(appModuleLoaderSource).not.toContain(
+            "createAppInfoApi as unknown"
+        );
+        expect(appModuleLoaderSource).not.toContain(
+            "createThemeApi as unknown"
+        );
         expect(moduleLoaderSource).toContain("loadPreloadAppModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadAppModules({ requireModule })"

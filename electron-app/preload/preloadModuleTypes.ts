@@ -132,6 +132,12 @@ export type CreateMainStateApi = (
 export type CreateMainStateBridge = (
     options: CreateMainStateBridgeOptions
 ) => PreloadMainStateBridge;
+export type CreateAppInfoApi = (
+    options: CreateAppInfoApiOptions
+) => ElectronAppInfoApi;
+export type CreateThemeApi = (
+    options: CreateThemeApiOptions
+) => ElectronThemeApi;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -286,9 +292,32 @@ export interface CreateMainStateBridgeOptions {
     ) => void;
 }
 
+export interface AppInfoApiChannels {
+    APP_VERSION: Extract<GenericInvokeChannel, "getAppVersion">;
+    CHROME_VERSION: Extract<GenericInvokeChannel, "getChromeVersion">;
+    ELECTRON_VERSION: Extract<GenericInvokeChannel, "getElectronVersion">;
+    LICENSE_INFO: Extract<GenericInvokeChannel, "getLicenseInfo">;
+    NODE_VERSION: Extract<GenericInvokeChannel, "getNodeVersion">;
+    PLATFORM_INFO: Extract<GenericInvokeChannel, "getPlatformInfo">;
+}
+
+export interface CreateAppInfoApiOptions {
+    channels: AppInfoApiChannels;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+}
+
+export interface ThemeApiChannels {
+    THEME_GET: Extract<GenericInvokeChannel, "theme:get">;
+}
+
+export interface CreateThemeApiOptions {
+    channels: ThemeApiChannels;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+}
+
 export interface PreloadModuleRegistry {
     createApiDiagnostics: PreloadApiFactory<ElectronApiDiagnosticsApi>;
-    createAppInfoApi: PreloadApiFactory<ElectronAppInfoApi>;
+    createAppInfoApi: CreateAppInfoApi;
     createClipboardBridge: PreloadApiFactory<ElectronClipboardApi>;
     createDevtoolsMenuApi: PreloadApiFactory<ElectronDevtoolsMenuApi>;
     createFileApi: PreloadApiFactory<ElectronFileApi>;
@@ -344,7 +373,7 @@ export interface PreloadModuleRegistry {
         ) => value is string;
     };
     createShellExternalApi: PreloadApiFactory<ElectronShellExternalApi>;
-    createThemeApi: PreloadApiFactory<ElectronThemeApi>;
+    createThemeApi: CreateThemeApi;
     exposeDevelopmentToolsGlobal: (options: Record<string, unknown>) => boolean;
     exposeElectronApi: (options: Record<string, unknown>) => boolean;
     ipcBridgeCatalog: IpcBridgeCatalog;

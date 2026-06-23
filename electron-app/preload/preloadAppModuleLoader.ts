@@ -27,8 +27,6 @@ type PreloadAppModules = Pick<
 
 const createApiDiagnosticsModule =
     createApiDiagnostics as unknown as PreloadModuleRegistry["createApiDiagnostics"];
-const createAppInfoApiModule =
-    createAppInfoApi as unknown as PreloadModuleRegistry["createAppInfoApi"];
 const createClipboardBridgeModule =
     createClipboardBridge as unknown as PreloadModuleRegistry["createClipboardBridge"];
 const createDevtoolsMenuApiModule =
@@ -37,8 +35,6 @@ const createGyazoExternalApiModule =
     createGyazoExternalApi as unknown as PreloadModuleRegistry["createGyazoExternalApi"];
 const createShellExternalApiModule =
     createShellExternalApi as unknown as PreloadModuleRegistry["createShellExternalApi"];
-const createThemeApiModule =
-    createThemeApi as unknown as PreloadModuleRegistry["createThemeApi"];
 const exposeDevelopmentToolsGlobalModule =
     exposeDevelopmentToolsGlobal as unknown as PreloadModuleRegistry["exposeDevelopmentToolsGlobal"];
 const isPreloadDevelopmentModeModule =
@@ -49,12 +45,12 @@ const registerPreloadBeforeExitHandlerModule =
 export function loadPreloadAppModules(): PreloadAppModules {
     return {
         createApiDiagnostics: createApiDiagnosticsModule,
-        createAppInfoApi: createAppInfoApiModule,
+        createAppInfoApi,
         createClipboardBridge: createClipboardBridgeModule,
         createDevtoolsMenuApi: createDevtoolsMenuApiModule,
         createGyazoExternalApi: createGyazoExternalApiModule,
         createShellExternalApi: createShellExternalApiModule,
-        createThemeApi: createThemeApiModule,
+        createThemeApi,
         exposeDevelopmentToolsGlobal: exposeDevelopmentToolsGlobalModule,
         isPreloadDevelopmentMode: isPreloadDevelopmentModeModule,
         registerPreloadBeforeExitHandler:
