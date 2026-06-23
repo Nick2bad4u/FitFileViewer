@@ -58,9 +58,7 @@ export interface UIStateManagerRuntimeScope {
     readonly getHTMLElement?:
         | (() => typeof globalThis.HTMLElement | undefined)
         | undefined;
-    readonly getAltFitIframeElement?:
-        | UIStateManagerElementProvider
-        | undefined;
+    readonly getAltFitIframeElement?: UIStateManagerElementProvider | undefined;
     readonly getChartControlsToggleElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -71,7 +69,9 @@ export interface UIStateManagerRuntimeScope {
     readonly getFileLoadingProgressElement?:
         | UIStateManagerElementProvider
         | undefined;
-    readonly getLoadingIndicatorElement?: UIStateManagerElementProvider | undefined;
+    readonly getLoadingIndicatorElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getMainContentElement?: UIStateManagerElementProvider | undefined;
     readonly getMapContainerElement?: UIStateManagerElementProvider | undefined;
     readonly getMeasurementModeToggleElement?:
@@ -94,9 +94,7 @@ export interface UIStateManagerRuntimeScope {
     readonly getUnloadFileButtonElement?:
         | UIStateManagerElementProvider
         | undefined;
-    readonly getZwiftIframeElement?:
-        | UIStateManagerElementProvider
-        | undefined;
+    readonly getZwiftIframeElement?: UIStateManagerElementProvider | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
@@ -148,11 +146,15 @@ export interface UIStateManagerRuntime {
     setDocumentTitle: (title: string) => void;
 }
 
+function getGlobalDocument(): Document {
+    return globalThis.document;
+}
+
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
-    createSpanElement: () => globalThis.document.createElement("span"),
+    createSpanElement: () => getGlobalDocument().createElement("span"),
     getAbortController: () => globalThis.AbortController,
-    getFileStateBody: () => globalThis.document.body,
-    getDocumentTitle: () => globalThis.document.title,
+    getFileStateBody: () => getGlobalDocument().body,
+    getDocumentTitle: () => getGlobalDocument().title,
     getEventTarget: () =>
         typeof globalThis.addEventListener === "function"
             ? globalThis
@@ -160,62 +162,62 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getHTMLElement: () => globalThis.HTMLElement,
     getActiveFileNameContainerElement: () =>
         getElementByIdFlexible(
-            globalThis.document,
+            getGlobalDocument(),
             "active_file_name_container"
         ),
     getActiveFileNameElement: () =>
-        getElementByIdFlexible(globalThis.document, "active_file_name"),
+        getElementByIdFlexible(getGlobalDocument(), "active_file_name"),
     getAltFitIframeElement: () =>
-        getElementByIdFlexible(globalThis.document, "altfit_iframe"),
+        getElementByIdFlexible(getGlobalDocument(), "altfit_iframe"),
     getChartControlsToggleElement: () =>
-        getChartControlsToggle(globalThis.document),
+        getChartControlsToggle(getGlobalDocument()),
     getChartSettingsWrapperElement: () =>
-        getChartSettingsWrapper(globalThis.document),
+        getChartSettingsWrapper(getGlobalDocument()),
     getDropOverlayElement: () =>
-        getElementByIdFlexible(globalThis.document, "drop_overlay"),
+        getElementByIdFlexible(getGlobalDocument(), "drop_overlay"),
     getFileLoadingProgressElement: () =>
-        globalThis.document.querySelector<HTMLElement>(
+        getGlobalDocument().querySelector<HTMLElement>(
             "#file-loading-progress"
         ),
     getLoadingIndicatorElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#loading-indicator"),
+        getGlobalDocument().querySelector<HTMLElement>("#loading-indicator"),
     getMainContentElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#main-content"),
+        getGlobalDocument().querySelector<HTMLElement>("#main-content"),
     getMapContainerElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#map-container"),
+        getGlobalDocument().querySelector<HTMLElement>("#map-container"),
     getMeasurementModeToggleElement: () =>
-        globalThis.document.querySelector<HTMLElement>(
+        getGlobalDocument().querySelector<HTMLElement>(
             "#measurement-mode-toggle"
         ),
     getSidebarElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#sidebar"),
+        getGlobalDocument().querySelector<HTMLElement>("#sidebar"),
     getTabButtonElements: () => [
-        ...globalThis.document.querySelectorAll("[data-tab]"),
+        ...getGlobalDocument().querySelectorAll("[data-tab]"),
     ],
     getTabContentElements: () => [
-        ...globalThis.document.querySelectorAll(".tab-content"),
+        ...getGlobalDocument().querySelectorAll(".tab-content"),
     ],
     getThemeRootElement: () =>
-        globalThis.document.documentElement || globalThis.document.body,
+        getGlobalDocument().documentElement || getGlobalDocument().body,
     getThemeStateElements: () => [
-        ...globalThis.document.querySelectorAll("[data-theme]"),
+        ...getGlobalDocument().querySelectorAll("[data-theme]"),
     ],
     getThemeToggleElements: () => [
-        ...globalThis.document.querySelectorAll(
+        ...getGlobalDocument().querySelectorAll(
             'button[data-theme], [role="button"][data-theme]'
         ),
     ],
     getUnloadFileButtonElement: () =>
-        getElementByIdFlexible(globalThis.document, "unload_file_btn"),
+        getElementByIdFlexible(getGlobalDocument(), "unload_file_btn"),
     getZwiftIframeElement: () =>
-        getElementByIdFlexible(globalThis.document, "zwift_iframe"),
+        getElementByIdFlexible(getGlobalDocument(), "zwift_iframe"),
     getMatchMedia: () => globalThis.matchMedia,
     getSetBodyCursor: () => (cursor) => {
-        globalThis.document.body.style.cursor = cursor;
+        getGlobalDocument().body.style.cursor = cursor;
     },
     getViewportState: () => globalThis,
     getSetDocumentTitle: () => (title) => {
-        globalThis.document.title = title;
+        getGlobalDocument().title = title;
     },
 };
 

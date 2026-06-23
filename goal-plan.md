@@ -942,7 +942,8 @@ resize/beforeunload listener registration now route through `uiStateManagerRunti
 `globalThis.window`, probing `globalThis.matchMedia`, reading or writing `document.title`, toggling
 `document.body` file-state classes/dataset fields, querying active-file display, chart-controls, drop-overlay, loading-state, sidebar, measurement-mode, tab, theme, or unload-button DOM elements directly, creating active-file display spans directly, checking tab/theme elements against the ambient `HTMLElement` constructor directly, writing
 `document.body.style.cursor`, registering on `window.addEventListener`, or constructing `AbortController` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails
-blocking those direct browser/controller operations from returning.
+blocking those direct browser/controller operations from returning. Default document access inside the runtime now
+centralizes through `getGlobalDocument()` instead of repeating `globalThis.document` across the provider table.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.
