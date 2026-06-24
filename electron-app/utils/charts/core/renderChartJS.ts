@@ -127,7 +127,10 @@ import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencie
 import { renderChartDataCharts } from "./renderChartDataCharts.js";
 import { completeChartDataRender } from "./renderChartDataCompletion.js";
 import { beginChartDataRenderContext } from "./renderChartDataContext.js";
-import { getRenderChartJSRuntime } from "./renderChartJSRuntime.js";
+import {
+    getRenderChartJSRuntime,
+    type RenderChartJSRuntime,
+} from "./renderChartJSRuntime.js";
 import { registerChartInstance } from "./chartInstanceRegistry.js";
 import type {
     ActivityStartTime,
@@ -167,7 +170,9 @@ export const chartSettingsManager = createChartSettingsManager({
 });
 
 const renderTimingGate = createRenderTimingGate(RENDER_DEBOUNCE_MS);
-const renderChartRuntime = getRenderChartJSRuntime();
+function renderChartRuntime(): RenderChartJSRuntime {
+    return getRenderChartJSRuntime();
+}
 
 // A stable debounced re-render function.
 // NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
@@ -362,7 +367,7 @@ export async function renderChartJS(
                 doc: document,
                 getChartLifecycleActions,
                 isLoadingStateSuppressed,
-                now: renderChartRuntime.nowPerformance,
+                now: renderChartRuntime().nowPerformance,
                 setState: callSetState,
                 updateState: callUpdateState,
                 waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
@@ -398,7 +403,7 @@ export async function renderChartJS(
                 getChartLifecycleActions,
                 getRendererModules: getRendererModulesSafe,
                 isTestEnvironment,
-                now: renderChartRuntime.nowPerformance,
+                now: renderChartRuntime().nowPerformance,
                 renderChartsWithData: (
                     target,
                     messages,
@@ -471,7 +476,7 @@ async function renderChartsWithData(
             isChartDebugEnabled,
             isDevelopmentEnvironment,
             isTestEnvironment,
-            nowPerformance: renderChartRuntime.nowPerformance,
+            nowPerformance: renderChartRuntime().nowPerformance,
         },
         options
     );
@@ -534,7 +539,7 @@ async function renderChartsWithData(
             setChartOptionsState: ss_rcwd,
         },
         {
-            processedAt: renderChartRuntime.now(),
+            processedAt: renderChartRuntime().now(),
             recordCount: recordMesgs.length,
         }
     );
@@ -624,7 +629,7 @@ async function renderChartsWithData(
                 addHoverEffectsToExistingChartsSafe,
             chartContainer,
             CustomEventConstructor:
-                renderChartRuntime.getCustomEventConstructor(),
+                renderChartRuntime().getCustomEventConstructor(),
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
             getState: gs_rcwd,
@@ -632,8 +637,8 @@ async function renderChartsWithData(
             getUIStateManager: getUIStateManagerMaybe,
             isTestRuntime,
             notify,
-            now: renderChartRuntime.now,
-            nowPerformance: renderChartRuntime.nowPerformance,
+            now: renderChartRuntime().now,
+            nowPerformance: renderChartRuntime().nowPerformance,
             showRenderNotification: showRenderNotificationSafe,
             updatePreviousChartState,
             updateState: us_rcwd,
@@ -660,7 +665,7 @@ exposeChartDevTools({
     getState: callGetState,
     getStateHistory: callGetStateHistory,
     initializeChartStateManagement,
-    isWindowAvailable: renderChartRuntime.isWindowAvailable(),
+    isWindowAvailable: renderChartRuntime().isWindowAvailable(),
     refreshChartsIfNeeded,
     resetChartNotificationState,
     setState: callSetState,
