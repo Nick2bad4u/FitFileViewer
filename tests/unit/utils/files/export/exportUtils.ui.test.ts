@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 type DetectCurrentTheme = () => "light";
 type OAuthReject = (error: Error) => void;
 type OAuthResolve = (token: string) => void;
@@ -7,6 +9,9 @@ type ShowNotification = (message: string, type: string) => void;
 type StopGyazoServer = () => Promise<void>;
 type TestGlobal = typeof globalThis & {
     confirm: (message?: string) => boolean;
+};
+type GyazoElectronAPI = {
+    readonly stopGyazoServer: ReturnType<typeof vi.fn<StopGyazoServer>>;
 };
 
 let detectCurrentThemeMock:
@@ -48,6 +53,12 @@ function getStopGyazoServerMock(): ReturnType<typeof vi.fn<StopGyazoServer>> {
         throw new Error("stopGyazoServer mock was not installed");
     }
     return stopGyazoServerMock;
+}
+
+function createGyazoApiScope(api: GyazoElectronAPI): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 function installBaseMocks() {
@@ -109,12 +120,11 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         installBaseMocks();
     });
 
-    afterEach(async function cleanupExportUiTest(): Promise<void> {
+    afterEach(function cleanupExportUiTest(): void {
         document.body.replaceChildren();
         detectCurrentThemeMock = undefined;
         showNotificationMock = undefined;
         stopGyazoServerMock = undefined;
-        await resetRegisteredElectronApi();
     });
 
     it("imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
@@ -497,14 +507,18 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         stopGyazoServerMock = vi
             .fn<StopGyazoServer>()
             .mockResolvedValue(undefined);
-        await registerElectronApi({ stopGyazoServer: stopGyazoServerMock });
+        const electronApiScope = createGyazoApiScope({
+            stopGyazoServer: stopGyazoServerMock,
+        });
 
         const overlay = exportUtils.createGyazoAuthModal(
             "https://auth",
             "state",
             vi.fn<OAuthResolve>(),
             vi.fn<OAuthReject>(),
-            true
+            true,
+            undefined,
+            { electronApiScope }
         );
         document.body.append(overlay);
         (
@@ -519,7 +533,9 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             "state",
             vi.fn<OAuthResolve>(),
             vi.fn<OAuthReject>(),
-            true
+            true,
+            undefined,
+            { electronApiScope }
         );
         document.body.append(overlay2);
         const beforeEscCalls = stopGyazoServer.mock.calls.length;
@@ -535,7 +551,9 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
             "state",
             vi.fn<OAuthResolve>(),
             vi.fn<OAuthReject>(),
-            true
+            true,
+            undefined,
+            { electronApiScope }
         );
         document.body.append(overlay3);
         const beforeClickCalls = stopGyazoServer.mock.calls.length;
@@ -545,17 +563,3 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         );
     });
 });
-
-async function registerElectronApi(api: {
-    readonly stopGyazoServer: ReturnType<typeof vi.fn<StopGyazoServer>>;
-}): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    registerRendererElectronApiCandidate(api);
-}
-
-async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    resetRendererElectronApiCandidate();
-}

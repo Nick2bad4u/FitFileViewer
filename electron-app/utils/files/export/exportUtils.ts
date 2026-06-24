@@ -252,8 +252,10 @@ function setupExportModalAccessibility({
     };
 }
 
-async function stopGyazoServerIfAvailable(): Promise<void> {
-    const stopGyazoServer = getExportElectronApi()?.stopGyazoServer;
+async function stopGyazoServerIfAvailable(
+    options?: ExportElectronApiOptions
+): Promise<void> {
+    const stopGyazoServer = getExportElectronApi(options)?.stopGyazoServer;
     if (typeof stopGyazoServer === "function") {
         await stopGyazoServer();
     }
@@ -1548,6 +1550,7 @@ export const exportUtils = {
      * @param {boolean} useServer - Whether to use server
      * @param {undefined | (() => Promise<void>)} [onCancel] - Optional cleanup
      *   hook invoked before rejecting
+     * @param {ExportElectronApiOptions} [options] - Optional Electron API scope
      *
      * @returns {HTMLElement} Modal element
      */
@@ -1557,7 +1560,8 @@ export const exportUtils = {
         resolve: OAuthModalResolve,
         reject: OAuthModalReject,
         useServer: boolean,
-        onCancel?: () => Promise<void> | void
+        onCancel?: () => Promise<void> | void,
+        options?: ExportElectronApiOptions
     ) {
         const useServerFlag = useServer;
         // Create modal overlay
@@ -1805,7 +1809,7 @@ export const exportUtils = {
                 }
             } else if (useServerFlag) {
                 try {
-                    await stopGyazoServerIfAvailable();
+                    await stopGyazoServerIfAvailable(options);
                 } catch (error) {
                     console.error("Failed to stop OAuth server:", error);
                 }
