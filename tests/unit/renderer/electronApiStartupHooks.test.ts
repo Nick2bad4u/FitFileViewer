@@ -6,14 +6,8 @@ import {
     probeDevelopmentMode,
     registerStartupElectronHooks,
 } from "../../../electron-app/renderer/electronApiStartupHooks.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
-
 describe("renderer Electron API startup hooks", () => {
     afterEach(() => {
-        resetRendererElectronApiCandidate();
         vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
@@ -52,20 +46,7 @@ describe("renderer Electron API startup hooks", () => {
         expect(getElectronApiStartupHooks({})).toBeNull();
     });
 
-    it("ignores the registered Electron API candidate without an explicit scope", () => {
-        expect.assertions(1);
-
-        const checkForUpdates = vi.fn<() => void>();
-        const recentFiles = vi.fn<() => Promise<string[]>>();
-        registerRendererElectronApiCandidate({
-            checkForUpdates,
-            recentFiles,
-        });
-
-        expect(getElectronApiStartupHooks({})).toBeNull();
-    });
-
-    it("ignores ambient Electron API globals without a registered candidate", () => {
+    it("ignores ambient Electron API globals", () => {
         expect.assertions(1);
 
         const checkForUpdates = vi.fn<() => void>();

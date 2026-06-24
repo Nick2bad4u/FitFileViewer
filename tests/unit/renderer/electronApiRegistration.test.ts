@@ -4,10 +4,7 @@ import {
     installRendererElectronApiRegistration,
     registerRendererElectronAPI,
 } from "../../../electron-app/renderer/electronApiRegistration.js";
-import {
-    getRendererElectronApi,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
+import { getRendererElectronApi } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createOptions() {
     const state = {
@@ -61,7 +58,6 @@ function createElectronApi() {
 
 describe("renderer Electron API registration", () => {
     afterEach(() => {
-        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     });
 

@@ -2,8 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getRendererElectronApi,
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
     type RendererElectronApiScope,
 } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
@@ -22,7 +20,6 @@ function isExternalOpenApi(value: unknown): value is ExternalOpenApi {
 
 describe("electronApiRuntime", () => {
     afterEach(() => {
-        resetRendererElectronApiCandidate();
         vi.unstubAllGlobals();
     });
 
@@ -102,40 +99,9 @@ describe("electronApiRuntime", () => {
         expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
     });
 
-    it("uses a registered API candidate instead of ambient globals", () => {
-        expect.assertions(2);
-
-        const ambientApi = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
-        const registeredApi = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
-        vi.stubGlobal("electronAPI", ambientApi);
-
-        registerRendererElectronApiCandidate(registeredApi);
-        expect(getRendererElectronApi(isExternalOpenApi)).toBe(registeredApi);
-
-        resetRendererElectronApiCandidate();
-        expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
-    });
-
-    it("prefers an explicit provider scope over the registered fallback", () => {
+    it("returns null when no explicit provider scope is supplied", () => {
         expect.assertions(1);
 
-        const registeredApi = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
-        const scopedApi = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
-
-        registerRendererElectronApiCandidate(registeredApi);
-
-        expect(
-            getRendererElectronApi(isExternalOpenApi, {
-                getElectronAPI: () => scopedApi,
-            })
-        ).toBe(scopedApi);
+        expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
     });
 });

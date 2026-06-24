@@ -70,7 +70,6 @@ const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
 ] as const;
-const rendererElectronApiRuntimeRegressionTests = [] as const;
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "electron-app/utils/files/import/handleOpenFile.test.ts",
@@ -19053,36 +19052,6 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
-    it("keeps migrated renderer tests on the registered Electron API runtime", () => {
-        expect.assertions(2);
-
-        const directElectronApiGlobals =
-            rendererElectronApiRuntimeRegressionTests
-                .filter((relativeFile) =>
-                    directElectronApiGlobalReadPattern.test(
-                        stripComments(readRepositoryFile(relativeFile))
-                    )
-                )
-                .sort();
-        const missingRuntimeRegistration =
-            rendererElectronApiRuntimeRegressionTests
-                .filter((relativeFile) => {
-                    const source = stripComments(
-                        readRepositoryFile(relativeFile)
-                    );
-                    return (
-                        !source.includes(
-                            "registerRendererElectronApiCandidate"
-                        ) ||
-                        !source.includes("resetRendererElectronApiCandidate")
-                    );
-                })
-                .sort();
-
-        expect(directElectronApiGlobals).toStrictEqual([]);
-        expect(missingRuntimeRegistration).toStrictEqual([]);
-    });
-
     it("keeps scoped renderer Electron API tests off the registered fallback", () => {
         expect.assertions(3);
 
@@ -19171,8 +19140,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {
-        expect.assertions(8);
+    it("keeps Electron API runtime on explicit provider scopes", () => {
+        expect.assertions(10);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -19206,6 +19175,12 @@ describe("architecture boundaries", () => {
             "getWindow: () => globalThis.window"
         );
         expect(electronApiRuntimeSource).not.toContain("getWindowElectronApi");
+        expect(electronApiRuntimeSource).not.toContain(
+            "registerRendererElectronApiCandidate"
+        );
+        expect(electronApiRuntimeSource).not.toContain(
+            "resetRendererElectronApiCandidate"
+        );
     });
 
     it("keeps main UI DOM utility tests on scoped Electron API fixtures", () => {
