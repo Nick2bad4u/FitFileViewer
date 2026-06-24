@@ -168,6 +168,14 @@ function createClickEvent(bounds: ZoomResetButtonBounds): {
 
 async function loadPlugin(): Promise<{
     chartZoomResetPlugin: ZoomResetPlugin;
+    createChartZoomResetPlugin: (
+        options?: {
+            readonly getRendererDebugRuntime?: (() => {
+                isRendererDebugLoggingAvailable: (enabled: boolean) => boolean;
+            }) | undefined;
+            readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
+        }
+    ) => ZoomResetPlugin;
     installRoundRectPolyfill: () => void;
     showNotification: Mock<typeof showNotificationFn>;
 }> {
@@ -181,6 +189,7 @@ async function loadPlugin(): Promise<{
 
     return {
         chartZoomResetPlugin: pluginModule.chartZoomResetPlugin,
+        createChartZoomResetPlugin: pluginModule.createChartZoomResetPlugin,
         installRoundRectPolyfill: pluginModule.installRoundRectPolyfill,
         showNotification,
     };
@@ -235,6 +244,41 @@ describe("chartZoomResetPlugin.afterDraw", () => {
             x: 288,
             y: 12,
         });
+    });
+
+    it("creates plugins with injected debug warning providers", async () => {
+        expect.assertions(4);
+
+        const { createChartZoomResetPlugin } = await loadPlugin(),
+            drawError = new Error("draw failed"),
+            consoleWarn = vi.spyOn(console, "warn").mockReturnValue(undefined),
+            getRendererDebugRuntime = vi.fn(() => ({
+                isRendererDebugLoggingAvailable: (enabled: boolean) => enabled,
+            })),
+            plugin = createChartZoomResetPlugin({
+                getRendererDebugRuntime,
+                isRendererDebugLoggingEnabled: () => true,
+            }),
+            chart: ZoomResetChart = {
+                _zoomResetBtnBounds: null,
+                isZoomedOrPanned: () => {
+                    throw drawError;
+                },
+            };
+
+        try {
+            const result = plugin.afterDraw(chart);
+
+            expect(result).toBeUndefined();
+            expect(getRendererDebugRuntime).toHaveBeenCalledOnce();
+            expect(consoleWarn).toHaveBeenCalledWith(
+                "[chartZoomResetPlugin] afterDraw error",
+                drawError
+            );
+            expect(chart._zoomResetBtnBounds).toBeNull();
+        } finally {
+            consoleWarn.mockRestore();
+        }
     });
 });
 

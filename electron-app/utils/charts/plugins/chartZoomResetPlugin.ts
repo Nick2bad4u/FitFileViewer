@@ -2,7 +2,10 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { isRendererDebugLoggingEnabled } from "../../debug/rendererDebugLoggingState.js";
-import { getRendererDebugRuntime } from "../../debug/rendererDebugRuntime.js";
+import {
+    getRendererDebugRuntime,
+    type RendererDebugRuntime,
+} from "../../debug/rendererDebugRuntime.js";
 
 /**
  * Bounds for the rendered reset-zoom overlay button.
@@ -49,6 +52,16 @@ export interface ZoomResetPlugin {
     id: "chartZoomResetPlugin";
 }
 
+export interface ChartZoomResetPluginRuntime {
+    readonly getRendererDebugRuntime?: (() => RendererDebugRuntime) | undefined;
+    readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
+}
+
+interface ResolvedChartZoomResetPluginRuntime {
+    readonly getRendererDebugRuntime: () => RendererDebugRuntime;
+    readonly isRendererDebugLoggingEnabled: () => boolean;
+}
+
 interface CornerRadii {
     bl: number;
     br: number;
@@ -65,7 +78,24 @@ const BUTTON_HEIGHT = 30,
     BUTTON_Y = 12,
     FALLBACK_ACCENT = "#667eea",
     FALLBACK_TEXT_PRIMARY = "#ffffff";
-const rendererDebugRuntime = getRendererDebugRuntime();
+const defaultChartZoomResetPluginRuntime: ResolvedChartZoomResetPluginRuntime =
+    {
+        getRendererDebugRuntime,
+        isRendererDebugLoggingEnabled,
+    };
+
+function resolveChartZoomResetPluginRuntime(
+    runtime: ChartZoomResetPluginRuntime
+): ResolvedChartZoomResetPluginRuntime {
+    return {
+        getRendererDebugRuntime:
+            runtime.getRendererDebugRuntime ??
+            defaultChartZoomResetPluginRuntime.getRendererDebugRuntime,
+        isRendererDebugLoggingEnabled:
+            runtime.isRendererDebugLoggingEnabled ??
+            defaultChartZoomResetPluginRuntime.isRendererDebugLoggingEnabled,
+    };
+}
 
 function getThemeColor(colorKey: string, fallback: string): string {
     const value = getThemeConfig().colors[colorKey];
@@ -73,9 +103,11 @@ function getThemeColor(colorKey: string, fallback: string): string {
     return typeof value === "string" ? value : fallback;
 }
 
-function shouldLogDebugWarnings(): boolean {
-    return rendererDebugRuntime.isRendererDebugLoggingAvailable(
-        isRendererDebugLoggingEnabled()
+function shouldLogDebugWarnings(
+    runtime: ResolvedChartZoomResetPluginRuntime
+): boolean {
+    return runtime.getRendererDebugRuntime().isRendererDebugLoggingAvailable(
+        runtime.isRendererDebugLoggingEnabled()
     );
 }
 
@@ -182,113 +214,127 @@ export function installRoundRectPolyfill(): void {
 /**
  * Zoom reset plugin with defensive guards and minimal chart coupling.
  */
-export const chartZoomResetPlugin: ZoomResetPlugin = {
-    afterDraw(chart) {
-        try {
-            if (!chart.isZoomedOrPanned?.()) {
-                return;
-            }
+export function createChartZoomResetPlugin(
+    options: ChartZoomResetPluginRuntime = {}
+): ZoomResetPlugin {
+    const runtime = resolveChartZoomResetPluginRuntime(options);
 
-            const { canvas, ctx } = chart;
+    return {
+        afterDraw(chart) {
+            try {
+                if (!chart.isZoomedOrPanned?.()) {
+                    return;
+                }
 
-            if (!ctx || !canvas) {
-                return;
-            }
+                const { canvas, ctx } = chart;
 
-            const accent = getThemeColor("accent", FALLBACK_ACCENT),
-                textPrimary = getThemeColor(
-                    "textPrimary",
-                    FALLBACK_TEXT_PRIMARY
-                ),
-                x = (canvas.width || 0) - BUTTON_WIDTH - BUTTON_X_OFFSET;
+                if (!ctx || !canvas) {
+                    return;
+                }
 
-            ctx.save();
-            ctx.globalAlpha = 0.9;
-            ctx.fillStyle = `${accent}CC`;
-            ctx.strokeStyle = accent;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
+                const accent = getThemeColor("accent", FALLBACK_ACCENT),
+                    textPrimary = getThemeColor(
+                        "textPrimary",
+                        FALLBACK_TEXT_PRIMARY
+                    ),
+                    x = (canvas.width || 0) - BUTTON_WIDTH - BUTTON_X_OFFSET;
 
-            if (typeof ctx.roundRect === "function") {
-                ctx.roundRect(
-                    x,
-                    BUTTON_Y,
-                    BUTTON_WIDTH,
-                    BUTTON_HEIGHT,
-                    BUTTON_RADIUS
+                ctx.save();
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = `${accent}CC`;
+                ctx.strokeStyle = accent;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+
+                if (typeof ctx.roundRect === "function") {
+                    ctx.roundRect(
+                        x,
+                        BUTTON_Y,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT,
+                        BUTTON_RADIUS
+                    );
+                } else {
+                    ctx.rect(x, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+                }
+
+                ctx.fill();
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.font = "bold 12px system-ui";
+                ctx.fillStyle = textPrimary;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(
+                    "🔄 Reset Zoom",
+                    x + BUTTON_WIDTH / 2,
+                    BUTTON_Y + BUTTON_HEIGHT / 2
                 );
-            } else {
-                ctx.rect(x, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+                ctx.restore();
+
+                chart._zoomResetBtnBounds = {
+                    h: BUTTON_HEIGHT,
+                    w: BUTTON_WIDTH,
+                    x,
+                    y: BUTTON_Y,
+                };
+            } catch (error) {
+                if (shouldLogDebugWarnings(runtime)) {
+                    console.warn(
+                        "[chartZoomResetPlugin] afterDraw error",
+                        error
+                    );
+                }
             }
+        },
 
-            ctx.fill();
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-            ctx.font = "bold 12px system-ui";
-            ctx.fillStyle = textPrimary;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(
-                "🔄 Reset Zoom",
-                x + BUTTON_WIDTH / 2,
-                BUTTON_Y + BUTTON_HEIGHT / 2
-            );
-            ctx.restore();
+        afterEvent(chart, args) {
+            try {
+                if (!chart.isZoomedOrPanned?.()) {
+                    return;
+                }
 
-            chart._zoomResetBtnBounds = {
-                h: BUTTON_HEIGHT,
-                w: BUTTON_WIDTH,
-                x,
-                y: BUTTON_Y,
-            };
-        } catch (error) {
-            if (shouldLogDebugWarnings()) {
-                console.warn("[chartZoomResetPlugin] afterDraw error", error);
+                const eventWrapper = args.event,
+                    nativeEvent = eventWrapper?.native,
+                    canvas = chart.canvas,
+                    bounds = chart._zoomResetBtnBounds;
+
+                if (!canvas || !bounds || !nativeEvent) {
+                    return;
+                }
+
+                const rect = canvas.getBoundingClientRect(),
+                    mouseX = (nativeEvent.clientX ?? 0) - rect.left,
+                    mouseY = (nativeEvent.clientY ?? 0) - rect.top;
+
+                if (
+                    !isResetEventType(eventWrapper.type) ||
+                    !isInsideButton(bounds, mouseX, mouseY)
+                ) {
+                    return;
+                }
+
+                nativeEvent.stopPropagation?.();
+                nativeEvent.preventDefault?.();
+
+                if (chart.resetZoom) {
+                    chart.resetZoom();
+                    void showNotification("Chart zoom reset", "success");
+                }
+            } catch (error) {
+                if (shouldLogDebugWarnings(runtime)) {
+                    console.warn(
+                        "[chartZoomResetPlugin] afterEvent error",
+                        error
+                    );
+                }
             }
-        }
-    },
+        },
 
-    afterEvent(chart, args) {
-        try {
-            if (!chart.isZoomedOrPanned?.()) {
-                return;
-            }
+        id: "chartZoomResetPlugin",
+    };
+}
 
-            const eventWrapper = args.event,
-                nativeEvent = eventWrapper?.native,
-                canvas = chart.canvas,
-                bounds = chart._zoomResetBtnBounds;
-
-            if (!canvas || !bounds || !nativeEvent) {
-                return;
-            }
-
-            const rect = canvas.getBoundingClientRect(),
-                mouseX = (nativeEvent.clientX ?? 0) - rect.left,
-                mouseY = (nativeEvent.clientY ?? 0) - rect.top;
-
-            if (
-                !isResetEventType(eventWrapper.type) ||
-                !isInsideButton(bounds, mouseX, mouseY)
-            ) {
-                return;
-            }
-
-            nativeEvent.stopPropagation?.();
-            nativeEvent.preventDefault?.();
-
-            if (chart.resetZoom) {
-                chart.resetZoom();
-                void showNotification("Chart zoom reset", "success");
-            }
-        } catch (error) {
-            if (shouldLogDebugWarnings()) {
-                console.warn("[chartZoomResetPlugin] afterEvent error", error);
-            }
-        }
-    },
-
-    id: "chartZoomResetPlugin",
-};
+export const chartZoomResetPlugin = createChartZoomResetPlugin();
 
 installRoundRectPolyfill();
