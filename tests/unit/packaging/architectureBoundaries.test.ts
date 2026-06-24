@@ -1157,7 +1157,7 @@ const directExternalLinkHandlersRuntimeGlobalPattern =
 const directExternalLinkHandlersRuntimeAmbientGetterPattern =
     /\bget\s+(?:Element|HTMLAnchorElement|KeyboardEvent|open)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:Element|HTMLAnchorElement|KeyboardEvent|open)\b|\bscope\.(?:Element|HTMLAnchorElement|KeyboardEvent|open)\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
-    /\bdocument\b|\binstanceof\s+HTMLElement\b|\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\bdocument\b|\bnew\s+MutationObserver\b|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b|\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapDocumentListenersRuntimeGlobalPattern =

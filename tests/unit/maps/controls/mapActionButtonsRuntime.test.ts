@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     getMapActionButtonsRuntime,
@@ -65,8 +65,37 @@ describe("getMapActionButtonsRuntime", () => {
         expect(runtime.isHTMLElement({})).toBe(false);
     });
 
-    it("does not borrow ambient timers for explicit scopes", () => {
+    it("uses injected KeyboardEvent and MutationObserver providers", () => {
         expect.assertions(4);
+
+        const observer = {
+            disconnect: vi.fn(),
+            observe: vi.fn(),
+            takeRecords: vi.fn(() => []),
+        } satisfies MutationObserver;
+        const callback = vi.fn<MutationCallback>();
+        const MutationObserverConstructor = vi.fn(function FakeMutationObserver(
+            this: unknown,
+            receivedCallback: MutationCallback
+        ) {
+            expect(receivedCallback).toBe(callback);
+            return observer;
+        });
+        const runtime = getMapActionButtonsRuntime({
+            getKeyboardEvent: () => KeyboardEvent,
+            getMutationObserver: () =>
+                MutationObserverConstructor as unknown as typeof MutationObserver,
+        });
+
+        expect(runtime.createMutationObserver(callback)).toBe(observer);
+        expect(MutationObserverConstructor).toHaveBeenCalledOnce();
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
+    });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(6);
 
         const runtime = getMapActionButtonsRuntime({});
 
@@ -79,13 +108,19 @@ describe("getMapActionButtonsRuntime", () => {
         expect(() => runtime.getDocument()).toThrow(
             "mapActionButtonsRuntime requires document"
         );
+        expect(() => runtime.createMutationObserver(() => undefined)).toThrow(
+            "mapActionButtonsRuntime requires MutationObserver"
+        );
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            false
+        );
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
             false
         );
     });
 
     it("ignores legacy direct timer scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const runtime = getMapActionButtonsRuntime({
             clearTimeout() {
@@ -93,6 +128,8 @@ describe("getMapActionButtonsRuntime", () => {
             },
             document,
             HTMLElement,
+            KeyboardEvent,
+            MutationObserver,
             setTimeout() {
                 throw new Error("legacy setTimeout should not run");
             },
@@ -107,7 +144,13 @@ describe("getMapActionButtonsRuntime", () => {
         expect(() => runtime.getDocument()).toThrow(
             "mapActionButtonsRuntime requires document"
         );
+        expect(() => runtime.createMutationObserver(() => undefined)).toThrow(
+            "mapActionButtonsRuntime requires MutationObserver"
+        );
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            false
+        );
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
             false
         );
     });

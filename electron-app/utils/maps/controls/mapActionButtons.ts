@@ -438,7 +438,7 @@ export function setupActiveFileNameMapActions(): void {
 
             addEventListenerWithCleanup(activeFileName, "keydown", (event) => {
                 if (
-                    event instanceof KeyboardEvent &&
+                    getMapActionButtonsRuntime().isKeyboardEvent(event) &&
                     (event.key === "Enter" || event.key === " ")
                 ) {
                     event.preventDefault();
@@ -519,7 +519,7 @@ export function setupActiveFileNameMapActions(): void {
         }
 
         // Set up mutation observer to handle dynamic content changes
-        const observer = new MutationObserver(() => {
+        const observer = runtime.createMutationObserver(() => {
             console.log(
                 "[mapActionButtons] Active filename element changed, reapplying setup"
             );
