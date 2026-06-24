@@ -8,6 +8,7 @@ import {
     addSimpleMeasureTool,
     resetMapMeasureToolStateForTests,
 } from "../../../../electron-app/utils/maps/controls/mapMeasureTool.js";
+import type { MapMeasureToolRuntime } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 import {
     clearLeafletRuntimeForTests,
     setLeafletRuntime,
@@ -149,6 +150,40 @@ describe("mapMeasureTool.js", () => {
 
         // Check if button was added
         const button = getMeasureButton();
+        expect(getMeasureButtonLabel(button)).toBe("Measure");
+        expect(button.title).toContain("Click, then click two points");
+    });
+
+    it("builds the measure control through an injected runtime", () => {
+        const runtime: MapMeasureToolRuntime = {
+            addDocumentKeydownListener: vi.fn(),
+            clearTimeout: vi.fn((timer) => clearTimeout(timer)),
+            createAbortController: vi.fn(() => new AbortController()),
+            createElement: vi.fn((tagName) => document.createElement(tagName)),
+            createSvgElement: vi.fn((tagName) =>
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    tagName
+                )
+            ),
+            createTextNode: vi.fn((data) => document.createTextNode(data)),
+            isHTMLElement: vi.fn(
+                (value): value is HTMLElement => value instanceof HTMLElement
+            ),
+            removeDocumentKeydownListener: vi.fn(),
+            setTimeout: vi.fn((callback, delayMs) =>
+                setTimeout(callback, delayMs)
+            ),
+        };
+
+        addSimpleMeasureTool(mockMap, controlsDiv, runtime);
+
+        const button = getMeasureButton();
+
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(runtime.createElement).toHaveBeenCalledWith("button");
+        expect(runtime.createSvgElement).toHaveBeenCalledWith("svg");
+        expect(runtime.addDocumentKeydownListener).toHaveBeenCalledOnce();
         expect(getMeasureButtonLabel(button)).toBe("Measure");
         expect(button.title).toContain("Click, then click two points");
     });

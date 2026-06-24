@@ -6,10 +6,9 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 import {
     getMapMeasureToolRuntime,
+    type MapMeasureToolRuntime,
     type MapMeasureToolTimer,
 } from "./mapMeasureToolRuntime.js";
-
-const mapMeasureToolRuntime = getMapMeasureToolRuntime();
 
 type LatLngPoint = Leaflet.LatLng;
 
@@ -31,7 +30,12 @@ type ThemeColors = {
     surface?: unknown;
 };
 
-let mapMeasureEscapeHandler: null | ((event: KeyboardEvent) => void) = null;
+type MapMeasureEscapeRegistration = {
+    readonly handler: (event: KeyboardEvent) => void;
+    readonly runtime: MapMeasureToolRuntime;
+};
+
+let mapMeasureEscapeHandler: MapMeasureEscapeRegistration | null = null;
 
 function isMeasureLeaflet(value: unknown): value is MeasureLeaflet {
     if (typeof value !== "object" || value === null) {
@@ -58,30 +62,34 @@ function hasFunctionProperty(
 }
 
 function replaceMapMeasureEscapeHandler(
-    handler: (event: KeyboardEvent) => void
+    handler: (event: KeyboardEvent) => void,
+    runtime: MapMeasureToolRuntime
 ): void {
-    if (mapMeasureEscapeHandler) {
-        mapMeasureToolRuntime.removeDocumentKeydownListener(
-            mapMeasureEscapeHandler
+    const currentHandler = mapMeasureEscapeHandler;
+    if (currentHandler) {
+        currentHandler.runtime.removeDocumentKeydownListener(
+            currentHandler.handler
         );
     }
-    mapMeasureEscapeHandler = handler;
+    mapMeasureEscapeHandler = { handler, runtime };
 }
 
 function clearMapMeasureEscapeHandler(
     handler: (event: KeyboardEvent) => void
 ): void {
-    if (mapMeasureEscapeHandler !== handler) {
+    const currentHandler = mapMeasureEscapeHandler;
+    if (!currentHandler || currentHandler.handler !== handler) {
         return;
     }
-    mapMeasureToolRuntime.removeDocumentKeydownListener(handler);
+    currentHandler.runtime.removeDocumentKeydownListener(handler);
     mapMeasureEscapeHandler = null;
 }
 
 export function resetMapMeasureToolStateForTests(): void {
-    if (mapMeasureEscapeHandler) {
-        mapMeasureToolRuntime.removeDocumentKeydownListener(
-            mapMeasureEscapeHandler
+    const currentHandler = mapMeasureEscapeHandler;
+    if (currentHandler) {
+        currentHandler.runtime.removeDocumentKeydownListener(
+            currentHandler.handler
         );
     }
     mapMeasureEscapeHandler = null;
@@ -91,8 +99,12 @@ function getLeaflet(): MeasureLeaflet | null {
     return resolveLeafletRuntime(isMeasureLeaflet);
 }
 
-function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
-    const icon = mapMeasureToolRuntime.createSvgElement("svg");
+function createMeasureIcon(
+    primary: string,
+    surface: string,
+    runtime: MapMeasureToolRuntime
+): SVGSVGElement {
+    const icon = runtime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("width", "18");
@@ -100,7 +112,7 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
     icon.setAttribute("aria-hidden", "true");
     icon.setAttribute("focusable", "false");
 
-    const line = mapMeasureToolRuntime.createSvgElement("line");
+    const line = runtime.createSvgElement("line");
     line.setAttribute("x1", "5");
     line.setAttribute("y1", "19");
     line.setAttribute("x2", "19");
@@ -113,7 +125,7 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
         ["5", "19"],
         ["19", "5"],
     ] as const) {
-        const circle = mapMeasureToolRuntime.createSvgElement("circle");
+        const circle = runtime.createSvgElement("circle");
         circle.setAttribute("cx", cx);
         circle.setAttribute("cy", cy);
         circle.setAttribute("r", "2.5");
@@ -123,7 +135,7 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
         icon.append(circle);
     }
 
-    const text = mapMeasureToolRuntime.createSvgElement("text");
+    const text = runtime.createSvgElement("text");
     text.setAttribute("x", "12");
     text.setAttribute("y", "15");
     text.setAttribute("text-anchor", "middle");
@@ -135,14 +147,14 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
     return icon;
 }
 
-function createCancelIcon(): SVGSVGElement {
-    const icon = mapMeasureToolRuntime.createSvgElement("svg");
+function createCancelIcon(runtime: MapMeasureToolRuntime): SVGSVGElement {
+    const icon = runtime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 20 20");
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
 
-    const circle = mapMeasureToolRuntime.createSvgElement("circle");
+    const circle = runtime.createSvgElement("circle");
     circle.setAttribute("cx", "10");
     circle.setAttribute("cy", "10");
     circle.setAttribute("r", "8");
@@ -170,7 +182,7 @@ function createCancelIcon(): SVGSVGElement {
             "14",
         ],
     ] as const) {
-        const line = mapMeasureToolRuntime.createSvgElement("line");
+        const line = runtime.createSvgElement("line");
         line.setAttribute("x1", x1);
         line.setAttribute("y1", y1);
         line.setAttribute("x2", x2);
@@ -186,20 +198,21 @@ function createCancelIcon(): SVGSVGElement {
 function setMeasureButtonContent(
     button: HTMLButtonElement,
     state: "cancel" | "measure",
-    colors: { primary: string; surface: string }
+    colors: { primary: string; surface: string },
+    runtime: MapMeasureToolRuntime
 ): void {
-    const label = mapMeasureToolRuntime.createElement("span");
+    const label = runtime.createElement("span");
     label.textContent = state === "cancel" ? "Cancel" : "Measure";
     button.replaceChildren(
         state === "cancel"
-            ? createCancelIcon()
-            : createMeasureIcon(colors.primary, colors.surface),
+            ? createCancelIcon(runtime)
+            : createMeasureIcon(colors.primary, colors.surface, runtime),
         label
     );
 }
 
-function createExitButton(): HTMLButtonElement {
-    const button = mapMeasureToolRuntime.createElement("button");
+function createExitButton(runtime: MapMeasureToolRuntime): HTMLButtonElement {
+    const button = runtime.createElement("button");
     button.className = "measure-exit-btn";
     button.type = "button";
     button.title = "Remove measurement";
@@ -208,19 +221,23 @@ function createExitButton(): HTMLButtonElement {
     return button;
 }
 
-function createMeasureLabelLine(value: string, unit: string): HTMLDivElement {
-    const line = mapMeasureToolRuntime.createElement("div");
+function createMeasureLabelLine(
+    value: string,
+    unit: string,
+    runtime: MapMeasureToolRuntime
+): HTMLDivElement {
+    const line = runtime.createElement("div");
     line.className = "measure-label-line";
 
-    const valueEl = mapMeasureToolRuntime.createElement("span");
+    const valueEl = runtime.createElement("span");
     valueEl.className = "measure-label-value";
     valueEl.textContent = value;
 
-    const unitEl = mapMeasureToolRuntime.createElement("span");
+    const unitEl = runtime.createElement("span");
     unitEl.className = "measure-label-unit";
     unitEl.textContent = unit;
 
-    line.append(valueEl, mapMeasureToolRuntime.createTextNode(" "), unitEl);
+    line.append(valueEl, runtime.createTextNode(" "), unitEl);
 
     return line;
 }
@@ -229,14 +246,15 @@ function createMeasureLabelContent(
     primaryValue: string,
     primaryUnit: string,
     secondaryValue: string,
-    secondaryUnit: string
+    secondaryUnit: string,
+    runtime: MapMeasureToolRuntime
 ): HTMLDivElement {
-    const content = mapMeasureToolRuntime.createElement("div");
+    const content = runtime.createElement("div");
     content.className = "measure-label-content";
     content.append(
-        createExitButton(),
-        createMeasureLabelLine(primaryValue, primaryUnit),
-        createMeasureLabelLine(secondaryValue, secondaryUnit)
+        createExitButton(runtime),
+        createMeasureLabelLine(primaryValue, primaryUnit, runtime),
+        createMeasureLabelLine(secondaryValue, secondaryUnit, runtime)
     );
 
     return content;
@@ -253,7 +271,8 @@ function createMeasureLabelContent(
  */
 export function addSimpleMeasureTool(
     map: MeasureMap,
-    controlsDiv: HTMLElement
+    controlsDiv: HTMLElement,
+    runtime: MapMeasureToolRuntime = getMapMeasureToolRuntime()
 ): void {
     let measureLabel: MeasureMarker | null = null,
         measureLine: MeasurePolyline | null = null,
@@ -263,10 +282,10 @@ export function addSimpleMeasureTool(
     // Button reference will be the created element below
 
     // Create the measure button up front so it's available to handlers
-    const eventController = mapMeasureToolRuntime.createAbortController();
+    const eventController = runtime.createAbortController();
     const { signal } = eventController;
     let disableTimer: MapMeasureToolTimer | null = null;
-    const measureBtn = mapMeasureToolRuntime.createElement("button"),
+    const measureBtn = runtime.createElement("button"),
         themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
 
@@ -280,7 +299,7 @@ export function addSimpleMeasureTool(
         "#ffffff"
     );
     const buttonColors = { primary: safePrimary, surface: safeSurface };
-    setMeasureButtonContent(measureBtn, "measure", buttonColors);
+    setMeasureButtonContent(measureBtn, "measure", buttonColors, runtime);
     measureBtn.title =
         "Click, then click two points on the map to measure distance";
 
@@ -307,7 +326,7 @@ export function addSimpleMeasureTool(
         measuring = false;
         map.off("click", onMapClickMeasure);
         if (btn) {
-            setMeasureButtonContent(btn, "measure", buttonColors);
+            setMeasureButtonContent(btn, "measure", buttonColors, runtime);
             btn.title =
                 "Click, then click two points on the map to measure distance";
         }
@@ -325,13 +344,13 @@ export function addSimpleMeasureTool(
             }
         }
     };
-    replaceMapMeasureEscapeHandler(escapeHandler);
-    mapMeasureToolRuntime.addDocumentKeydownListener(escapeHandler, { signal });
+    replaceMapMeasureEscapeHandler(escapeHandler, runtime);
+    runtime.addDocumentKeydownListener(escapeHandler, { signal });
     signal.addEventListener(
         "abort",
         () => {
             if (disableTimer) {
-                mapMeasureToolRuntime.clearTimeout(disableTimer);
+                runtime.clearTimeout(disableTimer);
                 disableTimer = null;
             }
             clearMapMeasureEscapeHandler(escapeHandler);
@@ -342,7 +361,7 @@ export function addSimpleMeasureTool(
     function onLabelExitClick(event: MouseEvent): void {
         const { target } = event;
         if (
-            mapMeasureToolRuntime.isHTMLElement(target) &&
+            runtime.isHTMLElement(target) &&
             target.classList.contains("measure-exit-btn")
         ) {
             clearMeasure();
@@ -395,7 +414,8 @@ export function addSimpleMeasureTool(
                             primaryValue,
                             primaryUnit,
                             secondaryValue,
-                            secondaryUnit
+                            secondaryUnit,
+                            runtime
                         ),
                         iconAnchor: [60, 19],
                         iconSize: [120, 38],
@@ -422,7 +442,7 @@ export function addSimpleMeasureTool(
         measuring = true;
         map.on("click", onMapClickMeasure);
         if (btn) {
-            setMeasureButtonContent(btn, "cancel", buttonColors);
+            setMeasureButtonContent(btn, "cancel", buttonColors, runtime);
             btn.title = "Cancel measurement mode";
         }
     }
@@ -438,9 +458,9 @@ export function addSimpleMeasureTool(
                 enableSimpleMeasure(measureBtn);
                 measureBtn.disabled = true;
                 if (disableTimer) {
-                    mapMeasureToolRuntime.clearTimeout(disableTimer);
+                    runtime.clearTimeout(disableTimer);
                 }
-                disableTimer = mapMeasureToolRuntime.setTimeout(() => {
+                disableTimer = runtime.setTimeout(() => {
                     measureBtn.disabled = false;
                     disableTimer = null;
                 }, 2000);

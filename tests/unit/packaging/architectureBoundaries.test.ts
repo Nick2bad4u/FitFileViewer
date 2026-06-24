@@ -12807,7 +12807,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(38);
+        expect.assertions(44);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -12827,6 +12827,20 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
+        expect(mapMeasureToolSource).toContain("type MapMeasureToolRuntime");
+        expect(mapMeasureToolSource).not.toContain(
+            "const mapMeasureToolRuntime = getMapMeasureToolRuntime();"
+        );
+        expect(mapMeasureToolSource).toContain(
+            "runtime: MapMeasureToolRuntime = getMapMeasureToolRuntime()"
+        );
+        expect(mapMeasureToolSource).toContain('runtime.createElement("button")');
+        expect(mapMeasureToolSource).toContain(
+            "replaceMapMeasureEscapeHandler(escapeHandler, runtime)"
+        );
+        expect(mapMeasureToolSource).toContain(
+            "currentHandler.runtime.removeDocumentKeydownListener"
+        );
         expect(mapMeasureToolSource).toContain("createAbortController");
         expect(mapMeasureToolSource).toContain("createElement");
         expect(mapMeasureToolSource).toContain("createSvgElement");
