@@ -196,14 +196,16 @@ class ComputedStateManager {
         this.isComputing.add(key);
 
         try {
-            const startTime = performance.now();
+            const startTime =
+                computedStateManagerRuntime().nowPerformance();
             const state = getComputedStateInput();
             const newValue = computed.computeFn(state);
-            const duration = performance.now() - startTime;
+            const duration =
+                computedStateManagerRuntime().nowPerformance() - startTime;
 
             computed.value = newValue;
             computed.isValid = true;
-            computed.lastComputed = Date.now();
+            computed.lastComputed = computedStateManagerRuntime().dateNow();
             computed.error = null;
 
             if (duration > 10) {
@@ -464,7 +466,7 @@ export function initializeCommonComputedValues(): void {
                 isFileLoaded: hasLoadedRawFitData(state),
                 lastActivity: state.system?.lastActivity ?? startTime,
                 tabsEnabled: state.ui?.tabs ?? {},
-                uptime: Date.now() - startTime,
+                uptime: computedStateManagerRuntime().dateNow() - startTime,
             };
         },
         [

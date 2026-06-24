@@ -10033,8 +10033,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps computed state manager theme media reads behind the runtime adapter", () => {
-        expect.assertions(12);
+    it("keeps computed state manager theme and timing reads behind the runtime adapter", () => {
+        expect.assertions(26);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10060,24 +10060,62 @@ describe("architecture boundaries", () => {
             "const computedStateManagerRuntime = getComputedStateManagerRuntime();"
         );
         expect(computedStateManagerSource).toContain("isDarkSchemePreferred");
+        expect(computedStateManagerSource).toContain(
+            "computedStateManagerRuntime().nowPerformance()"
+        );
+        expect(computedStateManagerSource).toContain(
+            "computedStateManagerRuntime().dateNow()"
+        );
         expect(computedStateManagerSource).not.toContain(
             "globalThis.matchMedia"
         );
+        expect(computedStateManagerSource).not.toContain("Date.now");
+        expect(computedStateManagerSource).not.toContain("performance.now");
         expect(computedStateManagerSource).not.toContain(
             "prefers-color-scheme: dark"
         );
         expect(computedStateManagerRuntimeSource).toContain(
             "defaultComputedStateManagerRuntimeScope"
         );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
         expect(computedStateManagerRuntimeSource).not.toContain(
             "scope: ComputedStateManagerRuntimeScope = globalThis"
         );
         expect(computedStateManagerRuntimeSource).toContain("getMatchMedia");
+        expect(computedStateManagerRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "const performance = scope.getPerformance?.();"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "computedStateManager requires dateNow"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "computedStateManager requires performance.now"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
         expect(computedStateManagerRuntimeSource).not.toContain(
             "readonly matchMedia?:"
         );
         expect(computedStateManagerRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope.dateNow"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
             "scope.matchMedia"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope.performance"
         );
     });
 

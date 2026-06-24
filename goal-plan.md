@@ -742,6 +742,10 @@ Computed state manager auto-theme dark-scheme checks now resolve through the sco
 `computedStateManagerRuntime.ts` adapter instead of probing `globalThis.matchMedia` directly inside
 `computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking that direct
 media-query lookup from returning.
+Computed state manager computation duration timing, `lastComputed` timestamps, and uptime calculations now also route
+through `computedStateManagerRuntime.ts` instead of calling `performance.now` or `Date.now` directly inside
+`computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking direct timing reads and
+legacy direct runtime scope properties from returning.
 Main-process state-manager duration timing, wall-clock state timestamps, completed-operation cleanup timers, and deferred IPC setup retry
 timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of probing
 `globalThis.performance`, `performance.now`, or `Date.now`, or calling timer globals directly inside
