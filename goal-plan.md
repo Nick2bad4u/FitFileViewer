@@ -782,6 +782,10 @@ properties from returning. The default master-state runtime no longer reads ambi
 development flag checks now require an explicit runtime provider or the existing location/DOM/options signals.
 Default document access inside the master-state runtime now centralizes through `getGlobalDocument()` instead of
 repeating `globalThis.document` across document providers.
+Master state manager component initialization timestamps, startup-time state writes, global-error timestamps,
+promise-rejection timestamps, and performance-monitor timestamps now also route through `masterStateRuntime.ts`
+instead of calling `Date.now` directly inside `masterStateManager.ts`, with focused runtime coverage and architecture
+guardrails blocking direct clock reads and legacy direct runtime scope properties from returning.
 Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
 `resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,
 constructing `AbortController`, or calling `clearTimeout` directly inside `resourceManager.ts`, with focused

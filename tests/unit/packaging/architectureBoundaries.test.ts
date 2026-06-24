@@ -9963,7 +9963,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(65);
+        expect.assertions(73);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9994,9 +9994,14 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).toContain(
             "getLoadingSensitiveElements"
         );
+        expect(masterStateManagerSource).toContain("dateNow");
+        expect(masterStateManagerSource).toContain(
+            "masterStateRuntime().dateNow()"
+        );
         expect(masterStateManagerSource).not.toMatch(
             /\bnew\s+AbortController\b/u
         );
+        expect(masterStateManagerSource).not.toContain("Date.now");
         expect(masterStateManagerSource).not.toContain("globalThis.window");
         expect(masterStateManagerSource).not.toContain("globalThis.location");
         expect(masterStateManagerSource).not.toContain(
@@ -10052,6 +10057,13 @@ describe("architecture boundaries", () => {
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(masterStateRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(masterStateRuntimeSource).toContain("getRequiredDateNow");
+        expect(masterStateRuntimeSource).toContain(
+            "master state manager requires dateNow"
+        );
+        expect(masterStateRuntimeSource).toContain(
             "getDocumentEventTarget: () => getGlobalDocument()"
         );
         expect(masterStateRuntimeSource).toContain(
@@ -10083,6 +10095,7 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "readonly addEventListener?:"
         );
+        expect(masterStateRuntimeSource).not.toContain("readonly dateNow?:");
         expect(masterStateRuntimeSource).not.toContain(
             "readonly documentBody?:"
         );
@@ -10107,6 +10120,7 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "scope.addEventListener"
         );
+        expect(masterStateRuntimeSource).not.toContain("scope.dateNow");
         expect(masterStateRuntimeSource).not.toContain("scope.documentBody");
         expect(masterStateRuntimeSource).not.toContain("scope.documentElement");
         expect(masterStateRuntimeSource).not.toContain(

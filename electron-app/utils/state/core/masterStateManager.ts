@@ -469,7 +469,7 @@ export class MasterStateManager {
 
             this.components.set(componentName, {
                 initialized: true,
-                timestamp: Date.now(),
+                timestamp: masterStateRuntime().dateNow(),
             });
             console.log(
                 `[MasterState] ${componentName} initialized successfully`
@@ -537,7 +537,7 @@ export class MasterStateManager {
         stateAPI.setState("system.version", appVersion, {
             source: "MasterStateManager",
         });
-        stateAPI.setState("system.startupTime", Date.now(), {
+        stateAPI.setState("system.startupTime", masterStateRuntime().dateNow(), {
             source: "MasterStateManager",
         });
 
@@ -757,7 +757,7 @@ export class MasterStateManager {
                         lineno: event.lineno,
                         message: errorDetails.message,
                         stack: errorDetails.stack,
-                        timestamp: Date.now(),
+                        timestamp: masterStateRuntime().dateNow(),
                     },
                     { source: "globalErrorHandler" }
                 );
@@ -780,7 +780,7 @@ export class MasterStateManager {
                     "system.lastPromiseRejection",
                     {
                         reason: errorDetails.message,
-                        timestamp: Date.now(),
+                        timestamp: masterStateRuntime().dateNow(),
                     },
                     { source: "promiseRejectionHandler" }
                 );
@@ -902,7 +902,7 @@ export class MasterStateManager {
         }
 
         // Monitor state change frequency
-        let lastResetTime = Date.now(),
+        let lastResetTime = masterStateRuntime().dateNow(),
             stateChangeCount = 0;
 
         if (this.performanceMonitorUnsubscribe !== null) {
@@ -917,7 +917,7 @@ export class MasterStateManager {
 
         // Reset counter every minute
         this.performanceMonitorInterval = setInterval(() => {
-            const now = Date.now(),
+            const now = masterStateRuntime().dateNow(),
                 elapsed = now - lastResetTime;
 
             const performanceMemory = (performance as PerformanceWithMemory)

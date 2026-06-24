@@ -24,6 +24,7 @@ export interface MasterStateRuntimeScope {
     readonly getAddEventListener?:
         | (() => typeof globalThis.addEventListener | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
     readonly getDocumentEventTarget?:
         | (() => MasterStateEventTarget | undefined)
@@ -69,6 +70,7 @@ export interface MasterStateRuntime {
     ) => void;
     addBodyClass: (className: string) => void;
     createAbortController: () => AbortController;
+    dateNow: () => number;
     dispatchGlobalEvent: (event: Readonly<Event>) => boolean;
     getLoadingSensitiveElements: () => Iterable<HTMLElement>;
     isDevelopmentScope: (
@@ -94,6 +96,7 @@ function getGlobalDocument(): Document {
 const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
+    getDateNow: () => Date.now,
     getDocumentBody: () => getGlobalDocument().body,
     getDocumentElement: () => getGlobalDocument().documentElement,
     getDocumentEventTarget: () => getGlobalDocument(),
@@ -119,6 +122,15 @@ function getScopeDevelopmentFlag(
     scope: MasterStateRuntimeScope
 ): boolean | undefined {
     return scope.getDevelopmentFlag?.();
+}
+
+function getRequiredDateNow(scope: MasterStateRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("master state manager requires dateNow");
+    }
+
+    return dateNow;
 }
 
 function getScopeDocumentEventTarget(
@@ -240,6 +252,9 @@ export function getMasterStateRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        dateNow(): number {
+            return getRequiredDateNow(scope)();
         },
         dispatchGlobalEvent(event): boolean {
             return getScopeDispatchEvent(scope)?.call(scope, event) ?? false;

@@ -3,6 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 import { getMasterStateRuntime } from "../../../../../electron-app/utils/state/core/masterStateRuntime.js";
 
 describe("masterStateRuntime", () => {
+    it("reads timestamps through the injected provider", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.fn<() => number>(() => 1234);
+        const utils = getMasterStateRuntime({
+            getDateNow: () => dateNow,
+        });
+
+        expect(utils.dateNow()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
+    });
+
     it("detects development scopes from local renderer locations", () => {
         expect.assertions(4);
 
@@ -343,8 +355,8 @@ describe("masterStateRuntime", () => {
         expect(created).toBe(true);
     });
 
-    it("ignores legacy direct browser and development runtime properties", () => {
-        expect.assertions(17);
+    it("ignores legacy direct browser, clock, and development runtime properties", () => {
+        expect.assertions(19);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -364,6 +376,7 @@ describe("masterStateRuntime", () => {
                 ] as unknown as NodeListOf<Element>
         );
         const addBodyClass = vi.fn();
+        const dateNow = vi.fn<() => number>(() => 1234);
         const removeBodyClass = vi.fn();
         const runtime = getMasterStateRuntime({
             __DEVELOPMENT__: true,
@@ -384,6 +397,7 @@ describe("masterStateRuntime", () => {
             documentQueryScope: { querySelectorAll },
             dispatchEvent: dispatchGlobalEvent,
             eventTarget: { addEventListener: addWindowEventListener },
+            dateNow,
             location: { hostname: "localhost", protocol: "file:" },
         } as unknown as Parameters<typeof getMasterStateRuntime>[0]);
         const listener = vi.fn();
@@ -412,7 +426,11 @@ describe("masterStateRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "master state manager requires an AbortController runtime"
         );
+        expect(() => runtime.dateNow()).toThrow(
+            "master state manager requires dateNow"
+        );
         expect(created).toBe(false);
+        expect(dateNow).not.toHaveBeenCalled();
         expect(addGlobalEventListener).not.toHaveBeenCalled();
         expect(addWindowEventListener).not.toHaveBeenCalled();
         expect(addDocumentEventListener).not.toHaveBeenCalled();
@@ -427,6 +445,14 @@ describe("masterStateRuntime", () => {
 
         expect(() => getMasterStateRuntime({}).createAbortController()).toThrow(
             "master state manager requires an AbortController runtime"
+        );
+    });
+
+    it("throws when date clocks are unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => getMasterStateRuntime({}).dateNow()).toThrow(
+            "master state manager requires dateNow"
         );
     });
 });
