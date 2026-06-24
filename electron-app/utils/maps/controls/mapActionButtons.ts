@@ -169,7 +169,7 @@ export function resetMapActionButtonStateForTests(): void {
 
 function handleMissingMainPolyline(attempts: number): void {
     if (attempts === 0) {
-        centerStatusNotified = Date.now();
+        centerStatusNotified = getMapActionButtonsRuntime().dateNow();
         void showNotification("Centering map on main track...", "info");
     }
 
@@ -224,7 +224,7 @@ function highlightMainPolyline(polyline: MapPolyline): void {
     polyElem.style.transition = "filter 0.2s";
     polyElem.style.filter = `drop-shadow(0 0 16px ${color})`;
 
-    const highlightToken = Date.now();
+    const highlightToken = getMapActionButtonsRuntime().dateNow();
     mainPolylineHighlightToken = highlightToken;
 
     scheduleMapActionTimeout(() => {

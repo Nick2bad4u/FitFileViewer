@@ -1124,6 +1124,10 @@ Map action-button active filename/map-tab DOM lookup, document readiness checks,
 HTMLElement checks now also route through `mapActionButtonsRuntime.ts`, with focused runtime coverage and
 architecture guardrails blocking direct `document` and `HTMLElement` access from returning to
 `mapActionButtons.ts`.
+Map action-button center-status and main-polyline highlight timestamps now also route through
+`mapActionButtonsRuntime.ts` instead of calling `Date.now` directly inside `mapActionButtons.ts`, with focused
+runtime coverage and architecture coverage blocking direct clock reads and legacy direct runtime scope properties
+from returning.
 The shared Vitest Leaflet mock no longer advertises the removed markercluster package path through a
 `markerClusterGroup` helper, and architecture coverage keeps that stale plugin mock out of setup.
 Vitest setup no longer registers a default Leaflet runtime for every test; map-related tests install explicit

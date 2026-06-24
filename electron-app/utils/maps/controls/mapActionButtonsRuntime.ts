@@ -4,6 +4,7 @@ export interface MapActionButtonsRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
         | (() => typeof HTMLElement | undefined)
@@ -22,6 +23,7 @@ export interface MapActionButtonsRuntimeScope {
 export interface MapActionButtonsRuntime {
     clearTimeout: (timer: MapActionButtonTimer) => void;
     createMutationObserver: (callback: MutationCallback) => MutationObserver;
+    dateNow: () => number;
     getDocument: () => Document;
     isHTMLElement: (value: unknown) => value is HTMLElement;
     isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
@@ -30,12 +32,22 @@ export interface MapActionButtonsRuntime {
 
 const defaultMapActionButtonsRuntimeScope: MapActionButtonsRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout,
+    getDateNow: () => Date.now,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getKeyboardEvent: () => globalThis.KeyboardEvent,
     getMutationObserver: () => globalThis.MutationObserver,
     getSetTimeout: () => globalThis.setTimeout,
 };
+
+function getRequiredDateNow(scope: MapActionButtonsRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow === "function") {
+        return dateNow;
+    }
+
+    throw new TypeError("mapActionButtonsRuntime requires dateNow");
+}
 
 function getMutationObserverConstructor(
     scope: MapActionButtonsRuntimeScope
@@ -66,6 +78,9 @@ export function getMapActionButtonsRuntime(
         },
         createMutationObserver(callback): MutationObserver {
             return new (getMutationObserverConstructor(scope))(callback);
+        },
+        dateNow(): number {
+            return getRequiredDateNow(scope)();
         },
         getDocument(): Document {
             const runtimeDocument = scope.getDocument?.();

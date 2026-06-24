@@ -50,6 +50,18 @@ describe("getMapActionButtonsRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
+    it("uses the injected date clock", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.fn<() => number>(() => 123);
+        const runtime = getMapActionButtonsRuntime({
+            getDateNow: () => dateNow,
+        });
+
+        expect(runtime.dateNow()).toBe(123);
+        expect(dateNow).toHaveBeenCalledOnce();
+    });
+
     it("uses the injected document and HTMLElement providers", () => {
         expect.assertions(3);
 
@@ -94,11 +106,14 @@ describe("getMapActionButtonsRuntime", () => {
         );
     });
 
-    it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(6);
+    it("does not borrow ambient timers or clocks for explicit scopes", () => {
+        expect.assertions(7);
 
         const runtime = getMapActionButtonsRuntime({});
 
+        expect(() => runtime.dateNow()).toThrow(
+            "mapActionButtonsRuntime requires dateNow"
+        );
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapActionButtonsRuntime requires setTimeout"
         );
@@ -119,13 +134,16 @@ describe("getMapActionButtonsRuntime", () => {
         );
     });
 
-    it("ignores legacy direct timer scope properties", () => {
-        expect.assertions(6);
+    it("ignores legacy direct timer and clock scope properties", () => {
+        expect.assertions(8);
+
+        const dateNow = vi.fn<() => number>(() => 123);
 
         const runtime = getMapActionButtonsRuntime({
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
+            dateNow,
             document,
             HTMLElement,
             KeyboardEvent,
@@ -135,6 +153,9 @@ describe("getMapActionButtonsRuntime", () => {
             },
         } as unknown as MapActionButtonsRuntimeScope);
 
+        expect(() => runtime.dateNow()).toThrow(
+            "mapActionButtonsRuntime requires dateNow"
+        );
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapActionButtonsRuntime requires setTimeout"
         );
@@ -153,5 +174,6 @@ describe("getMapActionButtonsRuntime", () => {
         expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
             false
         );
+        expect(dateNow).not.toHaveBeenCalled();
     });
 });
