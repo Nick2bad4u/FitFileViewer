@@ -101,8 +101,11 @@ export type Validator<T = unknown> = (
 
 type MaybePromise<T> = Promise<T> | T;
 
-const errorHandlingRuntime = getErrorHandlingRuntime();
 let globalErrorListenerAbortController: AbortController | undefined;
+
+function errorHandlingRuntime(): ErrorHandlingRuntime {
+    return getErrorHandlingRuntime();
+}
 
 function getUnknownErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -414,7 +417,7 @@ export const validators = {
 export function initializeErrorHandling(
     options: InitializeErrorHandlingOptions = {}
 ): void {
-    const runtime = options.runtime ?? errorHandlingRuntime;
+    const runtime = options.runtime ?? errorHandlingRuntime();
     const eventTarget = runtime.getGlobalEventTarget();
 
     if (eventTarget) {
