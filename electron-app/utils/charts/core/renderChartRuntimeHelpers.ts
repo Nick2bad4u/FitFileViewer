@@ -11,6 +11,7 @@ import {
 import {
     getRenderChartRuntimeHelpersRuntime,
     type ProcessShim,
+    type RenderChartRuntimeHelpersRuntime,
 } from "./renderChartRuntimeHelpersRuntime.js";
 
 type UnknownFunction = (...args: unknown[]) => unknown;
@@ -31,7 +32,6 @@ interface ChartActionsBridge {
 }
 
 let loadingStateSuppressed = false;
-const renderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime();
 
 function hasDebouncedRender(
     value: unknown
@@ -61,9 +61,10 @@ function isChartRenderCompleteNotifier(
  * by renderer dependencies without spreading untyped global casts through the
  * renderer.
  */
-export function ensureProcessNextTick(): void {
-    const processShim: ProcessShim =
-        renderChartRuntimeHelpersRuntime.ensureProcessShim();
+export function ensureProcessNextTick(
+    runtime: RenderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime()
+): void {
+    const processShim: ProcessShim = runtime.ensureProcessShim();
 
     if (typeof processShim.nextTick === "function") {
         return;

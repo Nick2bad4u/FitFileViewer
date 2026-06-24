@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     ensureProcessNextTick,
@@ -24,6 +24,10 @@ import {
     clearRegisteredChartInstances,
     setRegisteredChartInstances,
 } from "../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import type {
+    ProcessShim,
+    RenderChartRuntimeHelpersRuntime,
+} from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.js";
 
 const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
@@ -155,6 +159,36 @@ describe("render chart runtime helpers", () => {
 
         expect(processValue.env.NODE_ENV).toBe("test");
         expect(calls).toStrictEqual([]);
+        await Promise.resolve();
+        expect(calls).toStrictEqual(["queued"]);
+    });
+
+    it("adds a nextTick shim through an injected runtime", async () => {
+        expect.assertions(4);
+
+        const processShim: ProcessShim = {},
+            runtime: RenderChartRuntimeHelpersRuntime = {
+                ensureProcessShim: vi.fn(() => processShim),
+                getProcessShim: vi.fn(() => processShim),
+            };
+
+        ensureProcessNextTick(runtime);
+
+        const nextTick = processShim.nextTick,
+            calls: unknown[] = [];
+
+        expect(runtime.ensureProcessShim).toHaveBeenCalledExactlyOnceWith();
+        expect(runtime.getProcessShim).not.toHaveBeenCalled();
+        expect(typeof nextTick).toBe("function");
+
+        if (typeof nextTick !== "function") {
+            throw new TypeError("Expected injected process shim to receive nextTick");
+        }
+
+        nextTick((value: unknown) => {
+            calls.push(value);
+        }, "queued");
+
         await Promise.resolve();
         expect(calls).toStrictEqual(["queued"]);
     });

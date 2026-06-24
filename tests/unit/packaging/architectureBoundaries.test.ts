@@ -9996,7 +9996,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -10031,6 +10031,15 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeHelpersSource).toContain(
             "renderChartRuntimeHelpersRuntime.js"
+        );
+        expect(renderChartRuntimeHelpersSource).toContain(
+            "type RenderChartRuntimeHelpersRuntime"
+        );
+        expect(renderChartRuntimeHelpersSource).not.toContain(
+            "const renderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime();"
+        );
+        expect(renderChartRuntimeHelpersSource).toContain(
+            "runtime: RenderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime()"
         );
         expect(renderChartRuntimeHelpersSource).not.toContain(
             "return globalThis"
