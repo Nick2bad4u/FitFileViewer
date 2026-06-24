@@ -5,6 +5,10 @@ import {
     updateRendererChartPerformanceTracking,
 } from "../../state/domain/rendererChartPerformanceState.js";
 import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
+import {
+    getRenderChartPerformanceMonitorRuntime,
+    type RenderChartPerformanceMonitorRuntime,
+} from "./renderChartPerformanceMonitorRuntime.js";
 
 interface PerformanceTrackingRecord extends Record<string, unknown> {
     startTime: number;
@@ -22,6 +26,10 @@ export interface PerformanceSummary {
 
 function getPerformanceHistory(): Record<string, unknown>[] {
     return getRendererChartPerformanceHistory();
+}
+
+function renderChartPerformanceMonitorRuntime(): RenderChartPerformanceMonitorRuntime {
+    return getRenderChartPerformanceMonitorRuntime();
 }
 
 function isPerformanceTrackingRecord(
@@ -52,7 +60,7 @@ export const chartPerformanceMonitor = {
             return;
         }
 
-        const endTime = performance.now();
+        const endTime = renderChartPerformanceMonitorRuntime().nowPerformance();
         const duration = endTime - trackingData.startTime;
         const performanceRecord = {
             ...trackingData,
@@ -122,8 +130,9 @@ export const chartPerformanceMonitor = {
      * @returns Performance tracking ID.
      */
     startTracking(operation: string): string {
-        const startTime = performance.now();
-        const trackingId = `chart-${operation}-${Date.now()}`;
+        const startTime =
+            renderChartPerformanceMonitorRuntime().nowPerformance();
+        const trackingId = `chart-${operation}-${renderChartPerformanceMonitorRuntime().dateNow()}`;
 
         updateRendererChartPerformanceTracking(
             trackingId,

@@ -6433,19 +6433,59 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart performance monitoring on the chart performance state facade", () => {
-        expect.assertions(2);
+        expect.assertions(15);
 
         const chartPerformanceMonitorSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartPerformanceMonitor.ts"
             )
         );
+        const chartPerformanceMonitorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartPerformanceMonitorRuntime.ts"
+            )
+        );
 
         expect(chartPerformanceMonitorSource).toContain(
             "rendererChartPerformanceState.js"
         );
+        expect(chartPerformanceMonitorSource).toContain(
+            "renderChartPerformanceMonitorRuntime.js"
+        );
+        expect(chartPerformanceMonitorSource).toContain(
+            "renderChartPerformanceMonitorRuntime().nowPerformance()"
+        );
+        expect(chartPerformanceMonitorSource).toContain(
+            "renderChartPerformanceMonitorRuntime().dateNow()"
+        );
         expect(chartPerformanceMonitorSource).not.toContain(
             "state/core/stateManager.js"
+        );
+        expect(chartPerformanceMonitorSource).not.toContain("Date.now");
+        expect(chartPerformanceMonitorSource).not.toContain("performance.now");
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "defaultRenderChartPerformanceMonitorRuntimeScope"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "renderChartPerformanceMonitorRuntime requires performance.now"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "scope.performance"
         );
     });
 

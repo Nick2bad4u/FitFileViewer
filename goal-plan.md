@@ -866,6 +866,9 @@ Chart action successful-render timestamps now receive the render clock explicitl
 instead of calling `Date.now` directly inside `renderChartActions.ts`; the runtime date clock is now supplied through
 `getDateNow` provider scopes instead of direct `dateNow` scope properties, with focused action/runtime coverage and
 architecture coverage blocking the direct clock path from returning.
+Chart performance-monitor start/end timestamps now route through `renderChartPerformanceMonitorRuntime.ts` instead of
+calling `performance.now` or `Date.now` directly inside `renderChartPerformanceMonitor.ts`, with focused runtime
+coverage and architecture coverage blocking direct clock reads and legacy direct runtime scope properties from returning.
 Render chart runtime helper bootstrap now registers plugins without passing a mutable global-like chart
 environment, and `process.nextTick` shimming goes through focused process providers instead of returning
 `globalThis` from `renderChartRuntimeHelpersRuntime.ts`. The default process shim provider now uses explicit
