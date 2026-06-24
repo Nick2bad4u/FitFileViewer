@@ -1,6 +1,9 @@
 (function initializeElectronAltFitBridge() {
     "use strict";
 
+    const FILE_INPUT_RETRY_DELAY_MS = 200;
+    const FILE_INPUT_RETRY_LIMIT = 25;
+
     function base64ToArrayBuffer(base64) {
         const binaryString = window.atob(base64);
         const bytes = new Uint8Array(binaryString.length);
@@ -24,35 +27,9 @@
         root.replaceChildren(message);
     }
 
-    function loadFitFileArrayBuffer(arrayBuffer) {
-        if (typeof window.loadFitFileFromArrayBuffer === "function") {
-            window.loadFitFileFromArrayBuffer(arrayBuffer);
-            return true;
-        }
-
-        if (
-            window.ffvApp &&
-            typeof window.ffvApp.loadFitFileFromArrayBuffer === "function"
-        ) {
-            window.ffvApp.loadFitFileFromArrayBuffer(arrayBuffer);
-            return true;
-        }
-
-        return false;
-    }
-
     function handleFitFileBase64(base64) {
         const arrayBuffer = base64ToArrayBuffer(base64);
-        if (loadFitFileArrayBuffer(arrayBuffer)) {
-            return;
-        }
-
-        window.dispatchEvent(
-            new CustomEvent("fitfile-received", {
-                detail: arrayBuffer,
-            })
-        );
-        showReceivedFallback(base64);
+        scheduleFileInputLoad(arrayBuffer, () => showReceivedFallback(base64));
     }
 
     function isTrustedParentMessage(event) {
@@ -104,16 +81,28 @@
         return true;
     }
 
-    window.addEventListener("fitfile-received", (event) => {
-        if (loadFitFileArrayBuffer(event.detail)) {
-            return;
-        }
+    function scheduleFileInputLoad(arrayBuffer, onFallback) {
+        let attemptsRemaining = FILE_INPUT_RETRY_LIMIT;
 
         const trySimulateInput = () => {
-            if (!triggerFileInputFromArrayBuffer(event.detail)) {
-                setTimeout(trySimulateInput, 200);
+            try {
+                if (triggerFileInputFromArrayBuffer(arrayBuffer)) {
+                    return;
+                }
+            } catch {
+                onFallback();
+                return;
             }
+
+            attemptsRemaining -= 1;
+            if (attemptsRemaining <= 0) {
+                onFallback();
+                return;
+            }
+
+            setTimeout(trySimulateInput, FILE_INPUT_RETRY_DELAY_MS);
         };
+
         trySimulateInput();
-    });
+    }
 })();
