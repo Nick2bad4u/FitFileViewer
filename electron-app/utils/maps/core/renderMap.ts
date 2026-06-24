@@ -402,8 +402,8 @@ export function renderMap(): void {
         return;
     }
 
-    // Defensive cleanup: overlay filename tooltips are appended to document.body and can become orphaned
-    // if the overlay list or map is re-rendered while a tooltip is visible.
+    // Defensive cleanup: overlay filename tooltips can become orphaned if the
+    // overlay list or map is re-rendered while a tooltip is visible.
     try {
         for (const el of document.querySelectorAll(
             ".overlay-filename-tooltip"
@@ -1213,9 +1213,7 @@ export function renderMap(): void {
             getLapNumForIdx,
             map,
             mapContainer:
-                mapContainer ||
-                document.querySelector<HTMLElement>("#leaflet-map") ||
-                document.body,
+                mapContainer || runtime.getMapContainerFallback("#leaflet-map"),
             startIcon,
         });
         if (

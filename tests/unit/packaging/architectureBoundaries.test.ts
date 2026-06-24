@@ -8013,7 +8013,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(23);
+        expect.assertions(29);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -8038,6 +8038,8 @@ describe("architecture boundaries", () => {
 
         expect(renderMapSource).toContain("renderMapRuntime.js");
         expect(renderMapSource).toContain("createAbortController");
+        expect(renderMapSource).toContain("getMapContainerFallback");
+        expect(renderMapSource).not.toContain("document.body");
         expect(directRenderMapTimingGlobalPattern.test(renderMapSource)).toBe(
             false
         );
@@ -8057,6 +8059,9 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(renderMapRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(renderMapRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(renderMapRuntimeSource).toContain(
@@ -8069,6 +8074,9 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(renderMapRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(renderMapRuntimeScopeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
         expect(renderMapRuntimeScopeSource).not.toContain(
@@ -8076,6 +8084,7 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).not.toContain("scope.AbortController");
         expect(renderMapRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(renderMapRuntimeSource).not.toContain("scope.document");
         expect(renderMapRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
@@ -8085,6 +8094,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).toContain(
             "const clearTimeoutRef = scope.getClearTimeout?.();"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "const documentRef = scope.getDocument?.();"
         );
         expect(renderMapRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"

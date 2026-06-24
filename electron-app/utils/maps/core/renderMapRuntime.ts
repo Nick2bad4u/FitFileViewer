@@ -7,6 +7,7 @@ export interface RenderMapRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -18,6 +19,7 @@ export interface RenderMapRuntimeScope {
 export interface RenderMapRuntime {
     readonly clearTimeout: (timer: RenderMapTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly getMapContainerFallback: (selector: string) => HTMLElement;
     readonly requestAnimationFrame: (
         frameCallback: FrameRequestCallback
     ) => void;
@@ -44,6 +46,15 @@ function getRequiredClearTimeout(
     return clearTimeoutRef;
 }
 
+function getRequiredDocument(scope: RenderMapRuntimeScope): Document {
+    const documentRef = scope.getDocument?.();
+    if (!documentRef) {
+        throw new TypeError("renderMap requires a document runtime");
+    }
+
+    return documentRef;
+}
+
 function getScopeRequestAnimationFrame(
     scope: RenderMapRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
@@ -64,6 +75,7 @@ function getRequiredSetTimeout(
 const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,
 };
@@ -85,6 +97,13 @@ export function getRenderMapRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        getMapContainerFallback(selector): HTMLElement {
+            const documentRef = getRequiredDocument(scope);
+            return (
+                documentRef.querySelector<HTMLElement>(selector) ??
+                documentRef.body
+            );
         },
         requestAnimationFrame(frameCallback): void {
             const requestAnimationFrameRef =
