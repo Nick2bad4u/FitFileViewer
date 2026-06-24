@@ -19,7 +19,10 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
@@ -70,6 +73,7 @@ type ExportFileDependencies = {
 };
 
 type NamedLifecycleIpcDependencies = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     electronAPI: LifecycleElectronAPI;
     isTestEnvironment: boolean;
     lifecycleRuntime: LifecycleListenersRuntime;
@@ -136,6 +140,7 @@ type HandleOpenFileOptions = {
 
 /** Parameters required to wire renderer DOM and IPC listeners. */
 export type SetupListenersOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     handleOpenFile: (options: HandleOpenFileOptions) => unknown;
     isOpeningFileRef: FileOpeningStateRef;
     openFileBtn?: HTMLButtonElement | null;
@@ -187,8 +192,10 @@ function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
     );
 }
 
-function getLifecycleElectronAPI(): LifecycleElectronAPI | null {
-    return getRendererElectronApi(isLifecycleElectronAPI);
+function getLifecycleElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): LifecycleElectronAPI | null {
+    return getRendererElectronApi(isLifecycleElectronAPI, electronApiScope);
 }
 
 function getErrorMessage(error: unknown): string {
@@ -476,6 +483,7 @@ function registerUpdateEventListeners(
 }
 
 function registerNamedLifecycleIpcListeners({
+    electronApiScope,
     electronAPI,
     isTestEnvironment,
     lifecycleRuntime,
@@ -543,6 +551,7 @@ function registerNamedLifecycleIpcListeners({
     );
     registerMenuIpcListeners({
         debugMenuLog,
+        electronApiScope,
         isTestEnvironment,
         showAboutModal,
         showNotification,
@@ -556,6 +565,7 @@ function registerNamedLifecycleIpcListeners({
  * @param options - Listener dependencies supplied by the renderer bootstrap.
  */
 export function setupListeners({
+    electronApiScope,
     handleOpenFile,
     isOpeningFileRef,
     openFileBtn,
@@ -624,6 +634,7 @@ export function setupListeners({
     // Recent Files Context Menu (extracted for maintainability)
     trackUnsubscribe(
         attachRecentFilesContextMenu({
+            electronApiScope,
             openFileBtn,
             setLoading,
             showNotification,
@@ -633,7 +644,7 @@ export function setupListeners({
     // Window resize for chart rendering - use modern state management
     registerChartResizeListener({ cleanupCallbacks });
 
-    const electronAPI = getLifecycleElectronAPI();
+    const electronAPI = getLifecycleElectronAPI(electronApiScope);
 
     // Electron IPC and menu listeners
     if (
@@ -742,6 +753,7 @@ export function setupListeners({
 
     if (electronAPI) {
         registerNamedLifecycleIpcListeners({
+            electronApiScope,
             electronAPI,
             isTestEnvironment,
             lifecycleRuntime: runtime,

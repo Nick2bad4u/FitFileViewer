@@ -13,10 +13,7 @@ vi.mock(
 import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFile = (filePath: string) => Promise<void>;
 type ApproveRecentFile = (filePath: string) => Promise<boolean>;
@@ -51,6 +48,12 @@ type Harness = {
     showNotification: ReturnType<typeof vi.fn<ShowNotification>>;
     showUpdateNotification: ReturnType<typeof vi.fn<ShowUpdateNotification>>;
 };
+
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 function createHarness(): Harness {
     let openRecentHandler: OpenRecentHandler = async () => {};
@@ -89,7 +92,7 @@ async function withListenersHarness(
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
     document.body.append(harness.openFileBtn);
-    registerRendererElectronApiCandidate({
+    const electronApiScope = createElectronApiScope({
         addRecentFile: harness.addRecentFile,
         approveRecentFile: harness.approveRecentFile,
         onMenuOpenFile: harness.onMenuOpenFile,
@@ -100,6 +103,7 @@ async function withListenersHarness(
     });
 
     setupListeners({
+        electronApiScope,
         handleOpenFile: harness.handleOpenFile,
         isOpeningFileRef: { current: false },
         openFileBtn: harness.openFileBtn,
@@ -119,7 +123,6 @@ async function withListenersHarness(
     } finally {
         harness.cleanup();
         harness.openFileBtn.remove();
-        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     }
 }
