@@ -5,7 +5,10 @@ import {
     isAbortError,
     truncateErrorText,
 } from "../../net/networkUtils.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
@@ -139,6 +142,9 @@ type ExportModalAccessibilityOptions = {
     signal: AbortSignal;
     title: HTMLElement;
 };
+type ExportElectronApiOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 let exportModalTitleCounter = 0;
 let detectCurrentThemeOverride: typeof __realDetectCurrentTheme | null = null;
@@ -169,8 +175,13 @@ function isExportElectronApi(value: unknown): value is ElectronApiLike {
     );
 }
 
-function getExportElectronApi(): ElectronApiLike | null {
-    return getRendererElectronApi(isExportElectronApi);
+function getExportElectronApi(
+    options?: ExportElectronApiOptions
+): ElectronApiLike | null {
+    return getRendererElectronApi(
+        isExportElectronApi,
+        options?.electronApiScope
+    );
 }
 
 function setupExportModalAccessibility({
@@ -987,7 +998,9 @@ export const exportUtils = {
      *
      * @returns {Promise<string>} Access token
      */
-    async authenticateWithGyazo(): Promise<string> {
+    async authenticateWithGyazo(
+        options?: ExportElectronApiOptions
+    ): Promise<string> {
         const config = exportUtils.getGyazoConfig();
 
         if (!config.clientId || !config.clientSecret) {
@@ -997,7 +1010,7 @@ export const exportUtils = {
             );
         }
 
-        const electronAPI = getExportElectronApi();
+        const electronAPI = getExportElectronApi(options);
         if (
             !electronAPI ||
             typeof electronAPI.startGyazoServer !== "function" ||

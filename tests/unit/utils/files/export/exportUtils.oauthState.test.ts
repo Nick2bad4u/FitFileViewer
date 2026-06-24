@@ -1,10 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { exportUtils } from "../../../../../electron-app/utils/files/export/exportUtils.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type GyazoServerResult = {
     message?: string;
@@ -19,6 +16,12 @@ type TestElectronAPI = {
     startGyazoServer: (port: number) => Promise<GyazoServerResult>;
     stopGyazoServer: () => Promise<void>;
 };
+
+function createGyazoApiScope(api: TestElectronAPI): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 function getGlobalRestoreDescriptor(propertyName: string): PropertyDescriptor {
     return (
@@ -43,28 +46,26 @@ describe("exportUtils OAuth state generation", () => {
 
         const cryptoDescriptor = getGlobalRestoreDescriptor("crypto"),
             startGyazoServer = vi.fn<TestElectronAPI["startGyazoServer"]>(),
-            testElectronAPI: TestElectronAPI = {
+            electronApiScope = createGyazoApiScope({
                 onGyazoOAuthCallback: vi.fn<
                     TestElectronAPI["onGyazoOAuthCallback"]
                 >(() => () => {}),
                 startGyazoServer,
                 stopGyazoServer: vi.fn<TestElectronAPI["stopGyazoServer"]>(),
-            };
+            });
 
         try {
             Object.defineProperty(globalThis, "crypto", {
                 configurable: true,
                 value: undefined,
             });
-            registerRendererElectronApiCandidate(testElectronAPI);
 
-            await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow(
-                "Secure random number generation is unavailable"
-            );
+            await expect(
+                exportUtils.authenticateWithGyazo({ electronApiScope })
+            ).rejects.toThrow("Secure random number generation is unavailable");
             expect(startGyazoServer).not.toHaveBeenCalled();
         } finally {
             restoreGlobalProperty("crypto", cryptoDescriptor);
-            resetRendererElectronApiCandidate();
         }
     });
 });
