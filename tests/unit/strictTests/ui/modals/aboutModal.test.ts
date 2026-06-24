@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AboutModalModules =
     typeof import("../../../../../electron-app/utils/ui/modals/ensureAboutModal.js") &
@@ -11,6 +8,10 @@ type AboutModalModules =
 
 type AboutElectronApi = {
     openExternal: (url: string) => void;
+};
+type AboutElectronApiFixture = {
+    aboutElectronAPI: AboutElectronApi;
+    electronApiScope: RendererElectronApiScope;
 };
 
 const aboutModalRuntimeMocks = vi.hoisted(() => ({
@@ -139,23 +140,26 @@ function getRequiredExternalLink(selector: string): HTMLAnchorElement {
     return link;
 }
 
-function registerAboutElectronApi(): AboutElectronApi {
+function createAboutElectronApiFixture(): AboutElectronApiFixture {
     const electronAPI = {
         openExternal: vi.fn<(url: string) => void>(),
     };
 
-    registerElectronApiCandidate(electronAPI);
-
-    return electronAPI;
+    return {
+        aboutElectronAPI: electronAPI,
+        electronApiScope: {
+            getElectronAPI: () => electronAPI,
+        },
+    };
 }
 
 describe("about modal UI behaviors", () => {
     let aboutElectronAPI: AboutElectronApi;
+    let electronApiScope: RendererElectronApiScope;
 
     beforeEach(() => {
         vi.restoreAllMocks();
         vi.useFakeTimers();
-        resetElectronApiCandidate();
         document.body.replaceChildren();
 
         // Provide a focusable element to verify focus restoration
@@ -164,7 +168,8 @@ describe("about modal UI behaviors", () => {
         document.body.appendChild(focusable);
         focusable.focus();
 
-        aboutElectronAPI = registerAboutElectronApi();
+        ({ aboutElectronAPI, electronApiScope } =
+            createAboutElectronApiFixture());
 
         for (const mock of Object.values(aboutModalRuntimeMocks)) {
             mock.mockClear();
@@ -176,7 +181,6 @@ describe("about modal UI behaviors", () => {
         vi.useRealTimers();
         vi.restoreAllMocks();
         document.body.replaceChildren();
-        resetElectronApiCandidate();
     });
 
     it("ensures modal creation, shows with content, and closes via close button", async () => {
@@ -235,7 +239,7 @@ describe("about modal UI behaviors", () => {
         const { ensureAboutModal, showAboutModal } = await importModules();
 
         ensureAboutModal();
-        showAboutModal();
+        showAboutModal("", { electronApiScope });
 
         const modal = getRequiredElementById("about-modal");
         expect(modal).toBeInstanceOf(HTMLElement);
@@ -257,7 +261,7 @@ describe("about modal UI behaviors", () => {
         const { ensureAboutModal, showAboutModal } = await importModules();
 
         ensureAboutModal();
-        showAboutModal();
+        showAboutModal("", { electronApiScope });
 
         const link = getRequiredExternalLink(
             '[data-external-link][href="https://electronjs.org/"]'

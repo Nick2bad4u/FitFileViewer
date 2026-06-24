@@ -8,6 +8,7 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { showNotification } from "../notifications/showNotification.js";
+import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
 import {
     getAboutModalRuntime,
     type AboutModalTimerHandle,
@@ -53,6 +54,9 @@ type TechBadge = {
 
 type ClipboardExportUtils = typeof exportUtils & {
     copyTextToClipboard?: (text: string) => Promise<boolean>;
+};
+type AboutModalOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
 
 const clipboardExportUtils = exportUtils as ClipboardExportUtils;
@@ -462,7 +466,10 @@ export function handleEscapeKey(e: Event): void {
 /**
  * Enhanced modal display function with animations and improved accessibility
  */
-export function showAboutModal(html = ""): void {
+export function showAboutModal(
+    html = "",
+    options: AboutModalOptions = {}
+): void {
     ensureAboutModal();
     const modal = aboutModalRuntime.queryElement<HTMLElement>("#about-modal");
     if (modal) {
@@ -597,7 +604,10 @@ export function showAboutModal(html = ""): void {
 
             // Close on backdrop click
             modalEventCleanups.push(
-                attachExternalLinkHandlers({ root: modalContentForLinks }),
+                attachExternalLinkHandlers({
+                    electronApiScope: options.electronApiScope,
+                    root: modalContentForLinks,
+                }),
                 addEventListenerWithCleanup(modal, "click", (e) => {
                     if (e.target === modal) {
                         hideAboutModal();
