@@ -2,10 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
 import { resetMenuIpcListenerStateForTests } from "../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 import { setLoadedFitFiles } from "../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
@@ -46,7 +43,10 @@ vi.mock(
 import { setupListeners } from "../../../../electron-app/utils/app/events.js";
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
-    showKeyboardShortcutsModal: vi.fn<() => void>(),
+    showKeyboardShortcutsModal:
+        vi.fn<
+            (options?: { electronApiScope?: RendererElectronApiScope }) => void
+        >(),
 }));
 
 vi.mock(
@@ -60,7 +60,6 @@ vi.mock(
 type IpcHandler = (...args: unknown[]) => unknown;
 type LoadingCallback = SetupListenersOptions["setLoading"];
 type NotificationCallback = SetupListenersOptions["showNotification"];
-type ShowKeyboardShortcutsModal = () => void;
 type UpdateNotificationCallback =
     SetupListenersOptions["showUpdateNotification"];
 
@@ -121,6 +120,12 @@ type TestElectronAPI = {
     send: ReturnType<typeof vi.fn<(channel: string) => void>>;
 };
 
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
+
 function requireElement<T extends Element>(
     element: T | null,
     label: string
@@ -170,6 +175,7 @@ describe(setupListeners, () => {
         typeof vi.fn<SetupListenersOptions["showAboutModal"]>
     >;
     let electronAPI: TestElectronAPI;
+    let electronApiScope: RendererElectronApiScope;
     let ipcHandlers: Map<string, IpcHandler>;
     let menuOpenHandler: IpcHandler | null;
     let recentOpenHandler: IpcHandler | null;
@@ -262,8 +268,7 @@ describe(setupListeners, () => {
         };
 
         resetMenuIpcListenerStateForTests();
-        resetElectronApiCandidate();
-        registerElectronApiCandidate(electronAPI);
+        electronApiScope = createElectronApiScope(electronAPI);
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
         setLoadedFitFiles([], "test");
         csvExportMocks.serializeTableToCSV.mockReset();
@@ -274,6 +279,7 @@ describe(setupListeners, () => {
         keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
 
         setupListeners({
+            electronApiScope,
             openFileBtn: openButton,
             isOpeningFileRef,
             setLoading,
@@ -289,7 +295,6 @@ describe(setupListeners, () => {
         vi.restoreAllMocks();
         vi.useRealTimers();
         document.body.replaceChildren();
-        resetElectronApiCandidate();
     });
 
     it("delegates open file clicks to the provided handler", () => {
@@ -777,7 +782,7 @@ describe(setupListeners, () => {
 
         expect(
             keyboardShortcutsModalMock.showKeyboardShortcutsModal
-        ).toHaveBeenCalledOnce();
+        ).toHaveBeenCalledExactlyOnceWith({ electronApiScope });
         expect(Reflect.has(globalThis, "showKeyboardShortcutsModal")).toBe(
             false
         );
@@ -814,7 +819,7 @@ describe(setupListeners, () => {
     });
 
     it("reuses the cached keyboard shortcuts module presenter", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
         const handler = requireHandler(
             ipcHandlers.get("menu-keyboard-shortcuts"),
             "menu-keyboard-shortcuts"
@@ -824,6 +829,9 @@ describe(setupListeners, () => {
         expect(
             keyboardShortcutsModalMock.showKeyboardShortcutsModal
         ).toHaveBeenCalledTimes(2);
+        expect(
+            keyboardShortcutsModalMock.showKeyboardShortcutsModal
+        ).toHaveBeenLastCalledWith({ electronApiScope });
         expect(Reflect.has(globalThis, "showKeyboardShortcutsModal")).toBe(
             false
         );

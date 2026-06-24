@@ -32,10 +32,7 @@ vi.mock(
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { resetMenuIpcListenerStateForTests } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type TestElectronAPI = {
     addRecentFile: Mock<ElectronAPI["addRecentFile"]>;
@@ -77,6 +74,22 @@ function getMenuOpenOverlayHandler(
     return handler;
 }
 
+function createMutableElectronApiScope(api: unknown): {
+    readonly deactivateElectronApi: () => void;
+    readonly electronApiScope: RendererElectronApiScope;
+} {
+    let activeApi: unknown = api;
+
+    return {
+        deactivateElectronApi: () => {
+            activeApi = null;
+        },
+        electronApiScope: {
+            getElectronAPI: () => activeApi,
+        },
+    };
+}
+
 describe("utils/app/lifecycle/listeners.js", () => {
     beforeEach(() => {
         const openFileButton = document.createElement("button");
@@ -94,12 +107,12 @@ describe("utils/app/lifecycle/listeners.js", () => {
             renderChartJS: undefined,
         });
         resetMenuIpcListenerStateForTests();
-        resetElectronApiCandidate();
         updateChartsMock.mockClear();
     });
 
     function mount(openRecentReturn: string[] | null = null): {
         electronAPI: TestElectronAPI;
+        deactivateElectronApi: () => void;
         handleOpenFile: Mock<SetupListenersOptions["handleOpenFile"]>;
         isOpeningFileRef: FileOpeningStateRef;
         openFileBtn: HTMLButtonElement;
@@ -139,9 +152,11 @@ describe("utils/app/lifecycle/listeners.js", () => {
             addRecentFile: vi.fn<ElectronAPI["addRecentFile"]>(),
             onIpc: vi.fn<ElectronAPI["onIpc"]>(),
         };
-        registerElectronApiCandidate(electronAPI);
+        const { deactivateElectronApi, electronApiScope } =
+            createMutableElectronApiScope(electronAPI);
 
         setupListeners({
+            electronApiScope,
             openFileBtn,
             isOpeningFileRef,
             setLoading,
@@ -153,6 +168,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
 
         return {
             electronAPI,
+            deactivateElectronApi,
             openFileBtn,
             isOpeningFileRef,
             setLoading,
@@ -211,8 +227,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
     it("contextmenu with no electronAPI.recentFiles early-returns and shows info", async () => {
         expect.assertions(1);
 
-        const { openFileBtn } = mount(null);
-        resetElectronApiCandidate();
+        const { deactivateElectronApi, openFileBtn } = mount(null);
+        deactivateElectronApi();
         const evt = new MouseEvent("contextmenu", {
             bubbles: true,
             cancelable: true,
