@@ -7859,7 +7859,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(147);
+        expect.assertions(150);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -7873,6 +7873,13 @@ describe("architecture boundaries", () => {
         );
 
         expect(uiStateManagerSource).toContain("uiStateManagerRuntime.js");
+        expect(uiStateManagerSource).toContain("type UIStateManagerRuntime");
+        expect(uiStateManagerSource).toContain(
+            "return getUIStateManagerRuntime();"
+        );
+        expect(uiStateManagerSource).not.toContain(
+            "const uiStateManagerRuntime = getUIStateManagerRuntime();"
+        );
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("createSpanElement");
         expect(uiStateManagerSource).toContain("addWindowEventListener");

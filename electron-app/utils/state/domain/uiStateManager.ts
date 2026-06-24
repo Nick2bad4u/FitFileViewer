@@ -12,7 +12,10 @@ import {
     updateState,
 } from "../core/stateManager.js";
 import { getActiveFitRawData } from "./activeFitRawDataState.js";
-import { getUIStateManagerRuntime } from "./uiStateManagerRuntime.js";
+import {
+    getUIStateManagerRuntime,
+    type UIStateManagerRuntime,
+} from "./uiStateManagerRuntime.js";
 
 type NotificationInput =
     | string
@@ -47,9 +50,13 @@ function getNotificationMessage(notification: NotificationInput): string {
         : notification.message || "No message provided";
 }
 
-const uiStateManagerRuntime = getUIStateManagerRuntime();
-const DEFAULT_DOCUMENT_TITLE =
-    uiStateManagerRuntime.getDefaultDocumentTitle("Fit File Viewer");
+function uiStateManagerRuntime(): UIStateManagerRuntime {
+    return getUIStateManagerRuntime();
+}
+
+function getDefaultDocumentTitle(): string {
+    return uiStateManagerRuntime().getDefaultDocumentTitle("Fit File Viewer");
+}
 
 /**
  * UI State Manager - handles common UI state operations
@@ -58,7 +65,7 @@ export class UIStateManager {
     private readonly eventListeners = new Map<string, EventListener>();
 
     private eventListenerAbortController =
-        uiStateManagerRuntime.createAbortController();
+        uiStateManagerRuntime().createAbortController();
 
     private systemThemeListener: ((event: MediaQueryListEvent) => void) | null =
         null;
@@ -71,7 +78,7 @@ export class UIStateManager {
      * Apply theme to the UI
      */
     applyTheme(theme: string) {
-        const root = uiStateManagerRuntime.getThemeRootElement();
+        const root = uiStateManagerRuntime().getThemeRootElement();
 
         if (theme === "system") {
             // Remove explicit theme and use system preference
@@ -81,7 +88,7 @@ export class UIStateManager {
 
             // Listen for system theme changes if supported
             const mediaQuery =
-                uiStateManagerRuntime.getSystemThemeMediaQuery();
+                uiStateManagerRuntime().getSystemThemeMediaQuery();
             if (mediaQuery) {
                 const systemTheme = mediaQuery.matches ? "dark" : "light";
                 if (root) {
@@ -123,7 +130,7 @@ export class UIStateManager {
             // Remove system theme listener if it exists
             if (this.systemThemeListener) {
                 const mediaQuery =
-                    uiStateManagerRuntime.getSystemThemeMediaQuery();
+                    uiStateManagerRuntime().getSystemThemeMediaQuery();
                 if (mediaQuery) {
                     if (typeof mediaQuery.removeEventListener === "function") {
                         mediaQuery.removeEventListener(
@@ -141,10 +148,10 @@ export class UIStateManager {
         }
 
         // Update theme toggle buttons
-        const themeButtons = uiStateManagerRuntime.getThemeStateElements();
+        const themeButtons = uiStateManagerRuntime().getThemeStateElements();
         for (const button of themeButtons) {
             const buttonTheme =
-                uiStateManagerRuntime.isHTMLElement(button)
+                uiStateManagerRuntime().isHTMLElement(button)
                     ? button.dataset["theme"]
                     : undefined;
             button.classList.toggle("active", buttonTheme === theme);
@@ -159,14 +166,14 @@ export class UIStateManager {
     cleanup() {
         // Remove system theme listener if it exists
         if (this.systemThemeListener) {
-            const mediaQuery = uiStateManagerRuntime.getSystemThemeMediaQuery();
+            const mediaQuery = uiStateManagerRuntime().getSystemThemeMediaQuery();
             mediaQuery?.removeEventListener("change", this.systemThemeListener);
         }
 
         // Clear custom event listeners
         this.eventListenerAbortController.abort();
         this.eventListenerAbortController =
-            uiStateManagerRuntime.createAbortController();
+            uiStateManagerRuntime().createAbortController();
         this.eventListeners.clear();
 
         console.log("[UIStateManager] Cleaned up");
@@ -284,10 +291,10 @@ export class UIStateManager {
         };
 
         // Tab switching
-        const tabButtons = uiStateManagerRuntime.getTabButtonElements();
+        const tabButtons = uiStateManagerRuntime().getTabButtonElements();
         for (const button of tabButtons) {
             const tabName =
-                uiStateManagerRuntime.isHTMLElement(button)
+                uiStateManagerRuntime().isHTMLElement(button)
                     ? button.dataset["tab"]
                     : undefined;
             safeAddClickListener(button, () => {
@@ -306,10 +313,10 @@ export class UIStateManager {
         // previous theme and effectively "undo" a user change.
         //
         // Only treat explicit UI controls as theme toggles.
-        const themeButtons = uiStateManagerRuntime.getThemeToggleElements();
+        const themeButtons = uiStateManagerRuntime().getThemeToggleElements();
         for (const button of themeButtons) {
             const theme =
-                uiStateManagerRuntime.isHTMLElement(button)
+                uiStateManagerRuntime().isHTMLElement(button)
                     ? button.dataset["theme"]
                     : undefined;
             safeAddClickListener(button, () => {
@@ -322,7 +329,7 @@ export class UIStateManager {
         // Chart controls toggle
         const chartToggle = (() => {
             try {
-                return uiStateManagerRuntime.getChartControlsToggleElement();
+                return uiStateManagerRuntime().getChartControlsToggleElement();
             } catch {
                 return null;
             }
@@ -334,7 +341,7 @@ export class UIStateManager {
         // Measurement mode toggle
         const measureToggle = (() => {
             try {
-                return uiStateManagerRuntime.getMeasurementModeToggleElement();
+                return uiStateManagerRuntime().getMeasurementModeToggleElement();
             } catch {
                 return null;
             }
@@ -415,14 +422,14 @@ export class UIStateManager {
 
         const mainContent = (() => {
             try {
-                return uiStateManagerRuntime.getMainContentElement();
+                return uiStateManagerRuntime().getMainContentElement();
             } catch {
                 return null;
             }
         })();
         const sidebar = (() => {
             try {
-                return uiStateManagerRuntime.getSidebarElement();
+                return uiStateManagerRuntime().getSidebarElement();
             } catch {
                 return null;
             }
@@ -443,14 +450,14 @@ export class UIStateManager {
     updateChartControlsUI(isVisible: boolean) {
         const wrapper = (() => {
             try {
-                return uiStateManagerRuntime.getChartSettingsWrapperElement();
+                return uiStateManagerRuntime().getChartSettingsWrapperElement();
             } catch {
                 return null;
             }
         })();
         const toggleBtn = (() => {
             try {
-                return uiStateManagerRuntime.getChartControlsToggleElement();
+                return uiStateManagerRuntime().getChartControlsToggleElement();
             } catch {
                 return null;
             }
@@ -473,7 +480,7 @@ export class UIStateManager {
     updateDropOverlayVisibility(isVisible: boolean) {
         const dropOverlay = (() => {
             try {
-                return uiStateManagerRuntime.getDropOverlayElement();
+                return uiStateManagerRuntime().getDropOverlayElement();
             } catch {
                 return null;
             }
@@ -485,7 +492,7 @@ export class UIStateManager {
 
         const altFitIframe = (() => {
             try {
-                return uiStateManagerRuntime.getAltFitIframeElement();
+                return uiStateManagerRuntime().getAltFitIframeElement();
             } catch {
                 return null;
             }
@@ -497,7 +504,7 @@ export class UIStateManager {
 
         const zwiftIframe = (() => {
             try {
-                return uiStateManagerRuntime.getZwiftIframeElement();
+                return uiStateManagerRuntime().getZwiftIframeElement();
             } catch {
                 return null;
             }
@@ -518,7 +525,7 @@ export class UIStateManager {
             title =
                 typeof info.title === "string" && info.title.trim().length > 0
                     ? info.title
-                    : DEFAULT_DOCUMENT_TITLE,
+                    : getDefaultDocumentTitle(),
             activeFitRawData = getActiveFitRawData(),
             hasRenderableFile = Boolean(
                 requestedHasFile && displayName && activeFitRawData
@@ -526,7 +533,7 @@ export class UIStateManager {
 
         const fileNameContainer = (() => {
             try {
-                return uiStateManagerRuntime.getActiveFileNameContainerElement();
+                return uiStateManagerRuntime().getActiveFileNameContainerElement();
             } catch {
                 return null;
             }
@@ -535,11 +542,11 @@ export class UIStateManager {
             fileNameContainer.classList.toggle("has-file", hasRenderableFile);
         }
 
-        uiStateManagerRuntime.setAppHasFileState(hasRenderableFile);
+        uiStateManagerRuntime().setAppHasFileState(hasRenderableFile);
 
         const fileSpan = (() => {
             try {
-                return uiStateManagerRuntime.getActiveFileNameElement();
+                return uiStateManagerRuntime().getActiveFileNameElement();
             } catch {
                 return null;
             }
@@ -549,17 +556,17 @@ export class UIStateManager {
             if (hasRenderableFile) {
                 // Security: avoid `innerHTML` here. `displayName` can originate from user-controlled
                 // file paths and must never be interpreted as markup.
-                const labelSpan = uiStateManagerRuntime.createSpanElement();
+                const labelSpan = uiStateManagerRuntime().createSpanElement();
                 labelSpan.className = "active-label";
                 labelSpan.textContent = "Active:";
 
-                const nameSpan = uiStateManagerRuntime.createSpanElement();
+                const nameSpan = uiStateManagerRuntime().createSpanElement();
                 nameSpan.className = "filename-text";
                 nameSpan.textContent = displayName;
 
                 // Prevent long filenames (with auto-scroll animation) from rendering underneath the
                 // fixed "Active:" label. The viewport clips the scrolling text region.
-                const nameViewport = uiStateManagerRuntime.createSpanElement();
+                const nameViewport = uiStateManagerRuntime().createSpanElement();
                 nameViewport.className = "filename-viewport";
                 nameViewport.append(nameSpan);
 
@@ -577,7 +584,7 @@ export class UIStateManager {
         }
 
         try {
-            uiStateManagerRuntime.setDocumentTitle(title);
+            uiStateManagerRuntime().setDocumentTitle(title);
         } catch {
             /* Ignore errors */
         }
@@ -588,14 +595,14 @@ export class UIStateManager {
     updateLoadingIndicator(isLoading: boolean) {
         const loadingIndicator = (() => {
             try {
-                return uiStateManagerRuntime.getLoadingIndicatorElement();
+                return uiStateManagerRuntime().getLoadingIndicatorElement();
             } catch {
                 return null;
             }
         })();
         const mainContent = (() => {
             try {
-                return uiStateManagerRuntime.getMainContentElement();
+                return uiStateManagerRuntime().getMainContentElement();
             } catch {
                 return null;
             }
@@ -612,7 +619,7 @@ export class UIStateManager {
 
         // Update cursor
         try {
-            uiStateManagerRuntime.setBodyCursor(
+            uiStateManagerRuntime().setBodyCursor(
                 isLoading ? "wait" : "default"
             );
         } catch {
@@ -635,7 +642,7 @@ export class UIStateManager {
 
         const progressElement = (() => {
             try {
-                return uiStateManagerRuntime.getFileLoadingProgressElement();
+                return uiStateManagerRuntime().getFileLoadingProgressElement();
             } catch {
                 return null;
             }
@@ -656,14 +663,14 @@ export class UIStateManager {
     updateMeasurementModeUI(isActive: boolean) {
         const toggleBtn = (() => {
             try {
-                return uiStateManagerRuntime.getMeasurementModeToggleElement();
+                return uiStateManagerRuntime().getMeasurementModeToggleElement();
             } catch {
                 return null;
             }
         })();
         const mapContainer = (() => {
             try {
-                return uiStateManagerRuntime.getMapContainerElement();
+                return uiStateManagerRuntime().getMapContainerElement();
             } catch {
                 return null;
             }
@@ -685,11 +692,11 @@ export class UIStateManager {
      * Update tab button states
      */
     updateTabButtons(activeTab: string) {
-        const tabButtons = uiStateManagerRuntime.getTabButtonElements();
+        const tabButtons = uiStateManagerRuntime().getTabButtonElements();
 
         for (const button of tabButtons) {
             const tabName =
-                    uiStateManagerRuntime.isHTMLElement(button)
+                    uiStateManagerRuntime().isHTMLElement(button)
                         ? button.dataset["tab"]
                         : undefined,
                 isActive = tabName === activeTab;
@@ -703,16 +710,16 @@ export class UIStateManager {
      * Update tab visibility based on active tab
      */
     updateTabVisibility(activeTab: string) {
-        const tabContents = uiStateManagerRuntime.getTabContentElements();
+        const tabContents = uiStateManagerRuntime().getTabContentElements();
 
         for (const content of tabContents) {
             const tabName =
-                    uiStateManagerRuntime.isHTMLElement(content)
+                    uiStateManagerRuntime().isHTMLElement(content)
                         ? content.dataset["tabContent"]
                         : undefined,
                 isActive = tabName === activeTab;
 
-            if (uiStateManagerRuntime.isHTMLElement(content)) {
+            if (uiStateManagerRuntime().isHTMLElement(content)) {
                 content.style.display = isActive ? "block" : "none";
             }
             content.setAttribute("aria-hidden", (!isActive).toString());
@@ -727,7 +734,7 @@ export class UIStateManager {
     updateUnloadButtonVisibility(isVisible: boolean) {
         const unloadBtn = (() => {
             try {
-                return uiStateManagerRuntime.getUnloadFileButtonElement();
+                return uiStateManagerRuntime().getUnloadFileButtonElement();
             } catch {
                 return null;
             }
@@ -742,7 +749,7 @@ export class UIStateManager {
      * Update window state from DOM
      */
     updateWindowStateFromDOM() {
-        const windowState = uiStateManagerRuntime.getWindowState();
+        const windowState = uiStateManagerRuntime().getWindowState();
         if (windowState === null) {
             return;
         }
@@ -806,11 +813,11 @@ export const UIActions = {
 };
 
 // Set up window resize listener
-if (uiStateManagerRuntime.hasWindow()) {
+if (uiStateManagerRuntime().hasWindow()) {
     const windowListenerAbortController =
-        uiStateManagerRuntime.createAbortController();
+        uiStateManagerRuntime().createAbortController();
 
-    uiStateManagerRuntime.addWindowEventListener(
+    uiStateManagerRuntime().addWindowEventListener(
         "resize",
         () => {
             UIActions.updateWindowState();
@@ -821,7 +828,7 @@ if (uiStateManagerRuntime.hasWindow()) {
     );
 
     // Set up beforeunload to save state
-    uiStateManagerRuntime.addWindowEventListener(
+    uiStateManagerRuntime().addWindowEventListener(
         "beforeunload",
         () => {
             UIActions.updateWindowState();
