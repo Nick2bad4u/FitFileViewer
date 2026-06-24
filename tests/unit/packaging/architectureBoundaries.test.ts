@@ -16455,7 +16455,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(40);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -16535,6 +16535,10 @@ describe("architecture boundaries", () => {
         expect(shownFilesListRuntimeSource).toContain(
             "getRequiredDocument(scope).body.append"
         );
+        expect(shownFilesListRuntimeSource).toContain("isDarkTheme(): boolean");
+        expect(shownFilesListRuntimeSource).toContain(
+            '.classList.contains(\n                "theme-dark"'
+        );
         expect(shownFilesListRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
         );
@@ -16571,6 +16575,12 @@ describe("architecture boundaries", () => {
         expect(createShownFilesListSource).toContain("createAbortController");
         expect(createShownFilesListSource).toContain(
             "addBodyThemeChangeListener"
+        );
+        expect(createShownFilesListSource).toContain(
+            "shownFilesListRuntime.isDarkTheme()"
+        );
+        expect(createShownFilesListSource).not.toContain(
+            "document.body.classList"
         );
     });
 

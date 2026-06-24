@@ -408,7 +408,7 @@ export function createShownFilesList(): HTMLElement {
 
             const colorIndex = overlayIndex % chartOverlayColorPalette.length;
             const color = chartOverlayColorPalette[colorIndex] || "#1976d2";
-            const isDark = document.body.classList.contains("theme-dark");
+            const isDark = shownFilesListRuntime.isDarkTheme();
             const filter = isDark
                 ? "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
                 : "";

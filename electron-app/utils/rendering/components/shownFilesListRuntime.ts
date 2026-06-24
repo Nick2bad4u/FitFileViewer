@@ -63,6 +63,7 @@ export interface ShownFilesListRuntime {
         tagName: K
     ) => HTMLElementTagNameMap[K];
     readonly getViewport: () => ShownFilesListViewport;
+    readonly isDarkTheme: () => boolean;
     readonly querySelectorAll: (selector: string) => Iterable<Element>;
     readonly setTimeout: (
         callback: () => void,
@@ -163,6 +164,11 @@ export function getShownFilesListRuntime(
             }
 
             return { height, width };
+        },
+        isDarkTheme(): boolean {
+            return getRequiredDocument(scope).body.classList.contains(
+                "theme-dark"
+            );
         },
         querySelectorAll(selector): Iterable<Element> {
             return getRequiredDocument(scope).querySelectorAll(selector);

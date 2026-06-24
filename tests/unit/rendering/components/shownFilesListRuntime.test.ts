@@ -102,8 +102,22 @@ describe("getShownFilesListRuntime", () => {
         );
     });
 
+    it("checks dark theme state through the injected document runtime", () => {
+        expect.assertions(2);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("shown files");
+        const runtime = getShownFilesListRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.isDarkTheme()).toBe(false);
+        documentRef.body.classList.add("theme-dark");
+        expect(runtime.isDarkTheme()).toBe(true);
+    });
+
     it("does not borrow ambient documents for explicit DOM scopes", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const runtime = getShownFilesListRuntime({});
 
@@ -116,6 +130,9 @@ describe("getShownFilesListRuntime", () => {
         expect(() =>
             runtime.querySelectorAll(".overlay-filename-tooltip")
         ).toThrow("shownFilesList requires a document runtime");
+        expect(() => runtime.isDarkTheme()).toThrow(
+            "shownFilesList requires a document runtime"
+        );
     });
 
     it("registers mousemove listeners through the injected runtime scope", () => {
@@ -233,7 +250,7 @@ describe("getShownFilesListRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const TestAbortController = vi.fn(function TestAbortController() {
             return new AbortController();
@@ -271,6 +288,9 @@ describe("getShownFilesListRuntime", () => {
         expect(() =>
             runtime.querySelectorAll(".overlay-filename-tooltip")
         ).toThrow("shownFilesList requires a document runtime");
+        expect(() => runtime.isDarkTheme()).toThrow(
+            "shownFilesList requires a document runtime"
+        );
         expect(() =>
             runtime.addMouseMoveListener(() => undefined, {
                 signal: controller.signal,
