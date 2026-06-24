@@ -9,7 +9,10 @@ import {
     setRendererTheme,
     subscribeToRendererTheme,
 } from "../../state/domain/rendererThemeState.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import {
     getSetupThemeRuntime,
     type SetupThemeTimer,
@@ -21,6 +24,8 @@ export type ThemePreference = "auto" | "dark" | "light";
 
 /** Options that control theme setup fallback and persistence behavior. */
 export type SetupThemeOptions = {
+    /** Scoped preload API provider for renderer tests and explicit callers. */
+    electronApiScope?: RendererElectronApiScope | undefined;
     /** Theme to apply when the main process and storage cannot provide one. */
     fallbackTheme?: string;
     /** Whether localStorage should be used for theme persistence. */
@@ -87,7 +92,7 @@ export async function setupTheme(
         logWithContext("Initializing theme setup");
 
         // Try to get theme from various sources in order of preference
-        let theme = await fetchThemeFromMainProcess();
+        let theme = await fetchThemeFromMainProcess(config.electronApiScope);
 
         // Normalize legacy theme names from older state/UI code.
         theme = normalizeThemeValue(theme) || THEME_CONSTANTS.DEFAULT_THEME;
@@ -232,9 +237,14 @@ function applyAndTrackTheme(
     }
 }
 
-async function fetchThemeFromMainProcess(): Promise<ThemePreference> {
+async function fetchThemeFromMainProcess(
+    electronApiScope: RendererElectronApiScope | undefined
+): Promise<ThemePreference> {
     const { DEFAULT_THEME, TIMEOUT } = THEME_CONSTANTS;
-    const electronAPI = getRendererElectronApi(isThemeSetupElectronApi);
+    const electronAPI = getRendererElectronApi(
+        isThemeSetupElectronApi,
+        electronApiScope
+    );
 
     if (!electronAPI?.getTheme) {
         logWithContext(

@@ -1,5 +1,7 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 const stateManagerMocks = vi.hoisted(() => {
     return {
         getState: vi.fn<(key: string) => unknown>(() => undefined),
@@ -23,16 +25,12 @@ type SetupThemeElectronApi = {
     getTheme: ReturnType<typeof vi.fn<() => Promise<string>>>;
 };
 
-async function registerThemeApi(api: SetupThemeElectronApi): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    registerRendererElectronApiCandidate(api);
-}
-
-async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    resetRendererElectronApiCandidate();
+function createElectronApiScope(
+    api: SetupThemeElectronApi
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 describe("setupTheme", () => {
@@ -42,9 +40,8 @@ describe("setupTheme", () => {
     let subscribeHandlers: Array<(theme: unknown) => void>;
     let externalListener: ((theme: unknown) => void) | null;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         vi.resetModules();
-        await resetRegisteredElectronApi();
         vi.clearAllMocks();
         stateManagerMocks.getState.mockReturnValue(undefined);
         stateManagerMocks.setState.mockReturnValue(undefined);
@@ -61,8 +58,7 @@ describe("setupTheme", () => {
         consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     });
 
-    afterEach(async () => {
-        await resetRegisteredElectronApi();
+    afterEach(() => {
         consoleErrorSpy.mockRestore();
         consoleLogSpy.mockRestore();
         consoleWarnSpy.mockRestore();
@@ -80,7 +76,7 @@ describe("setupTheme", () => {
         expect.assertions(12);
 
         const applyTheme = vi.fn<(theme: string) => void>();
-        await registerThemeApi({
+        const electronApiScope = createElectronApiScope({
             getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("light"),
         });
         const listenForThemeChange = vi.fn<
@@ -90,7 +86,9 @@ describe("setupTheme", () => {
         });
 
         const { setupTheme } = await importSetupThemeModule();
-        const result = await setupTheme(applyTheme, listenForThemeChange);
+        const result = await setupTheme(applyTheme, listenForThemeChange, {
+            electronApiScope,
+        });
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
@@ -133,13 +131,15 @@ describe("setupTheme", () => {
         expect.assertions(3);
 
         const applyTheme = vi.fn<(theme: string) => void>();
-        await registerThemeApi({
+        const electronApiScope = createElectronApiScope({
             getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("dark"),
         });
         localStorage.setItem("ffv-theme", "light");
 
         const { setupTheme } = await importSetupThemeModule();
-        const result = await setupTheme(applyTheme, undefined);
+        const result = await setupTheme(applyTheme, undefined, {
+            electronApiScope,
+        });
 
         expect(result).toBe("light");
         expect(applyTheme).toHaveBeenCalledWith("light");
@@ -150,7 +150,6 @@ describe("setupTheme", () => {
         expect.assertions(3);
 
         const applyTheme = vi.fn<(theme: string) => void>();
-        await resetRegisteredElectronApi();
         localStorage.setItem("ffv-theme", "light");
 
         const { setupTheme } = await importSetupThemeModule();
@@ -167,7 +166,7 @@ describe("setupTheme", () => {
         expect.assertions(3);
 
         const applyTheme = vi.fn<(theme: string) => void>();
-        await registerThemeApi({
+        const electronApiScope = createElectronApiScope({
             getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("dark"),
         });
         const storageProto = Object.getPrototypeOf(localStorage) as Storage;
@@ -179,7 +178,9 @@ describe("setupTheme", () => {
 
         try {
             const { setupTheme } = await importSetupThemeModule();
-            const result = await setupTheme(applyTheme, undefined);
+            const result = await setupTheme(applyTheme, undefined, {
+                electronApiScope,
+            });
 
             expect(result).toBe("dark");
             expect(applyTheme).toHaveBeenCalledWith("dark");
@@ -193,10 +194,6 @@ describe("setupTheme", () => {
 
     it("returns default theme when applyTheme is invalid", async () => {
         expect.assertions(2);
-
-        await registerThemeApi({
-            getTheme: vi.fn<() => Promise<string>>().mockResolvedValue("light"),
-        });
 
         const { setupTheme } = await importSetupThemeModule();
         const result = await setupTheme(

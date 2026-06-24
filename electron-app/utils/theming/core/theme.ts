@@ -1,5 +1,8 @@
 import { initializeAccentColor } from "./accentColor.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { getThemeRuntime, type ThemeRuntimeTimer } from "./themeRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -36,6 +39,9 @@ export interface ThemeConfig {
 type RendererThemeApi = Partial<
     Pick<ElectronAPI, "onSetTheme" | "sendThemeChanged">
 >;
+type ListenForThemeChangeOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 interface ThemeChangeEventDetail {
     readonly effectiveTheme: EffectiveTheme;
@@ -468,9 +474,13 @@ export function listenForSystemThemeChange(): (() => void) | undefined {
  * theme.
  */
 export function listenForThemeChange(
-    onThemeChange: (theme: string) => void
+    onThemeChange: (theme: string) => void,
+    { electronApiScope }: ListenForThemeChangeOptions = {}
 ): void {
-    const electronAPI = getRendererElectronApi(isRendererThemeApi);
+    const electronAPI = getRendererElectronApi(
+        isRendererThemeApi,
+        electronApiScope
+    );
     if (
         electronAPI &&
         typeof electronAPI.onSetTheme === "function" &&

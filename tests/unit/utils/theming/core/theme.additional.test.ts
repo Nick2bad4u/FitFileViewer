@@ -2,10 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Note: use relative path from this test folder to module under test
 import * as theme from "../../../../../electron-app/utils/theming/core/theme.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate as clearElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 function getBodyClasses(): string[] {
     return [...document.body.classList];
@@ -59,12 +62,10 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         localStorage.clear();
         // restore matchMedia default
         setTestGlobal("matchMedia", originalMatchMedia);
-        clearElectronApiCandidate();
     });
 
     afterEach(() => {
         vi.useRealTimers();
-        clearElectronApiCandidate();
         restoreTestGlobals();
     });
 
@@ -208,14 +209,17 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             }
         );
         const sendThemeChanged = vi.fn<(theme: string) => void>();
-        registerRendererElectronApiCandidate({ onSetTheme, sendThemeChanged });
+        const electronApiScope = createElectronApiScope({
+            onSetTheme,
+            sendThemeChanged,
+        });
 
         const observedThemes: string[] = [];
         const onThemeChange = (nextTheme: string) => {
             observedThemes.push(nextTheme);
             document.body.dataset["receivedTheme"] = nextTheme;
         };
-        theme.listenForThemeChange(onThemeChange);
+        theme.listenForThemeChange(onThemeChange, { electronApiScope });
         expect(onSetTheme).toHaveBeenCalledWith(expect.any(Function));
         expect(observedThemes).toEqual(["light"]);
         expect(document.body.dataset["receivedTheme"]).toBe("light");

@@ -81,8 +81,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/app/lifecycle/menuIpcListeners.test.ts",
     "tests/unit/utils/app/events.test.ts",
     "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
-    "tests/unit/utils/theming/core/setupTheme.test.ts",
-    "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
@@ -111,6 +109,8 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
     "tests/unit/utils/ui/settingsModal.test.ts",
+    "tests/unit/utils/theming/core/setupTheme.test.ts",
+    "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
