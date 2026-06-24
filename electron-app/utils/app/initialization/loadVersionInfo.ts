@@ -1,5 +1,8 @@
 import { getErrorInfo, logWithLevel } from "../../logging/index.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { getLoadVersionInfoRuntime } from "./loadVersionInfoRuntime.js";
 import { type SystemInfoField, updateSystemInfo } from "./updateSystemInfo.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
@@ -20,6 +23,10 @@ type VersionInfoElectronAPI = Partial<
 
 type VersionInfoSource = "electronAPI" | "fallback";
 
+type LoadVersionInfoOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
+
 const DEFAULT_VALUES = {
     author: "Nick2bad4u",
     chrome: "unknown",
@@ -37,10 +44,16 @@ const loadVersionInfoRuntime = getLoadVersionInfoRuntime();
  * Loads version information dynamically from electronAPI or fallback sources.
  */
 export async function loadVersionInfo(): Promise<void> {
+    await loadVersionInfoWithOptions({});
+}
+
+export async function loadVersionInfoWithOptions({
+    electronApiScope,
+}: LoadVersionInfoOptions): Promise<void> {
     try {
         logWithContext("info", "Starting version information loading");
 
-        const electronAPI = getVersionInfoElectronAPI();
+        const electronAPI = getVersionInfoElectronAPI(electronApiScope);
         const source: VersionInfoSource = electronAPI
             ? "electronAPI"
             : "fallback";
@@ -201,8 +214,10 @@ function updateVersionDisplay(version: string): void {
     }
 }
 
-function getVersionInfoElectronAPI(): VersionInfoElectronAPI | undefined {
-    const electronAPI = getRendererElectronApi(isVersionInfoElectronAPI);
+function getVersionInfoElectronAPI(
+    scope?: RendererElectronApiScope
+): VersionInfoElectronAPI | undefined {
+    const electronAPI = getRendererElectronApi(isVersionInfoElectronAPI, scope);
     if (electronAPI) {
         return electronAPI;
     }

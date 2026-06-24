@@ -81,7 +81,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/lifecycle/recentFilesContextMenu.fitPayload.test.ts",
     "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts",
     "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts",
-    "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/strictTests/rendering/core/showFitData.test.ts",
     "tests/unit/strictTests/ui/modals/aboutModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
@@ -109,6 +108,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
+    "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
 ] as const;

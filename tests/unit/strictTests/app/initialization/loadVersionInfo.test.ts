@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
-
 type VersionInfoElectronAPI = {
     getAppVersion?: () => Promise<string>;
     getChromeVersion?: () => Promise<string>;
@@ -55,13 +50,10 @@ async function importLoadVersionInfoModule(): Promise<LoadVersionInfoModule> {
     return import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js");
 }
 
-function setElectronAPI(electronAPI?: VersionInfoElectronAPI): void {
-    if (electronAPI) {
-        registerRendererElectronApiCandidate(electronAPI);
-        return;
-    }
-
-    resetRendererElectronApiCandidate();
+function createElectronApiScope(electronAPI: VersionInfoElectronAPI) {
+    return {
+        getElectronAPI: () => electronAPI,
+    };
 }
 
 function getVersionNumberElement(): HTMLElement {
@@ -83,7 +75,6 @@ function resetTestState(): void {
     h.getErrorInfo.mockClear();
     h.logWithLevel.mockClear();
     h.updateSystemInfo.mockClear();
-    setElectronAPI();
 }
 
 describe("loadVersionInfo", () => {
@@ -91,7 +82,7 @@ describe("loadVersionInfo", () => {
         expect.assertions(2);
 
         resetTestState();
-        setElectronAPI({
+        const electronAPI = {
             getAppVersion: vi
                 .fn<() => Promise<string>>()
                 .mockResolvedValue("1.2.3"),
@@ -110,11 +101,14 @@ describe("loadVersionInfo", () => {
             getPlatformInfo: vi
                 .fn<() => Promise<{ arch: string; platform: string }>>()
                 .mockResolvedValue({ arch: "x64", platform: "win32" }),
+        };
+
+        const { loadVersionInfoWithOptions } =
+            await importLoadVersionInfoModule();
+
+        await loadVersionInfoWithOptions({
+            electronApiScope: createElectronApiScope(electronAPI),
         });
-
-        const { loadVersionInfo } = await importLoadVersionInfoModule();
-
-        await loadVersionInfo();
 
         expect(getVersionNumberElement().textContent).toBe("1.2.3");
         expect(h.updateSystemInfo).toHaveBeenCalledWith(
@@ -151,15 +145,18 @@ describe("loadVersionInfo", () => {
         expect.assertions(2);
 
         resetTestState();
-        setElectronAPI({
+        const electronAPI = {
             getAppVersion: vi
                 .fn<() => Promise<string>>()
                 .mockRejectedValue(new Error("boom")),
+        };
+
+        const { loadVersionInfoWithOptions } =
+            await importLoadVersionInfoModule();
+
+        await loadVersionInfoWithOptions({
+            electronApiScope: createElectronApiScope(electronAPI),
         });
-
-        const { loadVersionInfo } = await importLoadVersionInfoModule();
-
-        await loadVersionInfo();
 
         expect(getVersionNumberElement().textContent).toBe("");
         expect(h.updateSystemInfo).toHaveBeenCalledWith(
