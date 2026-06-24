@@ -138,6 +138,9 @@ const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
+    getElectronApiScope: () => ({
+        getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
+    }),
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isDevelopmentMode,

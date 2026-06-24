@@ -9,8 +9,6 @@ export type RendererElectronApiCandidate = object;
 let registeredRendererElectronApi: unknown;
 let hasRegisteredRendererElectronApi = false;
 
-const defaultRendererElectronApiScope: RendererElectronApiScope = {};
-
 export function registerRendererElectronApiCandidate(api: unknown): void {
     if (api === undefined) {
         resetRendererElectronApiCandidate();
@@ -33,12 +31,12 @@ export function getRendererElectronApi<
     T extends RendererElectronApiCandidate = Partial<ElectronAPI>,
 >(
     isExpectedApi: (value: unknown) => value is T,
-    scope: RendererElectronApiScope = defaultRendererElectronApiScope
+    scope?: RendererElectronApiScope
 ): T | null {
-    const scopedElectronApi = getScopeElectronApi(scope);
-    const api = hasRegisteredRendererElectronApi
-        ? registeredRendererElectronApi
-        : scopedElectronApi;
+    const api =
+        scope === undefined && hasRegisteredRendererElectronApi
+            ? registeredRendererElectronApi
+            : getScopeElectronApi(scope);
 
     if (api === null || typeof api !== "object") {
         return null;
@@ -47,6 +45,8 @@ export function getRendererElectronApi<
     return isExpectedApi(api) ? api : null;
 }
 
-function getScopeElectronApi(scope: RendererElectronApiScope): unknown {
-    return scope.getElectronAPI?.();
+function getScopeElectronApi(
+    scope: RendererElectronApiScope | undefined
+): unknown {
+    return scope?.getElectronAPI?.();
 }

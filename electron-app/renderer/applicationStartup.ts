@@ -9,6 +9,7 @@ import {
     type RendererErrorEventHandlers,
 } from "./errorHandling.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
+import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     ListenForThemeChange,
     RendererHandleOpenFile,
@@ -57,6 +58,7 @@ interface RendererApplicationStartupOptions {
     addEventListener: typeof globalThis.addEventListener;
     ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
+    getElectronApiScope: () => RendererElectronApiScope;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isDevelopmentMode: () => boolean;
@@ -113,7 +115,9 @@ export function createRendererApplicationStartup(
                 startupListenerController
             );
 
-            const electronApiHooks = getElectronApiStartupHooks();
+            const electronApiHooks = getElectronApiStartupHooks({
+                getElectronApiScope: options.getElectronApiScope,
+            });
             if (electronApiHooks !== null) {
                 registerStartupElectronHooks(
                     electronApiHooks,
@@ -181,7 +185,9 @@ async function initializeAsyncComponents(
     startupListenerController: AbortController
 ): Promise<void> {
     try {
-        const electronApiHooks = getElectronApiStartupHooks();
+        const electronApiHooks = getElectronApiStartupHooks({
+            getElectronApiScope: options.getElectronApiScope,
+        });
 
         if (electronApiHooks?.recentFiles !== undefined) {
             try {

@@ -119,4 +119,23 @@ describe("electronApiRuntime", () => {
         resetRendererElectronApiCandidate();
         expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
     });
+
+    it("prefers an explicit provider scope over the registered fallback", () => {
+        expect.assertions(1);
+
+        const registeredApi = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const scopedApi = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+
+        registerRendererElectronApiCandidate(registeredApi);
+
+        expect(
+            getRendererElectronApi(isExternalOpenApi, {
+                getElectronAPI: () => scopedApi,
+            })
+        ).toBe(scopedApi);
+    });
 });

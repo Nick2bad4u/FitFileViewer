@@ -19116,7 +19116,7 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).not.toContain(
             "scope: RendererElectronApiScope = globalThis"
         );
-        expect(electronApiRuntimeSource).toContain(
+        expect(electronApiRuntimeSource).not.toContain(
             "defaultRendererElectronApiScope"
         );
         expect(electronApiRuntimeSource).not.toContain(

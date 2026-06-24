@@ -4,10 +4,6 @@ import {
     createRendererApplicationStartup,
     type RendererApplicationStartupCoreModules,
 } from "../../../electron-app/renderer/applicationStartup.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createCoreModules(
     overrides: Partial<RendererApplicationStartupCoreModules> = {}
@@ -51,7 +47,6 @@ function createPerformanceMonitor() {
 
 describe("renderer application startup", () => {
     afterEach(() => {
-        resetRendererElectronApiCandidate();
         vi.useRealTimers();
     });
 
@@ -74,6 +69,7 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
+            getElectronApiScope: () => ({}),
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isDevelopmentMode: () => true,
@@ -153,6 +149,9 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
+            getElectronApiScope: () => ({
+                getElectronAPI: () => ({ checkForUpdates }),
+            }),
             getOpenFileButton: () => null,
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
@@ -163,8 +162,6 @@ describe("renderer application startup", () => {
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => true,
         });
-
-        registerRendererElectronApiCandidate({ checkForUpdates });
 
         await utils();
 
@@ -207,6 +204,7 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
+            getElectronApiScope: () => ({}),
             getOpenFileButton: () => null,
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
