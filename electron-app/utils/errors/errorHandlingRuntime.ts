@@ -2,6 +2,9 @@ export interface ErrorHandlingRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getAddEventListener?:
+        | (() => Window["addEventListener"] | undefined)
+        | undefined;
     readonly getEventTarget?:
         | (() => ErrorHandlingEventTarget | undefined)
         | undefined;
@@ -17,28 +20,21 @@ export interface ErrorHandlingRuntime {
 }
 
 const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
-    getAbortController: getDefaultAbortController,
+    getAbortController: () => globalThis.AbortController,
+    getAddEventListener: () => globalThis.addEventListener,
     getEventTarget: getDefaultEventTarget,
 };
 
-function getDefaultAbortController(): typeof AbortController | undefined {
-    const AbortControllerConstructor = globalThis.AbortController;
-
-    return typeof AbortControllerConstructor === "function"
-        ? AbortControllerConstructor
-        : undefined;
-}
-
-function getDefaultEventTarget(): ErrorHandlingEventTarget | undefined {
-    const addEventListener = globalThis.addEventListener;
+function getDefaultEventTarget(
+    scope: ErrorHandlingRuntimeScope = defaultErrorHandlingRuntimeScope
+): ErrorHandlingEventTarget | undefined {
+    const addEventListener = scope.getAddEventListener?.();
     if (typeof addEventListener !== "function") {
         return undefined;
     }
 
     return {
-        addEventListener: addEventListener.bind(
-            globalThis
-        ) as ErrorHandlingEventTarget["addEventListener"],
+        addEventListener: addEventListener.bind(globalThis),
     };
 }
 
@@ -58,7 +54,7 @@ function getAbortControllerConstructor(
 function getEventTarget(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
-    return scope.getEventTarget?.();
+    return scope.getEventTarget?.() ?? getDefaultEventTarget(scope);
 }
 
 export function getErrorHandlingRuntime(

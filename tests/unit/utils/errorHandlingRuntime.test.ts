@@ -75,6 +75,30 @@ describe("getErrorHandlingRuntime", () => {
         controller.abort();
     });
 
+    it("resolves event targets through the injected listener provider", () => {
+        expect.assertions(2);
+
+        const addEventListener = vi.fn();
+        const listener = vi.fn();
+        const controller = new AbortController();
+        const options = { passive: true, signal: controller.signal };
+        const runtime = getErrorHandlingRuntime({
+            getAddEventListener: () => addEventListener,
+        });
+
+        const target = runtime.getGlobalEventTarget();
+        target?.addEventListener("unhandledrejection", listener, options);
+
+        expect(target).toBeDefined();
+        expect(addEventListener).toHaveBeenCalledWith(
+            "unhandledrejection",
+            listener,
+            options
+        );
+
+        controller.abort();
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 

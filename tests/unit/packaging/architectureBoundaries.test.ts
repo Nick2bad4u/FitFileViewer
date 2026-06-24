@@ -8881,7 +8881,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(20);
+        expect.assertions(24);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -8922,9 +8922,15 @@ describe("architecture boundaries", () => {
             directErrorHandlingRuntimeAmbientGetterPattern
         );
         expect(errorHandlingRuntimeSource).toContain(
-            "const AbortControllerConstructor = globalThis.AbortController;"
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(errorHandlingRuntimeSource).toContain(
+            "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "const AbortControllerConstructor = globalThis.AbortController;"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
             "const addEventListener = globalThis.addEventListener;"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
@@ -8937,10 +8943,16 @@ describe("architecture boundaries", () => {
             "readonly AbortController?:"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly addEventListener?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
             "scope.AbortController"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.addEventListener"
         );
         expect(errorHandlingRuntimeSource).not.toContain("scope.eventTarget");
         expect(errorHandlingRuntimeSource).toContain(
@@ -9194,7 +9206,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
@@ -9224,13 +9236,19 @@ describe("architecture boundaries", () => {
         expect(lastAnimLogRuntimeSource).not.toContain(
             "readonly performance?:"
         );
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "const performanceRef = globalThis.performance;"
+        );
         expect(lastAnimLogRuntimeSource).not.toContain("scope.dateNow");
         expect(lastAnimLogRuntimeSource).not.toContain("scope.performance");
         expect(lastAnimLogRuntimeSource).toContain(
             "getDateNow: () => Date.now"
         );
         expect(lastAnimLogRuntimeSource).toContain(
-            "getPerformanceNow: getDefaultPerformanceNow"
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "getScopedPerformanceNow(scope.getPerformance?.())"
         );
         expect(lastAnimLogRuntimeSource).toContain(
             "lastAnimLogRuntime requires dateNow"

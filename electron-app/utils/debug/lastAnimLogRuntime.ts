@@ -1,5 +1,8 @@
 export interface LastAnimLogRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getPerformance?:
+        | (() => Pick<Performance, "now"> | undefined)
+        | undefined;
     readonly getPerformanceNow?: (() => (() => number) | undefined) | undefined;
 }
 
@@ -8,8 +11,9 @@ export interface LastAnimLogRuntime {
     readonly performanceNow: () => number;
 }
 
-function getDefaultPerformanceNow(): (() => number) | undefined {
-    const performanceRef = globalThis.performance;
+function getScopedPerformanceNow(
+    performanceRef: Pick<Performance, "now"> | undefined
+): (() => number) | undefined {
     const performanceNow = performanceRef?.now;
     if (typeof performanceNow !== "function") {
         return undefined;
@@ -20,7 +24,7 @@ function getDefaultPerformanceNow(): (() => number) | undefined {
 
 const defaultLastAnimLogRuntimeScope: LastAnimLogRuntimeScope = {
     getDateNow: () => Date.now,
-    getPerformanceNow: getDefaultPerformanceNow,
+    getPerformance: () => globalThis.performance,
 };
 
 function getRequiredDateNow(scope: LastAnimLogRuntimeScope): () => number {
@@ -35,7 +39,9 @@ function getRequiredDateNow(scope: LastAnimLogRuntimeScope): () => number {
 function getRequiredPerformanceNow(
     scope: LastAnimLogRuntimeScope
 ): () => number {
-    const performanceNow = scope.getPerformanceNow?.();
+    const performanceNow =
+        scope.getPerformanceNow?.() ??
+        getScopedPerformanceNow(scope.getPerformance?.());
     if (typeof performanceNow !== "function") {
         throw new TypeError("lastAnimLogRuntime requires performance.now");
     }

@@ -32,6 +32,25 @@ describe("getLastAnimLogRuntime", () => {
         expect(now).toHaveBeenCalledOnce();
     });
 
+    it("resolves performance.now through the injected performance provider", () => {
+        expect.assertions(3);
+
+        const performanceRef = {
+            now: vi.fn(function scopedPerformanceNow(
+                this: Pick<Performance, "now">
+            ) {
+                return 78.9;
+            }),
+        };
+        const utils = getLastAnimLogRuntime({
+            getPerformance: () => performanceRef,
+        });
+
+        expect(utils.performanceNow()).toBe(78.9);
+        expect(performanceRef.now).toHaveBeenCalledOnce();
+        expect(performanceRef.now.mock.contexts[0]).toBe(performanceRef);
+    });
+
     it("binds default performance.now to globalThis.performance", () => {
         expect.assertions(3);
 
