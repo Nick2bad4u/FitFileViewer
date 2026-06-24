@@ -113,7 +113,6 @@ const fileInputWiring = createRendererFileInputWiring({
 });
 
 const testOnlyBootstrapOptions = {
-    callUnknownFunction,
     getOpenFileButton: domAccess.getOpenFileButton,
     isOpeningFileRef,
     resolveExactRendererCoreTestOverride,

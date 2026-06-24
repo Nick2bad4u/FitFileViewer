@@ -17,12 +17,6 @@ function createOptions(overrides: Record<string, unknown> = {}) {
     const exactMocks = new Map<string, unknown>();
     const suffixMocks = new Map<string, unknown>();
     const options = {
-        callUnknownFunction: vi.fn((candidate: unknown, args?: unknown[]) => {
-            if (typeof candidate === "function") {
-                return candidate(...(args ?? []));
-            }
-            return undefined;
-        }),
         getOpenFileButton: () => openFileButton,
         isOpeningFileRef: { value: false },
         resolveExactRendererCoreTestOverride: vi.fn(
@@ -47,7 +41,7 @@ describe("renderer test-only bootstrap wiring", () => {
     });
 
     it("invokes mocked setupListeners on test DOMContentLoaded", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         const { exactMocks, openFileButton, options } = createOptions();
         const setupListeners = vi.fn();
@@ -64,10 +58,6 @@ describe("renderer test-only bootstrap wiring", () => {
             openFileBtn: openFileButton,
             setLoading: options.setLoading,
         });
-        expect(options.callUnknownFunction).toHaveBeenCalledWith(
-            setupListeners,
-            [expect.any(Object)]
-        );
     });
 
     it("invokes mocked setupTheme on test window load", () => {

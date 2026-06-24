@@ -3,15 +3,28 @@ import {
     type RendererTestOnlyBootstrapRuntime,
 } from "./testOnlyBootstrapRuntime.js";
 
-type RendererUnknownFunctionCaller = (
-    candidate: unknown,
-    args?: unknown[]
+type RendererTestOverrideResolver = (specifier: string) => null | unknown;
+type RendererTestSetupListeners = (
+    dependencies: RendererTestSetupListenersDependencies
+) => unknown;
+type RendererTestSetupTheme = (
+    applyTheme: () => void,
+    listenForThemeChange: () => void
 ) => unknown;
 
-type RendererTestOverrideResolver = (specifier: string) => null | unknown;
+interface RendererTestSetupListenersDependencies {
+    readonly applyTheme: () => void;
+    readonly handleOpenFile: () => void;
+    readonly isOpeningFileRef: { value: boolean };
+    readonly listenForThemeChange: () => void;
+    readonly openFileBtn: HTMLElement | null;
+    readonly setLoading: (loading: boolean) => void;
+    readonly showAboutModal: () => void;
+    readonly showNotification: () => void;
+    readonly showUpdateNotification: () => void;
+}
 
 interface RendererTestOnlyBootstrapOptions {
-    callUnknownFunction: RendererUnknownFunctionCaller;
     getOpenFileButton: () => HTMLElement | null;
     isOpeningFileRef: { value: boolean };
     resolveExactRendererCoreTestOverride: RendererTestOverrideResolver;
@@ -38,20 +51,20 @@ export function createTestDOMContentLoadedSetupHandler(
                         "/utils/app/lifecycle/listeners.js"
                     )
             );
-            const setupListenersFn = moduleRecord["setupListeners"];
-            options.callUnknownFunction(setupListenersFn, [
-                {
-                    applyTheme: () => {},
-                    handleOpenFile: () => {},
-                    isOpeningFileRef: options.isOpeningFileRef,
-                    listenForThemeChange: () => {},
-                    openFileBtn: options.getOpenFileButton(),
-                    setLoading: options.setLoading,
-                    showAboutModal: () => {},
-                    showNotification: () => {},
-                    showUpdateNotification: () => {},
-                },
-            ]);
+            const setupListenersFn = toRendererTestSetupListeners(
+                moduleRecord["setupListeners"]
+            );
+            setupListenersFn?.({
+                applyTheme: () => {},
+                handleOpenFile: () => {},
+                isOpeningFileRef: options.isOpeningFileRef,
+                listenForThemeChange: () => {},
+                openFileBtn: options.getOpenFileButton(),
+                setLoading: options.setLoading,
+                showAboutModal: () => {},
+                showNotification: () => {},
+                showUpdateNotification: () => {},
+            });
         } catch {
             /* Ignore errors */
         }
@@ -79,18 +92,19 @@ export function createTestWindowLoadThemeSetupHandler(
                         "/utils/theming/core/theme.js"
                     )
             );
-            const setupThemeFn = setupThemeModule["setupTheme"];
-            const applyThemeFn = themeModule["applyTheme"];
-            const listenForThemeChangeFn = themeModule["listenForThemeChange"];
+            const setupThemeFn = toRendererTestSetupTheme(
+                setupThemeModule["setupTheme"]
+            );
+            const applyThemeFn = toNoopFunction(themeModule["applyTheme"]);
+            const listenForThemeChangeFn = toNoopFunction(
+                themeModule["listenForThemeChange"]
+            );
             if (
-                typeof setupThemeFn === "function" &&
-                typeof applyThemeFn === "function" &&
-                typeof listenForThemeChangeFn === "function"
+                setupThemeFn !== undefined &&
+                applyThemeFn !== undefined &&
+                listenForThemeChangeFn !== undefined
             ) {
-                options.callUnknownFunction(setupThemeFn, [
-                    applyThemeFn,
-                    listenForThemeChangeFn,
-                ]);
+                setupThemeFn(applyThemeFn, listenForThemeChangeFn);
                 return;
             }
         } catch {
@@ -180,4 +194,24 @@ function toModuleRecord(value: unknown): Record<string, unknown> {
     return typeof value === "object" && value !== null
         ? (value as Record<string, unknown>)
         : {};
+}
+
+function toNoopFunction(value: unknown): (() => void) | undefined {
+    return typeof value === "function" ? (value as () => void) : undefined;
+}
+
+function toRendererTestSetupListeners(
+    value: unknown
+): RendererTestSetupListeners | undefined {
+    return typeof value === "function"
+        ? (value as RendererTestSetupListeners)
+        : undefined;
+}
+
+function toRendererTestSetupTheme(
+    value: unknown
+): RendererTestSetupTheme | undefined {
+    return typeof value === "function"
+        ? (value as RendererTestSetupTheme)
+        : undefined;
 }

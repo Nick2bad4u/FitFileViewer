@@ -11557,6 +11557,36 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer test-only bootstrap off the generic function bridge", () => {
+        expect.assertions(8);
+
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
+        const testOnlyBootstrapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
+        );
+
+        expect(testOnlyBootstrapSource).not.toContain("callUnknownFunction");
+        expect(testOnlyBootstrapSource).toContain(
+            "type RendererTestSetupListeners ="
+        );
+        expect(testOnlyBootstrapSource).toContain(
+            "type RendererTestSetupTheme ="
+        );
+        expect(testOnlyBootstrapSource).toContain("setupListenersFn?.({");
+        expect(testOnlyBootstrapSource).toContain(
+            "setupThemeFn(applyThemeFn, listenForThemeChangeFn)"
+        );
+        expect(testOnlyBootstrapSource).toContain(
+            "toRendererTestSetupListeners"
+        );
+        expect(testOnlyBootstrapSource).toContain("toRendererTestSetupTheme");
+        expect(rendererEntrypointSource).not.toContain(
+            "testOnlyBootstrapOptions = {\n    callUnknownFunction,"
+        );
+    });
+
     it("keeps external link browser fallbacks behind the runtime facade", () => {
         expect.assertions(22);
 
