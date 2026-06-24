@@ -13,7 +13,10 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
-import { getUserDeviceInfoBoxRuntime } from "./createUserDeviceInfoBoxRuntime.js";
+import {
+    getUserDeviceInfoBoxRuntime,
+    type UserDeviceInfoBoxRuntime,
+} from "./createUserDeviceInfoBoxRuntime.js";
 
 type InfoBoxThemeColors = {
     readonly accent: string;
@@ -75,7 +78,9 @@ const INFO_BOX_THEME_FALLBACKS = {
     textSecondary: "#6b7280",
 } as const satisfies InfoBoxThemeColors;
 
-const userDeviceInfoBoxRuntime = getUserDeviceInfoBoxRuntime();
+function userDeviceInfoBoxRuntime(): UserDeviceInfoBoxRuntime {
+    return getUserDeviceInfoBoxRuntime();
+}
 
 function getStringThemeColor(
     colors: ThemeColorMap,
@@ -130,10 +135,10 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
                 deviceInfos: FitDeviceInfo[];
                 userProfile: FitUserProfileData;
             } = getActiveFitUserDeviceData(),
-            infoBox = userDeviceInfoBoxRuntime.createElement("div"),
+            infoBox = userDeviceInfoBoxRuntime().createElement("div"),
             themeConfig = getThemeConfig(),
             colors = getInfoBoxThemeColors(themeConfig.colors);
-        const { signal } = userDeviceInfoBoxRuntime.createAbortController();
+        const { signal } = userDeviceInfoBoxRuntime().createAbortController();
 
         // Create info box container with theme-aware styling and hover effects.
         infoBox.className = "user-device-info-box chart-info-section";
@@ -178,7 +183,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         );
 
         // Add animated border glow effect
-        const glowOverlay = userDeviceInfoBoxRuntime.createElement("div");
+        const glowOverlay = userDeviceInfoBoxRuntime().createElement("div");
         glowOverlay.style.cssText = `
             position: absolute;
             top: -2px;
@@ -207,7 +212,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
             },
             { signal }
         ); // User Profile Section with enhanced styling
-        const userSection = userDeviceInfoBoxRuntime.createElement("div");
+        const userSection = userDeviceInfoBoxRuntime().createElement("div");
         userSection.className = "user-profile-section";
         userSection.style.cssText = `
             flex: 1;
@@ -284,7 +289,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         // Security: sanitize HTML because FIT-derived strings can contain markup.
         // Also strips inline onmouseenter/onmouseleave attributes used in the template string.
         userSection.replaceChildren(sanitizeInfoBoxHtml(rawUserSectionHtml));
-        const deviceSection = userDeviceInfoBoxRuntime.createElement("div");
+        const deviceSection = userDeviceInfoBoxRuntime().createElement("div");
         deviceSection.className = "device-info-section";
         deviceSection.style.cssText = `
             flex: 1;

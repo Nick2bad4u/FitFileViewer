@@ -15746,7 +15746,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -15779,9 +15779,18 @@ describe("architecture boundaries", () => {
         expect(userDeviceInfoBoxSource).toContain(
             "createUserDeviceInfoBoxRuntime.js"
         );
+        expect(userDeviceInfoBoxSource).toContain(
+            "type UserDeviceInfoBoxRuntime"
+        );
+        expect(userDeviceInfoBoxSource).toContain(
+            "return getUserDeviceInfoBoxRuntime();"
+        );
+        expect(userDeviceInfoBoxSource).not.toContain(
+            "const userDeviceInfoBoxRuntime = getUserDeviceInfoBoxRuntime();"
+        );
         expect(userDeviceInfoBoxSource).toContain("createAbortController");
         expect(userDeviceInfoBoxSource).toContain(
-            'userDeviceInfoBoxRuntime.createElement("div")'
+            'userDeviceInfoBoxRuntime().createElement("div")'
         );
         expect(userDeviceInfoBoxSource).not.toContain("document.createElement");
         expect(userDeviceInfoBoxRuntimeSource).toContain(
