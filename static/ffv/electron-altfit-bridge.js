@@ -24,10 +24,26 @@
         root.replaceChildren(message);
     }
 
+    function loadFitFileArrayBuffer(arrayBuffer) {
+        if (typeof window.loadFitFileFromArrayBuffer === "function") {
+            window.loadFitFileFromArrayBuffer(arrayBuffer);
+            return true;
+        }
+
+        if (
+            window.ffvApp &&
+            typeof window.ffvApp.loadFitFileFromArrayBuffer === "function"
+        ) {
+            window.ffvApp.loadFitFileFromArrayBuffer(arrayBuffer);
+            return true;
+        }
+
+        return false;
+    }
+
     function handleFitFileBase64(base64) {
         const arrayBuffer = base64ToArrayBuffer(base64);
-        if (window.loadFitFileFromArrayBuffer) {
-            window.loadFitFileFromArrayBuffer(arrayBuffer);
+        if (loadFitFileArrayBuffer(arrayBuffer)) {
             return;
         }
 
@@ -89,16 +105,7 @@
     }
 
     window.addEventListener("fitfile-received", (event) => {
-        if (window.loadFitFileFromArrayBuffer) {
-            window.loadFitFileFromArrayBuffer(event.detail);
-            return;
-        }
-
-        if (
-            window.ffvApp &&
-            typeof window.ffvApp.loadFitFileFromArrayBuffer === "function"
-        ) {
-            window.ffvApp.loadFitFileFromArrayBuffer(event.detail);
+        if (loadFitFileArrayBuffer(event.detail)) {
             return;
         }
 
