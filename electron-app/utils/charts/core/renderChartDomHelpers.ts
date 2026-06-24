@@ -1,9 +1,11 @@
 import { clearElement } from "../../dom/index.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
-import { getRenderChartDomHelpersRuntime } from "./renderChartDomHelpersRuntime.js";
+import {
+    getRenderChartDomHelpersRuntime,
+    type RenderChartDomHelpersRuntime,
+} from "./renderChartDomHelpersRuntime.js";
 
 const ELEMENT_NODE = 1;
-const renderChartDomHelpersRuntime = getRenderChartDomHelpersRuntime();
 
 /**
  * Type guard for element-like DOM nodes that works across jsdom and renderer
@@ -49,11 +51,12 @@ export function safeAppend(parent: ParentNode, child: Node): void {
  */
 export function renderNoDataMessage(
     container: HTMLElement,
-    message: string
+    message: string,
+    runtime: RenderChartDomHelpersRuntime = getRenderChartDomHelpersRuntime()
 ): void {
     clearElement(container);
 
-    const messageElement = renderChartDomHelpersRuntime.createElement("div");
+    const messageElement = runtime.createElement("div");
     messageElement.className = "no-data-message";
     messageElement.textContent = message;
 

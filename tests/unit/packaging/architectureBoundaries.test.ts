@@ -15077,7 +15077,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-chart DOM helper creation behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const violations = migratedRenderChartDomHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -15116,7 +15116,16 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(renderChartDomHelpersSource).toContain(
-            "renderChartDomHelpersRuntime.createElement"
+            "type RenderChartDomHelpersRuntime"
+        );
+        expect(renderChartDomHelpersSource).not.toContain(
+            "const renderChartDomHelpersRuntime = getRenderChartDomHelpersRuntime();"
+        );
+        expect(renderChartDomHelpersSource).toContain(
+            "runtime: RenderChartDomHelpersRuntime = getRenderChartDomHelpersRuntime()"
+        );
+        expect(renderChartDomHelpersSource).toContain(
+            "runtime.createElement"
         );
         expect(renderChartDomHelpersSource).not.toContain(
             "document.createElement"

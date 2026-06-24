@@ -9,6 +9,7 @@ import {
 } from "../../../../../electron-app/utils/charts/core/renderChartDomHelpers.js";
 import {
     getRenderChartDomHelpersRuntime,
+    type RenderChartDomHelpersRuntime,
     type RenderChartDomHelpersRuntimeScope,
 } from "../../../../../electron-app/utils/charts/core/renderChartDomHelpersRuntime.js";
 
@@ -28,6 +29,23 @@ describe("renderChartDomHelpers", () => {
         expect(message).toBeInstanceOf(HTMLDivElement);
         expect(message?.textContent).toBe("No chart data");
         expect(container.textContent).not.toContain("stale");
+    });
+
+    it("renders a no-data message through an injected runtime", () => {
+        expect.assertions(4);
+
+        const container = document.createElement("section");
+        const messageElement = document.createElement("div");
+        const runtime: RenderChartDomHelpersRuntime = {
+            createElement: vi.fn(() => messageElement),
+        };
+
+        renderNoDataMessage(container, "Injected chart state", runtime);
+
+        expect(runtime.createElement).toHaveBeenCalledExactlyOnceWith("div");
+        expect(container.firstElementChild).toBe(messageElement);
+        expect(messageElement.className).toBe("no-data-message");
+        expect(messageElement.textContent).toBe("Injected chart state");
     });
 
     it("creates chart DOM elements through the injected document provider", () => {
