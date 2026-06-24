@@ -79,7 +79,6 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
 const rendererStateStartup = createRendererStateStartup({
     ensureCoreModules,
     logRenderer,
-    toModuleRecord,
 });
 const { initializeStateManager, isOpeningFileRef } = rendererStateStartup;
 

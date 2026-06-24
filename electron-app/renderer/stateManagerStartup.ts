@@ -1,13 +1,23 @@
+import type { RendererCoreModules } from "./coreModuleResolution.js";
+
 type RendererStateStartupLogger = (
     level: "error" | "log",
     ...args: unknown[]
 ) => void;
 
 interface RendererStateStartupOptions {
-    ensureCoreModules: () => Promise<Record<string, unknown>>;
+    ensureCoreModules: () => Promise<
+        Pick<
+            RendererCoreModules,
+            "masterStateManager" | "subscribeAppDomainPath"
+        >
+    >;
     logRenderer: RendererStateStartupLogger;
-    toModuleRecord: (target: unknown) => Record<string, unknown>;
 }
+
+type RendererStateManager = {
+    initialize: () => Promise<unknown> | unknown;
+};
 
 interface RendererStateStartup {
     initializeStateManager: () => Promise<void>;
@@ -48,29 +58,23 @@ export function createRendererStateStartup(
                 );
                 const { masterStateManager, subscribeAppDomainPath } =
                     await options.ensureCoreModules();
-                const masterStateManagerRecord =
-                    options.toModuleRecord(masterStateManager);
-                const initialize = masterStateManagerRecord["initialize"];
-                if (typeof initialize !== "function") {
+                const stateManager = toRendererStateManager(masterStateManager);
+                if (stateManager === undefined) {
                     throw new TypeError(
                         "masterStateManager.initialize missing"
                     );
                 }
 
-                const initializeFn = /**
-                 * @type {(this: unknown) => Promise<unknown> | unknown}
-                 */ initialize;
-                await initializeFn.call(masterStateManager);
+                await stateManager.initialize();
 
                 if (typeof subscribeAppDomainPath !== "function") {
                     throw new TypeError("subscribeAppDomainPath missing");
                 }
 
-                const subscribeOpeningFile =
-                    subscribeAppDomainPath as (
-                        path: string,
-                        callback: (value: unknown) => void
-                    ) => unknown;
+                const subscribeOpeningFile = subscribeAppDomainPath as (
+                    path: string,
+                    callback: (value: unknown) => void
+                ) => unknown;
                 subscribeOpeningFile(
                     "app.isOpeningFile",
                     (isOpening: unknown) => {
@@ -110,4 +114,17 @@ export function createRendererStateStartup(
         isOpeningFileRef,
         resetStateInitializationForTests,
     };
+}
+
+function toRendererStateManager(
+    value: unknown
+): RendererStateManager | undefined {
+    if (value === null || typeof value !== "object") {
+        return undefined;
+    }
+
+    const candidate = value as Partial<RendererStateManager>;
+    return typeof candidate.initialize === "function"
+        ? (candidate as RendererStateManager)
+        : undefined;
 }

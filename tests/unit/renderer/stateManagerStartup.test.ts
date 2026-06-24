@@ -21,10 +21,6 @@ describe("renderer state manager startup", () => {
                 },
             }),
             logRenderer: vi.fn(),
-            toModuleRecord: (target) =>
-                target && typeof target === "object"
-                    ? (target as Record<string, unknown>)
-                    : {},
         });
 
         await utils.initializeStateManager();
@@ -51,10 +47,6 @@ describe("renderer state manager startup", () => {
                 masterStateManager: {},
             }),
             logRenderer: vi.fn(),
-            toModuleRecord: (target) =>
-                target && typeof target === "object"
-                    ? (target as Record<string, unknown>)
-                    : {},
         });
 
         await expect(utils.initializeStateManager()).rejects.toThrow(
@@ -74,10 +66,6 @@ describe("renderer state manager startup", () => {
                 },
             }),
             logRenderer: vi.fn(),
-            toModuleRecord: (target) =>
-                target && typeof target === "object"
-                    ? (target as Record<string, unknown>)
-                    : {},
         });
 
         await expect(utils.initializeStateManager()).rejects.toThrow(

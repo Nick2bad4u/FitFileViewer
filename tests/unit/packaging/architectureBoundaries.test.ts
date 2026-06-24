@@ -4208,6 +4208,37 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).not.toContain("Manual");
     });
 
+    it("keeps renderer state startup on explicit core-module dependencies", () => {
+        expect.assertions(11);
+
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
+        const stateStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/stateManagerStartup.ts")
+        );
+
+        expect(stateStartupSource).toContain(
+            'import type { RendererCoreModules } from "./coreModuleResolution.js";'
+        );
+        expect(stateStartupSource).toContain("Pick<");
+        expect(stateStartupSource).toContain("RendererCoreModules,");
+        expect(stateStartupSource).toContain('"masterStateManager"');
+        expect(stateStartupSource).toContain('"subscribeAppDomainPath"');
+        expect(stateStartupSource).toContain("toRendererStateManager(");
+        expect(stateStartupSource).not.toContain(
+            "ensureCoreModules: () => Promise<Record<string, unknown>>"
+        );
+        expect(stateStartupSource).not.toContain("toModuleRecord");
+        expect(stateStartupSource).not.toContain("masterStateManagerRecord");
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererStateStartup({\n    ensureCoreModules,\n    logRenderer,\n    toModuleRecord,"
+        );
+        expect(stateStartupSource).toContain(
+            'subscribeOpeningFile(\n                    "app.isOpeningFile",'
+        );
+    });
+
     it("keeps renderer core module resolution on the app-domain state facade", () => {
         expect.assertions(7);
 
