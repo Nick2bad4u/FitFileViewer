@@ -7,10 +7,13 @@ import {
     getBrowserScanState,
     getBrowserView,
 } from "../../../../../electron-app/utils/state/domain/browserState.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 function getRequiredElement<T extends Element>(
     selector: string,
@@ -23,7 +26,6 @@ function getRequiredElement<T extends Element>(
 
 afterEach(() => {
     document.body.replaceChildren();
-    resetRendererElectronApiCandidate();
     __resetStateManagerForTests();
 });
 
@@ -78,7 +80,7 @@ describe("fileBrowserTab accessibility", () => {
         container.id = "content_browser";
         document.body.append(container);
 
-        registerRendererElectronApiCandidate({
+        const electronApiScope = createElectronApiScope({
             getFitBrowserFolder: async () => "C:\\rides",
             listFitBrowserFolder: async () => ({
                 entries: [
@@ -100,7 +102,7 @@ describe("fileBrowserTab accessibility", () => {
             }),
         });
 
-        await renderFileBrowserTab();
+        await renderFileBrowserTab({ electronApiScope });
 
         expect(
             document.querySelector("#fit-browser-current-path")?.textContent
@@ -125,7 +127,7 @@ describe("fileBrowserTab accessibility", () => {
         container.id = "content_browser";
         document.body.append(container);
 
-        registerRendererElectronApiCandidate({
+        const electronApiScope = createElectronApiScope({
             decodeFitFile: async () => ({
                 sessionMesgs: [
                     {
@@ -151,7 +153,7 @@ describe("fileBrowserTab accessibility", () => {
             readFile: async () => new ArrayBuffer(4),
         });
 
-        await renderFileBrowserTab();
+        await renderFileBrowserTab({ electronApiScope });
         getRequiredElement(
             "#fit-browser-view-library",
             HTMLButtonElement

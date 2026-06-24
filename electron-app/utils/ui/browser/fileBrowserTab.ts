@@ -17,7 +17,10 @@ import {
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import {
     type BrowserView,
     getBrowserRelPath,
@@ -60,6 +63,9 @@ type FitBrowserElectronAPI = Partial<
 type FitBrowserDecodeApi = Required<
     Pick<FitBrowserElectronAPI, "decodeFitFile" | "readFile">
 >;
+type FileBrowserTabOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 type FitBrowserListApi = Required<
     Pick<FitBrowserElectronAPI, "listFitBrowserFolder">
@@ -114,6 +120,7 @@ const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
 const fileBrowserTabRuntime = getFileBrowserTabRuntime();
+let activeElectronApiScope: RendererElectronApiScope | undefined;
 
 const showNotification = (
     ...args: Parameters<typeof showRendererNotification>
@@ -144,7 +151,10 @@ function addManagedEventListener<K extends keyof HTMLElementEventMap>(
 /**
  * Render or refresh the Browser tab UI.
  */
-export async function renderFileBrowserTab(): Promise<void> {
+export async function renderFileBrowserTab({
+    electronApiScope,
+}: FileBrowserTabOptions = {}): Promise<void> {
+    activeElectronApiScope = electronApiScope;
     const container = fileBrowserTabRuntime.getElementById("content_browser");
     if (!container) {
         return;
@@ -376,8 +386,9 @@ function formatLoadedAt(): string {
 }
 
 function setBrowserStatus(message: string, loading = false): void {
-    const statusEl =
-        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-browser-status");
+    const statusEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-browser-status"
+    );
     if (fileBrowserTabRuntime.isHTMLElement(statusEl)) {
         statusEl.hidden = message.length === 0;
         statusEl.classList.toggle("file-browser__status--loading", loading);
@@ -543,7 +554,10 @@ function getCalendarState(): CalendarState {
 }
 
 function getElectronAPI(): FitBrowserElectronAPI | null {
-    return getRendererElectronApi(isFitBrowserElectronApi);
+    return getRendererElectronApi(
+        isFitBrowserElectronApi,
+        activeElectronApiScope
+    );
 }
 
 function isFitBrowserElectronApi(
@@ -1004,9 +1018,8 @@ async function refreshActiveView(): Promise<void> {
     const calendarBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-view-calendar"
     );
-    const listEl = fileBrowserTabRuntime.getElement<HTMLElement>(
-        "#fit-browser-list"
-    );
+    const listEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-browser-list");
     const libraryEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-library"
     );
@@ -1221,12 +1234,14 @@ function renderCalendarResults(
     root: string,
     payload: FitLibraryCachePayload | null
 ): void {
-    const titleEl =
-        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-title");
+    const titleEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-calendar-title"
+    );
     const gridEl =
         fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-grid");
-    const panelEl =
-        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-panel");
+    const panelEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-calendar-panel"
+    );
 
     if (
         !fileBrowserTabRuntime.isHTMLElement(gridEl) ||
@@ -1908,8 +1923,9 @@ function renderLibraryResults(
     root: string,
     payload: FitLibraryCachePayload
 ): void {
-    const statusEl =
-        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-status");
+    const statusEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-library-status"
+    );
     const cardsEl =
         fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-cards");
     const listEl = fileBrowserTabRuntime.getElement<HTMLElement>(
@@ -2089,8 +2105,9 @@ async function renderLibraryView(): Promise<void> {
     setBrowserStatus(
         `Loaded folder at ${formatLoadedAt()}. Scan folder to compute totals.`
     );
-    const statusEl =
-        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-status");
+    const statusEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-library-status"
+    );
     if (statusEl) {
         statusEl.textContent =
             "Click ‘Scan folder’ to compute weekly/monthly totals.";
@@ -2099,8 +2116,9 @@ async function renderLibraryView(): Promise<void> {
 
 async function scanAndRenderLibrary(root: string): Promise<void> {
     const api = getElectronAPI();
-    const statusEl =
-        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-status");
+    const statusEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-library-status"
+    );
     if (
         !api ||
         typeof api.listFitBrowserFolder !== "function" ||
