@@ -1482,6 +1482,8 @@ const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
     /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]|\bscope\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b|\bscope\.document\?\.defaultView\b/u;
 const directDocumentSvgElementCreationPattern =
     /\bdocument\.createElementNS\b/u;
+const topLevelRendererRuntimeSingletonPattern =
+    /^(?:export\s+)?const\s+\w+Runtime\s*=\s*getRenderer\w+Runtime\(\)\s*;/gmu;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -4684,6 +4686,28 @@ describe("architecture boundaries", () => {
             "state/core/stateManager.js"
         );
         expect(stateStartupSource).toContain("subscribeAppDomainPath");
+    });
+
+    it("keeps renderer runtime facades resolved away from module-level singletons", () => {
+        expect.assertions(1);
+
+        const rendererApplicationFiles = [
+            ...rendererEntrypointFiles,
+            ...collectSourceFiles("electron-app/renderer"),
+        ]
+            .filter((relativeFile) => !relativeFile.endsWith("Runtime.ts"))
+            .sort();
+        const violations = rendererApplicationFiles
+            .flatMap((relativeFile) =>
+                [
+                    ...stripComments(readRepositoryFile(relativeFile)).matchAll(
+                        topLevelRendererRuntimeSingletonPattern
+                    ),
+                ].map((match) => `${relativeFile}: ${match[0].trim()}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
