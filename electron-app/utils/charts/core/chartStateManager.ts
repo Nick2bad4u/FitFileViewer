@@ -337,7 +337,7 @@ export class ChartStateManager {
             const success = await renderChartJS(container);
 
             if (success) {
-                setRendererChartLastRenderTime(Date.now(), {
+                setRendererChartLastRenderTime(this.runtime.dateNow(), {
                     source: "ChartStateManager.performChartRender",
                 });
                 console.log(

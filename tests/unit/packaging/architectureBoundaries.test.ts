@@ -1360,7 +1360,7 @@ const directChartHoverEffectsSvgGlobalPattern =
 const directChartHoverEffectsRuntimeAmbientFallbackPattern =
     /\bglobalThis\.setTimeout\s*\(|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
-    /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|Date\.now)\(/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b|\binstanceof\s+KeyboardEvent\b/u;
 const directRenderSummarySchedulingRuntimeGlobalPattern =
@@ -6363,7 +6363,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(30);
 
         const violations = migratedChartStateManagerRuntimeFiles
             .filter((relativeFile) =>
@@ -6385,13 +6385,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/chartStateManagerRuntime.ts"
             )
         );
+        const chartStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartStateManager.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(chartStateManagerSource).toContain(
+            "setRendererChartLastRenderTime(this.runtime.dateNow(), {"
+        );
+        expect(chartStateManagerSource).not.toContain("Date.now");
         expect(runtimeSource).toContain("defaultChartStateManagerRuntimeScope");
         expect(runtimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
+        expect(runtimeSource).toContain("getDateNow: () => Date.now");
         expect(runtimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
@@ -6408,15 +6418,20 @@ describe("architecture boundaries", () => {
             "ChartStateManagerRuntimeScope = globalThis"
         );
         expect(runtimeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeSource).not.toContain("readonly dateNow?:");
         expect(runtimeSource).not.toContain("readonly document?:");
         expect(runtimeSource).not.toContain("readonly HTMLElement?:");
         expect(runtimeSource).not.toContain("readonly setTimeout?:");
         expect(runtimeSource).not.toContain("scope.clearTimeout");
+        expect(runtimeSource).not.toContain("scope.dateNow");
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).not.toContain("scope.setTimeout");
         expect(runtimeSource).toContain(
             "const clearTimeout = scope.getClearTimeout?.();"
+        );
+        expect(runtimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
         );
         expect(runtimeSource).toContain(
             "const document = scope.getDocument?.();"
@@ -6431,6 +6446,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "ChartStateManager requires setTimeout"
         );
+        expect(runtimeSource).toContain("ChartStateManager requires dateNow");
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {

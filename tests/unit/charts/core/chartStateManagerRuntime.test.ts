@@ -5,7 +5,7 @@ import { getChartStateManagerRuntime } from "../../../../electron-app/utils/char
 
 describe("getChartStateManagerRuntime", () => {
     it("routes timers through the injected runtime scope", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const timer = 42 as ReturnType<typeof setTimeout>;
         const setTimeoutMock = vi.fn<
@@ -16,21 +16,27 @@ describe("getChartStateManagerRuntime", () => {
         >(() => timer);
         const clearTimeoutMock =
             vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const dateNow = vi.fn<() => number>(() => 123_456);
         const {
             clearRenderTimeout: clearChartTimeout,
+            dateNow: getRuntimeDateNow,
             setRenderTimeout: setChartTimeout,
         } = getChartStateManagerRuntime({
             getClearTimeout: () => clearTimeoutMock,
+            getDateNow: () => dateNow,
             getSetTimeout: () => setTimeoutMock,
         });
         const callback = () => undefined;
 
         const timeout = setChartTimeout(callback, 250);
         clearChartTimeout(timeout);
+        const timestamp = getRuntimeDateNow();
 
         expect(timeout).toBe(timer);
+        expect(timestamp).toBe(123_456);
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, 250);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timeout);
+        expect(dateNow).toHaveBeenCalledOnce();
     });
 
     it("resolves chart render and controls elements from the injected document", () => {
@@ -58,7 +64,7 @@ describe("getChartStateManagerRuntime", () => {
     });
 
     it("fails clearly when timer functions are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const timeout = 1 as ReturnType<typeof setTimeout>;
 
@@ -68,10 +74,13 @@ describe("getChartStateManagerRuntime", () => {
         expect(() =>
             getChartStateManagerRuntime({}).clearRenderTimeout(timeout)
         ).toThrow("ChartStateManager requires clearTimeout");
+        expect(() => getChartStateManagerRuntime({}).dateNow()).toThrow(
+            "ChartStateManager requires dateNow"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const container = document.createElement("div");
         container.id = "chartjs-chart-container";
@@ -79,6 +88,7 @@ describe("getChartStateManagerRuntime", () => {
         const timeout = 1 as ReturnType<typeof setTimeout>;
         const legacyScope = {
             clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+            dateNow: vi.fn<() => number>(() => 1),
             document,
             HTMLElement,
             setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timeout),
@@ -93,6 +103,10 @@ describe("getChartStateManagerRuntime", () => {
         expect(() => runtime.clearRenderTimeout(timeout)).toThrow(
             "ChartStateManager requires clearTimeout"
         );
+        expect(() => runtime.dateNow()).toThrow(
+            "ChartStateManager requires dateNow"
+        );
+        expect(legacyScope.dateNow).not.toHaveBeenCalled();
 
         document.body.innerHTML = "";
     });

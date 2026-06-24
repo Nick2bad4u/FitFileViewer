@@ -377,6 +377,9 @@ fallbacks from returning.
 Field-toggle individual and bulk chart re-render requests now resolve the chart state manager through
 `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with fallback requests still
 going through the chart-actions registry and render-request event path.
+Chart state manager successful-render timestamps now route through `chartStateManagerRuntime.ts` instead of calling
+`Date.now` directly inside `chartStateManager.ts`, with focused runtime and architecture coverage blocking that direct
+clock read from returning.
 Zone color picker render-request event construction/dispatch, modal element creation, active-element reads, body
 attachment/containment, document lookup for chart settings, body access for inline selector refreshes, Escape-key
 document listener registration, and element/keyboard-event type checks now route through

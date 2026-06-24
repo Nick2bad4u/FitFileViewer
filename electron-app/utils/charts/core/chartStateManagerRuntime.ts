@@ -6,6 +6,7 @@ export interface ChartStateManagerRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
         | (() => typeof globalThis.HTMLElement | undefined)
@@ -17,6 +18,7 @@ export interface ChartStateManagerRuntimeScope {
 
 export interface ChartStateManagerRuntime {
     readonly clearRenderTimeout: (timeout: ChartStateManagerTimeout) => void;
+    readonly dateNow: () => number;
     readonly getChartRenderContainer: () => HTMLElement | null;
     readonly getControlsPanel: () => HTMLElement | null;
     readonly setRenderTimeout: (
@@ -27,6 +29,7 @@ export interface ChartStateManagerRuntime {
 
 const defaultChartStateManagerRuntimeScope: ChartStateManagerRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout,
+    getDateNow: () => Date.now,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getSetTimeout: () => globalThis.setTimeout,
@@ -43,6 +46,14 @@ export function getChartStateManagerRuntime(
             }
 
             clearTimeout(timeout);
+        },
+        dateNow(): number {
+            const dateNow = scope.getDateNow?.();
+            if (typeof dateNow !== "function") {
+                throw new TypeError("ChartStateManager requires dateNow");
+            }
+
+            return dateNow();
         },
         getChartRenderContainer(): HTMLElement | null {
             const document = scope.getDocument?.();
