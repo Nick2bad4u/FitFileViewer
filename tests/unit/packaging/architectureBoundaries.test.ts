@@ -4239,6 +4239,52 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
+        expect.assertions(16);
+
+        const diagnosticsWiringSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/rendererDiagnosticsWiring.ts"
+            )
+        );
+        const developmentDebugToolsSource = stripComments(
+            readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
+        );
+
+        expect(developmentDebugToolsSource).toContain(
+            'import type {\n    RendererCoreModules,\n    UnknownRendererFunction,\n} from "./coreModuleResolution.js";'
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "export type RendererDevelopmentDebugCoreModules = Partial<"
+        );
+        expect(developmentDebugToolsSource).toContain("Pick<");
+        expect(developmentDebugToolsSource).toContain('"handleOpenFile"');
+        expect(developmentDebugToolsSource).toContain('"setupTheme"');
+        expect(developmentDebugToolsSource).toContain('"showAboutModal"');
+        expect(developmentDebugToolsSource).toContain('"showNotification"');
+        expect(developmentDebugToolsSource).toContain(
+            '"showUpdateNotification"'
+        );
+        expect(developmentDebugToolsSource).toContain('"masterStateManager"');
+        expect(developmentDebugToolsSource).toContain('"uiStateManager"');
+        expect(developmentDebugToolsSource).not.toContain(
+            "type DevelopmentCoreModuleResolver = () => Promise<Record<string, unknown>>"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "readonly rendererDebug: Record<string, unknown>"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "readonly rendererDev: Record<string, unknown>"
+        );
+        expect(developmentDebugToolsSource).not.toContain("toModuleRecord");
+        expect(diagnosticsWiringSource).toContain(
+            "RendererDevelopmentDebugCoreModules"
+        );
+        expect(diagnosticsWiringSource).not.toContain(
+            "ensureCoreModules: () => Promise<Record<string, unknown>>"
+        );
+    });
+
     it("keeps renderer core module resolution on the app-domain state facade", () => {
         expect.assertions(7);
 

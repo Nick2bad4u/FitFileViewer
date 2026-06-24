@@ -1,3 +1,7 @@
+import type {
+    RendererCoreModules,
+    UnknownRendererFunction,
+} from "./coreModuleResolution.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 import {
     isRendererDebugLoggingEnabled,
@@ -18,10 +22,62 @@ type DevelopmentDebugLogger = (
     level: DevelopmentDebugLogLevel,
     ...args: unknown[]
 ) => void;
-type DevelopmentCoreModuleResolver = () => Promise<Record<string, unknown>>;
+type DevelopmentDebugCoreFunctionName =
+    | "handleOpenFile"
+    | "setupTheme"
+    | "showAboutModal"
+    | "showNotification"
+    | "showUpdateNotification";
+type DevelopmentStateManagerMethodName =
+    | "getHistory"
+    | "getState"
+    | "getSubscriptions";
+
+export type RendererDevelopmentDebugCoreModules = Partial<
+    Pick<
+        RendererCoreModules,
+        | "AppActions"
+        | DevelopmentDebugCoreFunctionName
+        | "masterStateManager"
+        | "uiStateManager"
+    >
+>;
+type DevelopmentCoreModuleResolver =
+    () => Promise<RendererDevelopmentDebugCoreModules>;
+type RendererDebugToolCall = (...args: unknown[]) => Promise<unknown>;
+type RendererDebugToolsView = {
+    readonly handleOpenFile: RendererDebugToolCall;
+    readonly PerformanceMonitor: RendererPerformanceMonitor;
+    readonly setupTheme: RendererDebugToolCall;
+    readonly showAboutModal: RendererDebugToolCall;
+    readonly showNotification: RendererDebugToolCall;
+    readonly showUpdateNotification: RendererDebugToolCall;
+};
+type RendererDebugUtilityGroup = Record<string, unknown>;
+type RendererDevToolsView = {
+    APP_INFO: typeof APP_INFO;
+    AppActions?: RendererCoreModules["AppActions"];
+    cleanup: () => void;
+    chartDebug: boolean;
+    chartDebugVerbose: boolean;
+    chartFullscreenTrace: boolean | string;
+    debug: boolean;
+    debugChartFormatting?: RendererDebugUtilityGroup;
+    debugState: () => void;
+    getPerformanceMetrics: () => Record<string, number>;
+    getState: () => Promise<unknown>;
+    getStateHistory: () => Promise<unknown>;
+    isOpeningFileRef: { value: boolean };
+    PerformanceMonitor: RendererPerformanceMonitor;
+    reinitialize: () => Promise<void>;
+    sensorDebug?: RendererDebugUtilityGroup;
+    readonly stateManager: Promise<unknown>;
+    uiStateManager?: RendererCoreModules["uiStateManager"];
+    validateDOM: () => boolean;
+};
 type RendererDevelopmentDebugTools = {
-    readonly rendererDebug: Record<string, unknown>;
-    readonly rendererDev: Record<string, unknown>;
+    readonly rendererDebug: RendererDebugToolsView;
+    readonly rendererDev: RendererDevToolsView;
 };
 
 interface RendererDevelopmentDebugToolsOptions {
@@ -44,8 +100,7 @@ const APP_INFO = {
     repository: "https://github.com/user/FitFileViewer",
     version: "21.1.0",
 };
-const developmentDebugToolsRuntime =
-    getRendererDevelopmentDebugToolsRuntime();
+const developmentDebugToolsRuntime = getRendererDevelopmentDebugToolsRuntime();
 
 export { APP_INFO };
 
@@ -86,9 +141,9 @@ export function getRendererDevelopmentDebugToolsForTests(): RendererDevelopmentD
 
 function createRendererDebugTools(
     options: RendererDevelopmentDebugToolsOptions
-): Record<string, unknown> {
+): RendererDebugToolsView {
     const createDebugFunction =
-        (exportName: string) =>
+        (exportName: DevelopmentDebugCoreFunctionName) =>
         async (...args: unknown[]): Promise<unknown> =>
             callDebugCoreFunction(exportName, args, options);
 
@@ -104,32 +159,32 @@ function createRendererDebugTools(
 
 function createRendererDevTools(
     options: RendererDevelopmentDebugToolsOptions
-): Record<string, unknown> {
+): RendererDevToolsView {
     return {
         APP_INFO,
         cleanup: options.cleanup,
         get debug() {
             return isRendererDebugLoggingEnabled();
         },
-        set debug(value: unknown) {
-            setRendererDebugLoggingEnabled(value === true);
+        set debug(value: boolean) {
+            setRendererDebugLoggingEnabled(value);
         },
         get chartDebug() {
             return isChartDebugLoggingEnabled();
         },
-        set chartDebug(value: unknown) {
-            setChartDebugLoggingEnabled(value === true);
+        set chartDebug(value: boolean) {
+            setChartDebugLoggingEnabled(value);
         },
         get chartDebugVerbose() {
             return isChartVerboseDebugLoggingEnabled();
         },
-        set chartDebugVerbose(value: unknown) {
-            setChartVerboseDebugLoggingEnabled(value === true);
+        set chartDebugVerbose(value: boolean) {
+            setChartVerboseDebugLoggingEnabled(value);
         },
         get chartFullscreenTrace() {
             return isChartFullscreenTraceEnabled();
         },
-        set chartFullscreenTrace(value: unknown) {
+        set chartFullscreenTrace(value: boolean | string) {
             setChartFullscreenTraceEnabled(
                 typeof value === "boolean" ? value : null
             );
@@ -152,14 +207,14 @@ function createRendererDevTools(
 }
 
 async function callDebugCoreFunction(
-    exportName: string,
+    exportName: DevelopmentDebugCoreFunctionName,
     args: unknown[],
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
         const coreModules = await options.ensureCoreModules();
-        const debugFunction = coreModules[exportName];
-        if (typeof debugFunction === "function") {
+        const debugFunction = getDebugCoreFunction(coreModules, exportName);
+        if (debugFunction !== undefined) {
             return debugFunction(...args);
         }
     } catch {
@@ -188,7 +243,10 @@ async function getRendererStateRecord(
 ): Promise<unknown> {
     try {
         const coreModules = await options.ensureCoreModules();
-        return callRecordMethod(coreModules["masterStateManager"], methodName);
+        return callStateManagerMethod(
+            coreModules.masterStateManager,
+            methodName
+        );
     } catch {
         /* Ignore state access errors */
     }
@@ -196,18 +254,17 @@ async function getRendererStateRecord(
 }
 
 async function loadDevelopmentDebugUtilities(
-    rendererDevTools: Record<string, unknown>,
+    rendererDevTools: RendererDevToolsView,
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<void> {
     try {
         try {
             const coreModules = await options.ensureCoreModules();
-            if (coreModules["AppActions"] !== undefined) {
-                rendererDevTools["AppActions"] = coreModules["AppActions"];
+            if (coreModules.AppActions !== undefined) {
+                rendererDevTools.AppActions = coreModules.AppActions;
             }
-            if (coreModules["uiStateManager"] !== undefined) {
-                rendererDevTools["uiStateManager"] =
-                    coreModules["uiStateManager"];
+            if (coreModules.uiStateManager !== undefined) {
+                rendererDevTools.uiStateManager = coreModules.uiStateManager;
             }
         } catch {
             /* Ignore errors */
@@ -224,7 +281,7 @@ async function loadDevelopmentDebugUtilities(
             { testFaveroCase, testFaveroStringCase, testNewFormatting } =
                 await import("../utils/debug/debugChartFormatting.js");
 
-        rendererDevTools["sensorDebug"] = {
+        rendererDevTools.sensorDebug = {
             checkDataAvailability,
             debugSensorInfo,
             showDataKeys,
@@ -233,7 +290,7 @@ async function loadDevelopmentDebugUtilities(
             testProductId,
         };
 
-        rendererDevTools["debugChartFormatting"] = {
+        rendererDevTools.debugChartFormatting = {
             testFaveroCase,
             testFaveroStringCase,
             testNewFormatting,
@@ -257,18 +314,18 @@ async function logRendererDebugState(
         options.logRenderer(
             "log",
             "Current State:",
-            callRecordMethod(coreModules["masterStateManager"], "getState")
+            callStateManagerMethod(coreModules.masterStateManager, "getState")
         );
         options.logRenderer(
             "log",
             "State History:",
-            callRecordMethod(coreModules["masterStateManager"], "getHistory")
+            callStateManagerMethod(coreModules.masterStateManager, "getHistory")
         );
         options.logRenderer(
             "log",
             "Active Subscriptions:",
-            callRecordMethod(
-                coreModules["masterStateManager"],
+            callStateManagerMethod(
+                coreModules.masterStateManager,
                 "getSubscriptions"
             )
         );
@@ -277,18 +334,31 @@ async function logRendererDebugState(
     }
 }
 
-function callRecordMethod(
+function callStateManagerMethod(
     target: unknown,
-    methodName: string,
-    args: unknown[] = []
+    methodName: DevelopmentStateManagerMethodName
 ): unknown {
-    const method = toModuleRecord(target)[methodName];
+    if (!isRecord(target)) {
+        return undefined;
+    }
+
+    const method = target[methodName];
     if (typeof method !== "function") {
         return undefined;
     }
 
-    const methodFn = method as (this: unknown, ...args: unknown[]) => unknown;
-    return methodFn.apply(target, args);
+    const methodFn = method as (this: unknown) => unknown;
+    return methodFn.call(target);
+}
+
+function getDebugCoreFunction(
+    coreModules: RendererDevelopmentDebugCoreModules,
+    exportName: DevelopmentDebugCoreFunctionName
+): UnknownRendererFunction | undefined {
+    const debugFunction = coreModules[exportName];
+    return typeof debugFunction === "function"
+        ? (debugFunction as UnknownRendererFunction)
+        : undefined;
 }
 
 function getDebugErrorMessage(errorLike: unknown): string {
@@ -334,8 +404,7 @@ function getRecordString(
 function getRuntimeInfo(): Record<string, unknown> {
     let cookieAvailability = false;
     try {
-        const locationRecord =
-            developmentDebugToolsRuntime.getLocationRecord();
+        const locationRecord = developmentDebugToolsRuntime.getLocationRecord();
         const protocol = getRecordString(locationRecord, "protocol") ?? "";
 
         if (protocol === "http:" || protocol === "https:") {
@@ -392,8 +461,6 @@ function logDevelopmentDebugCommands(
     logRenderer("log", "Renderer development debug utilities loaded");
 }
 
-function toModuleRecord(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
-        : {};
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
 }

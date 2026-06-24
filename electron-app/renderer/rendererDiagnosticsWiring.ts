@@ -5,6 +5,7 @@ import {
 import {
     APP_INFO,
     createRendererDevelopmentDebugTools,
+    type RendererDevelopmentDebugCoreModules,
 } from "./developmentDebugTools.js";
 import { logRendererStartupInfo } from "./rendererStartupInfo.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
@@ -18,7 +19,7 @@ type RendererDiagnosticsLogger = (
 
 type RendererDiagnosticsOptions = {
     readonly cleanup: () => void;
-    readonly ensureCoreModules: () => Promise<Record<string, unknown>>;
+    readonly ensureCoreModules: () => Promise<RendererDevelopmentDebugCoreModules>;
     readonly initializeApplication: () => Promise<void>;
     readonly isOpeningFileRef: { value: boolean };
     readonly logRenderer: RendererDiagnosticsLogger;
