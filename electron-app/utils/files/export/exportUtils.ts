@@ -23,6 +23,7 @@ import {
 } from "./exportZipRuntime.js";
 import {
     getExportUtilsRuntime,
+    type ExportUtilsRuntime,
     type ExportStorageLike,
     type ExportStorageProvider,
     type SecureRandomScope,
@@ -54,14 +55,16 @@ type ChartDataset = {
     [key: string]: LooseRecord;
 };
 
-const exportUtilsRuntime = getExportUtilsRuntime();
+function exportUtilsRuntime(): ExportUtilsRuntime {
+    return getExportUtilsRuntime();
+}
 
 function getDefaultExportStorage(): ExportStorageLike | null {
-    return exportUtilsRuntime.getStorage();
+    return exportUtilsRuntime().getStorage();
 }
 
 function getSecureRandomScope(): SecureRandomScope {
-    return exportUtilsRuntime.getSecureRandomScope();
+    return exportUtilsRuntime().getSecureRandomScope();
 }
 
 /**
@@ -224,7 +227,7 @@ function setupExportModalAccessibility({
         queueMicrotask(installFocusTrap);
     }
 
-    exportUtilsRuntime.addDocumentKeydownListener(
+    exportUtilsRuntime().addDocumentKeydownListener(
         (event) => {
             if (event.key === "Escape") {
                 closeOverlay();
@@ -442,7 +445,7 @@ function printWhenImageReady(
     printWindow: Window,
     imageElement: HTMLImageElement
 ): void {
-    const imageLoadController = exportUtilsRuntime.createAbortController();
+    const imageLoadController = exportUtilsRuntime().createAbortController();
     const printAndClose = () => {
         imageLoadController.abort();
         printAndCloseWindow(printWindow);
@@ -838,7 +841,7 @@ function getImgurUploadLink(value: unknown): string | undefined {
 }
 
 function confirmDangerousAction(message: string): boolean {
-    return exportUtilsRuntime.confirmDangerousAction(message);
+    return exportUtilsRuntime().confirmDangerousAction(message);
 }
 
 function addSingleChartToZip(
@@ -1170,7 +1173,7 @@ export const exportUtils = {
                     // Ensure cancel paths clean up subscriptions and state.
                     cleanup
                 );
-                exportUtilsRuntime.appendToBody(modal);
+                exportUtilsRuntime().appendToBody(modal);
             });
         } catch (error) {
             // Stop the server if it was started
@@ -1544,7 +1547,7 @@ export const exportUtils = {
             const link = document.createElement("a");
             link.download = filename;
             link.href = combinedCanvas.toDataURL("image/png");
-            exportUtilsRuntime.appendToBody(link);
+            exportUtilsRuntime().appendToBody(link);
             link.click();
             link.remove();
 
@@ -1747,7 +1750,7 @@ export const exportUtils = {
 
         actionButtons.append(cancelBtn);
         modal.append(actionButtons);
-        const listenerController = exportUtilsRuntime.createAbortController();
+        const listenerController = exportUtilsRuntime().createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cancelled = false;
         let cleanupModalAccessibility = () => {};
@@ -1872,7 +1875,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.download = filename;
             link.href = chart.toBase64Image("image/png", 1, backgroundColor);
-            exportUtilsRuntime.appendToBody(link);
+            exportUtilsRuntime().appendToBody(link);
             link.click();
             link.remove();
             __deps.showNotification(`Chart exported as ${filename}`, "success");
@@ -1998,7 +2001,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(content);
             link.download = `fitfile-charts-${exportDate}.zip`;
-            exportUtilsRuntime.appendToBody(link);
+            exportUtilsRuntime().appendToBody(link);
             link.click();
             link.remove();
 
@@ -2039,7 +2042,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
-            exportUtilsRuntime.appendToBody(link);
+            exportUtilsRuntime().appendToBody(link);
             link.click();
             link.remove();
             showNotification(`Data exported as ${filename}`, "success");
@@ -2074,7 +2077,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
-            exportUtilsRuntime.appendToBody(link);
+            exportUtilsRuntime().appendToBody(link);
             link.click();
             link.remove();
             showNotification(`Data exported as ${filename}`, "success");
@@ -2138,7 +2141,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
-            exportUtilsRuntime.appendToBody(link);
+            exportUtilsRuntime().appendToBody(link);
             link.click();
             link.remove();
 
@@ -2424,7 +2427,7 @@ export const exportUtils = {
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
                 canvas = document.createElement("canvas"),
-                printWindow = exportUtilsRuntime.openPrintWindow(
+                printWindow = exportUtilsRuntime().openPrintWindow(
                     "",
                     "_blank",
                     "noopener,noreferrer"
@@ -2499,7 +2502,7 @@ img {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                printWindow = exportUtilsRuntime.openPrintWindow(
+                printWindow = exportUtilsRuntime().openPrintWindow(
                     "",
                     "_blank",
                     "noopener,noreferrer"
@@ -3243,7 +3246,7 @@ body {
         closeBtn.textContent = "Close";
         actionPanel.append(connectBtn, disconnectBtn, clearDataBtn, closeBtn);
         modal.append(actionPanel);
-        const listenerController = exportUtilsRuntime.createAbortController();
+        const listenerController = exportUtilsRuntime().createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -3367,7 +3370,7 @@ body {
         });
 
         overlay.append(modal);
-        exportUtilsRuntime.appendToBody(overlay);
+        exportUtilsRuntime().appendToBody(overlay);
     },
 
     /*
@@ -3506,7 +3509,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         `;
         closeBtn.textContent = "Got it!";
         modal.append(title, content, closeBtn);
-        const listenerController = exportUtilsRuntime.createAbortController();
+        const listenerController = exportUtilsRuntime().createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -3527,7 +3530,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         });
 
         overlay.append(modal);
-        exportUtilsRuntime.appendToBody(overlay);
+        exportUtilsRuntime().appendToBody(overlay);
     },
 
     /*
@@ -3969,7 +3972,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         closeBtn.textContent = "Close";
         actions.append(setupGuideBtn, clearBtn, closeBtn);
         modal.append(actions);
-        const listenerController = exportUtilsRuntime.createAbortController();
+        const listenerController = exportUtilsRuntime().createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -4054,7 +4057,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         });
 
         overlay.append(modal);
-        exportUtilsRuntime.appendToBody(overlay);
+        exportUtilsRuntime().appendToBody(overlay);
     },
 
     /*
@@ -4227,7 +4230,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
 
         actions.append(backBtn, closeBtn);
         modal.append(title, content, actions);
-        const listenerController = exportUtilsRuntime.createAbortController();
+        const listenerController = exportUtilsRuntime().createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -4256,7 +4259,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         });
 
         overlay.append(modal);
-        exportUtilsRuntime.appendToBody(overlay);
+        exportUtilsRuntime().appendToBody(overlay);
     },
 
     /*
