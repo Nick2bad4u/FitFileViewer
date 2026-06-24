@@ -3,6 +3,10 @@
  */
 
 import { getStateMgr } from "./tabStateManagerSupport.js";
+import {
+    getTabReadinessStateRuntime,
+    type TabReadinessStateRuntime,
+} from "./tabReadinessStateRuntime.js";
 
 /** Explicit tab activation lifecycle phase. */
 export type TabReadinessStatus =
@@ -18,6 +22,10 @@ export type TabReadinessEntry = {
     status: TabReadinessStatus;
     updatedAt: number;
 };
+
+function tabReadinessStateRuntime(): TabReadinessStateRuntime {
+    return getTabReadinessStateRuntime();
+}
 
 function getErrorMessage(error: unknown): null | string {
     if (error === null || error === undefined) {
@@ -56,7 +64,7 @@ export function setTabReadiness(
     const entry: TabReadinessEntry = {
         error: getErrorMessage(error),
         status,
-        updatedAt: Date.now(),
+        updatedAt: tabReadinessStateRuntime().now(),
     };
 
     getStateMgr().setState(`ui.tabReadiness.${tabName}`, entry, {

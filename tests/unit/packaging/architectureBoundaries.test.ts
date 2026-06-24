@@ -584,6 +584,11 @@ const migratedEnableTabButtonsHelpersRuntimeFiles = [
 const migratedUpdateTabVisibilityRuntimeFiles = [
     "electron-app/utils/ui/tabs/updateTabVisibility.ts",
 ] as const;
+const migratedTabReadinessStateRuntimeFiles = [
+    "electron-app/utils/ui/tabs/tabReadinessState.ts",
+] as const;
+const tabReadinessStateRuntimeSourceFile =
+    "electron-app/utils/ui/tabs/tabReadinessStateRuntime.ts";
 const migratedTabStateManagerHandlersRuntimeFiles = [
     "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
 ] as const;
@@ -1369,6 +1374,9 @@ const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|document|requestAnimationFrame|setTimeout)\b|\bscope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultUpdateTabVisibilityRuntimeScope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b/u;
+const directTabReadinessStateRuntimeGlobalPattern = /\bDate\.now\b/u;
+const directTabReadinessStateRuntimeAmbientFallbackPattern =
+    /\bscope\.dateNow\b|\bscope:\s*TabReadinessStateRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultTabReadinessStateRuntimeScope:\s*TabReadinessStateRuntimeScope\s*=\s*globalThis\b|\?\?\s*Date\.now\b/u;
 const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\bdocument\.(?:createElement|createTextNode)\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
@@ -16718,6 +16726,72 @@ describe("architecture boundaries", () => {
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "updateTabVisibility requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps tab readiness timestamps behind the runtime facade", () => {
+        expect.assertions(14);
+
+        const violations = migratedTabReadinessStateRuntimeFiles
+            .filter((relativeFile) =>
+                directTabReadinessStateRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const tabReadinessStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabReadinessState.ts"
+            )
+        );
+        const tabReadinessStateRuntimeSource = stripComments(
+            readRepositoryFile(tabReadinessStateRuntimeSourceFile)
+        );
+        const tabReadinessStateRuntimeScopeSource =
+            tabReadinessStateRuntimeSource.slice(
+                tabReadinessStateRuntimeSource.indexOf(
+                    "export interface TabReadinessStateRuntimeScope"
+                ),
+                tabReadinessStateRuntimeSource.indexOf(
+                    "export interface TabReadinessStateRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(tabReadinessStateSource).toContain(
+            "tabReadinessStateRuntime.js"
+        );
+        expect(tabReadinessStateSource).toContain(
+            "type TabReadinessStateRuntime"
+        );
+        expect(tabReadinessStateSource).toContain(
+            "return getTabReadinessStateRuntime();"
+        );
+        expect(tabReadinessStateSource).toContain(
+            "tabReadinessStateRuntime().now()"
+        );
+        expect(tabReadinessStateSource).not.toContain("Date.now");
+        expect(tabReadinessStateRuntimeSource).not.toMatch(
+            directTabReadinessStateRuntimeAmbientFallbackPattern
+        );
+        expect(tabReadinessStateRuntimeSource).toContain(
+            "defaultTabReadinessStateRuntimeScope"
+        );
+        expect(tabReadinessStateRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(tabReadinessStateRuntimeSource).not.toContain(
+            "scope: TabReadinessStateRuntimeScope = globalThis"
+        );
+        expect(tabReadinessStateRuntimeSource).not.toContain(
+            "const defaultTabReadinessStateRuntimeScope: TabReadinessStateRuntimeScope = globalThis"
+        );
+        expect(tabReadinessStateRuntimeScopeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(tabReadinessStateRuntimeSource).not.toContain("scope.dateNow");
+        expect(tabReadinessStateRuntimeSource).toContain(
+            "tabReadinessState requires a date clock runtime"
         );
     });
 
