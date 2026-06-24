@@ -28,6 +28,10 @@ export type RendererHandleOpenFile = (payload: unknown) => unknown;
 export type RendererSetupListeners = (
     options: SetupListenersOptions
 ) => unknown;
+export type RendererSetupTheme = (
+    applyTheme: ApplyTheme | undefined,
+    listenForThemeChange: ListenForThemeChange | undefined
+) => unknown;
 
 export interface RendererCoreModules {
     AppActions: Record<string, unknown> | undefined;
@@ -37,7 +41,7 @@ export interface RendererCoreModules {
     listenForThemeChange: ListenForThemeChange | undefined;
     masterStateManager: unknown;
     setupListeners: RendererSetupListeners | undefined;
-    setupTheme: undefined | UnknownRendererFunction;
+    setupTheme: RendererSetupTheme | undefined;
     showAboutModal: ((html?: string) => void) | undefined;
     showNotification: ShowNotification | undefined;
     showUpdateNotification: ShowUpdateNotification | undefined;
@@ -116,7 +120,7 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         setupListeners: toRendererSetupListeners(
             listenersMod["setupListeners"]
         ),
-        setupTheme: toUnknownRendererFunction(setupThemeMod["setupTheme"]),
+        setupTheme: toRendererSetupTheme(setupThemeMod["setupTheme"]),
         showAboutModal: toShowAboutModal(aboutMod["showAboutModal"]),
         showNotification: toShowNotification(notifMod["showNotification"]),
         showUpdateNotification: toShowUpdateNotification(
@@ -350,6 +354,12 @@ function toRendererSetupListeners(
         : undefined;
 }
 
+function toRendererSetupTheme(value: unknown): RendererSetupTheme | undefined {
+    return typeof value === "function"
+        ? (value as RendererSetupTheme)
+        : undefined;
+}
+
 function toTestOverridePathSuffix(realPath: string): string {
     return realPath.replace(/^(?:\.\.\/|\.\/)+/u, "/");
 }
@@ -373,13 +383,5 @@ function toShowUpdateNotification(
 ): ShowUpdateNotification | undefined {
     return typeof value === "function"
         ? (value as ShowUpdateNotification)
-        : undefined;
-}
-
-function toUnknownRendererFunction(
-    value: unknown
-): undefined | UnknownRendererFunction {
-    return typeof value === "function"
-        ? (value as UnknownRendererFunction)
         : undefined;
 }

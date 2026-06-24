@@ -11700,7 +11700,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -11718,13 +11718,20 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).toContain(
             "setupListeners: RendererSetupListeners | undefined"
         );
+        expect(coreModuleResolutionSource).toContain(
+            "setupTheme: RendererSetupTheme | undefined"
+        );
         expect(coreModuleResolutionSource).not.toContain(
             "handleOpenFile: undefined | UnknownRendererFunction"
         );
         expect(coreModuleResolutionSource).not.toContain(
             "setupListeners: undefined | UnknownRendererFunction"
         );
+        expect(coreModuleResolutionSource).not.toContain(
+            "setupTheme: undefined | UnknownRendererFunction"
+        );
         expect(coreModuleResolutionSource).toContain("SetupListenersOptions");
+        expect(coreModuleResolutionSource).toContain("RendererSetupTheme");
         expect(applicationStartupSource).not.toContain("callUnknownFunction");
         expect(applicationStartupSource).toContain(
             "setupThemeDyn?.(\n                dependencies.applyTheme,"
