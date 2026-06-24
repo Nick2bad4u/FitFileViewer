@@ -11523,6 +11523,40 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer file-input startup off the generic function bridge", () => {
+        expect.assertions(9);
+
+        const applicationStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const fileInputStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/fileInputStartup.ts")
+        );
+        const fileInputWiringSource = stripComments(
+            readRepositoryFile("electron-app/renderer/fileInputWiring.ts")
+        );
+
+        expect(fileInputStartupSource).not.toContain("callUnknownFunction");
+        expect(fileInputWiringSource).not.toContain("callUnknownFunction");
+        expect(fileInputStartupSource).toContain(
+            "export type RendererFileOpenHandler = (file: unknown) => unknown;"
+        );
+        expect(fileInputStartupSource).toContain("handleOpenFileFn?.(file)");
+        expect(fileInputStartupSource).toContain(
+            "handleOpenFile?.(selectedFile)"
+        );
+        expect(fileInputWiringSource).toContain("RendererFileOpenHandler");
+        expect(fileInputWiringSource).toContain(
+            "toRendererFileOpenHandler(moduleRecord"
+        );
+        expect(applicationStartupSource).toContain(
+            "handleImmediateFileInputChange("
+        );
+        expect(applicationStartupSource).not.toContain(
+            "handleImmediateFileInputChange(\n                            fileInput,\n                            coreModules.handleOpenFile,\n                            options.callUnknownFunction"
+        );
+    });
+
     it("keeps external link browser fallbacks behind the runtime facade", () => {
         expect.assertions(22);
 

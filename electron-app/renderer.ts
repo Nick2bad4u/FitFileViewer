@@ -104,7 +104,6 @@ const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
     importTimeBootstrap;
 
 const fileInputWiring = createRendererFileInputWiring({
-    callUnknownFunction,
     ensureCoreModules,
     getFileInput: domAccess.getFileInput,
     logRenderer,

@@ -59,12 +59,6 @@ function createWiring(overrides: {
     ) => null | unknown;
 }) {
     return createRendererFileInputWiring({
-        callUnknownFunction: vi.fn(
-            (candidate: unknown, args: unknown[] = []) =>
-                typeof candidate === "function"
-                    ? (candidate as (...values: unknown[]) => unknown)(...args)
-                    : undefined
-        ),
         ensureCoreModules:
             overrides.ensureCoreModules ??
             (async () => createCoreModules(vi.fn())),

@@ -8,10 +8,7 @@ export type RendererFileInputLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererUnknownFunctionCaller = (
-    candidate: unknown,
-    args: unknown[]
-) => unknown;
+export type RendererFileOpenHandler = (file: unknown) => unknown;
 
 export type RendererFileInputEventTarget = Pick<
     EventTarget,
@@ -19,9 +16,8 @@ export type RendererFileInputEventTarget = Pick<
 >;
 
 export interface RendererFileInputStartupOptions {
-    callUnknownFunction: RendererUnknownFunctionCaller;
-    getHandleOpenFile: () => Promise<unknown>;
-    getOverrideHandleOpenFile?: () => unknown;
+    getHandleOpenFile: () => Promise<RendererFileOpenHandler | undefined>;
+    getOverrideHandleOpenFile?: () => RendererFileOpenHandler | undefined;
     htmlInputElementConstructor?: typeof HTMLInputElement;
     logRenderer?: RendererFileInputLogger;
 }
@@ -38,7 +34,7 @@ export async function handleDelegatedFileInputChange(
 ): Promise<void> {
     try {
         const handleOpenFileFn = await options.getHandleOpenFile();
-        options.callUnknownFunction(handleOpenFileFn, [file]);
+        handleOpenFileFn?.(file);
     } catch {
         /* Ignore errors */
     }
@@ -53,7 +49,7 @@ export async function handleImportTimeFileInputChange(
         if (file !== undefined) {
             try {
                 const handleOpenFileFn = await options.getHandleOpenFile();
-                options.callUnknownFunction(handleOpenFileFn, [file]);
+                handleOpenFileFn?.(file);
             } catch (error) {
                 options.logRenderer?.(
                     "warn",
@@ -73,12 +69,11 @@ export async function handleImportTimeFileInputChange(
 
 export function handleImmediateFileInputChange(
     fileInput: HTMLInputElement,
-    handleOpenFile: unknown,
-    callUnknownFunction: RendererUnknownFunctionCaller
+    handleOpenFile: RendererFileOpenHandler | undefined
 ): void {
     const selectedFile = getFirstSelectedFile(fileInput);
     if (selectedFile !== undefined) {
-        callUnknownFunction(handleOpenFile, [selectedFile]);
+        handleOpenFile?.(selectedFile);
     }
 }
 
@@ -104,10 +99,8 @@ export function createDelegatedFileInputChangeHandler(
                 try {
                     const handleOpenFileFn =
                         options.getOverrideHandleOpenFile?.();
-                    if (typeof handleOpenFileFn === "function") {
-                        options.callUnknownFunction(handleOpenFileFn, [
-                            firstFile,
-                        ]);
+                    if (handleOpenFileFn !== undefined) {
+                        handleOpenFileFn(firstFile);
                         return;
                     }
                 } catch {

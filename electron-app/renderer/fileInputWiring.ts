@@ -1,11 +1,9 @@
-import type {
-    RendererCoreModules,
-    UnknownRendererFunction,
-} from "./coreModuleResolution.js";
+import type { RendererCoreModules } from "./coreModuleResolution.js";
 import {
     createDelegatedFileInputChangeHandler,
     registerDelegatedFileInputChangeListener,
     registerImportTimeFileInputChangeHandler,
+    type RendererFileOpenHandler,
     type RendererFileInputStartupOptions,
 } from "./fileInputStartup.js";
 
@@ -15,10 +13,6 @@ type RendererFileInputWiringLogger = (
 ) => void;
 
 type RendererFileInputWiringOptions = {
-    readonly callUnknownFunction: (
-        candidate: unknown,
-        args?: unknown[]
-    ) => unknown;
     readonly ensureCoreModules: () => Promise<RendererCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererFileInputWiringLogger;
@@ -55,7 +49,6 @@ export function createRendererFileInputWiring(
     options: RendererFileInputWiringOptions
 ): RendererFileInputWiring {
     const startupOptions: RendererFileInputStartupOptions = {
-        callUnknownFunction: options.callUnknownFunction,
         getHandleOpenFile: async () => getFileInputHandleOpenFile(options),
         getOverrideHandleOpenFile: () => resolveOverrideHandleOpenFile(options),
         logRenderer: options.logRenderer,
@@ -101,7 +94,7 @@ export function createRendererFileInputWiring(
 
 function resolveOverrideHandleOpenFile(
     options: RendererFileInputWiringOptions
-): unknown {
+): RendererFileOpenHandler | undefined {
     const moduleRecord = options.toModuleRecord(
         options.resolveExactRendererCoreTestOverride(
             "../../utils/files/import/handleOpenFile.js"
@@ -112,14 +105,24 @@ function resolveOverrideHandleOpenFile(
     );
 
     return (
-        moduleRecord["handleOpenFile"] ??
-        options.toModuleRecord(moduleRecord["default"])["handleOpenFile"]
+        toRendererFileOpenHandler(moduleRecord["handleOpenFile"]) ??
+        toRendererFileOpenHandler(
+            options.toModuleRecord(moduleRecord["default"])["handleOpenFile"]
+        )
     );
 }
 
 async function getFileInputHandleOpenFile(
     options: RendererFileInputWiringOptions
-): Promise<undefined | UnknownRendererFunction> {
+): Promise<RendererFileOpenHandler | undefined> {
     const { handleOpenFile } = await options.ensureCoreModules();
     return handleOpenFile;
+}
+
+function toRendererFileOpenHandler(
+    value: unknown
+): RendererFileOpenHandler | undefined {
+    return typeof value === "function"
+        ? (value as RendererFileOpenHandler)
+        : undefined;
 }

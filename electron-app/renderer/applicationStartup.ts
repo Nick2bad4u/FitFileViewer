@@ -111,8 +111,7 @@ export function createRendererApplicationStartup(
                     () => {
                         handleImmediateFileInputChange(
                             fileInput,
-                            coreModules.handleOpenFile,
-                            options.callUnknownFunction
+                            coreModules.handleOpenFile
                         );
                     },
                     { signal: startupListenerController.signal }

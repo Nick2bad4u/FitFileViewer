@@ -5,7 +5,6 @@ import {
     handleImmediateFileInputChange,
     registerDelegatedFileInputChangeListener,
     registerImportTimeFileInputChangeHandler,
-    type RendererUnknownFunctionCaller,
 } from "../../../electron-app/renderer/fileInputStartup.js";
 import { getRendererFileInputStartupRuntime } from "../../../electron-app/renderer/fileInputStartupRuntime.js";
 
@@ -93,18 +92,10 @@ describe("renderer file input startup wiring", () => {
 
         const { file, input } = createFileInput();
         const handleOpenFile = vi.fn<() => void>();
-        const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
 
-        handleImmediateFileInputChange(
-            input,
-            handleOpenFile,
-            callUnknownFunction
-        );
+        handleImmediateFileInputChange(input, handleOpenFile);
 
-        expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            handleOpenFile,
-            [file]
-        );
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
 
     it("wires import-time file input changes and removes them on unload", async () => {
@@ -112,29 +103,24 @@ describe("renderer file input startup wiring", () => {
 
         const { file, input } = createFileInput();
         const handleOpenFile = vi.fn<() => void>();
-        const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
 
         const globalEventTarget = window;
 
         registerImportTimeFileInputChangeHandler(input, globalEventTarget, {
-            callUnknownFunction,
             getHandleOpenFile: async () => handleOpenFile,
         });
 
         input.dispatchEvent(new Event("change"));
         await Promise.resolve();
 
-        expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            handleOpenFile,
-            [file]
-        );
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
 
         window.dispatchEvent(new Event("beforeunload"));
-        callUnknownFunction.mockClear();
+        handleOpenFile.mockClear();
         input.dispatchEvent(new Event("change"));
         await Promise.resolve();
 
-        expect(callUnknownFunction).not.toHaveBeenCalled();
+        expect(handleOpenFile).not.toHaveBeenCalled();
         expect(input.id).toBe("fileInput");
     });
 
@@ -147,7 +133,6 @@ describe("renderer file input startup wiring", () => {
             abortController.abort();
         });
         const handleOpenFile = vi.fn<() => void>();
-        const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
         const fileInputStartupAdapter = {
             createAbortController: vi.fn(() => ({
                 abort,
@@ -159,7 +144,6 @@ describe("renderer file input startup wiring", () => {
             input,
             window,
             {
-                callUnknownFunction,
                 getHandleOpenFile: async () => handleOpenFile,
             },
             fileInputStartupAdapter
@@ -167,20 +151,17 @@ describe("renderer file input startup wiring", () => {
         input.dispatchEvent(new Event("change"));
         await Promise.resolve();
 
-        expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            handleOpenFile,
-            [file]
-        );
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
 
         window.dispatchEvent(new Event("beforeunload"));
-        callUnknownFunction.mockClear();
+        handleOpenFile.mockClear();
         input.dispatchEvent(new Event("change"));
         await Promise.resolve();
 
         expect(
             fileInputStartupAdapter.createAbortController
         ).toHaveBeenCalledOnce();
-        expect(callUnknownFunction).not.toHaveBeenCalled();
+        expect(handleOpenFile).not.toHaveBeenCalled();
         expect(abort).toHaveBeenCalledOnce();
     });
 
@@ -202,9 +183,7 @@ describe("renderer file input startup wiring", () => {
         const { file, input } = createFileInput();
         const overrideHandleOpenFile = vi.fn<() => void>();
         const asyncHandleOpenFile = vi.fn<() => void>();
-        const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
         const delegatedHandler = createDelegatedFileInputChangeHandler({
-            callUnknownFunction,
             getHandleOpenFile: async () => asyncHandleOpenFile,
             getOverrideHandleOpenFile: () => overrideHandleOpenFile,
             htmlInputElementConstructor: window.HTMLInputElement,
@@ -217,10 +196,7 @@ describe("renderer file input startup wiring", () => {
         );
         input.dispatchEvent(new Event("change", { bubbles: true }));
 
-        expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            overrideHandleOpenFile,
-            [file]
-        );
+        expect(overrideHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
 
     it("falls back to async handleOpenFile resolution when no override handler is available", async () => {
@@ -228,9 +204,7 @@ describe("renderer file input startup wiring", () => {
 
         const { file, input } = createFileInput();
         const asyncHandleOpenFile = vi.fn<() => void>();
-        const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
         const delegatedHandler = createDelegatedFileInputChangeHandler({
-            callUnknownFunction,
             getHandleOpenFile: async () => asyncHandleOpenFile,
             getOverrideHandleOpenFile: () => undefined,
             htmlInputElementConstructor: window.HTMLInputElement,
@@ -244,9 +218,6 @@ describe("renderer file input startup wiring", () => {
         input.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
 
-        expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            asyncHandleOpenFile,
-            [file]
-        );
+        expect(asyncHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
 });
