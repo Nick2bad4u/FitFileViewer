@@ -7,7 +7,7 @@ type RendererElectronMenuLogger = (
     ...args: unknown[]
 ) => void;
 
-type RendererElectronMenuCoreModules = Readonly<
+export type RendererElectronMenuCoreModules = Readonly<
     Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>
 >;
 

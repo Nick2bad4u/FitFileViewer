@@ -1,19 +1,17 @@
 import { installRendererElectronApiRegistration } from "./electronApiRegistration.js";
-import { createRendererElectronMenuActionHandlers } from "./electronMenuActionHandlers.js";
-import type { RendererCoreModules } from "./coreModuleResolution.js";
+import {
+    createRendererElectronMenuActionHandlers,
+    type RendererElectronMenuCoreModules,
+} from "./electronMenuActionHandlers.js";
 
 type RendererElectronApiWiringLogger = (
     level: "warn",
     ...args: unknown[]
 ) => void;
 
-type RendererElectronApiCoreModules = Readonly<
-    Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>
->;
-
 type RendererElectronApiWiringOptions = {
     readonly electronApiCandidate: unknown;
-    readonly ensureCoreModules: () => Promise<RendererElectronApiCoreModules>;
+    readonly ensureCoreModules: () => Promise<RendererElectronMenuCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronApiWiringLogger;
     readonly scheduleStateInitialization: () => void;

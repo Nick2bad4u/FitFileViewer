@@ -11630,7 +11630,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const wiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
@@ -11643,17 +11643,19 @@ describe("architecture boundaries", () => {
 
         expect(wiringSource).not.toContain("callUnknownFunction");
         expect(menuActionSource).not.toContain("callUnknownFunction");
-        expect(wiringSource).toContain(
+        expect(wiringSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
         expect(menuActionSource).toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
+        expect(menuActionSource).toContain(
+            "export type RendererElectronMenuCoreModules = Readonly<"
+        );
+        expect(wiringSource).toContain("RendererElectronMenuCoreModules");
         expect(menuActionSource).toContain("applyTheme?.(theme)");
         expect(menuActionSource).toContain("showAboutModal?.()");
-        expect(wiringSource).toContain(
-            'Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>'
-        );
+        expect(wiringSource).not.toContain("RendererElectronApiCoreModules");
         expect(menuActionSource).toContain(
             'Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>'
         );

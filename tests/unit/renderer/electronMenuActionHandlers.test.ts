@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createRendererElectronMenuActionHandlers } from "../../../electron-app/renderer/electronMenuActionHandlers.js";
+import {
+    createRendererElectronMenuActionHandlers,
+    type RendererElectronMenuCoreModules,
+} from "../../../electron-app/renderer/electronMenuActionHandlers.js";
 
 describe("electronMenuActionHandlers", () => {
     it("clicks the file input for open-file menu actions", () => {
@@ -70,7 +73,7 @@ describe("electronMenuActionHandlers", () => {
         const { onMenuAction, onThemeChanged } =
             createRendererElectronMenuActionHandlers({
                 ensureCoreModules: vi.fn<
-                    () => Promise<Record<string, unknown>>
+                    () => Promise<RendererElectronMenuCoreModules>
                 >(async () => {
                     throw error;
                 }),
