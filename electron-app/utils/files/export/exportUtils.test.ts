@@ -5,10 +5,7 @@ import {
     clearExportZipRuntimeForTests,
     setExportZipRuntime,
 } from "./exportZipRuntime.js";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
 
 // Mock dependencies
 vi.mock("../../charts/theming/chartThemeUtils.js", () => ({
@@ -57,6 +54,12 @@ const electronApiMock = {
     // Provide an OAuth callback mock used by authenticateWithGyazo.
     onGyazoOAuthCallback: vi.fn(createElectronIpcUnsubscribe),
 };
+
+function createExportApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 Object.defineProperty(globalThis, "localStorage", {
     value: {
@@ -240,12 +243,9 @@ describe("exportUtils", () => {
         createdAnchors.length = 0;
         vi.clearAllMocks();
         resetLocalStorageMock();
-        resetElectronApiCandidate();
-        registerElectronApiCandidate(electronApiMock);
     });
 
     afterEach(() => {
-        resetElectronApiCandidate();
         clearExportZipRuntimeForTests();
         vi.restoreAllMocks();
     });
@@ -323,11 +323,11 @@ describe("exportUtils", () => {
             });
 
             // Mock the authentication flow
-            const authPromise = exportUtils.authenticateWithGyazo();
+            const authPromise = exportUtils.authenticateWithGyazo({
+                electronApiScope: createExportApiScope(electronApiMock),
+            });
 
-            expect(electronApiMock.startGyazoServer).toHaveBeenCalledWith(
-                3000
-            );
+            expect(electronApiMock.startGyazoServer).toHaveBeenCalledWith(3000);
             // Allow microtask where setItem is called
             await Promise.resolve();
             expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
@@ -370,7 +370,9 @@ describe("exportUtils", () => {
                 }
             );
 
-            const authPromise = exportUtils.authenticateWithGyazo();
+            const authPromise = exportUtils.authenticateWithGyazo({
+                electronApiScope: createExportApiScope(electronApiMock),
+            });
             await Promise.resolve();
 
             // Cancel from modal
@@ -438,7 +440,9 @@ describe("exportUtils", () => {
                 }
             );
 
-            const authPromise = exportUtils.authenticateWithGyazo();
+            const authPromise = exportUtils.authenticateWithGyazo({
+                electronApiScope: createExportApiScope(electronApiMock),
+            });
             await Promise.resolve();
 
             expect(capturedHandler).toBeTypeOf("function");
