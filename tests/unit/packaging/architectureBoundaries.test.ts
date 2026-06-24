@@ -4117,7 +4117,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(10);
+        expect.assertions(13);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -4138,6 +4138,13 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("__debugState");
         expect(stateManagerSource).not.toContain("localStorage.");
         expect(stateManagerSource).toContain("stateStorageRuntime.js");
+        expect(stateManagerSource).toContain("type StateStorageRuntime");
+        expect(stateManagerSource).toContain(
+            "function stateStorageRuntime(): StateStorageRuntime"
+        );
+        expect(stateManagerSource).not.toContain(
+            "const stateStorageRuntime = getStateStorageRuntime();"
+        );
         expect(stateStorageRuntimeSource).not.toMatch(
             directStateStorageRuntimeAmbientGetterPattern
         );
@@ -4151,7 +4158,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state persistence middleware storage access behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
         const stateMiddlewareSource = stripComments(
             readRepositoryFile(
@@ -4161,7 +4168,14 @@ describe("architecture boundaries", () => {
 
         expect(stateMiddlewareSource).not.toContain("localStorage.");
         expect(stateMiddlewareSource).toContain("stateStorageRuntime.js");
-        expect(stateMiddlewareSource).toContain("stateStorageRuntime.setItem");
+        expect(stateMiddlewareSource).toContain("type StateStorageRuntime");
+        expect(stateMiddlewareSource).toContain(
+            "function stateStorageRuntime(): StateStorageRuntime"
+        );
+        expect(stateMiddlewareSource).toContain("stateStorageRuntime().setItem");
+        expect(stateMiddlewareSource).not.toContain(
+            "const stateStorageRuntime = getStateStorageRuntime();"
+        );
     });
 
     it("keeps state middleware performance history off global object storage", () => {
@@ -9351,7 +9365,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(59);
+        expect.assertions(65);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9365,6 +9379,13 @@ describe("architecture boundaries", () => {
         );
 
         expect(masterStateManagerSource).toContain("masterStateRuntime.js");
+        expect(masterStateManagerSource).toContain("type MasterStateRuntime");
+        expect(masterStateManagerSource).toContain(
+            "function masterStateRuntime(): MasterStateRuntime"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "const masterStateRuntime = getMasterStateRuntime();"
+        );
         expect(masterStateManagerSource).toContain("createAbortController");
         expect(masterStateManagerSource).toContain("addDocumentEventListener");
         expect(masterStateManagerSource).toContain("addBodyClass");
@@ -9400,6 +9421,13 @@ describe("architecture boundaries", () => {
             "document.documentElement"
         );
         expect(masterStateManagerSource).toContain("stateStorageRuntime.js");
+        expect(masterStateManagerSource).toContain("type StateStorageRuntime");
+        expect(masterStateManagerSource).toContain(
+            "function stateStorageRuntime(): StateStorageRuntime"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "const stateStorageRuntime = getStateStorageRuntime();"
+        );
         expect(masterStateManagerSource).not.toContain("localStorage.");
         expect(masterStateRuntimeSource).toContain(
             "defaultMasterStateRuntimeScope"
@@ -9504,7 +9532,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {
-        expect.assertions(9);
+        expect.assertions(12);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9519,6 +9547,15 @@ describe("architecture boundaries", () => {
 
         expect(computedStateManagerSource).toContain(
             "computedStateManagerRuntime.js"
+        );
+        expect(computedStateManagerSource).toContain(
+            "type ComputedStateManagerRuntime"
+        );
+        expect(computedStateManagerSource).toContain(
+            "function computedStateManagerRuntime(): ComputedStateManagerRuntime"
+        );
+        expect(computedStateManagerSource).not.toContain(
+            "const computedStateManagerRuntime = getComputedStateManagerRuntime();"
         );
         expect(computedStateManagerSource).toContain("isDarkSchemePreferred");
         expect(computedStateManagerSource).not.toContain(

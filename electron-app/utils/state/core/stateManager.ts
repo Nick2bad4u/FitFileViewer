@@ -9,7 +9,10 @@ import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { resetState as resetStateImpl } from "./stateManagerReset.js";
 import { getRootState } from "./stateManagerStore.js";
-import { getStateStorageRuntime } from "./stateStorageRuntime.js";
+import {
+    getStateStorageRuntime,
+    type StateStorageRuntime,
+} from "./stateStorageRuntime.js";
 
 /** Listener invoked when a subscribed state path changes. */
 export type StateListener = (
@@ -59,7 +62,10 @@ const DEFAULT_PERSISTED_PATHS = [
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
 const singletonStateSubscriptions = createSubscriptionRegistry();
-const stateStorageRuntime = getStateStorageRuntime();
+
+function stateStorageRuntime(): StateStorageRuntime {
+    return getStateStorageRuntime();
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -197,7 +203,7 @@ export function loadPersistedState(
     paths: readonly string[] = DEFAULT_PERSISTED_PATHS
 ): void {
     try {
-        const savedState = stateStorageRuntime.getItem("fitFileViewer_state");
+        const savedState = stateStorageRuntime().getItem("fitFileViewer_state");
         if (savedState === null || savedState === "") {
             return;
         }
@@ -228,7 +234,9 @@ export function persistState(
     let stateToSave: Record<string, unknown> = {};
 
     try {
-        const existingRaw = stateStorageRuntime.getItem("fitFileViewer_state");
+        const existingRaw = stateStorageRuntime().getItem(
+            "fitFileViewer_state"
+        );
         if (existingRaw !== null && existingRaw !== "") {
             const parsed: unknown = JSON.parse(existingRaw);
             if (isRecord(parsed)) {
@@ -247,7 +255,7 @@ export function persistState(
     }
 
     try {
-        const didPersist = stateStorageRuntime.setItem(
+        const didPersist = stateStorageRuntime().setItem(
             "fitFileViewer_state",
             JSON.stringify(stateToSave)
         );

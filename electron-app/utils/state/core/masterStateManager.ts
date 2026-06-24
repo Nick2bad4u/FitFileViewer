@@ -33,12 +33,18 @@ import {
     setState,
     subscribe,
 } from "./stateManager.js";
-import { getMasterStateRuntime } from "./masterStateRuntime.js";
+import {
+    getMasterStateRuntime,
+    type MasterStateRuntime,
+} from "./masterStateRuntime.js";
 import {
     cleanupMiddleware,
     initializeDefaultMiddleware,
 } from "./stateMiddleware.js";
-import { getStateStorageRuntime } from "./stateStorageRuntime.js";
+import {
+    getStateStorageRuntime,
+    type StateStorageRuntime,
+} from "./stateStorageRuntime.js";
 
 type ComponentState = {
     error?: string;
@@ -102,8 +108,13 @@ type ErrorDetails = {
 let masterStateManagerModuleMocksForTests: Record<string, unknown> | null =
     null;
 
-const masterStateRuntime = getMasterStateRuntime();
-const stateStorageRuntime = getStateStorageRuntime();
+function masterStateRuntime(): MasterStateRuntime {
+    return getMasterStateRuntime();
+}
+
+function stateStorageRuntime(): StateStorageRuntime {
+    return getStateStorageRuntime();
+}
 
 function hasOptionalMasterElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -170,11 +181,11 @@ function preventDragDefaults(event: Event): void {
 }
 
 function highlightDropTarget(): void {
-    masterStateRuntime.addBodyClass("drag-over");
+    masterStateRuntime().addBodyClass("drag-over");
 }
 
 function unhighlightDropTarget(): void {
-    masterStateRuntime.removeBodyClass("drag-over");
+    masterStateRuntime().removeBodyClass("drag-over");
 }
 
 function handleFitFileDrop(event: DragEvent): void {
@@ -190,7 +201,7 @@ function handleFitFileDrop(event: DragEvent): void {
 }
 
 function hasDevelopmentModeAttribute(): boolean {
-    return masterStateRuntime.hasDevelopmentModeAttribute();
+    return masterStateRuntime().hasDevelopmentModeAttribute();
 }
 
 function getElectronDevelopmentFlag(
@@ -220,7 +231,7 @@ export class MasterStateManager {
 
     private readonly electronApiScope: RendererElectronApiScope | undefined;
 
-    private eventController = masterStateRuntime.createAbortController();
+    private eventController = masterStateRuntime().createAbortController();
 
     private performanceMonitorInterval: ReturnType<typeof setInterval> | null =
         null;
@@ -259,7 +270,7 @@ export class MasterStateManager {
         console.log("[MasterState] Cleaning up state management...");
 
         this.eventController.abort();
-        this.eventController = masterStateRuntime.createAbortController();
+        this.eventController = masterStateRuntime().createAbortController();
 
         if (this.performanceMonitorInterval !== null) {
             clearInterval(this.performanceMonitorInterval);
@@ -639,8 +650,8 @@ export class MasterStateManager {
 
         // Set up theme initialization
         const savedThemeRaw =
-            stateStorageRuntime.getItem("ffv-theme") ||
-            stateStorageRuntime.getItem("fitFileViewer_theme") ||
+            stateStorageRuntime().getItem("ffv-theme") ||
+            stateStorageRuntime().getItem("fitFileViewer_theme") ||
             "system";
 
         // Canonicalize theme values for UI state:
@@ -656,7 +667,7 @@ export class MasterStateManager {
      */
     isDevelopmentMode() {
         try {
-            return masterStateRuntime.isDevelopmentScope({
+            return masterStateRuntime().isDevelopmentScope({
                 electronDevMode: this.getElectronDevelopmentFlag(),
                 hasDevelopmentModeAttribute: hasDevelopmentModeAttribute(),
             });
@@ -691,7 +702,7 @@ export class MasterStateManager {
             "dragleave",
             "drop",
         ] as const) {
-            masterStateRuntime.addDocumentEventListener(
+            masterStateRuntime().addDocumentEventListener(
                 eventName,
                 preventDragDefaults,
                 { signal }
@@ -700,7 +711,7 @@ export class MasterStateManager {
 
         // Highlight drop area
         for (const eventName of ["dragenter", "dragover"] as const) {
-            masterStateRuntime.addDocumentEventListener(
+            masterStateRuntime().addDocumentEventListener(
                 eventName,
                 highlightDropTarget,
                 { signal }
@@ -708,7 +719,7 @@ export class MasterStateManager {
         }
 
         for (const eventName of ["dragleave", "drop"] as const) {
-            masterStateRuntime.addDocumentEventListener(
+            masterStateRuntime().addDocumentEventListener(
                 eventName,
                 unhighlightDropTarget,
                 { signal }
@@ -716,9 +727,11 @@ export class MasterStateManager {
         }
 
         // Handle dropped files
-        masterStateRuntime.addDocumentEventListener("drop", handleFitFileDrop, {
-            signal,
-        });
+        masterStateRuntime().addDocumentEventListener(
+            "drop",
+            handleFitFileDrop,
+            { signal }
+        );
 
         console.log("[MasterState] Drag and drop set up");
     }
@@ -731,7 +744,7 @@ export class MasterStateManager {
 
         // Resolve state API dynamically in handlers to respect test-time mocks
         // Global error handler
-        masterStateRuntime.addGlobalEventListener(
+        masterStateRuntime().addGlobalEventListener(
             "error",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -758,7 +771,7 @@ export class MasterStateManager {
         );
 
         // Unhandled promise rejection handler
-        masterStateRuntime.addGlobalEventListener(
+        masterStateRuntime().addGlobalEventListener(
             "unhandledrejection",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -804,7 +817,8 @@ export class MasterStateManager {
         // Integrate loading state with UI
         stateAPI.subscribe("isLoading", (isLoading: unknown) => {
             // Update UI elements based on loading state
-            const elements = masterStateRuntime.getLoadingSensitiveElements();
+            const elements =
+                masterStateRuntime().getLoadingSensitiveElements();
             for (const el of elements) {
                 const isLoadingActive = Boolean(isLoading);
                 el.style.pointerEvents = isLoadingActive ? "none" : "auto";
@@ -815,7 +829,7 @@ export class MasterStateManager {
         // Integrate theme changes with maps and charts
         stateAPI.subscribe("ui.theme", (theme: unknown) => {
             // Notify other components about theme changes
-            masterStateRuntime.dispatchGlobalEvent(
+            masterStateRuntime().dispatchGlobalEvent(
                 new CustomEvent("themeChanged", { detail: { theme } })
             );
         });
@@ -829,7 +843,7 @@ export class MasterStateManager {
     setupKeyboardShortcuts() {
         const { signal } = this.eventController;
 
-        masterStateRuntime.addDocumentEventListener(
+        masterStateRuntime().addDocumentEventListener(
             "keydown",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -946,7 +960,7 @@ export class MasterStateManager {
         const { signal } = this.eventController;
 
         // Window resize
-        masterStateRuntime.addWindowEventListener(
+        masterStateRuntime().addWindowEventListener(
             "resize",
             () => {
                 const { UIActions: dynUI } = getUIStateModule();
@@ -956,7 +970,7 @@ export class MasterStateManager {
         );
 
         // Window focus/blur
-        masterStateRuntime.addWindowEventListener(
+        masterStateRuntime().addWindowEventListener(
             "focus",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -967,7 +981,7 @@ export class MasterStateManager {
             { signal }
         );
 
-        masterStateRuntime.addWindowEventListener(
+        masterStateRuntime().addWindowEventListener(
             "blur",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -979,7 +993,7 @@ export class MasterStateManager {
         );
 
         // Before unload
-        masterStateRuntime.addWindowEventListener(
+        masterStateRuntime().addWindowEventListener(
             "beforeunload",
             () => {
                 const stateAPI = getStateManagerAPI();
