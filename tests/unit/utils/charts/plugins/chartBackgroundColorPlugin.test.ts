@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     chartBackgroundColorPlugin,
+    createChartBackgroundColorPlugin,
     type ChartBackgroundColorChart,
 } from "../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js";
 import { setRendererDebugLoggingEnabled } from "../../../../../electron-app/utils/debug/rendererDebugLoggingState.js";
@@ -195,6 +196,37 @@ describe("chartBackgroundColorPlugin", () => {
         } finally {
             consoleLog.mockRestore();
             clearRendererDebug();
+        }
+    });
+
+    it("creates plugins with injected debug runtime providers", () => {
+        expect.assertions(5);
+
+        const context = createMockContext(),
+            chart = createChart(context),
+            consoleLog = vi.spyOn(console, "log").mockReturnValue(undefined),
+            getRendererDebugRuntime = vi.fn(() => ({
+                isRendererDebugLoggingAvailable: (enabled: boolean) => enabled,
+            })),
+            plugin = createChartBackgroundColorPlugin({
+                getRendererDebugRuntime,
+                isRendererDebugLoggingEnabled: () => true,
+            });
+
+        try {
+            plugin.beforeDraw(chart, {
+                backgroundColor: "#fedcba",
+            });
+
+            expect(getRendererDebugRuntime).toHaveBeenCalledOnce();
+            expect(consoleLog).toHaveBeenCalledWith(
+                "[chartBackgroundColorPlugin] Drawing background color: #fedcba (canvas: 640x360)"
+            );
+            expect(context.fillStyle).toBe("#fedcba");
+            expect(context.fillRect).toHaveBeenCalledWith(0, 0, 640, 360);
+            expect(context.restore).toHaveBeenCalledOnce();
+        } finally {
+            consoleLog.mockRestore();
         }
     });
 });

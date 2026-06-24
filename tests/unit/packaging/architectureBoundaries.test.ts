@@ -8897,7 +8897,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
             expect(stripComments(readRepositoryFile(relativeFile))).toContain(
@@ -8905,12 +8905,20 @@ describe("architecture boundaries", () => {
             );
         }
 
+        const chartBackgroundColorPluginSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/plugins/chartBackgroundColorPlugin.ts"
+            )
+        );
         const rendererDebugRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/debug/rendererDebugRuntime.ts"
             )
         );
 
+        expect(chartBackgroundColorPluginSource).not.toContain(
+            "const rendererDebugRuntime ="
+        );
         expect(rendererDebugRuntimeSource).toContain(
             "defaultRendererDebugRuntimeScope"
         );

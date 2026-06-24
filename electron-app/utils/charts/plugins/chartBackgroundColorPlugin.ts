@@ -1,5 +1,8 @@
 import { isRendererDebugLoggingEnabled } from "../../debug/rendererDebugLoggingState.js";
-import { getRendererDebugRuntime } from "../../debug/rendererDebugRuntime.js";
+import {
+    getRendererDebugRuntime,
+    type RendererDebugRuntime,
+} from "../../debug/rendererDebugRuntime.js";
 
 /**
  * Plugin options accepted by the background color chart plugin.
@@ -38,8 +41,35 @@ export interface ChartBackgroundColorPlugin {
     id: "chartBackgroundColorPlugin";
 }
 
+export interface ChartBackgroundColorPluginRuntime {
+    readonly getRendererDebugRuntime?: (() => RendererDebugRuntime) | undefined;
+    readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
+}
+
+interface ResolvedChartBackgroundColorPluginRuntime {
+    readonly getRendererDebugRuntime: () => RendererDebugRuntime;
+    readonly isRendererDebugLoggingEnabled: () => boolean;
+}
+
 const DEFAULT_BACKGROUND_COLOR = "#23263a";
-const rendererDebugRuntime = getRendererDebugRuntime();
+const defaultChartBackgroundColorPluginRuntime: ResolvedChartBackgroundColorPluginRuntime =
+    {
+        getRendererDebugRuntime,
+        isRendererDebugLoggingEnabled,
+    };
+
+function resolveChartBackgroundColorPluginRuntime(
+    runtime: ChartBackgroundColorPluginRuntime
+): ResolvedChartBackgroundColorPluginRuntime {
+    return {
+        getRendererDebugRuntime:
+            runtime.getRendererDebugRuntime ??
+            defaultChartBackgroundColorPluginRuntime.getRendererDebugRuntime,
+        isRendererDebugLoggingEnabled:
+            runtime.isRendererDebugLoggingEnabled ??
+            defaultChartBackgroundColorPluginRuntime.isRendererDebugLoggingEnabled,
+    };
+}
 
 function getConfiguredBackgroundColor(
     chart: ChartBackgroundColorChart,
@@ -75,43 +105,53 @@ function getCanvasBackgroundColor(
     }
 }
 
-function shouldLogDebugMessages(): boolean {
-    return rendererDebugRuntime.isRendererDebugLoggingAvailable(
-        isRendererDebugLoggingEnabled()
+function shouldLogDebugMessages(
+    runtime: ResolvedChartBackgroundColorPluginRuntime
+): boolean {
+    return runtime.getRendererDebugRuntime().isRendererDebugLoggingAvailable(
+        runtime.isRendererDebugLoggingEnabled()
     );
 }
 
 /**
  * Chart.js plugin for painting a theme-aware background before chart elements.
  */
-export const chartBackgroundColorPlugin: ChartBackgroundColorPlugin = {
-    beforeDraw(chart, options) {
-        const backgroundColor =
-            getConfiguredBackgroundColor(chart, options) ??
-            getCanvasBackgroundColor(chart.canvas) ??
-            DEFAULT_BACKGROUND_COLOR;
+export function createChartBackgroundColorPlugin(
+    options: ChartBackgroundColorPluginRuntime = {}
+): ChartBackgroundColorPlugin {
+    const runtime = resolveChartBackgroundColorPluginRuntime(options);
 
-        const { ctx } = chart;
-        if (!ctx) {
-            console.warn(
-                "[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw."
-            );
-            return;
-        }
+    return {
+        beforeDraw(chart, options) {
+            const backgroundColor =
+                getConfiguredBackgroundColor(chart, options) ??
+                getCanvasBackgroundColor(chart.canvas) ??
+                DEFAULT_BACKGROUND_COLOR;
 
-        const height = chart.canvas?.height ?? 0,
-            width = chart.canvas?.width ?? 0;
+            const { ctx } = chart;
+            if (!ctx) {
+                console.warn(
+                    "[chartBackgroundColorPlugin] Chart context (ctx) is undefined. Skipping background draw."
+                );
+                return;
+            }
 
-        if (shouldLogDebugMessages()) {
-            console.log(
-                `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
-            );
-        }
+            const height = chart.canvas?.height ?? 0,
+                width = chart.canvas?.width ?? 0;
 
-        ctx.save();
-        ctx.fillStyle = backgroundColor;
-        ctx.fillRect(0, 0, width, height);
-        ctx.restore();
-    },
-    id: "chartBackgroundColorPlugin",
-};
+            if (shouldLogDebugMessages(runtime)) {
+                console.log(
+                    `[chartBackgroundColorPlugin] Drawing background color: ${backgroundColor} (canvas: ${width}x${height})`
+                );
+            }
+
+            ctx.save();
+            ctx.fillStyle = backgroundColor;
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+        },
+        id: "chartBackgroundColorPlugin",
+    };
+}
+
+export const chartBackgroundColorPlugin = createChartBackgroundColorPlugin();
