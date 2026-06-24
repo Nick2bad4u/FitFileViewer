@@ -8788,11 +8788,23 @@ describe("architecture boundaries", () => {
         const smokeSource = readRepositoryFile(playwrightSmokeFiles[0]);
         const requiredSmokeTests = [
             'test("auto-renders the selected FIT file in the Raw Data tab"',
+            '#content_data table.dataTable',
+            "#content_data .dt-container",
             'test("loads the Zwift map iframe when the Zwift tab is selected"',
+            'iframe#zwift_iframe[src="https://zwiftmap.com/"]',
+            'await expect(zwiftFrame).toHaveAttribute("allow", "geolocation");',
+            'await expectTabReady("zwift");',
             'test("clears distance and area map measurements through the registered measure control"',
+            "clearRegisteredMapMeasurements",
+            ".leaflet-measure-resultpopup",
+            "popupDomCount: 0",
             'test("shows loading and loaded states for an empty Browser folder"',
+            "#fit-browser-status",
+            "Loading folder",
+            "No .fit files found in this folder.",
             "await expectAltFitIframeLoadedActivity();",
             'await expectLoadedActivityStatePreserved(`switching to ${tabId}`);',
+            'await expectLoadedActivityStatePreserved(\n            "returning to Raw Data after Summary"',
         ];
         const missingSmokeTests = requiredSmokeTests.filter(
             (requiredSnippet) => !smokeSource.includes(requiredSnippet)
