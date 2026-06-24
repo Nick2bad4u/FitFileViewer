@@ -13,7 +13,10 @@ import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
-import { getUpdateActiveTabRuntime } from "./updateActiveTabRuntime.js";
+import {
+    getUpdateActiveTabRuntime,
+    type UpdateActiveTabRuntime,
+} from "./updateActiveTabRuntime.js";
 
 type TabButtonLike = EventTarget & {
     readonly classList: DOMTokenList;
@@ -25,10 +28,13 @@ type TabButtonLike = EventTarget & {
 };
 
 let activeTabUnsubscribe: (() => void) | null = null;
-const activeTabRuntime = getUpdateActiveTabRuntime();
+
+function activeTabRuntime(): UpdateActiveTabRuntime {
+    return getUpdateActiveTabRuntime();
+}
 
 function getDoc(): Document | undefined {
-    return activeTabRuntime.getDocument(getTabTestDocumentForTests());
+    return activeTabRuntime().getDocument(getTabTestDocumentForTests());
 }
 
 function getStateMgr(): RendererStateManagerAccess {
@@ -289,7 +295,7 @@ export function initializeActiveTabState(): void {
 
                 addEventListenerWithCleanup(button, "click", onClick);
                 addEventListenerWithCleanup(button, "keydown", (event) => {
-                    if (activeTabRuntime.isKeyboardEvent(event)) {
+                    if (activeTabRuntime().isKeyboardEvent(event)) {
                         handleTabKeyboardNavigation(event, button);
                     }
                 });

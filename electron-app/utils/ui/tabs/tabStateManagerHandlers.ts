@@ -15,6 +15,7 @@ import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
 import {
     getTabStateManagerHandlersRuntime,
+    type TabStateManagerHandlersRuntime,
     type TabStateManagerHandlersTimerHandle,
 } from "./tabStateManagerHandlersRuntime.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
@@ -50,29 +51,31 @@ let zwiftMapFallbackTimeoutId:
     | TabStateManagerHandlersTimerHandle
     | undefined;
 
-const tabStateManagerHandlersRuntime = getTabStateManagerHandlersRuntime();
+function tabStateManagerHandlersRuntime(): TabStateManagerHandlersRuntime {
+    return getTabStateManagerHandlersRuntime();
+}
 
 function clearPendingMapInvalidation(): void {
     if (mapInvalidationFrameId !== undefined) {
-        tabStateManagerHandlersRuntime.cancelAnimationFrame(
+        tabStateManagerHandlersRuntime().cancelAnimationFrame(
             mapInvalidationFrameId
         );
         mapInvalidationFrameId = undefined;
     }
     if (mapInvalidationSecondFrameId !== undefined) {
-        tabStateManagerHandlersRuntime.cancelAnimationFrame(
+        tabStateManagerHandlersRuntime().cancelAnimationFrame(
             mapInvalidationSecondFrameId
         );
         mapInvalidationSecondFrameId = undefined;
     }
     if (mapInvalidationTimeoutId !== undefined) {
-        tabStateManagerHandlersRuntime.clearTimeout(mapInvalidationTimeoutId);
+        tabStateManagerHandlersRuntime().clearTimeout(mapInvalidationTimeoutId);
         mapInvalidationTimeoutId = undefined;
     }
 }
 
 function scheduleFallbackMapInvalidation(executeInvalidation: () => void): void {
-    mapInvalidationTimeoutId = tabStateManagerHandlersRuntime.setTimeout(() => {
+    mapInvalidationTimeoutId = tabStateManagerHandlersRuntime().setTimeout(() => {
         mapInvalidationTimeoutId = undefined;
         executeInvalidation();
     }, 75);
@@ -165,7 +168,7 @@ export function handleZwiftTab(): void {
     const status = createZwiftStatus();
     const iframe = createZwiftIframe();
     const loadController =
-        tabStateManagerHandlersRuntime.createAbortController();
+        tabStateManagerHandlersRuntime().createAbortController();
     const settleZwiftFrame = (didLoad: boolean): void => {
         loadController.abort();
         clearPendingZwiftFallback();
@@ -191,7 +194,7 @@ export function handleZwiftTab(): void {
         { once: true, signal: loadController.signal }
     );
 
-    zwiftMapFallbackTimeoutId = tabStateManagerHandlersRuntime.setTimeout(
+    zwiftMapFallbackTimeoutId = tabStateManagerHandlersRuntime().setTimeout(
         () => {
             zwiftMapFallbackTimeoutId = undefined;
             settleZwiftFrame(false);
@@ -359,10 +362,10 @@ export async function handleMapTab(
 
     clearPendingMapInvalidation();
     mapInvalidationFrameId =
-        tabStateManagerHandlersRuntime.requestAnimationFrame(() => {
+        tabStateManagerHandlersRuntime().requestAnimationFrame(() => {
             mapInvalidationFrameId = undefined;
             mapInvalidationSecondFrameId =
-                tabStateManagerHandlersRuntime.requestAnimationFrame(() => {
+                tabStateManagerHandlersRuntime().requestAnimationFrame(() => {
                     mapInvalidationSecondFrameId = undefined;
                     executeInvalidation();
                 });
@@ -415,7 +418,7 @@ function hashData(data: ActivityData | null | undefined): string {
 }
 
 function createZwiftIframe(): HTMLIFrameElement {
-    const iframe = tabStateManagerHandlersRuntime.createElement("iframe");
+    const iframe = tabStateManagerHandlersRuntime().createElement("iframe");
     iframe.id = "zwift_iframe";
     iframe.className = "fullsize-container no-border";
     iframe.setAttribute("allow", "geolocation");
@@ -440,12 +443,12 @@ function clearPendingZwiftFallback(): void {
         return;
     }
 
-    tabStateManagerHandlersRuntime.clearTimeout(zwiftMapFallbackTimeoutId);
+    tabStateManagerHandlersRuntime().clearTimeout(zwiftMapFallbackTimeoutId);
     zwiftMapFallbackTimeoutId = undefined;
 }
 
 function createZwiftStatus(): HTMLElement {
-    const status = tabStateManagerHandlersRuntime.createElement("div");
+    const status = tabStateManagerHandlersRuntime().createElement("div");
     status.className = "zwift-map-status zwift-map-status--loading";
     status.id = "zwift_map_status";
     status.setAttribute("aria-live", "polite");
@@ -466,7 +469,7 @@ function markZwiftStatusFailed(status: HTMLElement): void {
     status.classList.add("zwift-map-status--error");
     status.hidden = false;
     status.replaceChildren(
-        tabStateManagerHandlersRuntime.createTextNode(
+        tabStateManagerHandlersRuntime().createTextNode(
             "ZwiftMap did not load. "
         ),
         createZwiftFallbackLink()
@@ -474,7 +477,7 @@ function markZwiftStatusFailed(status: HTMLElement): void {
 }
 
 function createZwiftFallbackLink(): HTMLAnchorElement {
-    const link = tabStateManagerHandlersRuntime.createElement("a");
+    const link = tabStateManagerHandlersRuntime().createElement("a");
     link.dataset["externalLink"] = "true";
     link.href = ZWIFT_MAP_URL;
     link.rel = "noopener noreferrer";

@@ -7739,7 +7739,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
@@ -7754,8 +7754,15 @@ describe("architecture boundaries", () => {
             "rendererStateManagerAccess.js"
         );
         expect(updateActiveTabSource).toContain("updateActiveTabRuntime.js");
+        expect(updateActiveTabSource).toContain("type UpdateActiveTabRuntime");
         expect(updateActiveTabSource).toContain(
-            "activeTabRuntime.isKeyboardEvent"
+            "return getUpdateActiveTabRuntime();"
+        );
+        expect(updateActiveTabSource).not.toContain(
+            "const activeTabRuntime = getUpdateActiveTabRuntime();"
+        );
+        expect(updateActiveTabSource).toContain(
+            "activeTabRuntime().isKeyboardEvent"
         );
         expect(updateActiveTabSource).not.toContain(
             "state/core/stateManager.js"
@@ -17008,7 +17015,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(37);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -17040,6 +17047,15 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(tabStateManagerHandlersSource).toContain(
             "tabStateManagerHandlersRuntime.js"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "type TabStateManagerHandlersRuntime"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "return getTabStateManagerHandlersRuntime();"
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
+            "const tabStateManagerHandlersRuntime = getTabStateManagerHandlersRuntime();"
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toMatch(
             directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern
