@@ -124,11 +124,11 @@ function formatLogValue(value: unknown): string {
 }
 
 function isInputElement(value: unknown): value is HTMLInputElement {
-    return value instanceof HTMLInputElement;
+    return currentSettingsRuntime().isHTMLInputElement(value);
 }
 
 function isSelectElement(value: unknown): value is HTMLSelectElement {
-    return value instanceof HTMLSelectElement;
+    return currentSettingsRuntime().isHTMLSelectElement(value);
 }
 
 function isStoredSettingValue(value: unknown): value is StoredSettingValue {

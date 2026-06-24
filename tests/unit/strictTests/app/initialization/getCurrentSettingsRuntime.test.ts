@@ -29,8 +29,24 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
+    it("checks form elements through injected constructor providers", () => {
+        expect.assertions(4);
+
+        const runtime = getGetCurrentSettingsRuntime({
+            getHTMLInputElement: () => HTMLInputElement,
+            getHTMLSelectElement: () => HTMLSelectElement,
+        });
+        const input = document.createElement("input");
+        const select = document.createElement("select");
+
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLInputElement(select)).toBe(false);
+        expect(runtime.isHTMLSelectElement(select)).toBe(true);
+        expect(runtime.isHTMLSelectElement(input)).toBe(false);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const runtime = getGetCurrentSettingsRuntime({});
 
@@ -40,15 +56,23 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("getCurrentSettingsRuntime requires clearTimeout");
+        expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
+            "getCurrentSettingsRuntime requires HTMLInputElement"
+        );
+        expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
+            "getCurrentSettingsRuntime requires HTMLSelectElement"
+        );
     });
 
-    it("ignores legacy direct timer scope properties", () => {
-        expect.assertions(2);
+    it("ignores legacy direct timer and constructor scope properties", () => {
+        expect.assertions(4);
 
         const runtime = getGetCurrentSettingsRuntime({
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
+            HTMLInputElement,
+            HTMLSelectElement,
             setTimeout() {
                 throw new Error("legacy setTimeout should not run");
             },
@@ -60,5 +84,11 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("getCurrentSettingsRuntime requires clearTimeout");
+        expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
+            "getCurrentSettingsRuntime requires HTMLInputElement"
+        );
+        expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
+            "getCurrentSettingsRuntime requires HTMLSelectElement"
+        );
     });
 });

@@ -1211,7 +1211,7 @@ const directUpdateSystemInfoRuntimeGlobalPattern =
 const directLoadVersionInfoRuntimeGlobalPattern =
     /\bdocument\.querySelector\b/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\binstanceof\s+(?:HTMLInputElement|HTMLSelectElement)\b/u;
 const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directLazyRenderingRuntimeGlobalPattern =
@@ -14167,7 +14167,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(30);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -14215,6 +14215,18 @@ describe("architecture boundaries", () => {
         expect(getCurrentSettingsSource).toContain(
             "currentSettingsRuntime().setTimeout"
         );
+        expect(getCurrentSettingsSource).toContain(
+            "currentSettingsRuntime().isHTMLInputElement"
+        );
+        expect(getCurrentSettingsSource).toContain(
+            "currentSettingsRuntime().isHTMLSelectElement"
+        );
+        expect(getCurrentSettingsSource).not.toContain(
+            "instanceof HTMLInputElement"
+        );
+        expect(getCurrentSettingsSource).not.toContain(
+            "instanceof HTMLSelectElement"
+        );
         expect(getCurrentSettingsRuntimeSource).not.toMatch(
             directGetCurrentSettingsRuntimeAmbientFallbackPattern
         );
@@ -14225,10 +14237,22 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
+            "readonly HTMLSelectElement?:"
+        );
+        expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "scope.HTMLInputElement"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "scope.HTMLSelectElement"
         );
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope.setTimeout"
@@ -14243,10 +14267,22 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const HTMLInputElementConstructor = scope.getHTMLInputElement?.();"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const HTMLSelectElementConstructor = scope.getHTMLSelectElement?.();"
         );
     });
 
