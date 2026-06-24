@@ -1,8 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { getBrowserRendererRuntimeEnvironmentScope } from "../../../electron-app/renderer/rendererBrowserRuntime.js";
 import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "../../../electron-app/renderer/runtimeEnvironment.js";
 
 describe("renderer runtime environment", () => {
+    it("creates the production browser scope explicitly", () => {
+        expect.assertions(5);
+
+        const environment = createRuntimeEnvironment(
+            getBrowserRendererRuntimeEnvironmentScope()
+        );
+
+        expect(environment.console).toBe(console);
+        expect(environment.documentTarget).toBe(document);
+        expect(environment.rendererEventTarget).toBe(globalThis);
+        expect(typeof environment.addEventListener).toBe("function");
+        expect(typeof environment.setTimeout).toBe("function");
+    });
+
     it("captures browser globals through named providers", () => {
         expect.assertions(19);
 

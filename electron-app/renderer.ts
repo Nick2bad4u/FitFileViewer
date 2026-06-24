@@ -38,6 +38,7 @@ import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
 import { createRendererApplicationStartup } from "./renderer/applicationStartup.js";
 import { registerRendererApplicationLifecycle } from "./renderer/applicationLifecycleWiring.js";
 import { createRendererRuntimeEnvironment } from "./renderer/runtimeEnvironment.js";
+import { getBrowserRendererRuntimeEnvironmentScope } from "./renderer/rendererBrowserRuntime.js";
 import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
@@ -51,7 +52,9 @@ import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js"
 
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
 
-const runtimeEnvironment = createRendererRuntimeEnvironment();
+const runtimeEnvironment = createRendererRuntimeEnvironment(
+    getBrowserRendererRuntimeEnvironmentScope()
+);
 const rendererConsole = runtimeEnvironment.console;
 
 /**

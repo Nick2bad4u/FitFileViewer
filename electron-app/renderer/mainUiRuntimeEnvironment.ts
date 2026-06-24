@@ -12,23 +12,6 @@ export interface MainUiRuntimeEnvironmentScope {
     readonly getElectronApiCandidate?: (() => unknown) | undefined;
 }
 
-type MainUiRuntimeGlobalScope = typeof globalThis & {
-    readonly electronAPI?: unknown;
-};
-
-const defaultMainUiRuntimeEnvironmentScope: MainUiRuntimeEnvironmentScope = {
-    dateNow: () => Date.now(),
-    getConsole: () => globalThis.console,
-    getDocument: () => globalThis.document,
-    getElectronApiCandidate: getDefaultElectronApiCandidate,
-};
-
-function getDefaultElectronApiCandidate(): unknown {
-    const mainUiScope = globalThis as MainUiRuntimeGlobalScope;
-
-    return mainUiScope.electronAPI;
-}
-
 function getScopeConsole(scope: MainUiRuntimeEnvironmentScope): Console {
     const consoleRef = scope.getConsole?.();
     if (consoleRef === undefined) {
@@ -60,7 +43,7 @@ function getScopeDocument(scope: MainUiRuntimeEnvironmentScope): Document {
 }
 
 export function getMainUiRuntimeEnvironment(
-    scope: MainUiRuntimeEnvironmentScope = defaultMainUiRuntimeEnvironmentScope
+    scope: MainUiRuntimeEnvironmentScope
 ): MainUiRuntimeEnvironment {
     const dateNow = getScopeDateNow(scope);
 

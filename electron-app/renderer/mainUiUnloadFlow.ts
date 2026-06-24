@@ -1,5 +1,6 @@
 import type { MainUiElectronApi } from "./mainUiElectronApi.js";
 
+import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
 import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
 import { AppActions } from "../utils/app/lifecycle/appActions.js";
 import { performanceMonitor } from "../utils/debug/stateDevTools.js";
@@ -42,7 +43,9 @@ function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
         : Boolean(monitor.isEnabled);
 }
 
-const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment();
+const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment(
+    getBrowserMainUiRuntimeEnvironmentScope()
+);
 
 function clearContentAreas(
     documentRef: Document,

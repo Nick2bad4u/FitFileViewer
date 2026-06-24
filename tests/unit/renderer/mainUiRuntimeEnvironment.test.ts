@@ -1,11 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { getBrowserMainUiRuntimeEnvironmentScope } from "../../../electron-app/renderer/mainUiBrowserRuntime.js";
 import {
     getMainUiRuntimeEnvironment,
     type MainUiRuntimeEnvironmentScope,
 } from "../../../electron-app/renderer/mainUiRuntimeEnvironment.js";
 
 describe("main UI runtime environment", () => {
+    it("creates the production browser scope explicitly", () => {
+        expect.assertions(5);
+
+        const before = Date.now();
+        const runtimeEnvironment = getMainUiRuntimeEnvironment(
+            getBrowserMainUiRuntimeEnvironmentScope()
+        );
+        const after = Date.now();
+        const runtimeNow = runtimeEnvironment.dateNow();
+
+        expect(runtimeEnvironment.consoleRef).toBe(console);
+        expect(runtimeEnvironment.documentRef).toBe(document);
+        expect(runtimeEnvironment.electronApiCandidate).toBeUndefined();
+        expect(runtimeNow).toBeGreaterThanOrEqual(before);
+        expect(runtimeNow).toBeLessThanOrEqual(after + 1000);
+    });
+
     it("uses injected runtime primitives for main-ui orchestration", () => {
         expect.assertions(5);
 

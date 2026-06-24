@@ -4687,7 +4687,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(80);
+        expect.assertions(105);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4705,6 +4705,11 @@ describe("architecture boundaries", () => {
         );
         const rendererRuntimeEnvironmentSource = stripComments(
             readRepositoryFile("electron-app/renderer/runtimeEnvironment.ts")
+        );
+        const rendererBrowserRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/rendererBrowserRuntime.ts"
+            )
         );
         const mainUiSource = stripComments(
             readRepositoryFile("electron-app/main-ui.ts")
@@ -4725,17 +4730,27 @@ describe("architecture boundaries", () => {
                 "electron-app/renderer/mainUiRuntimeEnvironment.ts"
             )
         );
+        const mainUiBrowserRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiBrowserRuntime.ts")
+        );
         const mainUiRuntimeEnvironmentScopeSource =
             mainUiRuntimeEnvironmentSource.slice(
                 mainUiRuntimeEnvironmentSource.indexOf(
                     "export interface MainUiRuntimeEnvironmentScope"
                 ),
                 mainUiRuntimeEnvironmentSource.indexOf(
-                    "const defaultMainUiRuntimeEnvironmentScope"
+                    "function getScopeConsole"
                 )
             );
 
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
+        expect(rendererEntrypointSource).toContain("rendererBrowserRuntime.js");
+        expect(rendererEntrypointSource).toContain(
+            "getBrowserRendererRuntimeEnvironmentScope()"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererRuntimeEnvironment();"
+        );
         expect(rendererEntrypointSource).not.toContain("globalThis.");
         expect(rendererEntrypointSource).not.toContain("document,");
         expect(rendererEntrypointSource).toContain(
@@ -4747,7 +4762,7 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "scope: Window & typeof globalThis = globalThis.window"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "defaultRendererRuntimeEnvironmentScope"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
@@ -4759,28 +4774,35 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getDefaultRendererObject"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "type RendererRuntimeGlobalScope = typeof globalThis &"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "export type RendererAddEventListener = typeof globalThis.addEventListener"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            'export type RendererAddEventListener = Window["addEventListener"]'
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "export type RendererRemoveEventListener ="
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "export type RendererSetTimeout = typeof globalThis.setTimeout"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
+            'export type RendererSetTimeout = Window["setTimeout"]'
+        );
+        expect(rendererRuntimeEnvironmentSource).not.toContain("globalThis.");
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getClearInterval: () => globalThis.clearInterval.bind(globalThis)"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getConsole: () => globalThis.console"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
@@ -4798,29 +4820,29 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "globalThis as Record<PropertyKey, unknown>"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "const rendererScope = globalThis as RendererRuntimeGlobalScope;"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "return rendererScope.electronAPI;"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "electronApiCandidate: scope.getElectronApiCandidate?.()"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getRemoveEventListener: () =>"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getSetInterval: () => globalThis.setInterval.bind(globalThis)"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "readonly rendererGlobal: Window & typeof globalThis"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "type RendererRuntimeEventTarget = Pick<"
+            "export type RendererRuntimeEventTarget = Pick<"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "readonly rendererEventTarget: RendererRuntimeEventTarget"
@@ -4842,6 +4864,24 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).toContain(
             "renderer runtime environment requires a renderer event target"
         );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "type RendererRuntimeGlobalScope = typeof globalThis &"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "const rendererScope = globalThis as RendererRuntimeGlobalScope;"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "return rendererScope.electronAPI;"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
+        );
         expect(applicationStartupSource).toContain("RendererAddEventListener");
         expect(applicationStartupSource).not.toContain(
             "typeof globalThis.addEventListener"
@@ -4862,6 +4902,13 @@ describe("architecture boundaries", () => {
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiStartupSource).toContain("mainUiBrowserRuntime.js");
+        expect(mainUiStartupSource).toContain(
+            "getBrowserMainUiRuntimeEnvironmentScope()"
+        );
+        expect(mainUiStartupSource).not.toContain(
+            "getMainUiRuntimeEnvironment();"
+        );
         expect(mainUiStartupSource).toContain("const electronApiScope =");
         expect(mainUiStartupSource).toContain(
             "getMainUiElectronApi(electronApiScope)"
@@ -4871,6 +4918,10 @@ describe("architecture boundaries", () => {
         expect(mainUiExternalLinksSource).toContain(
             "mainUiRuntimeEnvironment.js"
         );
+        expect(mainUiExternalLinksSource).toContain("mainUiBrowserRuntime.js");
+        expect(mainUiExternalLinksSource).not.toContain(
+            "getMainUiRuntimeEnvironment();"
+        );
         expect(mainUiExternalLinksSource).toContain("electronApiScope");
         expect(mainUiExternalLinksSource).toContain(
             "documentRef = mainUiRuntimeEnvironment.documentRef"
@@ -4879,6 +4930,10 @@ describe("architecture boundaries", () => {
             "documentRef = document"
         );
         expect(mainUiUnloadFlowSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiUnloadFlowSource).toContain("mainUiBrowserRuntime.js");
+        expect(mainUiUnloadFlowSource).not.toContain(
+            "getMainUiRuntimeEnvironment();"
+        );
         expect(mainUiUnloadFlowSource).toContain(
             "documentRef = mainUiRuntimeEnvironment.documentRef"
         );
@@ -4895,35 +4950,35 @@ describe("architecture boundaries", () => {
                     "defaultMainUiRuntimeEnvironmentScope"
                 )
             )
-        ).toBe(true);
+        ).toBe(false);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 stripComments(readRepositoryFile(relativeFile)).includes(
                     "getConsole: () => globalThis.console"
                 )
             )
-        ).toBe(true);
+        ).toBe(false);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 stripComments(readRepositoryFile(relativeFile)).includes(
                     "dateNow: () => Date.now()"
                 )
             )
-        ).toBe(true);
+        ).toBe(false);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 stripComments(readRepositoryFile(relativeFile)).includes(
                     "getDocument: () => globalThis.document"
                 )
             )
-        ).toBe(true);
+        ).toBe(false);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 mainUiRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
-        ).toBe(true);
+        ).toBe(false);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 stripComments(readRepositoryFile(relativeFile)).includes(
@@ -4943,12 +4998,13 @@ describe("architecture boundaries", () => {
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "scope.documentRef"
         );
-        expect(mainUiRuntimeEnvironmentSource).toContain(
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "type MainUiRuntimeGlobalScope = typeof globalThis &"
         );
-        expect(mainUiRuntimeEnvironmentSource).toContain(
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "return mainUiScope.electronAPI;"
         );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain("globalThis.");
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             'Reflect.get(globalThis, "electronAPI")'
         );
@@ -4960,6 +5016,21 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "main UI runtime environment requires a document reference"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "type MainUiRuntimeGlobalScope = typeof globalThis &"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "return mainUiScope.electronAPI;"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "dateNow: () => Date.now()"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "getConsole: () => globalThis.console"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
     });
 

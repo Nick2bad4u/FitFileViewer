@@ -4,6 +4,7 @@ import {
 } from "./mainUiDevelopmentActions.js";
 import { createMainUiDragDropHandler } from "./mainUiDragDropStartup.js";
 import { getMainUiElectronApi } from "./mainUiElectronApi.js";
+import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
 import { createMainUiExternalLinkLifecycle } from "./mainUiExternalLinks.js";
 import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
 import { registerMainUiShutdownHook } from "./mainUiShutdown.js";
@@ -32,7 +33,9 @@ export interface MainUiStartupHandles {
     >;
 }
 
-const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment();
+const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment(
+    getBrowserMainUiRuntimeEnvironmentScope()
+);
 const mainUiConsole = mainUiRuntimeEnvironment.consoleRef;
 
 const MAIN_UI_CONSTANTS = {
