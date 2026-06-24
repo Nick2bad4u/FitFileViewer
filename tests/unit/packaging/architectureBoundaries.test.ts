@@ -11656,8 +11656,8 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).not.toContain(
             "createRendererFileInputWiring({\n    ensureCoreModules,\n    getFileInput: domAccess.getFileInput,\n    logRenderer,\n    resolveExactRendererCoreTestOverride,\n    resolveRendererCoreTestOverride,\n    toModuleRecord,"
         );
-        expect(applicationStartupSource).toContain(
-            "handleImmediateFileInputChange("
+        expect(applicationStartupSource).not.toContain(
+            "handleImmediateFileInputChange"
         );
         expect(applicationStartupSource).not.toContain(
             "handleImmediateFileInputChange(\n                            fileInput,\n                            coreModules.handleOpenFile,\n                            options.callUnknownFunction"
@@ -11700,15 +11700,31 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(7);
+        expect.assertions(14);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const coreModuleResolutionSource = stripComments(
+            readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
         );
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
         );
 
+        expect(coreModuleResolutionSource).toContain(
+            "handleOpenFile: RendererHandleOpenFile | undefined"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "setupListeners: RendererSetupListeners | undefined"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "handleOpenFile: undefined | UnknownRendererFunction"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "setupListeners: undefined | UnknownRendererFunction"
+        );
+        expect(coreModuleResolutionSource).toContain("SetupListenersOptions");
         expect(applicationStartupSource).not.toContain("callUnknownFunction");
         expect(applicationStartupSource).toContain(
             "setupThemeDyn?.(\n                dependencies.applyTheme,"
@@ -11717,16 +11733,22 @@ describe("architecture boundaries", () => {
             "dependencies.listenForThemeChange\n            )"
         );
         expect(applicationStartupSource).toContain(
-            "setupListenersDyn?.(dependencies)"
+            "createSetupListenersOptions(dependencies)"
         );
         expect(applicationStartupSource).toContain(
-            "setupListeners?.(dependencies)"
+            "setupListenersDyn?.(setupListenerDependencies)"
+        );
+        expect(applicationStartupSource).toContain(
+            "setupListeners?.(setupListenerDependencies)"
+        );
+        expect(applicationStartupSource).toContain(
+            "showUpdateNotification: adaptShowUpdateNotification("
         );
         expect(rendererEntrypointSource).not.toContain(
             "createRendererApplicationStartup({\n    addEventListener: runtimeEnvironment.addEventListener,\n    callUnknownFunction,"
         );
-        expect(applicationStartupSource).toContain(
-            "handleImmediateFileInputChange("
+        expect(applicationStartupSource).not.toContain(
+            "handleImmediateFileInputChange"
         );
     });
 

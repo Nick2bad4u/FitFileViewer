@@ -1,4 +1,5 @@
 import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks.js";
+import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type {
     AppDomainStateGetter,
     AppDomainStatePathSubscriber,
@@ -23,15 +24,19 @@ export type ShowUpdateNotification = (
 ) => void;
 
 export type UnknownRendererFunction = (...args: unknown[]) => unknown;
+export type RendererHandleOpenFile = (payload: unknown) => unknown;
+export type RendererSetupListeners = (
+    options: SetupListenersOptions
+) => unknown;
 
 export interface RendererCoreModules {
     AppActions: Record<string, unknown> | undefined;
     applyTheme: ApplyTheme | undefined;
     getAppDomainState: AppDomainStateGetter | undefined;
-    handleOpenFile: undefined | UnknownRendererFunction;
+    handleOpenFile: RendererHandleOpenFile | undefined;
     listenForThemeChange: ListenForThemeChange | undefined;
     masterStateManager: unknown;
-    setupListeners: undefined | UnknownRendererFunction;
+    setupListeners: RendererSetupListeners | undefined;
     setupTheme: undefined | UnknownRendererFunction;
     showAboutModal: ((html?: string) => void) | undefined;
     showNotification: ShowNotification | undefined;
@@ -102,15 +107,13 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         getAppDomainState: toAppDomainStateGetter(
             resolveDefaultableExport(appDomainMod, "getAppDomainState")
         ),
-        handleOpenFile: toUnknownRendererFunction(
-            openFileMod["handleOpenFile"]
-        ),
+        handleOpenFile: toRendererHandleOpenFile(openFileMod["handleOpenFile"]),
         listenForThemeChange: toListenForThemeChange(
             themeMod["listenForThemeChange"]
         ),
         masterStateManager:
             resolveDefaultableExport(msmMod, "masterStateManager") ?? msmMod,
-        setupListeners: toUnknownRendererFunction(
+        setupListeners: toRendererSetupListeners(
             listenersMod["setupListeners"]
         ),
         setupTheme: toUnknownRendererFunction(setupThemeMod["setupTheme"]),
@@ -328,6 +331,22 @@ function toListenForThemeChange(
 ): ListenForThemeChange | undefined {
     return typeof value === "function"
         ? (value as ListenForThemeChange)
+        : undefined;
+}
+
+function toRendererHandleOpenFile(
+    value: unknown
+): RendererHandleOpenFile | undefined {
+    return typeof value === "function"
+        ? (value as RendererHandleOpenFile)
+        : undefined;
+}
+
+function toRendererSetupListeners(
+    value: unknown
+): RendererSetupListeners | undefined {
+    return typeof value === "function"
+        ? (value as RendererSetupListeners)
         : undefined;
 }
 

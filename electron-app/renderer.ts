@@ -138,7 +138,6 @@ const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
-    getFileInput: fileInputWiring.getFileInput,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isDevelopmentMode,

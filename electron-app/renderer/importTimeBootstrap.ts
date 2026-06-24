@@ -1,4 +1,8 @@
-import type { RendererCoreModules } from "./coreModuleResolution.js";
+import type {
+    RendererCoreModules,
+    ShowUpdateNotification,
+} from "./coreModuleResolution.js";
+import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 
 interface RendererImportTimeBootstrapOptions {
     ensureCoreModules: () => Promise<RendererCoreModules>;
@@ -79,27 +83,28 @@ export function createRendererImportTimeBootstrap({
 
     async function setupImportTimeListeners(): Promise<void> {
         const {
-            applyTheme: applyThemeFn,
             handleOpenFile: handleOpenFileFn,
-            listenForThemeChange: listenForThemeChangeFn,
             setupListeners: setupListenersFn,
             showAboutModal: showAboutModalFn,
             showNotification: showNotificationFn,
             showUpdateNotification: showUpdateNotificationFn,
         } = await ensureCoreModules();
-        const deps = {
-            applyTheme: applyThemeFn,
+        const deps = createSetupListenersOptions({
             handleOpenFile: handleOpenFileFn,
             isOpeningFileRef,
-            listenForThemeChange: listenForThemeChangeFn,
             openFileBtn: getOpenFileButton(),
             setLoading,
             showAboutModal: showAboutModalFn,
             showNotification: showNotificationFn,
-            showUpdateNotification: showUpdateNotificationFn,
-        };
+            showUpdateNotification:
+                showUpdateNotificationFn === undefined
+                    ? undefined
+                    : adaptShowUpdateNotification(showUpdateNotificationFn),
+        });
 
-        setupListenersFn?.(deps);
+        if (deps !== undefined) {
+            setupListenersFn?.(deps);
+        }
     }
 
     async function setupImportTimeTheme(): Promise<void> {
@@ -142,6 +147,68 @@ export function createRendererImportTimeBootstrap({
         scheduleImportTimeListenersSetup,
         scheduleImportTimeStateInitialization,
         scheduleImportTimeThemeSetup,
+    };
+}
+
+function createSetupListenersOptions(dependencies: {
+    readonly handleOpenFile:
+        | SetupListenersOptions["handleOpenFile"]
+        | undefined;
+    readonly isOpeningFileRef: { value: boolean };
+    readonly openFileBtn: HTMLElement | null;
+    readonly setLoading: (loading: boolean) => void;
+    readonly showAboutModal:
+        | SetupListenersOptions["showAboutModal"]
+        | undefined;
+    readonly showNotification:
+        | SetupListenersOptions["showNotification"]
+        | undefined;
+    readonly showUpdateNotification:
+        | SetupListenersOptions["showUpdateNotification"]
+        | undefined;
+}): SetupListenersOptions | undefined {
+    const {
+        handleOpenFile,
+        showAboutModal,
+        showNotification,
+        showUpdateNotification,
+    } = dependencies;
+    if (
+        handleOpenFile === undefined ||
+        showAboutModal === undefined ||
+        showNotification === undefined ||
+        showUpdateNotification === undefined
+    ) {
+        return undefined;
+    }
+
+    return {
+        handleOpenFile,
+        isOpeningFileRef: dependencies.isOpeningFileRef,
+        openFileBtn: dependencies.openFileBtn as HTMLButtonElement | null,
+        setLoading: dependencies.setLoading,
+        showAboutModal,
+        showNotification,
+        showUpdateNotification,
+    };
+}
+
+function adaptShowUpdateNotification(
+    showUpdateNotification: ShowUpdateNotification
+): SetupListenersOptions["showUpdateNotification"] {
+    return (message, typeOrDuration, durationOrMode, mode) => {
+        const type =
+            typeof typeOrDuration === "string" ? typeOrDuration : undefined;
+        const duration =
+            typeof typeOrDuration === "number"
+                ? typeOrDuration
+                : typeof durationOrMode === "number"
+                  ? durationOrMode
+                  : undefined;
+        const action =
+            typeof durationOrMode === "string" ? durationOrMode : mode;
+
+        return showUpdateNotification(message, type, duration, action);
     };
 }
 

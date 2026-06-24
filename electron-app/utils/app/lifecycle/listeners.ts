@@ -118,7 +118,7 @@ type LifecycleElectronAPI = Partial<
 
 /** Mutable flag shared with the file-opening workflow. */
 export type FileOpeningStateRef = {
-    current: boolean;
+    value?: boolean;
 };
 
 type ShowNotification = (
@@ -741,12 +741,12 @@ export function setupListeners({
     }
 
     if (electronAPI) {
-    registerNamedLifecycleIpcListeners({
-        electronAPI,
-        isTestEnvironment,
-        lifecycleRuntime: runtime,
-        registerCleanupTimer,
-        setLoading,
+        registerNamedLifecycleIpcListeners({
+            electronAPI,
+            isTestEnvironment,
+            lifecycleRuntime: runtime,
+            registerCleanupTimer,
+            setLoading,
             showAboutModal,
             showNotification,
             trackUnsubscribe,

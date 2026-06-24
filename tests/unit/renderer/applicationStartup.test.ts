@@ -57,11 +57,10 @@ describe("renderer application startup", () => {
         vi.useRealTimers();
     });
 
-    it("initializes state, DOM, components, file input, hooks, and app actions", async () => {
-        expect.assertions(14);
+    it("initializes state, DOM, components, hooks, and app actions", async () => {
+        expect.assertions(12);
 
         const coreModules = createCoreModules();
-        const fileInput = document.createElement("input");
         const openFileButton = document.createElement("button");
         const initializeStateManager = vi.fn<() => Promise<void>>(
             async () => undefined
@@ -77,7 +76,6 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
-            getFileInput: () => fileInput,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isDevelopmentMode: () => true,
@@ -123,15 +121,6 @@ describe("renderer application startup", () => {
             "success",
             3000
         );
-        expect(fileInput.onchange).toBeNull();
-
-        Object.defineProperty(fileInput, "files", {
-            configurable: true,
-            value: [new File(["fit"], "activity.fit")],
-        });
-        fileInput.dispatchEvent(new Event("change"));
-
-        expect(coreModules.handleOpenFile).toHaveBeenCalled();
         expect(performance.starts).toStrictEqual([
             "app_initialization",
             "theme_setup",
@@ -166,7 +155,6 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
-            getFileInput: () => null,
             getOpenFileButton: () => null,
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
@@ -221,7 +209,6 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
-            getFileInput: () => null,
             getOpenFileButton: () => null,
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,

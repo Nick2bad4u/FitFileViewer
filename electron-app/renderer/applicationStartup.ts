@@ -8,15 +8,15 @@ import {
     getRendererErrorMessage,
     type RendererErrorEventHandlers,
 } from "./errorHandling.js";
-import { handleImmediateFileInputChange } from "./fileInputStartup.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 import type {
     ListenForThemeChange,
+    RendererHandleOpenFile,
     RendererCoreModules,
     ShowNotification,
     ShowUpdateNotification,
-    UnknownRendererFunction,
 } from "./coreModuleResolution.js";
+import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 
 type RendererStartupLogLevel = "error" | "log" | "warn";
 type RendererStartupLogger = (
@@ -28,7 +28,7 @@ const applicationStartupRuntime = getRendererApplicationStartupRuntime();
 
 export interface RendererDependencies {
     applyTheme: ApplyTheme | undefined;
-    handleOpenFile: undefined | UnknownRendererFunction;
+    handleOpenFile: RendererHandleOpenFile | undefined;
     isOpeningFileRef: { value: boolean };
     listenForThemeChange: ListenForThemeChange | undefined;
     openFileBtn: HTMLElement | null;
@@ -42,7 +42,6 @@ interface RendererApplicationStartupOptions {
     addEventListener: typeof globalThis.addEventListener;
     ensureCoreModules: () => Promise<RendererCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
-    getFileInput: () => HTMLInputElement | null;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isDevelopmentMode: () => boolean;
@@ -75,8 +74,6 @@ export function createRendererApplicationStartup(
             }
 
             const openFileBtn = options.getOpenFileButton();
-            const fileInput = options.getFileInput();
-
             options.addEventListener(
                 "unhandledrejection",
                 options.errorHandlers.onUnhandledRejectionEvent,
@@ -100,22 +97,6 @@ export function createRendererApplicationStartup(
                 options,
                 startupListenerController
             );
-
-            if (
-                fileInput !== null &&
-                typeof coreModules.handleOpenFile === "function"
-            ) {
-                fileInput.addEventListener(
-                    "change",
-                    () => {
-                        handleImmediateFileInputChange(
-                            fileInput,
-                            coreModules.handleOpenFile
-                        );
-                    },
-                    { signal: startupListenerController.signal }
-                );
-            }
 
             const electronApiHooks = getElectronApiStartupHooks();
             if (electronApiHooks !== null) {
@@ -278,11 +259,19 @@ async function initializeComponents(
         try {
             const { setupListeners: setupListenersDyn } =
                 await options.ensureCoreModules();
-            setupListenersDyn?.(dependencies);
+            const setupListenerDependencies =
+                createSetupListenersOptions(dependencies);
+            if (setupListenerDependencies !== undefined) {
+                setupListenersDyn?.(setupListenerDependencies);
+            }
         } catch {
             try {
                 const { setupListeners } = await options.ensureCoreModules();
-                setupListeners?.(dependencies);
+                const setupListenerDependencies =
+                    createSetupListenersOptions(dependencies);
+                if (setupListenerDependencies !== undefined) {
+                    setupListeners?.(setupListenerDependencies);
+                }
             } catch (error) {
                 options.logRenderer(
                     "warn",
@@ -330,6 +319,56 @@ function createRendererDependencies(
         showAboutModal: coreModules.showAboutModal,
         showNotification: coreModules.showNotification,
         showUpdateNotification: coreModules.showUpdateNotification,
+    };
+}
+
+function createSetupListenersOptions(
+    dependencies: RendererDependencies
+): SetupListenersOptions | undefined {
+    const {
+        handleOpenFile,
+        showAboutModal,
+        showNotification,
+        showUpdateNotification,
+    } = dependencies;
+    if (
+        handleOpenFile === undefined ||
+        showAboutModal === undefined ||
+        showNotification === undefined ||
+        showUpdateNotification === undefined
+    ) {
+        return undefined;
+    }
+
+    return {
+        handleOpenFile,
+        isOpeningFileRef: dependencies.isOpeningFileRef,
+        openFileBtn: dependencies.openFileBtn as HTMLButtonElement | null,
+        setLoading: dependencies.setLoading,
+        showAboutModal,
+        showNotification,
+        showUpdateNotification: adaptShowUpdateNotification(
+            showUpdateNotification
+        ),
+    };
+}
+
+function adaptShowUpdateNotification(
+    showUpdateNotification: ShowUpdateNotification
+): SetupListenersOptions["showUpdateNotification"] {
+    return (message, typeOrDuration, durationOrMode, mode) => {
+        const type =
+            typeof typeOrDuration === "string" ? typeOrDuration : undefined;
+        const duration =
+            typeof typeOrDuration === "number"
+                ? typeOrDuration
+                : typeof durationOrMode === "number"
+                  ? durationOrMode
+                  : undefined;
+        const action =
+            typeof durationOrMode === "string" ? durationOrMode : mode;
+
+        return showUpdateNotification(message, type, duration, action);
     };
 }
 

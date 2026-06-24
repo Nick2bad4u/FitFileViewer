@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createRendererFileInputWiring } from "../../../electron-app/renderer/fileInputWiring.js";
 import type {
+    RendererHandleOpenFile,
     RendererCoreModules,
-    UnknownRendererFunction,
 } from "../../../electron-app/renderer/coreModuleResolution.js";
 
 function createCoreModules(
-    handleOpenFile: UnknownRendererFunction
+    handleOpenFile: RendererHandleOpenFile
 ): RendererCoreModules {
     return {
         AppActions: undefined,
@@ -88,7 +88,7 @@ describe("renderer file input wiring", () => {
         expect.assertions(2);
 
         const { file, input } = createFileInput("file_input");
-        const handleOpenFile = vi.fn<UnknownRendererFunction>();
+        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
         const utils = createWiring({
             ensureCoreModules: async () => createCoreModules(handleOpenFile),
             getFileInput: () => input,
@@ -112,9 +112,9 @@ describe("renderer file input wiring", () => {
         expect.assertions(3);
 
         const { file, input } = createFileInput("fileInput");
-        const exactOverrideHandleOpenFile = vi.fn<UnknownRendererFunction>();
-        const suffixOverrideHandleOpenFile = vi.fn<UnknownRendererFunction>();
-        const asyncHandleOpenFile = vi.fn<UnknownRendererFunction>();
+        const exactOverrideHandleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const suffixOverrideHandleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const asyncHandleOpenFile = vi.fn<RendererHandleOpenFile>();
         const utils = createWiring({
             ensureCoreModules: async () =>
                 createCoreModules(asyncHandleOpenFile),
@@ -143,7 +143,7 @@ describe("renderer file input wiring", () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput("fileInput");
-        const handleOpenFile = vi.fn<UnknownRendererFunction>();
+        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
         const utils = createWiring({
             ensureCoreModules: async () => createCoreModules(handleOpenFile),
             getFileInput: () => input,
