@@ -4,6 +4,7 @@
 
 import {
     getPerformanceUtilsRuntime,
+    type PerformanceUtilsRuntime,
     type PerformanceUtilsIdleCallbackHandle,
     type PerformanceUtilsTimerHandle,
 } from "./performanceUtilsRuntime.js";
@@ -47,6 +48,10 @@ type OptimizedEventHandler<T extends Event> = ((event: T) => void) & {
     _passive?: boolean;
 };
 
+function performanceUtilsRuntime(): PerformanceUtilsRuntime {
+    return getPerformanceUtilsRuntime();
+}
+
 /**
  * Batch multiple operations together.
  */
@@ -54,7 +59,6 @@ export function batchOperations<T>(
     batchCallback: (items: T[]) => void,
     options: BatchOptions = {}
 ): (item: T) => void {
-    const performanceUtilsRuntime = getPerformanceUtilsRuntime();
     const { maxItems = 100, maxWait = 50 } = options;
     const items: T[] = [];
     let timeoutId: TimerHandle | undefined;
@@ -65,7 +69,7 @@ export function batchOperations<T>(
             batchCallback(toProcess);
         }
         if (timeoutId !== undefined) {
-            performanceUtilsRuntime.clearTimeout(timeoutId);
+            performanceUtilsRuntime().clearTimeout(timeoutId);
             timeoutId = undefined;
         }
     }
@@ -76,7 +80,7 @@ export function batchOperations<T>(
         if (items.length >= maxItems) {
             flush();
         } else if (timeoutId === undefined) {
-            timeoutId = performanceUtilsRuntime.setTimeout(flush, maxWait);
+            timeoutId = performanceUtilsRuntime().setTimeout(flush, maxWait);
         }
     };
 }
@@ -86,7 +90,7 @@ export function batchOperations<T>(
  * browser idle-callback API is unavailable.
  */
 export function cancelIdleCallback(id: IdleCallbackHandle): void {
-    getPerformanceUtilsRuntime().cancelIdleCallback(id);
+    performanceUtilsRuntime().cancelIdleCallback(id);
 }
 
 /**
@@ -97,7 +101,6 @@ export function debounce<This, Args extends unknown[], Return>(
     wait: number,
     options: DebounceOptions = {}
 ): DebouncedFunction<This, Args, Return> {
-    const performanceUtilsRuntime = getPerformanceUtilsRuntime();
     const { leading = false, trailing = true } = options;
     let timeoutId: TimerHandle | undefined;
     let lastArgs: Args | undefined;
@@ -135,7 +138,7 @@ export function debounce<This, Args extends unknown[], Return>(
 
     function leadingEdge(time: number): Return | undefined {
         lastInvokeTime = time;
-        timeoutId = performanceUtilsRuntime.setTimeout(timerExpired, wait);
+        timeoutId = performanceUtilsRuntime().setTimeout(timerExpired, wait);
         return leading ? invokeFunc(time) : result;
     }
 
@@ -148,11 +151,11 @@ export function debounce<This, Args extends unknown[], Return>(
     }
 
     function timerExpired(): Return | undefined {
-        const time = performanceUtilsRuntime.now();
+        const time = performanceUtilsRuntime().now();
         if (shouldInvoke(time)) {
             return trailingEdge(time);
         }
-        timeoutId = performanceUtilsRuntime.setTimeout(
+        timeoutId = performanceUtilsRuntime().setTimeout(
             timerExpired,
             remainingWait(time)
         );
@@ -172,7 +175,7 @@ export function debounce<This, Args extends unknown[], Return>(
 
     function cancel(): void {
         if (timeoutId !== undefined) {
-            performanceUtilsRuntime.clearTimeout(timeoutId);
+            performanceUtilsRuntime().clearTimeout(timeoutId);
         }
         lastInvokeTime = 0;
         lastArgs = undefined;
@@ -184,7 +187,7 @@ export function debounce<This, Args extends unknown[], Return>(
     function flush(): Return | undefined {
         return timeoutId === undefined
             ? result
-            : trailingEdge(performanceUtilsRuntime.now());
+            : trailingEdge(performanceUtilsRuntime().now());
     }
 
     function setLastThis(value: This): void {
@@ -192,7 +195,7 @@ export function debounce<This, Args extends unknown[], Return>(
     }
 
     function debounced(this: This, ...args: Args): Return | undefined {
-        const time = performanceUtilsRuntime.now();
+        const time = performanceUtilsRuntime().now();
         const isInvoking = shouldInvoke(time);
 
         lastArgs = args;
@@ -203,7 +206,10 @@ export function debounce<This, Args extends unknown[], Return>(
             return leadingEdge(lastCallTime);
         }
         if (timeoutId === undefined) {
-            timeoutId = performanceUtilsRuntime.setTimeout(timerExpired, wait);
+            timeoutId = performanceUtilsRuntime().setTimeout(
+                timerExpired,
+                wait
+            );
         }
         return result;
     }
@@ -277,7 +283,7 @@ export function requestIdleCallback(
     callback: () => void,
     options?: IdleRequestOptions
 ): IdleCallbackHandle {
-    return getPerformanceUtilsRuntime().requestIdleCallback(callback, options);
+    return performanceUtilsRuntime().requestIdleCallback(callback, options);
 }
 
 /**

@@ -16678,7 +16678,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(23);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -16700,6 +16700,22 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(performanceUtilsSource).toContain("performanceUtilsRuntime.js");
+        expect(performanceUtilsSource).toContain("type PerformanceUtilsRuntime");
+        expect(performanceUtilsSource).toContain(
+            "return getPerformanceUtilsRuntime();"
+        );
+        expect(performanceUtilsSource).not.toContain(
+            "const performanceUtilsRuntime = getPerformanceUtilsRuntime();"
+        );
+        expect(performanceUtilsSource).toContain(
+            "performanceUtilsRuntime().setTimeout"
+        );
+        expect(performanceUtilsSource).toContain(
+            "performanceUtilsRuntime().clearTimeout"
+        );
+        expect(performanceUtilsSource).toContain(
+            "performanceUtilsRuntime().requestIdleCallback"
+        );
         expect(performanceUtilsRuntimeSource).not.toMatch(
             directPerformanceUtilsRuntimeAmbientFallbackPattern
         );
