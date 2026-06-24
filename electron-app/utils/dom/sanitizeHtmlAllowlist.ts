@@ -6,7 +6,10 @@
  * treated as a full HTML sanitizer replacement for arbitrary documents.
  */
 import { resolveDomPurifyRuntime } from "./domPurifyRuntime.js";
-import { getSanitizeHtmlAllowlistRuntime } from "./sanitizeHtmlAllowlistRuntime.js";
+import {
+    getSanitizeHtmlAllowlistRuntime,
+    type SanitizeHtmlAllowlistRuntime,
+} from "./sanitizeHtmlAllowlistRuntime.js";
 
 /**
  * Small presentation-only HTML allowlist.
@@ -60,7 +63,6 @@ const ALWAYS_FORBID_TAGS = new Set([
     "style",
     "svg",
 ]);
-const sanitizeHtmlAllowlistRuntime = getSanitizeHtmlAllowlistRuntime();
 
 /**
  * Sanitise an HTML string into a safe DocumentFragment.
@@ -81,7 +83,8 @@ export function sanitizeHtmlAllowlist(
     options: SanitizeAllowlistOptions = {
         allowedAttributes: [],
         allowedTags: [],
-    }
+    },
+    runtime: SanitizeHtmlAllowlistRuntime = getSanitizeHtmlAllowlistRuntime()
 ): DocumentFragment {
     const allowedTagsInput = Array.isArray(options.allowedTags)
         ? options.allowedTags
@@ -105,28 +108,30 @@ export function sanitizeHtmlAllowlist(
         });
 
         if (options.stripUrlInStyle !== false) {
-            stripUnsafeStyleAttributes(fragment);
+            stripUnsafeStyleAttributes(fragment, runtime);
         }
 
         return fragment;
     }
 
-    const fragment = parseHtmlFragment(String(html));
+    const fragment = parseHtmlFragment(String(html), runtime);
     sanitizeFragment(
         fragment,
         allowedTagsInput,
         allowedAttributesInput,
-        options.stripUrlInStyle !== false
+        options.stripUrlInStyle !== false,
+        runtime
     );
     return fragment;
 }
 
-function parseHtmlFragment(html: string): DocumentFragment {
+function parseHtmlFragment(
+    html: string,
+    runtime: SanitizeHtmlAllowlistRuntime
+): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- This is the sanitizer boundary; sanitizeFragment strips the parsed tree before callers receive it.
-    const parsed = sanitizeHtmlAllowlistRuntime
-        .createDomParser()
-        .parseFromString(html, "text/html");
-    const fragment = sanitizeHtmlAllowlistRuntime.createDocumentFragment();
+    const parsed = runtime.createDomParser().parseFromString(html, "text/html");
+    const fragment = runtime.createDocumentFragment();
     for (const node of Array.from(parsed.body.childNodes)) {
         fragment.append(node);
     }
@@ -137,7 +142,8 @@ function sanitizeFragment(
     fragment: DocumentFragment,
     allowedTagsInput: readonly string[],
     allowedAttributesInput: readonly string[],
-    stripUrlInStyle: boolean
+    stripUrlInStyle: boolean,
+    runtime: SanitizeHtmlAllowlistRuntime
 ): void {
     // DOM Element.tagName is always uppercase in HTML documents. Normalizing
     // here makes the sanitizer resilient to caller-provided casing.
@@ -151,14 +157,13 @@ function sanitizeFragment(
         allowedAttributesInput.map((a) => String(a).toLowerCase())
     );
 
-    const walker =
-        sanitizeHtmlAllowlistRuntime.createElementTreeWalker(fragment);
+    const walker = runtime.createElementTreeWalker(fragment);
     const nodesToReplace: Element[] = [];
     const nodesToRemove: Element[] = [];
 
     while (walker.nextNode()) {
         const el = walker.currentNode;
-        if (!sanitizeHtmlAllowlistRuntime.isElement(el)) {
+        if (!runtime.isElement(el)) {
             continue;
         }
 
@@ -176,7 +181,7 @@ function sanitizeFragment(
     }
 
     removeElements(nodesToRemove);
-    replaceElementsWithText(nodesToReplace);
+    replaceElementsWithText(nodesToReplace, runtime);
 }
 
 function sanitizeElementAttributes(
@@ -221,11 +226,14 @@ function removeElements(elements: readonly Element[]): void {
     }
 }
 
-function replaceElementsWithText(elements: readonly Element[]): void {
+function replaceElementsWithText(
+    elements: readonly Element[],
+    runtime: SanitizeHtmlAllowlistRuntime
+): void {
     for (const el of elements) {
         try {
             const text = el.textContent ?? "";
-            el.replaceWith(sanitizeHtmlAllowlistRuntime.createTextNode(text));
+            el.replaceWith(runtime.createTextNode(text));
         } catch {
             try {
                 el.remove();
@@ -236,12 +244,14 @@ function replaceElementsWithText(elements: readonly Element[]): void {
     }
 }
 
-function stripUnsafeStyleAttributes(fragment: DocumentFragment): void {
-    const walker =
-        sanitizeHtmlAllowlistRuntime.createElementTreeWalker(fragment);
+function stripUnsafeStyleAttributes(
+    fragment: DocumentFragment,
+    runtime: SanitizeHtmlAllowlistRuntime
+): void {
+    const walker = runtime.createElementTreeWalker(fragment);
     while (walker.nextNode()) {
         const el = walker.currentNode;
-        if (!sanitizeHtmlAllowlistRuntime.isElement(el)) {
+        if (!runtime.isElement(el)) {
             continue;
         }
         const styleValue = el.getAttribute("style");

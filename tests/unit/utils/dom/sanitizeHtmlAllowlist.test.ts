@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { sanitizeHtmlAllowlist } from "../../../../electron-app/utils/dom/index.js";
 import {
     clearDomPurifyRuntimeForTests,
     setDomPurifyRuntime,
 } from "../../../../electron-app/utils/dom/domPurifyRuntime.js";
+import { getSanitizeHtmlAllowlistRuntime } from "../../../../electron-app/utils/dom/sanitizeHtmlAllowlistRuntime.js";
 
 function getRequiredElement<T extends Element>(
     element: T | null,
@@ -63,6 +64,45 @@ describe(sanitizeHtmlAllowlist, () => {
         expect(paragraph.getAttribute("href")).toBeNull();
         expect(fragment.querySelector("script")).toBeNull();
         expect(serializeFragment(fragment)).toBe("safekept");
+    });
+
+    it("sanitizes fallback fragments through an injected runtime", () => {
+        expect.assertions(7);
+
+        const baseRuntime = getSanitizeHtmlAllowlistRuntime({
+            getDocument: () => document,
+            getDOMParser: () => DOMParser,
+            getElement: () => Element,
+            getNodeFilter: () => NodeFilter,
+        });
+        const runtime = {
+            createDocumentFragment: vi.fn(
+                baseRuntime.createDocumentFragment
+            ),
+            createDomParser: vi.fn(baseRuntime.createDomParser),
+            createElementTreeWalker: vi.fn(
+                baseRuntime.createElementTreeWalker
+            ),
+            createTextNode: vi.fn(baseRuntime.createTextNode),
+            isElement: vi.fn(baseRuntime.isElement),
+        };
+
+        const fragment = sanitizeHtmlAllowlist(
+            '<span class="ok">safe</span><strong>keep</strong>',
+            {
+                allowedAttributes: ["class"],
+                allowedTags: ["span"],
+            },
+            runtime
+        );
+
+        expect(serializeFragment(fragment)).toBe("safekeep");
+        expect(fragment.querySelector("span")?.className).toBe("ok");
+        expect(runtime.createDomParser).toHaveBeenCalledOnce();
+        expect(runtime.createDocumentFragment).toHaveBeenCalledOnce();
+        expect(runtime.createElementTreeWalker).toHaveBeenCalledOnce();
+        expect(runtime.createTextNode).toHaveBeenCalledWith("keep");
+        expect(runtime.isElement).toHaveBeenCalled();
     });
 
     it("removes disallowed tags and keeps their textContent", () => {

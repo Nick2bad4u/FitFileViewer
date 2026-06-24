@@ -10549,7 +10549,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps sanitize HTML allowlist fallback DOM APIs behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const sanitizerSource = stripComments(
             readRepositoryFile(
@@ -10576,6 +10576,15 @@ describe("architecture boundaries", () => {
             )
         ).toBe(false);
         expect(sanitizerSource).toContain("sanitizeHtmlAllowlistRuntime.js");
+        expect(sanitizerSource).toContain(
+            "type SanitizeHtmlAllowlistRuntime"
+        );
+        expect(sanitizerSource).not.toContain(
+            "const sanitizeHtmlAllowlistRuntime = getSanitizeHtmlAllowlistRuntime();"
+        );
+        expect(sanitizerSource).toContain(
+            "runtime: SanitizeHtmlAllowlistRuntime = getSanitizeHtmlAllowlistRuntime()"
+        );
         expect(sanitizerSource).toContain("createDomParser");
         expect(sanitizerSource).toContain("createDocumentFragment");
         expect(sanitizerSource).toContain("createElementTreeWalker");
