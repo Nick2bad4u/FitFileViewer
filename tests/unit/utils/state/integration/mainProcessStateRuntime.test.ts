@@ -12,7 +12,7 @@ describe("mainProcessStateRuntime", () => {
 
         expect(
             getMainProcessStateRuntime({
-                dateNow: () => 123,
+                getDateNow: () => () => 123,
                 getPerformance: () => ({ now: () => 45.5 }),
             }).monotonicNowMs()
         ).toBe(45.5);
@@ -23,16 +23,29 @@ describe("mainProcessStateRuntime", () => {
 
         expect(
             getMainProcessStateRuntime({
-                dateNow: () => 123,
+                getDateNow: () => () => 123,
             }).monotonicNowMs()
         ).toBe(123);
     });
 
-    it("does not borrow ambient clocks for explicit scopes", () => {
+    it("reads wall-clock timestamps through the injected date clock", () => {
         expect.assertions(1);
 
+        expect(
+            getMainProcessStateRuntime({
+                getDateNow: () => () => 123,
+            }).dateNow()
+        ).toBe(123);
+    });
+
+    it("does not borrow ambient clocks for explicit scopes", () => {
+        expect.assertions(2);
+
         expect(() => getMainProcessStateRuntime({}).monotonicNowMs()).toThrow(
-            "mainProcessStateRuntime requires a clock"
+            "mainProcessStateRuntime requires a date clock"
+        );
+        expect(() => getMainProcessStateRuntime({}).dateNow()).toThrow(
+            "mainProcessStateRuntime requires a date clock"
         );
     });
 
@@ -68,28 +81,35 @@ describe("mainProcessStateRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
-    it("ignores legacy direct timer and performance runtime properties", () => {
-        expect.assertions(6);
+    it("ignores legacy direct timer, clock, and performance runtime properties", () => {
+        expect.assertions(8);
 
         const callback = vi.fn<() => void>();
         const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const dateNow = vi.fn<() => number>(() => 123);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const performanceNow = vi.fn<() => number>(() => 45.5);
         const runtime = getMainProcessStateRuntime({
             clearTimeout,
-            dateNow: () => 123,
+            dateNow,
             performance: { now: performanceNow },
             setTimeout,
         } as unknown as Parameters<typeof getMainProcessStateRuntime>[0]);
 
-        expect(runtime.monotonicNowMs()).toBe(123);
+        expect(() => runtime.monotonicNowMs()).toThrow(
+            "mainProcessStateRuntime requires a date clock"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "mainProcessStateRuntime requires a date clock"
+        );
         expect(() => runtime.setTimeout(callback, 50)).toThrow(
             "mainProcessStateRuntime requires setTimeout"
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
             "mainProcessStateRuntime requires clearTimeout"
         );
+        expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();

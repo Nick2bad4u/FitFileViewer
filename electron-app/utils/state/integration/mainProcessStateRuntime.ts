@@ -3,10 +3,10 @@ type MainProcessPerformanceRuntime = {
 };
 
 export interface MainProcessStateRuntimeScope {
-    readonly dateNow?: (() => number) | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getPerformance?:
         | (() => MainProcessPerformanceRuntime | undefined)
         | undefined;
@@ -19,6 +19,7 @@ export type MainProcessStateTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface MainProcessStateRuntime {
     clearTimeout: (handle: MainProcessStateTimer) => void;
+    dateNow: () => number;
     monotonicNowMs: () => number;
     setTimeout: (
         callback: () => void,
@@ -28,10 +29,19 @@ export interface MainProcessStateRuntime {
 
 const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
-    dateNow: Date.now,
+    getDateNow: () => Date.now,
     getPerformance: () => globalThis.performance,
     getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
 };
+
+function getRequiredDateNow(scope: MainProcessStateRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow === "function") {
+        return dateNow;
+    }
+
+    throw new TypeError("mainProcessStateRuntime requires a date clock");
+}
 
 function getRequiredMonotonicNow(
     scope: MainProcessStateRuntimeScope
@@ -42,12 +52,7 @@ function getRequiredMonotonicNow(
         return performanceNow.bind(performance);
     }
 
-    const dateNow = scope.dateNow;
-    if (typeof dateNow === "function") {
-        return dateNow;
-    }
-
-    throw new TypeError("mainProcessStateRuntime requires a clock");
+    return getRequiredDateNow(scope);
 }
 
 export function getMainProcessStateRuntime(
@@ -63,6 +68,9 @@ export function getMainProcessStateRuntime(
             }
 
             clearTimeoutRef(handle);
+        },
+        dateNow(): number {
+            return getRequiredDateNow(scope)();
         },
         monotonicNowMs(): number {
             return getRequiredMonotonicNow(scope)();

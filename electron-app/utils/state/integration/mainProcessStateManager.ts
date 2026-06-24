@@ -214,7 +214,7 @@ class MainProcessState {
             // Performance metrics
             metrics: {
                 operationTimes: new Map(),
-                startTime: Date.now(),
+                startTime: dateNowMs(),
                 startTimePerf: monotonicNowMs(),
             },
 
@@ -270,11 +270,11 @@ class MainProcessState {
     addError(error: Error | string, context: LooseRecord = {}): void {
         const errorObj = {
             context,
-            id: Date.now().toString(),
+            id: dateNowMs().toString(),
             message: error instanceof Error ? error.message : String(error),
             source: "mainProcess",
             stack: error instanceof Error ? error.stack : null,
-            timestamp: Date.now(),
+            timestamp: dateNowMs(),
         };
 
         const currentErrors = this.get("errors");
@@ -324,7 +324,7 @@ class MainProcessState {
             return;
         }
 
-        const endTime = Date.now();
+        const endTime = dateNowMs();
         const endTimePerf = monotonicNowMs();
         const duration =
             typeof operation["startTimePerf"] === "number"
@@ -377,7 +377,7 @@ class MainProcessState {
             return;
         }
 
-        const endTime = Date.now();
+        const endTime = dateNowMs();
         const endTimePerf = monotonicNowMs();
         const duration =
             typeof operation["startTimePerf"] === "number"
@@ -473,8 +473,8 @@ class MainProcessState {
                 ? Math.max(0, monotonicNowMs() - metrics["startTimePerf"])
                 : Math.max(
                       0,
-                      Date.now() -
-                          getNumberField(metrics, "startTime", Date.now())
+                      dateNowMs() -
+                          getNumberField(metrics, "startTime", dateNowMs())
                   );
         return {
             errors: asArray(this.get("errors")).length,
@@ -775,7 +775,7 @@ class MainProcessState {
         const nextOperationTimes = new Map(operationTimes);
         nextOperationTimes.set(metric, {
             metadata,
-            timestamp: Date.now(),
+            timestamp: dateNowMs(),
             value,
         });
 
@@ -808,7 +808,8 @@ class MainProcessState {
         handlerId?: string
     ): string {
         const id =
-            handlerId || `${emitter.constructor.name}:${event}:${Date.now()}`;
+            handlerId ||
+            `${emitter.constructor.name}:${event}:${dateNowMs()}`;
 
         emitter.on?.(event, handler);
 
@@ -906,7 +907,7 @@ class MainProcessState {
             oldValue,
             path,
             source: "mainProcess",
-            timestamp: Date.now(),
+            timestamp: dateNowMs(),
             ...options,
         };
 
@@ -1287,7 +1288,7 @@ class MainProcessState {
             id: operationId,
             message: "",
             progress: 0,
-            startTime: Date.now(),
+            startTime: dateNowMs(),
             startTimePerf: monotonicNowMs(),
             status: "running",
             ...operationData,
@@ -1345,7 +1346,7 @@ class MainProcessState {
                 oldValue,
                 path,
                 source: "mainProcess",
-                timestamp: Date.now(),
+                timestamp: dateNowMs(),
                 ...options,
             });
         }
@@ -1381,7 +1382,7 @@ class MainProcessState {
         const updatedOp = {
             ...currentOp,
             ...updates,
-            lastUpdate: Date.now(),
+            lastUpdate: dateNowMs(),
         };
 
         this.set(`operations.${operationId}`, updatedOp);
@@ -1418,6 +1419,10 @@ function logWithContext(
  */
 function monotonicNowMs(): number {
     return mainProcessStateRuntime().monotonicNowMs();
+}
+
+function dateNowMs(): number {
+    return mainProcessStateRuntime().dateNow();
 }
 
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs

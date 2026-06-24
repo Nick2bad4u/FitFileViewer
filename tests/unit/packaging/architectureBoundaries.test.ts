@@ -2715,7 +2715,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(20);
+        expect.assertions(28);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2732,7 +2732,7 @@ describe("architecture boundaries", () => {
         const directMainProcessStateRuntimeAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
         const directMainProcessStateRuntimeAmbientGetterPattern =
-            /\bget\s+(?:clearTimeout|performance|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:clearTimeout|performance|setTimeout)\b/u;
+            /\bget\s+(?:clearTimeout|dateNow|performance|setTimeout)\s*\(\)\s*\{|\breturn\s+(?:Date\.now|globalThis\.(?:clearTimeout|performance|setTimeout))\b/u;
 
         expect(mainProcessStateManagerSource).toContain(
             "mainProcessStateRuntime.js"
@@ -2750,6 +2750,11 @@ describe("architecture boundaries", () => {
             "globalThis.performance"
         );
         expect(mainProcessStateManagerSource).not.toContain("performance.now");
+        expect(mainProcessStateManagerSource).not.toContain("Date.now");
+        expect(mainProcessStateManagerSource).toContain("dateNowMs");
+        expect(mainProcessStateManagerSource).toContain(
+            "return mainProcessStateRuntime().dateNow();"
+        );
         expect(mainProcessStateManagerSource).toContain("monotonicNowMs");
         expect(mainProcessStateManagerSource).toContain("setTimeout");
         expect(
@@ -2770,7 +2775,17 @@ describe("architecture boundaries", () => {
             "mainProcessStateRuntime requires setTimeout"
         );
         expect(mainProcessStateRuntimeSource).toContain(
-            "mainProcessStateRuntime requires a clock"
+            "mainProcessStateRuntime requires a date clock"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(mainProcessStateRuntimeSource).toContain("dateNow(): number");
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "readonly dateNow?:"
         );
         expect(mainProcessStateRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
@@ -2788,6 +2803,7 @@ describe("architecture boundaries", () => {
             "scope.performance"
         );
         expect(mainProcessStateRuntimeSource).not.toContain("scope.setTimeout");
+        expect(mainProcessStateRuntimeSource).not.toContain("scope.dateNow");
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
