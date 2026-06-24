@@ -179,6 +179,35 @@ describe("getChartHoverEffectsRuntime", () => {
         expect(() => runtime.createSvgElement("path")).not.toThrow();
     });
 
+    it("appends elements and toggles body classes through the injected document runtime", () => {
+        expect.assertions(3);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "chart hover body runtime"
+        );
+        const runtime = getChartHoverEffectsRuntime({
+            getDocument: () => documentRef,
+        });
+        const wrapper = documentRef.createElement("div");
+
+        runtime.appendToBody(wrapper);
+        runtime.setBodyClass("chart-overlay-fullscreen-active", true);
+
+        expect(documentRef.body.contains(wrapper)).toBe(true);
+        expect(
+            documentRef.body.classList.contains(
+                "chart-overlay-fullscreen-active"
+            )
+        ).toBe(true);
+
+        runtime.setBodyClass("chart-overlay-fullscreen-active", false);
+        expect(
+            documentRef.body.classList.contains(
+                "chart-overlay-fullscreen-active"
+            )
+        ).toBe(false);
+    });
+
     it("throws when document listener registration is unavailable", () => {
         expect.assertions(3);
 
@@ -258,7 +287,7 @@ describe("getChartHoverEffectsRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", async () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const documentEventTarget =
             document.implementation.createHTMLDocument();
@@ -285,6 +314,12 @@ describe("getChartHoverEffectsRuntime", () => {
             "chart hover effects require a document event-target runtime"
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
+            "chart hover effects require a document runtime"
+        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("chart hover effects require a document runtime");
+        expect(() => runtime.setBodyClass("test", true)).toThrow(
             "chart hover effects require a document runtime"
         );
         expect(runtime.requestAnimationFrame(vi.fn())).toBeNull();

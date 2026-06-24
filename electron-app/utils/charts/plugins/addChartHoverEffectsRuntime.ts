@@ -43,6 +43,8 @@ export interface ChartHoverEffectsRuntime {
     readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
+    readonly appendToBody: (element: HTMLElement) => void;
+    readonly setBodyClass: (className: string, enabled: boolean) => void;
     readonly removeDocumentKeydownListener: (
         listener: ChartHoverEffectsKeydownListener
     ) => void;
@@ -56,8 +58,7 @@ export interface ChartHoverEffectsRuntime {
     readonly waitForAnimationFrame: () => Promise<void>;
 }
 
-export const CHART_HOVER_EFFECTS_SVG_NAMESPACE =
-    "http://www.w3.org/2000/svg";
+export const CHART_HOVER_EFFECTS_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
@@ -78,9 +79,7 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
-function getRequiredDocument(
-    scope: ChartHoverEffectsRuntimeScope
-): Document {
+function getRequiredDocument(scope: ChartHoverEffectsRuntimeScope): Document {
     const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("chart hover effects require a document runtime");
@@ -152,6 +151,15 @@ export function getChartHoverEffectsRuntime(
             tagName: K
         ): SVGElementTagNameMap[K] {
             return createSvgElement(scope, tagName);
+        },
+        appendToBody(element): void {
+            getRequiredDocument(scope).body.append(element);
+        },
+        setBodyClass(className, enabled): void {
+            getRequiredDocument(scope).body.classList.toggle(
+                className,
+                enabled
+            );
         },
         removeDocumentKeydownListener(listener): void {
             getRequiredDocumentEventTarget(scope).removeEventListener(

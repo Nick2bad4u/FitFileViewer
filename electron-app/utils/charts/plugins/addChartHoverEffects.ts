@@ -552,9 +552,12 @@ export function addChartHoverEffects(
             overlayPlaceholder.style.height = `${wrapper.getBoundingClientRect().height}px`;
             wrapper.before(overlayPlaceholder);
 
-            document.body.append(wrapper);
+            chartHoverEffectsRuntime.appendToBody(wrapper);
             wrapper.classList.add("chart-wrapper--overlay-fullscreen");
-            document.body.classList.add("chart-overlay-fullscreen-active");
+            chartHoverEffectsRuntime.setBodyClass(
+                "chart-overlay-fullscreen-active",
+                true
+            );
 
             applyCanvasSize(chartCanvas, true);
             requestChartResize(chartCanvas);
@@ -581,7 +584,10 @@ export function addChartHoverEffects(
             overlayParent = null;
 
             wrapper.classList.remove("chart-wrapper--overlay-fullscreen");
-            document.body.classList.remove("chart-overlay-fullscreen-active");
+            chartHoverEffectsRuntime.setBodyClass(
+                "chart-overlay-fullscreen-active",
+                false
+            );
             applyCanvasSize(chartCanvas, false);
             requestChartResize(chartCanvas);
             chartHoverEffectsRuntime.removeDocumentKeydownListener(

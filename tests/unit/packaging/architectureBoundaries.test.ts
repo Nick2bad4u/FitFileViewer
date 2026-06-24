@@ -16013,7 +16013,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(47);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -16047,8 +16047,14 @@ describe("architecture boundaries", () => {
         );
         expect(chartHoverEffectsSource).toContain("createAbortController");
         expect(chartHoverEffectsSource).toContain("createSvgElement");
+        expect(chartHoverEffectsSource).toContain("appendToBody");
+        expect(chartHoverEffectsSource).toContain("setBodyClass");
         expect(chartHoverEffectsSource).toContain("addDocumentKeydownListener");
         expect(chartHoverEffectsSource).toContain("addDocumentEventListener");
+        expect(chartHoverEffectsSource).not.toContain("document.body.append");
+        expect(chartHoverEffectsSource).not.toContain(
+            "document.body.classList"
+        );
         expect(chartHoverEffectsSource).not.toContain(
             "document.createElementNS"
         );
@@ -16081,6 +16087,12 @@ describe("architecture boundaries", () => {
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "return createSvgElement(scope, tagName);"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getRequiredDocument(scope).body.append(element)"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getRequiredDocument(scope).body.classList.toggle"
         );
         expect(chartHoverEffectsRuntimeSource).not.toContain("createElementNS");
         expect(chartHoverEffectsRuntimeSource).not.toContain(
