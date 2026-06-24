@@ -60,11 +60,12 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const staleDocument = document.implementation.createHTMLDocument(
             "stale fullscreen button runtime"
         );
+        const element = document.createElement("div");
         const staleDocumentEventTarget = new EventTarget();
         const staleWindowEventTarget = new EventTarget();
         const staleDocumentListenerController = new AbortController();
@@ -91,6 +92,7 @@ describe("getAddFullScreenButtonRuntime", () => {
                 },
                 removeEventListener: vi.fn(),
             },
+            HTMLElement,
         } as unknown as Parameters<typeof getAddFullScreenButtonRuntime>[0]);
         const handledEventTypes: string[] = [];
         const listener = (event: Event): void => {
@@ -121,25 +123,29 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "addFullScreenButton requires a document runtime"
         );
+        expect(runtime.isHTMLElement(element)).toBe(false);
         expect(staleDocumentAddEventListener).not.toHaveBeenCalled();
         expect(staleWindowAddEventListener).not.toHaveBeenCalled();
     });
 
     it("reads fullscreen button state through the injected document runtime", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
-        const documentRef = document.implementation.createHTMLDocument(
-            "fullscreen button runtime"
-        );
+        document.body.replaceChildren();
+        const documentRef = document;
         const runtime = getAddFullScreenButtonRuntime({
             getDocument: () => documentRef,
+            getHTMLElement: () => HTMLElement,
         });
         const button = runtime.createElement("button");
         button.id = "global-fullscreen-btn";
         runtime.appendToBody(button);
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(runtime.getDocument()).toBe(documentRef);
         expect(runtime.getElementById("global-fullscreen-btn")).toBe(button);
+        expect(runtime.querySelector("#global-fullscreen-btn")).toBe(button);
+        expect(runtime.isHTMLElement(button)).toBe(true);
         expect(runtime.hasBodyClass("app-has-file")).toBe(false);
         documentRef.body.classList.add("app-has-file");
         expect(runtime.hasBodyClass("app-has-file")).toBe(true);

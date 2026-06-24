@@ -1110,7 +1110,7 @@ const directJSZipGlobalPattern =
 const directScreenfullGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
 const directAddFullScreenButtonRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b|\b(?:document|globalThis|window)\.(?:addEventListener|removeEventListener)\(/u;
+    /\bnew\s+AbortController\b|\b(?:document|globalThis|window)\.(?:addEventListener|removeEventListener)\(|\bdocument\.(?:documentElement|exitFullscreen|fullscreenElement|querySelector|readyState)\b|\binstanceof\s+HTMLElement\b/u;
 const directAddFullScreenButtonSvgGlobalPattern =
     /\bdocument\.createElementNS\b/u;
 const directIconFactoryRuntimeGlobalPattern = /\bdocument\.createElementNS\b/u;

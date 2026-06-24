@@ -13,6 +13,9 @@ export interface AddFullScreenButtonRuntimeScope {
     readonly getGlobalEventTarget?:
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
 }
 
 type AddFullScreenButtonEventTarget = Pick<
@@ -40,12 +43,15 @@ export interface AddFullScreenButtonRuntime {
         tagName: K
     ) => HTMLElementTagNameMap[K];
     appendToBody: (element: HTMLElement) => void;
+    getDocument: () => Document;
     getElementById: (id: string) => HTMLElement | null;
     hasBodyClass: (className: string) => boolean;
+    isHTMLElement: (value: unknown) => value is HTMLElement;
     observeBody: (
         observer: AddFullScreenButtonMutationObserver,
         options: MutationObserverInit
     ) => void;
+    querySelector: (selector: string) => HTMLElement | null;
     removeDocumentEventListener: (
         type: string,
         listener: EventListener
@@ -87,6 +93,12 @@ function getGlobalEventTarget(
     return scope.getGlobalEventTarget?.();
 }
 
+function getHTMLElementConstructor(
+    scope: AddFullScreenButtonRuntimeScope
+): typeof globalThis.HTMLElement | undefined {
+    return scope.getHTMLElement?.();
+}
+
 function isAddFullScreenButtonEventTarget(
     value: unknown
 ): value is AddFullScreenButtonEventTarget {
@@ -110,6 +122,7 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
             isAddFullScreenButtonEventTarget(globalThis)
                 ? globalThis
                 : undefined,
+        getHTMLElement: () => globalThis.HTMLElement,
     };
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
@@ -152,14 +165,28 @@ export function getAddFullScreenButtonRuntime(
         appendToBody(element): void {
             getDocument(scope).body.append(element);
         },
+        getDocument(): Document {
+            return getDocument(scope);
+        },
         getElementById(id): HTMLElement | null {
             return getDocument(scope).getElementById(id);
         },
         hasBodyClass(className): boolean {
             return getDocument(scope).body.classList.contains(className);
         },
+        isHTMLElement(value: unknown): value is HTMLElement {
+            const HTMLElementConstructor = getHTMLElementConstructor(scope);
+            return (
+                typeof HTMLElementConstructor === "function" &&
+                value instanceof HTMLElementConstructor
+            );
+        },
         observeBody(observer, options): void {
             observer.observe(getDocument(scope).body, options);
+        },
+        querySelector(selector): HTMLElement | null {
+            const element = getDocument(scope).querySelector(selector);
+            return this.isHTMLElement(element) ? element : null;
         },
         removeDocumentEventListener(type, listener): void {
             const documentEventTarget = getDocumentEventTarget(scope);

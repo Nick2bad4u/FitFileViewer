@@ -86,9 +86,10 @@ const isFullscreenActive = (): boolean => {
     if (instance && instance.isEnabled) {
         return Boolean(instance.isFullscreen);
     }
-    const doc = document as VendorFullscreenDocument;
+    const doc =
+        addFullScreenButtonRuntime().getDocument() as VendorFullscreenDocument;
     return Boolean(
-        document.fullscreenElement ||
+        doc.fullscreenElement ||
         doc.webkitFullscreenElement ||
         doc.mozFullScreenElement ||
         doc.msFullscreenElement
@@ -97,19 +98,20 @@ const isFullscreenActive = (): boolean => {
 
 /** Detect whether chart fullscreen is active (native or overlay fallback). */
 const isChartFullscreenActive = (): boolean => {
-    const doc = document as VendorFullscreenDocument;
+    const runtime = addFullScreenButtonRuntime();
+    const doc = runtime.getDocument() as VendorFullscreenDocument;
     const fullscreenElement =
-        document.fullscreenElement ||
+        doc.fullscreenElement ||
         doc.webkitFullscreenElement ||
         doc.mozFullScreenElement ||
         doc.msFullscreenElement;
 
     const nativeChartFullscreen =
-        fullscreenElement instanceof HTMLElement &&
+        runtime.isHTMLElement(fullscreenElement) &&
         fullscreenElement.classList.contains("chart-wrapper");
 
     const overlayChartFullscreen =
-        document.querySelector(".chart-wrapper--overlay-fullscreen") !== null;
+        runtime.querySelector(".chart-wrapper--overlay-fullscreen") !== null;
 
     return nativeChartFullscreen || overlayChartFullscreen;
 };
@@ -117,7 +119,9 @@ const isChartFullscreenActive = (): boolean => {
 export function addFullScreenButton(options?: FullScreenButtonOptions): void {
     try {
         activeElectronApiScope = resolveElectronApiScope(options);
-        if (addFullScreenButtonRuntime().getElementById(FULLSCREEN_WRAPPER_ID)) {
+        if (
+            addFullScreenButtonRuntime().getElementById(FULLSCREEN_WRAPPER_ID)
+        ) {
             logWithContext(
                 "Fullscreen button already exists, skipping creation"
             );
@@ -231,7 +235,10 @@ export function setupFullscreenListeners({
             );
             fullscreenKeydownHandler = keyHandler;
             nativeFullscreenChangeHandler = null;
-            if (document.readyState === "loading") {
+            if (
+                addFullScreenButtonRuntime().getDocument().readyState ===
+                "loading"
+            ) {
                 const domReadyListener =
                     addFullScreenButtonRuntime().createAbortController();
                 addFullScreenButtonRuntime().addWindowEventListener(
@@ -274,7 +281,8 @@ export function setupFullscreenListeners({
                 handleKeyboardShortcuts(event);
             }
         };
-        const keyListener = addFullScreenButtonRuntime().createAbortController();
+        const keyListener =
+            addFullScreenButtonRuntime().createAbortController();
         addFullScreenButtonRuntime().addWindowEventListener(
             "keydown",
             keyHandler,
@@ -283,7 +291,9 @@ export function setupFullscreenListeners({
             }
         );
         fullscreenKeydownHandler = keyHandler;
-        if (document.readyState === "loading") {
+        if (
+            addFullScreenButtonRuntime().getDocument().readyState === "loading"
+        ) {
             const domReadyListener =
                 addFullScreenButtonRuntime().createAbortController();
             addFullScreenButtonRuntime().addWindowEventListener(
@@ -495,7 +505,9 @@ function handleFullscreenToggle(event: Event): void {
             );
 
             const globalBtn =
-                addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
+                addFullScreenButtonRuntime().getElementById(
+                    FULLSCREEN_BUTTON_ID
+                );
             if (globalBtn) {
                 updateButtonState(globalBtn, isWindowFullscreenRequested);
             }
@@ -507,7 +519,9 @@ function handleFullscreenToggle(event: Event): void {
                 "No active tab content found for fullscreen toggle",
                 "warn"
             );
-            nativeToggleFullscreen(document.documentElement);
+            nativeToggleFullscreen(
+                addFullScreenButtonRuntime().getDocument().documentElement
+            );
             return;
         }
 
@@ -585,9 +599,9 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
                 );
             }
             nativeToggleFullscreen(
-                activeContent instanceof HTMLElement
+                addFullScreenButtonRuntime().isHTMLElement(activeContent)
                     ? activeContent
-                    : document.documentElement
+                    : addFullScreenButtonRuntime().getDocument().documentElement
             );
         }
     } catch (error) {
@@ -625,24 +639,26 @@ function logWithContext(
  */
 function nativeToggleFullscreen(target?: Document | HTMLElement): void {
     try {
-        const activeContent =
-            target instanceof HTMLElement ? target : getActiveTabContent();
-        const doc = document as VendorFullscreenDocument;
+        const runtime = addFullScreenButtonRuntime();
+        const activeContent = runtime.isHTMLElement(target)
+            ? target
+            : getActiveTabContent();
+        const doc = runtime.getDocument() as VendorFullscreenDocument;
         const docEl = (activeContent ||
-            document.documentElement) as VendorFullscreenElement;
+            doc.documentElement) as VendorFullscreenElement;
         const isFs = Boolean(
-            document.fullscreenElement ||
+            doc.fullscreenElement ||
             doc.webkitFullscreenElement ||
             doc.mozFullScreenElement ||
             doc.msFullscreenElement
         );
         if (isFs) {
             const exit =
-                document.exitFullscreen ||
+                doc.exitFullscreen ||
                 doc.webkitExitFullscreen ||
                 doc.mozCancelFullScreen ||
                 doc.msExitFullscreen;
-            if (typeof exit === "function") exit.call(document);
+            if (typeof exit === "function") exit.call(doc);
             isWindowFullscreenRequested = false;
             logWithContext("Exiting fullscreen mode (native fallback)");
         } else {
@@ -688,7 +704,8 @@ function updateButtonState(button: HTMLElement, isFullscreen: boolean): void {
 // logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
 /** Updates fullscreen button state based on whether a file is loaded. */
 function updateFullscreenButtonState(): void {
-    const btn = addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
+    const btn =
+        addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
     if (!btn) return;
     const hasFile = addFullScreenButtonRuntime().hasBodyClass("app-has-file");
     btn.setAttribute("tabindex", hasFile ? "0" : "-1");
