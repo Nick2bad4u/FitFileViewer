@@ -1,5 +1,8 @@
 import { replaceRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { getFitBrowserFeatureGateRuntime } from "./initFitBrowserFeatureGateRuntime.js";
 
@@ -7,14 +10,19 @@ type FitBrowserFeatureGateApi = Required<
     Pick<ElectronAPI, "isFitBrowserEnabled">
 > &
     Partial<Pick<ElectronAPI, "onFitBrowserEnabledChanged">>;
+type InitFitBrowserFeatureGateOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 /**
  * Initialize Browser tab feature gating.
  *
  * Safe to call multiple times.
  */
-export function initFitBrowserFeatureGate(): void {
-    const api = getElectronAPI();
+export function initFitBrowserFeatureGate(
+    options: InitFitBrowserFeatureGateOptions = {}
+): void {
+    const api = getElectronAPI(options.electronApiScope);
 
     if (!api) {
         return;
@@ -53,8 +61,10 @@ function applyBrowserTabVisibility(enabled: boolean): void {
     }
 }
 
-function getElectronAPI(): FitBrowserFeatureGateApi | null {
-    return getRendererElectronApi(isFitBrowserFeatureGateApi);
+function getElectronAPI(
+    electronApiScope?: RendererElectronApiScope
+): FitBrowserFeatureGateApi | null {
+    return getRendererElectronApi(isFitBrowserFeatureGateApi, electronApiScope);
 }
 
 function isFitBrowserFeatureGateApi(

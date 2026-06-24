@@ -5,11 +5,8 @@ import {
     getRendererActiveTab,
     setRendererActiveTab,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { initFitBrowserFeatureGate } from "../../../../../electron-app/utils/ui/browser/initFitBrowserFeatureGate.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type FitBrowserFeatureGateListener = (enabled: boolean) => void;
 
@@ -44,13 +41,12 @@ function getBrowserTabElements(): {
     return { button, content };
 }
 
-function installElectronApi(api: TestElectronApi | undefined): void {
-    if (api === undefined) {
-        resetRendererElectronApiCandidate();
-        return;
-    }
-
-    registerRendererElectronApiCandidate(api);
+function createElectronApiScope(
+    api: TestElectronApi | undefined
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 async function runWithBrowserTabFixture(
@@ -60,13 +56,11 @@ async function runWithBrowserTabFixture(
     }) => Promise<void> | void
 ): Promise<void> {
     try {
-        resetRendererElectronApiCandidate();
         __resetStateManagerForTests();
         const fixture = getBrowserTabElements();
 
         await scenario(fixture);
     } finally {
-        resetRendererElectronApiCandidate();
         document.body.replaceChildren();
         vi.restoreAllMocks();
     }
@@ -77,9 +71,9 @@ describe(initFitBrowserFeatureGate, () => {
         expect.assertions(2);
 
         await runWithBrowserTabFixture(({ button, content }) => {
-            installElectronApi(undefined);
-
-            initFitBrowserFeatureGate();
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope(undefined),
+            });
 
             expect(button.style.display).toBe("");
             expect(content.style.display).toBe("");
@@ -95,10 +89,11 @@ describe(initFitBrowserFeatureGate, () => {
                     .fn<() => Promise<boolean>>()
                     .mockResolvedValue(false),
             };
-            installElectronApi(api);
             setRendererActiveTab("browser", { source: "test" });
 
-            initFitBrowserFeatureGate();
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope(api),
+            });
             await waitForFeatureGateLoad();
 
             expect(api.isFitBrowserEnabled).toHaveBeenCalledOnce();
@@ -114,13 +109,15 @@ describe(initFitBrowserFeatureGate, () => {
         await runWithBrowserTabFixture(async ({ button, content }) => {
             button.style.display = "none";
             content.style.display = "none";
-            installElectronApi({
+            const api: TestElectronApi = {
                 isFitBrowserEnabled: vi
                     .fn<() => Promise<boolean>>()
                     .mockResolvedValue(true),
-            });
+            };
 
-            initFitBrowserFeatureGate();
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope(api),
+            });
             await waitForFeatureGateLoad();
 
             expect(button.style.display).toBe("");
@@ -133,13 +130,15 @@ describe(initFitBrowserFeatureGate, () => {
         expect.assertions(2);
 
         await runWithBrowserTabFixture(async ({ button, content }) => {
-            installElectronApi({
+            const api: TestElectronApi = {
                 isFitBrowserEnabled: vi
                     .fn<() => Promise<boolean>>()
                     .mockRejectedValue(new Error("ipc unavailable")),
-            });
+            };
 
-            initFitBrowserFeatureGate();
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope(api),
+            });
             await waitForFeatureGateLoad();
 
             expect(button.style.display).toBe("none");
@@ -158,14 +157,16 @@ describe(initFitBrowserFeatureGate, () => {
                         listener = callback;
                     }
                 );
-            installElectronApi({
+            const api: TestElectronApi = {
                 isFitBrowserEnabled: vi
                     .fn<() => Promise<boolean>>()
                     .mockResolvedValue(true),
                 onFitBrowserEnabledChanged,
-            });
+            };
 
-            initFitBrowserFeatureGate();
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope(api),
+            });
             await waitForFeatureGateLoad();
 
             expect(onFitBrowserEnabledChanged).toHaveBeenCalledWith(
