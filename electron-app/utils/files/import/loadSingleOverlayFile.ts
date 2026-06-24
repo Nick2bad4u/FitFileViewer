@@ -14,7 +14,11 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import { getLoadSingleOverlayFileRuntime } from "./loadSingleOverlayFileRuntime.js";
+import {
+    getLoadSingleOverlayFileRuntime,
+    type LoadSingleOverlayFileRuntime,
+    type LoadSingleOverlayFileRuntimeScope,
+} from "./loadSingleOverlayFileRuntime.js";
 
 /** Decoded FIT data used by map overlay loading. */
 export type OverlayFitData = {
@@ -45,6 +49,7 @@ type OverlayFileLike = {
 
 type LoadSingleOverlayFileOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
+    readonly runtimeScope?: LoadSingleOverlayFileRuntimeScope | undefined;
 };
 
 const loadSingleOverlayFileRuntime = getLoadSingleOverlayFileRuntime();
@@ -54,15 +59,18 @@ const loadSingleOverlayFileRuntime = getLoadSingleOverlayFileRuntime();
  */
 export async function loadSingleOverlayFile(
     file: File | OverlayFileLike,
-    { electronApiScope }: LoadSingleOverlayFileOptions = {}
+    { electronApiScope, runtimeScope }: LoadSingleOverlayFileOptions = {}
 ): Promise<OverlayLoadResult> {
     try {
+        const runtime = runtimeScope
+            ? getLoadSingleOverlayFileRuntime(runtimeScope)
+            : loadSingleOverlayFileRuntime;
         const preflightError = validateOverlayFilePreflight(file);
         if (preflightError) {
             return { error: preflightError, success: false };
         }
 
-        const arrayBuffer = await readOverlayArrayBuffer(file);
+        const arrayBuffer = await readOverlayArrayBuffer(file, runtime);
         const bufferValidationError =
             getFitFileBufferValidationError(arrayBuffer);
         if (bufferValidationError) {
@@ -171,31 +179,36 @@ function isOverlayElectronAPI(value: unknown): value is OverlayElectronAPI {
 }
 
 async function readOverlayArrayBuffer(
-    file: File | OverlayFileLike
+    file: File | OverlayFileLike,
+    runtime: LoadSingleOverlayFileRuntime
 ): Promise<ArrayBuffer | undefined> {
     if (typeof file.arrayBuffer === "function") {
         return file.arrayBuffer();
     }
 
     if (file instanceof Blob) {
-        if (typeof Response !== "undefined") {
+        const responseRead = runtime.readBlobArrayBufferWithResponse(file);
+        if (responseRead) {
             try {
-                return await new Response(file).arrayBuffer();
+                return await responseRead;
             } catch {
                 // Fall back to FileReader below.
             }
         }
 
-        return readFileWithFileReader(file);
+        return readFileWithFileReader(file, runtime);
     }
 
     return undefined;
 }
 
-function readFileWithFileReader(file: Blob): Promise<ArrayBuffer | undefined> {
+function readFileWithFileReader(
+    file: Blob,
+    runtime: LoadSingleOverlayFileRuntime
+): Promise<ArrayBuffer | undefined> {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        const controller = loadSingleOverlayFileRuntime.createAbortController();
+        const reader = runtime.createFileReader();
+        const controller = runtime.createAbortController();
         reader.addEventListener(
             "load",
             () => {

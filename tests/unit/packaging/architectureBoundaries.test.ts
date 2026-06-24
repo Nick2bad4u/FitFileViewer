@@ -1183,7 +1183,7 @@ const directOpenFileSelectorRuntimeGlobalPattern =
 const directOpenFileSelectorRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|queueMicrotask|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|queueMicrotask|setTimeout)\b|\bglobalThis\.(?:clearTimeout|queueMicrotask|setTimeout)\s*\(/u;
 const directLoadSingleOverlayFileRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+    /\bnew\s+(?:AbortController|FileReader|Response)\b/u;
 const directLoadOverlayFilesRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
@@ -12823,7 +12823,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(22);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -12856,6 +12856,10 @@ describe("architecture boundaries", () => {
             "loadSingleOverlayFileRuntime.js"
         );
         expect(loadSingleOverlayFileSource).toContain("createAbortController");
+        expect(loadSingleOverlayFileSource).toContain("createFileReader");
+        expect(loadSingleOverlayFileSource).toContain(
+            "readBlobArrayBufferWithResponse"
+        );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "defaultLoadSingleOverlayFileRuntimeScope"
         );
@@ -12866,17 +12870,40 @@ describe("architecture boundaries", () => {
             "LoadSingleOverlayFileRuntimeScope =\n    globalThis"
         );
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain("readonly FileReader?:");
+        expect(runtimeScopeSource).not.toContain("readonly Response?:");
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "scope.AbortController"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope.FileReader"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope.Response"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "getFileReader: () => globalThis.FileReader"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "getResponse: () => globalThis.Response"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "const FileReaderConstructor = scope.getFileReader?.();"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "return new ResponseConstructor(file).arrayBuffer();"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
             "loadSingleOverlayFile requires an AbortController runtime"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "loadSingleOverlayFile requires a FileReader runtime"
         );
     });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
+import type { LoadSingleOverlayFileRuntimeScope } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFileRuntime.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type FallbackOverlayFitData = {
@@ -11,45 +12,35 @@ type DecodeFitFile = (
     arrayBuffer: ArrayBuffer
 ) => Promise<FallbackOverlayFitData>;
 
-type FallbackGlobalSnapshot = {
+type FallbackHarness = {
     decodeFitFile: ReturnType<typeof vi.fn<DecodeFitFile>>;
     electronApiScope: RendererElectronApiScope;
-    originalFileReader: typeof globalThis.FileReader;
-    originalResponse: typeof globalThis.Response;
 };
 
-function installFallbackGlobals(): FallbackGlobalSnapshot {
+function createFallbackHarness(): FallbackHarness {
     const decodeFitFile = vi.fn<DecodeFitFile>(async () => ({
         recordMesgs: [{ positionLat: 1, positionLong: 2 }],
     }));
-    const snapshot = {
+    return {
         decodeFitFile,
         electronApiScope: {
             getElectronAPI: () => ({ decodeFitFile }),
         },
-        originalFileReader: globalThis.FileReader,
-        originalResponse: globalThis.Response,
     };
-
-    // Force Response to be undefined so the code goes to FileReader.
-    Object.defineProperty(globalThis, "Response", {
-        configurable: true,
-        value: undefined,
-    });
-
-    return snapshot;
 }
 
-function restoreFallbackGlobals(snapshot: FallbackGlobalSnapshot): void {
-    Object.defineProperty(globalThis, "FileReader", {
-        configurable: true,
-        value: snapshot.originalFileReader,
-    });
-    Object.defineProperty(globalThis, "Response", {
-        configurable: true,
-        value: snapshot.originalResponse,
-    });
+function restoreFallbackHarness(): void {
     vi.restoreAllMocks();
+}
+
+function makeFileReaderRuntimeScope(
+    FileReaderConstructor: new () => FileReader
+): LoadSingleOverlayFileRuntimeScope {
+    return {
+        getAbortController: () => AbortController,
+        getFileReader: () => FileReaderConstructor,
+        getResponse: () => undefined,
+    };
 }
 
 function makeFileWithoutArrayBuffer(name = "fallback.fit"): File {
@@ -66,7 +57,7 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
     it("uses FileReader fallback and resolves successfully (covers load handler)", async () => {
         expect.assertions(2);
 
-        const snapshot = installFallbackGlobals();
+        const harness = createFallbackHarness();
 
         class MockFileReader {
             public result: ArrayBuffer | null = null;
@@ -85,15 +76,15 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
                 });
             }
         }
-        Object.defineProperty(globalThis, "FileReader", {
-            configurable: true,
-            value: MockFileReader,
-        });
-
         try {
             const result = await loadSingleOverlayFile(
                 makeFileWithoutArrayBuffer(),
-                { electronApiScope: snapshot.electronApiScope }
+                {
+                    electronApiScope: harness.electronApiScope,
+                    runtimeScope: makeFileReaderRuntimeScope(
+                        MockFileReader as unknown as new () => FileReader
+                    ),
+                }
             );
 
             expect(result).toStrictEqual({
@@ -102,18 +93,18 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
                 },
                 success: true,
             });
-            expect(snapshot.decodeFitFile).toHaveBeenCalledWith(
+            expect(harness.decodeFitFile).toHaveBeenCalledWith(
                 expect.any(ArrayBuffer)
             );
         } finally {
-            restoreFallbackGlobals(snapshot);
+            restoreFallbackHarness();
         }
     });
 
     it("propagates FileReader error via catch (covers onerror handler)", async () => {
         expect.assertions(2);
 
-        const snapshot = installFallbackGlobals();
+        const harness = createFallbackHarness();
 
         class MockFileReader {
             private errorCallback: (() => void) | undefined;
@@ -130,24 +121,24 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
                 });
             }
         }
-        Object.defineProperty(globalThis, "FileReader", {
-            configurable: true,
-            value: MockFileReader,
-        });
-
         try {
             const result = await loadSingleOverlayFile(
                 makeFileWithoutArrayBuffer("bad.fit"),
-                { electronApiScope: snapshot.electronApiScope }
+                {
+                    electronApiScope: harness.electronApiScope,
+                    runtimeScope: makeFileReaderRuntimeScope(
+                        MockFileReader as unknown as new () => FileReader
+                    ),
+                }
             );
 
             expect(result).toStrictEqual({
                 error: "Failed to read file",
                 success: false,
             });
-            expect(snapshot.decodeFitFile).toHaveBeenCalledTimes(0);
+            expect(harness.decodeFitFile).toHaveBeenCalledTimes(0);
         } finally {
-            restoreFallbackGlobals(snapshot);
+            restoreFallbackHarness();
         }
     });
 });
