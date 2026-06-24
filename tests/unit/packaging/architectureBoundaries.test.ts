@@ -11765,7 +11765,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(25);
+        expect.assertions(26);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -11801,11 +11801,16 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).toContain("SetupListenersOptions");
         expect(coreModuleResolutionSource).toContain("RendererSetupTheme");
         expect(applicationStartupSource).toContain(
-            "export type RendererApplicationStartupCoreModules = Readonly<"
+            "export type RendererApplicationStartupCoreModules = Readonly<{"
         );
-        expect(applicationStartupSource).toContain("Pick<");
-        expect(applicationStartupSource).toContain('"AppActions"');
-        expect(applicationStartupSource).toContain('"showUpdateNotification"');
+        expect(applicationStartupSource).not.toContain("RendererCoreModules");
+        expect(applicationStartupSource).not.toContain("Pick<");
+        expect(applicationStartupSource).toContain(
+            "readonly AppActions: Record<string, unknown> | undefined;"
+        );
+        expect(applicationStartupSource).toContain(
+            "readonly showUpdateNotification: ShowUpdateNotification | undefined;"
+        );
         expect(applicationStartupSource).toContain(
             "ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>"
         );
@@ -11846,7 +11851,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -11866,11 +11871,16 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain("callUnknownFunction");
         expect(importTimeBootstrapSource).not.toContain("callUnknownFunction");
         expect(importTimeBootstrapSource).toContain(
-            "export type RendererImportTimeCoreModules = Readonly<"
+            "export type RendererImportTimeCoreModules = Readonly<{"
         );
-        expect(importTimeBootstrapSource).toContain("Pick<");
-        expect(importTimeBootstrapSource).toContain('"handleOpenFile"');
-        expect(importTimeBootstrapSource).toContain('"subscribeAppDomain"');
+        expect(importTimeBootstrapSource).not.toContain("RendererCoreModules");
+        expect(importTimeBootstrapSource).not.toContain("Pick<");
+        expect(importTimeBootstrapSource).toContain(
+            "readonly handleOpenFile: RendererHandleOpenFile | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "readonly subscribeAppDomain: AppDomainStateSubscriber | undefined;"
+        );
         expect(importTimeBootstrapSource).toContain(
             "ensureCoreModules: () => Promise<RendererImportTimeCoreModules>"
         );

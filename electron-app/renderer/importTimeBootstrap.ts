@@ -1,24 +1,31 @@
 import type {
-    RendererCoreModules,
+    ListenForThemeChange,
+    RendererHandleOpenFile,
+    RendererSetupListeners,
+    RendererSetupTheme,
+    ShowNotification,
     ShowUpdateNotification,
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
+import type {
+    AppDomainStateGetter,
+    AppDomainStateSubscriber,
+} from "../utils/state/domain/appDomainState.js";
 
-export type RendererImportTimeCoreModules = Readonly<
-    Pick<
-        RendererCoreModules,
-        | "applyTheme"
-        | "getAppDomainState"
-        | "handleOpenFile"
-        | "listenForThemeChange"
-        | "setupListeners"
-        | "setupTheme"
-        | "showAboutModal"
-        | "showNotification"
-        | "showUpdateNotification"
-        | "subscribeAppDomain"
-    >
->;
+export type RendererImportTimeCoreModules = Readonly<{
+    readonly applyTheme:
+        | ((theme: string, withTransition?: boolean) => void)
+        | undefined;
+    readonly getAppDomainState: AppDomainStateGetter | undefined;
+    readonly handleOpenFile: RendererHandleOpenFile | undefined;
+    readonly listenForThemeChange: ListenForThemeChange | undefined;
+    readonly setupListeners: RendererSetupListeners | undefined;
+    readonly setupTheme: RendererSetupTheme | undefined;
+    readonly showAboutModal: ((html?: string) => void) | undefined;
+    readonly showNotification: ShowNotification | undefined;
+    readonly showUpdateNotification: ShowUpdateNotification | undefined;
+    readonly subscribeAppDomain: AppDomainStateSubscriber | undefined;
+}>;
 
 interface RendererImportTimeBootstrapOptions {
     ensureCoreModules: () => Promise<RendererImportTimeCoreModules>;

@@ -12,11 +12,13 @@ import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js"
 import type {
     ListenForThemeChange,
     RendererHandleOpenFile,
-    RendererCoreModules,
+    RendererSetupListeners,
+    RendererSetupTheme,
     ShowNotification,
     ShowUpdateNotification,
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
+import type { AppDomainStateGetter } from "../utils/state/domain/appDomainState.js";
 
 type RendererStartupLogLevel = "error" | "log" | "warn";
 type RendererStartupLogger = (
@@ -38,21 +40,18 @@ export interface RendererDependencies {
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
-export type RendererApplicationStartupCoreModules = Readonly<
-    Pick<
-        RendererCoreModules,
-        | "AppActions"
-        | "applyTheme"
-        | "getAppDomainState"
-        | "handleOpenFile"
-        | "listenForThemeChange"
-        | "setupListeners"
-        | "setupTheme"
-        | "showAboutModal"
-        | "showNotification"
-        | "showUpdateNotification"
-    >
->;
+export type RendererApplicationStartupCoreModules = Readonly<{
+    readonly AppActions: Record<string, unknown> | undefined;
+    readonly applyTheme: ApplyTheme | undefined;
+    readonly getAppDomainState: AppDomainStateGetter | undefined;
+    readonly handleOpenFile: RendererHandleOpenFile | undefined;
+    readonly listenForThemeChange: ListenForThemeChange | undefined;
+    readonly setupListeners: RendererSetupListeners | undefined;
+    readonly setupTheme: RendererSetupTheme | undefined;
+    readonly showAboutModal: ((html?: string) => void) | undefined;
+    readonly showNotification: ShowNotification | undefined;
+    readonly showUpdateNotification: ShowUpdateNotification | undefined;
+}>;
 
 interface RendererApplicationStartupOptions {
     addEventListener: typeof globalThis.addEventListener;
