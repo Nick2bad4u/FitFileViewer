@@ -13930,7 +13930,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(18);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -13962,6 +13962,21 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(getCurrentSettingsSource).toContain(
             "getCurrentSettingsRuntime.js"
+        );
+        expect(getCurrentSettingsSource).toContain(
+            "type GetCurrentSettingsRuntime"
+        );
+        expect(getCurrentSettingsSource).toContain(
+            "return getGetCurrentSettingsRuntime();"
+        );
+        expect(getCurrentSettingsSource).not.toContain(
+            "const currentSettingsRuntime = getGetCurrentSettingsRuntime();"
+        );
+        expect(getCurrentSettingsSource).toContain(
+            "currentSettingsRuntime().clearTimeout"
+        );
+        expect(getCurrentSettingsSource).toContain(
+            "currentSettingsRuntime().setTimeout"
         );
         expect(getCurrentSettingsRuntimeSource).not.toMatch(
             directGetCurrentSettingsRuntimeAmbientFallbackPattern

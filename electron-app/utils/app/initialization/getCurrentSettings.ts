@@ -36,6 +36,7 @@ import {
 } from "./getCurrentSettingsParsing.js";
 import {
     getGetCurrentSettingsRuntime,
+    type GetCurrentSettingsRuntime,
     type GetCurrentSettingsTimer,
 } from "./getCurrentSettingsRuntime.js";
 
@@ -149,7 +150,11 @@ function getTypedThemeConfig(): ThemeConfigLike {
 
 // Storage/logging prefix
 const LOG_PREFIX = "[ChartSettings]";
-const currentSettingsRuntime = getGetCurrentSettingsRuntime();
+
+function currentSettingsRuntime(): GetCurrentSettingsRuntime {
+    return getGetCurrentSettingsRuntime();
+}
+
 const resetTimerHandles = new Set<GetCurrentSettingsTimer>();
 
 /**
@@ -323,14 +328,14 @@ function clearAllStorageItems(): void {
 
 function clearScheduledResetTimers(): void {
     for (const handle of resetTimerHandles) {
-        currentSettingsRuntime.clearTimeout(handle);
+        currentSettingsRuntime().clearTimeout(handle);
     }
 
     resetTimerHandles.clear();
 }
 
 function scheduleResetTimer(callback: () => void, delay: number): void {
-    const handle = currentSettingsRuntime.setTimeout(() => {
+    const handle = currentSettingsRuntime().setTimeout(() => {
         resetTimerHandles.delete(handle);
         callback();
     }, delay);
