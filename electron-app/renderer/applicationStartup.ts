@@ -38,9 +38,25 @@ export interface RendererDependencies {
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
+export type RendererApplicationStartupCoreModules = Readonly<
+    Pick<
+        RendererCoreModules,
+        | "AppActions"
+        | "applyTheme"
+        | "getAppDomainState"
+        | "handleOpenFile"
+        | "listenForThemeChange"
+        | "setupListeners"
+        | "setupTheme"
+        | "showAboutModal"
+        | "showNotification"
+        | "showUpdateNotification"
+    >
+>;
+
 interface RendererApplicationStartupOptions {
     addEventListener: typeof globalThis.addEventListener;
-    ensureCoreModules: () => Promise<RendererCoreModules>;
+    ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
@@ -305,7 +321,7 @@ async function initializeComponents(
 }
 
 function createRendererDependencies(
-    coreModules: RendererCoreModules,
+    coreModules: RendererApplicationStartupCoreModules,
     openFileBtn: HTMLElement | null,
     options: RendererApplicationStartupOptions
 ): RendererDependencies {

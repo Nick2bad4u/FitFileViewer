@@ -11736,10 +11736,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(17);
+        expect.assertions(25);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const applicationStartupTestSource = stripComments(
+            readRepositoryFile("tests/unit/renderer/applicationStartup.test.ts")
         );
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -11768,6 +11771,24 @@ describe("architecture boundaries", () => {
         );
         expect(coreModuleResolutionSource).toContain("SetupListenersOptions");
         expect(coreModuleResolutionSource).toContain("RendererSetupTheme");
+        expect(applicationStartupSource).toContain(
+            "export type RendererApplicationStartupCoreModules = Readonly<"
+        );
+        expect(applicationStartupSource).toContain("Pick<");
+        expect(applicationStartupSource).toContain('"AppActions"');
+        expect(applicationStartupSource).toContain('"showUpdateNotification"');
+        expect(applicationStartupSource).toContain(
+            "ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "ensureCoreModules: () => Promise<RendererCoreModules>"
+        );
+        expect(applicationStartupTestSource).toContain(
+            "RendererApplicationStartupCoreModules"
+        );
+        expect(applicationStartupTestSource).not.toContain(
+            "RendererCoreModules"
+        );
         expect(applicationStartupSource).not.toContain("callUnknownFunction");
         expect(applicationStartupSource).toContain(
             "setupThemeDyn?.(\n                dependencies.applyTheme,"

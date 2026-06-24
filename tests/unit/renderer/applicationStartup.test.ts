@@ -1,15 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createRendererApplicationStartup } from "../../../electron-app/renderer/applicationStartup.js";
-import type { RendererCoreModules } from "../../../electron-app/renderer/coreModuleResolution.js";
+import {
+    createRendererApplicationStartup,
+    type RendererApplicationStartupCoreModules,
+} from "../../../electron-app/renderer/applicationStartup.js";
 import {
     registerRendererElectronApiCandidate,
     resetRendererElectronApiCandidate,
 } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createCoreModules(
-    overrides: Partial<RendererCoreModules> = {}
-): RendererCoreModules {
+    overrides: Partial<RendererApplicationStartupCoreModules> = {}
+): RendererApplicationStartupCoreModules {
     return {
         AppActions: {
             setInitialized: vi.fn(),
@@ -18,15 +20,11 @@ function createCoreModules(
         getAppDomainState: vi.fn(),
         handleOpenFile: vi.fn(),
         listenForThemeChange: vi.fn(),
-        masterStateManager: {},
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
         showAboutModal: vi.fn(),
         showNotification: vi.fn(),
         showUpdateNotification: vi.fn(),
-        subscribeAppDomain: vi.fn(),
-        subscribeAppDomainPath: vi.fn(),
-        uiStateManager: {},
         ...overrides,
     };
 }
