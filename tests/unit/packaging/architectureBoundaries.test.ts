@@ -2754,7 +2754,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(194);
+        expect.assertions(196);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3330,6 +3330,8 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).toContain(
             "export async function stopGyazoOAuthServer"
         );
+        expect(gyazoOAuthServerSource).not.toContain("window.close");
+        expect(gyazoOAuthServerSource).not.toContain("<script>");
         expect(setupMainLifecycleSource).toContain(
             "export function setupMainLifecycle"
         );

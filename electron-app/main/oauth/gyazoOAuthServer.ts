@@ -119,13 +119,8 @@ function writeOAuthSuccessPage(res: ServerResponse): void {
                         h1 { color: #27ae60; margin: 0 0 20px 0; }
                         p { color: #666; line-height: 1.6; }
                         .success { background: #eafaf1; padding: 15px; border-radius: 8px; margin: 20px 0; }
-                        .auto-close { font-size: 14px; color: #888; margin-top: 20px; }
+                        .close-note { font-size: 14px; color: #888; margin-top: 20px; }
                     </style>
-                    <script>
-                        setTimeout(function () {
-                            window.close();
-                        }, 3000);
-                    </script>
                 </head>
                 <body>
                     <div class="container">
@@ -133,8 +128,8 @@ function writeOAuthSuccessPage(res: ServerResponse): void {
                         <div class="success">
                             <strong>Success!</strong> Your Gyazo account has been connected to FitFileViewer.
                         </div>
-                        <p>You can now upload charts to your Gyazo account. This window will close automatically.</p>
-                        <div class="auto-close">Closing in 3 seconds...</div>
+                        <p>You can now upload charts to your Gyazo account.</p>
+                        <div class="close-note">You can close this window and return to FitFileViewer.</div>
                     </div>
                 </body>
             </html>

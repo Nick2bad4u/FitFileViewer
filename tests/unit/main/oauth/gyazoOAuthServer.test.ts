@@ -320,7 +320,7 @@ describe("gyazoOAuthServer", () => {
     });
 
     it("sends callback payload to mainWindow when code/state are present", async () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
         const { startGyazoOAuthServer } = await importGyazoOAuthServer();
         appState.setAppState("mainWindow", getWindowLike());
@@ -340,7 +340,11 @@ describe("gyazoOAuthServer", () => {
             statusCode: 200,
             statusHeaders: { "Content-Type": "text/html" },
         });
-        expect(String(res.body)).toContain("Authorization Successful");
+        const html = String(res.body);
+        expect(html).toContain("Authorization Successful");
+        expect(html).toContain("You can close this window");
+        expect(html).not.toContain("<script>");
+        expect(html).not.toContain("window.close");
         expect(mockSend).toHaveBeenCalledWith("gyazo-oauth-callback", {
             code: "abc",
             state: "xyz",
