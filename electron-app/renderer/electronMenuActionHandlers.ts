@@ -1,4 +1,4 @@
-import type { RendererCoreModules } from "./coreModuleResolution.js";
+import type { RendererApplyTheme } from "./electronApiStartupHooks.js";
 
 type RendererElectronMenuLogLevel = "warn";
 
@@ -7,9 +7,10 @@ type RendererElectronMenuLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererElectronMenuCoreModules = Readonly<
-    Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>
->;
+export type RendererElectronMenuCoreModules = Readonly<{
+    readonly applyTheme?: RendererApplyTheme | undefined;
+    readonly showAboutModal?: ((html?: string) => void) | undefined;
+}>;
 
 type RendererElectronMenuActionHandlersOptions = {
     readonly ensureCoreModules: () => Promise<RendererElectronMenuCoreModules>;

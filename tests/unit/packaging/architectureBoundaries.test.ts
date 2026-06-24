@@ -4209,7 +4209,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4218,19 +4218,24 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/stateManagerStartup.ts")
         );
 
-        expect(stateStartupSource).toContain(
+        expect(stateStartupSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
+        expect(stateStartupSource).toContain("AppDomainStatePathSubscriber");
         expect(stateStartupSource).toContain(
-            "export type RendererStateStartupCoreModules = Pick<"
+            "export type RendererStateStartupCoreModules = Readonly<{"
         );
-        expect(stateStartupSource).toContain("Pick<");
-        expect(stateStartupSource).toContain("RendererCoreModules,");
+        expect(stateStartupSource).not.toContain("Pick<");
+        expect(stateStartupSource).not.toContain("RendererCoreModules,");
         expect(stateStartupSource).toContain(
             "ensureCoreModules: () => Promise<RendererStateStartupCoreModules>"
         );
-        expect(stateStartupSource).toContain('"masterStateManager"');
-        expect(stateStartupSource).toContain('"subscribeAppDomainPath"');
+        expect(stateStartupSource).toContain(
+            "readonly masterStateManager: unknown;"
+        );
+        expect(stateStartupSource).toContain(
+            "readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;"
+        );
         expect(stateStartupSource).toContain("toRendererStateManager(");
         expect(stateStartupSource).not.toContain(
             "ensureCoreModules: () => Promise<\n        Pick<"
@@ -4247,7 +4252,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file input wiring on its handle-open dependency", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const fileInputWiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/fileInputWiring.ts")
@@ -4260,8 +4265,9 @@ describe("architecture boundaries", () => {
             "export type RendererFileInputCoreModules = Readonly<"
         );
         expect(fileInputWiringSource).toContain(
-            'Pick<RendererCoreModules, "handleOpenFile">'
+            "readonly handleOpenFile: RendererHandleOpenFile | undefined;"
         );
+        expect(fileInputWiringSource).not.toContain("RendererCoreModules");
         expect(fileInputWiringSource).toContain(
             "readonly ensureCoreModules: () => Promise<RendererFileInputCoreModules>"
         );
@@ -11648,7 +11654,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const wiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
@@ -11664,7 +11670,7 @@ describe("architecture boundaries", () => {
         expect(wiringSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
-        expect(menuActionSource).toContain(
+        expect(menuActionSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
         expect(menuActionSource).toContain(
@@ -11675,7 +11681,10 @@ describe("architecture boundaries", () => {
         expect(menuActionSource).toContain("showAboutModal?.()");
         expect(wiringSource).not.toContain("RendererElectronApiCoreModules");
         expect(menuActionSource).toContain(
-            'Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>'
+            "readonly applyTheme?: RendererApplyTheme | undefined;"
+        );
+        expect(menuActionSource).toContain(
+            "readonly showAboutModal?: ((html?: string) => void) | undefined;"
         );
     });
 

@@ -1,14 +1,14 @@
-import type { RendererCoreModules } from "./coreModuleResolution.js";
+import type { AppDomainStatePathSubscriber } from "../utils/state/domain/appDomainState.js";
 
 type RendererStateStartupLogger = (
     level: "error" | "log",
     ...args: unknown[]
 ) => void;
 
-export type RendererStateStartupCoreModules = Pick<
-    RendererCoreModules,
-    "masterStateManager" | "subscribeAppDomainPath"
->;
+export type RendererStateStartupCoreModules = Readonly<{
+    readonly masterStateManager: unknown;
+    readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
+}>;
 
 interface RendererStateStartupOptions {
     ensureCoreModules: () => Promise<RendererStateStartupCoreModules>;

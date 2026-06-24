@@ -1,7 +1,4 @@
-import type {
-    RendererCoreModules,
-    RendererHandleOpenFile,
-} from "./coreModuleResolution.js";
+import type { RendererHandleOpenFile } from "./coreModuleResolution.js";
 import {
     createDelegatedFileInputChangeHandler,
     registerDelegatedFileInputChangeListener,
@@ -15,9 +12,9 @@ type RendererFileInputWiringLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererFileInputCoreModules = Readonly<
-    Pick<RendererCoreModules, "handleOpenFile">
->;
+export type RendererFileInputCoreModules = Readonly<{
+    readonly handleOpenFile: RendererHandleOpenFile | undefined;
+}>;
 
 type RendererFileInputWiringOptions = {
     readonly ensureCoreModules: () => Promise<RendererFileInputCoreModules>;
