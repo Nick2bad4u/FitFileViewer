@@ -12672,7 +12672,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(38);
+        expect.assertions(42);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -12694,6 +12694,15 @@ describe("architecture boundaries", () => {
         expect(mapFullscreenControlSource).toContain(
             "mapFullscreenControlRuntime.js"
         );
+        expect(mapFullscreenControlSource).toContain(
+            "type MapFullscreenControlRuntime"
+        );
+        expect(mapFullscreenControlSource).not.toContain(
+            "const mapFullscreenControlRuntime = getMapFullscreenControlRuntime();"
+        );
+        expect(mapFullscreenControlSource).toContain(
+            "runtime: MapFullscreenControlRuntime = getMapFullscreenControlRuntime()"
+        );
         expect(mapFullscreenControlSource).toContain("createAbortController");
         expect(mapFullscreenControlSource).toContain("getMapContainer()");
         expect(mapFullscreenControlSource).toContain("exitFullscreen()");
@@ -12703,10 +12712,13 @@ describe("architecture boundaries", () => {
             "getLegacyFullscreenButton()"
         );
         expect(mapFullscreenControlSource).toContain(
-            'mapFullscreenControlRuntime.createElement("div")'
+            'runtime.createElement("div")'
         );
         expect(mapFullscreenControlSource).toContain(
-            'mapFullscreenControlRuntime.createSvgElement("svg")'
+            'runtime.createSvgElement("svg")'
+        );
+        expect(mapFullscreenControlSource).toContain(
+            "setFullscreenButtonIcon(button, \"enter\", runtime)"
         );
         expect(mapFullscreenControlSource).not.toContain(
             "document.querySelector"

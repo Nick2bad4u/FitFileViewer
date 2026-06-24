@@ -2,6 +2,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { addFullscreenControl } from "../../../../electron-app/utils/maps/controls/mapFullscreenControl.js";
+import type { MapFullscreenControlRuntime } from "../../../../electron-app/utils/maps/controls/mapFullscreenControlRuntime.js";
 
 type MockMap = {
     _container: HTMLElement;
@@ -117,6 +118,41 @@ describe("mapFullscreenControl.js", () => {
             title: "Toggle Fullscreen",
             type: "button",
         });
+    });
+
+    it("builds the control through an injected runtime", () => {
+        expect.assertions(8);
+
+        const runtime: MapFullscreenControlRuntime = {
+            addDocumentFullscreenChangeListener: vi.fn(),
+            clearTimeout: vi.fn(),
+            createAbortController: vi.fn(() => new AbortController()),
+            createElement: vi.fn((tagName) => document.createElement(tagName)),
+            createSvgElement: vi.fn((tagName) =>
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    tagName
+                )
+            ),
+            documentBodyContains: vi.fn(() => true),
+            exitFullscreen: vi.fn(),
+            getLegacyFullscreenButton: vi.fn(() => null),
+            getMapContainer: vi.fn(() => mapDiv),
+            isFullscreenElement: vi.fn(() => false),
+            setTimeout: vi.fn(() => 1),
+        };
+
+        addFullscreenControl(mockMap, runtime);
+
+        expect(runtime.getMapContainer).toHaveBeenCalledOnce();
+        expect(runtime.createElement).toHaveBeenCalledWith("div");
+        expect(runtime.createElement).toHaveBeenCalledWith("button");
+        expect(runtime.createSvgElement).toHaveBeenCalledWith("svg");
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(
+            runtime.addDocumentFullscreenChangeListener
+        ).toHaveBeenCalledOnce();
+        expect(getFullscreenButton(mapDiv).title).toBe("Toggle Fullscreen");
     });
 
     it("should do nothing when map container is not found", () => {

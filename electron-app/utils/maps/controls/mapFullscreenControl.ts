@@ -1,17 +1,19 @@
 import {
     getMapFullscreenControlRuntime,
+    type MapFullscreenControlRuntime,
     type MapFullscreenControlTimer,
 } from "./mapFullscreenControlRuntime.js";
-
-const mapFullscreenControlRuntime = getMapFullscreenControlRuntime();
 
 interface LeafletMap {
     _container?: HTMLElement;
     invalidateSize: () => void;
 }
 
-function createFullscreenIcon(state: "enter" | "exit"): SVGSVGElement {
-    const icon = mapFullscreenControlRuntime.createSvgElement("svg");
+function createFullscreenIcon(
+    state: "enter" | "exit",
+    runtime: MapFullscreenControlRuntime
+): SVGSVGElement {
+    const icon = runtime.createSvgElement("svg");
     icon.setAttribute("width", "22");
     icon.setAttribute("height", "22");
     icon.setAttribute("viewBox", "0 0 22 22");
@@ -133,7 +135,7 @@ function createFullscreenIcon(state: "enter" | "exit"): SVGSVGElement {
         width,
         height,
     ] of rects) {
-        const rect = mapFullscreenControlRuntime.createSvgElement("rect");
+        const rect = runtime.createSvgElement("rect");
         rect.setAttribute("x", x);
         rect.setAttribute("y", y);
         rect.setAttribute("width", width);
@@ -148,46 +150,49 @@ function createFullscreenIcon(state: "enter" | "exit"): SVGSVGElement {
 
 function setFullscreenButtonIcon(
     button: HTMLButtonElement,
-    state: "enter" | "exit"
+    state: "enter" | "exit",
+    runtime: MapFullscreenControlRuntime
 ): void {
-    button.replaceChildren(createFullscreenIcon(state));
+    button.replaceChildren(createFullscreenIcon(state, runtime));
 }
 
 /** Adds a custom fullscreen control to a Leaflet map. */
-export function addFullscreenControl(map: LeafletMap): void {
-    const fullscreenControl = mapFullscreenControlRuntime.createElement("div");
+export function addFullscreenControl(
+    map: LeafletMap,
+    runtime: MapFullscreenControlRuntime = getMapFullscreenControlRuntime()
+): void {
+    const fullscreenControl = runtime.createElement("div");
     fullscreenControl.className =
         "custom-fullscreen-control leaflet-top leaflet-left";
-    const bar = mapFullscreenControlRuntime.createElement("div");
+    const bar = runtime.createElement("div");
     bar.className = "leaflet-bar custom-fullscreen-bar";
-    const button = mapFullscreenControlRuntime.createElement("button");
+    const button = runtime.createElement("button");
     button.id = "fullscreen-btn";
     button.type = "button";
     button.title = "Toggle Fullscreen";
     button.setAttribute("aria-label", "Toggle Fullscreen");
-    setFullscreenButtonIcon(button, "enter");
+    setFullscreenButtonIcon(button, "enter", runtime);
     bar.append(button);
     fullscreenControl.append(bar);
 
-    const mapDiv = mapFullscreenControlRuntime.getMapContainer();
+    const mapDiv = runtime.getMapContainer();
     if (!mapDiv) {
         console.warn("[mapFullscreenControl] Map container not found");
         return;
     }
     mapDiv.append(fullscreenControl);
 
-    const listenerController =
-        mapFullscreenControlRuntime.createAbortController();
+    const listenerController = runtime.createAbortController();
     let invalidateSizeTimer: MapFullscreenControlTimer | null = null;
     const clearPendingInvalidateSize = (): void => {
         if (invalidateSizeTimer !== null) {
-            mapFullscreenControlRuntime.clearTimeout(invalidateSizeTimer);
+            runtime.clearTimeout(invalidateSizeTimer);
             invalidateSizeTimer = null;
         }
     };
     const scheduleInvalidateSize = (): void => {
         clearPendingInvalidateSize();
-        invalidateSizeTimer = mapFullscreenControlRuntime.setTimeout(() => {
+        invalidateSizeTimer = runtime.setTimeout(() => {
             invalidateSizeTimer = null;
             map.invalidateSize();
         }, 300);
@@ -199,34 +204,35 @@ export function addFullscreenControl(map: LeafletMap): void {
             button.title = isFullscreen
                 ? "Exit Fullscreen"
                 : "Enter Fullscreen";
-            setFullscreenButtonIcon(button, isFullscreen ? "exit" : "enter");
+            setFullscreenButtonIcon(
+                button,
+                isFullscreen ? "exit" : "enter",
+                runtime
+            );
             if (isFullscreen) {
                 if (mapDiv.requestFullscreen) {
                     void mapDiv.requestFullscreen();
                 }
             } else {
-                void mapFullscreenControlRuntime.exitFullscreen();
+                void runtime.exitFullscreen();
             }
             scheduleInvalidateSize();
         },
         { signal: listenerController.signal }
     );
 
-    mapFullscreenControlRuntime.addDocumentFullscreenChangeListener(
+    runtime.addDocumentFullscreenChangeListener(
         () => {
-            const isNowFullscreen =
-                mapFullscreenControlRuntime.isFullscreenElement(mapDiv);
+            const isNowFullscreen = runtime.isFullscreenElement(mapDiv);
             if (!isNowFullscreen) {
                 mapDiv.classList.remove("fullscreen");
                 button.title = "Enter Fullscreen";
-                setFullscreenButtonIcon(button, "enter");
+                setFullscreenButtonIcon(button, "enter", runtime);
                 // Only call invalidateSize if map is still valid and map container is in the DOM
                 if (
                     map &&
                     map._container &&
-                    mapFullscreenControlRuntime.documentBodyContains(
-                        map._container
-                    )
+                    runtime.documentBodyContains(map._container)
                 ) {
                     scheduleInvalidateSize();
                 }
@@ -237,7 +243,7 @@ export function addFullscreenControl(map: LeafletMap): void {
 
     // Remove old fullscreen button from map-controls if present
     const oldFullscreenBtn =
-        mapFullscreenControlRuntime.getLegacyFullscreenButton();
+        runtime.getLegacyFullscreenButton();
     if (oldFullscreenBtn) {
         oldFullscreenBtn.remove();
     }
