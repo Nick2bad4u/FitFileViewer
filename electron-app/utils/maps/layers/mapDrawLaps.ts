@@ -45,12 +45,11 @@ import {
 } from "../state/mapPolylineRegistryState.js";
 import {
     getMapDrawLapsRuntime,
+    type MapDrawLapsRuntime,
     type MapDrawLapsTimer,
 } from "./mapDrawLapsRuntime.js";
 
 type FitValue = unknown;
-
-const mapDrawLapsRuntime = getMapDrawLapsRuntime();
 
 type LatLngTuple = [number, number];
 
@@ -183,6 +182,7 @@ type MapDrawLapsOptions = {
     ) => null | number | undefined;
     map: MapLike;
     mapContainer: HTMLElement;
+    runtime?: MapDrawLapsRuntime;
     startIcon?: unknown;
     [key: string]: unknown;
 };
@@ -403,6 +403,7 @@ export function mapDrawLaps(
         getLapNumForIdx,
         map,
         mapContainer,
+        runtime = getMapDrawLapsRuntime(),
         startIcon,
     }: MapDrawLapsOptions
 ): void {
@@ -530,9 +531,9 @@ export function mapDrawLaps(
         let fitBoundsRetryTimer: MapDrawLapsTimer | undefined;
         const scheduleFitRetry = (): void => {
             if (fitBoundsRetryTimer !== undefined) {
-                mapDrawLapsRuntime.clearTimeout(fitBoundsRetryTimer);
+                runtime.clearTimeout(fitBoundsRetryTimer);
             }
-            fitBoundsRetryTimer = mapDrawLapsRuntime.setTimeout(() => {
+            fitBoundsRetryTimer = runtime.setTimeout(() => {
                 fitBoundsRetryTimer = undefined;
                 tryFit();
             }, 50);
@@ -601,7 +602,8 @@ export function mapDrawLaps(
                     ["Lap", String(lapIdx)],
                     ["recordMesgs", String(recordMesgs.length)],
                     ["lapMesgs", String(lapMesgs.length)],
-                ]
+                ],
+                runtime
             );
             return;
         }
@@ -754,7 +756,8 @@ export function mapDrawLaps(
                         ["Lap", String(lapIdx)],
                         ["recordMesgs", String(recordMesgs.length)],
                         ["lapMesgs", String(lapMesgs.length)],
-                    ]
+                    ],
+                    runtime
                 );
                 return;
             }
@@ -1006,7 +1009,8 @@ export function mapDrawLaps(
                         ["endIdx", String(endIdx)],
                         ["recordMesgs", String(recordMesgs.length)],
                         ["lapMesgs", String(lapMesgs.length)],
-                    ]
+                    ],
+                    runtime
                 );
                 return;
             }
@@ -1020,7 +1024,8 @@ export function mapDrawLaps(
                     ["endPositionLat", String(lap && lap.endPositionLat)],
                     ["recordMesgs", String(recordMesgs.length)],
                     ["lapMesgs", String(lapMesgs.length)],
-                ]
+                ],
+                runtime
             );
             return;
         }
@@ -1039,7 +1044,8 @@ export function mapDrawLaps(
                 ["Lap", String(lapIdx)],
                 ["recordMesgs", String(recordMesgs.length)],
                 ["lapMesgs", String(lapMesgs.length)],
-            ]
+            ],
+            runtime
         );
         return;
     }
@@ -1175,7 +1181,8 @@ export function mapDrawLaps(
                 ["Lap", String(lapIdx)],
                 ["recordMesgs", String(recordMesgs.length)],
                 ["lapMesgs", String(lapMesgs.length)],
-            ]
+            ],
+            runtime
         );
     }
 }
@@ -1471,13 +1478,14 @@ function patchLapIndices(lapMesgs: LapMesg[], recordMesgs: RecordMesg[]): void {
 function renderMapInfoMessage(
     mapContainer: HTMLElement,
     title: string,
-    lines: Array<[string, string]>
+    lines: Array<[string, string]>,
+    runtime: MapDrawLapsRuntime = getMapDrawLapsRuntime()
 ): void {
-    const p = mapDrawLapsRuntime.createElement("p");
-    p.append(mapDrawLapsRuntime.createTextNode(title));
+    const p = runtime.createElement("p");
+    p.append(runtime.createTextNode(title));
     for (const [label, value] of lines) {
-        p.append(mapDrawLapsRuntime.createElement("br"));
-        p.append(mapDrawLapsRuntime.createTextNode(`${label}: ${value}`));
+        p.append(runtime.createElement("br"));
+        p.append(runtime.createTextNode(`${label}: ${value}`));
     }
     mapContainer.replaceChildren(p);
 }

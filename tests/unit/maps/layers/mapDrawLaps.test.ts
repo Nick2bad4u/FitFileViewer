@@ -15,6 +15,7 @@ import {
     resetMapMarkerCount,
     setMapMarkerCount,
 } from "../../../../electron-app/utils/maps/state/mapMarkerCountState.js";
+import type { MapDrawLapsRuntime } from "../../../../electron-app/utils/maps/layers/mapDrawLapsRuntime.js";
 import {
     getRegisteredMapActivityLayerGroup,
     getRegisteredMapDataPointMarkers,
@@ -480,9 +481,17 @@ describe("mapDrawLaps", () => {
         });
 
         it("should handle missing fitFile gracefully", () => {
-            expect.assertions(3);
+            expect.assertions(7);
 
             const mapContainer = document.createElement("div");
+            const runtime: MapDrawLapsRuntime = {
+                clearTimeout: vi.fn(),
+                createElement: vi.fn((tagName) =>
+                    document.createElement(tagName)
+                ) as MapDrawLapsRuntime["createElement"],
+                createTextNode: vi.fn((data) => document.createTextNode(data)),
+                setTimeout: vi.fn(),
+            };
 
             mapDrawLaps(0, {
                 map: mockMap,
@@ -493,11 +502,20 @@ describe("mapDrawLaps", () => {
                 getLapColor: mockFn(),
                 formatTooltipData: mockFn(),
                 getLapNumForIdx: mockFn(),
+                runtime,
             });
 
             expect(mockLeaflet.polyline).not.toHaveBeenCalled();
             expect(mapContainer.textContent).toContain("recordMesgs: 0");
             expect(mapContainer.textContent).toContain("lapMesgs: 0");
+            expect(runtime.createElement).toHaveBeenCalledWith("p");
+            expect(runtime.createElement).toHaveBeenCalledWith("br");
+            expect(runtime.createTextNode).toHaveBeenCalledWith(
+                "No location data available to display map."
+            );
+            expect(runtime.createTextNode).toHaveBeenCalledWith(
+                "recordMesgs: 0"
+            );
         });
 
         it("should use active file from loadedFitFiles when idx differs", () => {

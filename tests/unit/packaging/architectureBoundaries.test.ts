@@ -13030,7 +13030,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -13050,6 +13050,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapDrawLapsSource).toContain("mapDrawLapsRuntime.js");
+        expect(mapDrawLapsSource).toContain("type MapDrawLapsRuntime");
+        expect(mapDrawLapsSource).not.toContain(
+            "const mapDrawLapsRuntime = getMapDrawLapsRuntime();"
+        );
+        expect(mapDrawLapsSource).toContain(
+            "runtime = getMapDrawLapsRuntime()"
+        );
         expect(mapDrawLapsRuntimeSource).toContain(
             "defaultMapDrawLapsRuntimeScope"
         );
