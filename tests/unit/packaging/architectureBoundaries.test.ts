@@ -15830,7 +15830,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(45);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -15854,15 +15854,26 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/helpers/renderSummaryRuntime.ts"
             )
         );
+        const renderSummarySources = [
+            renderSummarySource,
+            renderSummaryCoreSource,
+        ];
 
         expect(violations).toStrictEqual([]);
         expect(renderSummarySource).toContain("renderSummaryRuntime.js");
+        for (const source of renderSummarySources) {
+            expect(source).toContain("type RenderSummaryRuntime");
+            expect(source).toContain("return getRenderSummaryRuntime();");
+            expect(source).not.toContain(
+                "const renderSummaryRuntime = getRenderSummaryRuntime();"
+            );
+        }
         expect(renderSummarySource).toContain("createAbortController");
         expect(renderSummarySource).toContain(
-            "renderSummaryRuntime.createElement"
+            "renderSummaryRuntime().createElement"
         );
         expect(renderSummarySource).toContain(
-            "renderSummaryRuntime.createDocumentFragment"
+            "renderSummaryRuntime().createDocumentFragment"
         );
         expect(renderSummarySource).not.toContain("document.createElement");
         expect(renderSummarySource).not.toContain(
@@ -15871,10 +15882,10 @@ describe("architecture boundaries", () => {
         expect(renderSummaryCoreSource).toContain("renderSummaryRuntime.js");
         expect(renderSummaryCoreSource).toContain("getSummaryContainer()");
         expect(renderSummaryCoreSource).toContain(
-            'renderSummaryRuntime.createElement("button")'
+            'renderSummaryRuntime().createElement("button")'
         );
         expect(renderSummaryCoreSource).toContain(
-            'renderSummaryRuntime.createSvgElement("svg")'
+            'renderSummaryRuntime().createSvgElement("svg")'
         );
         expect(renderSummaryCoreSource).not.toContain("document.createElement");
         expect(renderSummaryCoreSource).not.toContain(

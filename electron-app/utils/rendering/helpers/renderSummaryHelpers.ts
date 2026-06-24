@@ -3,7 +3,10 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
 import { exportUtils } from "../../files/export/exportUtils.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { resolveArqueroRuntime } from "./arqueroRuntime.js";
-import { getRenderSummaryRuntime } from "./renderSummaryRuntime.js";
+import {
+    getRenderSummaryRuntime,
+    type RenderSummaryRuntime,
+} from "./renderSummaryRuntime.js";
 
 /** Generic row shape used by summary and lap table renderers. */
 export type SummaryRecord = Record<string, unknown>;
@@ -51,7 +54,10 @@ export const LABEL_COL = "__row_label__";
 const SUMMARY_VIRTUAL_ROW_THRESHOLD = 200;
 const SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK = 34;
 const SUMMARY_VIRTUAL_OVERSCAN = 8;
-const renderSummaryRuntime = getRenderSummaryRuntime();
+
+function renderSummaryRuntime(): RenderSummaryRuntime {
+    return getRenderSummaryRuntime();
+}
 
 /**
  * Determines whether a Summary column key is numeric-only, such as "0" or "1".
@@ -165,7 +171,7 @@ export function renderTable({
         cleanupVirtualizer();
         summaryContainer._summaryVirtualCleanup = undefined;
     }
-    const renderController = renderSummaryRuntime.createAbortController();
+    const renderController = renderSummaryRuntime().createAbortController();
     let virtualizerCleanup: (() => void) | undefined;
     summaryContainer._summaryVirtualCleanup = () => {
         renderController.abort();
@@ -174,23 +180,23 @@ export function renderTable({
 
     let section = container.querySelector(".summary-section");
     if (!section) {
-        section = renderSummaryRuntime.createElement("div");
+        section = renderSummaryRuntime().createElement("div");
         section.classList.add("summary-section");
         container.append(section);
     }
     section.replaceChildren();
     // Filter bar with gear button and filter dropdown side by side
-    const filterBar = renderSummaryRuntime.createElement("div");
+    const filterBar = renderSummaryRuntime().createElement("div");
     filterBar.className = "summary-filter-bar";
     // Gear button (column selector)
     filterBar.append(gearBtn);
     // Filter dropdown
-    const filterLabel = renderSummaryRuntime.createElement("label");
+    const filterLabel = renderSummaryRuntime().createElement("label");
     filterLabel.textContent = "Show: ";
-    const filterSelect = renderSummaryRuntime.createElement("select");
+    const filterSelect = renderSummaryRuntime().createElement("select");
 
     const addOption = (value: string, label: string): void => {
-        const opt = renderSummaryRuntime.createElement("option");
+        const opt = renderSummaryRuntime().createElement("option");
         opt.value = value;
         opt.textContent = label;
         filterSelect.append(opt);
@@ -254,13 +260,13 @@ export function renderTable({
     filterBar.append(filterLabel);
     section.append(filterBar);
 
-    const headerBar = renderSummaryRuntime.createElement("div");
+    const headerBar = renderSummaryRuntime().createElement("div");
     headerBar.className = "header-bar";
-    const title = renderSummaryRuntime.createElement("h3");
+    const title = renderSummaryRuntime().createElement("h3");
     title.textContent = "Activity Summary";
     title.classList.add("summary-title");
     headerBar.append(title);
-    const copyBtn = renderSummaryRuntime.createElement("button");
+    const copyBtn = renderSummaryRuntime().createElement("button");
     copyBtn.textContent = "Copy as CSV";
     copyBtn.className = "copy-btn";
     copyBtn.addEventListener(
@@ -340,30 +346,30 @@ export function renderTable({
     headerBar.append(copyBtn);
     section.append(headerBar);
 
-    const table = renderSummaryRuntime.createElement("table");
+    const table = renderSummaryRuntime().createElement("table");
     table.classList.add("display");
-    const headerRow = renderSummaryRuntime.createElement("tr"),
+    const headerRow = renderSummaryRuntime().createElement("tr"),
         orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
         sortedVisible = [LABEL_COL, ...orderedVisible],
-        thead = renderSummaryRuntime.createElement("thead");
+        thead = renderSummaryRuntime().createElement("thead");
     let virtualizerInit: (() => void) | null = null;
     for (const key of sortedVisible) {
-        const th = renderSummaryRuntime.createElement("th");
+        const th = renderSummaryRuntime().createElement("th");
         th.textContent = key === LABEL_COL ? "Type" : key;
         headerRow.append(th);
     }
     thead.append(headerRow);
-    const summaryBody = renderSummaryRuntime.createElement("tbody");
+    const summaryBody = renderSummaryRuntime().createElement("tbody");
     summaryBody.className = "summary-summary-body";
-    const lapBody = renderSummaryRuntime.createElement("tbody");
+    const lapBody = renderSummaryRuntime().createElement("tbody");
     lapBody.className = "summary-lap-body";
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
         const summaryRows = getSummaryRows(data),
             summaryRec = summaryRows[0] || {},
-            summaryRow = renderSummaryRuntime.createElement("tr");
+            summaryRow = renderSummaryRuntime().createElement("tr");
         for (const [idx, key] of sortedVisible.entries()) {
-            const td = renderSummaryRuntime.createElement("td");
+            const td = renderSummaryRuntime().createElement("td");
             td.textContent =
                 key === LABEL_COL
                     ? "Summary"
@@ -425,7 +431,7 @@ export function renderTable({
     section.append(table);
 
     if (typeof virtualizerInit === "function") {
-        const frameHandle = renderSummaryRuntime.requestAnimationFrame(() =>
+        const frameHandle = renderSummaryRuntime().requestAnimationFrame(() =>
             virtualizerInit?.()
         );
         if (frameHandle === null) {
@@ -457,9 +463,9 @@ function createLapRowElement(
     lap: SummaryRecord,
     sortedVisible: readonly string[]
 ): HTMLTableRowElement {
-    const lapRow = renderSummaryRuntime.createElement("tr");
+    const lapRow = renderSummaryRuntime().createElement("tr");
     for (const key of sortedVisible) {
-        const td = renderSummaryRuntime.createElement("td");
+        const td = renderSummaryRuntime().createElement("td");
         if (key === LABEL_COL) {
             td.textContent = `Lap ${lapIndex + 1}`;
         } else if (key === "timestamp" && lap["startTime"]) {
@@ -480,9 +486,9 @@ function createSpacerRow(colSpan: number): {
     cell: HTMLTableCellElement;
     row: HTMLTableRowElement;
 } {
-    const row = renderSummaryRuntime.createElement("tr");
+    const row = renderSummaryRuntime().createElement("tr");
     row.className = "summary-virtual-spacer";
-    const cell = renderSummaryRuntime.createElement("td");
+    const cell = renderSummaryRuntime().createElement("td");
     cell.colSpan = colSpan;
     cell.style.padding = "0";
     cell.style.border = "none";
@@ -510,7 +516,7 @@ function setupVirtualizedLapRows({
     const colSpan = sortedVisible.length;
     const { row: topSpacer, cell: topCell } = createSpacerRow(colSpan);
     const { row: bottomSpacer, cell: bottomCell } = createSpacerRow(colSpan);
-    const controller = renderSummaryRuntime.createAbortController();
+    const controller = renderSummaryRuntime().createAbortController();
     let rowHeight = SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK;
     let lastStart = -1;
     let lastEnd = -1;
@@ -536,7 +542,7 @@ function setupVirtualizedLapRows({
         lastStart = start;
         lastEnd = end;
 
-        const fragment = renderSummaryRuntime.createDocumentFragment();
+        const fragment = renderSummaryRuntime().createDocumentFragment();
         topCell.style.height = `${start * rowHeight}px`;
         bottomCell.style.height = `${(lapCount - end) * rowHeight}px`;
         fragment.append(topSpacer);
@@ -577,7 +583,7 @@ function setupVirtualizedLapRows({
         if (rafHandle !== null) {
             return;
         }
-        rafHandle = renderSummaryRuntime.requestAnimationFrame(() => {
+        rafHandle = renderSummaryRuntime().requestAnimationFrame(() => {
             rafHandle = null;
             updateVirtualRows();
         });
@@ -593,7 +599,7 @@ function setupVirtualizedLapRows({
         passive: true,
         signal: controller.signal,
     });
-    renderSummaryRuntime.addResizeListener(onResize, {
+    renderSummaryRuntime().addResizeListener(onResize, {
         signal: controller.signal,
     });
 
@@ -602,7 +608,7 @@ function setupVirtualizedLapRows({
     return () => {
         controller.abort();
         if (rafHandle !== null) {
-            renderSummaryRuntime.cancelAnimationFrame(rafHandle);
+            renderSummaryRuntime().cancelAnimationFrame(rafHandle);
             rafHandle = null;
         }
     };
