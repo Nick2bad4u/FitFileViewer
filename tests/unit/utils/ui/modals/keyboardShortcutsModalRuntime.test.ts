@@ -111,8 +111,37 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(() => runtime.createSvgElement("path")).not.toThrow();
     });
 
+    it("routes modal DOM operations through the injected document runtime", () => {
+        expect.assertions(7);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "keyboard shortcuts modal dom runtime"
+        );
+        const runtime = getKeyboardShortcutsModalRuntime({
+            getDocument: () => documentRef,
+        });
+        const modal = runtime.createElement("div");
+        modal.id = "keyboard-shortcuts-modal";
+        const style = runtime.createElement("style");
+        style.id = "keyboard-shortcuts-modal-styles";
+
+        runtime.appendToBody(modal);
+        runtime.appendToHead(style);
+        runtime.setBodyOverflow("hidden");
+
+        expect(modal).toBeInstanceOf(HTMLDivElement);
+        expect(documentRef.body.contains(modal)).toBe(true);
+        expect(documentRef.head.contains(style)).toBe(true);
+        expect(runtime.querySelector("#keyboard-shortcuts-modal")).toBe(modal);
+        expect(runtime.getActiveElement()).toBe(documentRef.body);
+        expect(documentRef.body.style.overflow).toBe("hidden");
+
+        runtime.setBodyOverflow("");
+        expect(documentRef.body.style.overflow).toBe("");
+    });
+
     it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(17);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -141,6 +170,24 @@ describe("getKeyboardShortcutsModalRuntime", () => {
             "keyboardShortcutsModalRuntime requires a clearTimeout runtime"
         );
         expect(runtime.requestAnimationFrame(frameCallback)).toBe(null);
+        expect(() => runtime.createElement("div")).toThrow(
+            "keyboardShortcutsModalRuntime requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("keyboardShortcutsModalRuntime requires a document runtime");
+        expect(() =>
+            runtime.appendToHead(document.createElement("style"))
+        ).toThrow("keyboardShortcutsModalRuntime requires a document runtime");
+        expect(() =>
+            runtime.querySelector("#keyboard-shortcuts-modal")
+        ).toThrow("keyboardShortcutsModalRuntime requires a document runtime");
+        expect(() => runtime.getActiveElement()).toThrow(
+            "keyboardShortcutsModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.setBodyOverflow("hidden")).toThrow(
+            "keyboardShortcutsModalRuntime requires a document runtime"
+        );
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "keyboardShortcutsModalRuntime requires a document runtime"
         );

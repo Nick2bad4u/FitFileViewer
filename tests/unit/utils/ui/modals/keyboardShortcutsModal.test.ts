@@ -3,9 +3,20 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const runtimeMocks = vi.hoisted(() => ({
+    appendToBody: vi.fn((element: HTMLElement) => {
+        document.body.append(element);
+    }),
+    appendToHead: vi.fn((element: HTMLElement) => {
+        document.head.append(element);
+    }),
     cancelAnimationFrame: vi.fn<(handle: number) => void>(),
     clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
         globalThis.clearTimeout(handle)
+    ),
+    createElement: vi.fn(
+        <K extends keyof HTMLElementTagNameMap>(
+            tagName: K
+        ): HTMLElementTagNameMap[K] => document.createElement(tagName)
     ),
     createSvgElement: vi.fn(
         <K extends keyof SVGElementTagNameMap>(
@@ -13,12 +24,19 @@ const runtimeMocks = vi.hoisted(() => ({
         ): SVGElementTagNameMap[K] =>
             document.createElementNS("http://www.w3.org/2000/svg", tagName)
     ),
+    getActiveElement: vi.fn(() => document.activeElement),
+    querySelector: vi.fn(<K extends Element = Element>(selector: string) =>
+        document.querySelector<K>(selector)
+    ),
     requestAnimationFrame: vi.fn<(callback: FrameRequestCallback) => number>(
         (callback) => {
             callback(0);
             return 1;
         }
     ),
+    setBodyOverflow: vi.fn((value: string) => {
+        document.body.style.overflow = value;
+    }),
     setTimeout: vi.fn<typeof globalThis.setTimeout>((callback, delay) =>
         globalThis.setTimeout(callback, delay)
     ),
@@ -131,10 +149,16 @@ describe("keyboardShortcutsModal", () => {
         document.body.replaceChildren();
         document.head.replaceChildren();
         document.body.style.overflow = "";
+        runtimeMocks.appendToBody.mockClear();
+        runtimeMocks.appendToHead.mockClear();
         runtimeMocks.cancelAnimationFrame.mockClear();
         runtimeMocks.clearTimeout.mockClear();
+        runtimeMocks.createElement.mockClear();
         runtimeMocks.createSvgElement.mockClear();
+        runtimeMocks.getActiveElement.mockClear();
+        runtimeMocks.querySelector.mockClear();
         runtimeMocks.requestAnimationFrame.mockClear();
+        runtimeMocks.setBodyOverflow.mockClear();
         runtimeMocks.setTimeout.mockClear();
         vi.useRealTimers();
     });

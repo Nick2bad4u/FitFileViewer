@@ -6369,7 +6369,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(47);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -6402,6 +6402,30 @@ describe("architecture boundaries", () => {
             "keyboardShortcutsModalRuntime.js"
         );
         expect(keyboardShortcutsModalSource).toContain("createSvgElement");
+        expect(keyboardShortcutsModalSource).toContain("createElement");
+        expect(keyboardShortcutsModalSource).toContain("appendToBody");
+        expect(keyboardShortcutsModalSource).toContain("appendToHead");
+        expect(keyboardShortcutsModalSource).toContain("querySelector");
+        expect(keyboardShortcutsModalSource).toContain("getActiveElement");
+        expect(keyboardShortcutsModalSource).toContain("setBodyOverflow");
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.createElement"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.querySelector"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.body.append"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.head.append"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.activeElement"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.body.style.overflow"
+        );
         expect(keyboardShortcutsModalSource).not.toContain(
             "document.createElementNS"
         );
@@ -6458,6 +6482,24 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "return createSvgElement(scope, tagName);"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getScopeDocument(scope).createElement"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getScopeDocument(scope).body.append"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getScopeDocument(scope).head.append"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getScopeDocument(scope).querySelector"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getScopeDocument(scope).activeElement"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getScopeDocument(scope).body.style.overflow"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "createElementNS"

@@ -98,7 +98,7 @@ const SHORTCUT_CATEGORIES: ShortcutCategory[] = [
  * Closes the keyboard shortcuts modal with smooth animations
  */
 export function closeKeyboardShortcutsModal(): void {
-    const modal = document.querySelector<HTMLElement>(
+    const modal = keyboardShortcutsModalRuntime.querySelector<HTMLElement>(
         "#keyboard-shortcuts-modal"
     );
     if (!modal || modal.style.display === "none") {
@@ -129,7 +129,7 @@ export function closeKeyboardShortcutsModal(): void {
         }
 
         // Restore body scrolling
-        document.body.style.overflow = "";
+        keyboardShortcutsModalRuntime.setBodyOverflow("");
     }, modalAnimationDuration);
 }
 
@@ -139,14 +139,16 @@ export function closeKeyboardShortcutsModal(): void {
 function ensureKeyboardShortcutsModal(
     options: KeyboardShortcutsModalOptions
 ): void {
-    const existingModal = document.querySelector("#keyboard-shortcuts-modal");
+    const existingModal = keyboardShortcutsModalRuntime.querySelector(
+        "#keyboard-shortcuts-modal"
+    );
     if (existingModal) {
         console.log("Keyboard shortcuts modal already exists");
         return;
     }
 
     console.log("Creating new keyboard shortcuts modal...");
-    const modal = document.createElement("div");
+    const modal = keyboardShortcutsModalRuntime.createElement("div");
     modal.id = "keyboard-shortcuts-modal";
     modal.className = "modal fancy-modal";
     modal.setAttribute("aria-describedby", "keyboard-shortcuts-modal-subtitle");
@@ -155,7 +157,7 @@ function ensureKeyboardShortcutsModal(
     modal.setAttribute("role", "dialog");
     modal.style.display = "none";
     modal.append(createKeyboardShortcutsModalContent());
-    document.body.append(modal);
+    keyboardShortcutsModalRuntime.appendToBody(modal);
     console.log("Modal element created and appended to body");
 
     // Add global event listeners
@@ -179,20 +181,20 @@ function ensureKeyboardShortcutsModal(
  * @returns Content root for the modal.
  */
 function createKeyboardShortcutsModalContent(): HTMLElement {
-    const backdrop = document.createElement("div");
+    const backdrop = keyboardShortcutsModalRuntime.createElement("div");
     backdrop.className = "modal-backdrop";
 
-    const content = document.createElement("div");
+    const content = keyboardShortcutsModalRuntime.createElement("div");
     content.className = "modal-content";
 
-    const header = document.createElement("div");
+    const header = keyboardShortcutsModalRuntime.createElement("div");
     header.className = "modal-header";
 
-    const iconWrapper = document.createElement("div");
+    const iconWrapper = keyboardShortcutsModalRuntime.createElement("div");
     iconWrapper.className = "modal-icon";
     iconWrapper.append(createKeyboardIcon());
 
-    const closeButton = document.createElement("button");
+    const closeButton = keyboardShortcutsModalRuntime.createElement("button");
     closeButton.id = "shortcuts-modal-close";
     closeButton.className = "modal-close";
     closeButton.type = "button";
@@ -202,24 +204,25 @@ function createKeyboardShortcutsModalContent(): HTMLElement {
 
     header.append(iconWrapper, closeButton);
 
-    const body = document.createElement("div");
+    const body = keyboardShortcutsModalRuntime.createElement("div");
     body.className = "modal-body";
 
-    const title = document.createElement("h1");
+    const title = keyboardShortcutsModalRuntime.createElement("h1");
     title.id = "keyboard-shortcuts-modal-title";
     title.className = "modal-title";
-    const titleText = document.createElement("span");
+    const titleText = keyboardShortcutsModalRuntime.createElement("span");
     titleText.className = "title-gradient";
     titleText.textContent = "Keyboard Shortcuts";
     title.append(titleText);
 
-    const subtitle = document.createElement("p");
+    const subtitle = keyboardShortcutsModalRuntime.createElement("p");
     subtitle.id = "keyboard-shortcuts-modal-subtitle";
     subtitle.className = "modal-subtitle";
     subtitle.textContent =
         "Boost your productivity with these keyboard shortcuts";
 
-    const shortcutsContainer = document.createElement("div");
+    const shortcutsContainer =
+        keyboardShortcutsModalRuntime.createElement("div");
     shortcutsContainer.className = "shortcuts-container";
     for (const category of SHORTCUT_CATEGORIES) {
         shortcutsContainer.append(createShortcutCategory(category));
@@ -283,14 +286,14 @@ function createSvgIcon(className = ""): SVGSVGElement {
 }
 
 function createShortcutCategory(category: ShortcutCategory): HTMLElement {
-    const wrapper = document.createElement("div");
+    const wrapper = keyboardShortcutsModalRuntime.createElement("div");
     wrapper.className = "shortcuts-category";
 
-    const title = document.createElement("h3");
+    const title = keyboardShortcutsModalRuntime.createElement("h3");
     title.className = "shortcuts-category-title";
     title.textContent = category.category;
 
-    const list = document.createElement("div");
+    const list = keyboardShortcutsModalRuntime.createElement("div");
     list.className = "shortcuts-list";
     for (const item of category.items) {
         list.append(createShortcutItem(item));
@@ -302,21 +305,21 @@ function createShortcutCategory(category: ShortcutCategory): HTMLElement {
 }
 
 function createShortcutItem(item: ShortcutItem): HTMLElement {
-    const row = document.createElement("div");
+    const row = keyboardShortcutsModalRuntime.createElement("div");
     row.className = "shortcut-item";
 
-    const info = document.createElement("div");
+    const info = keyboardShortcutsModalRuntime.createElement("div");
     info.className = "shortcut-info";
 
-    const action = document.createElement("span");
+    const action = keyboardShortcutsModalRuntime.createElement("span");
     action.className = "shortcut-action";
     action.textContent = item.action;
 
-    const description = document.createElement("span");
+    const description = keyboardShortcutsModalRuntime.createElement("span");
     description.className = "shortcut-description";
     description.textContent = item.description;
 
-    const keys = document.createElement("kbd");
+    const keys = keyboardShortcutsModalRuntime.createElement("kbd");
     keys.className = "shortcut-keys";
     keys.textContent = item.keys;
 
@@ -333,7 +336,7 @@ function createShortcutItem(item: ShortcutItem): HTMLElement {
  */
 function handleShortcutsEscapeKey(event: Event): void {
     if (event instanceof KeyboardEvent && event.key === "Escape") {
-        const modal = document.querySelector<HTMLElement>(
+        const modal = keyboardShortcutsModalRuntime.querySelector<HTMLElement>(
             "#keyboard-shortcuts-modal"
         );
         if (modal && modal.style.display !== "none") {
@@ -348,10 +351,14 @@ function handleShortcutsEscapeKey(event: Event): void {
  * Injects enhanced CSS styles for the keyboard shortcuts modal
  */
 function injectKeyboardShortcutsModalStyles(): void {
-    if (document.querySelector("#keyboard-shortcuts-modal-styles")) {
+    if (
+        keyboardShortcutsModalRuntime.querySelector(
+            "#keyboard-shortcuts-modal-styles"
+        )
+    ) {
         return;
     }
-    const style = document.createElement("style");
+    const style = keyboardShortcutsModalRuntime.createElement("style");
     style.id = "keyboard-shortcuts-modal-styles";
     style.textContent = `
 		/* Keyboard Shortcuts Modal Base Styles */
@@ -674,7 +681,7 @@ function injectKeyboardShortcutsModalStyles(): void {
 			box-shadow: 0 0 0 3px var(--color-glass);
 		}
 	`;
-    document.head.append(style);
+    keyboardShortcutsModalRuntime.appendToHead(style);
 }
 
 /**
@@ -714,7 +721,7 @@ export function showKeyboardShortcutsModal(
     console.log("showKeyboardShortcutsModal function called");
     ensureKeyboardShortcutsModal(options);
 
-    const modal = document.querySelector<HTMLElement>(
+    const modal = keyboardShortcutsModalRuntime.querySelector<HTMLElement>(
         "#keyboard-shortcuts-modal"
     );
     console.log("Modal element found:", modal);
@@ -730,10 +737,9 @@ export function showKeyboardShortcutsModal(
     }
 
     // Store the currently focused element
+    const activeElement = keyboardShortcutsModalRuntime.getActiveElement();
     lastFocusedElement =
-        document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : null;
+        activeElement instanceof HTMLElement ? activeElement : null;
     // Show modal with animation
     modal.style.display = "flex";
     console.log("Modal display set to flex");
@@ -774,6 +780,6 @@ export function showKeyboardShortcutsModal(
     focusTrapCleanup = createModalFocusTrap(modal, closeBtn);
 
     // Prevent body scrolling
-    document.body.style.overflow = "hidden";
+    keyboardShortcutsModalRuntime.setBodyOverflow("hidden");
     console.log("Body scroll prevented");
 }
