@@ -4685,10 +4685,21 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(68);
+        expect.assertions(80);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
+        );
+        const applicationStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const applicationLifecycleWiringSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/applicationLifecycleWiring.ts"
+            )
+        );
+        const lifecycleCleanupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/lifecycleCleanup.ts")
         );
         const rendererRuntimeEnvironmentSource = stripComments(
             readRepositoryFile("electron-app/renderer/runtimeEnvironment.ts")
@@ -4748,6 +4759,15 @@ describe("architecture boundaries", () => {
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "type RendererRuntimeGlobalScope = typeof globalThis &"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "export type RendererAddEventListener = typeof globalThis.addEventListener"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "export type RendererRemoveEventListener ="
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "export type RendererSetTimeout = typeof globalThis.setTimeout"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
@@ -4820,6 +4840,23 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).toContain(
             "renderer runtime environment requires a renderer event target"
         );
+        expect(applicationStartupSource).toContain("RendererAddEventListener");
+        expect(applicationStartupSource).not.toContain(
+            "typeof globalThis.addEventListener"
+        );
+        expect(applicationStartupSource).not.toContain("globalThis.");
+        expect(applicationLifecycleWiringSource).toContain(
+            "RendererSetTimeout"
+        );
+        expect(applicationLifecycleWiringSource).not.toContain(
+            "typeof globalThis.setTimeout"
+        );
+        expect(applicationLifecycleWiringSource).not.toContain("globalThis.");
+        expect(lifecycleCleanupSource).toContain("RendererRemoveEventListener");
+        expect(lifecycleCleanupSource).not.toContain(
+            "typeof globalThis.removeEventListener"
+        );
+        expect(lifecycleCleanupSource).not.toContain("globalThis.");
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");

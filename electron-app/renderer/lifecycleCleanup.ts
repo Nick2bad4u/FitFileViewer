@@ -1,4 +1,5 @@
 import type { RendererErrorEventHandlers } from "./errorHandling.js";
+import type { RendererRemoveEventListener } from "./runtimeEnvironment.js";
 
 type RendererCleanupLogger = (
     level: "error" | "log",
@@ -18,7 +19,7 @@ interface RendererLifecycleCleanupOptions {
     getCoreModules: () => Promise<RendererCleanupCoreModules>;
     isOpeningFileRef: { value: boolean };
     logRenderer: RendererCleanupLogger;
-    removeEventListener: typeof globalThis.removeEventListener;
+    removeEventListener: RendererRemoveEventListener;
 }
 
 export function createRendererLifecycleCleanup(

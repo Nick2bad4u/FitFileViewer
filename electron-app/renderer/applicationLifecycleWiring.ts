@@ -2,6 +2,7 @@ import {
     getRendererApplicationLifecycleWiringRuntime,
     type RendererApplicationLifecycleWiringRuntime,
 } from "./applicationLifecycleWiringRuntime.js";
+import type { RendererSetTimeout } from "./runtimeEnvironment.js";
 
 type RendererApplicationLifecycleDocument = Pick<
     Document,
@@ -19,7 +20,7 @@ type RendererApplicationLifecycleOptions = {
     readonly globalEventTarget: RendererApplicationLifecycleGlobalEventTarget;
     readonly initializeApplication: () => Promise<void>;
     readonly runtime?: RendererApplicationLifecycleWiringRuntime | undefined;
-    readonly setTimeout: typeof globalThis.setTimeout;
+    readonly setTimeout: RendererSetTimeout;
 };
 
 export function registerRendererApplicationLifecycle(

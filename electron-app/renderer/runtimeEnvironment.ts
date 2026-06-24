@@ -7,40 +7,44 @@ type RendererRuntimeGlobalScope = typeof globalThis & {
     readonly electronAPI?: unknown;
 };
 
+export type RendererAddEventListener = typeof globalThis.addEventListener;
+export type RendererClearInterval = typeof globalThis.clearInterval;
+export type RendererRemoveEventListener = typeof globalThis.removeEventListener;
+export type RendererSetInterval = typeof globalThis.setInterval;
+export type RendererSetTimeout = typeof globalThis.setTimeout;
+
 export type RendererRuntimeEnvironment = {
-    readonly addEventListener: typeof globalThis.addEventListener;
-    readonly clearInterval: typeof globalThis.clearInterval;
+    readonly addEventListener: RendererAddEventListener;
+    readonly clearInterval: RendererClearInterval;
     readonly console: Console;
     readonly documentTarget: Document;
     readonly electronApiCandidate: unknown;
-    readonly removeEventListener: typeof globalThis.removeEventListener;
+    readonly removeEventListener: RendererRemoveEventListener;
     readonly rendererEventTarget: RendererRuntimeEventTarget;
-    readonly setInterval: typeof globalThis.setInterval;
-    readonly setTimeout: typeof globalThis.setTimeout;
+    readonly setInterval: RendererSetInterval;
+    readonly setTimeout: RendererSetTimeout;
 };
 
 export type RendererRuntimeEnvironmentScope = {
     readonly getAddEventListener?:
-        | (() => typeof globalThis.addEventListener | undefined)
+        | (() => RendererAddEventListener | undefined)
         | undefined;
     readonly getClearInterval?:
-        | (() => typeof globalThis.clearInterval | undefined)
+        | (() => RendererClearInterval | undefined)
         | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getElectronApiCandidate?: (() => unknown) | undefined;
     readonly getRemoveEventListener?:
-        | (() => typeof globalThis.removeEventListener | undefined)
+        | (() => RendererRemoveEventListener | undefined)
         | undefined;
     readonly getRendererEventTarget?:
         | (() => RendererRuntimeEventTarget | undefined)
         | undefined;
     readonly getSetInterval?:
-        | (() => typeof globalThis.setInterval | undefined)
+        | (() => RendererSetInterval | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => RendererSetTimeout | undefined) | undefined;
 };
 
 const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =

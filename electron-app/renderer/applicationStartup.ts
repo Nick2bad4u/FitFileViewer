@@ -9,6 +9,7 @@ import {
     type RendererErrorEventHandlers,
 } from "./errorHandling.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
+import type { RendererAddEventListener } from "./runtimeEnvironment.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     ListenForThemeChange,
@@ -55,7 +56,7 @@ export type RendererApplicationStartupCoreModules = Readonly<{
 }>;
 
 interface RendererApplicationStartupOptions {
-    addEventListener: typeof globalThis.addEventListener;
+    addEventListener: RendererAddEventListener;
     ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
     getElectronApiScope: () => RendererElectronApiScope;
