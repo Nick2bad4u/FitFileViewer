@@ -21,19 +21,8 @@ export interface StorageUtilsRuntime {
 }
 
 const defaultStorageUtilsRuntimeScope: StorageUtilsRuntimeScope = {
-    getLocalStorage: getDefaultLocalStorage,
+    getLocalStorage: () => globalThis.localStorage ?? null,
 };
-
-function getDefaultLocalStorage(): null | StorageLike {
-    const localStorageValue = globalThis.localStorage as
-        | null
-        | StorageLike
-        | undefined;
-
-    return localStorageValue === null || localStorageValue === undefined
-        ? null
-        : localStorageValue;
-}
 
 function getScopeLocalStorage(
     scope: StorageUtilsRuntimeScope
