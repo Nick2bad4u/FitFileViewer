@@ -51,13 +51,13 @@ export function createPreloadEventApi({
     function onUpdateEvent(
         eventName: UpdateEventName,
         callback: (...args: IpcResponsePayload[]) => unknown
-    ): () => void {
+    ): (() => void) | undefined {
         const eventLabel = String(eventName);
         if (!validateCallback(callback, "onUpdateEvent")) {
-            return noopUnsubscribe;
+            return undefined;
         }
         if (!validateChannelName(eventName, "eventName", "onUpdateEvent")) {
-            return noopUnsubscribe;
+            return undefined;
         }
 
         if (

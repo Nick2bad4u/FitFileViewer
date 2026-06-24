@@ -1,4 +1,6 @@
 export type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
+export type ElectronApiFactoryOptions =
+    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
 export type ElectronApiDiagnosticsApi =
     import("../shared/preloadApi").ElectronApiDiagnosticsApi;
 export type ElectronAppInfoApi =
@@ -107,7 +109,7 @@ export type ValidateMainStatePathInput = (
 ) => string | undefined;
 export type PreloadApiFactory<Api> = (options: Record<string, unknown>) => Api;
 export type CreateElectronApi = (
-    options: Record<string, unknown>
+    options: ElectronApiFactoryOptions
 ) => ElectronAPI;
 export type CreatePreloadApiAssemblyContext = (options: {
     constants: PreloadConstants;

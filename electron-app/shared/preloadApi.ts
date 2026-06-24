@@ -161,7 +161,7 @@ export interface ElectronAPI {
     onUpdateEvent: (
         eventName: UpdateEventName,
         callback: (...args: IpcResponsePayload[]) => void
-    ) => () => void;
+    ) => (() => void) | undefined;
     /** Fired when a file is opened and parsed in main process. */
     onFileOpened?: (
         callback: (fileData: FitMessages, filePath: string) => void

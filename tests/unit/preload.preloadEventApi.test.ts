@@ -109,6 +109,28 @@ describe("preload event API", () => {
         ]);
     });
 
+    it("rejects invalid update event arguments before registering listeners", () => {
+        expect.assertions(5);
+
+        const { api, ipcMock, preloadLog } = createApi();
+        const callback = vi.fn<(...args: IpcResponsePayload[]) => void>();
+
+        const invalidEventUnsubscribe = api.onUpdateEvent(
+            123 as never,
+            callback
+        );
+        const invalidCallbackUnsubscribe = api.onUpdateEvent(
+            "update-checking",
+            null as never
+        );
+
+        expect(invalidEventUnsubscribe).toBeUndefined();
+        expect(invalidCallbackUnsubscribe).toBeUndefined();
+        expect(ipcMock.on).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
+        expect(preloadLog.mock.calls).toStrictEqual([]);
+    });
+
     it("normalizes FIT file load notifications", () => {
         expect.assertions(2);
 
