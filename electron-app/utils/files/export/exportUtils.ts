@@ -1544,7 +1544,7 @@ export const exportUtils = {
             const link = document.createElement("a");
             link.download = filename;
             link.href = combinedCanvas.toDataURL("image/png");
-            document.body.append(link);
+            exportUtilsRuntime.appendToBody(link);
             link.click();
             link.remove();
 
@@ -1872,7 +1872,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.download = filename;
             link.href = chart.toBase64Image("image/png", 1, backgroundColor);
-            document.body.append(link);
+            exportUtilsRuntime.appendToBody(link);
             link.click();
             link.remove();
             __deps.showNotification(`Chart exported as ${filename}`, "success");
@@ -1998,7 +1998,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(content);
             link.download = `fitfile-charts-${exportDate}.zip`;
-            document.body.append(link);
+            exportUtilsRuntime.appendToBody(link);
             link.click();
             link.remove();
 
@@ -2039,7 +2039,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
-            document.body.append(link);
+            exportUtilsRuntime.appendToBody(link);
             link.click();
             link.remove();
             showNotification(`Data exported as ${filename}`, "success");
@@ -2074,7 +2074,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
-            document.body.append(link);
+            exportUtilsRuntime.appendToBody(link);
             link.click();
             link.remove();
             showNotification(`Data exported as ${filename}`, "success");
@@ -2138,7 +2138,7 @@ export const exportUtils = {
                 link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
-            document.body.append(link);
+            exportUtilsRuntime.appendToBody(link);
             link.click();
             link.remove();
 

@@ -4432,7 +4432,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(54);
+        expect.assertions(58);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4458,6 +4458,8 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("getStorage");
         expect(exportUtilsSource).toContain("openPrintWindow");
         expect(exportUtilsSource).toContain("addDocumentKeydownListener");
+        expect(exportUtilsSource).toContain("appendToBody");
+        expect(exportUtilsSource).not.toContain("document.body.append(link)");
         expect(exportUtilsSource).not.toContain("Reflect.get(globalThis");
         expect(exportUtilsSource).not.toContain("globalThis.window");
         expect(exportUtilsSource).not.toContain("globalThis.localStorage");
@@ -4485,6 +4487,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "exportUtils requires a document event-target runtime"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "exportUtils requires a document runtime"
         );
         expect(exportUtilsRuntimeSource).not.toContain("globalThis.window");
         expect(exportUtilsRuntimeSource).not.toContain("getWindow");
@@ -4545,6 +4550,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "return scope.getDocumentEventTarget?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "documentRef.body.append(element)"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "return scope.getOpenPrintWindow?.();"

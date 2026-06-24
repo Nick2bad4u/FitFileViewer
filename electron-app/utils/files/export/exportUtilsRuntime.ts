@@ -40,6 +40,7 @@ export interface ExportUtilsRuntime {
         listener: (event: Readonly<KeyboardEvent>) => void,
         options: Readonly<AddEventListenerOptions>
     ) => void;
+    readonly appendToBody: (element: HTMLElement) => void;
     readonly confirmDangerousAction: (message: string) => boolean;
     readonly createAbortController: () => AbortController;
     readonly getSecureRandomScope: () => SecureRandomScope;
@@ -138,6 +139,15 @@ export function getExportUtilsRuntime(
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
             documentEventTarget.addEventListener("keydown", listener, options);
+        },
+
+        appendToBody(element): void {
+            const documentRef = getScopeDocumentEventTarget(scope);
+            if (!documentRef) {
+                throw new TypeError("exportUtils requires a document runtime");
+            }
+
+            documentRef.body.append(element);
         },
 
         confirmDangerousAction(message: string): boolean {

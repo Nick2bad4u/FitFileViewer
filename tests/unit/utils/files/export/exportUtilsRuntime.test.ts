@@ -168,7 +168,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("registers document keydown listeners through the scoped event target", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const controller = new AbortController();
         const documentEventTarget =
@@ -188,6 +188,8 @@ describe("exportUtilsRuntime", () => {
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
         });
+        const link = documentEventTarget.createElement("a");
+        runtime.appendToBody(link);
         documentEventTarget.dispatchEvent(
             new KeyboardEvent("keydown", { key: "Escape" })
         );
@@ -196,7 +198,8 @@ describe("exportUtilsRuntime", () => {
             signal: controller.signal,
         });
         expect(keydownCount).toBe(1);
-        expect(documentEventTarget.body.childElementCount).toBe(0);
+        expect(documentEventTarget.body.childElementCount).toBe(1);
+        expect(documentEventTarget.body.contains(link)).toBe(true);
     });
 
     it("routes document keydown listeners through provider functions", () => {
@@ -225,7 +228,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const storage = {
             getItem: vi.fn<Storage["getItem"]>(),
@@ -264,6 +267,9 @@ describe("exportUtilsRuntime", () => {
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow("exportUtils requires a document event-target runtime");
+        expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
+            "exportUtils requires a document runtime"
+        );
         expect(confirmDangerousAction).not.toHaveBeenCalled();
         expect(openPrintWindow).not.toHaveBeenCalled();
         expect(storage.getItem).not.toHaveBeenCalled();
@@ -272,7 +278,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("throws when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         expect(() => getExportUtilsRuntime({}).createAbortController()).toThrow(
             "exportUtils requires an AbortController runtime"
@@ -283,6 +289,9 @@ describe("exportUtilsRuntime", () => {
                 {}
             )
         ).toThrow("exportUtils requires a document event-target runtime");
+        expect(() =>
+            getExportUtilsRuntime({}).appendToBody(document.createElement("a"))
+        ).toThrow("exportUtils requires a document runtime");
     });
 
     it("resolves default storage and crypto providers when runtime operations run", () => {
