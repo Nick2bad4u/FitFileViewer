@@ -45,8 +45,6 @@ type DragDropHandlerOptions = {
     readonly runtimeScope?: DragDropHandlerRuntimeScope | undefined;
 };
 
-const dragDropHandlerRuntime = getDragDropHandlerRuntime();
-
 function getDragDropElectronApi(
     scope?: RendererElectronApiScope
 ): ElectronApiLike | null {
@@ -97,7 +95,7 @@ export class DragDropHandler {
         this.electronApiScope = electronApiScope;
         this.runtime = runtimeScope
             ? getDragDropHandlerRuntime(runtimeScope)
-            : dragDropHandlerRuntime;
+            : getDragDropHandlerRuntime();
         try {
             const initialCounter = getRendererDragCounter();
             if (Number.isFinite(initialCounter)) {
