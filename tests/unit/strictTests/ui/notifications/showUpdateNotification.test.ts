@@ -147,6 +147,7 @@ describe("showUpdateNotification", () => {
         const timeoutHandle = Number("59");
         const timerRuntime: NotificationTimerRuntime = {
             clearTimeout: vi.fn(),
+            dateNow: vi.fn(() => Number("1000")),
             setTimeout: vi.fn(() => timeoutHandle),
         };
         const notificationRuntime: ShowUpdateNotificationRuntime = {

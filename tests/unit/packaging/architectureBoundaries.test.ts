@@ -998,9 +998,9 @@ const directShowNotificationRuntimeAmbientGetterPattern =
 const directShowNotificationDomRuntimeGlobalPattern =
     /\bdocument\.(?:createElement|querySelector)\b|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b/u;
 const directNotificationTimerRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\bDate\.now\b|\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNotificationTimerRuntimeAmbientGetterPattern =
-    /\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b/u;
+    /\bget\s+DateNow\s*\(\)\s*\{|\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directShowUpdateNotificationDomRuntimeGlobalPattern =
     /\bdocument\.(?:createElement|querySelector)\b/u;
 const directAboutModalDevHelperGlobalPattern =
@@ -7543,7 +7543,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(25);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -7589,6 +7589,10 @@ describe("architecture boundaries", () => {
         expect(syncRendererNotificationsSource).toContain(
             "timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()"
         );
+        expect(syncRendererNotificationsSource).toContain(
+            "timestamp: timerRuntime.dateNow(),"
+        );
+        expect(syncRendererNotificationsSource).not.toContain("Date.now");
         expect(showUpdateNotificationSource).toContain(
             "type NotificationTimerRuntime"
         );
@@ -7601,8 +7605,23 @@ describe("architecture boundaries", () => {
         expect(notificationTimerRuntimeSource).toContain(
             "defaultNotificationTimerRuntimeScope"
         );
+        expect(notificationTimerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "readonly dateNow: () => number;"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "notification timers require dateNow"
+        );
         expect(notificationTimerRuntimeScopeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(notificationTimerRuntimeScopeSource).not.toContain(
+            "readonly dateNow?:"
         );
         expect(notificationTimerRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
@@ -7610,6 +7629,7 @@ describe("architecture boundaries", () => {
         expect(notificationTimerRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
+        expect(notificationTimerRuntimeSource).not.toContain("scope.dateNow");
         expect(notificationTimerRuntimeSource).not.toContain(
             "scope.setTimeout"
         );

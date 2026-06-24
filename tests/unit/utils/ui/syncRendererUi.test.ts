@@ -158,13 +158,15 @@ describe("sync renderer UI helpers", () => {
     });
 
     it("showNotification schedules and clears through an injected timer runtime", async () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         resetTestState();
 
+        const timestamp = Number("1234");
         const timeoutHandle = Number("47");
         const runtime: NotificationTimerRuntime = {
             clearTimeout: vi.fn(),
+            dateNow: vi.fn(() => timestamp),
             setTimeout: vi.fn(() => timeoutHandle),
         };
         const { clearNotification, getCurrentNotification, showNotification } =
@@ -179,6 +181,10 @@ describe("sync renderer UI helpers", () => {
         expect(runtime.setTimeout).toHaveBeenCalledExactlyOnceWith(
             expect.any(Function),
             2500
+        );
+        expect(runtime.dateNow).toHaveBeenCalledOnce();
+        expect(getCurrentNotification()).toStrictEqual(
+            expect.objectContaining({ timestamp })
         );
 
         clearNotification();

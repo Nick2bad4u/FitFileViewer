@@ -90,7 +90,7 @@ export function showNotification(
     setCurrentRendererNotification(
         {
             message,
-            timestamp: Date.now(),
+            timestamp: timerRuntime.dateNow(),
             type,
         } satisfies RendererNotification,
         { source: "showNotification" }
