@@ -14939,7 +14939,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(16);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -14961,6 +14961,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/chartListenerStateRuntime.ts"
             )
         );
+        const listenerStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartListenerState.ts"
+            )
+        );
         const runtimeScopeSource = runtimeSource.slice(
             runtimeSource.indexOf(
                 "export interface ChartListenerStateRuntimeScope"
@@ -14970,6 +14975,19 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(listenerStateSource).toContain("type ChartListenerStateRuntime");
+        expect(listenerStateSource).not.toContain(
+            "const chartListenerStateRuntime = getChartListenerStateRuntime();"
+        );
+        expect(listenerStateSource).toContain(
+            "runtime: ChartListenerStateRuntime = getChartListenerStateRuntime()"
+        );
+        expect(listenerStateSource).toContain(
+            "chartRequestListenerController = runtime.createAbortController()"
+        );
+        expect(listenerStateSource).toContain(
+            "sharedConfigurationListenerController = runtime.createAbortController()"
+        );
         expect(runtimeSource).not.toMatch(
             directChartListenerStateRuntimeAmbientControllerPattern
         );

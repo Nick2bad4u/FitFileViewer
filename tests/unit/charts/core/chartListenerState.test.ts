@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     abortSharedConfigurationListener,
@@ -8,6 +8,7 @@ import {
     registerSharedConfigurationListenerController,
     resetChartListenerStateForTests,
 } from "../../../../electron-app/utils/charts/core/chartListenerState.js";
+import type { ChartListenerStateRuntime } from "../../../../electron-app/utils/charts/core/chartListenerStateRuntime.js";
 
 describe("chartListenerState", () => {
     afterEach(() => {
@@ -26,6 +27,29 @@ describe("chartListenerState", () => {
 
         expect(firstSignal.aborted).toBe(true);
         expect(secondSignal.aborted).toBe(false);
+    });
+
+    it("creates listener controllers through an injected runtime", () => {
+        expect.assertions(5);
+
+        const controllers = [
+            new AbortController(),
+            new AbortController(),
+        ];
+        const runtime: ChartListenerStateRuntime = {
+            createAbortController: vi.fn(() => controllers.shift()!),
+        };
+
+        const chartRequestSignal =
+            registerChartRequestListenerController(runtime);
+        const sharedConfigurationSignal =
+            registerSharedConfigurationListenerController(runtime);
+
+        expect(runtime.createAbortController).toHaveBeenCalledTimes(2);
+        expect(chartRequestSignal.aborted).toBe(false);
+        expect(sharedConfigurationSignal.aborted).toBe(false);
+        expect(isChartRequestListenerRegistered()).toBe(true);
+        expect(isSharedConfigurationListenerRegistered()).toBe(true);
     });
 
     it("tracks shared configuration listener registration and aborts on disposal", () => {
