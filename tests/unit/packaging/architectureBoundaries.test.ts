@@ -4277,7 +4277,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -4288,8 +4288,8 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
         );
 
-        expect(developmentDebugToolsSource).toContain(
-            'import type { RendererCoreModules } from "./coreModuleResolution.js";'
+        expect(developmentDebugToolsSource).not.toContain(
+            'from "./coreModuleResolution.js"'
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDebugCoreFunction = (...args: unknown[]) => unknown;"
@@ -4298,9 +4298,18 @@ describe("architecture boundaries", () => {
             "UnknownRendererFunction"
         );
         expect(developmentDebugToolsSource).toContain(
-            "export type RendererDevelopmentDebugCoreModules = Partial<"
+            "type RendererDevelopmentDebugFunctionModules = {"
         );
-        expect(developmentDebugToolsSource).toContain("Pick<");
+        expect(developmentDebugToolsSource).toContain(
+            "readonly [Name in DevelopmentDebugCoreFunctionName]?:"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "type RendererDevelopmentDebugStateModules = {"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "export type RendererDevelopmentDebugCoreModules = Readonly<"
+        );
+        expect(developmentDebugToolsSource).not.toContain("Pick<");
         expect(developmentDebugToolsSource).toContain('"handleOpenFile"');
         expect(developmentDebugToolsSource).toContain('"setupTheme"');
         expect(developmentDebugToolsSource).toContain('"showAboutModal"');
@@ -4309,7 +4318,7 @@ describe("architecture boundaries", () => {
             '"showUpdateNotification"'
         );
         expect(developmentDebugToolsSource).toContain('"masterStateManager"');
-        expect(developmentDebugToolsSource).toContain('"uiStateManager"');
+        expect(developmentDebugToolsSource).toContain("uiStateManager");
         expect(developmentDebugToolsSource).not.toContain(
             "type DevelopmentCoreModuleResolver = () => Promise<Record<string, unknown>>"
         );

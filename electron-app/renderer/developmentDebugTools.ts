@@ -1,4 +1,3 @@
-import type { RendererCoreModules } from "./coreModuleResolution.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 import {
     isRendererDebugLoggingEnabled,
@@ -30,19 +29,22 @@ type DevelopmentStateManagerMethodName =
     | "getState"
     | "getSubscriptions";
 
-export type RendererDevelopmentDebugCoreModules = Partial<
-    Pick<
-        RendererCoreModules,
-        | "AppActions"
-        | DevelopmentDebugCoreFunctionName
-        | "masterStateManager"
-        | "uiStateManager"
-    >
+type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
+type RendererDevelopmentDebugFunctionModules = {
+    readonly [Name in DevelopmentDebugCoreFunctionName]?: unknown;
+};
+type RendererDevelopmentDebugStateModules = {
+    readonly AppActions?: Record<string, unknown> | undefined;
+    readonly masterStateManager?: unknown;
+    readonly uiStateManager?: unknown;
+};
+export type RendererDevelopmentDebugCoreModules = Readonly<
+    RendererDevelopmentDebugFunctionModules &
+        RendererDevelopmentDebugStateModules
 >;
 type DevelopmentCoreModuleResolver =
     () => Promise<RendererDevelopmentDebugCoreModules>;
 type RendererDebugToolCall = (...args: unknown[]) => Promise<unknown>;
-type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDebugToolsView = {
     readonly handleOpenFile: RendererDebugToolCall;
     readonly PerformanceMonitor: RendererPerformanceMonitor;
@@ -54,7 +56,7 @@ type RendererDebugToolsView = {
 type RendererDebugUtilityGroup = Record<string, unknown>;
 type RendererDevToolsView = {
     APP_INFO: typeof APP_INFO;
-    AppActions?: RendererCoreModules["AppActions"];
+    AppActions?: Record<string, unknown>;
     cleanup: () => void;
     chartDebug: boolean;
     chartDebugVerbose: boolean;
@@ -70,7 +72,7 @@ type RendererDevToolsView = {
     reinitialize: () => Promise<void>;
     sensorDebug?: RendererDebugUtilityGroup;
     readonly stateManager: Promise<unknown>;
-    uiStateManager?: RendererCoreModules["uiStateManager"];
+    uiStateManager?: unknown;
     validateDOM: () => boolean;
 };
 type RendererDevelopmentDebugTools = {
