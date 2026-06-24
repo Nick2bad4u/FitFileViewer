@@ -54,6 +54,10 @@ import {
     setRendererTheme,
 } from "../../state/domain/rendererThemeState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import {
+    getAppActionsRuntime,
+    type AppActionsRuntime,
+} from "./appActionsRuntime.js";
 
 type ChartData = {
     datasets: unknown;
@@ -94,6 +98,10 @@ const fitFileStateManagerLike = fitFileStateManager as
 
 function toError(value: unknown): Error {
     return value instanceof Error ? value : new Error(String(value));
+}
+
+function appActionsRuntime(): AppActionsRuntime {
+    return getAppActionsRuntime();
 }
 
 /**
@@ -220,7 +228,7 @@ export const AppActions = {
             });
 
             // Update performance metrics
-            setPerformanceLastLoadTime(Date.now(), {
+            setPerformanceLastLoadTime(appActionsRuntime().dateNow(), {
                 source: "AppActions.loadFile",
             });
 
@@ -244,7 +252,8 @@ export const AppActions = {
      * @param options - Chart options.
      */
     renderChart(chartData: ChartData, options: ChartOptions = {}) {
-        const startTime = performance.now();
+        const runtime = appActionsRuntime();
+        const startTime = runtime.performanceNow();
 
         updateRendererChartState(
             {
@@ -255,7 +264,7 @@ export const AppActions = {
             { source: "AppActions.renderChart" }
         );
 
-        const renderTime = performance.now() - startTime;
+        const renderTime = runtime.performanceNow() - startTime;
         updateRendererPerformanceRenderTimes(
             {
                 chart: renderTime,
@@ -275,7 +284,8 @@ export const AppActions = {
      * @param zoom - Zoom level.
      */
     renderMap(center: MapCenter, zoom = 13) {
-        const startTime = performance.now();
+        const runtime = appActionsRuntime();
+        const startTime = runtime.performanceNow();
 
         updateRendererMapState(
             {
@@ -286,7 +296,7 @@ export const AppActions = {
             { source: "AppActions.renderMap" }
         );
 
-        const renderTime = performance.now() - startTime;
+        const renderTime = runtime.performanceNow() - startTime;
         updateRendererPerformanceRenderTimes(
             {
                 map: renderTime,
@@ -303,7 +313,8 @@ export const AppActions = {
      * @param tableConfig - Table configuration.
      */
     renderTable(tableConfig: TableConfig = {}) {
-        const startTime = performance.now();
+        const runtime = appActionsRuntime();
+        const startTime = runtime.performanceNow();
 
         updateRendererTableState(
             {
@@ -313,7 +324,7 @@ export const AppActions = {
             { source: "AppActions.renderTable" }
         );
 
-        const renderTime = performance.now() - startTime;
+        const renderTime = runtime.performanceNow() - startTime;
         updateRendererPerformanceRenderTimes(
             {
                 table: renderTime,

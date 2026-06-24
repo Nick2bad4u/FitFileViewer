@@ -10152,15 +10152,58 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps app lifecycle actions on the app-actions state facade", () => {
-        expect.assertions(2);
+    it("keeps app lifecycle actions on typed state and runtime facades", () => {
+        expect.assertions(20);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
         );
+        const appActionsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/appActionsRuntime.ts"
+            )
+        );
 
         expect(appActionsSource).toContain("appActionsState.js");
+        expect(appActionsSource).toContain("appActionsRuntime.js");
+        expect(appActionsSource).toContain("type AppActionsRuntime");
+        expect(appActionsSource).toContain(
+            "setPerformanceLastLoadTime(appActionsRuntime().dateNow(), {"
+        );
+        expect(appActionsSource).toContain(
+            "const startTime = runtime.performanceNow();"
+        );
+        expect(appActionsSource).toContain(
+            "const renderTime = runtime.performanceNow() - startTime;"
+        );
         expect(appActionsSource).not.toContain("state/core/stateManager.js");
+        expect(appActionsSource).not.toContain("Date.now");
+        expect(appActionsSource).not.toContain("performance.now");
+        expect(appActionsRuntimeSource).toContain(
+            "defaultAppActionsRuntimeScope"
+        );
+        expect(appActionsRuntimeSource).toContain("getDateNow: () => Date.now");
+        expect(appActionsRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "const performance = scope.getPerformance?.();"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "AppActions requires dateNow"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "AppActions requires performance.now"
+        );
+        expect(appActionsRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(appActionsRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(appActionsRuntimeSource).not.toContain("scope.dateNow");
+        expect(appActionsRuntimeSource).not.toContain("scope.performance");
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
