@@ -106,7 +106,6 @@ const fileInputWiring = createRendererFileInputWiring({
     logRenderer,
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
-    toModuleRecord,
 });
 
 const testOnlyBootstrapOptions = {

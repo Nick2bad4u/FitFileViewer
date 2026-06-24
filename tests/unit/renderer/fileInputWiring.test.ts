@@ -68,10 +68,6 @@ function createWiring(overrides: {
             overrides.resolveExactRendererCoreTestOverride ?? (() => null),
         resolveRendererCoreTestOverride:
             overrides.resolveRendererCoreTestOverride ?? (() => null),
-        toModuleRecord: (value) =>
-            typeof value === "object" && value !== null
-                ? (value as Record<string, unknown>)
-                : {},
     });
 }
 

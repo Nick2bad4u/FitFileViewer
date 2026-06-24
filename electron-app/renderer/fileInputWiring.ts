@@ -22,7 +22,6 @@ type RendererFileInputWiringOptions = {
     readonly resolveRendererCoreTestOverride: (
         pathSuffix: string
     ) => null | unknown;
-    readonly toModuleRecord: (value: unknown) => Record<string, unknown>;
 };
 
 type RendererFileInputWiring = {
@@ -95,7 +94,7 @@ export function createRendererFileInputWiring(
 function resolveOverrideHandleOpenFile(
     options: RendererFileInputWiringOptions
 ): RendererFileOpenHandler | undefined {
-    const moduleRecord = options.toModuleRecord(
+    const moduleRecord = toOverrideRecord(
         options.resolveExactRendererCoreTestOverride(
             "../../utils/files/import/handleOpenFile.js"
         ) ??
@@ -107,7 +106,7 @@ function resolveOverrideHandleOpenFile(
     return (
         toRendererFileOpenHandler(moduleRecord["handleOpenFile"]) ??
         toRendererFileOpenHandler(
-            options.toModuleRecord(moduleRecord["default"])["handleOpenFile"]
+            toOverrideRecord(moduleRecord["default"])["handleOpenFile"]
         )
     );
 }
@@ -125,4 +124,10 @@ function toRendererFileOpenHandler(
     return typeof value === "function"
         ? (value as RendererFileOpenHandler)
         : undefined;
+}
+
+function toOverrideRecord(value: unknown): Record<string, unknown> {
+    return typeof value === "object" && value !== null
+        ? (value as Record<string, unknown>)
+        : {};
 }

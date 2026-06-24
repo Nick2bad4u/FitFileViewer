@@ -11601,8 +11601,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input startup off the generic function bridge", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
         );
@@ -11625,6 +11628,10 @@ describe("architecture boundaries", () => {
         expect(fileInputWiringSource).toContain("RendererFileOpenHandler");
         expect(fileInputWiringSource).toContain(
             "toRendererFileOpenHandler(moduleRecord"
+        );
+        expect(fileInputWiringSource).not.toContain("readonly toModuleRecord");
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererFileInputWiring({\n    ensureCoreModules,\n    getFileInput: domAccess.getFileInput,\n    logRenderer,\n    resolveExactRendererCoreTestOverride,\n    resolveRendererCoreTestOverride,\n    toModuleRecord,"
         );
         expect(applicationStartupSource).toContain(
             "handleImmediateFileInputChange("
