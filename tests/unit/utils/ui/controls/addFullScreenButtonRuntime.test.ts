@@ -60,7 +60,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const staleDocument = document.implementation.createHTMLDocument(
             "stale fullscreen button runtime"
@@ -93,6 +93,8 @@ describe("getAddFullScreenButtonRuntime", () => {
                 removeEventListener: vi.fn(),
             },
             HTMLElement,
+            KeyboardEvent,
+            MutationObserver,
         } as unknown as Parameters<typeof getAddFullScreenButtonRuntime>[0]);
         const handledEventTypes: string[] = [];
         const listener = (event: Event): void => {
@@ -123,7 +125,13 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "addFullScreenButton requires a document runtime"
         );
+        expect(() => runtime.createMutationObserver(() => undefined)).toThrow(
+            "addFullScreenButton requires a MutationObserver runtime"
+        );
         expect(runtime.isHTMLElement(element)).toBe(false);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            false
+        );
         expect(staleDocumentAddEventListener).not.toHaveBeenCalled();
         expect(staleWindowAddEventListener).not.toHaveBeenCalled();
     });
@@ -175,6 +183,30 @@ describe("getAddFullScreenButtonRuntime", () => {
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("creates mutation observers and checks keyboard events through injected constructors", () => {
+        expect.assertions(4);
+
+        const observer = { observe: vi.fn() };
+        const callback = vi.fn<MutationCallback>();
+        const MutationObserverConstructor = vi.fn(function FakeMutationObserver(
+            this: unknown,
+            receivedCallback: MutationCallback
+        ) {
+            expect(receivedCallback).toBe(callback);
+            return observer;
+        });
+        const keyboardEvent = new KeyboardEvent("keydown", { key: "F11" });
+        const runtime = getAddFullScreenButtonRuntime({
+            getKeyboardEvent: () => KeyboardEvent,
+            getMutationObserver: () =>
+                MutationObserverConstructor as unknown as typeof MutationObserver,
+        });
+
+        expect(runtime.createMutationObserver(callback)).toBe(observer);
+        expect(MutationObserverConstructor).toHaveBeenCalledOnce();
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
     });
 
     it("creates fullscreen SVG elements through the injected document runtime", () => {

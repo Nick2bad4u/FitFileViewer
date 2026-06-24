@@ -16,6 +16,12 @@ export interface AddFullScreenButtonRuntimeScope {
     readonly getHTMLElement?:
         | (() => typeof globalThis.HTMLElement | undefined)
         | undefined;
+    readonly getKeyboardEvent?:
+        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | undefined;
+    readonly getMutationObserver?:
+        | (() => typeof globalThis.MutationObserver | undefined)
+        | undefined;
 }
 
 type AddFullScreenButtonEventTarget = Pick<
@@ -42,11 +48,15 @@ export interface AddFullScreenButtonRuntime {
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
+    createMutationObserver: (
+        callback: MutationCallback
+    ) => AddFullScreenButtonMutationObserver;
     appendToBody: (element: HTMLElement) => void;
     getDocument: () => Document;
     getElementById: (id: string) => HTMLElement | null;
     hasBodyClass: (className: string) => boolean;
     isHTMLElement: (value: unknown) => value is HTMLElement;
+    isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
     observeBody: (
         observer: AddFullScreenButtonMutationObserver,
         options: MutationObserverInit
@@ -99,6 +109,25 @@ function getHTMLElementConstructor(
     return scope.getHTMLElement?.();
 }
 
+function getKeyboardEventConstructor(
+    scope: AddFullScreenButtonRuntimeScope
+): typeof globalThis.KeyboardEvent | undefined {
+    return scope.getKeyboardEvent?.();
+}
+
+function getMutationObserverConstructor(
+    scope: AddFullScreenButtonRuntimeScope
+): typeof globalThis.MutationObserver {
+    const MutationObserverConstructor = scope.getMutationObserver?.();
+    if (typeof MutationObserverConstructor !== "function") {
+        throw new TypeError(
+            "addFullScreenButton requires a MutationObserver runtime"
+        );
+    }
+
+    return MutationObserverConstructor;
+}
+
 function isAddFullScreenButtonEventTarget(
     value: unknown
 ): value is AddFullScreenButtonEventTarget {
@@ -123,6 +152,8 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
                 ? globalThis
                 : undefined,
         getHTMLElement: () => globalThis.HTMLElement,
+        getKeyboardEvent: () => globalThis.KeyboardEvent,
+        getMutationObserver: () => globalThis.MutationObserver,
     };
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
@@ -162,6 +193,9 @@ export function getAddFullScreenButtonRuntime(
         createElement(tagName) {
             return getDocument(scope).createElement(tagName);
         },
+        createMutationObserver(callback): AddFullScreenButtonMutationObserver {
+            return new (getMutationObserverConstructor(scope))(callback);
+        },
         appendToBody(element): void {
             getDocument(scope).body.append(element);
         },
@@ -179,6 +213,13 @@ export function getAddFullScreenButtonRuntime(
             return (
                 typeof HTMLElementConstructor === "function" &&
                 value instanceof HTMLElementConstructor
+            );
+        },
+        isKeyboardEvent(value: unknown): value is KeyboardEvent {
+            const KeyboardEventConstructor = getKeyboardEventConstructor(scope);
+            return (
+                typeof KeyboardEventConstructor === "function" &&
+                value instanceof KeyboardEventConstructor
             );
         },
         observeBody(observer, options): void {

@@ -220,7 +220,7 @@ export function setupFullscreenListeners({
             }
             screenfull.on("change", handleFullscreenStateChange);
             const keyHandler = (event: Event): void => {
-                if (event instanceof KeyboardEvent) {
+                if (addFullScreenButtonRuntime().isKeyboardEvent(event)) {
                     handleKeyboardShortcuts(event);
                 }
             };
@@ -277,7 +277,7 @@ export function setupFullscreenListeners({
         }
         nativeFullscreenChangeHandler = nativeHandler;
         const keyHandler = (event: Event): void => {
-            if (event instanceof KeyboardEvent) {
+            if (addFullScreenButtonRuntime().isKeyboardEvent(event)) {
                 handleKeyboardShortcuts(event);
             }
         };
@@ -411,9 +411,11 @@ function handleDOMContentLoaded(): void {
     try {
         addFullScreenButton();
         // Watch for file load state changes
-        const observer = new MutationObserver(() => {
-            updateFullscreenButtonState();
-        });
+        const observer = addFullScreenButtonRuntime().createMutationObserver(
+            () => {
+                updateFullscreenButtonState();
+            }
+        );
         addFullScreenButtonRuntime().observeBody(observer, {
             attributes: true,
             attributeFilter: ["class"],
