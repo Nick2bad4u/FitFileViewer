@@ -181,6 +181,43 @@ describe("network utilities", () => {
         expect(clearSpy).toHaveBeenCalledWith(timeoutHandle);
     });
 
+    it("fetches through an injected network runtime", async () => {
+        expect.assertions(8);
+
+        const response = new Response("ok", { status: 200 });
+        const timeoutMs = Number("125");
+        const timer = 47 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeout = vi.fn<(handle: typeof timer) => void>();
+        const controller = new AbortController();
+        const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+            response
+        );
+        const setTimeout = vi.fn((callback: () => void, delay: number) => {
+            expect(callback).toBeTypeOf("function");
+            expect(delay).toBe(timeoutMs);
+
+            return timer;
+        });
+        const createAbortController = vi.fn(() => controller);
+
+        await expect(
+            fetchWithTimeout("https://example.test", timeoutMs, {}, {
+                clearTimeout,
+                createAbortController,
+                fetch,
+                setTimeout,
+            })
+        ).resolves.toBe(response);
+
+        expect(createAbortController).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledOnce();
+        expect(fetch).toHaveBeenCalledWith("https://example.test", {
+            signal: controller.signal,
+        });
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
     it("aborts the fetch signal when the timeout elapses", async () => {
         expect.assertions(3);
         vi.useFakeTimers();

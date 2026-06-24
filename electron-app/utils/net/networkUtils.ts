@@ -5,9 +5,10 @@
  * consistently across export providers such as Gyazo and Imgur.
  */
 
-import { getNetworkUtilsRuntime } from "./networkUtilsRuntime.js";
-
-const networkUtilsRuntime = getNetworkUtilsRuntime();
+import {
+    getNetworkUtilsRuntime,
+    type NetworkUtilsRuntime,
+} from "./networkUtilsRuntime.js";
 
 /**
  * Best-effort fetch with a timeout.
@@ -21,13 +22,14 @@ const networkUtilsRuntime = getNetworkUtilsRuntime();
 export async function fetchWithTimeout(
     url: string,
     timeoutMs: number,
-    init: RequestInit = {}
+    init: RequestInit = {},
+    runtime: NetworkUtilsRuntime = getNetworkUtilsRuntime()
 ): Promise<Response> {
-    const controller = networkUtilsRuntime.createAbortController();
+    const controller = runtime.createAbortController();
     const timeoutId =
         controller === undefined
             ? undefined
-            : networkUtilsRuntime.setTimeout(() => {
+            : runtime.setTimeout(() => {
                   controller.abort();
               }, timeoutMs);
 
@@ -39,10 +41,10 @@ export async function fetchWithTimeout(
             fetchInit.signal = init.signal;
         }
 
-        return await networkUtilsRuntime.fetch(url, fetchInit);
+        return await runtime.fetch(url, fetchInit);
     } finally {
         if (timeoutId !== undefined) {
-            networkUtilsRuntime.clearTimeout(timeoutId);
+            runtime.clearTimeout(timeoutId);
         }
     }
 }

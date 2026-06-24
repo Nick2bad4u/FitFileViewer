@@ -16239,7 +16239,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps network fetch and timeout APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedNetworkUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -16257,6 +16257,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(networkUtilsSource).toContain("networkUtilsRuntime.js");
+        expect(networkUtilsSource).toContain("type NetworkUtilsRuntime");
+        expect(networkUtilsSource).not.toContain(
+            "const networkUtilsRuntime = getNetworkUtilsRuntime();"
+        );
+        expect(networkUtilsSource).toContain(
+            "runtime: NetworkUtilsRuntime = getNetworkUtilsRuntime()"
+        );
         expect(networkUtilsRuntimeSource).not.toMatch(
             directNetworkUtilsRuntimeAmbientFallbackPattern
         );
