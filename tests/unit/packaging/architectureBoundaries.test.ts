@@ -19120,8 +19120,8 @@ describe("architecture boundaries", () => {
         expect(missingScopedProviders).toStrictEqual([]);
     });
 
-    it("keeps migrated renderer source on the registered Electron API runtime", () => {
-        expect.assertions(9);
+    it("keeps renderer Electron API startup and registration off ambient fallbacks", () => {
+        expect.assertions(10);
 
         const directElectronApiGlobals = rendererElectronApiRuntimeSourceFiles
             .filter((relativeFile) =>
@@ -19139,6 +19139,11 @@ describe("architecture boundaries", () => {
         const electronApiStartupHooksSource = stripComments(
             readRepositoryFile(
                 "electron-app/renderer/electronApiStartupHooks.ts"
+            )
+        );
+        const electronApiRegistrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/electronApiRegistration.ts"
             )
         );
 
@@ -19161,6 +19166,9 @@ describe("architecture boundaries", () => {
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
         expect(electronApiStartupHooksSource).not.toContain("toModuleRecord");
+        expect(electronApiRegistrationSource).not.toContain(
+            "registerRendererElectronApiCandidate"
+        );
     });
 
     it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {

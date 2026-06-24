@@ -1,5 +1,4 @@
 import { getElectronApiHooksFromValue } from "./electronApiStartupHooks.js";
-import { registerRendererElectronApiCandidate } from "../utils/runtime/electronApiRuntime.js";
 
 interface RendererElectronApiRegistrationOptions {
     electronApiCandidate: unknown;
@@ -25,8 +24,6 @@ export function registerRendererElectronAPI(
     options: RendererElectronApiRegistrationOptions
 ): void {
     try {
-        registerRendererElectronApiCandidate(api);
-
         const hooks = getElectronApiHooksFromValue(api);
         if (hooks === null) {
             return;

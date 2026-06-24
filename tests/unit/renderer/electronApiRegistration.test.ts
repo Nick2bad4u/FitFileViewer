@@ -65,7 +65,7 @@ describe("renderer Electron API registration", () => {
         vi.restoreAllMocks();
     });
 
-    it("registers menu, theme, and development hooks from an Electron API", async () => {
+    it("registers menu, theme, and development hooks without seeding the shared fallback", async () => {
         expect.assertions(5);
 
         const { api, emitMenu, emitTheme, isDevelopment } = createElectronApi();
@@ -84,7 +84,7 @@ describe("renderer Electron API registration", () => {
             getRendererElectronApi(
                 (value): value is typeof api => value === api
             )
-        ).toBe(api);
+        ).toBeNull();
     });
 
     it("registers the captured Electron API candidate without installing a production global proxy", async () => {
@@ -109,7 +109,7 @@ describe("renderer Electron API registration", () => {
             getRendererElectronApi(
                 (value): value is typeof api => value === api
             )
-        ).toBe(api);
+        ).toBeNull();
     });
 
     it("ignores ambient globals during registration", () => {
