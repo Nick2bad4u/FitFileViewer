@@ -13,7 +13,10 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import {
@@ -32,6 +35,7 @@ type RecentFilesElectronApi = Pick<
     };
 
 type AttachRecentFilesContextMenuParams = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     openFileBtn: HTMLButtonElement;
     setLoading: (isLoading: boolean) => void;
     showNotification: (
@@ -41,8 +45,10 @@ type AttachRecentFilesContextMenuParams = {
     ) => void;
 };
 
-function getRecentFilesElectronApi(): RecentFilesElectronApi | null {
-    return getRendererElectronApi(isRecentFilesElectronApi);
+function getRecentFilesElectronApi(
+    electronApiScope: RendererElectronApiScope | undefined
+): RecentFilesElectronApi | null {
+    return getRendererElectronApi(isRecentFilesElectronApi, electronApiScope);
 }
 
 function isRecentFilesElectronApi(
@@ -87,6 +93,7 @@ function getRecentOpenErrorMessage(error: unknown): string {
  * @returns A cleanup callback that detaches the root listener.
  */
 export function attachRecentFilesContextMenu({
+    electronApiScope,
     openFileBtn,
     setLoading,
     showNotification,
@@ -112,7 +119,7 @@ export function attachRecentFilesContextMenu({
         "contextmenu",
         async (event: MouseEvent) => {
             event.preventDefault();
-            const electronAPI = getRecentFilesElectronApi();
+            const electronAPI = getRecentFilesElectronApi(electronApiScope);
             if (!electronAPI) {
                 return;
             }
