@@ -347,6 +347,14 @@ const migratedDataPointFilterElementFactoryRuntimeFiles = [
 const migratedDataPointFilterPanelControllerRuntimeFiles = [
     "electron-app/utils/ui/controls/dataPointFilterControl/panelController.ts",
 ] as const;
+const dataPointFilterTypedStateNamingFiles = [
+    "electron-app/utils/ui/controls/createDataPointFilterControl.ts",
+    "electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.ts",
+    "electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.ts",
+    "tests/unit/utils/ui/controls/createDataPointFilterControl.test.ts",
+    "tests/unit/utils/ui/controls/dataPointFilterControl/stateHelpers.test.ts",
+    "tests/unit/utils/ui/controls/dataPointFilterControl/summaryRefresher.test.ts",
+] as const;
 const migratedLoadingOverlayRuntimeFiles = [
     "electron-app/utils/ui/components/LoadingOverlay.ts",
 ] as const;
@@ -998,6 +1006,14 @@ const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|info|log|warn)\s*=/u;
 const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
     /\bconsole\.error\s*=/u;
+const retiredDataPointFilterGlobalStateNaming = [
+    "updateGlobalFilter",
+    "getGlobalRecords",
+    "global filter",
+    "global record set",
+    "renderer global state",
+    "window-backed filter",
+] as const;
 const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
 const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
@@ -18072,6 +18088,21 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps data-point filter state helpers on typed map-state naming", () => {
+        expect.assertions(1);
+
+        const violations = dataPointFilterTypedStateNamingFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return retiredDataPointFilterGlobalStateNaming.some(
+                    (retiredName) => source.includes(retiredName)
+                );
+            })
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps chart status indicator tests on scoped console spies", () => {
