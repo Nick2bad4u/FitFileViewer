@@ -8,6 +8,10 @@ import {
 import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { resetState as resetStateImpl } from "./stateManagerReset.js";
+import {
+    getStateManagerRuntime,
+    type StateManagerRuntime,
+} from "./stateManagerRuntime.js";
 import { getRootState } from "./stateManagerStore.js";
 import {
     getStateStorageRuntime,
@@ -65,6 +69,10 @@ const singletonStateSubscriptions = createSubscriptionRegistry();
 
 function stateStorageRuntime(): StateStorageRuntime {
     return getStateStorageRuntime();
+}
+
+function stateManagerRuntime(): StateManagerRuntime {
+    return getStateManagerRuntime();
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -331,7 +339,7 @@ export function setState(
             oldValue,
             path,
             source,
-            timestamp: Date.now(),
+            timestamp: stateManagerRuntime().dateNow(),
         });
     }
 

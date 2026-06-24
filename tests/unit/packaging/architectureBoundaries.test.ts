@@ -4252,6 +4252,49 @@ describe("architecture boundaries", () => {
         expect(stateStorageRuntimeSource).not.toContain("scope.localStorage");
     });
 
+    it("keeps core state manager history timestamps behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+        const stateManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerRuntime.ts"
+            )
+        );
+
+        expect(stateManagerSource).toContain("stateManagerRuntime.js");
+        expect(stateManagerSource).toContain("type StateManagerRuntime");
+        expect(stateManagerSource).toContain(
+            "function stateManagerRuntime(): StateManagerRuntime"
+        );
+        expect(stateManagerSource).toContain(
+            "timestamp: stateManagerRuntime().dateNow()"
+        );
+        expect(stateManagerSource).not.toContain("Date.now");
+        expect(stateManagerSource).not.toContain(
+            "const stateManagerRuntime = getStateManagerRuntime();"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "defaultStateManagerRuntimeScope"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "stateManager requires dateNow"
+        );
+        expect(stateManagerRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(stateManagerRuntimeSource).not.toContain("scope.dateNow");
+        expect(stateManagerRuntimeSource).not.toMatch(
+            directRuntimeAmbientClockFallbackPattern
+        );
+    });
+
     it("keeps state persistence middleware storage access behind the runtime facade", () => {
         expect.assertions(6);
 
