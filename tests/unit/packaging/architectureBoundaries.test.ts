@@ -9097,6 +9097,59 @@ describe("architecture boundaries", () => {
         expect(unifiedStateManagerSource).not.toContain("validateConsistency");
     });
 
+    it("keeps unified state facade snapshot timestamps behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const unifiedStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/unifiedStateManager.ts"
+            )
+        );
+        const unifiedStateManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/unifiedStateManagerRuntime.ts"
+            )
+        );
+
+        expect(unifiedStateManagerSource).toContain(
+            "unifiedStateManagerRuntime.js"
+        );
+        expect(unifiedStateManagerSource).toContain(
+            "type UnifiedStateManagerRuntime"
+        );
+        expect(unifiedStateManagerSource).toContain(
+            "function unifiedStateManagerRuntime(): UnifiedStateManagerRuntime"
+        );
+        expect(unifiedStateManagerSource).toContain(
+            "timestamp: unifiedStateManagerRuntime().dateNow()"
+        );
+        expect(unifiedStateManagerSource).not.toContain("Date.now");
+        expect(unifiedStateManagerSource).not.toContain(
+            "const unifiedStateManagerRuntime = getUnifiedStateManagerRuntime();"
+        );
+        expect(unifiedStateManagerRuntimeSource).toContain(
+            "defaultUnifiedStateManagerRuntimeScope"
+        );
+        expect(unifiedStateManagerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(unifiedStateManagerRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(unifiedStateManagerRuntimeSource).toContain(
+            "unifiedStateManager requires dateNow"
+        );
+        expect(unifiedStateManagerRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(unifiedStateManagerRuntimeSource).not.toContain(
+            "scope.dateNow"
+        );
+        expect(unifiedStateManagerRuntimeSource).not.toMatch(
+            directRuntimeAmbientClockFallbackPattern
+        );
+    });
+
     it("keeps state-manager defaults on scoped runtime access", () => {
         expect.assertions(16);
 

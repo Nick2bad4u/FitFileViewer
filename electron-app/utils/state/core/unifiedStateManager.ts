@@ -4,6 +4,10 @@ import {
     subscribe as subscribeNew,
     type StateUpdateOptions,
 } from "./stateManager.js";
+import {
+    getUnifiedStateManagerRuntime,
+    type UnifiedStateManagerRuntime,
+} from "./unifiedStateManagerRuntime.js";
 
 type UnifiedStateOptions = {
     readonly silent?: boolean;
@@ -23,6 +27,10 @@ type UnifiedStateSnapshot = {
 type Unsubscribe = () => void;
 
 const BLOCKED_STATE_PATHS = new Set(["globalData"]);
+
+function unifiedStateManagerRuntime(): UnifiedStateManagerRuntime {
+    return getUnifiedStateManagerRuntime();
+}
 
 /**
  * Single interface for guarded state access during the state migration.
@@ -69,7 +77,7 @@ export class UnifiedStateManager {
         return {
             debugMode: this.debugMode,
             newState: getNewState(""),
-            timestamp: Date.now(),
+            timestamp: unifiedStateManagerRuntime().dateNow(),
         };
     }
 

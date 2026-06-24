@@ -741,6 +741,9 @@ and architecture guardrails blocking those direct lookups from returning.
 Core state manager history timestamps now resolve through the scoped `stateManagerRuntime.ts` adapter instead of
 calling `Date.now` directly inside `stateManager.ts`, with focused runtime coverage and architecture guardrails
 blocking direct timestamp reads and legacy direct runtime scope properties from returning.
+Unified state facade snapshot timestamps now resolve through the scoped `unifiedStateManagerRuntime.ts` adapter instead
+of calling `Date.now` directly inside `unifiedStateManager.ts`, with focused runtime coverage and architecture
+guardrails blocking direct timestamp reads and legacy direct runtime scope properties from returning.
 Computed state manager auto-theme dark-scheme checks now resolve through the scoped
 `computedStateManagerRuntime.ts` adapter instead of probing `globalThis.matchMedia` directly inside
 `computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking that direct
