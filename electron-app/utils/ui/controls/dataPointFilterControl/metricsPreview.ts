@@ -7,7 +7,7 @@ import {
 import {
     formatMetricValue,
     formatPercent,
-    getGlobalRecords,
+    getActiveMetricRecords,
 } from "./stateHelpers.js";
 
 /** Build the user-facing summary text for a filter result. */
@@ -33,17 +33,18 @@ export function buildSummaryText(
     }
 
     const percentValue = config?.percent ?? result.percent ?? 0;
-    return `Showing top ${percentValue}% (${result.selectedCount} of ${result.totalCandidates}) by ${
-        getMetricDisplayName(result.metricLabel, result.metric)
-    }`;
+    return `Showing top ${percentValue}% (${result.selectedCount} of ${result.totalCandidates}) by ${getMetricDisplayName(
+        result.metricLabel,
+        result.metric
+    )}`;
 }
 
-/** Preview the filter result using the current global record set. */
+/** Preview the filter result using the active FIT record set. */
 export function previewFilterResult(
     config: MapDataPointFilterConfig
 ): MetricFilterResult | null {
     try {
-        const records = getGlobalRecords();
+        const records = getActiveMetricRecords();
         return createMetricFilter(records, config);
     } catch (error) {
         console.error(

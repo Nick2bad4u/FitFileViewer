@@ -74,9 +74,9 @@ export function clampRangeValue(
     return value;
 }
 
-/** Computes statistics for the active global record set. */
+/** Computes statistics for the active FIT record set. */
 export function computeMetricStats(metricKey: string): MetricStatistics | null {
-    const records = getGlobalRecords();
+    const records = getActiveMetricRecords();
     return computeMetricStatistics(records, metricKey);
 }
 
@@ -156,8 +156,8 @@ export function formatPercent(value: number): string {
     return formatter.format(value);
 }
 
-/** Reads FIT record messages from managed global data state. */
-export function getGlobalRecords(): MetricRecord[] {
+/** Reads FIT record messages from managed active FIT state. */
+export function getActiveMetricRecords(): MetricRecord[] {
     return FitFileSelectors.getRecordMessages<MetricRecord>();
 }
 
@@ -203,8 +203,8 @@ export function toSliderString(value: number, decimals: number): string {
     return String(Math.round(value));
 }
 
-/** Stores the active filter config on the renderer global state. */
-export function updateGlobalFilter(
+/** Stores the active data-point filter config in typed map filter state. */
+export function updateDataPointFilterState(
     config: MapDataPointFilterConfig | ResolvedDataPointFilterConfig
 ): void {
     setMapDataPointFilter(config);

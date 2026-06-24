@@ -41,11 +41,11 @@ vi.mock(
             resolveInitialConfig: vi.fn<typeof actual.resolveInitialConfig>(
                 actual.resolveInitialConfig
             ),
-            updateGlobalFilter: vi.fn<typeof actual.updateGlobalFilter>(
-                (config) => {
-                    actual.updateGlobalFilter(config);
-                }
-            ),
+            updateDataPointFilterState: vi.fn<
+                typeof actual.updateDataPointFilterState
+            >((config) => {
+                actual.updateDataPointFilterState(config);
+            }),
         };
     }
 );
@@ -89,7 +89,7 @@ import { showNotification } from "../../../../../electron-app/utils/ui/notificat
 import {
     computeRangeState,
     resolveInitialConfig,
-    updateGlobalFilter,
+    updateDataPointFilterState,
 } from "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js";
 import * as stateHelpersModule from "../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js";
 import {
@@ -178,8 +178,8 @@ beforeEach(() => {
         actualStateHelpers.resolveInitialConfig
     );
     computeRangeState.mockImplementation(actualStateHelpers.computeRangeState);
-    updateGlobalFilter.mockImplementation((config) =>
-        actualStateHelpers.updateGlobalFilter(config)
+    updateDataPointFilterState.mockImplementation((config) =>
+        actualStateHelpers.updateDataPointFilterState(config)
     );
     buildSummaryText.mockImplementation(actualMetricsPreview.buildSummaryText);
     previewFilterResult.mockReturnValue(null);
@@ -282,15 +282,15 @@ describe(createDataPointFilterControl, () => {
             ".data-point-filter-control__summary"
         );
         expect(summary?.textContent).toBe("Persisted summary");
-        expect(updateGlobalFilter).not.toHaveBeenCalled();
+        expect(updateDataPointFilterState).not.toHaveBeenCalled();
     });
 
-    it("initializes defaults and updates global filter when none persisted", () => {
+    it("initializes defaults and updates map filter state when none persisted", () => {
         expect.assertions(5);
 
         const container = appendControl(createDataPointFilterControl());
-        expect(updateGlobalFilter).toHaveBeenCalledOnce();
-        const initialConfig = updateGlobalFilter.mock.calls[0][0];
+        expect(updateDataPointFilterState).toHaveBeenCalledOnce();
+        const initialConfig = updateDataPointFilterState.mock.calls[0][0];
         expect(initialConfig.metric).toBe("speed");
         expect(initialConfig.mode).toBe("topPercent");
         const toggle = requireElement(
@@ -373,7 +373,7 @@ describe(createDataPointFilterControl, () => {
         applyButtonElement.click();
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({
                 enabled: true,
                 mode: "topPercent",
@@ -429,7 +429,7 @@ describe(createDataPointFilterControl, () => {
 
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({ enabled: false, mode: "topPercent" })
         );
         expect(showNotification).toHaveBeenCalledWith("No data", "info");
@@ -538,7 +538,7 @@ describe(createDataPointFilterControl, () => {
         applyButton!.click();
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({
                 enabled: true,
                 mode: "valueRange",
@@ -609,7 +609,7 @@ describe(createDataPointFilterControl, () => {
 
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({ enabled: false, mode: "valueRange" })
         );
         expect(showNotification).toHaveBeenCalledWith(
@@ -653,7 +653,7 @@ describe(createDataPointFilterControl, () => {
             ".data-point-filter-control__summary"
         );
         showNotification.mockClear();
-        const callsBefore = updateGlobalFilter.mock.calls.length;
+        const callsBefore = updateDataPointFilterState.mock.calls.length;
         applyButton!.click();
 
         expect(summary?.textContent).toBe(
@@ -663,7 +663,7 @@ describe(createDataPointFilterControl, () => {
             "No data points available for that metric.",
             "info"
         );
-        expect(updateGlobalFilter).toHaveBeenCalledTimes(callsBefore);
+        expect(updateDataPointFilterState).toHaveBeenCalledTimes(callsBefore);
     });
 
     it("disables value range filters when the preview returns no points or reason", async () => {
@@ -718,7 +718,7 @@ describe(createDataPointFilterControl, () => {
             "No data points available for that range.",
             "info"
         );
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({ enabled: false, mode: "valueRange" })
         );
     });
@@ -766,7 +766,7 @@ describe(createDataPointFilterControl, () => {
         applyButton!.click();
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({
                 enabled: true,
                 maxValue: 600,
@@ -807,7 +807,7 @@ describe(createDataPointFilterControl, () => {
         const resetButtonElement = requireElement(resetButton, "reset button");
         resetButtonElement.click();
         await Promise.resolve();
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({ enabled: false, mode: "topPercent" })
         );
         expect(onChange).toHaveBeenCalledWith(
@@ -836,7 +836,7 @@ describe(createDataPointFilterControl, () => {
         rangeRadio!.dispatchEvent(new Event("change", { bubbles: true }));
         resetButtonElement.click();
         await Promise.resolve();
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({
                 enabled: false,
                 mode: "valueRange",
@@ -1100,7 +1100,7 @@ describe(createDataPointFilterControl, () => {
         applyButton!.click();
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({
                 mode: "valueRange",
                 minValue: 170,
@@ -1168,7 +1168,7 @@ describe(createDataPointFilterControl, () => {
         applyButton!.click();
         await Promise.resolve();
 
-        expect(updateGlobalFilter).toHaveBeenLastCalledWith(
+        expect(updateDataPointFilterState).toHaveBeenLastCalledWith(
             expect.objectContaining({
                 mode: "valueRange",
                 minValue: 90,
@@ -1270,7 +1270,7 @@ describe(createDataPointFilterControl, () => {
         minSlider?.dispatchEvent(new Event("input", { bubbles: true }));
         maxSlider?.dispatchEvent(new Event("change", { bubbles: true }));
         await Promise.resolve();
-        expect(updateGlobalFilter).toHaveBeenCalledOnce();
+        expect(updateDataPointFilterState).toHaveBeenCalledOnce();
     });
 
     it("handles non-numeric slider input gracefully", async () => {

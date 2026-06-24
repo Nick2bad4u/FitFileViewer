@@ -8,7 +8,7 @@ import {
     formatPercent,
     resolveInitialConfig,
     toSliderString,
-    updateGlobalFilter,
+    updateDataPointFilterState,
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js";
 import { setActiveFitRawData } from "../../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
@@ -66,7 +66,7 @@ describe("stateHelpers", () => {
         expect(config.enabled).toBe(false);
     });
 
-    it("resolveInitialConfig honors persisted window configuration", () => {
+    it("resolveInitialConfig honors persisted map filter state configuration", () => {
         expect.hasAssertions();
 
         setMapDataPointFilter({
@@ -166,7 +166,7 @@ describe("stateHelpers", () => {
         expect(formatPercent(12.345)).toBe(formatter.format(12.345));
     });
 
-    it("updateGlobalFilter persists state on the window", () => {
+    it("updateDataPointFilterState persists through typed map filter state", () => {
         expect.hasAssertions();
 
         const config: DataPointFilterConfig = {
@@ -175,7 +175,7 @@ describe("stateHelpers", () => {
             mode: "topPercent",
             percent: 10,
         };
-        updateGlobalFilter(config);
+        updateDataPointFilterState(config);
         expect(getMapDataPointFilter()).toEqual(config);
     });
 });

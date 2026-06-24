@@ -107,7 +107,7 @@ describe(createSummaryRefresher, () => {
         });
     });
 
-    it("ignores malformed global state without replacing existing text", () => {
+    it("ignores malformed filter state without replacing existing text", () => {
         expect.assertions(1);
 
         runWithSummaryFixture((summary) => {

@@ -22,7 +22,7 @@ import {
     formatPercent,
     resolveInitialConfig,
     toSliderString,
-    updateGlobalFilter,
+    updateDataPointFilterState,
     type ResolvedDataPointFilterConfig,
 } from "./dataPointFilterControl/stateHelpers.js";
 import { createSummaryRefresher } from "./dataPointFilterControl/summaryRefresher.js";
@@ -190,7 +190,7 @@ export function createDataPointFilterControl(
     updateRangeStats({ preserveSelection: true });
 
     if (!getMapDataPointFilter() || shouldDisable) {
-        updateGlobalFilter(toMapFilterConfig(initialConfig));
+        updateDataPointFilterState(toMapFilterConfig(initialConfig));
     }
 
     if (!metricIsAvailable && availableMetrics.length > 0) {
@@ -342,7 +342,7 @@ export function createDataPointFilterControl(
                     preview.selectedCount > 0;
 
                 if (!shouldEnable) {
-                    updateGlobalFilter({ ...config, enabled: false });
+                    updateDataPointFilterState({ ...config, enabled: false });
                     if (preview?.reason) {
                         showNotification(preview.reason, "info");
                         summary.textContent = preview.reason;
@@ -381,7 +381,7 @@ export function createDataPointFilterControl(
                 );
                 updateRangeDisplay();
 
-                updateGlobalFilter(config);
+                updateDataPointFilterState(config);
                 closePanel();
                 const summaryText = buildSummaryText(
                     preview,
@@ -422,7 +422,7 @@ export function createDataPointFilterControl(
                 preview.selectedCount > 0;
 
             if (!shouldEnable) {
-                updateGlobalFilter({ ...config, enabled: false });
+                updateDataPointFilterState({ ...config, enabled: false });
                 if (preview?.reason) {
                     showNotification(preview.reason, "info");
                     summary.textContent = preview.reason;
@@ -438,7 +438,7 @@ export function createDataPointFilterControl(
                 return;
             }
 
-            updateGlobalFilter(config);
+            updateDataPointFilterState(config);
             closePanel();
             const summaryText = buildSummaryText(preview, config, currentStats);
             if (summaryText) {
@@ -495,7 +495,7 @@ export function createDataPointFilterControl(
                     percent: percentValue,
                 };
             }
-            updateGlobalFilter(clearedConfig);
+            updateDataPointFilterState(clearedConfig);
             closePanel();
             summary.textContent = "Metric filtering disabled.";
             showNotification("Map metric filtering cleared", "info");
