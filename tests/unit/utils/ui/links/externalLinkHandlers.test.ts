@@ -2,11 +2,8 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { attachExternalLinkHandlers } from "../../../../../electron-app/utils/ui/links/externalLinkHandlers.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type OpenExternal = (url: string) => Promise<boolean>;
 
@@ -77,12 +74,12 @@ function dispatchSpace(anchor: HTMLAnchorElement): KeyboardEvent {
     return event;
 }
 
-function setElectronApi(openExternal: OpenExternal): void {
-    registerRendererElectronApiCandidate({ openExternal });
-}
-
-function clearElectronApi(): void {
-    resetRendererElectronApiCandidate();
+function createElectronApiScope(
+    openExternal: OpenExternal
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => ({ openExternal }),
+    };
 }
 
 function countParentEvents(
@@ -113,7 +110,7 @@ describe("externalLinkHandlers", () => {
         expect.assertions(4);
 
         const openExternal = vi.fn<OpenExternal>().mockResolvedValue(true);
-        setElectronApi(openExternal);
+        const electronApiScope = createElectronApiScope(openExternal);
 
         const { anchor, parent, root } = createExternalLinkDom(
             "https://example.com",
@@ -121,7 +118,10 @@ describe("externalLinkHandlers", () => {
         );
         const parentClicks = countParentEvents(parent, "click");
 
-        const cleanup = attachExternalLinkHandlers({ root });
+        const cleanup = attachExternalLinkHandlers({
+            electronApiScope,
+            root,
+        });
         const event = dispatchClick(anchor);
 
         // jsdom may canonicalize bare origins to include a trailing slash.
@@ -134,14 +134,13 @@ describe("externalLinkHandlers", () => {
 
         cleanup();
         parentClicks.abort();
-        clearElectronApi();
     });
 
     it("blocks non-http(s) schemes and still prevents in-app navigation", () => {
         expect.assertions(4);
 
         const openExternal = vi.fn<OpenExternal>().mockResolvedValue(true);
-        setElectronApi(openExternal);
+        const electronApiScope = createElectronApiScope(openExternal);
 
         const { anchor, parent, root } = createExternalLinkDom(
             "javascript:alert(1)",
@@ -149,7 +148,10 @@ describe("externalLinkHandlers", () => {
         );
         const parentClicks = countParentEvents(parent, "click");
 
-        const cleanup = attachExternalLinkHandlers({ root });
+        const cleanup = attachExternalLinkHandlers({
+            electronApiScope,
+            root,
+        });
         const event = dispatchClick(anchor);
 
         expect(openExternal).not.toHaveBeenCalled();
@@ -159,14 +161,13 @@ describe("externalLinkHandlers", () => {
 
         cleanup();
         parentClicks.abort();
-        clearElectronApi();
     });
 
     it("supports keyboard activation with Enter for external links", () => {
         expect.assertions(4);
 
         const openExternal = vi.fn<OpenExternal>().mockResolvedValue(true);
-        setElectronApi(openExternal);
+        const electronApiScope = createElectronApiScope(openExternal);
 
         const { anchor, parent, root } = createExternalLinkDom(
             "https://example.com/docs",
@@ -174,7 +175,10 @@ describe("externalLinkHandlers", () => {
         );
         const parentKeydowns = countParentEvents(parent, "keydown");
 
-        const cleanup = attachExternalLinkHandlers({ root });
+        const cleanup = attachExternalLinkHandlers({
+            electronApiScope,
+            root,
+        });
         const event = dispatchEnter(anchor);
 
         expect(openExternal).toHaveBeenCalledWith("https://example.com/docs");
@@ -184,14 +188,13 @@ describe("externalLinkHandlers", () => {
 
         cleanup();
         parentKeydowns.abort();
-        clearElectronApi();
     });
 
     it("does not hijack Space key behavior for native anchors", () => {
         expect.assertions(3);
 
         const openExternal = vi.fn<OpenExternal>().mockResolvedValue(true);
-        setElectronApi(openExternal);
+        const electronApiScope = createElectronApiScope(openExternal);
 
         const { anchor, parent, root } = createExternalLinkDom(
             "https://example.com/docs",
@@ -199,7 +202,10 @@ describe("externalLinkHandlers", () => {
         );
         const parentKeydowns = countParentEvents(parent, "keydown");
 
-        const cleanup = attachExternalLinkHandlers({ root });
+        const cleanup = attachExternalLinkHandlers({
+            electronApiScope,
+            root,
+        });
         const event = dispatchSpace(anchor);
 
         expect(openExternal).not.toHaveBeenCalled();
@@ -208,14 +214,13 @@ describe("externalLinkHandlers", () => {
 
         cleanup();
         parentKeydowns.abort();
-        clearElectronApi();
     });
 
     it("cleanup removes listeners", () => {
         expect.assertions(4);
 
         const openExternal = vi.fn<OpenExternal>().mockResolvedValue(true);
-        setElectronApi(openExternal);
+        const electronApiScope = createElectronApiScope(openExternal);
 
         const { anchor, parent, root } = createExternalLinkDom(
             "https://example.com",
@@ -223,7 +228,10 @@ describe("externalLinkHandlers", () => {
         );
         const parentClicks = countParentEvents(parent, "click");
 
-        const cleanup = attachExternalLinkHandlers({ root });
+        const cleanup = attachExternalLinkHandlers({
+            electronApiScope,
+            root,
+        });
         cleanup();
 
         const event = dispatchClick(anchor);
@@ -234,13 +242,11 @@ describe("externalLinkHandlers", () => {
         expect(anchor.parentElement).toBe(root);
 
         parentClicks.abort();
-        clearElectronApi();
     });
 
     it("falls back to browser window opening when electronAPI is unavailable", () => {
         expect.assertions(4);
 
-        clearElectronApi();
         const openSpy = vi
             .spyOn(window, "open")
             .mockReturnValue(null as Window | null);
@@ -276,10 +282,10 @@ describe("externalLinkHandlers", () => {
             .mockRejectedValueOnce(new Error("blocked"));
         const onOpenExternalError =
             vi.fn<(url: string, error: Error) => void>();
+        const electronApiScope = createElectronApiScope(openExternal);
         const openSpy = vi
             .spyOn(window, "open")
             .mockReturnValue(null as Window | null);
-        setElectronApi(openExternal);
 
         const { anchor, parent, root } = createExternalLinkDom(
             "https://example.com",
@@ -288,6 +294,7 @@ describe("externalLinkHandlers", () => {
         const parentClicks = countParentEvents(parent, "click");
 
         const cleanup = attachExternalLinkHandlers({
+            electronApiScope,
             onOpenExternalError,
             root,
         });
@@ -309,6 +316,5 @@ describe("externalLinkHandlers", () => {
         cleanup();
         parentClicks.abort();
         openSpy.mockRestore();
-        clearElectronApi();
     });
 });

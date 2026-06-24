@@ -2,10 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { DragDropHandler } from "../../../electron-app/utils/ui/dragDropHandler.js";
 import type { FitDecodeResult } from "../../../electron-app/shared/fit";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const mocks = vi.hoisted(() => ({
     addEventListenerWithCleanup:
@@ -115,38 +111,36 @@ describe(DragDropHandler, () => {
             details: "invalid CRC",
             error: "FIT decode failed",
         });
-        registerRendererElectronApiCandidate({
-            decodeFitFile,
+        const handler = new DragDropHandler({
+            electronApiScope: {
+                getElectronAPI: () => ({
+                    decodeFitFile,
+                }),
+            },
         });
+        vi.spyOn(handler, "readFileAsArrayBuffer").mockResolvedValue(
+            new ArrayBuffer(16)
+        );
 
-        try {
-            const handler = new DragDropHandler();
-            vi.spyOn(handler, "readFileAsArrayBuffer").mockResolvedValue(
-                new ArrayBuffer(16)
-            );
+        const outcome = await handler.processDroppedFile(createDroppedFile());
 
-            const outcome =
-                await handler.processDroppedFile(createDroppedFile());
-
-            expect({ outcome }).toStrictEqual({ outcome: undefined });
-            expect(mocks.renderDecodedFitData).not.toHaveBeenCalled();
-            expect(mocks.showNotification).toHaveBeenCalledWith(
-                "Failed to load FIT file",
-                "error"
-            );
-            const [loadingError] = mocks.handleFileLoadingError.mock
-                .calls[0] ?? [undefined];
-            expect({
-                errorMessage: loadingError?.message,
-                errorName: loadingError?.name,
-            }).toStrictEqual({
-                errorMessage: "FIT decode failed\ninvalid CRC",
-                errorName: "Error",
-            });
-            expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
-            expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
-        } finally {
-            resetRendererElectronApiCandidate();
-        }
+        expect({ outcome }).toStrictEqual({ outcome: undefined });
+        expect(mocks.renderDecodedFitData).not.toHaveBeenCalled();
+        expect(mocks.showNotification).toHaveBeenCalledWith(
+            "Failed to load FIT file",
+            "error"
+        );
+        const [loadingError] = mocks.handleFileLoadingError.mock.calls[0] ?? [
+            undefined,
+        ];
+        expect({
+            errorMessage: loadingError?.message,
+            errorName: loadingError?.name,
+        }).toStrictEqual({
+            errorMessage: "FIT decode failed\ninvalid CRC",
+            errorName: "Error",
+        });
+        expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
+        expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
     });
 });

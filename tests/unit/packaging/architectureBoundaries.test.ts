@@ -85,7 +85,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/strictTests/rendering/core/showFitData.test.ts",
     "tests/unit/strictTests/ui/modals/aboutModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
-    "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/export/exportUtils.oauthState.test.ts",
     "tests/unit/utils/files/export/exportUtils.test.ts",
@@ -103,12 +102,15 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/ui/browser/fileBrowserTab.accessibility.test.ts",
     "tests/unit/utils/ui/browser/initFitBrowserFeatureGate.test.ts",
     "tests/unit/utils/ui/controls/addFullScreenButton.test.ts",
-    "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
     "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts",
     "tests/unit/utils/ui/settingsModal.test.ts",
     "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
     "tests/unit/utils/theming/core/setupTheme.test.ts",
     "tests/unit/utils/theming/core/theme.additional.test.ts",
+] as const;
+const scopedRendererElectronApiRegressionTests = [
+    "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
+    "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
@@ -19079,6 +19081,43 @@ describe("architecture boundaries", () => {
 
         expect(directElectronApiGlobals).toStrictEqual([]);
         expect(missingRuntimeRegistration).toStrictEqual([]);
+    });
+
+    it("keeps scoped renderer Electron API tests off the registered fallback", () => {
+        expect.assertions(3);
+
+        const directElectronApiGlobals =
+            scopedRendererElectronApiRegressionTests
+                .filter((relativeFile) =>
+                    directElectronApiGlobalReadPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+                )
+                .sort();
+        const registeredRuntimeFixtureViolations =
+            scopedRendererElectronApiRegressionTests
+                .filter((relativeFile) => {
+                    const source = stripComments(
+                        readRepositoryFile(relativeFile)
+                    );
+                    return (
+                        source.includes(
+                            "registerRendererElectronApiCandidate"
+                        ) ||
+                        source.includes("resetRendererElectronApiCandidate")
+                    );
+                })
+                .sort();
+        const missingScopedProviders = scopedRendererElectronApiRegressionTests
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return !source.includes("electronApiScope");
+            })
+            .sort();
+
+        expect(directElectronApiGlobals).toStrictEqual([]);
+        expect(registeredRuntimeFixtureViolations).toStrictEqual([]);
+        expect(missingScopedProviders).toStrictEqual([]);
     });
 
     it("keeps migrated renderer source on the registered Electron API runtime", () => {
