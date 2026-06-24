@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     clearResourceManagerTimer,
+    getResourceManagerDateNow,
     registerResourceManagerUnloadCleanup,
 } from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
 
@@ -31,6 +32,24 @@ describe("resourceManagerRuntime", () => {
                 {}
             );
         }).toThrow("resourceManager requires clearTimeout");
+    });
+
+    it("reads registration timestamps through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.fn(() => 123_456);
+        const getDateNow = vi.fn(() => dateNow);
+
+        expect(getResourceManagerDateNow({ getDateNow })).toBe(123_456);
+        expect(getDateNow).toHaveBeenCalledOnce();
+    });
+
+    it("fails clearly when the clock runtime is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => getResourceManagerDateNow({})).toThrow(
+            "resourceManager requires dateNow"
+        );
     });
 
     it("registers beforeunload cleanup through the scoped event target", () => {
@@ -128,20 +147,23 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const cleanup = vi.fn();
         const timer = 19 as ReturnType<typeof globalThis.setTimeout>;
         const clearTimeout = vi.fn();
         const addEventListener = vi.fn();
         const removeEventListener = vi.fn();
+        const dateNow = vi.fn(() => 654_321);
         const getClearTimeout = vi.fn(() => clearTimeout);
+        const getDateNow = vi.fn(() => dateNow);
         const getEventTarget = vi.fn(() => ({
             addEventListener,
             removeEventListener,
         }));
 
         clearResourceManagerTimer(timer, { getClearTimeout });
+        expect(getResourceManagerDateNow({ getDateNow })).toBe(654_321);
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
             getEventTarget,
         });
@@ -150,6 +172,7 @@ describe("resourceManagerRuntime", () => {
 
         expect(getClearTimeout).toHaveBeenCalledOnce();
         expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(getDateNow).toHaveBeenCalledOnce();
         expect(getEventTarget).toHaveBeenCalledOnce();
         expect(addEventListener).toHaveBeenCalledWith(
             "beforeunload",
@@ -164,7 +187,7 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const cleanup = vi.fn();
         const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
@@ -183,15 +206,20 @@ describe("resourceManagerRuntime", () => {
             AbortController:
                 AbortControllerFixture as unknown as typeof AbortController,
             clearTimeout,
+            dateNow: vi.fn(() => 1),
             eventTarget: { addEventListener, removeEventListener },
         } as unknown as Parameters<typeof clearResourceManagerTimer>[1];
 
         expect(() => clearResourceManagerTimer(timer, legacyScope)).toThrow(
             "resourceManager requires clearTimeout"
         );
+        expect(() => getResourceManagerDateNow(legacyScope)).toThrow(
+            "resourceManager requires dateNow"
+        );
         expect(
             registerResourceManagerUnloadCleanup(cleanup, legacyScope)
         ).toBeNull();
+        expect(clearTimeout).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
     });
 });

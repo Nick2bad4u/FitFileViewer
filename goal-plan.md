@@ -1156,9 +1156,10 @@ Update notification element lookup and action/message element creation now route
 `showUpdateNotificationRuntime.ts` instead of querying or creating through `document` directly inside
 `showUpdateNotification.ts`, with focused runtime coverage and architecture coverage blocking those direct document
 calls from returning.
-Runtime facade lint cleanup now keeps resource-manager unload registration, render-summary scheduling, master-state event
-forwarding, modal timing adapters, and tab document runtime helpers aligned with the app lint gate by removing stale bound-call
-patterns, naming animation-frame fallback callbacks explicitly, documenting caller-owned listener cleanup contracts, and dropping
+Runtime facade lint cleanup now keeps resource-manager unload registration, timer clearing, registration timestamps,
+render-summary scheduling, master-state event forwarding, modal timing adapters, and tab document runtime helpers aligned
+with the app lint gate by removing stale bound-call patterns, routing resource-manager clock reads through named providers,
+naming animation-frame fallback callbacks explicitly, documenting caller-owned listener cleanup contracts, and dropping
 duplicate optional `undefined` type constituents.
 The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
 use the environment's native element constructors without another shared global assignment.

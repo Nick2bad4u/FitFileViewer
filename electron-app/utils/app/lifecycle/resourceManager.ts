@@ -1,6 +1,7 @@
 import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
 import {
     clearResourceManagerTimer,
+    getResourceManagerDateNow,
     registerResourceManagerUnloadCleanup,
     type ResourceManagerTimer,
 } from "./resourceManagerRuntime.js";
@@ -96,7 +97,7 @@ function createResource(
     return {
         cleanup,
         id,
-        timestamp: Date.now(),
+        timestamp: getResourceManagerDateNow(),
         type,
         ...(options.owner === undefined ? {} : { owner: options.owner }),
         ...(options.instance === undefined

@@ -10147,8 +10147,8 @@ describe("architecture boundaries", () => {
         expect(appActionsSource).not.toContain("state/core/stateManager.js");
     });
 
-    it("keeps resource manager window cleanup and timer clearing behind the runtime adapter", () => {
-        expect.assertions(19);
+    it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
+        expect.assertions(26);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -10161,14 +10161,18 @@ describe("architecture boundaries", () => {
             )
         );
         const directResourceManagerRuntimeGlobalPattern =
-            /\b(?:globalThis|window)\.(?:clearTimeout|addEventListener)\b|(?:^|[^\w.])clearTimeout\(/u;
+            /\b(?:globalThis|window)\.(?:clearTimeout|addEventListener)\b|(?:^|[^\w.])(?:clearTimeout|Date\.now)\(/u;
         const directResourceManagerRuntimeAmbientTimerFallbackPattern =
             /\bscope\.clearTimeout\s*\?\?\s*globalThis\.clearTimeout\b|\bglobalThis\.clearTimeout\s*\(/u;
 
         expect(resourceManagerSource).toContain("resourceManagerRuntime.js");
+        expect(resourceManagerSource).toContain(
+            "timestamp: getResourceManagerDateNow()"
+        );
         expect(resourceManagerSource).not.toContain("globalThis.window");
         expect(resourceManagerSource).not.toContain("window.addEventListener");
         expect(resourceManagerSource).not.toContain("AbortController");
+        expect(resourceManagerSource).not.toContain("Date.now");
         expect(
             directResourceManagerRuntimeGlobalPattern.test(
                 resourceManagerSource
@@ -10186,11 +10190,20 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
         expect(resourceManagerRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
         expect(resourceManagerRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
+            "readonly dateNow?:"
         );
         expect(resourceManagerRuntimeSource).not.toContain(
             "readonly eventTarget?:"
@@ -10201,6 +10214,7 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
+        expect(resourceManagerRuntimeSource).not.toContain("scope.dateNow");
         expect(resourceManagerRuntimeSource).not.toContain("scope.eventTarget");
         expect(resourceManagerRuntimeSource).not.toContain(
             "scope: ResourceManagerRuntimeScope = globalThis"
@@ -10211,6 +10225,9 @@ describe("architecture boundaries", () => {
         );
         expect(resourceManagerRuntimeSource).toContain(
             "resourceManager requires clearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "resourceManager requires dateNow"
         );
     });
 

@@ -10,6 +10,7 @@ export interface ResourceManagerRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getEventTarget?:
         | (() => ResourceManagerEventTarget | undefined)
         | undefined;
@@ -20,6 +21,7 @@ export type ResourceManagerTimer = ReturnType<typeof globalThis.setTimeout>;
 const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
+    getDateNow: () => Date.now,
     getEventTarget: () => globalThis,
 };
 
@@ -33,6 +35,15 @@ function getClearTimeout(
     scope: ResourceManagerRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getRequiredDateNow(scope: ResourceManagerRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("resourceManager requires dateNow");
+    }
+
+    return dateNow;
 }
 
 function getEventTarget(
@@ -51,6 +62,12 @@ export function clearResourceManagerTimer(
     }
 
     clearTimeoutRef(timerId);
+}
+
+export function getResourceManagerDateNow(
+    scope: ResourceManagerRuntimeScope = defaultResourceManagerRuntimeScope
+): number {
+    return getRequiredDateNow(scope)();
 }
 
 export function registerResourceManagerUnloadCleanup(
