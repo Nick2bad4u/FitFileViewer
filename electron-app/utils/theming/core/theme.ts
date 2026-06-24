@@ -251,30 +251,7 @@ export function getThemeConfig(): ThemeConfig {
     const effectiveTheme = getEffectiveTheme();
     const getVar = (name: string): string => {
         try {
-            // Guard for environments where document/body or getComputedStyle may be unavailable or mocked
-            if (
-                typeof document === "undefined" ||
-                !document ||
-                !document.body
-            ) {
-                return "";
-            }
-            if (typeof getComputedStyle !== "function") {
-                return "";
-            }
-            // Some tests may replace body with non-Element. Accessing computed style would throw.
-            const { body } = document;
-            if (
-                !body ||
-                typeof body.nodeType !== "number" ||
-                body.nodeType !== 1
-            ) {
-                return "";
-            }
-            return (
-                getComputedStyle(body).getPropertyValue(`--${name}`)?.trim() ||
-                ""
-            );
+            return themeRuntime.getBodyComputedStyleProperty(name);
         } catch {
             return "";
         }
@@ -569,11 +546,14 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
         },
         targets: EventTarget[] = [];
 
-    if (typeof document === "object" && document) {
-        targets.push(document);
-        if (document.body) {
-            targets.push(document.body);
-        }
+    const documentEventTarget = themeRuntime.getDocumentEventTarget();
+    if (documentEventTarget) {
+        targets.push(documentEventTarget);
+    }
+
+    const bodyElement = themeRuntime.getBodyElement();
+    if (bodyElement) {
+        targets.push(bodyElement);
     }
 
     const globalEventTarget = themeRuntime.getGlobalEventTarget();

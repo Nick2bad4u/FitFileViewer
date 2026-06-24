@@ -195,6 +195,41 @@ describe("getThemeRuntime", () => {
         expect(documentRef.head.contains(metaElement ?? null)).toBe(true);
     });
 
+    it("reads body targets and computed styles through injected runtimes", () => {
+        expect.assertions(8);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("theme body");
+        documentRef.body.style.setProperty("--color-bg", "#123456");
+        const getComputedStyle = vi.fn<typeof globalThis.getComputedStyle>(
+            (element) => window.getComputedStyle(element)
+        );
+        const runtime = getThemeRuntime({
+            getComputedStyle: () => getComputedStyle,
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.getDocumentEventTarget()).toBe(documentRef);
+        expect(runtime.getBodyElement()).toBe(documentRef.body);
+        expect(runtime.getBodyComputedStyleProperty("color-bg")).toBe(
+            "#123456"
+        );
+        expect(getComputedStyle).toHaveBeenCalledWith(documentRef.body);
+
+        const missingRuntime = getThemeRuntime({
+            getDocument: () => ({ body: null }) as unknown as Document,
+        });
+
+        expect(missingRuntime.getDocumentEventTarget()).toEqual({
+            body: null,
+        });
+        expect(missingRuntime.getBodyElement()).toBeNull();
+        expect(missingRuntime.getBodyComputedStyleProperty("color-bg")).toBe(
+            ""
+        );
+        expect(getThemeRuntime({}).getDocumentEventTarget()).toBeNull();
+    });
+
     it("does not borrow ambient documents for explicit DOM scopes", () => {
         expect.assertions(5);
 

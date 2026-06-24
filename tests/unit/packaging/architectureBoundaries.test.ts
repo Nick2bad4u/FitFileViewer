@@ -13730,7 +13730,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(59);
+        expect.assertions(67);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -13751,6 +13751,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(themeCoreSource).toContain("themeRuntime.js");
         expect(themeCoreSource).toContain("createAbortController");
+        expect(themeCoreSource).toContain("getBodyComputedStyleProperty");
+        expect(themeCoreSource).toContain("getBodyElement");
+        expect(themeCoreSource).toContain("getDocumentEventTarget");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
         expect(themeCoreSource).toContain("getGlobalEventTarget");
         expect(themeCoreSource).toContain("addBodyClass");
@@ -13758,6 +13761,7 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("setThemeDataAttributes");
         expect(themeCoreSource).toContain("ensureThemeTransitionStyles");
         expect(themeCoreSource).toContain("updateMetaThemeColor");
+        expect(themeCoreSource).not.toContain("document.body");
         expect(themeCoreSource).not.toContain("document.body.classList");
         expect(themeCoreSource).not.toContain("document.body.dataset");
         expect(themeCoreSource).not.toContain("document.querySelector");
@@ -13777,6 +13781,9 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(themeRuntimeSource).toContain(
+            "getComputedStyle: () => globalThis.getComputedStyle"
+        );
+        expect(themeRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
         expect(themeRuntimeSource).toContain(
@@ -13790,6 +13797,7 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).not.toContain("readonly AbortController?:");
         expect(themeRuntimeSource).not.toContain("readonly clearTimeout?:");
+        expect(themeRuntimeSource).not.toContain("readonly computedStyle?:");
         expect(themeRuntimeSource).not.toContain(
             "readonly globalEventTarget?:"
         );
@@ -13831,6 +13839,10 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).toContain("documentRef.createElement");
         expect(themeRuntimeSource).toContain("documentRef.querySelector");
+        expect(themeRuntimeSource).toContain(
+            "getComputedStyleRef(body).getPropertyValue"
+        );
+        expect(themeRuntimeSource).toContain("getScopeBodyElement(scope)");
         expect(themeRuntimeSource).toContain(
             "getRequiredDocument(scope).body.classList.add"
         );

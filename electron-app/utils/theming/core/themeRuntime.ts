@@ -7,6 +7,9 @@ export interface ThemeRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getComputedStyle?:
+        | (() => typeof globalThis.getComputedStyle | undefined)
+        | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getMatchMedia?:
@@ -22,6 +25,9 @@ export interface ThemeRuntime {
     readonly clearTimeout: (timer: ThemeRuntimeTimer) => void;
     readonly createAbortController: () => AbortController;
     readonly ensureThemeTransitionStyles: (cssText: string) => void;
+    readonly getBodyComputedStyleProperty: (name: string) => string;
+    readonly getBodyElement: () => HTMLElement | null;
+    readonly getDocumentEventTarget: () => EventTarget | null;
     readonly getGlobalEventTarget: () => EventTarget | null;
     readonly getSystemThemeMediaQuery: () => MediaQueryList | null;
     readonly setTimeout: (
@@ -51,6 +57,7 @@ function getDefaultEventTarget(): EventTarget | undefined {
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
+    getComputedStyle: () => globalThis.getComputedStyle,
     getDocument: () => globalThis.document,
     getGlobalEventTarget: getDefaultEventTarget,
     getMatchMedia: () => globalThis.matchMedia?.bind(globalThis),
@@ -67,6 +74,12 @@ function getScopeClearTimeout(
     scope: ThemeRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getScopeComputedStyle(
+    scope: ThemeRuntimeScope
+): typeof globalThis.getComputedStyle | undefined {
+    return scope.getComputedStyle?.();
 }
 
 function getScopeDocument(scope: ThemeRuntimeScope): Document | undefined {
@@ -98,6 +111,15 @@ function getScopeSetTimeout(
     scope: ThemeRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
     return scope.getSetTimeout?.();
+}
+
+function getScopeBodyElement(scope: ThemeRuntimeScope): HTMLElement | null {
+    const body = getScopeDocument(scope)?.body;
+    if (!body || typeof body.nodeType !== "number" || body.nodeType !== 1) {
+        return null;
+    }
+
+    return body;
 }
 
 export function getThemeRuntime(
@@ -137,6 +159,23 @@ export function getThemeRuntime(
             style.id = "theme-transition-styles";
             style.textContent = cssText;
             documentRef.head.append(style);
+        },
+        getBodyComputedStyleProperty(name): string {
+            const body = getScopeBodyElement(scope);
+            const getComputedStyleRef = getScopeComputedStyle(scope);
+            if (!body || typeof getComputedStyleRef !== "function") {
+                return "";
+            }
+
+            return (
+                getComputedStyleRef(body).getPropertyValue(`--${name}`) ?? ""
+            ).trim();
+        },
+        getBodyElement(): HTMLElement | null {
+            return getScopeBodyElement(scope);
+        },
+        getDocumentEventTarget(): EventTarget | null {
+            return getScopeDocument(scope) ?? null;
         },
         getGlobalEventTarget(): EventTarget | null {
             return getScopeGlobalEventTarget(scope) ?? null;
