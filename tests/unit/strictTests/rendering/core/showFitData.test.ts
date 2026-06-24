@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 const stateManagerMocks = vi.hoisted(() => ({
     getState: vi.fn<(path?: string) => unknown>(() => undefined),
     setState:
@@ -91,29 +93,33 @@ vi.mock(
 type ShowFitDataElectronApi = {
     notifyFitFileLoaded: ReturnType<typeof vi.fn<(filePath: string) => void>>;
 };
+type ShowFitDataElectronApiFixture = {
+    electronApiScope: RendererElectronApiScope;
+    showFitDataElectronApi: ShowFitDataElectronApi;
+};
 
 async function loadModule() {
     return await import("../../../../../electron-app/utils/rendering/core/showFitData.js");
 }
 
-async function registerShowFitDataApi(
-    api: ShowFitDataElectronApi
-): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    registerRendererElectronApiCandidate(api);
-}
+function createShowFitDataElectronApiFixture(): ShowFitDataElectronApiFixture {
+    const showFitDataElectronApi = {
+        notifyFitFileLoaded: vi.fn<(filePath: string) => void>(),
+    };
 
-async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    resetRendererElectronApiCandidate();
+    return {
+        electronApiScope: {
+            getElectronAPI: () => showFitDataElectronApi,
+        },
+        showFitDataElectronApi,
+    };
 }
 
 describe("showFitData", () => {
+    let electronApiScope: RendererElectronApiScope;
     let showFitDataElectronApi: ShowFitDataElectronApi;
 
-    beforeEach(async () => {
+    beforeEach(() => {
         const activeFileNameContainer = document.createElement("div");
         activeFileNameContainer.id = "activeFileNameContainer";
         const activeFileName = document.createElement("span");
@@ -125,10 +131,8 @@ describe("showFitData", () => {
             activeFileName,
             unloadFileButton
         );
-        showFitDataElectronApi = {
-            notifyFitFileLoaded: vi.fn<(filePath: string) => void>(),
-        };
-        await registerShowFitDataApi(showFitDataElectronApi);
+        ({ electronApiScope, showFitDataElectronApi } =
+            createShowFitDataElectronApiFixture());
         stateManagerMocks.getState.mockReturnValue(undefined);
         stateManagerMocks.setState.mockClear();
         stateManagerMocks.subscribe.mockClear();
@@ -146,10 +150,9 @@ describe("showFitData", () => {
         );
         vi.useFakeTimers();
     });
-    afterEach(async () => {
+    afterEach(() => {
         document.body.replaceChildren();
         vi.useRealTimers();
-        await resetRegisteredElectronApi();
         vi.resetModules();
         vi.clearAllMocks();
     });
@@ -163,7 +166,7 @@ describe("showFitData", () => {
             recordMesgs: [{ timestamp: 1 }],
         };
         const filePath = "C:/tmp/file.fit";
-        showFitData(data, filePath);
+        showFitData(data, filePath, { electronApiScope });
         await vi.waitFor(() => {
             if (rendererDependencyMocks.renderMap.mock.calls.length === 0) {
                 throw new Error("Expected map render");

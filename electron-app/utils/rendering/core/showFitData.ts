@@ -29,7 +29,10 @@ import {
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
 import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
 import { updateTabVisibility } from "../../ui/tabs/updateTabVisibility.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { createTables } from "../components/createTables.js";
@@ -68,6 +71,7 @@ type FitDataObject = {
 
 /** Display options accepted by the FIT data renderer. */
 export type ShowFitDataOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     updateUI?: boolean;
 };
 
@@ -84,8 +88,10 @@ type FitFileStateManagerLike = {
 
 type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
-function getShowFitDataElectronApi(): ElectronApiLike | null {
-    return getRendererElectronApi(isShowFitDataElectronApi);
+function getShowFitDataElectronApi(
+    electronApiScope: RendererElectronApiScope | undefined
+): ElectronApiLike | null {
+    return getRendererElectronApi(isShowFitDataElectronApi, electronApiScope);
 }
 
 function isShowFitDataElectronApi(value: unknown): value is ElectronApiLike {
@@ -173,7 +179,7 @@ export function showFitData(
             updateFileState(fileName);
 
             // Enable tabs and send notifications
-            enableTabsAndNotify(filePath);
+            enableTabsAndNotify(filePath, config.electronApiScope);
 
             // Switch to map tab early to avoid a brief summary flash during load.
             switchToMapTabOnLoad();
@@ -288,13 +294,18 @@ function setMapRenderedFlag(isRendered: boolean): void {
 }
 
 /** Enables tab buttons and notifies the main process. */
-function enableTabsAndNotify(filePath: string): void {
+function enableTabsAndNotify(
+    filePath: string,
+    electronApiScope: RendererElectronApiScope | undefined
+): void {
     try {
         // Enable tab buttons when a file is loaded
         setTabButtonsEnabled(true);
 
         // Notify main process via IPC
-        getShowFitDataElectronApi()?.notifyFitFileLoaded?.(filePath);
+        getShowFitDataElectronApi(electronApiScope)?.notifyFitFileLoaded?.(
+            filePath
+        );
 
         // Dispatch custom event for other components
         const event = showFitDataRuntime.createCustomEvent(
