@@ -219,6 +219,15 @@ After signed Windows or macOS packaging, run:
 npm run release:verify-signing-artifacts
 ```
 
+For the full signed release verification path, run:
+
+```bash
+npm run verify:release:signed
+```
+
+That command runs fast checks, the docs build, audit, Playwright smoke, signed
+packaging, signature artifact verification, and packaged smoke in order.
+
 The verifier checks Windows `.exe` and `.msi` files with
 `Get-AuthenticodeSignature`, checks macOS `.app` bundles with `codesign`, and
 writes `release-dist/signing-verification-report.json`. The primary release

@@ -279,6 +279,8 @@ const expectedRootToolingScripts = {
     "verify:full":
         "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
     "verify:release": "npm run verify:full",
+    "verify:release:signed":
+        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged",
 } as const;
 
 const disallowedRootDevDependencyNamePatterns = [
@@ -533,7 +535,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release rehearsal manual and unsigned", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseRehearsalWorkflow = readFileSync(
@@ -567,6 +569,7 @@ describe("workspace package boundaries", () => {
         expect(developmentGuide).toContain("### Release Rehearsal");
         expect(developmentGuide).toContain("`npm run package:signed`");
         expect(developmentGuide).toContain("`npm run package:unsigned`");
+        expect(developmentGuide).toContain("`npm run verify:release:signed`");
         expect(developmentGuide).toContain(
             "`npm run release:verify-signing-artifacts`"
         );
@@ -578,6 +581,7 @@ describe("workspace package boundaries", () => {
 
         expect(buildReleaseGuide).toContain("npm run package:unsigned");
         expect(buildReleaseGuide).toContain("npm run package:signed");
+        expect(buildReleaseGuide).toContain("npm run verify:release:signed");
         expect(buildReleaseGuide).toContain(
             "npm run release:verify-signing-artifacts"
         );
@@ -587,7 +591,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps verify release as the full pre-release readiness gate", () => {
-        expect.assertions(17);
+        expect.assertions(26);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const scripts = rootPackage.scripts ?? {};
@@ -595,9 +599,16 @@ describe("workspace package boundaries", () => {
             scripts,
             "verify:release"
         );
+        const expandedSignedReleaseGate = expandNpmRunScriptGraph(
+            scripts,
+            "verify:release:signed"
+        );
 
         expect(scripts["release:verify"]).toBe("npm run verify:release");
         expect(scripts["verify:release"]).toBe("npm run verify:full");
+        expect(scripts["verify:release:signed"]).toBe(
+            "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged"
+        );
         expect(expandedReleaseGate).toContain("verify:release:");
         expect(expandedReleaseGate).toContain("verify:full:");
         expect(expandedReleaseGate).toContain("verify:fast:");
@@ -614,6 +625,20 @@ describe("workspace package boundaries", () => {
         expect(expandedReleaseGate).toContain("npm run test:packaged");
         expect(scripts["package:unsigned"]).toContain(
             "REQUIRE_CODE_SIGNING=false"
+        );
+        expect(scripts["package:signed"]).toContain(
+            "REQUIRE_CODE_SIGNING=true"
+        );
+        expect(expandedSignedReleaseGate).toContain("verify:release:signed:");
+        expect(expandedSignedReleaseGate).toContain("verify:fast:");
+        expect(expandedSignedReleaseGate).toContain("npm run docs:build");
+        expect(expandedSignedReleaseGate).toContain("npm run package:signed");
+        expect(expandedSignedReleaseGate).toContain(
+            "npm run release:verify-signing-artifacts"
+        );
+        expect(expandedSignedReleaseGate).toContain("npm run test:packaged");
+        expect(expandedSignedReleaseGate).not.toContain(
+            "npm run package:unsigned"
         );
     });
 

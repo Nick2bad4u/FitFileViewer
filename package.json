@@ -265,7 +265,8 @@
         "update-deps": "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
         "verify:fast": "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
         "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
-        "verify:release": "npm run verify:full"
+        "verify:release": "npm run verify:full",
+        "verify:release:signed": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged"
     },
     "overrides": {
         "esbuild": "^0.28.1",

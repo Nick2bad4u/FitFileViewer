@@ -6,6 +6,7 @@ import {
     type RendererImportTimeBootstrap,
 } from "../../../electron-app/renderer/importTimeBootstrap.js";
 import type { RendererCoreModules } from "../../../electron-app/renderer/coreModuleResolution.js";
+import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
 function createBootstrap(
     overrides: Partial<RendererImportTimeBootstrap> = {}
@@ -49,15 +50,34 @@ async function flushImportTimeWork(): Promise<void> {
 
 describe("renderer import-time bootstrap", () => {
     it("calls import-time core module functions directly", async () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const openFileButton = document.createElement("button");
         const initializeStateManager = vi.fn(async () => undefined);
         const masterStateManager = { initialize: vi.fn() };
         const isOpeningFileRef = { value: false };
         const setLoading = vi.fn();
-        const coreModules = createCoreModules();
-        const bootstrap = createRendererImportTimeBootstrap({
+        const receivedUpdateNotifications: unknown[][] = [];
+        let setupListenersOptions: SetupListenersOptions | undefined;
+        const coreModules = createCoreModules({
+            setupListeners: vi.fn((options: SetupListenersOptions) => {
+                setupListenersOptions = options;
+            }),
+            showUpdateNotification: (message, type, duration, withAction) => {
+                receivedUpdateNotifications.push([
+                    message,
+                    type,
+                    duration,
+                    withAction,
+                ]);
+            },
+        });
+        const {
+            scheduleAppDomainStateCoverageTouch,
+            scheduleImportTimeListenersSetup,
+            scheduleImportTimeStateInitialization,
+            scheduleImportTimeThemeSetup,
+        } = createRendererImportTimeBootstrap({
             ensureCoreModules: async () => coreModules,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
@@ -70,10 +90,10 @@ describe("renderer import-time bootstrap", () => {
             setLoading,
         });
 
-        bootstrap.scheduleImportTimeThemeSetup();
-        bootstrap.scheduleImportTimeListenersSetup();
-        bootstrap.scheduleImportTimeStateInitialization();
-        bootstrap.scheduleAppDomainStateCoverageTouch();
+        scheduleImportTimeThemeSetup();
+        scheduleImportTimeListenersSetup();
+        scheduleImportTimeStateInitialization();
+        scheduleAppDomainStateCoverageTouch();
         await flushImportTimeWork();
 
         expect(coreModules.setupTheme).toHaveBeenCalledWith(
@@ -97,15 +117,29 @@ describe("renderer import-time bootstrap", () => {
             "app.startTime",
             expect.any(Function)
         );
+        expect(receivedUpdateNotifications).toHaveLength(0);
+        expect(setupListenersOptions).toBeDefined();
+        setupListenersOptions?.showUpdateNotification(
+            "Update available",
+            4000,
+            "download"
+        );
+        expect(receivedUpdateNotifications).toStrictEqual([
+            [
+                "Update available",
+                undefined,
+                4000,
+                "download",
+            ],
+        ]);
         expect(coreModules.showAboutModal).not.toHaveBeenCalled();
-        expect(coreModules.showUpdateNotification).not.toHaveBeenCalled();
     });
 
     it("runs import-time setup and coverage touches in renderer order", () => {
         expect.assertions(1);
 
         const calls: string[] = [];
-        const bootstrap = createBootstrap({
+        const controller = createBootstrap({
             scheduleAppDomainStateCoverageTouch: vi.fn(() => {
                 calls.push("coverage");
             }),
@@ -120,7 +154,7 @@ describe("renderer import-time bootstrap", () => {
             }),
         });
 
-        runRendererImportTimeBootstrap(bootstrap);
+        runRendererImportTimeBootstrap(controller);
 
         expect(calls).toStrictEqual([
             "theme",
@@ -134,7 +168,7 @@ describe("renderer import-time bootstrap", () => {
     it("isolates setup errors so later import-time setup still runs", () => {
         expect.assertions(4);
 
-        const bootstrap = createBootstrap({
+        const controller = createBootstrap({
             scheduleImportTimeListenersSetup: vi.fn(() => {
                 throw new Error("listeners failed");
             }),
@@ -147,15 +181,15 @@ describe("renderer import-time bootstrap", () => {
         });
 
         expect(() => {
-            runRendererImportTimeBootstrap(bootstrap);
+            runRendererImportTimeBootstrap(controller);
         }).not.toThrow();
 
-        expect(bootstrap.scheduleImportTimeThemeSetup).toHaveBeenCalledOnce();
+        expect(controller.scheduleImportTimeThemeSetup).toHaveBeenCalledOnce();
         expect(
-            bootstrap.scheduleImportTimeStateInitialization
+            controller.scheduleImportTimeStateInitialization
         ).toHaveBeenCalledOnce();
         expect(
-            bootstrap.scheduleAppDomainStateCoverageTouch
+            controller.scheduleAppDomainStateCoverageTouch
         ).toHaveBeenCalledTimes(2);
     });
 });

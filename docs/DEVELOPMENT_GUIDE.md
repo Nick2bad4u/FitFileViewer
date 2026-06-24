@@ -66,6 +66,7 @@ npm run lint:css:fix       # Fix Stylelint issues
 npm run typecheck         # TypeScript type checking
 npm run verify:fast       # Fast local readiness gate
 npm run verify:release    # Full release readiness gate, including signing preflight
+npm run verify:release:signed # Full signed release gate with artifact signature verification
 npm run release:verify    # Alias used by release automation
 
 # Build & Package
@@ -432,6 +433,10 @@ missing variable.
 - Use `npm run package:signed` for a signed current-platform release package.
   It runs the required signing preflight, then starts electron-builder with
   `REQUIRE_CODE_SIGNING=true`.
+- Use `npm run verify:release:signed` when signing credentials are available
+  and you want the full signed release path in one command: fast verification,
+  docs build, audit, Playwright smoke, signed packaging, signature artifact
+  verification, and packaged smoke.
 - Windows signed builds require `WIN_CSC_LINK` or `CSC_LINK`, plus
   `CSC_KEY_PASSWORD`.
 - macOS signed builds require `CSC_LINK`, `CSC_KEY_PASSWORD`,
@@ -447,6 +452,8 @@ missing variable.
 
 After signed Windows or macOS packaging completes, use
 `npm run release:verify-signing-artifacts` to verify the produced artifacts.
+`npm run verify:release:signed` runs that verifier automatically after signed
+packaging.
 The release matrix runs this automatically after `build:ci-matrix`: Windows
 artifacts are checked with `Get-AuthenticodeSignature`, and macOS `.app`
 bundles are checked with `codesign --verify --deep --strict`. The verifier
