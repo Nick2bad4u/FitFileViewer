@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     ensureRendererVendorBundle,
     type RendererVendorBundleEntry,
+    type RendererVendorBundleLoaderOptions,
 } from "../../../electron-app/renderer/vendorBundleLoader.js";
+import type { RendererVendorBundleLoaderRuntime } from "../../../electron-app/renderer/vendorBundleLoaderRuntime.js";
 import {
     isRendererVendorBundleEntry,
     rendererVendorBundleEntries,
@@ -48,9 +50,49 @@ function markEntryLoaded(entryName: RendererVendorBundleEntry): void {
 }
 
 function ensureVendorBundle(
-    entryName: RendererVendorBundleEntry
+    entryName: RendererVendorBundleEntry,
+    options?: RendererVendorBundleLoaderOptions
 ): Promise<void> {
-    return ensureRendererVendorBundle(entryName);
+    return ensureRendererVendorBundle(entryName, options);
+}
+
+function createVendorLoaderRuntime(): RendererVendorBundleLoaderRuntime {
+    return {
+        addEventListener: vi.fn((type, listener, options) => {
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Test runtime forwards caller-owned AbortSignal cleanup options to the browser listener API.
+            globalThis.addEventListener(type, listener, options);
+        }),
+        addScriptEventListener: vi.fn((script, type, listener, options) => {
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Test runtime forwards caller-owned AbortSignal cleanup options to the script listener API.
+            script.addEventListener(type, listener, options);
+        }),
+        appendVendorScript: vi.fn((script) => {
+            document.head.append(script);
+        }),
+        clearTimeout: vi.fn((handle) => {
+            clearTimeout(handle);
+        }),
+        createAbortController: vi.fn(() => new AbortController()),
+        createVendorScript: vi.fn((entryName, src) => {
+            const script = document.createElement("script");
+            script.dataset["ffvRendererVendorEntry"] = entryName;
+            script.defer = true;
+            script.src = src;
+            script.type = "module";
+            return script;
+        }),
+        getExistingVendorScript: vi.fn((entryName) => {
+            const script = document.querySelector(
+                `script[data-ffv-renderer-vendor-entry="${entryName}"]`
+            );
+            return script instanceof HTMLScriptElement ? script : null;
+        }),
+        now: vi.fn(() => Date.now()),
+        removeEventListener: vi.fn((type, listener) => {
+            globalThis.removeEventListener(type, listener);
+        }),
+        setTimeout: vi.fn((callback, delay) => setTimeout(callback, delay)),
+    };
 }
 
 function getVendorScript(
@@ -133,6 +175,57 @@ describe("renderer vendor bundle loader", () => {
         await expect(
             Promise.all([vendorReadiness.initial, vendorReadiness.duplicate])
         ).resolves.toStrictEqual([undefined, undefined]);
+    });
+
+    it("uses an injected loader runtime for split vendor script readiness", async () => {
+        expect.assertions(9);
+
+        const vendorLoaderRuntime = createVendorLoaderRuntime();
+        const pendingLoads = [
+            ensureVendorBundle("map", {
+                runtime: vendorLoaderRuntime,
+            }),
+        ];
+        const script = getVendorScript("map");
+
+        expect(vendorLoaderRuntime.getExistingVendorScript).toHaveBeenCalledWith(
+            "map"
+        );
+        expect(vendorLoaderRuntime.createVendorScript).toHaveBeenCalledWith(
+            "map",
+            expect.stringMatching(/renderer-vendor-map\.js$/u)
+        );
+        expect(vendorLoaderRuntime.appendVendorScript).toHaveBeenCalledWith(
+            script
+        );
+        expect(vendorLoaderRuntime.addEventListener).toHaveBeenCalledWith(
+            "ffv-renderer-vendor-entry-loaded",
+            expect.any(Function),
+            expect.objectContaining({ signal: expect.any(AbortSignal) })
+        );
+        expect(vendorLoaderRuntime.addScriptEventListener).toHaveBeenCalledWith(
+            script,
+            "load",
+            expect.any(Function),
+            expect.objectContaining({
+                once: true,
+                signal: expect.any(AbortSignal),
+            })
+        );
+        expect(vendorLoaderRuntime.setTimeout).toHaveBeenCalledWith(
+            expect.any(Function),
+            0
+        );
+
+        markEntryLoaded("map");
+        script.dispatchEvent(new Event("load"));
+
+        await expect(pendingLoads[0]).resolves.toBeUndefined();
+        expect(vendorLoaderRuntime.clearTimeout).toHaveBeenCalled();
+        expect(vendorLoaderRuntime.removeEventListener).toHaveBeenCalledWith(
+            "ffv-renderer-vendor-entry-loaded",
+            expect.any(Function)
+        );
     });
 
     it("waits for the split entry marker after the script load event", async () => {

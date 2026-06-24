@@ -16034,7 +16034,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(24);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -16055,6 +16055,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(vendorBundleLoaderSource).toContain(
             "vendorBundleLoaderRuntime.js"
+        );
+        expect(vendorBundleLoaderSource).toContain(
+            "options.runtime ?? getRendererVendorBundleLoaderRuntime()"
+        );
+        expect(vendorBundleLoaderSource).not.toContain(
+            "const vendorBundleLoaderRuntime ="
         );
         expect(vendorBundleLoaderRuntimeSource).not.toMatch(
             directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern

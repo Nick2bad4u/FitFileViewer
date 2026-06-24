@@ -6,6 +6,7 @@ import {
 } from "./rendererVendorShared.js";
 import {
     getRendererVendorBundleLoaderRuntime,
+    type RendererVendorBundleLoaderRuntime,
     type RendererVendorBundleLoaderTimerHandle,
 } from "./vendorBundleLoaderRuntime.js";
 import {
@@ -26,7 +27,10 @@ export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 const inFlightLoads = new Map<RendererVendorBundleEntry, Promise<void>>();
 const vendorEntryMarkerPollMs = 20;
 const vendorEntryMarkerTimeoutMs = 5000;
-const vendorBundleLoaderRuntime = getRendererVendorBundleLoaderRuntime();
+
+export type RendererVendorBundleLoaderOptions = Readonly<{
+    readonly runtime?: RendererVendorBundleLoaderRuntime | undefined;
+}>;
 
 function isRendererVendorBundleLoaded(
     entryName: RendererVendorBundleEntry
@@ -68,40 +72,37 @@ function createVendorScriptUrl(entryName: RendererVendorBundleEntry): string {
 }
 
 function waitForRendererVendorEntry(
-    entryName: RendererVendorBundleEntry
+    entryName: RendererVendorBundleEntry,
+    runtime: RendererVendorBundleLoaderRuntime
 ): Promise<void> {
     if (isRendererVendorBundleLoaded(entryName)) {
         return Promise.resolve();
     }
 
-    const startedAt = vendorBundleLoaderRuntime.now();
+    const startedAt = runtime.now();
 
     return new Promise<void>((resolve, reject) => {
-        const eventController =
-            vendorBundleLoaderRuntime.createAbortController();
+        const eventController = runtime.createAbortController();
         let timeoutId: RendererVendorBundleLoaderTimerHandle | undefined;
 
         const clearPendingTimer = (): void => {
             if (timeoutId === undefined) {
                 return;
             }
-            vendorBundleLoaderRuntime.clearTimeout(timeoutId);
+            runtime.clearTimeout(timeoutId);
             timeoutId = undefined;
         };
         const cleanup = (): void => {
             clearPendingTimer();
             eventController.abort();
-            vendorBundleLoaderRuntime.removeEventListener(
+            runtime.removeEventListener(
                 rendererVendorEntryLoadedEventName,
                 onEntryLoaded
             );
         };
         const scheduleCheck = (delayMs: number): void => {
             clearPendingTimer();
-            timeoutId = vendorBundleLoaderRuntime.setTimeout(
-                checkEntryMarker,
-                delayMs
-            );
+            timeoutId = runtime.setTimeout(checkEntryMarker, delayMs);
         };
         const isMatchingEntryEvent = (
             event: Event
@@ -126,7 +127,7 @@ function waitForRendererVendorEntry(
             }
 
             if (
-                vendorBundleLoaderRuntime.now() - startedAt >=
+                runtime.now() - startedAt >=
                 vendorEntryMarkerTimeoutMs
             ) {
                 cleanup();
@@ -141,7 +142,7 @@ function waitForRendererVendorEntry(
             scheduleCheck(vendorEntryMarkerPollMs);
         };
 
-        vendorBundleLoaderRuntime.addEventListener(
+        runtime.addEventListener(
             rendererVendorEntryLoadedEventName,
             onEntryLoaded,
             { signal: eventController.signal }
@@ -159,11 +160,13 @@ function waitForRendererVendorEntry(
  * Chart.js, or other runtime-adapter dependencies.
  */
 export async function ensureRendererVendorBundle(
-    entryName: RendererVendorBundleEntry
+    entryName: RendererVendorBundleEntry,
+    options: RendererVendorBundleLoaderOptions = {}
 ): Promise<void> {
     if (isRendererVendorBundleLoaded(entryName)) {
         return;
     }
+    const runtime = options.runtime ?? getRendererVendorBundleLoaderRuntime();
 
     const inFlightLoad = inFlightLoads.get(entryName);
     if (inFlightLoad) {
@@ -171,16 +174,18 @@ export async function ensureRendererVendorBundle(
     }
 
     const loadPromise = new Promise<void>((resolve, reject) => {
-        const existingScript =
-            vendorBundleLoaderRuntime.getExistingVendorScript(entryName);
+        const existingScript = runtime.getExistingVendorScript(entryName);
         const script =
             existingScript ??
-            vendorBundleLoaderRuntime.createVendorScript(
+            runtime.createVendorScript(
                 entryName,
                 createVendorScriptUrl(entryName)
             );
-        const controller = vendorBundleLoaderRuntime.createAbortController();
-        const readinessPromise = waitForRendererVendorEntry(entryName);
+        const controller = runtime.createAbortController();
+        const readinessPromise = waitForRendererVendorEntry(
+            entryName,
+            runtime
+        );
         readinessPromise.catch(() => {});
 
         const cleanup = (): void => {
@@ -214,7 +219,7 @@ export async function ensureRendererVendorBundle(
             return;
         }
 
-        vendorBundleLoaderRuntime.addScriptEventListener(
+        runtime.addScriptEventListener(
             script,
             "error",
             onError,
@@ -223,7 +228,7 @@ export async function ensureRendererVendorBundle(
                 signal: controller.signal,
             }
         );
-        vendorBundleLoaderRuntime.addScriptEventListener(
+        runtime.addScriptEventListener(
             script,
             "load",
             onLoad,
@@ -233,7 +238,7 @@ export async function ensureRendererVendorBundle(
             }
         );
 
-        vendorBundleLoaderRuntime.appendVendorScript(script);
+        runtime.appendVendorScript(script);
     }).finally(() => {
         inFlightLoads.delete(entryName);
     });
