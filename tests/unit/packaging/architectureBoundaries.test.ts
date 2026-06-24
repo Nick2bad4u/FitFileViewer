@@ -14600,7 +14600,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart canvas creation behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(18);
 
         const violations = migratedCreateChartCanvasRuntimeFiles
             .filter((relativeFile) =>
@@ -14622,12 +14622,25 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/components/createChartCanvasRuntime.ts"
             )
         );
+        const canvasSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/createChartCanvas.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(runtimeSource).not.toMatch(
             directCreateChartCanvasRuntimeAmbientFallbackPattern
         );
+        expect(canvasSource).toContain("type CreateChartCanvasRuntime");
+        expect(canvasSource).not.toContain(
+            "const createChartCanvasRuntime = getCreateChartCanvasRuntime();"
+        );
+        expect(canvasSource).toContain(
+            "runtime: CreateChartCanvasRuntime = getCreateChartCanvasRuntime()"
+        );
+        expect(canvasSource).toContain("runtime.createCanvas()");
         expect(runtimeSource).toContain("defaultCreateChartCanvasRuntimeScope");
         expect(runtimeSource).toContain(
             "getDocument: () => globalThis.document"

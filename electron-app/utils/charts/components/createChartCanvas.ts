@@ -1,6 +1,7 @@
-import { getCreateChartCanvasRuntime } from "./createChartCanvasRuntime.js";
-
-const createChartCanvasRuntime = getCreateChartCanvasRuntime();
+import {
+    getCreateChartCanvasRuntime,
+    type CreateChartCanvasRuntime,
+} from "./createChartCanvasRuntime.js";
 
 /**
  * Create the canvas element used by Chart.js renderers.
@@ -12,9 +13,10 @@ const createChartCanvasRuntime = getCreateChartCanvasRuntime();
  */
 export function createChartCanvas(
     field: string,
-    index: number
+    index: number,
+    runtime: CreateChartCanvasRuntime = getCreateChartCanvasRuntime()
 ): HTMLCanvasElement {
-    const canvas = createChartCanvasRuntime.createCanvas();
+    const canvas = runtime.createCanvas();
     canvas.id = `chart-${field}-${index}`;
     canvas.className = "chart-canvas";
     canvas.setAttribute("role", "img");

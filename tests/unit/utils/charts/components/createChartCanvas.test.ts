@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createChartCanvas } from "../../../../../electron-app/utils/charts/components/createChartCanvas.js";
+import type { CreateChartCanvasRuntime } from "../../../../../electron-app/utils/charts/components/createChartCanvasRuntime.js";
 
 describe(createChartCanvas, () => {
     it("creates an accessible canvas for a chart field", () => {
@@ -36,5 +37,23 @@ describe(createChartCanvas, () => {
             secondCanvas = createChartCanvas("power", 1);
 
         expect(firstCanvas.id).not.toBe(secondCanvas.id);
+    });
+
+    it("creates the canvas through an injected runtime", () => {
+        expect.assertions(4);
+
+        const canvas = document.createElement("canvas");
+        const runtime: CreateChartCanvasRuntime = {
+            createCanvas: vi.fn(() => canvas),
+        };
+
+        const result = createChartCanvas("heart-rate", 3, runtime);
+
+        expect(runtime.createCanvas).toHaveBeenCalledOnce();
+        expect(result).toBe(canvas);
+        expect(result.id).toBe("chart-heart-rate-3");
+        expect(result.getAttribute("aria-label")).toBe(
+            "Chart for heart-rate"
+        );
     });
 });
