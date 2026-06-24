@@ -10,7 +10,10 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getAddFullScreenButtonRuntime } from "./addFullScreenButtonRuntime.js";
+import {
+    getAddFullScreenButtonRuntime,
+    type AddFullScreenButtonRuntime,
+} from "./addFullScreenButtonRuntime.js";
 
 type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
 type FullScreenButtonOptions = {
@@ -48,7 +51,10 @@ let isWindowFullscreenRequested = false;
 let fullscreenKeydownHandler: null | StoredEventHandler = null;
 let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
 let activeElectronApiScope: RendererElectronApiScope | undefined;
-const addFullScreenButtonRuntime = getAddFullScreenButtonRuntime();
+
+function addFullScreenButtonRuntime(): AddFullScreenButtonRuntime {
+    return getAddFullScreenButtonRuntime();
+}
 
 const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
     getRendererElectronApi(isElectronFullscreenApi, activeElectronApiScope) ??
@@ -111,7 +117,7 @@ const isChartFullscreenActive = (): boolean => {
 export function addFullScreenButton(options?: FullScreenButtonOptions): void {
     try {
         activeElectronApiScope = resolveElectronApiScope(options);
-        if (addFullScreenButtonRuntime.getElementById(FULLSCREEN_WRAPPER_ID)) {
+        if (addFullScreenButtonRuntime().getElementById(FULLSCREEN_WRAPPER_ID)) {
             logWithContext(
                 "Fullscreen button already exists, skipping creation"
             );
@@ -119,10 +125,10 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
         }
         const screenfull = getScreenfullInstance();
         if (!screenfull || !screenfull.isEnabled) {
-            const wrapper = addFullScreenButtonRuntime.createElement("div");
+            const wrapper = addFullScreenButtonRuntime().createElement("div");
             wrapper.className = "fullscreen-btn-wrapper";
             wrapper.id = FULLSCREEN_WRAPPER_ID;
-            const btn = addFullScreenButtonRuntime.createElement("button");
+            const btn = addFullScreenButtonRuntime().createElement("button");
             btn.id = FULLSCREEN_BUTTON_ID;
             btn.className = "fullscreen-btn improved themed-btn";
             btn.dataset["tooltip"] = "Fullscreen (F11)";
@@ -132,22 +138,22 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
             btn.style.pointerEvents = "auto";
             btn.append(createFullscreenIconWrapper("enter"));
             const buttonListener =
-                addFullScreenButtonRuntime.createAbortController();
+                addFullScreenButtonRuntime().createAbortController();
             btn.addEventListener("click", () => nativeToggleFullscreen(), {
                 signal: buttonListener.signal,
             });
             wrapper.append(btn);
-            addFullScreenButtonRuntime.appendToBody(wrapper);
+            addFullScreenButtonRuntime().appendToBody(wrapper);
             logWithContext(
                 "Screenfull not available or not enabled; using native fullscreen fallback",
                 "warn"
             );
             return;
         }
-        const wrapper = addFullScreenButtonRuntime.createElement("div");
+        const wrapper = addFullScreenButtonRuntime().createElement("div");
         wrapper.className = "fullscreen-btn-wrapper";
         wrapper.id = FULLSCREEN_WRAPPER_ID;
-        const btn = addFullScreenButtonRuntime.createElement("button");
+        const btn = addFullScreenButtonRuntime().createElement("button");
         btn.id = FULLSCREEN_BUTTON_ID;
         btn.className = "fullscreen-btn improved themed-btn";
         btn.dataset["tooltip"] = "Fullscreen (F11)";
@@ -157,12 +163,12 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
         btn.style.pointerEvents = "auto";
         btn.append(createFullscreenIconWrapper("enter"));
         const buttonListener =
-            addFullScreenButtonRuntime.createAbortController();
+            addFullScreenButtonRuntime().createAbortController();
         btn.addEventListener("click", handleFullscreenToggle, {
             signal: buttonListener.signal,
         });
         wrapper.append(btn);
-        addFullScreenButtonRuntime.appendToBody(wrapper);
+        addFullScreenButtonRuntime().appendToBody(wrapper);
         logWithContext("Fullscreen button created successfully");
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -180,7 +186,7 @@ export function setupFullscreenListeners({
         activeElectronApiScope = electronApiScope;
         const screenfull = getScreenfullInstance();
         if (fullscreenKeydownHandler) {
-            addFullScreenButtonRuntime.removeWindowEventListener(
+            addFullScreenButtonRuntime().removeWindowEventListener(
                 "keydown",
                 fullscreenKeydownHandler
             );
@@ -188,14 +194,14 @@ export function setupFullscreenListeners({
         }
         if (nativeFullscreenChangeHandler) {
             for (const evt of NATIVE_FULLSCREEN_EVENTS) {
-                addFullScreenButtonRuntime.removeDocumentEventListener(
+                addFullScreenButtonRuntime().removeDocumentEventListener(
                     evt,
                     nativeFullscreenChangeHandler
                 );
             }
             nativeFullscreenChangeHandler = null;
         }
-        addFullScreenButtonRuntime.removeWindowEventListener(
+        addFullScreenButtonRuntime().removeWindowEventListener(
             "DOMContentLoaded",
             handleDOMContentLoaded
         );
@@ -215,8 +221,8 @@ export function setupFullscreenListeners({
                 }
             };
             const keyListener =
-                addFullScreenButtonRuntime.createAbortController();
-            addFullScreenButtonRuntime.addWindowEventListener(
+                addFullScreenButtonRuntime().createAbortController();
+            addFullScreenButtonRuntime().addWindowEventListener(
                 "keydown",
                 keyHandler,
                 {
@@ -227,8 +233,8 @@ export function setupFullscreenListeners({
             nativeFullscreenChangeHandler = null;
             if (document.readyState === "loading") {
                 const domReadyListener =
-                    addFullScreenButtonRuntime.createAbortController();
-                addFullScreenButtonRuntime.addWindowEventListener(
+                    addFullScreenButtonRuntime().createAbortController();
+                addFullScreenButtonRuntime().addWindowEventListener(
                     "DOMContentLoaded",
                     handleDOMContentLoaded,
                     { signal: domReadyListener.signal }
@@ -252,9 +258,9 @@ export function setupFullscreenListeners({
             }
         };
         const nativeListener =
-            addFullScreenButtonRuntime.createAbortController();
+            addFullScreenButtonRuntime().createAbortController();
         for (const evt of NATIVE_FULLSCREEN_EVENTS) {
-            addFullScreenButtonRuntime.addDocumentEventListener(
+            addFullScreenButtonRuntime().addDocumentEventListener(
                 evt,
                 nativeHandler,
                 {
@@ -268,8 +274,8 @@ export function setupFullscreenListeners({
                 handleKeyboardShortcuts(event);
             }
         };
-        const keyListener = addFullScreenButtonRuntime.createAbortController();
-        addFullScreenButtonRuntime.addWindowEventListener(
+        const keyListener = addFullScreenButtonRuntime().createAbortController();
+        addFullScreenButtonRuntime().addWindowEventListener(
             "keydown",
             keyHandler,
             {
@@ -279,8 +285,8 @@ export function setupFullscreenListeners({
         fullscreenKeydownHandler = keyHandler;
         if (document.readyState === "loading") {
             const domReadyListener =
-                addFullScreenButtonRuntime.createAbortController();
-            addFullScreenButtonRuntime.addWindowEventListener(
+                addFullScreenButtonRuntime().createAbortController();
+            addFullScreenButtonRuntime().addWindowEventListener(
                 "DOMContentLoaded",
                 handleDOMContentLoaded,
                 { signal: domReadyListener.signal }
@@ -305,7 +311,7 @@ export function setupFullscreenListeners({
  */
 export function resetFullscreenListenerStateForTests(): void {
     if (fullscreenKeydownHandler) {
-        addFullScreenButtonRuntime.removeWindowEventListener(
+        addFullScreenButtonRuntime().removeWindowEventListener(
             "keydown",
             fullscreenKeydownHandler
         );
@@ -314,7 +320,7 @@ export function resetFullscreenListenerStateForTests(): void {
 
     if (nativeFullscreenChangeHandler) {
         for (const eventName of NATIVE_FULLSCREEN_EVENTS) {
-            addFullScreenButtonRuntime.removeDocumentEventListener(
+            addFullScreenButtonRuntime().removeDocumentEventListener(
                 eventName,
                 nativeFullscreenChangeHandler
             );
@@ -322,7 +328,7 @@ export function resetFullscreenListenerStateForTests(): void {
         nativeFullscreenChangeHandler = null;
     }
 
-    addFullScreenButtonRuntime.removeWindowEventListener(
+    addFullScreenButtonRuntime().removeWindowEventListener(
         "DOMContentLoaded",
         handleDOMContentLoaded
     );
@@ -331,7 +337,7 @@ export function resetFullscreenListenerStateForTests(): void {
 }
 /** Creates the icon wrapper used by the fullscreen button. */
 function createFullscreenIconWrapper(state: "enter" | "exit"): HTMLSpanElement {
-    const icon = addFullScreenButtonRuntime.createElement("span");
+    const icon = addFullScreenButtonRuntime().createElement("span");
     icon.className = "fullscreen-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.append(
@@ -367,19 +373,19 @@ function createFullscreenSvg(
     titleText: string,
     paths: string[]
 ): SVGSVGElement {
-    const svg = addFullScreenButtonRuntime.createSvgElement("svg");
+    const svg = addFullScreenButtonRuntime().createSvgElement("svg");
     svg.classList.add("inline-svg");
     svg.setAttribute("width", "28");
     svg.setAttribute("height", "28");
     svg.setAttribute("viewBox", "0 0 28 28");
     svg.setAttribute("fill", "none");
 
-    const title = addFullScreenButtonRuntime.createSvgElement("title");
+    const title = addFullScreenButtonRuntime().createSvgElement("title");
     title.textContent = titleText;
     svg.append(title);
 
     for (const d of paths) {
-        const path = addFullScreenButtonRuntime.createSvgElement("path");
+        const path = addFullScreenButtonRuntime().createSvgElement("path");
         path.setAttribute("d", d);
         path.setAttribute("stroke", "currentColor");
         path.setAttribute("stroke-width", "2");
@@ -398,7 +404,7 @@ function handleDOMContentLoaded(): void {
         const observer = new MutationObserver(() => {
             updateFullscreenButtonState();
         });
-        addFullScreenButtonRuntime.observeBody(observer, {
+        addFullScreenButtonRuntime().observeBody(observer, {
             attributes: true,
             attributeFilter: ["class"],
         });
@@ -417,7 +423,7 @@ function handleFullscreenStateChange(): void {
     try {
         const activeContent = getActiveTabContent();
         const globalBtn =
-            addFullScreenButtonRuntime.getElementById(FULLSCREEN_BUTTON_ID);
+            addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
         const screenfull = getScreenfullInstance();
         const fullscreenEnabled = screenfull && screenfull.isEnabled;
         const nativeFullscreen = isFullscreenActive();
@@ -443,7 +449,7 @@ function handleFullscreenStateChange(): void {
             }
             const contentBtn =
                 activeContent &&
-                addFullScreenButtonRuntime.getElementById(
+                addFullScreenButtonRuntime().getElementById(
                     `${activeContent.id}-fullscreen-btn`
                 );
             if (contentBtn) {
@@ -459,7 +465,7 @@ function handleFullscreenStateChange(): void {
             }
             const contentBtn =
                 activeContent &&
-                addFullScreenButtonRuntime.getElementById(
+                addFullScreenButtonRuntime().getElementById(
                     `${activeContent.id}-fullscreen-btn`
                 );
             if (contentBtn) {
@@ -489,7 +495,7 @@ function handleFullscreenToggle(event: Event): void {
             );
 
             const globalBtn =
-                addFullScreenButtonRuntime.getElementById(FULLSCREEN_BUTTON_ID);
+                addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
             if (globalBtn) {
                 updateButtonState(globalBtn, isWindowFullscreenRequested);
             }
@@ -532,7 +538,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
                 logWithContext("Escape: Exiting window fullscreen via IPC");
 
                 const globalBtn =
-                    addFullScreenButtonRuntime.getElementById(
+                    addFullScreenButtonRuntime().getElementById(
                         FULLSCREEN_BUTTON_ID
                     );
                 if (globalBtn) {
@@ -563,7 +569,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
                 );
 
                 const globalBtn =
-                    addFullScreenButtonRuntime.getElementById(
+                    addFullScreenButtonRuntime().getElementById(
                         FULLSCREEN_BUTTON_ID
                     );
                 if (globalBtn) {
@@ -682,9 +688,9 @@ function updateButtonState(button: HTMLElement, isFullscreen: boolean): void {
 // logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
 /** Updates fullscreen button state based on whether a file is loaded. */
 function updateFullscreenButtonState(): void {
-    const btn = addFullScreenButtonRuntime.getElementById(FULLSCREEN_BUTTON_ID);
+    const btn = addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
     if (!btn) return;
-    const hasFile = addFullScreenButtonRuntime.hasBodyClass("app-has-file");
+    const hasFile = addFullScreenButtonRuntime().hasBodyClass("app-has-file");
     btn.setAttribute("tabindex", hasFile ? "0" : "-1");
     btn.dataset["tooltip"] = hasFile ? "Fullscreen (F11)" : "Load a file first";
 }

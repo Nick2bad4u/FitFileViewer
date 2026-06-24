@@ -11954,7 +11954,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(43);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -11986,24 +11986,33 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonSource).toContain(
             "addFullScreenButtonRuntime.js"
         );
+        expect(fullscreenButtonSource).toContain(
+            "type AddFullScreenButtonRuntime"
+        );
         expect(fullscreenButtonSource).toContain("createAbortController");
         expect(fullscreenButtonSource).toContain(
-            "addFullScreenButtonRuntime.createSvgElement("
+            "return getAddFullScreenButtonRuntime();"
+        );
+        expect(fullscreenButtonSource).not.toContain(
+            "const addFullScreenButtonRuntime = getAddFullScreenButtonRuntime();"
         );
         expect(fullscreenButtonSource).toContain(
-            "addFullScreenButtonRuntime.getElementById("
+            "addFullScreenButtonRuntime().createSvgElement("
         );
         expect(fullscreenButtonSource).toContain(
-            "addFullScreenButtonRuntime.hasBodyClass("
+            "addFullScreenButtonRuntime().getElementById("
         );
         expect(fullscreenButtonSource).toContain(
-            "addFullScreenButtonRuntime.createElement("
+            "addFullScreenButtonRuntime().hasBodyClass("
         );
         expect(fullscreenButtonSource).toContain(
-            "addFullScreenButtonRuntime.appendToBody("
+            "addFullScreenButtonRuntime().createElement("
         );
         expect(fullscreenButtonSource).toContain(
-            "addFullScreenButtonRuntime.observeBody("
+            "addFullScreenButtonRuntime().appendToBody("
+        );
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime().observeBody("
         );
         expect(fullscreenButtonSource).not.toContain(
             "const btn = document.getElementById(FULLSCREEN_BUTTON_ID)"
