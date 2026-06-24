@@ -69,7 +69,6 @@ const migratedGetActiveTabContentRuntimeFiles = [
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
-    "electron-app/utils/app/initialization/rendererEnvironment.ts",
 ] as const;
 const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/lifecycle/listeners.test.ts",

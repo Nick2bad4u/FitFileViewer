@@ -1,5 +1,4 @@
 /** Runtime environment names used by the renderer bootstrap. */
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import {
     getRendererEnvironmentRuntime,
     type RendererEnvironmentInput,
@@ -53,10 +52,7 @@ function hasElectronDevModeFlag(
 ): boolean {
     const environmentInputRecord = toRecord(environmentInput);
 
-    return (
-        getRendererElectronApi(isElectronDevModeApi) !== null ||
-        isElectronDevModeApi(environmentInputRecord["electronAPI"])
-    );
+    return isElectronDevModeApi(environmentInputRecord["electronAPI"]);
 }
 
 function isDebugRendererLocation(
@@ -114,7 +110,9 @@ function toRendererEnvironmentInput(
  * @returns The detected renderer environment name.
  */
 export function getEnvironment(
-    environmentInput: RendererEnvironmentInput | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
+    environmentInput:
+        | RendererEnvironmentInput
+        | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
 ): RendererEnvironmentName {
     return isDevelopmentMode(environmentInput) ? "development" : "production";
 }
@@ -128,12 +126,16 @@ export function getEnvironment(
  * @returns Whether the renderer should use development-mode behavior.
  */
 export function isDevelopmentMode(
-    environmentInput: RendererEnvironmentInput | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
+    environmentInput:
+        | RendererEnvironmentInput
+        | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
 ): boolean {
     try {
         const resolvedEnvironmentInput =
             toRendererEnvironmentInput(environmentInput);
-        const locationParts = getRendererLocationParts(resolvedEnvironmentInput);
+        const locationParts = getRendererLocationParts(
+            resolvedEnvironmentInput
+        );
 
         return (
             isLocalDevelopmentHost(locationParts.hostname) ||
