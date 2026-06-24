@@ -85,7 +85,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/files/export/exportUtils.test.ts",
     "tests/unit/utils/files/export/exportUtils.ui.test.ts",
     "electron-app/utils/files/export/exportUtils.test.ts",
-    "electron-app/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/app/lifecycle/menuIpcListeners.test.ts",
     "tests/unit/utils/app/events.test.ts",
     "tests/unit/utils/exportUtils.chartExport.test.ts",
@@ -100,6 +99,7 @@ const rendererElectronApiRuntimeRegressionTests = [
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
+    "electron-app/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
