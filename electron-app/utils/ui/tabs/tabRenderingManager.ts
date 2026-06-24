@@ -9,6 +9,10 @@ import {
     delay,
     isCancellationError,
 } from "../../app/async/cancellationToken.js";
+import {
+    getTabRenderingManagerRuntime,
+    type TabRenderingManagerRuntime,
+} from "./tabRenderingManagerRuntime.js";
 
 /** Options controlling tab render operation scheduling. */
 export type TabRenderOperationOptions = {
@@ -20,6 +24,10 @@ export type TabRenderOperationOptions = {
 export type TabRenderOperation<Result = unknown> = (
     token: CancellationToken
 ) => Promise<Result> | Result;
+
+function tabRenderingManagerRuntime(): TabRenderingManagerRuntime {
+    return getTabRenderingManagerRuntime();
+}
 
 /**
  * Tab rendering manager with performance optimizations
@@ -86,7 +94,8 @@ class TabRenderingManager {
             const lastRender = this._lastRenderTime.get(tabName);
             if (
                 lastRender &&
-                Date.now() - lastRender < this.MIN_RENDER_INTERVAL_MS
+                tabRenderingManagerRuntime().dateNow() - lastRender <
+                    this.MIN_RENDER_INTERVAL_MS
             ) {
                 console.log(
                     `[TabRenderingManager] Skipping render for ${tabName} - rendered too recently`
@@ -109,7 +118,7 @@ class TabRenderingManager {
             }
 
             // Execute operation
-            const startTime = performance.now();
+            const startTime = tabRenderingManagerRuntime().performanceNow();
             return this.completeRenderOperation(
                 tabName,
                 startTime,
@@ -136,7 +145,8 @@ class TabRenderingManager {
         startTime: number,
         result: Result
     ): Result | null {
-        const duration = performance.now() - startTime;
+        const duration =
+            tabRenderingManagerRuntime().performanceNow() - startTime;
 
         // Check if still the current tab
         if (this._currentTab !== tabName) {
@@ -147,7 +157,10 @@ class TabRenderingManager {
             return null;
         }
 
-        this._lastRenderTime.set(tabName, Date.now());
+        this._lastRenderTime.set(
+            tabName,
+            tabRenderingManagerRuntime().dateNow()
+        );
         console.log(
             `[TabRenderingManager] Render completed for ${tabName} in ${duration.toFixed(2)}ms`
         );

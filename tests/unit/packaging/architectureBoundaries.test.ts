@@ -589,6 +589,11 @@ const migratedTabReadinessStateRuntimeFiles = [
 ] as const;
 const tabReadinessStateRuntimeSourceFile =
     "electron-app/utils/ui/tabs/tabReadinessStateRuntime.ts";
+const migratedTabRenderingManagerRuntimeFiles = [
+    "electron-app/utils/ui/tabs/tabRenderingManager.ts",
+] as const;
+const tabRenderingManagerRuntimeSourceFile =
+    "electron-app/utils/ui/tabs/tabRenderingManagerRuntime.ts";
 const migratedTabStateManagerHandlersRuntimeFiles = [
     "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
 ] as const;
@@ -1377,6 +1382,10 @@ const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
 const directTabReadinessStateRuntimeGlobalPattern = /\bDate\.now\b/u;
 const directTabReadinessStateRuntimeAmbientFallbackPattern =
     /\bscope\.dateNow\b|\bscope:\s*TabReadinessStateRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultTabReadinessStateRuntimeScope:\s*TabReadinessStateRuntimeScope\s*=\s*globalThis\b|\?\?\s*Date\.now\b/u;
+const directTabRenderingManagerRuntimeGlobalPattern =
+    /\bDate\.now\b|\bperformance\.now\b/u;
+const directTabRenderingManagerRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:dateNow|performance)\b|\bscope:\s*TabRenderingManagerRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultTabRenderingManagerRuntimeScope:\s*TabRenderingManagerRuntimeScope\s*=\s*globalThis\b|\?\?\s*(?:Date\.now|globalThis\.performance\.now)/u;
 const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\bdocument\.(?:createElement|createTextNode)\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
@@ -16792,6 +16801,84 @@ describe("architecture boundaries", () => {
         expect(tabReadinessStateRuntimeSource).not.toContain("scope.dateNow");
         expect(tabReadinessStateRuntimeSource).toContain(
             "tabReadinessState requires a date clock runtime"
+        );
+    });
+
+    it("keeps tab render lifecycle clocks behind the runtime facade", () => {
+        expect.assertions(18);
+
+        const violations = migratedTabRenderingManagerRuntimeFiles
+            .filter((relativeFile) =>
+                directTabRenderingManagerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const tabRenderingManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabRenderingManager.ts"
+            )
+        );
+        const tabRenderingManagerRuntimeSource = stripComments(
+            readRepositoryFile(tabRenderingManagerRuntimeSourceFile)
+        );
+        const tabRenderingManagerRuntimeScopeSource =
+            tabRenderingManagerRuntimeSource.slice(
+                tabRenderingManagerRuntimeSource.indexOf(
+                    "export interface TabRenderingManagerRuntimeScope"
+                ),
+                tabRenderingManagerRuntimeSource.indexOf(
+                    "export interface TabRenderingManagerRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(tabRenderingManagerSource).toContain(
+            "tabRenderingManagerRuntime.js"
+        );
+        expect(tabRenderingManagerSource).toContain(
+            "type TabRenderingManagerRuntime"
+        );
+        expect(tabRenderingManagerSource).toContain(
+            "return getTabRenderingManagerRuntime();"
+        );
+        expect(tabRenderingManagerSource).toContain(
+            "tabRenderingManagerRuntime().dateNow()"
+        );
+        expect(tabRenderingManagerSource).toContain(
+            "tabRenderingManagerRuntime().performanceNow()"
+        );
+        expect(tabRenderingManagerSource).not.toContain("Date.now");
+        expect(tabRenderingManagerSource).not.toContain("performance.now");
+        expect(tabRenderingManagerRuntimeSource).not.toMatch(
+            directTabRenderingManagerRuntimeAmbientFallbackPattern
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "defaultTabRenderingManagerRuntimeScope"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
+            "scope: TabRenderingManagerRuntimeScope = globalThis"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
+            "const defaultTabRenderingManagerRuntimeScope: TabRenderingManagerRuntimeScope = globalThis"
+        );
+        expect(tabRenderingManagerRuntimeScopeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(tabRenderingManagerRuntimeScopeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "tabRenderingManager requires dateNow"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "tabRenderingManager requires performance.now"
         );
     });
 

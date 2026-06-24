@@ -334,6 +334,11 @@ coverage and architecture guardrails blocking those direct scheduling globals fr
 production defaults now live behind named provider functions, and explicit runtime scopes must now provide timer,
 idle-callback, and clock providers instead of direct properties or falling back to `globalThis` or `Date.now`, with
 focused coverage blocking those ambient fallbacks from returning.
+Tab render lifecycle recency checks, duration timing, and completed-render timestamp writes now route through
+`tabRenderingManagerRuntime.ts` instead of calling `Date.now` or `performance.now` directly inside
+`tabRenderingManager.ts`, with focused runtime/behavior coverage and architecture guardrails blocking those direct
+clock reads from returning. Explicit tab-rendering manager runtime scopes must provide clock providers instead of
+direct properties or ambient clock fallbacks.
 Lazy-rendering timeout fallback scheduling now routes through `lazyRenderingRuntime.ts`, and explicit runtime
 scopes must provide `setTimeout` instead of falling back to `globalThis`, with focused coverage blocking that
 ambient fallback from returning.
