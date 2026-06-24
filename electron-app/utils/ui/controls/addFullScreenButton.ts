@@ -398,7 +398,7 @@ function handleDOMContentLoaded(): void {
         const observer = new MutationObserver(() => {
             updateFullscreenButtonState();
         });
-        observer.observe(document.body, {
+        addFullScreenButtonRuntime.observeBody(observer, {
             attributes: true,
             attributeFilter: ["class"],
         });

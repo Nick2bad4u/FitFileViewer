@@ -60,7 +60,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const staleDocument = document.implementation.createHTMLDocument(
             "stale fullscreen button runtime"
@@ -115,6 +115,9 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
         ).toThrow("addFullScreenButton requires a document runtime");
+        expect(() =>
+            runtime.observeBody({ observe: vi.fn() }, { attributes: true })
+        ).toThrow("addFullScreenButton requires a document runtime");
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "addFullScreenButton requires a document runtime"
         );
@@ -123,7 +126,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("reads fullscreen button state through the injected document runtime", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const documentRef = document.implementation.createHTMLDocument(
             "fullscreen button runtime"
@@ -140,6 +143,14 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(runtime.hasBodyClass("app-has-file")).toBe(false);
         documentRef.body.classList.add("app-has-file");
         expect(runtime.hasBodyClass("app-has-file")).toBe(true);
+
+        const observer = { observe: vi.fn() };
+        const options = { attributeFilter: ["class"], attributes: true };
+        runtime.observeBody(observer, options);
+        expect(observer.observe).toHaveBeenCalledWith(
+            documentRef.body,
+            options
+        );
     });
 
     it("creates abort controllers through the injected runtime", () => {

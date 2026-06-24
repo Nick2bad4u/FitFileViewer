@@ -11560,7 +11560,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(40);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -11608,12 +11608,16 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonSource).toContain(
             "addFullScreenButtonRuntime.appendToBody("
         );
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime.observeBody("
+        );
         expect(fullscreenButtonSource).not.toContain(
             "const btn = document.getElementById(FULLSCREEN_BUTTON_ID)"
         );
         expect(fullscreenButtonSource).not.toContain("document.getElementById");
         expect(fullscreenButtonSource).not.toContain("document.createElement");
         expect(fullscreenButtonSource).not.toContain("document.body.append");
+        expect(fullscreenButtonSource).not.toContain("document.body");
         expect(fullscreenButtonSource).not.toContain(
             'const hasFile = document.body.classList.contains("app-has-file")'
         );
@@ -11638,6 +11642,9 @@ describe("architecture boundaries", () => {
         );
         expect(fullscreenButtonRuntimeSource).toContain(
             "getDocument(scope).body.append"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "observer.observe(getDocument(scope).body"
         );
         expect(fullscreenButtonRuntimeSource).toContain("createSvgElement");
         expect(fullscreenButtonRuntimeSource).toContain(

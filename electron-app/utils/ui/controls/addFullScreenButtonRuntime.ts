@@ -19,6 +19,7 @@ type AddFullScreenButtonEventTarget = Pick<
     EventTarget,
     "addEventListener" | "removeEventListener"
 >;
+type AddFullScreenButtonMutationObserver = Pick<MutationObserver, "observe">;
 
 export interface AddFullScreenButtonRuntime {
     addDocumentEventListener: (
@@ -41,6 +42,10 @@ export interface AddFullScreenButtonRuntime {
     appendToBody: (element: HTMLElement) => void;
     getElementById: (id: string) => HTMLElement | null;
     hasBodyClass: (className: string) => boolean;
+    observeBody: (
+        observer: AddFullScreenButtonMutationObserver,
+        options: MutationObserverInit
+    ) => void;
     removeDocumentEventListener: (
         type: string,
         listener: EventListener
@@ -152,6 +157,9 @@ export function getAddFullScreenButtonRuntime(
         },
         hasBodyClass(className): boolean {
             return getDocument(scope).body.classList.contains(className);
+        },
+        observeBody(observer, options): void {
+            observer.observe(getDocument(scope).body, options);
         },
         removeDocumentEventListener(type, listener): void {
             const documentEventTarget = getDocumentEventTarget(scope);
