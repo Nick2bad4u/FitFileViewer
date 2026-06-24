@@ -71,6 +71,24 @@ describe("getShowNotificationRuntime", () => {
         expect(button.tagName).toBe("BUTTON");
     });
 
+    it("checks event and element constructors through scoped runtime providers", () => {
+        expect.assertions(4);
+
+        const runtime = getShowNotificationRuntime({
+            getHTMLElement: () => HTMLElement,
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            true
+        );
+        expect(runtime.isHTMLElement({ closest: () => null })).toBe(false);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+    });
+
     it("falls back clearly when optional frame APIs are unavailable", () => {
         expect.assertions(4);
 
@@ -93,7 +111,7 @@ describe("getShowNotificationRuntime", () => {
     });
 
     it("fails fast when required providers are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const runtime = getShowNotificationRuntime({});
 
@@ -109,10 +127,16 @@ describe("getShowNotificationRuntime", () => {
         expect(() => runtime.createElement("button")).toThrow(
             "show notification runtime requires document"
         );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("show notification runtime requires HTMLElement");
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "show notification runtime requires KeyboardEvent"
+        );
     });
 
-    it("ignores legacy direct timer and document scope properties", () => {
-        expect.assertions(8);
+    it("ignores legacy direct timer, document, and constructor scope properties", () => {
+        expect.assertions(10);
 
         const querySelector = vi.fn<Document["querySelector"]>();
         const createElement = vi.fn<Document["createElement"]>();
@@ -121,6 +145,8 @@ describe("getShowNotificationRuntime", () => {
         const runtime = getShowNotificationRuntime({
             clearTimeout,
             document: { createElement, querySelector },
+            HTMLElement,
+            KeyboardEvent,
             setTimeout,
         } as unknown as ShowNotificationRuntimeScope);
 
@@ -135,6 +161,12 @@ describe("getShowNotificationRuntime", () => {
         );
         expect(() => runtime.createElement("button")).toThrow(
             "show notification runtime requires document"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("show notification runtime requires HTMLElement");
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "show notification runtime requires KeyboardEvent"
         );
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();

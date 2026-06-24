@@ -12,6 +12,12 @@ export type ShowNotificationRuntimeScope = {
     readonly getDocument?:
         | (() => ShowNotificationDocument | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getKeyboardEvent?:
+        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -29,6 +35,8 @@ export type ShowNotificationRuntime = {
     readonly queryElement: <TElement extends Element = Element>(
         selector: string
     ) => TElement | null;
+    readonly isHTMLElement: (value: unknown) => value is HTMLElement;
+    readonly isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
     readonly requestAnimationFrame: (
         onFrame: FrameRequestCallback
     ) => null | number;
@@ -48,6 +56,8 @@ const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
         globalThis.cancelAnimationFrame?.bind(globalThis),
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
+    getHTMLElement: () => globalThis.HTMLElement,
+    getKeyboardEvent: () => globalThis.KeyboardEvent,
     getRequestAnimationFrame: () =>
         globalThis.requestAnimationFrame?.bind(globalThis),
     getSetTimeout: () => globalThis.setTimeout,
@@ -74,6 +84,32 @@ function getRequiredDocument(
     }
 
     return runtimeDocument;
+}
+
+function getHTMLElementConstructor(
+    scope: ShowNotificationRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError(
+            "show notification runtime requires HTMLElement"
+        );
+    }
+
+    return HTMLElementConstructor;
+}
+
+function getKeyboardEventConstructor(
+    scope: ShowNotificationRuntimeScope
+): typeof globalThis.KeyboardEvent {
+    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    if (typeof KeyboardEventConstructor !== "function") {
+        throw new TypeError(
+            "show notification runtime requires KeyboardEvent"
+        );
+    }
+
+    return KeyboardEventConstructor;
 }
 
 function getRequestAnimationFrame(
@@ -113,6 +149,12 @@ export function getShowNotificationRuntime(
         },
         queryElement(selector) {
             return getRequiredDocument(scope).querySelector(selector);
+        },
+        isHTMLElement(value) {
+            return value instanceof getHTMLElementConstructor(scope);
+        },
+        isKeyboardEvent(value) {
+            return value instanceof getKeyboardEventConstructor(scope);
         },
         requestAnimationFrame(onFrame) {
             const requestFrame = getRequestAnimationFrame(scope);

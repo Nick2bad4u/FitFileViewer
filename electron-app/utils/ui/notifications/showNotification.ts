@@ -261,8 +261,9 @@ function buildNotificationContent(
         element.style.cursor = "pointer";
         element.tabIndex = 0;
         addNotificationEventListener(element, element, "click", (event) => {
-            const tgt =
-                event.target instanceof HTMLElement ? event.target : null;
+            const tgt = runtime.isHTMLElement(event.target)
+                ? event.target
+                : null;
             if (
                 tgt &&
                 !tgt.closest(".notification-actions") &&
@@ -273,14 +274,15 @@ function buildNotificationContent(
             }
         });
         addNotificationEventListener(element, element, "keydown", (event) => {
-            if (!(event instanceof KeyboardEvent)) {
+            if (!runtime.isKeyboardEvent(event)) {
                 return;
             }
             if (event.key !== "Enter" && event.key !== " ") {
                 return;
             }
-            const tgt =
-                event.target instanceof HTMLElement ? event.target : null;
+            const tgt = runtime.isHTMLElement(event.target)
+                ? event.target
+                : null;
             if (tgt?.closest(".notification-actions")) {
                 return;
             }

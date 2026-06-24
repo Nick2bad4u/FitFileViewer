@@ -983,7 +983,7 @@ const directShowNotificationTimingRuntimeGlobalPattern =
 const directShowNotificationRuntimeAmbientGetterPattern =
     /\bget\s+(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\b/u;
 const directShowNotificationDomRuntimeGlobalPattern =
-    /\bdocument\.(?:createElement|querySelector)\b/u;
+    /\bdocument\.(?:createElement|querySelector)\b|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b/u;
 const directNotificationTimerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNotificationTimerRuntimeAmbientGetterPattern =
