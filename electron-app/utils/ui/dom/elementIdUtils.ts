@@ -2,11 +2,12 @@
  * Flexible DOM element lookup helpers.
  */
 
-import { getElementIdUtilsRuntime } from "./elementIdUtilsRuntime.js";
+import {
+    getElementIdUtilsRuntime,
+    type ElementIdUtilsRuntime,
+} from "./elementIdUtilsRuntime.js";
 
 type FlexibleLookupRoot = Document | ParentNode;
-
-const elementIdUtilsRuntime = getElementIdUtilsRuntime();
 
 /**
  * Build a list of ID variants for a given element ID.
@@ -41,7 +42,8 @@ export function buildIdVariants(id: string): string[] {
  */
 export function getElementByIdFlexible(
     doc: Document | null | undefined,
-    id: string
+    id: string,
+    runtime: ElementIdUtilsRuntime = getElementIdUtilsRuntime()
 ): HTMLElement | null {
     if (!doc) {
         return null;
@@ -51,7 +53,7 @@ export function getElementByIdFlexible(
         const element = doc.querySelector(toExactIdSelector(variant));
 
         if (element) {
-            return toHTMLElement(element);
+            return toHTMLElement(element, runtime);
         }
     }
 
@@ -64,7 +66,8 @@ export function getElementByIdFlexible(
  */
 export function querySelectorByIdFlexible(
     doc: Document | null | undefined,
-    selector: string
+    selector: string,
+    runtime: ElementIdUtilsRuntime = getElementIdUtilsRuntime()
 ): HTMLElement | null {
     if (!doc) {
         return null;
@@ -72,12 +75,12 @@ export function querySelectorByIdFlexible(
 
     if (selector.startsWith("#") && !selector.includes(" ")) {
         const id = selector.slice(1);
-        const element = getElementByIdFlexible(doc, id);
+        const element = getElementByIdFlexible(doc, id, runtime);
 
-        return element ?? toHTMLElement(doc.querySelector(selector));
+        return element ?? toHTMLElement(doc.querySelector(selector), runtime);
     }
 
-    return toHTMLElement(doc.querySelector(selector));
+    return toHTMLElement(doc.querySelector(selector), runtime);
 }
 
 /**
@@ -85,7 +88,8 @@ export function querySelectorByIdFlexible(
  */
 export function getElementByIdFlexibleList(
     doc: FlexibleLookupRoot | null | undefined,
-    ids: string[] | string
+    ids: string[] | string,
+    runtime: ElementIdUtilsRuntime = getElementIdUtilsRuntime()
 ): HTMLElement | null {
     if (!doc) {
         return null;
@@ -101,8 +105,8 @@ export function getElementByIdFlexibleList(
         }
 
         const element = candidate.startsWith("#")
-            ? resolveIdSelector(doc, candidate)
-            : resolveIdValue(doc, candidate);
+            ? resolveIdSelector(doc, candidate, runtime)
+            : resolveIdValue(doc, candidate, runtime);
 
         if (element) {
             return element;
@@ -130,26 +134,28 @@ function canQuery(root: FlexibleLookupRoot): root is ParentNode {
 
 function resolveIdSelector(
     doc: FlexibleLookupRoot,
-    selector: string
+    selector: string,
+    runtime: ElementIdUtilsRuntime
 ): HTMLElement | null {
     const id = selector.slice(1);
 
     if (canGetById(doc)) {
-        return getElementByIdFlexible(doc, id);
+        return getElementByIdFlexible(doc, id, runtime);
     }
 
-    return canQuery(doc) ? queryIdVariants(doc, id) : null;
+    return canQuery(doc) ? queryIdVariants(doc, id, runtime) : null;
 }
 
 function resolveIdValue(
     doc: FlexibleLookupRoot,
-    id: string
+    id: string,
+    runtime: ElementIdUtilsRuntime
 ): HTMLElement | null {
     if (canGetById(doc)) {
-        return getElementByIdFlexible(doc, id);
+        return getElementByIdFlexible(doc, id, runtime);
     }
 
-    return canQuery(doc) ? queryIdVariants(doc, id) : null;
+    return canQuery(doc) ? queryIdVariants(doc, id, runtime) : null;
 }
 
 function escapeCssString(value: string): string {
@@ -181,10 +187,15 @@ function toExactIdSelector(id: string): string {
     return `[id="${escapeCssString(id)}"]`;
 }
 
-function queryIdVariants(root: ParentNode, id: string): HTMLElement | null {
+function queryIdVariants(
+    root: ParentNode,
+    id: string,
+    runtime: ElementIdUtilsRuntime
+): HTMLElement | null {
     for (const variant of buildIdVariants(id)) {
         const element = toHTMLElement(
-            root.querySelector(toExactIdSelector(variant))
+            root.querySelector(toExactIdSelector(variant)),
+            runtime
         );
 
         if (element) {
@@ -195,12 +206,15 @@ function queryIdVariants(root: ParentNode, id: string): HTMLElement | null {
     return null;
 }
 
-function toHTMLElement(element: Element | null): HTMLElement | null {
+function toHTMLElement(
+    element: Element | null,
+    runtime: ElementIdUtilsRuntime
+): HTMLElement | null {
     if (!element) {
         return null;
     }
 
-    if (elementIdUtilsRuntime.isHTMLElement(element)) {
+    if (runtime.isHTMLElement(element)) {
         return element;
     }
 

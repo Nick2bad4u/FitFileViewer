@@ -7519,7 +7519,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps flexible element-id HTMLElement checks behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const elementIdUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/dom/elementIdUtils.ts")
@@ -7541,7 +7541,16 @@ describe("architecture boundaries", () => {
 
         expect(elementIdUtilsSource).toContain("elementIdUtilsRuntime.js");
         expect(elementIdUtilsSource).toContain(
-            "elementIdUtilsRuntime.isHTMLElement"
+            "type ElementIdUtilsRuntime"
+        );
+        expect(elementIdUtilsSource).not.toContain(
+            "const elementIdUtilsRuntime = getElementIdUtilsRuntime();"
+        );
+        expect(elementIdUtilsSource).toContain(
+            "runtime: ElementIdUtilsRuntime = getElementIdUtilsRuntime()"
+        );
+        expect(elementIdUtilsSource).toContain(
+            "runtime.isHTMLElement(element)"
         );
         expect(elementIdUtilsSource).not.toContain("instanceof HTMLElement");
         expect(elementIdUtilsRuntimeSource).toContain(

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
     buildIdVariants,
     getElementByIdFlexible,
@@ -41,5 +41,23 @@ describe("elementIdUtils", () => {
         expect(
             getElementByIdFlexibleList(root, ["missing", "chart-canvas"])?.id
         ).toBe("chartCanvas");
+    });
+
+    it("accepts an explicit HTMLElement runtime", () => {
+        document.body.innerHTML = `<button id="openFileBtn"></button>`;
+
+        const isHTMLElement = vi.fn(
+            (value: unknown): value is HTMLElement =>
+                value instanceof HTMLElement
+        );
+
+        expect(
+            getElementByIdFlexible(document, "open-file-btn", {
+                isHTMLElement,
+            })?.id
+        ).toBe("openFileBtn");
+        expect(isHTMLElement).toHaveBeenCalledWith(
+            document.querySelector("#openFileBtn")
+        );
     });
 });
