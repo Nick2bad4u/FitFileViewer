@@ -1,8 +1,10 @@
 type RendererVendorEventTarget = Pick<EventTarget, "dispatchEvent">;
 
 export interface RendererVendorSharedRuntimeScope {
-    readonly CustomEvent?: typeof CustomEvent | undefined;
-    readonly eventTarget?: RendererVendorEventTarget | undefined;
+    readonly getCustomEvent?: (() => typeof CustomEvent | undefined) | undefined;
+    readonly getEventTarget?:
+        | (() => RendererVendorEventTarget | undefined)
+        | undefined;
 }
 
 export interface RendererVendorSharedRuntime {
@@ -14,14 +16,14 @@ export interface RendererVendorSharedRuntime {
 
 export function getRendererVendorSharedRuntime(
     scope: RendererVendorSharedRuntimeScope = {
-        CustomEvent: globalThis.CustomEvent,
-        eventTarget: globalThis,
+        getCustomEvent: () => globalThis.CustomEvent,
+        getEventTarget: () => globalThis,
     }
 ): RendererVendorSharedRuntime {
     return {
         dispatchRendererVendorEntryLoadedEvent(eventName, detail): boolean {
-            const CustomEventConstructor = scope.CustomEvent;
-            const eventTarget = scope.eventTarget;
+            const CustomEventConstructor = scope.getCustomEvent?.();
+            const eventTarget = scope.getEventTarget?.();
             if (
                 typeof CustomEventConstructor !== "function" ||
                 eventTarget === undefined

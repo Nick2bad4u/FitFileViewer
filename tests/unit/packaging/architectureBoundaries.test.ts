@@ -10798,7 +10798,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(13);
+        expect.assertions(17);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -10815,6 +10815,11 @@ describe("architecture boundaries", () => {
         );
         const rendererVendorSharedSource = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorShared.ts")
+        );
+        const rendererVendorSharedRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/rendererVendorSharedRuntime.ts"
+            )
         );
 
         expect(chartRuntimeSource).not.toContain("Symbol.for");
@@ -10835,6 +10840,18 @@ describe("architecture boundaries", () => {
         expect(rendererVendorSharedSource).not.toContain("globalThis &");
         expect(rendererVendorSharedSource).not.toContain(
             "rendererVendorRuntimePayloads"
+        );
+        expect(rendererVendorSharedRuntimeSource).not.toContain(
+            "CustomEvent: globalThis.CustomEvent"
+        );
+        expect(rendererVendorSharedRuntimeSource).not.toContain(
+            "eventTarget: globalThis"
+        );
+        expect(rendererVendorSharedRuntimeSource).not.toContain(
+            "scope.CustomEvent"
+        );
+        expect(rendererVendorSharedRuntimeSource).not.toContain(
+            "scope.eventTarget"
         );
     });
 

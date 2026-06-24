@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getRendererVendorSharedRuntime } from "../../../electron-app/renderer/rendererVendorSharedRuntime.js";
 
@@ -20,8 +20,8 @@ describe("rendererVendorSharedRuntime", () => {
         );
         const { dispatchRendererVendorEntryLoadedEvent } =
             getRendererVendorSharedRuntime({
-                CustomEvent,
-                eventTarget,
+                getCustomEvent: () => CustomEvent,
+                getEventTarget: () => eventTarget,
             });
         const detail = { entryName: "core" };
 
@@ -37,15 +37,32 @@ describe("rendererVendorSharedRuntime", () => {
 
         expect(
             getRendererVendorSharedRuntime({
-                CustomEvent: undefined,
-                eventTarget: new EventTarget(),
+                getCustomEvent: () => undefined,
+                getEventTarget: () => new EventTarget(),
             }).dispatchRendererVendorEntryLoadedEvent("vendor-ready", {})
         ).toBe(false);
         expect(
             getRendererVendorSharedRuntime({
-                CustomEvent,
-                eventTarget: undefined,
+                getCustomEvent: () => CustomEvent,
+                getEventTarget: () => undefined,
             }).dispatchRendererVendorEntryLoadedEvent("vendor-ready", {})
         ).toBe(false);
+    });
+
+    it("ignores legacy direct CustomEvent and event target scope properties", () => {
+        expect.assertions(2);
+
+        const eventTarget = new EventTarget();
+        const dispatchEvent = vi.spyOn(eventTarget, "dispatchEvent");
+
+        const utils = getRendererVendorSharedRuntime({
+            CustomEvent,
+            eventTarget,
+        } as unknown as Parameters<typeof getRendererVendorSharedRuntime>[0]);
+
+        expect(
+            utils.dispatchRendererVendorEntryLoadedEvent("vendor-ready", {})
+        ).toBe(false);
+        expect(dispatchEvent).not.toHaveBeenCalled();
     });
 });
