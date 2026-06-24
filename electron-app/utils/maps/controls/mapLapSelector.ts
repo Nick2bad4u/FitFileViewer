@@ -5,7 +5,10 @@ import {
     createAppIconElement,
     type AppIconName,
 } from "../../ui/icons/iconFactory.js";
-import { getMapLapSelectorRuntime } from "./mapLapSelectorRuntime.js";
+import {
+    getMapLapSelectorRuntime,
+    type MapLapSelectorRuntime,
+} from "./mapLapSelectorRuntime.js";
 
 type LapSelection = "all" | string[];
 type MapDrawLaps = (selection: LapSelection) => void;
@@ -20,34 +23,42 @@ type LapControlIconName = Extract<
     "circleHelp" | "circleX" | "route" | "timer"
 >;
 
-let lapSelectorMouseupHandler: null | ((event: MouseEvent) => void) = null;
-const mapLapSelectorRuntime = getMapLapSelectorRuntime();
+type LapSelectorMouseupRegistration = {
+    readonly handler: (event: MouseEvent) => void;
+    readonly runtime: MapLapSelectorRuntime;
+};
+
+let lapSelectorMouseupHandler: LapSelectorMouseupRegistration | null = null;
 
 function replaceLapSelectorMouseupHandler(
-    handler: (event: MouseEvent) => void
+    handler: (event: MouseEvent) => void,
+    runtime: MapLapSelectorRuntime
 ): void {
-    if (lapSelectorMouseupHandler) {
-        mapLapSelectorRuntime.removeDocumentMouseupListener(
-            lapSelectorMouseupHandler
+    const currentHandler = lapSelectorMouseupHandler;
+    if (currentHandler) {
+        currentHandler.runtime.removeDocumentMouseupListener(
+            currentHandler.handler
         );
     }
-    lapSelectorMouseupHandler = handler;
+    lapSelectorMouseupHandler = { handler, runtime };
 }
 
 function clearLapSelectorMouseupHandler(
     handler: (event: MouseEvent) => void
 ): void {
-    if (lapSelectorMouseupHandler !== handler) {
+    const currentHandler = lapSelectorMouseupHandler;
+    if (!currentHandler || currentHandler.handler !== handler) {
         return;
     }
-    mapLapSelectorRuntime.removeDocumentMouseupListener(handler);
+    currentHandler.runtime.removeDocumentMouseupListener(handler);
     lapSelectorMouseupHandler = null;
 }
 
 export function resetMapLapSelectorStateForTests(): void {
-    if (lapSelectorMouseupHandler) {
-        mapLapSelectorRuntime.removeDocumentMouseupListener(
-            lapSelectorMouseupHandler
+    const currentHandler = lapSelectorMouseupHandler;
+    if (currentHandler) {
+        currentHandler.runtime.removeDocumentMouseupListener(
+            currentHandler.handler
         );
     }
     lapSelectorMouseupHandler = null;
@@ -67,7 +78,8 @@ export function resetMapLapSelectorStateForTests(): void {
 export function addLapSelector(
     _map: unknown,
     container: HTMLElement,
-    mapDrawLaps: MapDrawLaps
+    mapDrawLaps: MapDrawLaps,
+    runtime: MapLapSelectorRuntime = getMapLapSelectorRuntime()
 ): void {
     const lapMesgs = FitFileSelectors.getLapMessages();
     if (lapMesgs.length === 0) {
@@ -75,10 +87,10 @@ export function addLapSelector(
     }
     const availableLapMesgs = lapMesgs;
 
-    const lapControl = mapLapSelectorRuntime.createElement("div");
+    const lapControl = runtime.createElement("div");
     lapControl.className =
         "custom-lap-control-container leaflet-bottom leaflet-left";
-    const eventController = mapLapSelectorRuntime.createAbortController();
+    const eventController = runtime.createAbortController();
     const { signal } = eventController;
     // Import theme colors for consistent theming
     const themeColors = getThemeColors();
@@ -107,7 +119,7 @@ export function addLapSelector(
         iconName: LapControlIconName,
         size = 16
     ): HTMLElement => {
-        const icon = mapLapSelectorRuntime.createElement("span");
+        const icon = runtime.createElement("span");
         icon.className = "icon";
         icon.append(
             createAppIconElement(iconName, {
@@ -119,58 +131,58 @@ export function addLapSelector(
         return icon;
     };
 
-    const bar = mapLapSelectorRuntime.createElement("div");
+    const bar = runtime.createElement("div");
     bar.className = "custom-lap-control leaflet-bar";
 
-    const multiLapToggle = mapLapSelectorRuntime.createElement("button");
+    const multiLapToggle = runtime.createElement("button");
     multiLapToggle.id = "multi-lap-toggle";
     multiLapToggle.className = "multi-lap-toggle";
     multiLapToggle.type = "button";
     multiLapToggle.title =
         "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
     multiLapToggle.append(createControlIcon("timer"));
-    const lapsText = mapLapSelectorRuntime.createElement("span");
+    const lapsText = runtime.createElement("span");
     lapsText.textContent = "Laps:";
     lapsText.style.color = safeColors.text;
     lapsText.style.marginLeft = "4px";
     multiLapToggle.append(lapsText);
 
-    const deselectAllBtn = mapLapSelectorRuntime.createElement("button");
+    const deselectAllBtn = runtime.createElement("button");
     deselectAllBtn.id = "deselect-all-btn";
     deselectAllBtn.className = "deselect-all-btn";
     deselectAllBtn.title = "Deselect all laps (Esc)";
     deselectAllBtn.append(createControlIcon("circleX"));
 
-    const label = mapLapSelectorRuntime.createElement("label");
+    const label = runtime.createElement("label");
     // Avoid redundant "Laps: Lap:" UI (multiLapToggle already indicates purpose).
     // Keep a label for accessibility but hide it visually.
     label.className = "lap-label visually-hidden";
     label.htmlFor = "lap-select";
     label.textContent = "Lap selection";
 
-    const lapSelect = mapLapSelectorRuntime.createElement("select");
+    const lapSelect = runtime.createElement("select");
     lapSelect.id = "lap-select";
     lapSelect.setAttribute("aria-label", "Lap selection");
-    const allOption = mapLapSelectorRuntime.createElement("option");
+    const allOption = runtime.createElement("option");
     allOption.value = "all";
     allOption.textContent = "All";
     lapSelect.append(allOption);
     for (let i = 0; i < availableLapMesgs.length; i += 1) {
-        const opt = mapLapSelectorRuntime.createElement("option");
+        const opt = runtime.createElement("option");
         opt.value = String(i);
         opt.textContent = `Lap ${i + 1}`;
         lapSelect.append(opt);
     }
 
     // Help tooltip (themed) for lap selector usage
-    const helpBtn = mapLapSelectorRuntime.createElement("button");
+    const helpBtn = runtime.createElement("button");
     helpBtn.type = "button";
     helpBtn.className = "lap-help-btn";
     helpBtn.setAttribute("aria-label", "Lap selection help");
     helpBtn.setAttribute("aria-expanded", "false");
     helpBtn.append(createControlIcon("circleHelp"));
 
-    const helpTooltip = mapLapSelectorRuntime.createElement("div");
+    const helpTooltip = runtime.createElement("div");
     helpTooltip.id = "lap-help-tooltip";
     helpTooltip.className = "ffv-map-tooltip";
     helpTooltip.setAttribute("role", "tooltip");
@@ -205,10 +217,8 @@ export function addLapSelector(
         tooltipPinned = false;
         helpTooltip.classList.remove("is-visible");
         helpBtn.setAttribute("aria-expanded", "false");
-        mapLapSelectorRuntime.removeDocumentMousedownListener(
-            handleOutsideClick
-        );
-        mapLapSelectorRuntime.removeDocumentKeydownListener(handleEscapeKey);
+        runtime.removeDocumentMousedownListener(handleOutsideClick);
+        runtime.removeDocumentKeydownListener(handleEscapeKey);
     }
 
     function showHelpTooltip(options: HelpTooltipOptions = {}): void {
@@ -218,14 +228,14 @@ export function addLapSelector(
         helpTooltip.classList.add("is-visible");
         helpBtn.setAttribute("aria-expanded", "true");
         if (tooltipPinned) {
-            mapLapSelectorRuntime.addDocumentMousedownListener(
+            runtime.addDocumentMousedownListener(
                 handleOutsideClick,
                 {
                     capture: true,
                     signal,
                 }
             );
-            mapLapSelectorRuntime.addDocumentKeydownListener(handleEscapeKey, {
+            runtime.addDocumentKeydownListener(handleEscapeKey, {
                 signal,
             });
         }
@@ -441,8 +451,8 @@ export function addLapSelector(
         dragSelecting = false;
         dragSelectValue = null;
     };
-    replaceLapSelectorMouseupHandler(mouseupHandler);
-    mapLapSelectorRuntime.addDocumentMouseupListener(mouseupHandler, {
+    replaceLapSelectorMouseupHandler(mouseupHandler, runtime);
+    runtime.addDocumentMouseupListener(mouseupHandler, {
         signal,
     });
     signal.addEventListener(

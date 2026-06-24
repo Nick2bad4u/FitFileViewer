@@ -12922,7 +12922,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document access behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(25);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -12942,9 +12942,22 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapLapSelectorSource).toContain("mapLapSelectorRuntime.js");
+        expect(mapLapSelectorSource).toContain("type MapLapSelectorRuntime");
+        expect(mapLapSelectorSource).not.toContain(
+            "const mapLapSelectorRuntime = getMapLapSelectorRuntime();"
+        );
+        expect(mapLapSelectorSource).toContain(
+            "runtime: MapLapSelectorRuntime = getMapLapSelectorRuntime()"
+        );
+        expect(mapLapSelectorSource).toContain(
+            "replaceLapSelectorMouseupHandler(mouseupHandler, runtime)"
+        );
+        expect(mapLapSelectorSource).toContain(
+            "currentHandler.runtime.removeDocumentMouseupListener"
+        );
         expect(mapLapSelectorSource).toContain("createAbortController");
         expect(mapLapSelectorSource).toContain(
-            "mapLapSelectorRuntime.createElement"
+            "runtime.createElement"
         );
         expect(mapLapSelectorSource).not.toContain("document.createElement");
         expect(mapLapSelectorRuntimeSource).toContain(

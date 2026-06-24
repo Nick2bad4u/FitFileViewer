@@ -4,6 +4,7 @@ import {
     addLapSelector,
     resetMapLapSelectorStateForTests,
 } from "../../../../electron-app/utils/maps/controls/mapLapSelector.js";
+import type { MapLapSelectorRuntime } from "../../../../electron-app/utils/maps/controls/mapLapSelectorRuntime.js";
 import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
@@ -115,6 +116,43 @@ describe("mapLapSelector", () => {
         });
         expect(getSelectorState(select).optionLabels).not.toContain("Lap 4");
         expect(container.querySelectorAll("#deselect-all-btn")).toHaveLength(1);
+
+        removeContainer(container);
+    });
+
+    it("builds the lap selector through an injected runtime", () => {
+        expect.assertions(8);
+
+        setActiveFitRawData(
+            {
+                lapMesgs: [
+                    {},
+                    {},
+                ],
+            },
+            { source: "test" }
+        );
+        const container = createContainer();
+        const runtime: MapLapSelectorRuntime = {
+            addDocumentKeydownListener: vi.fn(),
+            addDocumentMousedownListener: vi.fn(),
+            addDocumentMouseupListener: vi.fn(),
+            createAbortController: vi.fn(() => new AbortController()),
+            createElement: vi.fn((tagName) => document.createElement(tagName)),
+            removeDocumentKeydownListener: vi.fn(),
+            removeDocumentMousedownListener: vi.fn(),
+            removeDocumentMouseupListener: vi.fn(),
+        };
+
+        addLapSelector({}, container, vi.fn<DrawLaps>(), runtime);
+
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(runtime.createElement).toHaveBeenCalledWith("div");
+        expect(runtime.createElement).toHaveBeenCalledWith("select");
+        expect(runtime.createElement).toHaveBeenCalledWith("option");
+        expect(runtime.addDocumentMouseupListener).toHaveBeenCalledOnce();
+        expect(getRequiredSelect(container).options).toHaveLength(3);
+        expect("__ffvLapSelectorMouseupHandler" in globalThis).toBe(false);
 
         removeContainer(container);
     });
