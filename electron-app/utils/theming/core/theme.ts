@@ -106,27 +106,25 @@ export function applyTheme(theme: string, withTransition = true): void {
 
     // Add transition class for smooth theme changes
     if (withTransition) {
-        document.body.classList.add(THEME_TRANSITION_CLASS);
+        themeRuntime.addBodyClass(THEME_TRANSITION_CLASS);
     }
 
     // Remove existing theme classes
-    document.body.classList.remove("theme-dark", "theme-light");
+    themeRuntime.removeBodyClasses("theme-dark", "theme-light");
 
     // Handle auto theme
     if (themePreference === THEME_MODES.AUTO) {
         const systemTheme = getSystemTheme();
-        document.body.classList.add(`theme-${systemTheme}`);
+        themeRuntime.addBodyClass(`theme-${systemTheme}`);
         try {
-            document.body.dataset["theme"] = systemTheme;
-            document.documentElement.dataset["theme"] = systemTheme;
+            themeRuntime.setThemeDataAttributes(systemTheme);
         } catch {
             /* Ignore dataset errors */
         }
     } else {
-        document.body.classList.add(`theme-${themePreference}`);
+        themeRuntime.addBodyClass(`theme-${themePreference}`);
         try {
-            document.body.dataset["theme"] = themePreference;
-            document.documentElement.dataset["theme"] = themePreference;
+            themeRuntime.setThemeDataAttributes(themePreference);
         } catch {
             /* Ignore dataset errors */
         }
@@ -164,7 +162,7 @@ export function applyTheme(theme: string, withTransition = true): void {
     if (withTransition) {
         const transitionTimer = themeRuntime.setTimeout(() => {
             themeTransitionTimers.delete(transitionTimer);
-            document.body.classList.remove(THEME_TRANSITION_CLASS);
+            themeRuntime.removeBodyClasses(THEME_TRANSITION_CLASS);
         }, 300);
         themeTransitionTimers.add(transitionTimer);
     }

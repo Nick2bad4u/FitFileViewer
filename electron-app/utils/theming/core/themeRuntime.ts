@@ -18,6 +18,7 @@ export interface ThemeRuntimeScope {
 }
 
 export interface ThemeRuntime {
+    readonly addBodyClass: (className: string) => void;
     readonly clearTimeout: (timer: ThemeRuntimeTimer) => void;
     readonly createAbortController: () => AbortController;
     readonly ensureThemeTransitionStyles: (cssText: string) => void;
@@ -27,6 +28,8 @@ export interface ThemeRuntime {
         callback: () => void,
         delayMs: number
     ) => ThemeRuntimeTimer;
+    readonly removeBodyClasses: (...classNames: string[]) => void;
+    readonly setThemeDataAttributes: (theme: string) => void;
     readonly updateMetaThemeColor: (themeColor: string) => void;
 }
 
@@ -101,6 +104,9 @@ export function getThemeRuntime(
     scope: ThemeRuntimeScope = defaultThemeRuntimeScope
 ): ThemeRuntime {
     return {
+        addBodyClass(className): void {
+            getRequiredDocument(scope).body.classList.add(className);
+        },
         clearTimeout(timer): void {
             const clearTimeoutRef = getScopeClearTimeout(scope);
             if (typeof clearTimeoutRef !== "function") {
@@ -150,6 +156,14 @@ export function getThemeRuntime(
             }
 
             return setTimeoutRef.call(scope, callback, delayMs);
+        },
+        removeBodyClasses(...classNames): void {
+            getRequiredDocument(scope).body.classList.remove(...classNames);
+        },
+        setThemeDataAttributes(theme): void {
+            const documentRef = getRequiredDocument(scope);
+            documentRef.body.dataset["theme"] = theme;
+            documentRef.documentElement.dataset["theme"] = theme;
         },
         updateMetaThemeColor(themeColor): void {
             const documentRef = getRequiredDocument(scope);

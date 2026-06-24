@@ -13676,7 +13676,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(59);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -13699,8 +13699,13 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("createAbortController");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
         expect(themeCoreSource).toContain("getGlobalEventTarget");
+        expect(themeCoreSource).toContain("addBodyClass");
+        expect(themeCoreSource).toContain("removeBodyClasses");
+        expect(themeCoreSource).toContain("setThemeDataAttributes");
         expect(themeCoreSource).toContain("ensureThemeTransitionStyles");
         expect(themeCoreSource).toContain("updateMetaThemeColor");
+        expect(themeCoreSource).not.toContain("document.body.classList");
+        expect(themeCoreSource).not.toContain("document.body.dataset");
         expect(themeCoreSource).not.toContain("document.querySelector");
         expect(themeCoreSource).not.toContain("document.createElement");
         expect(themeCoreSource).not.toContain("document.head.append");
@@ -13772,6 +13777,18 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).toContain("documentRef.createElement");
         expect(themeRuntimeSource).toContain("documentRef.querySelector");
+        expect(themeRuntimeSource).toContain(
+            "getRequiredDocument(scope).body.classList.add"
+        );
+        expect(themeRuntimeSource).toContain(
+            "getRequiredDocument(scope).body.classList.remove"
+        );
+        expect(themeRuntimeSource).toContain(
+            'documentRef.body.dataset["theme"]'
+        );
+        expect(themeRuntimeSource).toContain(
+            'documentRef.documentElement.dataset["theme"]'
+        );
     });
 
     it("keeps accent color browser APIs behind the runtime facade", () => {

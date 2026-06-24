@@ -55,7 +55,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(17);
+        expect.assertions(21);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -100,19 +100,29 @@ describe("getThemeRuntime", () => {
         runtime.clearTimeout(timer);
         expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
         expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
+        runtime.addBodyClass("theme-transitioning");
+        runtime.addBodyClass("theme-dark");
+        runtime.setThemeDataAttributes("dark");
+        runtime.removeBodyClasses("theme-transitioning", "theme-light");
         runtime.ensureThemeTransitionStyles(".theme-transitioning{}");
         runtime.updateMetaThemeColor("#181a20");
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
-        expect(getDocument).toHaveBeenCalledTimes(2);
+        expect(getDocument).toHaveBeenCalledTimes(6);
         expect(getMatchMedia).toHaveBeenCalledOnce();
         expect(getGlobalEventTarget).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+        expect(documentRef.body.classList.contains("theme-transitioning")).toBe(
+            false
+        );
+        expect(documentRef.body.classList.contains("theme-dark")).toBe(true);
+        expect(documentRef.body.dataset["theme"]).toBe("dark");
+        expect(documentRef.documentElement.dataset["theme"]).toBe("dark");
         expect(
             documentRef.querySelector("#theme-transition-styles")
         ).toBeInstanceOf(HTMLStyleElement);
@@ -186,10 +196,19 @@ describe("getThemeRuntime", () => {
     });
 
     it("does not borrow ambient documents for explicit DOM scopes", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const runtime = getThemeRuntime({});
 
+        expect(() => runtime.addBodyClass("theme-dark")).toThrow(
+            "theme core requires a document runtime"
+        );
+        expect(() => runtime.removeBodyClasses("theme-dark")).toThrow(
+            "theme core requires a document runtime"
+        );
+        expect(() => runtime.setThemeDataAttributes("dark")).toThrow(
+            "theme core requires a document runtime"
+        );
         expect(() => runtime.ensureThemeTransitionStyles("")).toThrow(
             "theme core requires a document runtime"
         );
@@ -240,7 +259,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -277,6 +296,15 @@ describe("getThemeRuntime", () => {
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
             "theme core requires a clearTimeout runtime"
+        );
+        expect(() => runtime.addBodyClass("theme-dark")).toThrow(
+            "theme core requires a document runtime"
+        );
+        expect(() => runtime.removeBodyClasses("theme-dark")).toThrow(
+            "theme core requires a document runtime"
+        );
+        expect(() => runtime.setThemeDataAttributes("dark")).toThrow(
+            "theme core requires a document runtime"
         );
         expect(() => runtime.ensureThemeTransitionStyles("")).toThrow(
             "theme core requires a document runtime"
