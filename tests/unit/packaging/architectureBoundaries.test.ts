@@ -6565,7 +6565,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(50);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -6597,13 +6597,36 @@ describe("architecture boundaries", () => {
         expect(keyboardShortcutsModalSource).toContain(
             "keyboardShortcutsModalRuntime.js"
         );
-        expect(keyboardShortcutsModalSource).toContain("createSvgElement");
-        expect(keyboardShortcutsModalSource).toContain("createElement");
-        expect(keyboardShortcutsModalSource).toContain("appendToBody");
-        expect(keyboardShortcutsModalSource).toContain("appendToHead");
-        expect(keyboardShortcutsModalSource).toContain("querySelector");
-        expect(keyboardShortcutsModalSource).toContain("getActiveElement");
-        expect(keyboardShortcutsModalSource).toContain("setBodyOverflow");
+        expect(keyboardShortcutsModalSource).toContain(
+            "type KeyboardShortcutsModalRuntime"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "return getKeyboardShortcutsModalRuntime();"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "const keyboardShortcutsModalRuntime = getKeyboardShortcutsModalRuntime();"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().createSvgElement"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().createElement"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().appendToBody"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().appendToHead"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().querySelector"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().getActiveElement"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().setBodyOverflow"
+        );
         expect(keyboardShortcutsModalSource).not.toContain(
             "document.createElement"
         );
