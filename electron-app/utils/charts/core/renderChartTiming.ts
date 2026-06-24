@@ -25,7 +25,7 @@ export function createRenderTimingGate(
 
     return {
         async waitIfRapidRender() {
-            const now = Date.now();
+            const now = runtime.dateNow();
             const elapsed = now - lastRenderTime;
             lastRenderTime = now;
             if (elapsed < waitMs) {

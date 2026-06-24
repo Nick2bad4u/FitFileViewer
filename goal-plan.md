@@ -1097,6 +1097,9 @@ from returning.
 Shown-files list tests now pass an explicit local Leaflet runtime fixture to `setLeafletRuntime()` instead of
 stashing the fixture on `window.L` or reaching markers through `global.window.L`, with architecture coverage
 blocking that retired test fixture pattern.
+Render chart timing debounce clocks now route through `renderChartTimerRuntime.ts` instead of calling `Date.now`
+directly inside `renderChartTiming.ts`, with focused timer-runtime/timing-gate coverage and architecture coverage
+blocking direct render-timing clock reads from returning.
 Map action-button strict tests now pass their `CircleMarker` fixture through the typed Leaflet runtime instead
 of stashing or clearing it on `window.L`, with architecture coverage blocking that retired fixture pattern.
 Map action-button active-file centering retry scheduling and cleanup now route through

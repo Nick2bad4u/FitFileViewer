@@ -16082,7 +16082,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(24);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -16109,6 +16109,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartCachePrewarm.ts"
             )
         );
+        const renderChartTimingSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartTiming.ts"
+            )
+        );
         const runtimeScopeSource = runtimeSource.slice(
             runtimeSource.indexOf(
                 "export interface RenderChartTimerRuntimeScope"
@@ -16127,10 +16132,16 @@ describe("architecture boundaries", () => {
         expect(renderChartCachePrewarmSource).toContain(
             "timerRuntime,"
         );
+        expect(renderChartTimingSource).toContain(
+            "const now = runtime.dateNow();"
+        );
+        expect(renderChartTimingSource).not.toContain("Date.now");
         expect(runtimeSource).toContain("defaultRenderChartTimerRuntimeScope");
         expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeScopeSource).not.toContain("readonly dateNow?:");
         expect(runtimeScopeSource).not.toContain("readonly setTimeout?:");
         expect(runtimeSource).not.toContain("scope.clearTimeout");
+        expect(runtimeSource).not.toContain("scope.dateNow");
         expect(runtimeSource).not.toContain("scope.setTimeout");
         expect(runtimeSource).not.toContain(
             "scope: RenderChartTimerRuntimeScope = globalThis"
@@ -16141,11 +16152,17 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "render chart timers require setTimeout"
         );
+        expect(runtimeSource).toContain("render chart timers require dateNow");
+        expect(runtimeSource).toContain("dateNow: () => number;");
         expect(runtimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
+        expect(runtimeSource).toContain("getDateNow: () => Date.now");
         expect(runtimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(runtimeSource).toContain(
+            "const dateNowRef = scope.getDateNow?.();"
         );
         expect(runtimeSource).toContain(
             "const setTimeout = scope.getSetTimeout?.();"

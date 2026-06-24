@@ -4,6 +4,7 @@ export interface RenderChartTimerRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -11,6 +12,7 @@ export interface RenderChartTimerRuntimeScope {
 
 export interface RenderChartTimerRuntime {
     clearTimeout: (timeout: RenderChartTimeout) => void;
+    dateNow: () => number;
     setTimeout: (callback: () => void, delay: number) => RenderChartTimeout;
     wait: (delay: number) => Promise<void>;
     waitForNextTask: () => Promise<void>;
@@ -18,6 +20,7 @@ export interface RenderChartTimerRuntime {
 
 const defaultRenderChartTimerRuntimeScope: RenderChartTimerRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout,
+    getDateNow: () => Date.now,
     getSetTimeout: () => globalThis.setTimeout,
 };
 
@@ -31,6 +34,15 @@ export function getRenderChartTimerRuntime(
         }
 
         clearTimeout(timeout);
+    };
+
+    const dateNow = (): number => {
+        const dateNowRef = scope.getDateNow?.();
+        if (typeof dateNowRef !== "function") {
+            throw new TypeError("render chart timers require dateNow");
+        }
+
+        return dateNowRef();
     };
 
     const scheduleTimeout = (
@@ -65,6 +77,7 @@ export function getRenderChartTimerRuntime(
 
     return {
         clearTimeout: clearScheduledTimeout,
+        dateNow,
         setTimeout: scheduleTimeout,
         wait,
         waitForNextTask: () => wait(0),

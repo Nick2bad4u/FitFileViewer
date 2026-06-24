@@ -6,6 +6,7 @@ import type { RenderChartTimerRuntime } from "../../../../electron-app/utils/cha
 function createRuntime(): RenderChartTimerRuntime {
     return {
         clearTimeout: vi.fn(),
+        dateNow: vi.fn<() => number>(),
         setTimeout: vi.fn(),
         wait: vi.fn<() => Promise<void>>(() => Promise.resolve()),
         waitForNextTask: vi.fn<() => Promise<void>>(() => Promise.resolve()),
@@ -21,7 +22,7 @@ describe("createRenderTimingGate", () => {
         expect.assertions(2);
 
         const runtime = createRuntime();
-        vi.spyOn(Date, "now")
+        vi.mocked(runtime.dateNow)
             .mockReturnValueOnce(1_000)
             .mockReturnValueOnce(1_050);
         const gate = createTimingGate(200, runtime);
