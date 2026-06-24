@@ -730,6 +730,10 @@ adapter instead of calling interval globals directly, with focused runtime cover
 blocking those direct timer calls from returning. Explicit state devtools runtime scopes must now provide interval
 primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking
 those fallbacks from returning.
+State development tools debug timestamps, performance durations, and browser memory reads now also route through
+`stateDevToolsRuntime.ts` instead of calling `Date.now`, `performance.now`, or `performance.memory` directly
+inside `stateDevTools.ts`, with focused runtime coverage and architecture coverage blocking direct clock,
+performance, and legacy direct runtime scope-property reads from returning.
 State manager defaults now resolve startup timestamps and document titles through the scoped
 `stateManagerDefaultsRuntime.ts` adapter instead of probing `globalThis.performance`, `Date.now`,
 `typeof document`, or `document.title` directly inside `stateManagerDefaults.ts`, with focused runtime coverage

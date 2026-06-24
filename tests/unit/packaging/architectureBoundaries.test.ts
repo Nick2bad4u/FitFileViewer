@@ -825,7 +825,7 @@ const directStatePerformanceHistoryGlobalPattern =
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
-    /\bscope\.(?:clearInterval|setInterval)\s*\?\?\s*globalThis\.(?:clearInterval|setInterval)\b|\bglobalThis\.(?:clearInterval|setInterval)\s*\(/u;
+    /\bscope\.(?:clearInterval|dateNow|performance|setInterval)\s*\?\?\s*(?:Date\.now|globalThis\.(?:clearInterval|performance|setInterval))\b|\bglobalThis\.(?:clearInterval|setInterval)\s*\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
     /\bdocument\.(?:documentElement|querySelectorAll)\b|\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLElement)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
@@ -9992,7 +9992,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(40);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -10016,6 +10016,15 @@ describe("architecture boundaries", () => {
         expect(stateDevToolsSource).toContain(
             "return getStateDevToolsRuntime();"
         );
+        expect(stateDevToolsSource).toContain("function dateNow(): number");
+        expect(stateDevToolsSource).toContain("function performanceNow(): number");
+        expect(stateDevToolsSource).toContain(
+            "stateDevToolsRuntime().getPerformanceMemory()"
+        );
+        expect(stateDevToolsSource).not.toContain("Date.now");
+        expect(stateDevToolsSource).not.toContain("performance.now");
+        expect(stateDevToolsSource).not.toContain("typeof performance");
+        expect(stateDevToolsSource).not.toContain("performance.memory");
         expect(stateDevToolsSource).not.toContain(
             "const stateDevToolsRuntime = getStateDevToolsRuntime();"
         );
@@ -10035,20 +10044,41 @@ describe("architecture boundaries", () => {
             "getClearInterval: () => globalThis.clearInterval"
         );
         expect(stateDevToolsRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
             'getIsRendererScope: () => Reflect.has(globalThis, "document")'
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
         );
         expect(stateDevToolsRuntimeSource).toContain(
             "getSetInterval: () => globalThis.setInterval"
         );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "const performance = scope.getPerformance?.();"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "return performanceNow.bind(performance);"
+        );
         expect(stateDevToolsRuntimeSource).not.toContain(
             "readonly clearInterval?:"
         );
+        expect(stateDevToolsRuntimeSource).not.toContain("readonly dateNow?:");
         expect(stateDevToolsRuntimeSource).not.toContain("readonly location?:");
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
         expect(stateDevToolsRuntimeSource).not.toContain(
             "readonly setInterval?:"
         );
         expect(stateDevToolsRuntimeSource).not.toContain("scope.clearInterval");
+        expect(stateDevToolsRuntimeSource).not.toContain("scope.dateNow");
         expect(stateDevToolsRuntimeSource).not.toContain("scope.location");
+        expect(stateDevToolsRuntimeSource).not.toContain("scope.performance");
         expect(stateDevToolsRuntimeSource).not.toContain("scope.setInterval");
         expect(stateDevToolsRuntimeSource).not.toContain(
             "readonly isRendererScope?:"
@@ -10061,6 +10091,12 @@ describe("architecture boundaries", () => {
         );
         expect(stateDevToolsRuntimeSource).toContain(
             "stateDevToolsRuntime requires setInterval"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "stateDevToolsRuntime requires dateNow"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "stateDevToolsRuntime requires performance.now"
         );
     });
 

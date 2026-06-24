@@ -21,9 +21,6 @@ type BrowserMemoryInfo = {
     totalJSHeapSize: number;
     usedJSHeapSize: number;
 };
-type PerformanceWithMemory = Performance & {
-    memory?: unknown;
-};
 type SlowOperationRecord = {
     duration: number;
     operation: string;
@@ -90,6 +87,14 @@ function stateDevToolsRuntime(): StateDevToolsRuntime {
     return getStateDevToolsRuntime();
 }
 
+function dateNow(): number {
+    return stateDevToolsRuntime().dateNow();
+}
+
+function performanceNow(): number {
+    return stateDevToolsRuntime().performanceNow();
+}
+
 /**
  * Checks whether a value is a plain state record.
  */
@@ -107,11 +112,7 @@ function isBrowserMemoryInfo(value: unknown): value is BrowserMemoryInfo {
 }
 
 function getBrowserMemoryInfo(): BrowserMemoryInfo | null {
-    if (typeof performance === "undefined" || !("memory" in performance)) {
-        return null;
-    }
-
-    const memory = (performance as PerformanceWithMemory).memory;
+    const memory = stateDevToolsRuntime().getPerformanceMemory();
     return isBrowserMemoryInfo(memory) ? memory : null;
 }
 
@@ -170,7 +171,7 @@ class StateDebugUtilities {
                 memoryDelta: null,
                 stateChanges: [],
                 timeDelta: snapshot2.timestamp - snapshot1.timestamp,
-                timestamp: Date.now(),
+                timestamp: dateNow(),
             };
 
         for (const key of allKeys) {
@@ -211,7 +212,7 @@ class StateDebugUtilities {
                 : null,
             metrics: performanceMonitor.getMetrics(),
             state: structuredClone(getDebugStateRoot()),
-            timestamp: Date.now(),
+            timestamp: dateNow(),
         };
     }
 
@@ -404,7 +405,7 @@ class StatePerformanceMonitor {
         if (!startTime) {
             return;
         }
-        const duration = performance.now() - startTime;
+        const duration = performanceNow() - startTime;
         this.timers.delete(operationId);
         if (duration > PERFORMANCE_CONFIG.slowOperationThreshold) {
             this.recordSlowOperation(operationId, duration);
@@ -421,7 +422,7 @@ class StatePerformanceMonitor {
         return {
             ...this.metrics,
             isEnabled: this.isEnabled,
-            timestamp: Date.now(),
+            timestamp: dateNow(),
         };
     }
 
@@ -482,7 +483,7 @@ ${
             context,
             error: error.message,
             stack: error.stack,
-            timestamp: Date.now(),
+            timestamp: dateNow(),
         };
 
         this.metrics.errors.push(record);
@@ -502,30 +503,27 @@ ${
         }
 
         try {
-            // Use performance.memory if available (Chrome/Edge)
-            if (typeof performance !== "undefined" && "memory" in performance) {
-                const mem = getBrowserMemoryInfo();
+            const mem = getBrowserMemoryInfo();
 
-                if (!mem) {
-                    return;
-                }
+            if (!mem) {
+                return;
+            }
 
-                const record: MemoryUsageRecord = {
-                    jsHeapSizeLimit: mem.jsHeapSizeLimit,
-                    timestamp: Date.now(),
-                    totalJSHeapSize: mem.totalJSHeapSize,
-                    usedJSHeapSize: mem.usedJSHeapSize,
-                };
+            const record: MemoryUsageRecord = {
+                jsHeapSizeLimit: mem.jsHeapSizeLimit,
+                timestamp: dateNow(),
+                totalJSHeapSize: mem.totalJSHeapSize,
+                usedJSHeapSize: mem.usedJSHeapSize,
+            };
 
-                this.metrics.memoryUsage.push(record);
+            this.metrics.memoryUsage.push(record);
 
-                // Keep only recent memory records
-                if (
-                    this.metrics.memoryUsage.length >
-                    PERFORMANCE_CONFIG.maxHistorySize
-                ) {
-                    this.metrics.memoryUsage.shift();
-                }
+            // Keep only recent memory records
+            if (
+                this.metrics.memoryUsage.length >
+                PERFORMANCE_CONFIG.maxHistorySize
+            ) {
+                this.metrics.memoryUsage.shift();
             }
         } catch (error) {
             console.warn(
@@ -546,7 +544,7 @@ ${
             duration,
             operation: operationId,
             stack: new Error("Performance tracking stack trace").stack,
-            timestamp: Date.now(),
+            timestamp: dateNow(),
         };
 
         this.metrics.slowOperations.push(record);
@@ -587,7 +585,7 @@ ${
         if (!this.isEnabled) {
             return;
         }
-        this.timers.set(operationId, performance.now());
+        this.timers.set(operationId, performanceNow());
     }
 
     /**

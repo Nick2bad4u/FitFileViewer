@@ -84,6 +84,34 @@ describe("stateDevToolsRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
+    it("delegates date, performance, and memory reads through provider functions", () => {
+        expect.assertions(5);
+
+        const dateNow = vi.fn<() => number>(() => 123);
+        const performanceNow = vi.fn<() => number>(() => 456);
+        const memory = {
+            jsHeapSizeLimit: 3,
+            totalJSHeapSize: 2,
+            usedJSHeapSize: 1,
+        };
+        const performance = {
+            memory,
+            now: performanceNow,
+        };
+        const getDateNow = vi.fn(() => dateNow);
+        const getPerformance = vi.fn(() => performance);
+        const utils = getStateDevToolsRuntime({
+            getDateNow,
+            getPerformance,
+        });
+
+        expect(utils.dateNow()).toBe(123);
+        expect(utils.performanceNow()).toBe(456);
+        expect(utils.getPerformanceMemory()).toBe(memory);
+        expect(getDateNow).toHaveBeenCalledOnce();
+        expect(getPerformance).toHaveBeenCalledTimes(2);
+    });
+
     it("delegates development checks and intervals through provider functions", () => {
         expect.assertions(9);
 
@@ -123,10 +151,16 @@ describe("stateDevToolsRuntime", () => {
     });
 
     it("does not borrow ambient intervals for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const utils = getStateDevToolsRuntime({});
 
+        expect(() => utils.dateNow()).toThrow(
+            "stateDevToolsRuntime requires dateNow"
+        );
+        expect(() => utils.performanceNow()).toThrow(
+            "stateDevToolsRuntime requires performance.now"
+        );
         expect(() => utils.setInterval(() => {}, 0)).toThrow(
             "stateDevToolsRuntime requires setInterval"
         );
@@ -148,21 +182,32 @@ describe("stateDevToolsRuntime", () => {
         expect(utils.isDevelopmentScope()).toBe(false);
     });
 
-    it("ignores legacy direct interval and location properties", () => {
-        expect.assertions(5);
+    it("ignores legacy direct interval, location, and clock properties", () => {
+        expect.assertions(10);
 
         const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
+        const dateNow = vi.fn<() => number>(() => 123);
+        const performanceNow = vi.fn<() => number>(() => 456);
         const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
             () => 123 as ReturnType<typeof globalThis.setInterval>
         );
         const utils = getStateDevToolsRuntime({
             clearInterval: clearIntervalMock,
+            dateNow,
             getIsRendererScope: () => true,
             location: { hostname: "localhost", protocol: "http:" },
+            performance: { now: performanceNow },
             setInterval: setIntervalMock,
         } as unknown as Parameters<typeof getStateDevToolsRuntime>[0]);
 
         expect(utils.isDevelopmentScope()).toBe(false);
+        expect(() => utils.dateNow()).toThrow(
+            "stateDevToolsRuntime requires dateNow"
+        );
+        expect(() => utils.performanceNow()).toThrow(
+            "stateDevToolsRuntime requires performance.now"
+        );
+        expect(utils.getPerformanceMemory()).toBeUndefined();
         expect(() => utils.setInterval(() => {}, 0)).toThrow(
             "stateDevToolsRuntime requires setInterval"
         );
@@ -171,6 +216,8 @@ describe("stateDevToolsRuntime", () => {
                 123 as ReturnType<typeof globalThis.setInterval>
             );
         }).toThrow("stateDevToolsRuntime requires clearInterval");
+        expect(dateNow).not.toHaveBeenCalled();
+        expect(performanceNow).not.toHaveBeenCalled();
         expect(setIntervalMock).not.toHaveBeenCalled();
         expect(clearIntervalMock).not.toHaveBeenCalled();
     });
