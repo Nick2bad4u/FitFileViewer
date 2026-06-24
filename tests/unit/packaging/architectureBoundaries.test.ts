@@ -1384,9 +1384,9 @@ const directQuickColorSwitcherRuntimeAmbientGetterPattern =
 const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directShownFilesListRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directShownFilesListRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope:\s*ShownFilesListRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultShownFilesListRuntimeScope:\s*ShownFilesListRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
+    /\bscope\.(?:AbortController|HTMLElement|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope:\s*ShownFilesListRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultShownFilesListRuntimeScope:\s*ShownFilesListRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:AbortController|MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directCreditsMarqueeRuntimeAmbientFallbackPattern =
@@ -17681,7 +17681,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(49);
+        expect.assertions(56);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -17759,6 +17759,9 @@ describe("architecture boundaries", () => {
             "readonly innerWidth?:"
         );
         expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(shownFilesListRuntimeSource).not.toContain(
@@ -17769,6 +17772,7 @@ describe("architecture boundaries", () => {
         );
         expect(shownFilesListRuntimeSource).not.toContain("scope.clearTimeout");
         expect(shownFilesListRuntimeSource).not.toContain("scope.document");
+        expect(shownFilesListRuntimeSource).not.toContain("scope.HTMLElement");
         expect(shownFilesListRuntimeSource).not.toContain("scope.innerHeight");
         expect(shownFilesListRuntimeSource).not.toContain("scope.innerWidth");
         expect(shownFilesListRuntimeSource).not.toContain("scope.setTimeout");
@@ -17790,6 +17794,15 @@ describe("architecture boundaries", () => {
         );
         expect(shownFilesListRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires an HTMLElement runtime"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "shownFilesList requires a setTimeout runtime"
@@ -17837,6 +17850,9 @@ describe("architecture boundaries", () => {
         expect(createShownFilesListSource).toContain(
             "shownFilesListRuntime().appendToBody"
         );
+        expect(createShownFilesListSource).toContain(
+            "shownFilesListRuntime().isHTMLElement"
+        );
         expect(createShownFilesListSource).not.toContain(
             "document.createElement"
         );
@@ -17848,6 +17864,9 @@ describe("architecture boundaries", () => {
         );
         expect(createShownFilesListSource).not.toContain(
             "document.body.classList"
+        );
+        expect(createShownFilesListSource).not.toContain(
+            "instanceof HTMLElement"
         );
     });
 

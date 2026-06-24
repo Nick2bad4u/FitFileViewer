@@ -39,6 +39,9 @@ export interface ShownFilesListRuntimeScope {
     readonly getEventTarget?:
         | (() => ShownFilesListMouseMoveEventTarget | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
     readonly getSetTimeout?:
         | (() => ShownFilesListSetTimeout | undefined)
         | undefined;
@@ -63,6 +66,7 @@ export interface ShownFilesListRuntime {
         tagName: K
     ) => HTMLElementTagNameMap[K];
     readonly getViewport: () => ShownFilesListViewport;
+    readonly isHTMLElement: (value: unknown) => value is HTMLElement;
     readonly isDarkTheme: () => boolean;
     readonly querySelectorAll: (selector: string) => Iterable<Element>;
     readonly setTimeout: (
@@ -76,6 +80,7 @@ const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getEventTarget: () => globalThis,
+    getHTMLElement: () => globalThis.HTMLElement,
     getSetTimeout: () => globalThis.setTimeout,
     getViewport: () => ({
         height: globalThis.innerHeight,
@@ -90,6 +95,19 @@ function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {
     }
 
     return documentRef;
+}
+
+function getHTMLElementConstructor(
+    scope: ShownFilesListRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor =
+        scope.getHTMLElement?.() ??
+        scope.getDocument?.()?.defaultView?.HTMLElement;
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError("shownFilesList requires an HTMLElement runtime");
+    }
+
+    return HTMLElementConstructor;
 }
 
 export function getShownFilesListRuntime(
@@ -164,6 +182,9 @@ export function getShownFilesListRuntime(
             }
 
             return { height, width };
+        },
+        isHTMLElement(value): value is HTMLElement {
+            return value instanceof getHTMLElementConstructor(scope);
         },
         isDarkTheme(): boolean {
             return getRequiredDocument(scope).body.classList.contains(

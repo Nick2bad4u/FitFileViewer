@@ -116,8 +116,33 @@ describe("getShownFilesListRuntime", () => {
         expect(runtime.isDarkTheme()).toBe(true);
     });
 
+    it("checks HTMLElement instances through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const runtime = getShownFilesListRuntime({
+            getHTMLElement: () => HTMLElement,
+        });
+
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
+        expect(runtime.isHTMLElement(document.createTextNode("text"))).toBe(
+            false
+        );
+    });
+
+    it("uses the scoped document HTMLElement constructor when no constructor provider is injected", () => {
+        expect.assertions(1);
+
+        const runtime = getShownFilesListRuntime({
+            getDocument: () => document,
+        });
+
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            true
+        );
+    });
+
     it("does not borrow ambient documents for explicit DOM scopes", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtime = getShownFilesListRuntime({});
 
@@ -132,6 +157,9 @@ describe("getShownFilesListRuntime", () => {
         ).toThrow("shownFilesList requires a document runtime");
         expect(() => runtime.isDarkTheme()).toThrow(
             "shownFilesList requires a document runtime"
+        );
+        expect(() => runtime.isHTMLElement(document.createElement("div"))).toThrow(
+            "shownFilesList requires an HTMLElement runtime"
         );
     });
 
@@ -250,7 +278,7 @@ describe("getShownFilesListRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const TestAbortController = vi.fn(function TestAbortController() {
             return new AbortController();
@@ -264,6 +292,7 @@ describe("getShownFilesListRuntime", () => {
             addEventListener,
             clearTimeout,
             document,
+            HTMLElement,
             innerHeight: 600,
             innerWidth: 800,
             setTimeout,
@@ -290,6 +319,9 @@ describe("getShownFilesListRuntime", () => {
         ).toThrow("shownFilesList requires a document runtime");
         expect(() => runtime.isDarkTheme()).toThrow(
             "shownFilesList requires a document runtime"
+        );
+        expect(() => runtime.isHTMLElement(document.createElement("div"))).toThrow(
+            "shownFilesList requires an HTMLElement runtime"
         );
         expect(() =>
             runtime.addMouseMoveListener(() => undefined, {

@@ -373,7 +373,7 @@ export function createShownFilesList(): HTMLElement {
                 const removeButton = items[keyboardFocusIndex]?.querySelector(
                     ".overlay-remove-btn"
                 );
-                if (removeButton instanceof HTMLElement) {
+                if (shownFilesListRuntime().isHTMLElement(removeButton)) {
                     removeButton.click();
                 }
             }
@@ -502,7 +502,7 @@ export function createShownFilesList(): HTMLElement {
 
         if (
             anyOverlays &&
-            shownFilesList.parentNode instanceof HTMLElement &&
+            shownFilesListRuntime().isHTMLElement(shownFilesList.parentNode) &&
             !shownFilesList.parentNode.querySelector(".overlay-clear-all-btn")
         ) {
             const clearAll = shownFilesListRuntime().createElement("button");
