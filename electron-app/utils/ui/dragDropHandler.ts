@@ -22,7 +22,11 @@ import {
     addEventListenerWithCleanup,
     validateElement,
 } from "./mainUiDomUtils.js";
-import { getDragDropHandlerRuntime } from "./dragDropHandlerRuntime.js";
+import {
+    getDragDropHandlerRuntime,
+    type DragDropHandlerRuntime,
+    type DragDropHandlerRuntimeScope,
+} from "./dragDropHandlerRuntime.js";
 import { showNotification } from "./notifications/showNotification.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
@@ -38,6 +42,7 @@ type PerformanceMonitorLike = {
 
 type DragDropHandlerOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
+    readonly runtimeScope?: DragDropHandlerRuntimeScope | undefined;
 };
 
 const dragDropHandlerRuntime = getDragDropHandlerRuntime();
@@ -83,9 +88,16 @@ export class DragDropHandler {
     overlayVisible = false;
     private dragOverAnimationFrame: null | number = null;
     private readonly electronApiScope: RendererElectronApiScope | undefined;
+    private readonly runtime: DragDropHandlerRuntime;
 
-    constructor({ electronApiScope }: DragDropHandlerOptions = {}) {
+    constructor({
+        electronApiScope,
+        runtimeScope,
+    }: DragDropHandlerOptions = {}) {
         this.electronApiScope = electronApiScope;
+        this.runtime = runtimeScope
+            ? getDragDropHandlerRuntime(runtimeScope)
+            : dragDropHandlerRuntime;
         try {
             const initialCounter = getRendererDragCounter();
             if (Number.isFinite(initialCounter)) {
@@ -215,9 +227,8 @@ export class DragDropHandler {
 
     readFileAsArrayBuffer(file: File): Promise<ArrayBuffer | null> {
         return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            const abortController =
-                dragDropHandlerRuntime.createAbortController();
+            const reader = this.runtime.createFileReader();
+            const abortController = this.runtime.createAbortController();
             const cleanup = (): void => {
                 abortController.abort();
             };
@@ -249,12 +260,11 @@ export class DragDropHandler {
             return;
         }
         this.dragOverScheduled = true;
-        this.dragOverAnimationFrame =
-            dragDropHandlerRuntime.requestAnimationFrame(() => {
-                this.dragOverAnimationFrame = null;
-                this.dragOverScheduled = false;
-                this.showDropOverlay();
-            });
+        this.dragOverAnimationFrame = this.runtime.requestAnimationFrame(() => {
+            this.dragOverAnimationFrame = null;
+            this.dragOverScheduled = false;
+            this.showDropOverlay();
+        });
         if (this.dragOverAnimationFrame === null) {
             this.dragOverScheduled = false;
         }
@@ -262,9 +272,7 @@ export class DragDropHandler {
 
     private cancelScheduledDropOverlay(): void {
         if (this.dragOverAnimationFrame !== null) {
-            dragDropHandlerRuntime.cancelAnimationFrame(
-                this.dragOverAnimationFrame
-            );
+            this.runtime.cancelAnimationFrame(this.dragOverAnimationFrame);
             this.dragOverAnimationFrame = null;
         }
         this.dragOverScheduled = false;
@@ -272,9 +280,9 @@ export class DragDropHandler {
 
     setupEventListeners(): void {
         // Show overlay on dragenter, hide on dragleave/drop
-        const documentTarget = dragDropHandlerRuntime.getDocument();
+        const documentTarget = this.runtime.getDocument();
         const documentBody = documentTarget?.body ?? null;
-        const eventTarget = dragDropHandlerRuntime.getEventTarget();
+        const eventTarget = this.runtime.getEventTarget();
 
         addEventListenerWithCleanup(eventTarget, "dragenter", (e) => {
             if (e.target === documentTarget || e.target === documentBody) {

@@ -25,6 +25,22 @@ describe("getDragDropHandlerRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("creates file readers through the injected runtime provider", () => {
+        expect.assertions(2);
+
+        const reader = new FileReader();
+        const FileReaderConstructor = vi.fn(function FakeFileReader() {
+            return reader;
+        });
+        const runtime = getDragDropHandlerRuntime({
+            getFileReader: () =>
+                FileReaderConstructor as unknown as typeof FileReader,
+        });
+
+        expect(runtime.createFileReader()).toBe(reader);
+        expect(FileReaderConstructor).toHaveBeenCalledOnce();
+    });
+
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
@@ -32,6 +48,16 @@ describe("getDragDropHandlerRuntime", () => {
 
         expect(() => runtime.createAbortController()).toThrow(
             "dragDropHandler requires an AbortController runtime"
+        );
+    });
+
+    it("throws when file reader creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getDragDropHandlerRuntime({});
+
+        expect(() => runtime.createFileReader()).toThrow(
+            "dragDropHandler requires a FileReader runtime"
         );
     });
 
@@ -110,7 +136,7 @@ describe("getDragDropHandlerRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -121,6 +147,10 @@ describe("getDragDropHandlerRuntime", () => {
         const callback = vi.fn<FrameRequestCallback>();
         const documentTarget = document.implementation.createHTMLDocument();
         const eventTarget = new EventTarget();
+        const reader = new FileReader();
+        const FileReaderConstructor = vi.fn(function FakeFileReader() {
+            return reader;
+        });
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 53);
@@ -131,11 +161,15 @@ describe("getDragDropHandlerRuntime", () => {
             cancelAnimationFrame,
             document: documentTarget,
             eventTarget,
+            FileReader: FileReaderConstructor as unknown as typeof FileReader,
             requestAnimationFrame,
         } as unknown as Parameters<typeof getDragDropHandlerRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
             "dragDropHandler requires an AbortController runtime"
+        );
+        expect(() => runtime.createFileReader()).toThrow(
+            "dragDropHandler requires a FileReader runtime"
         );
         expect(runtime.getDocument()).toBeNull();
         expect(() => runtime.getEventTarget()).toThrow(
@@ -146,6 +180,7 @@ describe("getDragDropHandlerRuntime", () => {
 
         expect(callback).toHaveBeenCalledWith(0);
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(FileReaderConstructor).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(runtime.getDocument()).not.toBe(documentTarget);
@@ -155,7 +190,7 @@ describe("getDragDropHandlerRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -168,19 +203,26 @@ describe("getDragDropHandlerRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => 41);
         const callback = vi.fn<FrameRequestCallback>();
+        const reader = new FileReader();
+        const FileReaderConstructor = vi.fn(function FakeFileReader() {
+            return reader;
+        });
         const runtime = getDragDropHandlerRuntime();
 
         vi.stubGlobal("AbortController", AbortControllerConstructor);
         vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+        vi.stubGlobal("FileReader", FileReaderConstructor);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
 
         expect(runtime.createAbortController()).toBe(controller);
+        expect(runtime.createFileReader()).toBe(reader);
         expect(runtime.getDocument()).toBe(document);
         expect(runtime.getEventTarget()).toBe(globalThis);
         expect(runtime.requestAnimationFrame(callback)).toBe(41);
         runtime.cancelAnimationFrame(41);
 
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(FileReaderConstructor).toHaveBeenCalledOnce();
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
         expect(cancelAnimationFrame).toHaveBeenCalledWith(41);
     });

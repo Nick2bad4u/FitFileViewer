@@ -965,9 +965,9 @@ const directSettingsModalBrowserRuntimeGlobalPattern =
 const directModalRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\(/u;
 const directDragDropHandlerTimingRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
+    /\bnew\s+(?:AbortController|FileReader)\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
 const directDragDropHandlerRuntimeAmbientGetterPattern =
-    /\bget\s+(?:AbortController|cancelAnimationFrame|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|requestAnimationFrame)\b/u;
+    /\bget\s+(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\b/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directKeyboardShortcutsModalSvgGlobalPattern =
@@ -6830,7 +6830,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(25);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -6851,6 +6851,7 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
         expect(dragDropHandlerSource).toContain("createAbortController");
+        expect(dragDropHandlerSource).toContain("createFileReader");
         expect(dragDropHandlerSource).toContain("getDocument");
         expect(dragDropHandlerSource).toContain("getEventTarget");
         expect(dragDropHandlerSource).not.toContain("globalThis");
@@ -6873,6 +6874,9 @@ describe("architecture boundaries", () => {
             "readonly eventTarget?:"
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly FileReader?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
@@ -6883,11 +6887,21 @@ describe("architecture boundaries", () => {
         );
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.document");
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.eventTarget");
+        expect(dragDropHandlerRuntimeSource).not.toContain("scope.FileReader");
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getFileReader: () => globalThis.FileReader"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "const FileReaderConstructor = getFileReaderConstructor(scope);"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "dragDropHandler requires a FileReader runtime"
         );
     });
 

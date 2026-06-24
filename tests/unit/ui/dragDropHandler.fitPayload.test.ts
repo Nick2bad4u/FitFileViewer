@@ -84,6 +84,7 @@ vi.mock(
 );
 
 type DecodeFitFile = (buffer: ArrayBuffer) => Promise<FitDecodeResult>;
+type MockFileReaderConstructor = new () => FileReader;
 
 function createDroppedFile(name = "bad.fit"): File & { path: string } {
     return {
@@ -101,7 +102,58 @@ function resetHarnessMocks(): void {
     mocks.validateElement.mockReturnValue(null);
 }
 
+function createRuntimeScope(
+    FileReaderConstructor: MockFileReaderConstructor
+): ConstructorParameters<typeof DragDropHandler>[0]["runtimeScope"] {
+    return {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+        getEventTarget: () => new EventTarget(),
+        getFileReader: () => FileReaderConstructor,
+    };
+}
+
 describe(DragDropHandler, () => {
+    it("reads dropped files through the injected FileReader runtime", async () => {
+        expect.assertions(2);
+
+        resetHarnessMocks();
+
+        const arrayBuffer = new ArrayBuffer(16);
+        const readAsArrayBuffer = vi.fn();
+
+        class MockFileReader {
+            public result: ArrayBuffer | null = null;
+            private loadCallback: (() => void) | undefined;
+
+            addEventListener(type: string, callback: () => void): void {
+                if (type === "load") {
+                    this.loadCallback = callback;
+                }
+            }
+
+            readAsArrayBuffer(file: File): void {
+                readAsArrayBuffer(file);
+                queueMicrotask(() => {
+                    this.result = arrayBuffer;
+                    this.loadCallback?.();
+                });
+            }
+        }
+
+        const handler = new DragDropHandler({
+            runtimeScope: createRuntimeScope(
+                MockFileReader as unknown as MockFileReaderConstructor
+            ),
+        });
+        const file = createDroppedFile("reader.fit");
+
+        await expect(handler.readFileAsArrayBuffer(file)).resolves.toBe(
+            arrayBuffer
+        );
+        expect(readAsArrayBuffer).toHaveBeenCalledWith(file);
+    });
+
     it("reports detailed decoder payload errors without displaying FIT data", async () => {
         expect.assertions(6);
 

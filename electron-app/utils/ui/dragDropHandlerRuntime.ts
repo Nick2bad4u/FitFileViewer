@@ -7,6 +7,7 @@ export interface DragDropHandlerRuntimeScope {
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
+    readonly getFileReader?: (() => typeof FileReader | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -15,6 +16,7 @@ export interface DragDropHandlerRuntimeScope {
 export interface DragDropHandlerRuntime {
     readonly cancelAnimationFrame: (handle: number) => void;
     readonly createAbortController: () => AbortController;
+    readonly createFileReader: () => FileReader;
     readonly getDocument: () => Document | null;
     readonly getEventTarget: () => EventTarget;
     readonly requestAnimationFrame: (
@@ -27,6 +29,7 @@ const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
     getDocument: () => globalThis.document,
     getEventTarget: () => globalThis,
+    getFileReader: () => globalThis.FileReader,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
 };
 
@@ -52,6 +55,12 @@ function getEventTarget(
     return scope.getEventTarget?.();
 }
 
+function getFileReaderConstructor(
+    scope: DragDropHandlerRuntimeScope
+): typeof FileReader | undefined {
+    return scope.getFileReader?.();
+}
+
 function getRequestAnimationFrame(
     scope: DragDropHandlerRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
@@ -75,6 +84,16 @@ export function getDragDropHandlerRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createFileReader(): FileReader {
+            const FileReaderConstructor = getFileReaderConstructor(scope);
+            if (typeof FileReaderConstructor !== "function") {
+                throw new TypeError(
+                    "dragDropHandler requires a FileReader runtime"
+                );
+            }
+
+            return new FileReaderConstructor();
         },
         getDocument(): Document | null {
             return getDocument(scope) ?? null;
