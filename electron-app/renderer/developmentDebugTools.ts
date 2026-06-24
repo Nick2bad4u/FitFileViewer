@@ -11,7 +11,10 @@ import {
     setChartFullscreenTraceEnabled,
     setChartVerboseDebugLoggingEnabled,
 } from "../utils/charts/core/chartDebugState.js";
-import { getRendererDevelopmentDebugToolsRuntime } from "./developmentDebugToolsRuntime.js";
+import {
+    getRendererDevelopmentDebugToolsRuntime,
+    type RendererDevelopmentDebugToolsRuntime,
+} from "./developmentDebugToolsRuntime.js";
 
 type DevelopmentDebugLogLevel = "log" | "warn";
 type DevelopmentDebugLogger = (
@@ -94,13 +97,12 @@ interface RendererDevelopmentDebugToolsOptions {
 const APP_INFO = {
     author: "FIT File Viewer Team",
     description: "Advanced FIT file analysis and visualization tool",
-    getRuntimeInfo,
+    getRuntimeInfo: getRendererDevelopmentRuntimeInfo,
     license: "MIT",
     name: "FIT File Viewer",
     repository: "https://github.com/user/FitFileViewer",
     version: "21.1.0",
 };
-const developmentDebugToolsRuntime = getRendererDevelopmentDebugToolsRuntime();
 
 export { APP_INFO };
 
@@ -401,15 +403,16 @@ function getRecordString(
     return typeof value === "string" ? value : undefined;
 }
 
-function getRuntimeInfo(): Record<string, unknown> {
+export function getRendererDevelopmentRuntimeInfo(
+    runtime: RendererDevelopmentDebugToolsRuntime = getRendererDevelopmentDebugToolsRuntime()
+): Record<string, unknown> {
     let cookieAvailability = false;
     try {
-        const locationRecord = developmentDebugToolsRuntime.getLocationRecord();
+        const locationRecord = runtime.getLocationRecord();
         const protocol = getRecordString(locationRecord, "protocol") ?? "";
 
         if (protocol === "http:" || protocol === "https:") {
-            const navigatorRecord =
-                developmentDebugToolsRuntime.getNavigatorRecord();
+            const navigatorRecord = runtime.getNavigatorRecord();
             const cookieEnabled = getRecordBoolean(
                 navigatorRecord,
                 "cookieEnabled"
@@ -420,9 +423,8 @@ function getRuntimeInfo(): Record<string, unknown> {
         cookieAvailability = false;
     }
 
-    const navigatorRecord = developmentDebugToolsRuntime.getNavigatorRecord();
-    const memoryRecord =
-        developmentDebugToolsRuntime.getPerformanceMemoryRecord();
+    const navigatorRecord = runtime.getNavigatorRecord();
+    const memoryRecord = runtime.getPerformanceMemoryRecord();
     const memoryUsage =
         Object.keys(memoryRecord).length > 0
             ? {

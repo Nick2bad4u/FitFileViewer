@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     APP_INFO,
     createRendererDevelopmentDebugTools,
+    getRendererDevelopmentRuntimeInfo,
 } from "../../../electron-app/renderer/developmentDebugTools.js";
+import type { RendererDevelopmentDebugToolsRuntime } from "../../../electron-app/renderer/developmentDebugToolsRuntime.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
 import {
     isRendererDebugLoggingEnabled,
@@ -186,5 +188,40 @@ describe("renderer development debug tools", () => {
 
         expect(APP_INFO.name).toBe("FIT File Viewer");
         expect(Object.hasOwn(runtimeInfo, "memoryUsage")).toBe(true);
+    });
+
+    it("reports runtime information through an injected metadata runtime", () => {
+        expect.assertions(1);
+
+        const utils: RendererDevelopmentDebugToolsRuntime = {
+            getLocationRecord: vi.fn(() => ({ protocol: "https:" })),
+            getNavigatorRecord: vi.fn(() => ({
+                cookieEnabled: true,
+                hardwareConcurrency: 16,
+                language: "en-US",
+                onLine: true,
+                platform: "test-platform",
+                userAgent: "fitfileviewer-test",
+            })),
+            getPerformanceMemoryRecord: vi.fn(() => ({
+                jsHeapSizeLimit: 300,
+                totalJSHeapSize: 200,
+                usedJSHeapSize: 100,
+            })),
+        };
+
+        expect(getRendererDevelopmentRuntimeInfo(utils)).toStrictEqual({
+            cookieEnabled: true,
+            hardwareConcurrency: 16,
+            language: "en-US",
+            memoryUsage: {
+                jsHeapSizeLimit: 300,
+                totalJSHeapSize: 200,
+                usedJSHeapSize: 100,
+            },
+            onLine: true,
+            platform: "test-platform",
+            userAgent: "fitfileviewer-test",
+        });
     });
 });
