@@ -19,7 +19,10 @@ import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
 import { createModalFocusTrap } from "./modals/modalFocusTrap.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
-import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../runtime/electronApiRuntime.js";
 import {
     getSettingsModalRuntime,
     type SettingsModalTimerHandle,
@@ -30,6 +33,9 @@ const ANIMATION_DURATION = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 type SettingsModalElectronApi = Partial<Pick<ElectronAPI, "sendThemeChanged">>;
+type SettingsModalOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 const settingsModalRuntime = getSettingsModalRuntime();
 
@@ -37,6 +43,7 @@ let closeAnimationTimer: SettingsModalTimerHandle | undefined;
 let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | undefined;
 let showAnimationFrameId: null | number = null;
+let activeElectronApiScope: RendererElectronApiScope | undefined;
 
 function clearCloseAnimationTimer(): void {
     if (closeAnimationTimer !== undefined) {
@@ -70,7 +77,10 @@ function restoreLastFocusedElement(): void {
 }
 
 function getSettingsModalElectronApi(): SettingsModalElectronApi | null {
-    return getRendererElectronApi(isSettingsModalElectronApi);
+    return getRendererElectronApi(
+        isSettingsModalElectronApi,
+        activeElectronApiScope
+    );
 }
 
 function isSettingsModalElectronApi(
@@ -108,7 +118,10 @@ function handleCloseSettingsModal(): void {
 /**
  * Shows the settings modal.
  */
-export async function showSettingsModal(): Promise<void> {
+export async function showSettingsModal({
+    electronApiScope,
+}: SettingsModalOptions = {}): Promise<void> {
+    activeElectronApiScope = electronApiScope;
     let modal = settingsModalRuntime.queryElement<HTMLElement>(
         `#${SETTINGS_MODAL_ID}`
     );

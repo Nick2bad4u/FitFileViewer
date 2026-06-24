@@ -78,10 +78,13 @@ import {
     closeSettingsModal,
     showSettingsModal,
 } from "../../../../electron-app/utils/ui/settingsModal.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 function change(element: HTMLElement): void {
     element.dispatchEvent(new Event("change", { bubbles: true }));
@@ -107,7 +110,7 @@ function getRequiredElement<T extends HTMLElement>(selector: string): T {
     return element;
 }
 
-function resetFixture(): void {
+function resetFixture(): RendererElectronApiScope {
     vi.useFakeTimers();
     vi.clearAllMocks();
     document.body.replaceChildren();
@@ -125,7 +128,7 @@ function resetFixture(): void {
     mocks.loadTheme.mockReturnValue("dark");
     mocks.resetAccentColor.mockReturnValue("#3b82f6");
     mocks.setAccentColor.mockReturnValue(true);
-    registerRendererElectronApiCandidate({
+    return createElectronApiScope({
         sendThemeChanged: mocks.sendThemeChanged,
     });
 }
@@ -135,17 +138,16 @@ function cleanupFixture(): void {
     vi.clearAllMocks();
     document.body.replaceChildren();
     document.head.replaceChildren();
-    resetRendererElectronApiCandidate();
 }
 
 describe("settingsModal", () => {
     it("creates the modal, injects styles, and keeps menu hooks module-scoped", async () => {
         expect.assertions(14);
 
-        resetFixture();
+        const electronApiScope = resetFixture();
 
         try {
-            await showSettingsModal();
+            await showSettingsModal({ electronApiScope });
             await vi.dynamicImportSettled();
             vi.runOnlyPendingTimers();
 
@@ -184,7 +186,7 @@ describe("settingsModal", () => {
     it("hides the modal after the close animation delay", async () => {
         expect.assertions(4);
 
-        resetFixture();
+        const electronApiScope = resetFixture();
 
         try {
             const launcher = document.createElement("button");
@@ -192,7 +194,7 @@ describe("settingsModal", () => {
             document.body.append(launcher);
             launcher.focus();
 
-            await showSettingsModal();
+            await showSettingsModal({ electronApiScope });
             await vi.dynamicImportSettled();
 
             const modal = getRequiredElement<HTMLElement>("#settings-modal");
@@ -214,10 +216,10 @@ describe("settingsModal", () => {
     it("keeps tab focus inside the open modal", async () => {
         expect.assertions(4);
 
-        resetFixture();
+        const electronApiScope = resetFixture();
 
         try {
-            await showSettingsModal();
+            await showSettingsModal({ electronApiScope });
             await vi.dynamicImportSettled();
 
             const closeButton = getRequiredElement<HTMLButtonElement>(
@@ -254,10 +256,10 @@ describe("settingsModal", () => {
     it("persists theme and accent control changes through the expected services", async () => {
         expect.assertions(7);
 
-        resetFixture();
+        const electronApiScope = resetFixture();
 
         try {
-            await showSettingsModal();
+            await showSettingsModal({ electronApiScope });
             await vi.dynamicImportSettled();
 
             const themeSelect =
