@@ -421,6 +421,9 @@ const migratedNotificationTimerRuntimeFiles = [
     "electron-app/utils/ui/notifications/showUpdateNotification.ts",
     "electron-app/utils/ui/notifications/syncRendererNotifications.ts",
 ] as const;
+const migratedShowRenderNotificationRuntimeFiles = [
+    "electron-app/utils/ui/notifications/showRenderNotification.ts",
+] as const;
 const migratedShowUpdateNotificationDomRuntimeFiles = [
     "electron-app/utils/ui/notifications/showUpdateNotification.ts",
 ] as const;
@@ -1001,6 +1004,9 @@ const directNotificationTimerRuntimeGlobalPattern =
     /\bDate\.now\b|\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNotificationTimerRuntimeAmbientGetterPattern =
     /\bget\s+DateNow\s*\(\)\s*\{|\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
+const directShowRenderNotificationRuntimeGlobalPattern = /\bDate\.now\b/u;
+const directShowRenderNotificationRuntimeAmbientGetterPattern =
+    /\bget\s+DateNow\s*\(\)\s*\{|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directShowUpdateNotificationDomRuntimeGlobalPattern =
     /\bdocument\.(?:createElement|querySelector)\b/u;
 const directAboutModalDevHelperGlobalPattern =
@@ -7647,6 +7653,85 @@ describe("architecture boundaries", () => {
         );
         expect(notificationTimerRuntimeSource).toContain(
             "const scheduleTimer = scope.getSetTimeout?.();"
+        );
+    });
+
+    it("keeps render notification timestamps behind the runtime facade", () => {
+        expect.assertions(17);
+
+        const violations = migratedShowRenderNotificationRuntimeFiles
+            .filter((relativeFile) =>
+                directShowRenderNotificationRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const showRenderNotificationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showRenderNotification.ts"
+            )
+        );
+        const showRenderNotificationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showRenderNotificationRuntime.ts"
+            )
+        );
+        const showRenderNotificationRuntimeScopeSource =
+            showRenderNotificationRuntimeSource.slice(
+                showRenderNotificationRuntimeSource.indexOf(
+                    "export interface ShowRenderNotificationRuntimeScope"
+                ),
+                showRenderNotificationRuntimeSource.indexOf(
+                    "export interface ShowRenderNotificationRuntime"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(showRenderNotificationSource).toContain(
+            "showRenderNotificationRuntime.js"
+        );
+        expect(showRenderNotificationSource).toContain(
+            "type ShowRenderNotificationRuntime"
+        );
+        expect(showRenderNotificationSource).toContain(
+            "runtime: ShowRenderNotificationRuntime = getShowRenderNotificationRuntime()"
+        );
+        expect(showRenderNotificationSource).toContain(
+            "const now = runtime.dateNow();"
+        );
+        expect(showRenderNotificationSource).not.toContain("Date.now");
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "defaultShowRenderNotificationRuntimeScope"
+        );
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "readonly dateNow: () => number;"
+        );
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "render notification runtime requires dateNow"
+        );
+        expect(showRenderNotificationRuntimeScopeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(showRenderNotificationRuntimeSource).not.toContain(
+            "scope.dateNow"
+        );
+        expect(showRenderNotificationRuntimeSource).not.toMatch(
+            directShowRenderNotificationRuntimeAmbientGetterPattern
+        );
+        expect(showRenderNotificationRuntimeSource).not.toContain(
+            "ShowRenderNotificationRuntimeScope = globalThis"
+        );
+        expect(showRenderNotificationRuntimeSource).not.toContain(
+            "globalThis as"
+        );
+        expect(showRenderNotificationRuntimeSource).not.toContain(
+            "Pick<typeof globalThis"
         );
     });
 

@@ -2,6 +2,10 @@ import {
     previousChartState,
     updatePreviousChartState,
 } from "../../charts/core/chartNotificationState.js";
+import {
+    getShowRenderNotificationRuntime,
+    type ShowRenderNotificationRuntime,
+} from "./showRenderNotificationRuntime.js";
 
 const SIGNIFICANT_RENDER_GAP_MS = 10_000;
 const SIGNIFICANT_CHART_COUNT_DELTA = 2;
@@ -18,9 +22,10 @@ const SIGNIFICANT_FIELD_COUNT_DELTA = 2;
  */
 export function showRenderNotification(
     currentChartCount: number,
-    currentVisibleFields: number
+    currentVisibleFields: number,
+    runtime: ShowRenderNotificationRuntime = getShowRenderNotificationRuntime()
 ): boolean {
-    const now = Date.now();
+    const now = runtime.dateNow();
 
     if (
         now - previousChartState.lastRenderTimestamp >

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ShowRenderNotificationRuntime } from "../../../../../electron-app/utils/ui/notifications/showRenderNotificationRuntime.js";
 
 type MutableChartNotificationState = {
     chartCount: number;
@@ -9,6 +10,7 @@ type MutableChartNotificationState = {
 type RenderNotificationScenario = {
     currentChartCount: number;
     currentVisibleFields: number;
+    runtime?: ShowRenderNotificationRuntime | undefined;
 };
 
 type RenderNotificationDecision = {
@@ -79,6 +81,7 @@ async function setPreviousChartState({
 async function collectNotificationDecision({
     currentChartCount,
     currentVisibleFields,
+    runtime,
 }: RenderNotificationScenario): Promise<RenderNotificationDecision> {
     const chartNotificationState = await importChartNotificationState();
     const { showRenderNotification } = await importShowRenderNotification();
@@ -86,7 +89,8 @@ async function collectNotificationDecision({
     return {
         shouldShow: showRenderNotification(
             currentChartCount,
-            currentVisibleFields
+            currentVisibleFields,
+            runtime
         ),
         logMessages: consoleLogSpy.mock.calls.map(([message]) =>
             String(message)
@@ -138,6 +142,34 @@ describe("showRenderNotification logic", () => {
                 ],
             ],
         });
+    });
+
+    it("uses the injected runtime clock for render-decision timestamps", async () => {
+        expect.assertions(3);
+
+        const runtime: ShowRenderNotificationRuntime = {
+            dateNow: vi.fn(() => Number("45")),
+        };
+        await setPreviousChartState({
+            chartCount: 2,
+            fieldCount: 2,
+            lastRenderTimestamp: Number("40"),
+        });
+        const observedNotificationDecision = await collectNotificationDecision({
+            currentChartCount: 2,
+            currentVisibleFields: 2,
+            runtime,
+        });
+
+        expect(runtime.dateNow).toHaveBeenCalledOnce();
+        expect(observedNotificationDecision.shouldShow).toBe(false);
+        expect(observedNotificationDecision.updateCalls).toStrictEqual([
+            [
+                2,
+                2,
+                45,
+            ],
+        ]);
     });
 
     it("shows when chart count changes significantly or from 0", async () => {
