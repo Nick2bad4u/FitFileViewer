@@ -19052,7 +19052,7 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
-    it("keeps scoped renderer Electron API tests off the registered fallback", () => {
+    it("keeps scoped renderer Electron API tests off the removed registration fallback", () => {
         expect.assertions(3);
 
         const directElectronApiGlobals =
