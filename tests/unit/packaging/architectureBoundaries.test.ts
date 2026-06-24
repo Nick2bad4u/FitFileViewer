@@ -11703,7 +11703,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -11725,8 +11725,14 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).toContain(
             'subscribeAppDomain?.("app.startTime", () => {})'
         );
+        expect(importTimeBootstrapSource).not.toContain(
+            "toModuleRecord: (value: unknown) => Record<string, unknown>"
+        );
         expect(rendererEntrypointSource).not.toContain(
             "createRendererImportTimeBootstrap({\n    callUnknownFunction,"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererImportTimeBootstrap({\n    ensureCoreModules,\n    getOpenFileButton: domAccess.getOpenFileButton,\n    initializeStateManager,\n    isOpeningFileRef,\n    resolveExactRendererCoreTestOverride,\n    resolveRendererCoreTestOverride,\n    setLoading,\n    toModuleRecord,"
         );
         expect(rendererEntrypointSource).toContain(
             "createRendererImportTimeBootstrap({"

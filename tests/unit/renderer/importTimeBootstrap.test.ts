@@ -68,10 +68,6 @@ describe("renderer import-time bootstrap", () => {
                     : null,
             resolveRendererCoreTestOverride: () => null,
             setLoading,
-            toModuleRecord: (value) =>
-                typeof value === "object" && value !== null
-                    ? (value as Record<string, unknown>)
-                    : {},
         });
 
         bootstrap.scheduleImportTimeThemeSetup();

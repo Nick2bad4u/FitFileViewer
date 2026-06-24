@@ -8,7 +8,6 @@ interface RendererImportTimeBootstrapOptions {
     resolveExactRendererCoreTestOverride: (testId: string) => null | unknown;
     resolveRendererCoreTestOverride: (pathSuffix: string) => null | unknown;
     setLoading: (loading: boolean) => void;
-    toModuleRecord: (value: unknown) => Record<string, unknown>;
 }
 
 export interface RendererImportTimeBootstrap {
@@ -26,7 +25,6 @@ export function createRendererImportTimeBootstrap({
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
     setLoading,
-    toModuleRecord,
 }: RendererImportTimeBootstrapOptions): RendererImportTimeBootstrap {
     async function initializeImportTimeStateManager(): Promise<void> {
         await initializeStateManager();
@@ -54,11 +52,11 @@ export function createRendererImportTimeBootstrap({
             resolveRendererCoreTestOverride(
                 "/utils/state/core/masterStateManager.js"
             );
-        const resolvedRecord = toModuleRecord(resolved);
+        const resolvedRecord = toOverrideRecord(resolved);
 
         return (
             resolvedRecord["masterStateManager"] ??
-            toModuleRecord(resolvedRecord["default"])["masterStateManager"] ??
+            toOverrideRecord(resolvedRecord["default"])["masterStateManager"] ??
             resolved
         );
     }
@@ -129,7 +127,7 @@ export function createRendererImportTimeBootstrap({
         methodName: string,
         args: unknown[] = []
     ): unknown {
-        const method = toModuleRecord(target)[methodName];
+        const method = toOverrideRecord(target)[methodName];
         if (typeof method !== "function") {
             return undefined;
         }
@@ -145,6 +143,12 @@ export function createRendererImportTimeBootstrap({
         scheduleImportTimeStateInitialization,
         scheduleImportTimeThemeSetup,
     };
+}
+
+function toOverrideRecord(value: unknown): Record<string, unknown> {
+    return typeof value === "object" && value !== null
+        ? (value as Record<string, unknown>)
+        : {};
 }
 
 export function runRendererImportTimeBootstrap(

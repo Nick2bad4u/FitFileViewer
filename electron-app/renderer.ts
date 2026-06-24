@@ -30,7 +30,6 @@ import {
     ensureCoreModules,
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
-    toModuleRecord,
 } from "./renderer/coreModuleResolution.js";
 import { installRendererElectronApiWiring } from "./renderer/electronApiWiring.js";
 import { createRendererErrorEventHandlers } from "./renderer/errorHandling.js";
@@ -95,7 +94,6 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
     setLoading,
-    toModuleRecord,
 });
 const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
     importTimeBootstrap;
