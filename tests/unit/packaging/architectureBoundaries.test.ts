@@ -73,7 +73,6 @@ const rendererElectronApiRuntimeSourceFiles = [
 ] as const;
 const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
-    "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
     "tests/unit/files/import/openFitFileFromPath.test.ts",
     "tests/unit/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
@@ -106,6 +105,7 @@ const rendererElectronApiRuntimeRegressionTests = [
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
+    "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/import/loadSingleOverlayFile.fallbacks.test.ts",

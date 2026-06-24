@@ -1,11 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import type { FitDecodeResult } from "../../../../electron-app/shared/fit";
+import type { RendererElectronApiScope } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type DecodeFitFile = (
     arrayBuffer: ArrayBuffer
@@ -13,6 +10,7 @@ type DecodeFitFile = (
 
 type Harness = {
     decodeFitFile: ReturnType<typeof vi.fn<DecodeFitFile>>;
+    electronApiScope: RendererElectronApiScope;
 };
 
 function createOverlayFile(name = "overlay.fit"): {
@@ -36,18 +34,17 @@ function createOverlayFile(name = "overlay.fit"): {
 async function withOverlayHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
+    const decodeFitFile = vi.fn<DecodeFitFile>();
     const harness: Harness = {
-        decodeFitFile: vi.fn<DecodeFitFile>(),
+        decodeFitFile,
+        electronApiScope: {
+            getElectronAPI: () => ({ decodeFitFile }),
+        },
     };
-
-    registerRendererElectronApiCandidate({
-        decodeFitFile: harness.decodeFitFile,
-    });
 
     try {
         await runTest(harness);
     } finally {
-        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     }
 }
@@ -63,7 +60,9 @@ describe(loadSingleOverlayFile, () => {
             harness.decodeFitFile.mockResolvedValue(decodedMessages);
 
             const overlayFile = createOverlayFile();
-            const result = await loadSingleOverlayFile(overlayFile);
+            const result = await loadSingleOverlayFile(overlayFile, {
+                electronApiScope: harness.electronApiScope,
+            });
 
             expect(result).toStrictEqual({
                 data: decodedMessages,
@@ -84,7 +83,9 @@ describe(loadSingleOverlayFile, () => {
                 error: "FIT decode failed",
             });
 
-            const result = await loadSingleOverlayFile(createOverlayFile());
+            const result = await loadSingleOverlayFile(createOverlayFile(), {
+                electronApiScope: harness.electronApiScope,
+            });
 
             expect(result).toStrictEqual({
                 error: "FIT decode failed\ninvalid CRC",
@@ -102,7 +103,9 @@ describe(loadSingleOverlayFile, () => {
                 type: "not-fit-data",
             } as unknown as FitDecodeResult);
 
-            const result = await loadSingleOverlayFile(createOverlayFile());
+            const result = await loadSingleOverlayFile(createOverlayFile(), {
+                electronApiScope: harness.electronApiScope,
+            });
 
             expect(result).toStrictEqual({
                 error: "Invalid FIT parse result",
