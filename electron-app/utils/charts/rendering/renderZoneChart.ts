@@ -14,6 +14,7 @@ import {
     isChartDebugLoggingEnabled,
     isChartVerboseDebugLoggingEnabled,
 } from "../core/chartDebugState.js";
+import { getRenderChartDomHelpersRuntime } from "../core/renderChartDomHelpersRuntime.js";
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import {
@@ -130,9 +131,10 @@ export function renderZoneChart(
     options: RenderZoneChartOptions = {}
 ): void {
     const isDebugLoggingEnabled = isChartDebugLoggingEnabled(),
-        isVerboseDebugLoggingEnabled = isChartVerboseDebugLoggingEnabled();
+        isVerboseDebugLoggingEnabled = isChartVerboseDebugLoggingEnabled(),
+        runtime = getRenderChartDomHelpersRuntime();
 
-    if (!(container instanceof HTMLElement)) {
+    if (!runtime.isHTMLElement(container)) {
         console.warn("renderZoneChart: invalid container", container);
         return;
     }

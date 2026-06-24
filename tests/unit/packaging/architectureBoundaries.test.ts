@@ -544,6 +544,9 @@ const migratedRenderChartDirectRerenderRuntimeFiles = [
 ] as const;
 const migratedRenderChartDomHelpersRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartDomHelpers.ts",
+    "electron-app/utils/charts/rendering/renderGPSTrackChart.ts",
+    "electron-app/utils/charts/rendering/renderLapZoneCharts.ts",
+    "electron-app/utils/charts/rendering/renderZoneChart.ts",
 ] as const;
 const migratedRenderChartRequestListenerRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartRequestListener.ts",
@@ -1279,7 +1282,7 @@ const directChartListenerStateRuntimeAmbientControllerPattern =
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directRenderChartDomHelpersRuntimeGlobalPattern =
-    /\bdocument\.createElement\b/u;
+    /\bdocument\.createElement\b|\binstanceof\s+HTMLElement\b/u;
 const directRenderChartRequestListenerRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.(?:addEventListener|CustomEvent|HTMLElement)\b|\binstanceof\s+CustomEvent\b/u;
 const directRenderChartStartupRuntimeGlobalPattern =
@@ -15550,7 +15553,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-chart DOM helper creation behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(29);
 
         const violations = migratedRenderChartDomHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -15570,6 +15573,21 @@ describe("architecture boundaries", () => {
         const renderChartDomHelpersSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartDomHelpers.ts"
+            )
+        );
+        const gpsTrackChartSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/rendering/renderGPSTrackChart.ts"
+            )
+        );
+        const lapZoneChartsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/rendering/renderLapZoneCharts.ts"
+            )
+        );
+        const zoneChartSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/rendering/renderZoneChart.ts"
             )
         );
         const runtimeSource = stripComments(
@@ -15603,11 +15621,27 @@ describe("architecture boundaries", () => {
         expect(renderChartDomHelpersSource).not.toContain(
             "document.createElement"
         );
+        expect(gpsTrackChartSource).toContain(
+            "getRenderChartDomHelpersRuntime"
+        );
+        expect(gpsTrackChartSource).toContain("runtime.isHTMLElement");
+        expect(gpsTrackChartSource).not.toContain("instanceof HTMLElement");
+        expect(lapZoneChartsSource).toContain(
+            "getRenderChartDomHelpersRuntime"
+        );
+        expect(lapZoneChartsSource).toContain("runtime.isHTMLElement");
+        expect(lapZoneChartsSource).not.toContain("instanceof HTMLElement");
+        expect(zoneChartSource).toContain("getRenderChartDomHelpersRuntime");
+        expect(zoneChartSource).toContain("runtime.isHTMLElement");
+        expect(zoneChartSource).not.toContain("instanceof HTMLElement");
         expect(runtimeSource).toContain(
             "defaultRenderChartDomHelpersRuntimeScope"
         );
         expect(runtimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(runtimeSource).not.toContain(
             "scope: RenderChartDomHelpersRuntimeScope = globalThis"
@@ -15616,10 +15650,16 @@ describe("architecture boundaries", () => {
             "RenderChartDomHelpersRuntimeScope = globalThis"
         );
         expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
         expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).toContain("scope.getDocument?.()");
+        expect(runtimeSource).toContain("scope.getHTMLElement?.()");
         expect(runtimeSource).toContain(
             "renderChartDomHelpers requires a document runtime"
+        );
+        expect(runtimeSource).toContain(
+            "renderChartDomHelpers requires an HTMLElement runtime"
         );
     });
 

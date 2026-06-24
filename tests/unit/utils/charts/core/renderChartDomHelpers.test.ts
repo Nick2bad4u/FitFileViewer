@@ -38,6 +38,9 @@ describe("renderChartDomHelpers", () => {
         const messageElement = document.createElement("div");
         const runtime: RenderChartDomHelpersRuntime = {
             createElement: vi.fn(() => messageElement),
+            isHTMLElement: vi.fn((value): value is HTMLElement =>
+                value instanceof HTMLElement
+            ),
         };
 
         renderNoDataMessage(container, "Injected chart state", runtime);
@@ -66,28 +69,46 @@ describe("renderChartDomHelpers", () => {
         });
     });
 
+    it("checks elements through the injected HTMLElement provider", () => {
+        expect.assertions(2);
+
+        const utils = getRenderChartDomHelpersRuntime({
+            getHTMLElement: () => HTMLElement,
+        });
+
+        expect(utils.isHTMLElement(document.createElement("div"))).toBe(true);
+        expect(utils.isHTMLElement({ nodeType: 1 })).toBe(false);
+    });
+
     it("requires explicit document providers for explicit scopes", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const utils = getRenderChartDomHelpersRuntime({});
 
         expect(() => utils.createElement("div")).toThrow(
             "renderChartDomHelpers requires a document runtime"
         );
+        expect(() => utils.isHTMLElement(document.createElement("div"))).toThrow(
+            "renderChartDomHelpers requires an HTMLElement runtime"
+        );
     });
 
     it("ignores legacy direct document scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const createElement = vi.fn<Document["createElement"]>(() =>
             document.createElement("div")
         );
         const utils = getRenderChartDomHelpersRuntime({
             document: { createElement },
+            HTMLElement,
         } as unknown as RenderChartDomHelpersRuntimeScope);
 
         expect(() => utils.createElement("div")).toThrow(
             "renderChartDomHelpers requires a document runtime"
+        );
+        expect(() => utils.isHTMLElement(document.createElement("div"))).toThrow(
+            "renderChartDomHelpers requires an HTMLElement runtime"
         );
         expect(createElement).not.toHaveBeenCalled();
     });

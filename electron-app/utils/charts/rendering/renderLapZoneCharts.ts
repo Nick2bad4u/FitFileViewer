@@ -15,6 +15,7 @@ import {
     isChartVerboseDebugLoggingEnabled,
 } from "../core/chartDebugState.js";
 import { registerChartInstance as registerRegisteredChartInstance } from "../core/chartInstanceRegistry.js";
+import { getRenderChartDomHelpersRuntime } from "../core/renderChartDomHelpersRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 
@@ -79,14 +80,15 @@ export function renderLapZoneCharts(
     container: HTMLElement | null | undefined,
     options: LapZoneChartsOptions | null = {}
 ): void {
-    const debug = getDebugState();
+    const debug = getDebugState(),
+        runtime = getRenderChartDomHelpersRuntime();
 
     try {
         if (debug.isDebugLoggingEnabled) {
             console.log("[ChartJS] renderLapZoneCharts called");
         }
 
-        if (!(container instanceof HTMLElement)) {
+        if (!runtime.isHTMLElement(container)) {
             return;
         }
 

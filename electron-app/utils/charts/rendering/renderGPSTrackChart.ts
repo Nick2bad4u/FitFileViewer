@@ -10,6 +10,7 @@ import {
     type ManagedChartConfig,
 } from "../core/createManagedChart.js";
 import { chartSettingsManager } from "../core/renderChartJS.js";
+import { getRenderChartDomHelpersRuntime } from "../core/renderChartDomHelpersRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
@@ -50,12 +51,13 @@ export function renderGPSTrackChart(
     options: GPSTrackOptions
 ): void {
     try {
-        const isDebugLoggingEnabled = shouldLogDebugMessages();
+        const isDebugLoggingEnabled = shouldLogDebugMessages(),
+            runtime = getRenderChartDomHelpersRuntime();
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderGPSTrackChart called");
         }
 
-        if (!(container instanceof HTMLElement)) {
+        if (!runtime.isHTMLElement(container)) {
             return;
         }
 
