@@ -7,7 +7,10 @@ import {
     getMainUiDomUtilsRuntime,
     type MainUiDomUtilsRuntime,
 } from "./mainUiDomUtilsRuntime.js";
-import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 type ElectronApiCandidate = Partial<Pick<ElectronAPI, "decodeFitFile">>;
@@ -70,8 +73,12 @@ export function cleanupEventListeners(): void {
 /**
  * Validate Electron API availability for FIT decoding.
  */
-export function validateElectronAPI(): boolean {
-    return getRendererElectronApi(isDecodeFitFileApi) !== null;
+export function validateElectronAPI(
+    electronApiScope?: RendererElectronApiScope
+): boolean {
+    return (
+        getRendererElectronApi(isDecodeFitFileApi, electronApiScope) !== null
+    );
 }
 
 function isDecodeFitFileApi(value: unknown): value is ElectronApiCandidate {
@@ -79,9 +86,7 @@ function isDecodeFitFileApi(value: unknown): value is ElectronApiCandidate {
         return false;
     }
 
-    return (
-        typeof (value as ElectronApiCandidate).decodeFitFile === "function"
-    );
+    return typeof (value as ElectronApiCandidate).decodeFitFile === "function";
 }
 
 /**

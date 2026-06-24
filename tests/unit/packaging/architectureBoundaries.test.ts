@@ -111,6 +111,7 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
     "tests/unit/utils/ui/browser/initFitBrowserFeatureGate.test.ts",
     "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
+    "tests/unit/utils/ui/mainUiDomUtils.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 

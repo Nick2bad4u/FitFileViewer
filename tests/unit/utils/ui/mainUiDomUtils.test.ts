@@ -6,10 +6,7 @@ import {
     validateElectronAPI,
     validateElement,
 } from "../../../../electron-app/utils/ui/mainUiDomUtils.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
     const call = calls[index];
@@ -23,10 +20,15 @@ function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
 
 function resetTestState(): void {
     cleanupEventListeners();
-    resetRendererElectronApiCandidate();
     document.body.replaceChildren();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+}
+
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 describe("mainUiDomUtils", () => {
@@ -136,13 +138,13 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        registerRendererElectronApiCandidate({
+        const electronApiScope = createElectronApiScope({
             decodeFitFile: "not-a-function",
         });
 
-        expect({ isValid: validateElectronAPI() }).toStrictEqual({
-            isValid: false,
-        });
+        expect({
+            isValid: validateElectronAPI(electronApiScope),
+        }).toStrictEqual({ isValid: false });
 
         resetTestState();
     });
@@ -152,13 +154,13 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        registerRendererElectronApiCandidate({
+        const electronApiScope = createElectronApiScope({
             decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>(),
         });
 
-        expect({ isValid: validateElectronAPI() }).toStrictEqual({
-            isValid: true,
-        });
+        expect({
+            isValid: validateElectronAPI(electronApiScope),
+        }).toStrictEqual({ isValid: true });
 
         resetTestState();
     });
