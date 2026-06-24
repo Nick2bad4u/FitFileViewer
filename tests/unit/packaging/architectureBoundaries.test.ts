@@ -72,7 +72,6 @@ const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/utils/app/initialization/rendererEnvironment.ts",
 ] as const;
 const rendererElectronApiRuntimeRegressionTests = [
-    "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "tests/unit/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
     "tests/unit/lifecycle/menuIpcKeyboardShortcuts.test.ts",
@@ -101,6 +100,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
+    "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
     "tests/unit/files/import/openFitFileFromPath.test.ts",

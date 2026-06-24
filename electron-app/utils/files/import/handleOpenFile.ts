@@ -20,7 +20,10 @@ import {
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 
 type FileOpeningRef = { value?: boolean };
@@ -44,6 +47,7 @@ type HandleOpenFileParams = FileOpenUiElements & {
 };
 
 type HandleOpenFileOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     timeout?: number;
     validateFileSize?: boolean;
 };
@@ -198,7 +202,7 @@ async function handleOpenFile(
         });
         updateUIState(uiElements, true, true);
 
-        const electronAPI = getValidatedElectronAPI();
+        const electronAPI = getValidatedElectronAPI(config.electronApiScope);
         if (!electronAPI) {
             showNotification(
                 "Electron API not available. Please restart the app.",
@@ -537,9 +541,12 @@ function updateUIState(
 }
 
 /** Validates that all required Electron API methods are available. */
-function getValidatedElectronAPI(): FileOpenElectronAPI | null {
+function getValidatedElectronAPI(
+    electronApiScope?: RendererElectronApiScope
+): FileOpenElectronAPI | null {
     const electronAPI = getRendererElectronApi<FileOpenElectronAPI>(
-        isFileOpenElectronAPI
+        isFileOpenElectronAPI,
+        electronApiScope
     );
 
     if (!electronAPI) {
@@ -556,9 +563,4 @@ function validateElectronAPI(): boolean {
 }
 
 // Export functions for testing
-export {
-    handleOpenFile,
-    logWithContext,
-    updateUIState,
-    validateElectronAPI,
-};
+export { handleOpenFile, logWithContext, updateUIState, validateElectronAPI };
