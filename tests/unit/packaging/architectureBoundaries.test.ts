@@ -4106,6 +4106,59 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps FIT file state timestamps behind the runtime facade", () => {
+        expect.assertions(17);
+
+        const fitFileStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/fitFileState.ts"
+            )
+        );
+        const fitFileStateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/fitFileStateRuntime.ts"
+            )
+        );
+
+        expect(fitFileStateSource).toContain("fitFileStateRuntime.js");
+        expect(fitFileStateSource).toContain("type FitFileStateRuntime");
+        expect(fitFileStateSource).toContain(
+            "function fitFileStateRuntime(): FitFileStateRuntime"
+        );
+        expect(fitFileStateSource).toContain(
+            "fitFileStateRuntime().dateNow()"
+        );
+        expect(fitFileStateSource).toContain(
+            "const now = fitFileStateRuntime().dateNow();"
+        );
+        expect(fitFileStateSource).toContain(
+            "lastUpdated: fitFileStateRuntime().dateNow()"
+        );
+        expect(fitFileStateSource).not.toContain("Date.now");
+        expect(fitFileStateRuntimeSource).toContain(
+            "defaultFitFileStateRuntimeScope"
+        );
+        expect(fitFileStateRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(fitFileStateRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(fitFileStateRuntimeSource).toContain(
+            "fitFileState requires dateNow"
+        );
+        expect(fitFileStateRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(fitFileStateRuntimeSource).not.toContain("scope.dateNow");
+        expect(fitFileStateRuntimeSource).not.toContain(
+            "scope: FitFileStateRuntimeScope = globalThis"
+        );
+        expect(fitFileStateRuntimeSource).not.toContain(
+            "FitFileStateRuntimeScope = globalThis"
+        );
+        expect(fitFileStateRuntimeSource).not.toContain("Reflect.get");
+        expect(fitFileStateRuntimeSource).not.toContain("globalThis.Date");
+    });
+
     it("keeps state core modules out of broad renderer utilities", () => {
         expect.assertions(1);
 

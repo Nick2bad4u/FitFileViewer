@@ -749,6 +749,10 @@ State middleware handler duration timing, performance-middleware duration timing
 timestamps now route through `stateMiddlewareRuntime.ts` instead of calling `performance.now` or `Date.now`
 directly inside `stateMiddleware.ts`, with focused runtime coverage and architecture coverage blocking direct
 timing globals and legacy direct runtime scope properties from returning.
+FIT-file state load-completion timestamps, loading-state updates, and metrics timestamps now route through
+`fitFileStateRuntime.ts` instead of calling `Date.now` directly inside `fitFileState.ts`, with focused runtime
+coverage and architecture coverage blocking direct clock reads and legacy direct runtime scope properties from
+returning.
 Master state manager development-scope checks, global error listeners, theme-change dispatch, window lifecycle
 listeners, and listener abort-controller creation now go through the scoped `masterStateRuntime.ts` adapter instead of probing
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or

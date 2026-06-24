@@ -9,6 +9,10 @@ import {
 import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
 import * as stateCore from "../core/stateManager.js";
 import type { FitFileLoadingPhase } from "../core/stateManagerDefaults.js";
+import {
+    getFitFileStateRuntime,
+    type FitFileStateRuntime,
+} from "./fitFileStateRuntime.js";
 
 type DataRecord = Record<string, unknown>;
 type Unsubscribe = () => void;
@@ -234,6 +238,10 @@ const ALLOWED_PHASE_TRANSITIONS: Record<
 
 function emptyUnsubscribe(): void {
     // No-op fallback when the state manager API is unavailable in a test mock.
+}
+
+function fitFileStateRuntime(): FitFileStateRuntime {
+    return getFitFileStateRuntime();
 }
 
 const subscribe = (
@@ -586,7 +594,11 @@ export class FitFileStateManager {
         stateCore.setState("map.isRendered", false, { source });
         stateCore.setState("tables.isRendered", false, { source });
 
-        stateCore.setState("performance.lastLoadTime", Date.now(), { source });
+        stateCore.setState(
+            "performance.lastLoadTime",
+            fitFileStateRuntime().dateNow(),
+            { source }
+        );
         stateCore.setState("isLoading", false, { source });
 
         showNotification("FIT file loaded successfully", "success", 3000);
@@ -792,7 +804,7 @@ export class FitFileStateManager {
         const progress = clampProgress(
             options.progress ?? DEFAULT_PHASE_PROGRESS[phase]
         );
-        const now = Date.now();
+        const now = fitFileStateRuntime().dateNow();
         const startedAt =
             phase === "idle"
                 ? null
@@ -835,7 +847,7 @@ export class FitFileStateManager {
                 dataQualityScore: processedData.dataQuality.completeness,
                 hasDevice: Boolean(processedData.deviceInfo),
                 hasSession: Boolean(processedData.sessionInfo),
-                lastUpdated: Date.now(),
+                lastUpdated: fitFileStateRuntime().dateNow(),
                 recordCount: processedData.recordCount,
             } satisfies FileMetrics,
             { source: "FitFileStateManager.updateFileMetrics" }
