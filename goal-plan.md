@@ -723,6 +723,10 @@ construction from returning. Settings state-core runtime scopes now also resolve
 abort-controller creation, and localStorage access through named provider functions instead of a broad `globalThis`
 default scope or direct scope properties, with focused coverage and architecture coverage blocking those legacy
 runtime shapes from returning.
+Settings exported-settings timestamps, initial `lastModified` timestamps, reset/update/sync `lastModified` writes,
+and chart-setting removal timestamps now also route through `settingsStateCoreRuntime.ts` instead of calling
+`Date.now` directly inside `settingsStateCore.ts` or `settingsStateHelpers.ts`, with focused runtime coverage and
+architecture guardrails blocking direct clock reads and legacy direct runtime scope properties from returning.
 Generic storage helpers now keep default `localStorage` access inside `storageUtilsRuntime.ts` and use an explicit
 `globalThis.localStorage` provider instead of a generic `Reflect.get(globalThis, "localStorage")` probe.
 State development tools also route performance-monitor interval scheduling and clearing through that runtime

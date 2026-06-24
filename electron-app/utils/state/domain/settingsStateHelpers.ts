@@ -13,6 +13,10 @@ import {
     getStateStorageRuntime,
     type StateStorageRuntime,
 } from "../core/stateStorageRuntime.js";
+import {
+    getSettingsStateCoreRuntime,
+    type SettingsStateCoreRuntime,
+} from "./settingsStateCoreRuntime.js";
 import { SETTINGS_SCHEMA } from "./settingsStateSchema.js";
 import { settingsStateManager } from "./settingsStateCore.js";
 
@@ -48,6 +52,10 @@ const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
 
 function stateStorageRuntime(): StateStorageRuntime {
     return getStateStorageRuntime();
+}
+
+function settingsStateCoreRuntime(): SettingsStateCoreRuntime {
+    return getSettingsStateCoreRuntime();
 }
 
 function isPlainSettingsRecord(
@@ -260,9 +268,13 @@ export function removeChartSetting(key: string): boolean {
             });
         }
 
-        setState("settings.lastModified", Date.now(), {
-            source: "SettingsStateManager.removeChartSetting",
-        });
+        setState(
+            "settings.lastModified",
+            settingsStateCoreRuntime().dateNow(),
+            {
+                source: "SettingsStateManager.removeChartSetting",
+            }
+        );
 
         return true;
     } catch (error) {

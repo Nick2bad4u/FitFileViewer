@@ -5,6 +5,7 @@ export interface SettingsStateCoreRuntimeScope {
     readonly getAddEventListener?:
         | (() => typeof globalThis.addEventListener | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getLocalStorage?: (() => Storage | undefined) | undefined;
 }
 
@@ -14,6 +15,7 @@ export interface SettingsStateCoreRuntime {
         signal: AbortSignal
     ) => boolean;
     createAbortController: () => AbortController;
+    dateNow: () => number;
     getLocalStorage: () => Storage | undefined;
 }
 
@@ -33,8 +35,18 @@ function getAbortControllerConstructor(
 const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
+    getDateNow: () => Date.now,
     getLocalStorage: () => globalThis.localStorage,
 };
+
+function getDateNow(scope: SettingsStateCoreRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("settingsStateCore requires dateNow");
+    }
+
+    return dateNow;
+}
 
 export function getSettingsStateCoreRuntime(
     scope: SettingsStateCoreRuntimeScope = defaultSettingsStateCoreRuntimeScope
@@ -55,6 +67,10 @@ export function getSettingsStateCoreRuntime(
 
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+
+        dateNow(): number {
+            return getDateNow(scope)();
         },
 
         getLocalStorage(): Storage | undefined {

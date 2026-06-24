@@ -88,7 +88,7 @@ class SettingsStateManager {
 
             return {
                 settings,
-                timestamp: Date.now(),
+                timestamp: settingsStateCoreRuntime().dateNow(),
                 version: this.migrationVersion,
             };
         } catch (error) {
@@ -292,7 +292,7 @@ class SettingsStateManager {
                         chart: this.getChartSettings(),
                         export: this.getSetting("export"),
                         isLoading: false,
-                        lastModified: Date.now(),
+                        lastModified: settingsStateCoreRuntime().dateNow(),
                         mapTheme: this.getSetting("mapTheme"),
                         migrationVersion: this.migrationVersion,
                         theme: this.getSetting("theme"),
@@ -443,9 +443,13 @@ class SettingsStateManager {
                 }
             }
 
-            setState("settings.lastModified", Date.now(), {
-                source: "SettingsStateManager.resetSettings",
-            });
+            setState(
+                "settings.lastModified",
+                settingsStateCoreRuntime().dateNow(),
+                {
+                    source: "SettingsStateManager.resetSettings",
+                }
+            );
 
             if (!silent) {
                 showNotification(
@@ -537,9 +541,13 @@ class SettingsStateManager {
             }
 
             // Update last modified timestamp
-            setState("settings.lastModified", Date.now(), {
-                source: "SettingsStateManager.setSetting",
-            });
+            setState(
+                "settings.lastModified",
+                settingsStateCoreRuntime().dateNow(),
+                {
+                    source: "SettingsStateManager.setSetting",
+                }
+            );
 
             return true;
         } catch (error) {
@@ -598,9 +606,13 @@ class SettingsStateManager {
                 });
             }
 
-            setState("settings.lastModified", Date.now(), {
-                source: "SettingsStateManager.syncFromLocalStorage",
-            });
+            setState(
+                "settings.lastModified",
+                settingsStateCoreRuntime().dateNow(),
+                {
+                    source: "SettingsStateManager.syncFromLocalStorage",
+                }
+            );
         } catch (error) {
             console.error(
                 "[SettingsState] Error syncing from localStorage:",

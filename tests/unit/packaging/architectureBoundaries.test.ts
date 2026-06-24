@@ -20226,7 +20226,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(38);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -20263,17 +20263,35 @@ describe("architecture boundaries", () => {
         );
         expect(settingsStateCoreSource).toContain("addStorageEventListener");
         expect(settingsStateCoreSource).toContain("createAbortController");
+        expect(settingsStateCoreSource).toContain("dateNow");
+        expect(settingsStateCoreSource).toContain(
+            "settingsStateCoreRuntime().dateNow()"
+        );
         expect(settingsStateCoreSource).toContain("getLocalStorage");
+        expect(settingsStateCoreSource).not.toContain("Date.now");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime.js");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime");
         expect(settingsStateHelpersSource).toContain("type StateStorageRuntime");
         expect(settingsStateHelpersSource).toContain(
             "return getStateStorageRuntime();"
         );
+        expect(settingsStateHelpersSource).toContain(
+            "settingsStateCoreRuntime.js"
+        );
+        expect(settingsStateHelpersSource).toContain(
+            "type SettingsStateCoreRuntime"
+        );
+        expect(settingsStateHelpersSource).toContain(
+            "return getSettingsStateCoreRuntime();"
+        );
+        expect(settingsStateHelpersSource).toContain(
+            "settingsStateCoreRuntime().dateNow()"
+        );
         expect(settingsStateHelpersSource).not.toContain(
             "const stateStorageRuntime = getStateStorageRuntime();"
         );
         expect(settingsStateHelpersSource).not.toContain("localStorage.");
+        expect(settingsStateHelpersSource).not.toContain("Date.now");
         expect(settingsStateCoreRuntimeSource).toContain(
             "defaultSettingsStateCoreRuntimeScope"
         );
@@ -20293,6 +20311,9 @@ describe("architecture boundaries", () => {
             "readonly addEventListener?:"
         );
         expect(settingsStateCoreRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
             "readonly localStorage?:"
         );
         expect(settingsStateCoreRuntimeSource).not.toContain(
@@ -20301,11 +20322,18 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreRuntimeSource).not.toContain(
             "scope.addEventListener"
         );
+        expect(settingsStateCoreRuntimeSource).not.toContain("scope.dateNow");
         expect(settingsStateCoreRuntimeSource).not.toContain(
             "scope.localStorage"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "settingsStateCore requires dateNow"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
             "getLocalStorage: () => globalThis.localStorage"

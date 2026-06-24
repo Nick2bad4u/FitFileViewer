@@ -4,6 +4,18 @@ import type { SettingsStateCoreRuntimeScope } from "../../../../../electron-app/
 import { getSettingsStateCoreRuntime } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 
 describe("getSettingsStateCoreRuntime", () => {
+    it("reads timestamps through the injected provider", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.fn<() => number>(() => 1234);
+        const runtime = getSettingsStateCoreRuntime({
+            getDateNow: () => dateNow,
+        });
+
+        expect(runtime.dateNow()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
+    });
+
     it("returns the injected localStorage reference", () => {
         expect.assertions(1);
 
@@ -86,7 +98,7 @@ describe("getSettingsStateCoreRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const storage = {
             clear: vi.fn(),
@@ -97,9 +109,11 @@ describe("getSettingsStateCoreRuntime", () => {
             setItem: vi.fn(),
         } satisfies Storage;
         const controller = new AbortController();
+        const dateNow = vi.fn<() => number>(() => 1234);
         const legacyScope = {
             AbortController,
             addEventListener: vi.fn(),
+            dateNow,
             localStorage: storage,
         } as unknown as SettingsStateCoreRuntimeScope;
         const runtime = getSettingsStateCoreRuntime(legacyScope);
@@ -111,7 +125,19 @@ describe("getSettingsStateCoreRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "settingsStateCore requires an AbortController runtime"
         );
+        expect(() => runtime.dateNow()).toThrow(
+            "settingsStateCore requires dateNow"
+        );
+        expect(dateNow).not.toHaveBeenCalled();
 
         controller.abort();
+    });
+
+    it("fails clearly when date clocks are unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => getSettingsStateCoreRuntime({}).dateNow()).toThrow(
+            "settingsStateCore requires dateNow"
+        );
     });
 });
