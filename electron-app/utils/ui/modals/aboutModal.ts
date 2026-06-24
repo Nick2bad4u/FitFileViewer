@@ -11,6 +11,7 @@ import { showNotification } from "../notifications/showNotification.js";
 import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
 import {
     getAboutModalRuntime,
+    type AboutModalRuntime,
     type AboutModalTimerHandle,
 } from "./aboutModalRuntime.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
@@ -60,7 +61,10 @@ type AboutModalOptions = {
 };
 
 const clipboardExportUtils = exportUtils as ClipboardExportUtils;
-const aboutModalRuntime = getAboutModalRuntime();
+
+function aboutModalRuntime(): AboutModalRuntime {
+    return getAboutModalRuntime();
+}
 
 const FEATURE_ITEMS: FeatureItem[] = [
     {
@@ -186,24 +190,24 @@ export const modalAnimationDuration = CONSTANTS.MODAL_ANIMATION_DURATION;
  * Creates the About modal content as DOM nodes.
  */
 export function createAboutModalContentElement(): HTMLElement {
-    const backdrop = aboutModalRuntime.createElement("div");
+    const backdrop = aboutModalRuntime().createElement("div");
     backdrop.className = "modal-backdrop";
 
-    const content = aboutModalRuntime.createElement("div");
+    const content = aboutModalRuntime().createElement("div");
     content.className = "modal-content";
 
-    const header = aboutModalRuntime.createElement("div");
+    const header = aboutModalRuntime().createElement("div");
     header.className = "modal-header";
 
-    const iconWrapper = aboutModalRuntime.createElement("div");
+    const iconWrapper = aboutModalRuntime().createElement("div");
     iconWrapper.className = "modal-icon";
-    const appIcon = aboutModalRuntime.createElement("img");
+    const appIcon = aboutModalRuntime().createElement("img");
     appIcon.src = "icons/favicon-96x96.png";
     appIcon.alt = "App Icon";
     appIcon.className = "app-icon";
     iconWrapper.append(appIcon);
 
-    const closeButton = aboutModalRuntime.createElement("button");
+    const closeButton = aboutModalRuntime().createElement("button");
     closeButton.id = "about-modal-close";
     closeButton.className = "modal-close";
     closeButton.type = "button";
@@ -213,7 +217,7 @@ export function createAboutModalContentElement(): HTMLElement {
 
     header.append(iconWrapper, closeButton);
 
-    const body = aboutModalRuntime.createElement("div");
+    const body = aboutModalRuntime().createElement("div");
     body.className = "modal-body";
     body.append(
         createAboutTitle(),
@@ -234,12 +238,12 @@ export function createAboutModalContentElement(): HTMLElement {
 }
 
 function createCloseIcon(): SVGSVGElement {
-    const icon = aboutModalRuntime.createSvgElement("svg");
+    const icon = aboutModalRuntime().createSvgElement("svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
 
-    const path = aboutModalRuntime.createSvgElement("path");
+    const path = aboutModalRuntime().createSvgElement("path");
     path.setAttribute("d", "M18 6L6 18M6 6l12 12");
     path.setAttribute("stroke", "currentColor");
     path.setAttribute("stroke-width", "2");
@@ -251,7 +255,7 @@ function createCloseIcon(): SVGSVGElement {
 }
 
 function createAboutTitle(): HTMLHeadingElement {
-    const title = aboutModalRuntime.createElement("h1");
+    const title = aboutModalRuntime().createElement("h1");
     title.id = "about-modal-title";
     title.className = "modal-title";
 
@@ -264,7 +268,7 @@ function createAboutTitle(): HTMLHeadingElement {
 }
 
 function createVersionBadge(): HTMLSpanElement {
-    const badge = aboutModalRuntime.createElement("span");
+    const badge = aboutModalRuntime().createElement("span");
     badge.className = "version-badge";
 
     const prefix = createTextElement("span", "version-prefix", "v");
@@ -280,15 +284,15 @@ function createVersionBadge(): HTMLSpanElement {
 }
 
 function createAboutSplit(): HTMLElement {
-    const split = aboutModalRuntime.createElement("div");
+    const split = aboutModalRuntime().createElement("div");
     split.className = "about-split";
 
-    const featuresPanel = aboutModalRuntime.createElement("section");
+    const featuresPanel = aboutModalRuntime().createElement("section");
     featuresPanel.className = "about-panel about-panel--features";
     featuresPanel.setAttribute("aria-label", "Key features");
     featuresPanel.append(createFeaturesElement());
 
-    const systemPanel = aboutModalRuntime.createElement("section");
+    const systemPanel = aboutModalRuntime().createElement("section");
     systemPanel.className = "about-panel about-panel--system";
     systemPanel.setAttribute("aria-label", "System information");
     systemPanel.append(
@@ -302,14 +306,14 @@ function createAboutSplit(): HTMLElement {
 }
 
 function createFeaturesElement(): HTMLElement {
-    const content = aboutModalRuntime.createElement("div");
+    const content = aboutModalRuntime().createElement("div");
     content.className = "features-content";
 
-    const title = aboutModalRuntime.createElement("h3");
+    const title = aboutModalRuntime().createElement("h3");
     title.className = "features-title";
     title.append(createTextElement("span", "", "✨"), " Key Features");
 
-    const list = aboutModalRuntime.createElement("ul");
+    const list = aboutModalRuntime().createElement("ul");
     list.className = "features-list";
     for (const item of FEATURE_ITEMS) {
         list.append(createFeatureItem(item));
@@ -321,13 +325,13 @@ function createFeaturesElement(): HTMLElement {
 }
 
 function createFeatureItem(item: FeatureItem): HTMLElement {
-    const listItem = aboutModalRuntime.createElement("li");
+    const listItem = aboutModalRuntime().createElement("li");
     listItem.className = "features-item";
 
     const icon = createTextElement("span", "features-icon", item.icon);
     icon.style.color = item.color;
 
-    const content = aboutModalRuntime.createElement("div");
+    const content = aboutModalRuntime().createElement("div");
     content.className = "features-content-item";
     content.append(
         createTextElement("h4", "features-item-title", item.title),
@@ -340,14 +344,14 @@ function createFeatureItem(item: FeatureItem): HTMLElement {
 }
 
 function createSystemInfoPanelHeader(): HTMLElement {
-    const header = aboutModalRuntime.createElement("div");
+    const header = aboutModalRuntime().createElement("div");
     header.className = "about-panel-header";
 
-    const title = aboutModalRuntime.createElement("h3");
+    const title = aboutModalRuntime().createElement("h3");
     title.className = "features-title";
     title.append(createTextElement("span", "", "🧩"), " System Info");
 
-    const button = aboutModalRuntime.createElement("button");
+    const button = aboutModalRuntime().createElement("button");
     button.id = "about-copy-system-info";
     button.className = "features-btn features-btn--compact";
     button.type = "button";
@@ -364,7 +368,7 @@ function createSystemInfoPanelHeader(): HTMLElement {
 }
 
 function createSystemInfoSection(): HTMLElement {
-    const section = aboutModalRuntime.createElement("div");
+    const section = aboutModalRuntime().createElement("div");
     section.className = "system-info-section";
     section.id = "info-toggle-section";
     section.append(createSystemInfoGridElement());
@@ -373,7 +377,7 @@ function createSystemInfoSection(): HTMLElement {
 }
 
 function createSystemInfoGridElement(): HTMLElement {
-    const grid = aboutModalRuntime.createElement("div");
+    const grid = aboutModalRuntime().createElement("div");
     grid.className = "system-info-grid";
     for (const item of SYSTEM_INFO_ITEMS) {
         grid.append(createSystemInfoItem(item));
@@ -383,7 +387,7 @@ function createSystemInfoGridElement(): HTMLElement {
 }
 
 function createSystemInfoItem(item: SystemInfoItem): HTMLElement {
-    const wrapper = aboutModalRuntime.createElement("div");
+    const wrapper = aboutModalRuntime().createElement("div");
     wrapper.className = "system-info-item";
     wrapper.append(
         createTextElement("span", "system-info-label", item.label),
@@ -398,7 +402,7 @@ function createSystemInfoItem(item: SystemInfoItem): HTMLElement {
 }
 
 function createEmptyAboutBody(): HTMLElement {
-    const body = aboutModalRuntime.createElement("div");
+    const body = aboutModalRuntime().createElement("div");
     body.id = "about-modal-body";
     body.className = "modal-content-body";
 
@@ -406,10 +410,10 @@ function createEmptyAboutBody(): HTMLElement {
 }
 
 function createAboutFooter(): HTMLElement {
-    const footer = aboutModalRuntime.createElement("div");
+    const footer = aboutModalRuntime().createElement("div");
     footer.className = "modal-footer";
 
-    const stack = aboutModalRuntime.createElement("div");
+    const stack = aboutModalRuntime().createElement("div");
     stack.className = "tech-stack";
     for (const badge of TECH_BADGES) {
         stack.append(createTechBadgeLink(badge));
@@ -420,12 +424,12 @@ function createAboutFooter(): HTMLElement {
 }
 
 function createTechBadgeLink(badge: TechBadge): HTMLAnchorElement {
-    const link = aboutModalRuntime.createElement("a");
+    const link = aboutModalRuntime().createElement("a");
     link.href = badge.href;
     link.className = "tech-badge-link";
     link.dataset["externalLink"] = "";
 
-    const wrapper = aboutModalRuntime.createElement("span");
+    const wrapper = aboutModalRuntime().createElement("span");
     wrapper.className = "tech-badge";
     wrapper.append(
         createTextElement("span", "tech-icon", badge.icon),
@@ -441,7 +445,7 @@ function createTextElement<T extends keyof HTMLElementTagNameMap>(
     className: string,
     text: string
 ): HTMLElementTagNameMap[T] {
-    const element = aboutModalRuntime.createElement(tagName);
+    const element = aboutModalRuntime().createElement(tagName);
     if (className) {
         element.className = className;
     }
@@ -456,7 +460,7 @@ function createTextElement<T extends keyof HTMLElementTagNameMap>(
  * @param e - Keyboard event.
  */
 export function handleEscapeKey(e: Event): void {
-    if (aboutModalRuntime.isKeyboardEvent(e) && e.key === "Escape") {
+    if (aboutModalRuntime().isKeyboardEvent(e) && e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         hideAboutModal();
@@ -471,22 +475,22 @@ export function showAboutModal(
     options: AboutModalOptions = {}
 ): void {
     ensureAboutModal();
-    const modal = aboutModalRuntime.queryElement<HTMLElement>("#about-modal");
+    const modal = aboutModalRuntime().queryElement<HTMLElement>("#about-modal");
     if (modal) {
         if (hideTimer) {
-            aboutModalRuntime.clearTimeout(hideTimer);
+            aboutModalRuntime().clearTimeout(hideTimer);
             hideTimer = null;
         }
 
         const body =
-                aboutModalRuntime.queryElement<HTMLElement>(
+                aboutModalRuntime().queryElement<HTMLElement>(
                     "#about-modal-body"
                 ),
             closeBtn =
-                aboutModalRuntime.queryElement<HTMLElement>(
+                aboutModalRuntime().queryElement<HTMLElement>(
                     "#about-modal-close"
                 ),
-            copyBtn = aboutModalRuntime.queryElement<HTMLElement>(
+            copyBtn = aboutModalRuntime().queryElement<HTMLElement>(
                 "#about-copy-system-info"
             );
 
@@ -498,16 +502,16 @@ export function showAboutModal(
             }
 
             // Save current focus
-            lastFocusedElement = aboutModalRuntime.getActiveHTMLElement();
+            lastFocusedElement = aboutModalRuntime().getActiveHTMLElement();
 
             // Show modal with animation
             modal.style.display = "flex";
 
             // Trigger animation on next frame
             if (showAnimationFrame !== null) {
-                aboutModalRuntime.cancelAnimationFrame(showAnimationFrame);
+                aboutModalRuntime().cancelAnimationFrame(showAnimationFrame);
             }
-            showAnimationFrame = aboutModalRuntime.requestAnimationFrame(() => {
+            showAnimationFrame = aboutModalRuntime().requestAnimationFrame(() => {
                 showAnimationFrame = null;
                 modal.classList.add("show");
             });
@@ -515,7 +519,7 @@ export function showAboutModal(
             // Set up event listeners
             cleanupAboutModalEventListeners();
             escapeKeyCleanup = addEventListenerWithCleanup(
-                aboutModalRuntime.getDocumentEventTarget(),
+                aboutModalRuntime().getDocumentEventTarget(),
                 "keydown",
                 handleEscapeKey,
                 true
@@ -528,7 +532,7 @@ export function showAboutModal(
                 }),
                 addEventListenerWithCleanup(closeBtn, "keydown", (e) => {
                     if (
-                        aboutModalRuntime.isKeyboardEvent(e) &&
+                        aboutModalRuntime().isKeyboardEvent(e) &&
                         (e.key === "Enter" || e.key === " ")
                     ) {
                         e.preventDefault();
@@ -556,12 +560,12 @@ export function showAboutModal(
                                 const prev = btnText.textContent;
                                 btnText.textContent = "Copied";
                                 if (copyFeedbackTimer) {
-                                    aboutModalRuntime.clearTimeout(
+                                    aboutModalRuntime().clearTimeout(
                                         copyFeedbackTimer
                                     );
                                 }
                                 copyFeedbackTimer =
-                                    aboutModalRuntime.setTimeout(() => {
+                                    aboutModalRuntime().setTimeout(() => {
                                         copyFeedbackTimer = null;
                                         btnText.textContent = prev || "Copy";
                                     }, 1200);
@@ -585,7 +589,7 @@ export function showAboutModal(
                     }),
                     addEventListenerWithCleanup(copyBtn, "keydown", (e) => {
                         if (
-                            aboutModalRuntime.isKeyboardEvent(e) &&
+                            aboutModalRuntime().isKeyboardEvent(e) &&
                             (e.key === "Enter" || e.key === " ")
                         ) {
                             e.preventDefault();
@@ -627,9 +631,9 @@ export function showAboutModal(
 
             // Focus management - focus close button after animation
             if (focusTimer) {
-                aboutModalRuntime.clearTimeout(focusTimer);
+                aboutModalRuntime().clearTimeout(focusTimer);
             }
-            focusTimer = aboutModalRuntime.setTimeout(() => {
+            focusTimer = aboutModalRuntime().setTimeout(() => {
                 focusTimer = null;
                 focusTrapCleanup?.();
                 focusTrapCleanup = createModalFocusTrap(modal, closeBtn);
@@ -657,12 +661,12 @@ function buildSystemInfoClipboardText(): string {
     try {
         const lines: string[] = ["Fit File Viewer – System Info"];
 
-        const versionNumber = aboutModalRuntime.queryElement("#version-number");
+        const versionNumber = aboutModalRuntime().queryElement("#version-number");
         if (versionNumber && versionNumber.textContent) {
             lines.push(`App Version: ${versionNumber.textContent.trim()}`);
         }
 
-        const items = aboutModalRuntime.queryElements(
+        const items = aboutModalRuntime().queryElements(
             "#info-toggle-section .system-info-item"
         );
 
@@ -690,27 +694,27 @@ function buildSystemInfoClipboardText(): string {
  * Enhanced modal hide function with smooth animations
  */
 function hideAboutModal(): void {
-    const modal = aboutModalRuntime.queryElement<HTMLElement>("#about-modal");
+    const modal = aboutModalRuntime().queryElement<HTMLElement>("#about-modal");
     if (modal) {
         focusTrapCleanup?.();
         focusTrapCleanup = null;
         if (focusTimer) {
-            aboutModalRuntime.clearTimeout(focusTimer);
+            aboutModalRuntime().clearTimeout(focusTimer);
             focusTimer = null;
         }
 
         // Start closing animation
         modal.classList.remove("show");
         if (showAnimationFrame !== null) {
-            aboutModalRuntime.cancelAnimationFrame(showAnimationFrame);
+            aboutModalRuntime().cancelAnimationFrame(showAnimationFrame);
             showAnimationFrame = null;
         }
 
         // Wait for animation to complete before hiding
         if (hideTimer) {
-            aboutModalRuntime.clearTimeout(hideTimer);
+            aboutModalRuntime().clearTimeout(hideTimer);
         }
-        hideTimer = aboutModalRuntime.setTimeout(() => {
+        hideTimer = aboutModalRuntime().setTimeout(() => {
             hideTimer = null;
             modal.style.display = "none";
 
@@ -763,12 +767,12 @@ function sanitizeAboutBodyHtml(html: string): DocumentFragment {
         "SCRIPT",
     ]);
 
-    const walker = aboutModalRuntime.createElementTreeWalker(fragment);
+    const walker = aboutModalRuntime().createElementTreeWalker(fragment);
     const nodesToRemove: Element[] = [];
 
     while (walker.nextNode()) {
         const { currentNode } = walker;
-        if (!aboutModalRuntime.isElement(currentNode)) {
+        if (!aboutModalRuntime().isElement(currentNode)) {
             continue;
         }
 
@@ -816,7 +820,7 @@ function sanitizeAboutBodyHtml(html: string): DocumentFragment {
         }
 
         // Force safe external links to be handled by the modal.
-        if (aboutModalRuntime.isHTMLElement(el) && el.tagName === "A") {
+        if (aboutModalRuntime().isHTMLElement(el) && el.tagName === "A") {
             const href = el.getAttribute("href");
             if (
                 href &&
@@ -839,8 +843,8 @@ function sanitizeAboutBodyHtml(html: string): DocumentFragment {
  * Parse the supplied body fragment before the allowlist cleanup runs.
  */
 function parseAboutBodyHtml(html: string): DocumentFragment {
-    const parsed = aboutModalRuntime.parseHtmlDocument(html);
-    const fragment = aboutModalRuntime.createDocumentFragment();
+    const parsed = aboutModalRuntime().parseHtmlDocument(html);
+    const fragment = aboutModalRuntime().createDocumentFragment();
     while (parsed.body.firstChild) {
         const child = parsed.body.firstChild;
         fragment.append(child);
@@ -859,8 +863,8 @@ export const aboutModalDevHelpers = {
      * Reset all styles and recreate modal
      */
     reset: () => {
-        const existingModal = aboutModalRuntime.queryElement("#about-modal"),
-            existingStyles = aboutModalRuntime.queryElement(
+        const existingModal = aboutModalRuntime().queryElement("#about-modal"),
+            existingStyles = aboutModalRuntime().queryElement(
                 "#about-modal-styles"
             );
 
@@ -894,7 +898,7 @@ export const aboutModalDevHelpers = {
      */
     testAnimations: () => {
         const modal =
-            aboutModalRuntime.queryElement<HTMLElement>("#about-modal");
+            aboutModalRuntime().queryElement<HTMLElement>("#about-modal");
         if (modal) {
             modal.style.transition = "all 1000ms ease";
             const modalContent =
@@ -909,7 +913,7 @@ export const aboutModalDevHelpers = {
 };
 
 // Initialize modal styles when module loads
-const aboutModalDocument = aboutModalRuntime.getDocument();
+const aboutModalDocument = aboutModalRuntime().getDocument();
 if (aboutModalDocument?.readyState === "loading") {
     addEventListenerWithCleanup(aboutModalDocument, "DOMContentLoaded", () => {
         // Pre-initialize styles for better performance

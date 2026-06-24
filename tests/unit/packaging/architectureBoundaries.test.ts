@@ -6718,7 +6718,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal browser APIs behind the runtime facade", () => {
-        expect.assertions(59);
+        expect.assertions(62);
 
         const timingViolations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -6746,31 +6746,40 @@ describe("architecture boundaries", () => {
         expect(timingViolations).toStrictEqual([]);
         expect(browserViolations).toStrictEqual([]);
         expect(aboutModalSource).toContain("aboutModalRuntime.js");
-        expect(aboutModalSource).toContain("aboutModalRuntime.getDocument()");
-        expect(aboutModalSource).toContain("aboutModalRuntime.queryElement");
-        expect(aboutModalSource).toContain("aboutModalRuntime.queryElements");
-        expect(aboutModalSource).toContain("aboutModalRuntime.createElement");
+        expect(aboutModalSource).toContain("type AboutModalRuntime");
         expect(aboutModalSource).toContain(
-            "aboutModalRuntime.createSvgElement"
+            "return getAboutModalRuntime();"
+        );
+        expect(aboutModalSource).not.toContain(
+            "const aboutModalRuntime = getAboutModalRuntime();"
+        );
+        expect(aboutModalSource).toContain("aboutModalRuntime().getDocument()");
+        expect(aboutModalSource).toContain("aboutModalRuntime().queryElement");
+        expect(aboutModalSource).toContain("aboutModalRuntime().queryElements");
+        expect(aboutModalSource).toContain("aboutModalRuntime().createElement");
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime().createSvgElement"
         );
         expect(aboutModalSource).toContain(
-            "aboutModalRuntime.createDocumentFragment"
+            "aboutModalRuntime().createDocumentFragment"
         );
         expect(aboutModalSource).toContain(
-            "aboutModalRuntime.createElementTreeWalker"
+            "aboutModalRuntime().createElementTreeWalker"
         );
         expect(aboutModalSource).toContain(
-            "aboutModalRuntime.parseHtmlDocument"
+            "aboutModalRuntime().parseHtmlDocument"
         );
         expect(aboutModalSource).toContain(
-            "aboutModalRuntime.getActiveHTMLElement"
+            "aboutModalRuntime().getActiveHTMLElement"
         );
         expect(aboutModalSource).toContain(
-            "aboutModalRuntime.getDocumentEventTarget"
+            "aboutModalRuntime().getDocumentEventTarget"
         );
-        expect(aboutModalSource).toContain("aboutModalRuntime.isElement");
-        expect(aboutModalSource).toContain("aboutModalRuntime.isHTMLElement");
-        expect(aboutModalSource).toContain("aboutModalRuntime.isKeyboardEvent");
+        expect(aboutModalSource).toContain("aboutModalRuntime().isElement");
+        expect(aboutModalSource).toContain("aboutModalRuntime().isHTMLElement");
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime().isKeyboardEvent"
+        );
         expect(aboutModalSource).not.toMatch(
             /\baddEventListenerWithCleanup\(\s*document\s*,\s*["']DOMContentLoaded["']/u
         );
@@ -6871,7 +6880,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal helper document access behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(17);
 
         const violations = migratedAboutModalHelperDocumentRuntimeFiles
             .filter((relativeFile) =>
@@ -6894,7 +6903,16 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(ensureAboutModalSource).toContain("aboutModalRuntime.js");
         expect(ensureAboutModalSource).toContain(
-            "aboutModalRuntime.getDocument()"
+            "type AboutModalRuntime"
+        );
+        expect(ensureAboutModalSource).toContain(
+            "return getAboutModalRuntime();"
+        );
+        expect(ensureAboutModalSource).not.toContain(
+            "const aboutModalRuntime = getAboutModalRuntime();"
+        );
+        expect(ensureAboutModalSource).toContain(
+            "aboutModalRuntime().getDocument()"
         );
         expect(ensureAboutModalSource).not.toMatch(
             directAboutModalHelperDocumentRuntimeGlobalPattern
@@ -6904,7 +6922,16 @@ describe("architecture boundaries", () => {
         );
         expect(injectModalStylesSource).toContain("aboutModalRuntime.js");
         expect(injectModalStylesSource).toContain(
-            "aboutModalRuntime.getDocument()"
+            "type AboutModalRuntime"
+        );
+        expect(injectModalStylesSource).toContain(
+            "return getAboutModalRuntime();"
+        );
+        expect(injectModalStylesSource).not.toContain(
+            "const aboutModalRuntime = getAboutModalRuntime();"
+        );
+        expect(injectModalStylesSource).toContain(
+            "aboutModalRuntime().getDocument()"
         );
         expect(injectModalStylesSource).not.toMatch(
             directAboutModalHelperDocumentRuntimeGlobalPattern

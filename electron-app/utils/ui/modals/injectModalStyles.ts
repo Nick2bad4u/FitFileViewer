@@ -1,7 +1,12 @@
 import { modalAnimationDuration } from "./aboutModal.js";
-import { getAboutModalRuntime } from "./aboutModalRuntime.js";
+import {
+    getAboutModalRuntime,
+    type AboutModalRuntime,
+} from "./aboutModalRuntime.js";
 
-const aboutModalRuntime = getAboutModalRuntime();
+function aboutModalRuntime(): AboutModalRuntime {
+    return getAboutModalRuntime();
+}
 
 /**
  * Injects comprehensive modern styles for the modal
@@ -797,7 +802,7 @@ export function injectModalStyles(): void {
 }
 
 function getRequiredAboutModalDocument(): Document {
-    const aboutModalDocument = aboutModalRuntime.getDocument();
+    const aboutModalDocument = aboutModalRuntime().getDocument();
     if (!aboutModalDocument) {
         throw new TypeError("injectModalStyles requires a document runtime");
     }

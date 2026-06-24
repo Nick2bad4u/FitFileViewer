@@ -1,9 +1,14 @@
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { createAboutModalContentElement } from "./aboutModal.js";
-import { getAboutModalRuntime } from "./aboutModalRuntime.js";
+import {
+    getAboutModalRuntime,
+    type AboutModalRuntime,
+} from "./aboutModalRuntime.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 
-const aboutModalRuntime = getAboutModalRuntime();
+function aboutModalRuntime(): AboutModalRuntime {
+    return getAboutModalRuntime();
+}
 
 /**
  * Enhanced modal initialization with modern styling and smooth animations
@@ -33,7 +38,7 @@ export function ensureAboutModal(): void {
 }
 
 function getRequiredAboutModalDocument(): Document {
-    const aboutModalDocument = aboutModalRuntime.getDocument();
+    const aboutModalDocument = aboutModalRuntime().getDocument();
     if (!aboutModalDocument) {
         throw new TypeError("ensureAboutModal requires a document runtime");
     }
