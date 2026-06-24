@@ -20,7 +20,6 @@ export type ShowUpdateNotification = (
 export type UnknownRendererFunction = (...args: unknown[]) => unknown;
 
 export interface RendererCoreModules {
-    [exportName: string]: unknown;
     AppActions: Record<string, unknown> | undefined;
     applyTheme: ApplyTheme | undefined;
     getAppDomainState: undefined | UnknownRendererFunction;
