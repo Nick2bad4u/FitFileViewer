@@ -20,9 +20,26 @@ const processEnvironmentMock = vi.hoisted(() => ({
     isTestEnvironment: vi.fn<() => boolean>(() => true),
 }));
 
+const mainUiRuntimeEnvironmentMock = vi.hoisted(() => ({
+    electronApiCandidate: undefined as unknown,
+}));
+
 vi.mock(
     import("../../../../electron-app/utils/runtime/processEnvironment.js"),
     () => processEnvironmentMock
+);
+
+vi.mock(
+    import("../../../../electron-app/renderer/mainUiRuntimeEnvironment.js"),
+    () => ({
+        getMainUiRuntimeEnvironment: () => ({
+            consoleRef: console,
+            dateNow: () => Date.now(),
+            documentRef: document,
+            electronApiCandidate:
+                mainUiRuntimeEnvironmentMock.electronApiCandidate,
+        }),
+    })
 );
 
 // Hoisted module mocks for all imports used by main-ui.js
@@ -315,12 +332,8 @@ function installBaseDOM() {
 }
 
 type TestElectronAPI = ReturnType<typeof createElectronAPI>;
-type ElectronApiRuntimeModule =
-    typeof import("../../../../electron-app/utils/runtime/electronApiRuntime.js");
 
 let currentElectronAPI: TestElectronAPI | undefined;
-let registerElectronApiCandidate: ElectronApiRuntimeModule["registerRendererElectronApiCandidate"];
-let resetElectronApiCandidate: ElectronApiRuntimeModule["resetRendererElectronApiCandidate"];
 
 function createElectronAPI() {
     const ipc = new Map<string, IpcCallback>();
@@ -353,7 +366,7 @@ function createElectronAPI() {
 
 function installElectronAPI() {
     currentElectronAPI = createElectronAPI();
-    registerElectronApiCandidate(currentElectronAPI);
+    mainUiRuntimeEnvironmentMock.electronApiCandidate = currentElectronAPI;
     return currentElectronAPI;
 }
 
@@ -422,13 +435,8 @@ describe("main-ui.js core flows", () => {
     beforeEach(async () => {
         vi.useFakeTimers();
         vi.resetModules();
-        const electronApiRuntime =
-            await import("../../../../electron-app/utils/runtime/electronApiRuntime.js");
-        registerElectronApiCandidate =
-            electronApiRuntime.registerRendererElectronApiCandidate;
-        resetElectronApiCandidate =
-            electronApiRuntime.resetRendererElectronApiCandidate;
         vi.clearAllMocks();
+        mainUiRuntimeEnvironmentMock.electronApiCandidate = undefined;
         ensureRendererVendorBundle.mockResolvedValue(undefined);
         processEnvironmentMock.isDevelopmentEnvironment.mockReturnValue(false);
         processEnvironmentMock.isTestEnvironment.mockReturnValue(true);
@@ -436,7 +444,6 @@ describe("main-ui.js core flows", () => {
         mockState["ui.dragCounter"] = 0;
         mockState["ui.dropOverlay.visible"] = false;
         installBaseDOM();
-        resetElectronApiCandidate();
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach
         Object.defineProperty(document, "readyState", {
@@ -447,7 +454,7 @@ describe("main-ui.js core flows", () => {
 
     afterEach(() => {
         vi.useRealTimers();
-        resetElectronApiCandidate();
+        mainUiRuntimeEnvironmentMock.electronApiCandidate = undefined;
         currentElectronAPI = undefined;
         document.body.replaceChildren();
     });

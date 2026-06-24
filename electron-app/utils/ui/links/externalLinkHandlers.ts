@@ -1,11 +1,15 @@
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { getExternalLinkHandlersRuntime } from "./externalLinkHandlersRuntime.js";
 
 type CleanupFunction = () => void;
 
 type AttachExternalLinkHandlersOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
     readonly onOpenExternalError?: (url: string, error: Error) => void;
     readonly root: EventTarget | null | undefined;
 };
@@ -21,6 +25,7 @@ type ElectronApiWithExternalOpen = Partial<Pick<ElectronAPI, "openExternal">>;
  * @returns Cleanup callback for the delegated listeners.
  */
 export function attachExternalLinkHandlers({
+    electronApiScope,
     root,
     onOpenExternalError,
 }: AttachExternalLinkHandlersOptions): CleanupFunction {
@@ -44,7 +49,12 @@ export function attachExternalLinkHandlers({
             event.stopPropagation();
 
             if (validated !== null) {
-                openExternal(validated, onOpenExternalError, runtime);
+                openExternal(
+                    validated,
+                    onOpenExternalError,
+                    runtime,
+                    electronApiScope
+                );
             }
         }),
         addEventListenerWithCleanup(root, "keydown", (event) => {
@@ -69,7 +79,12 @@ export function attachExternalLinkHandlers({
             event.stopPropagation();
 
             if (validated !== null) {
-                openExternal(validated, onOpenExternalError, runtime);
+                openExternal(
+                    validated,
+                    onOpenExternalError,
+                    runtime,
+                    electronApiScope
+                );
             }
         }),
     ];
@@ -91,9 +106,10 @@ export function attachExternalLinkHandlers({
 function openExternal(
     url: string,
     onOpenExternalError: ((url: string, error: Error) => void) | undefined,
-    runtime = getExternalLinkHandlersRuntime()
+    runtime = getExternalLinkHandlersRuntime(),
+    electronApiScope?: RendererElectronApiScope
 ): void {
-    const api = getOpenExternalApi();
+    const api = getOpenExternalApi(electronApiScope);
 
     if (typeof api?.openExternal === "function") {
         void Promise.resolve(api.openExternal(url)).catch((error: unknown) => {
@@ -119,8 +135,10 @@ function openExternal(
     }
 }
 
-function getOpenExternalApi(): ElectronApiWithExternalOpen | null {
-    return getRendererElectronApi(isElectronApiWithExternalOpen);
+function getOpenExternalApi(
+    scope?: RendererElectronApiScope
+): ElectronApiWithExternalOpen | null {
+    return getRendererElectronApi(isElectronApiWithExternalOpen, scope);
 }
 
 function isElectronApiWithExternalOpen(

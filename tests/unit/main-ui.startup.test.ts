@@ -36,6 +36,7 @@ const mocks = vi.hoisted(() => ({
     getState: vi.fn<(path?: string) => unknown>(),
     listenForThemeChange: vi.fn<(callback: (theme: string) => void) => void>(),
     loadTheme: vi.fn<() => string>().mockReturnValue("dark"),
+    mainUiElectronApiCandidate: undefined as unknown,
     mark: vi.fn<(name: string) => void>(),
     measure: vi.fn<(name: string) => void>(),
     registerTimer:
@@ -57,6 +58,18 @@ const mocks = vi.hoisted(() => ({
     updateFitData: vi.fn<(data: unknown) => void>(),
     updateLoadingProgress: vi.fn<(progress: number) => void>(),
 }));
+
+vi.mock(
+    import("../../electron-app/renderer/mainUiRuntimeEnvironment.js"),
+    () => ({
+        getMainUiRuntimeEnvironment: () => ({
+            consoleRef: console,
+            dateNow: () => Date.now(),
+            documentRef: document,
+            electronApiCandidate: mocks.mainUiElectronApiCandidate,
+        }),
+    })
+);
 
 const chartTabStatus = { initialized: true } as const;
 
@@ -272,34 +285,18 @@ function setupMainUiDom(): void {
     );
 }
 
-async function resetRegisteredElectronApiCandidate(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../electron-app/utils/runtime/electronApiRuntime.js");
-
-    resetRendererElectronApiCandidate();
-}
-
-async function registerMainUiElectronApiCandidate(
-    electronApi: MainUiElectronApi
-): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../electron-app/utils/runtime/electronApiRuntime.js");
-
-    registerRendererElectronApiCandidate(electronApi);
-}
-
 describe("main-ui.js - UI Controller and State Management", () => {
     beforeEach(async () => {
         setupMainUiDom();
         vi.clearAllMocks();
+        mocks.mainUiElectronApiCandidate = undefined;
         mocks.ensureRendererVendorBundle.mockResolvedValue(undefined);
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
-        await resetRegisteredElectronApiCandidate();
     });
 
     afterEach(async () => {
-        await resetRegisteredElectronApiCandidate();
+        mocks.mainUiElectronApiCandidate = undefined;
     });
 
     it("does not register renderer compatibility globals", async () => {
@@ -326,13 +323,13 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
         const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
         const sendThemeChanged = vi.fn<MainUiElectronApi["sendThemeChanged"]>();
-        await registerMainUiElectronApiCandidate({
+        mocks.mainUiElectronApiCandidate = {
             notifyFitFileLoaded,
             onOpenSummaryColumnSelector,
             onSetTheme,
             onUnloadFitFile,
             sendThemeChanged,
-        });
+        };
 
         const { mainUiDragDropHandler } =
             await import("../../electron-app/main-ui.js");

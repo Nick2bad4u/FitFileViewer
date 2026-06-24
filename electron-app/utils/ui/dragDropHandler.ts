@@ -7,7 +7,10 @@ import {
 } from "../files/import/fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "../files/import/sendFitFileToAltFitReader.js";
 import { renderDecodedFitData } from "../rendering/core/loadShowFitData.js";
-import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../runtime/electronApiRuntime.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
 import {
     getRendererDragCounter,
@@ -33,10 +36,16 @@ type PerformanceMonitorLike = {
     startTimer?: (id: string) => void;
 };
 
+type DragDropHandlerOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
+
 const dragDropHandlerRuntime = getDragDropHandlerRuntime();
 
-function getDragDropElectronApi(): ElectronApiLike | null {
-    return getRendererElectronApi(isDragDropElectronApi);
+function getDragDropElectronApi(
+    scope?: RendererElectronApiScope
+): ElectronApiLike | null {
+    return getRendererElectronApi(isDragDropElectronApi, scope);
 }
 
 function isDragDropElectronApi(value: unknown): value is ElectronApiLike {
@@ -73,8 +82,10 @@ export class DragDropHandler {
     dragOverScheduled = false;
     overlayVisible = false;
     private dragOverAnimationFrame: null | number = null;
+    private readonly electronApiScope: RendererElectronApiScope | undefined;
 
-    constructor() {
+    constructor({ electronApiScope }: DragDropHandlerOptions = {}) {
+        this.electronApiScope = electronApiScope;
         try {
             const initialCounter = getRendererDragCounter();
             if (Number.isFinite(initialCounter)) {
@@ -143,7 +154,7 @@ export class DragDropHandler {
                 return;
             }
 
-            const electronAPI = getDragDropElectronApi();
+            const electronAPI = getDragDropElectronApi(this.electronApiScope);
             if (!electronAPI) {
                 const message =
                     "FIT file decoding is not supported in this environment.";

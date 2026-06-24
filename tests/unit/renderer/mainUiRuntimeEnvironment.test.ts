@@ -7,7 +7,7 @@ import {
 
 describe("main UI runtime environment", () => {
     it("uses injected runtime primitives for main-ui orchestration", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtimeConsole = {
             ...console,
@@ -17,15 +17,20 @@ describe("main UI runtime environment", () => {
             readyState: "complete",
         } as unknown as Document;
         const dateNow = vi.fn<() => number>(() => 1234);
+        const electronApiCandidate = {};
         const runtimeEnvironment = getMainUiRuntimeEnvironment({
             dateNow,
             getConsole: () => runtimeConsole,
             getDocument: () => documentRef,
+            getElectronApiCandidate: () => electronApiCandidate,
         });
 
         expect(runtimeEnvironment.consoleRef).toBe(runtimeConsole);
         expect(runtimeEnvironment.dateNow()).toBe(1234);
         expect(runtimeEnvironment.documentRef).toBe(documentRef);
+        expect(runtimeEnvironment.electronApiCandidate).toBe(
+            electronApiCandidate
+        );
         expect(dateNow).toHaveBeenCalledOnce();
     });
 

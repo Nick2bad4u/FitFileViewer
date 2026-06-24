@@ -1,6 +1,9 @@
 import type { ElectronAPI } from "../shared/preloadApi.js";
 
-import { getRendererElectronApi } from "../utils/runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../utils/runtime/electronApiRuntime.js";
 
 export type MainUiElectronApi = Partial<
     Pick<
@@ -38,6 +41,8 @@ function isMainUiElectronApi(value: unknown): value is MainUiElectronApi {
     ].every((key) => hasOptionalFunction(api, key as keyof MainUiElectronApi));
 }
 
-export function getMainUiElectronApi(): MainUiElectronApi | null {
-    return getRendererElectronApi(isMainUiElectronApi);
+export function getMainUiElectronApi(
+    scope?: RendererElectronApiScope
+): MainUiElectronApi | null {
+    return getRendererElectronApi(isMainUiElectronApi, scope);
 }

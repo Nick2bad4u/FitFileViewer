@@ -85,8 +85,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/strictTests/rendering/core/showFitData.test.ts",
     "tests/unit/strictTests/ui/modals/aboutModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
-    "tests/unit/strictTests/ui/main-ui.test.ts",
-    "tests/unit/main-ui.startup.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/export/exportUtils.oauthState.test.ts",
@@ -4658,7 +4656,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(60);
+        expect.assertions(68);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4796,9 +4794,16 @@ describe("architecture boundaries", () => {
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiStartupSource).toContain("const electronApiScope =");
+        expect(mainUiStartupSource).toContain(
+            "getMainUiElectronApi(electronApiScope)"
+        );
+        expect(mainUiStartupSource).toContain("createMainUiDragDropHandler({");
+        expect(mainUiStartupSource).toContain("electronApiScope,");
         expect(mainUiExternalLinksSource).toContain(
             "mainUiRuntimeEnvironment.js"
         );
+        expect(mainUiExternalLinksSource).toContain("electronApiScope");
         expect(mainUiExternalLinksSource).toContain(
             "documentRef = mainUiRuntimeEnvironment.documentRef"
         );
@@ -4869,6 +4874,15 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "scope.documentRef"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "type MainUiRuntimeGlobalScope = typeof globalThis &"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "return mainUiScope.electronAPI;"
+        );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
+            'Reflect.get(globalThis, "electronAPI")'
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "const consoleRef = scope.getConsole?.();"
@@ -17699,7 +17713,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI startup tests from mutating retired renderer globals", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const violations = [
             "tests/unit/main-ui.startup.test.ts",
@@ -17711,8 +17725,23 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const registeredElectronApiFixtureViolations = [
+            "tests/unit/main-ui.startup.test.ts",
+            "tests/unit/strictTests/ui/main-ui.test.ts",
+        ]
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return (
+                    source.includes("registerRendererElectronApiCandidate") ||
+                    source.includes("resetRendererElectronApiCandidate") ||
+                    source.includes("registerElectronApiCandidate") ||
+                    source.includes("resetElectronApiCandidate")
+                );
+            })
+            .sort();
 
         expect(violations).toStrictEqual([]);
+        expect(registeredElectronApiFixtureViolations).toStrictEqual([]);
     });
 
     it("keeps strict main UI tests off retired FIT data fixtures", () => {

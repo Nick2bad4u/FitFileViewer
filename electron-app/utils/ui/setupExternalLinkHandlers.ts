@@ -1,10 +1,12 @@
 import { attachExternalLinkHandlers } from "./links/externalLinkHandlers.js";
 import { showNotification } from "./notifications/showNotification.js";
+import type { RendererElectronApiScope } from "../runtime/electronApiRuntime.js";
 
 type CleanupFunction = () => void;
 
 type SetupExternalLinkHandlersOptions = {
     readonly cleanupExternalLinkHandlers: CleanupFunction | null;
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
     readonly setCleanup: (cleanup: CleanupFunction | null) => void;
 };
 
@@ -15,6 +17,7 @@ type SetupExternalLinkHandlersOptions = {
  */
 export function setupExternalLinkHandlers({
     cleanupExternalLinkHandlers,
+    electronApiScope,
     setCleanup,
 }: SetupExternalLinkHandlersOptions): void {
     try {
@@ -24,6 +27,7 @@ export function setupExternalLinkHandlers({
     }
 
     const cleanup = attachExternalLinkHandlers({
+        electronApiScope,
         onOpenExternalError: () => {
             void showNotification(
                 "Failed to open link in your browser.",

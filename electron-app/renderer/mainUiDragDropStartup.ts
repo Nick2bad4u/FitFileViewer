@@ -1,5 +1,12 @@
 import { DragDropHandler } from "../utils/ui/dragDropHandler.js";
+import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
-export function createMainUiDragDropHandler(): DragDropHandler {
-    return new DragDropHandler();
+export interface MainUiDragDropHandlerOptions {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+}
+
+export function createMainUiDragDropHandler({
+    electronApiScope,
+}: MainUiDragDropHandlerOptions = {}): DragDropHandler {
+    return new DragDropHandler({ electronApiScope });
 }

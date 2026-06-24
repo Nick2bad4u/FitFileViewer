@@ -32,7 +32,8 @@ export interface MainUiStartupHandles {
     >;
 }
 
-const mainUiConsole = getMainUiRuntimeEnvironment().consoleRef;
+const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment();
+const mainUiConsole = mainUiRuntimeEnvironment.consoleRef;
 
 const MAIN_UI_CONSTANTS = {
     DOM_IDS: UI_CONSTANTS.DOM_IDS,
@@ -51,7 +52,10 @@ function logMainUi(
 }
 
 export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
-    const getElectronAPI = getMainUiElectronApi;
+    const electronApiScope = {
+        getElectronAPI: () => mainUiRuntimeEnvironment.electronApiCandidate,
+    };
+    const getElectronAPI = () => getMainUiElectronApi(electronApiScope);
     const unloadFitFile = createMainUiUnloadFitFile({
         contentIds: [
             MAIN_UI_CONSTANTS.DOM_IDS.CONTENT_MAP,
@@ -79,11 +83,15 @@ export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
         unloadFitFile,
     });
 
-    const mainUiDragDropHandler = createMainUiDragDropHandler();
+    const mainUiDragDropHandler = createMainUiDragDropHandler({
+        electronApiScope,
+    });
 
     void setupWindow();
 
-    const externalLinks = createMainUiExternalLinkLifecycle();
+    const externalLinks = createMainUiExternalLinkLifecycle({
+        electronApiScope,
+    });
     registerMainUiShutdownHook({
         cleanupExternalLinks: externalLinks.cleanup,
         logMainUi,
