@@ -6,7 +6,10 @@ import { createMainUiDragDropHandler } from "./mainUiDragDropStartup.js";
 import { getMainUiElectronApi } from "./mainUiElectronApi.js";
 import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
 import { createMainUiExternalLinkLifecycle } from "./mainUiExternalLinks.js";
-import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
+import {
+    getMainUiRuntimeEnvironment,
+    type MainUiRuntimeEnvironment,
+} from "./mainUiRuntimeEnvironment.js";
 import { registerMainUiShutdownHook } from "./mainUiShutdown.js";
 import { logMainUiStateStartup } from "./mainUiStateStartup.js";
 import { registerMainUiSummaryColumnSelector } from "./mainUiSummarySelectorRegistration.js";
@@ -33,32 +36,41 @@ export interface MainUiStartupHandles {
     >;
 }
 
-const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment(
-    getBrowserMainUiRuntimeEnvironmentScope()
-);
-const mainUiConsole = mainUiRuntimeEnvironment.consoleRef;
+export interface MainUiStartupOptions {
+    readonly runtimeEnvironment?: MainUiRuntimeEnvironment | undefined;
+}
 
 const MAIN_UI_CONSTANTS = {
     DOM_IDS: UI_CONSTANTS.DOM_IDS,
     SUMMARY_COLUMN_SELECTOR_DELAY: UI_CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
 } as const;
 
-function logMainUi(
-    level: MainUiLogLevel,
-    message: string,
-    ...args: unknown[]
-): void {
-    const log = mainUiConsole[level];
-    if (typeof log === "function") {
-        log.call(mainUiConsole, message, ...args);
-    }
+function createMainUiLogger(consoleRef: Console) {
+    return (
+        level: MainUiLogLevel,
+        message: string,
+        ...args: unknown[]
+    ): void => {
+        const log = consoleRef[level];
+        if (typeof log === "function") {
+            log.call(consoleRef, message, ...args);
+        }
+    };
 }
 
-export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
+function getDefaultMainUiRuntimeEnvironment(): MainUiRuntimeEnvironment {
+    return getMainUiRuntimeEnvironment(getBrowserMainUiRuntimeEnvironmentScope());
+}
+
+export async function initializeMainUiStartup({
+    runtimeEnvironment = getDefaultMainUiRuntimeEnvironment(),
+}: MainUiStartupOptions = {}): Promise<MainUiStartupHandles> {
+    const logMainUi = createMainUiLogger(runtimeEnvironment.consoleRef);
     const electronApiScope = {
-        getElectronAPI: () => mainUiRuntimeEnvironment.electronApiCandidate,
+        getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
     };
     const getElectronAPI = () => getMainUiElectronApi(electronApiScope);
+    const documentRef = runtimeEnvironment.documentRef;
     const unloadFitFile = createMainUiUnloadFitFile({
         contentIds: [
             MAIN_UI_CONSTANTS.DOM_IDS.CONTENT_MAP,
@@ -66,8 +78,8 @@ export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
             MAIN_UI_CONSTANTS.DOM_IDS.CONTENT_CHART,
             MAIN_UI_CONSTANTS.DOM_IDS.CONTENT_SUMMARY,
         ],
-        dateNow: mainUiRuntimeEnvironment.dateNow,
-        documentRef: mainUiRuntimeEnvironment.documentRef,
+        dateNow: runtimeEnvironment.dateNow,
+        documentRef,
         getElectronAPI,
         logMainUi,
     });
@@ -95,7 +107,7 @@ export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
     void setupWindow();
 
     const externalLinks = createMainUiExternalLinkLifecycle({
-        documentRef: mainUiRuntimeEnvironment.documentRef,
+        documentRef,
         electronApiScope,
     });
     registerMainUiShutdownHook({

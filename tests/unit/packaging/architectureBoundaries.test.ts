@@ -4687,7 +4687,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(106);
+        expect.assertions(108);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4905,6 +4905,12 @@ describe("architecture boundaries", () => {
         expect(mainUiStartupSource).toContain("mainUiBrowserRuntime.js");
         expect(mainUiStartupSource).toContain(
             "getBrowserMainUiRuntimeEnvironmentScope()"
+        );
+        expect(mainUiStartupSource).not.toContain(
+            "const mainUiRuntimeEnvironment ="
+        );
+        expect(mainUiStartupSource).toContain(
+            "runtimeEnvironment = getDefaultMainUiRuntimeEnvironment()"
         );
         expect(mainUiStartupSource).not.toContain(
             "getMainUiRuntimeEnvironment();"
