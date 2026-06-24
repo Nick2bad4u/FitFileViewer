@@ -9,7 +9,10 @@ import {
     subscribe,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
-import { getStateStorageRuntime } from "../core/stateStorageRuntime.js";
+import {
+    getStateStorageRuntime,
+    type StateStorageRuntime,
+} from "../core/stateStorageRuntime.js";
 import { SETTINGS_SCHEMA } from "./settingsStateSchema.js";
 import { settingsStateManager } from "./settingsStateCore.js";
 
@@ -42,7 +45,10 @@ interface ExportedSettings {
 
 const CHART_FIELD_VISIBILITY_KEY = "fieldVisibility";
 const LEGACY_CHART_FIELD_VISIBILITY_PREFIX = "chartjs_field_";
-const stateStorageRuntime = getStateStorageRuntime();
+
+function stateStorageRuntime(): StateStorageRuntime {
+    return getStateStorageRuntime();
+}
 
 function isPlainSettingsRecord(
     value: unknown
@@ -90,7 +96,7 @@ function normalizeChartSettings(settings: unknown): NormalizedChartSettings {
 function readLegacyChartFieldVisibility(
     fieldKey: string
 ): ChartFieldVisibility | undefined {
-    const storedValue = stateStorageRuntime.getItem(
+    const storedValue = stateStorageRuntime().getItem(
         `${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`
     );
     if (storedValue === "visible" || storedValue === "hidden") {
@@ -103,7 +109,7 @@ function readLegacyChartFieldVisibility(
  * Remove legacy per-field visibility keys after migration.
  */
 function removeLegacyChartFieldVisibility(fieldKey: string): void {
-    stateStorageRuntime.removeItem(
+    stateStorageRuntime().removeItem(
         `${LEGACY_CHART_FIELD_VISIBILITY_PREFIX}${fieldKey}`
     );
 }
@@ -237,7 +243,7 @@ export function removeChartSetting(key: string): boolean {
 
     try {
         const storageKey = `${SETTINGS_SCHEMA.chart.key}${key}`;
-        stateStorageRuntime.removeItem(storageKey);
+        stateStorageRuntime().removeItem(storageKey);
 
         const rootState = getState("settings");
         const currentSettings =

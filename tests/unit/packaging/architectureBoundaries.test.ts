@@ -19076,7 +19076,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(26);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -19102,11 +19102,27 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreSource).toContain(
             "settingsStateCoreRuntime.js"
         );
+        expect(settingsStateCoreSource).toContain(
+            "type SettingsStateCoreRuntime"
+        );
+        expect(settingsStateCoreSource).toContain(
+            "return getSettingsStateCoreRuntime();"
+        );
+        expect(settingsStateCoreSource).not.toContain(
+            "const settingsStateCoreRuntime = getSettingsStateCoreRuntime();"
+        );
         expect(settingsStateCoreSource).toContain("addStorageEventListener");
         expect(settingsStateCoreSource).toContain("createAbortController");
         expect(settingsStateCoreSource).toContain("getLocalStorage");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime.js");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime");
+        expect(settingsStateHelpersSource).toContain("type StateStorageRuntime");
+        expect(settingsStateHelpersSource).toContain(
+            "return getStateStorageRuntime();"
+        );
+        expect(settingsStateHelpersSource).not.toContain(
+            "const stateStorageRuntime = getStateStorageRuntime();"
+        );
         expect(settingsStateHelpersSource).not.toContain("localStorage.");
         expect(settingsStateCoreRuntimeSource).toContain(
             "defaultSettingsStateCoreRuntimeScope"

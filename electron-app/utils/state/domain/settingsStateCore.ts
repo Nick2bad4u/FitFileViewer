@@ -11,7 +11,10 @@ import {
     type SettingCategory,
     type SettingSchema,
 } from "./settingsStateSchema.js";
-import { getSettingsStateCoreRuntime } from "./settingsStateCoreRuntime.js";
+import {
+    getSettingsStateCoreRuntime,
+    type SettingsStateCoreRuntime,
+} from "./settingsStateCoreRuntime.js";
 
 type SettingsSchemaMap = Record<SettingCategory, SettingSchema>;
 
@@ -26,7 +29,10 @@ interface ResetSettingsOptions {
 }
 
 const settingsSchema = SETTINGS_SCHEMA as SettingsSchemaMap;
-const settingsStateCoreRuntime = getSettingsStateCoreRuntime();
+
+function settingsStateCoreRuntime(): SettingsStateCoreRuntime {
+    return getSettingsStateCoreRuntime();
+}
 
 function getSettingsCategories(): SettingCategory[] {
     return [...SETTING_CATEGORIES];
@@ -45,7 +51,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function getSettingsStorage(): Storage | undefined {
-    return settingsStateCoreRuntime.getLocalStorage();
+    return settingsStateCoreRuntime().getLocalStorage();
 }
 
 /**
@@ -557,9 +563,9 @@ class SettingsStateManager {
         // Listen for localStorage changes from other tabs/windows
         this.storageSyncController?.abort();
         this.storageSyncController =
-            settingsStateCoreRuntime.createAbortController();
+            settingsStateCoreRuntime().createAbortController();
 
-        settingsStateCoreRuntime.addStorageEventListener(
+        settingsStateCoreRuntime().addStorageEventListener(
             (event) => {
                 const k = event.key || ""; // Normalize for TS nullability
                 if (
