@@ -12,6 +12,10 @@ import type {
     NotificationElement,
     QueuedNotification,
 } from "../../../../../../electron-app/utils/ui/notifications/showNotification.js";
+import {
+    getShowNotificationRuntime,
+    type ShowNotificationRuntime,
+} from "../../../../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 import * as notifMod from "../../../../../../electron-app/utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - branches (strict)", () => {
@@ -242,6 +246,7 @@ describe("showNotification.js - branches (strict)", () => {
             onClick: undefined,
             actions: [],
             timestamp: Date.now(),
+            runtime: getShowNotificationRuntime(),
             resolveShown: vi.fn<() => void>(),
         };
         const before = notificationQueue.length;
@@ -249,6 +254,55 @@ describe("showNotification.js - branches (strict)", () => {
         // Call processor explicitly while first is still shown; should early return and not shift
         await processNotificationQueue();
         expect(notificationQueue).toHaveLength(before + 1);
+    });
+
+    it("uses the injected runtime for DOM, animation, and timeout work", async () => {
+        expect.assertions(8);
+
+        const host = document.getElementById(
+            "notification"
+        )! as NotificationElement;
+        const runtime: ShowNotificationRuntime = {
+            cancelAnimationFrame: vi.fn(),
+            clearTimeout: vi.fn((timer) => {
+                window.clearTimeout(timer as ReturnType<typeof setTimeout>);
+            }),
+            createElement: vi.fn((tagName) =>
+                document.createElement(tagName)
+            ) as ShowNotificationRuntime["createElement"],
+            queryElement: vi.fn(() => host),
+            requestAnimationFrame: vi.fn((onFrame) => {
+                onFrame(0);
+                return Number("42");
+            }),
+            setTimeout: vi.fn((callback, timeout) =>
+                window.setTimeout(callback, timeout)
+            ),
+        };
+
+        await showNotification("Injected runtime", "success", 250, {
+            runtime,
+        });
+
+        expect(runtime.queryElement).toHaveBeenCalledWith("#notification");
+        expect(runtime.createElement).toHaveBeenCalledWith("div");
+        expect(runtime.createElement).toHaveBeenCalledWith("span");
+        expect(runtime.requestAnimationFrame).toHaveBeenCalledOnce();
+        expect(runtime.setTimeout).toHaveBeenCalledWith(
+            expect.any(Function),
+            250
+        );
+        expect(runtime.setTimeout).toHaveBeenCalledWith(
+            expect.any(Function),
+            550
+        );
+        expect(host.textContent).toBe("✅Injected runtime");
+
+        vi.advanceTimersByTime(250);
+
+        expect(runtime.clearTimeout).toHaveBeenCalledWith(
+            expect.any(Object)
+        );
     });
 
     it("logs errors and resolves when display pipeline throws (build fails)", async () => {

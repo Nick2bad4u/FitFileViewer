@@ -7,6 +7,7 @@ import {
     processNotificationQueue,
     __testResetNotifications,
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
+import { getShowNotificationRuntime } from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
 function createNotificationFixture(): HTMLDivElement {
     const notificationElement = document.createElement("div");
@@ -115,6 +116,7 @@ describe("showNotification.js - error handling coverage", () => {
             onClick: undefined,
             actions: [],
             timestamp: Date.now(),
+            runtime: getShowNotificationRuntime(),
             resolveShown: throwingResolve,
         };
 

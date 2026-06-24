@@ -7144,7 +7144,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(29);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -7174,6 +7174,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(notificationSource).toContain("showNotificationRuntime.js");
+        expect(notificationSource).toContain("type ShowNotificationRuntime");
+        expect(notificationSource).not.toContain(
+            "const showNotificationRuntime = getShowNotificationRuntime();"
+        );
+        expect(notificationSource).toContain(
+            "options.runtime ?? getShowNotificationRuntime()"
+        );
         expect(notificationSource).not.toMatch(
             directShowNotificationDomRuntimeGlobalPattern
         );
@@ -7239,7 +7246,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification DOM access behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -7271,6 +7278,13 @@ describe("architecture boundaries", () => {
         expect(notificationSource).toContain("showNotificationRuntime.js");
         expect(notificationSource).toContain("queryElement");
         expect(notificationSource).toContain("createElement");
+        expect(notificationSource).toContain("type ShowNotificationRuntime");
+        expect(notificationSource).not.toContain(
+            "const showNotificationRuntime = getShowNotificationRuntime();"
+        );
+        expect(notificationSource).toContain(
+            "options.runtime ?? getShowNotificationRuntime()"
+        );
         expect(notificationSource).not.toMatch(
             directShowNotificationDomRuntimeGlobalPattern
         );

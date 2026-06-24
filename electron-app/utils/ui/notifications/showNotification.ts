@@ -4,6 +4,7 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import {
     getShowNotificationRuntime,
     type ShowNotificationTimerHandle,
+    type ShowNotificationRuntime,
 } from "./showNotificationRuntime.js";
 
 /** Notification variants supported by the renderer notification utility. */
@@ -28,6 +29,7 @@ export type NotificationOptions = {
     readonly icon?: string;
     readonly onClick?: () => void;
     readonly persistent?: boolean;
+    readonly runtime?: ShowNotificationRuntime;
 };
 
 /** Internal queue item used to serialize notification rendering. */
@@ -39,6 +41,7 @@ export type QueuedNotification = {
     readonly message: string;
     readonly onClick: (() => void) | undefined;
     resolveShown: (() => void) | undefined;
+    readonly runtime: ShowNotificationRuntime;
     readonly timestamp: number;
     readonly type: NotificationType;
 };
@@ -57,10 +60,11 @@ export type NotificationElement = HTMLElement & {
 let isShowingNotification = false;
 const notificationQueue: QueuedNotification[] = [];
 const activeAnimationFrames = new Set<number>();
+const activeAnimationFrameRuntimes = new Map<number, ShowNotificationRuntime>();
 const activeTimeouts = new Set<HideTimeout>();
+const activeTimeoutRuntimes = new Map<HideTimeout, ShowNotificationRuntime>();
 let notificationDisplayToken = 0;
 const noopResolveShown = (): void => {};
-const showNotificationRuntime = getShowNotificationRuntime();
 
 // Notification type configurations with icons and default durations
 const NOTIFICATION_TYPES: Record<NotificationType, NotificationTypeConfig> = {
@@ -75,19 +79,17 @@ const NOTIFICATION_TYPES: Record<NotificationType, NotificationTypeConfig> = {
  * intended for production use.
  */
 export function __testResetNotifications(): void {
+    const runtime = getShowNotificationRuntime();
     notificationQueue.length = 0;
     isShowingNotification = false;
     notificationDisplayToken = 0;
     clearScheduledWork();
-    const el =
-        showNotificationRuntime.queryElement<NotificationElement>(
-            "#notification"
-        );
+    const el = runtime.queryElement<NotificationElement>("#notification");
     if (el) {
         clearNotificationElementListeners(el);
         // Clear any pending timers and hide immediately
         if (el.hideTimeout) {
-            clearNotificationTimeout(el.hideTimeout);
+            clearNotificationTimeout(el.hideTimeout, runtime);
             delete el.hideTimeout;
         }
         el.classList.remove("show");
@@ -103,14 +105,13 @@ export function __testResetNotifications(): void {
  * Clears all notifications from the queue and hides current notification
  */
 export function clearAllNotifications(): void {
+    const runtime = getShowNotificationRuntime();
     notificationQueue.length = 0;
     clearScheduledWork();
     const notificationElement =
-        showNotificationRuntime.queryElement<NotificationElement>(
-            "#notification"
-        );
+        runtime.queryElement<NotificationElement>("#notification");
     if (notificationElement) {
-        hideNotification(notificationElement);
+        hideNotification(notificationElement, runtime);
     }
     isShowingNotification = false;
 }
@@ -151,6 +152,7 @@ export async function showNotification(
         : typeof duration === "number"
           ? duration
           : config.duration;
+    const runtime = options.runtime ?? getShowNotificationRuntime();
 
     // Promise that resolves when THIS notification becomes visible
     let resolveShown = noopResolveShown;
@@ -167,6 +169,7 @@ export async function showNotification(
         message,
         onClick: options.onClick,
         resolveShown,
+        runtime,
         timestamp: Date.now(),
         type: normalizedType,
     };
@@ -188,6 +191,8 @@ function buildNotificationContent(
     element: NotificationElement,
     notification: QueuedNotification
 ): void {
+    const { runtime } = notification;
+
     clearNotificationElementListeners(element);
 
     // Clear previous content
@@ -204,14 +209,14 @@ function buildNotificationContent(
     element.setAttribute("aria-live", "polite");
 
     // Create main content container
-    const contentContainer = showNotificationRuntime.createElement("div");
+    const contentContainer = runtime.createElement("div");
     contentContainer.className = "notification-content";
     contentContainer.style.cssText =
         "display: flex; align-items: center; gap: 12px; flex: 1;";
 
     // Add icon if provided
     if (notification.icon) {
-        const iconElement = showNotificationRuntime.createElement("span");
+        const iconElement = runtime.createElement("span");
         iconElement.className = "notification-icon";
         iconElement.setAttribute("aria-hidden", "true");
         iconElement.textContent = notification.icon;
@@ -220,7 +225,7 @@ function buildNotificationContent(
     }
 
     // Add message
-    const messageElement = showNotificationRuntime.createElement("span");
+    const messageElement = runtime.createElement("span");
     messageElement.className = "notification-message";
     messageElement.textContent = notification.message;
     messageElement.style.cssText = "flex: 1; text-align: left;";
@@ -230,20 +235,20 @@ function buildNotificationContent(
 
     // Add action buttons if provided
     if (notification.actions.length > 0) {
-        const actionsContainer = showNotificationRuntime.createElement("div");
+        const actionsContainer = runtime.createElement("div");
         actionsContainer.className = "notification-actions";
         actionsContainer.style.cssText =
             "display: flex; gap: 8px; margin-left: 12px;";
 
         for (const action of notification.actions) {
-            const button = showNotificationRuntime.createElement("button");
+            const button = runtime.createElement("button");
             button.textContent = action.text;
             button.className = action.className || "themed-btn";
             button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
             addNotificationEventListener(element, button, "click", (event) => {
                 event.stopPropagation();
                 action.onClick?.();
-                hideNotification(element);
+                hideNotification(element, runtime);
             });
             actionsContainer.append(button);
         }
@@ -264,7 +269,7 @@ function buildNotificationContent(
                 notification.onClick
             ) {
                 notification.onClick();
-                hideNotification(element);
+                hideNotification(element, runtime);
             }
         });
         addNotificationEventListener(element, element, "keydown", (event) => {
@@ -282,13 +287,13 @@ function buildNotificationContent(
 
             event.preventDefault();
             notification.onClick?.();
-            hideNotification(element);
+            hideNotification(element, runtime);
         });
     }
 
     // Add close button for persistent notifications
     if (!notification.duration) {
-        const closeButton = showNotificationRuntime.createElement("button");
+        const closeButton = runtime.createElement("button");
         closeButton.type = "button";
         closeButton.textContent = "×";
         closeButton.setAttribute("aria-label", "Close notification");
@@ -318,7 +323,7 @@ function buildNotificationContent(
         );
         addNotificationEventListener(element, closeButton, "click", (event) => {
             event.stopPropagation();
-            hideNotification(element);
+            hideNotification(element, runtime);
         });
         element.append(closeButton);
     }
@@ -326,10 +331,9 @@ function buildNotificationContent(
 
 /** Displays a single notification with animations. */
 function displayNotification(notification: QueuedNotification): Promise<void> {
+    const { runtime } = notification;
     const notificationElement =
-        showNotificationRuntime.queryElement<NotificationElement>(
-            "#notification"
-        );
+        runtime.queryElement<NotificationElement>("#notification");
     if (!notificationElement) {
         // Resolve shown even if the element is missing so callers don't hang
         if (typeof notification.resolveShown === "function") {
@@ -347,7 +351,7 @@ function displayNotification(notification: QueuedNotification): Promise<void> {
 
     // Clear any existing timeout
     if (notificationElement.hideTimeout) {
-        clearNotificationTimeout(notificationElement.hideTimeout);
+        clearNotificationTimeout(notificationElement.hideTimeout, runtime);
         delete notificationElement.hideTimeout;
     }
 
@@ -363,7 +367,7 @@ function displayNotification(notification: QueuedNotification): Promise<void> {
     // Trigger animation on next frame for smooth effect
     scheduleAnimationFrame(() => {
         notificationElement.classList.add("show");
-    });
+    }, runtime);
 
     // Resolve the external promise to indicate the notification is now visible
     if (typeof notification.resolveShown === "function") {
@@ -377,8 +381,8 @@ function displayNotification(notification: QueuedNotification): Promise<void> {
     // Set up auto-hide if not persistent
     if (notification.duration) {
         notificationElement.hideTimeout = scheduleNotificationTimeout(() => {
-            hideNotification(notificationElement);
-        }, notification.duration);
+            hideNotification(notificationElement, runtime);
+        }, notification.duration, runtime);
     }
 
     // Return a promise that resolves after the display duration + transition time (used to serialize the queue)
@@ -387,16 +391,19 @@ function displayNotification(notification: QueuedNotification): Promise<void> {
         ? notification.duration + 300
         : 1000;
     return new Promise<void>((resolve) => {
-        scheduleNotificationTimeout(() => resolve(), totalTime);
+        scheduleNotificationTimeout(() => resolve(), totalTime, runtime);
     });
 }
 
 /** Hides the notification with animation. */
-function hideNotification(element: NotificationElement): void {
+function hideNotification(
+    element: NotificationElement,
+    runtime: ShowNotificationRuntime = getShowNotificationRuntime()
+): void {
     const hideToken = element.notificationToken;
 
     if (element.hideTimeout) {
-        clearNotificationTimeout(element.hideTimeout);
+        clearNotificationTimeout(element.hideTimeout, runtime);
         delete element.hideTimeout;
     }
 
@@ -412,7 +419,7 @@ function hideNotification(element: NotificationElement): void {
         element.removeAttribute("tabindex");
         clearNotificationElementListeners(element);
         delete element.notificationToken;
-    }, 300); // Match CSS transition duration
+    }, 300, runtime); // Match CSS transition duration
 }
 
 // TEST HOOKS: expose internals for unit tests that need to manipulate queue state directly
@@ -517,9 +524,14 @@ export const notify = {
         }),
 };
 
-function clearNotificationTimeout(timer: HideTimeout): void {
-    showNotificationRuntime.clearTimeout(timer);
+function clearNotificationTimeout(
+    timer: HideTimeout,
+    fallbackRuntime: ShowNotificationRuntime = getShowNotificationRuntime()
+): void {
+    const runtime = activeTimeoutRuntimes.get(timer) ?? fallbackRuntime;
+    runtime.clearTimeout(timer);
     activeTimeouts.delete(timer);
+    activeTimeoutRuntimes.delete(timer);
 }
 
 function addNotificationEventListener(
@@ -585,26 +597,32 @@ function clearScheduledWork(): void {
         cancelNotificationAnimationFrame(frame);
     }
     activeAnimationFrames.clear();
+    activeAnimationFrameRuntimes.clear();
 
     for (const timer of activeTimeouts) {
-        showNotificationRuntime.clearTimeout(timer);
+        clearNotificationTimeout(timer);
     }
     activeTimeouts.clear();
+    activeTimeoutRuntimes.clear();
 }
 
 function isNotificationType(value: string): value is NotificationType {
     return Object.hasOwn(NOTIFICATION_TYPES, value);
 }
 
-function scheduleAnimationFrame(callback: FrameRequestCallback): null | number {
+function scheduleAnimationFrame(
+    callback: FrameRequestCallback,
+    runtime: ShowNotificationRuntime
+): null | number {
     let completedSynchronously = false;
     const frameReference: { current?: number } = {};
 
-    const frame = showNotificationRuntime.requestAnimationFrame((time) => {
+    const frame = runtime.requestAnimationFrame((time) => {
         completedSynchronously = true;
         const currentFrame = frameReference.current;
         if (currentFrame !== undefined) {
             activeAnimationFrames.delete(currentFrame);
+            activeAnimationFrameRuntimes.delete(currentFrame);
         }
         callback(time);
     });
@@ -613,22 +631,31 @@ function scheduleAnimationFrame(callback: FrameRequestCallback): null | number {
     }
     if (frame !== null && !completedSynchronously) {
         activeAnimationFrames.add(frame);
+        activeAnimationFrameRuntimes.set(frame, runtime);
     }
     return frame;
 }
 
 function scheduleNotificationTimeout(
     callback: () => void,
-    duration: number
+    duration: number,
+    runtime: ShowNotificationRuntime
 ): HideTimeout {
-    const timer = showNotificationRuntime.setTimeout(() => {
+    const timer = runtime.setTimeout(() => {
         activeTimeouts.delete(timer);
+        activeTimeoutRuntimes.delete(timer);
         callback();
     }, duration);
     activeTimeouts.add(timer);
+    activeTimeoutRuntimes.set(timer, runtime);
     return timer;
 }
 
-function cancelNotificationAnimationFrame(frame: number): void {
-    showNotificationRuntime.cancelAnimationFrame(frame);
+function cancelNotificationAnimationFrame(
+    frame: number,
+    fallbackRuntime: ShowNotificationRuntime = getShowNotificationRuntime()
+): void {
+    const runtime = activeAnimationFrameRuntimes.get(frame) ?? fallbackRuntime;
+    runtime.cancelAnimationFrame(frame);
+    activeAnimationFrameRuntimes.delete(frame);
 }

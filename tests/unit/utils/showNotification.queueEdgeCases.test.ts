@@ -11,6 +11,7 @@ import {
     type NotificationType,
     type QueuedNotification,
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
+import { getShowNotificationRuntime } from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
 type NotifyMethod = "error" | "info" | "success" | "warning";
 
@@ -292,6 +293,7 @@ describe("showNotification queue edge cases", () => {
             onClick: undefined,
             actions: [],
             timestamp: Date.now(),
+            runtime: getShowNotificationRuntime(),
             resolveShown: () => {
                 throw new Error("resolveShown error");
             },

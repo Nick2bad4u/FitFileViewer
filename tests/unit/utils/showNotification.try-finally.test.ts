@@ -4,6 +4,7 @@ import {
     notificationQueue,
     processNotificationQueue,
 } from "../../../electron-app/utils/ui/notifications/showNotification.js";
+import { getShowNotificationRuntime } from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
 type QueuedNotification = (typeof notificationQueue)[number];
 
@@ -55,6 +56,7 @@ describe("showNotification.js - resolveShown error handling", () => {
             message: "Throwing resolveShown",
             onClick: undefined,
             resolveShown: throwingResolve,
+            runtime: getShowNotificationRuntime(),
             timestamp: 1,
             type: "info",
         };
