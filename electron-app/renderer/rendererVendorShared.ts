@@ -1,5 +1,8 @@
 import type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
-import { getRendererVendorSharedRuntime } from "./rendererVendorSharedRuntime.js";
+import {
+    getRendererVendorSharedRuntime,
+    type RendererVendorSharedRuntime,
+} from "./rendererVendorSharedRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
@@ -43,13 +46,17 @@ export const rendererVendorEntryLoadedEventName =
     "ffv-renderer-vendor-entry-loaded";
 
 const loadedVendorEntries = new Set<RendererVendorBundleEntry>();
-const rendererVendorSharedRuntime = getRendererVendorSharedRuntime();
+
+export type RendererVendorSharedOptions = Readonly<{
+    readonly runtime?: RendererVendorSharedRuntime | undefined;
+}>;
 
 function dispatchRendererVendorEntryLoadedEvent(
     entryName: RendererVendorBundleEntry,
-    runtimePayload: RendererVendorRuntimePayload = {}
+    runtimePayload: RendererVendorRuntimePayload = {},
+    runtime: RendererVendorSharedRuntime = getRendererVendorSharedRuntime()
 ): void {
-    rendererVendorSharedRuntime.dispatchRendererVendorEntryLoadedEvent(
+    runtime.dispatchRendererVendorEntryLoadedEvent(
         rendererVendorEntryLoadedEventName,
         {
             ...runtimePayload,
@@ -74,10 +81,15 @@ export function isRendererVendorEntryLoaded(
 
 export function markRendererVendorEntryLoaded(
     entryName: RendererVendorBundleEntry,
-    runtimePayload: RendererVendorRuntimePayload = {}
+    runtimePayload: RendererVendorRuntimePayload = {},
+    options: RendererVendorSharedOptions = {}
 ): void {
     recordRendererVendorEntryLoaded(entryName);
-    dispatchRendererVendorEntryLoadedEvent(entryName, runtimePayload);
+    dispatchRendererVendorEntryLoadedEvent(
+        entryName,
+        runtimePayload,
+        options.runtime
+    );
 }
 
 export function recordRendererVendorEntryLoaded(
