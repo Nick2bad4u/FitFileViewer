@@ -1,29 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createRendererFileInputWiring } from "../../../electron-app/renderer/fileInputWiring.js";
-import type {
-    RendererHandleOpenFile,
-    RendererCoreModules,
-} from "../../../electron-app/renderer/coreModuleResolution.js";
+import {
+    createRendererFileInputWiring,
+    type RendererFileInputCoreModules,
+} from "../../../electron-app/renderer/fileInputWiring.js";
+import type { RendererHandleOpenFile } from "../../../electron-app/renderer/coreModuleResolution.js";
 
 function createCoreModules(
     handleOpenFile: RendererHandleOpenFile
-): RendererCoreModules {
+): RendererFileInputCoreModules {
     return {
-        AppActions: undefined,
-        applyTheme: undefined,
-        getAppDomainState: undefined,
         handleOpenFile,
-        listenForThemeChange: undefined,
-        masterStateManager: {},
-        setupListeners: undefined,
-        setupTheme: undefined,
-        showAboutModal: undefined,
-        showNotification: undefined,
-        showUpdateNotification: undefined,
-        subscribeAppDomain: undefined,
-        subscribeAppDomainPath: undefined,
-        uiStateManager: {},
     };
 }
 
@@ -49,7 +36,7 @@ function createFileInput(id: string): {
 }
 
 function createWiring(overrides: {
-    readonly ensureCoreModules?: () => Promise<RendererCoreModules>;
+    readonly ensureCoreModules?: () => Promise<RendererFileInputCoreModules>;
     readonly getFileInput?: () => HTMLInputElement | null;
     readonly resolveExactRendererCoreTestOverride?: (
         testId: string

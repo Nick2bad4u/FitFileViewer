@@ -4237,6 +4237,36 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer file input wiring on its handle-open dependency", () => {
+        expect.assertions(8);
+
+        const fileInputWiringSource = stripComments(
+            readRepositoryFile("electron-app/renderer/fileInputWiring.ts")
+        );
+        const fileInputWiringTestSource = stripComments(
+            readRepositoryFile("tests/unit/renderer/fileInputWiring.test.ts")
+        );
+
+        expect(fileInputWiringSource).toContain(
+            "export type RendererFileInputCoreModules = Readonly<"
+        );
+        expect(fileInputWiringSource).toContain(
+            'Pick<RendererCoreModules, "handleOpenFile">'
+        );
+        expect(fileInputWiringSource).toContain(
+            "readonly ensureCoreModules: () => Promise<RendererFileInputCoreModules>"
+        );
+        expect(fileInputWiringSource).not.toContain(
+            "readonly ensureCoreModules: () => Promise<RendererCoreModules>"
+        );
+        expect(fileInputWiringTestSource).toContain(
+            "RendererFileInputCoreModules"
+        );
+        expect(fileInputWiringTestSource).not.toContain("RendererCoreModules");
+        expect(fileInputWiringTestSource).not.toContain("AppActions");
+        expect(fileInputWiringTestSource).not.toContain("masterStateManager");
+    });
+
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
         expect.assertions(18);
 
