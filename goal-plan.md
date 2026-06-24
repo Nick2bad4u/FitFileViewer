@@ -1088,7 +1088,9 @@ constructor access from returning to `settingsModal.ts`.
 Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,
 cancellation, and abort-controller creation through `dragDropHandlerRuntime.ts` instead of calling those globals or
 constructing controllers directly in `dragDropHandler.ts`, with runtime adapter tests and architecture coverage
-blocking direct drag/drop animation-frame globals and direct controller construction from returning.
+blocking direct drag/drop animation-frame globals and direct controller construction from returning. Dropped-file
+operation-id clock reads now also route through that runtime instead of calling `Date.now` directly in
+`dragDropHandler.ts`, with runtime and architecture coverage blocking direct drag/drop clock reads from returning.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

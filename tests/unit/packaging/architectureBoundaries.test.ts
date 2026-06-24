@@ -978,9 +978,9 @@ const directSettingsModalBrowserRuntimeGlobalPattern =
 const directModalRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\(/u;
 const directDragDropHandlerTimingRuntimeGlobalPattern =
-    /\bnew\s+(?:AbortController|FileReader)\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
+    /\bnew\s+(?:AbortController|FileReader)\b|\bDate\.now\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
 const directDragDropHandlerRuntimeAmbientGetterPattern =
-    /\bget\s+(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\b/u;
+    /\bget\s+(?:AbortController|cancelAnimationFrame|DateNow|FileReader|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b/u;
 const directKeyboardShortcutsModalSvgGlobalPattern =
@@ -7265,7 +7265,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(32);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -7287,6 +7287,7 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
         expect(dragDropHandlerSource).toContain("createAbortController");
         expect(dragDropHandlerSource).toContain("createFileReader");
+        expect(dragDropHandlerSource).toContain("this.runtime.dateNow()");
         expect(dragDropHandlerSource).toContain("getDocument");
         expect(dragDropHandlerSource).toContain("getEventTarget");
         expect(dragDropHandlerSource).not.toContain(
@@ -7296,6 +7297,7 @@ describe("architecture boundaries", () => {
             "getDragDropHandlerRuntime()"
         );
         expect(dragDropHandlerSource).not.toContain("globalThis");
+        expect(dragDropHandlerSource).not.toContain("Date.now");
         expect(dragDropHandlerRuntimeSource).not.toMatch(
             directDragDropHandlerRuntimeAmbientGetterPattern
         );
@@ -7307,6 +7309,9 @@ describe("architecture boundaries", () => {
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "readonly cancelAnimationFrame?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly dateNow?:"
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "readonly document?:"
@@ -7326,6 +7331,7 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"
         );
+        expect(dragDropHandlerRuntimeSource).not.toContain("scope.dateNow");
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.document");
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.eventTarget");
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.FileReader");
@@ -7334,6 +7340,9 @@ describe("architecture boundaries", () => {
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "getFileReader: () => globalThis.FileReader"

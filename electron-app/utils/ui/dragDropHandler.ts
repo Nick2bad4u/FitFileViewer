@@ -131,7 +131,7 @@ export class DragDropHandler {
     }
 
     async processDroppedFile(file: File): Promise<void> {
-        const operationId = `process_dropped_file_${Date.now()}`,
+        const operationId = `process_dropped_file_${this.runtime.dateNow()}`,
             // Start performance monitoring
             pm = getPerformanceMonitor();
         if (

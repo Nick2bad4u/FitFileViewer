@@ -5,6 +5,7 @@ export interface DragDropHandlerRuntimeScope {
     readonly getCancelAnimationFrame?:
         | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getFileReader?: (() => typeof FileReader | undefined) | undefined;
@@ -17,6 +18,7 @@ export interface DragDropHandlerRuntime {
     readonly cancelAnimationFrame: (handle: number) => void;
     readonly createAbortController: () => AbortController;
     readonly createFileReader: () => FileReader;
+    readonly dateNow: () => number;
     readonly getDocument: () => Document | null;
     readonly getEventTarget: () => EventTarget;
     readonly requestAnimationFrame: (
@@ -27,6 +29,7 @@ export interface DragDropHandlerRuntime {
 const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+    getDateNow: () => Date.now,
     getDocument: () => globalThis.document,
     getEventTarget: () => globalThis,
     getFileReader: () => globalThis.FileReader,
@@ -43,6 +46,15 @@ function getCancelAnimationFrame(
     scope: DragDropHandlerRuntimeScope
 ): typeof globalThis.cancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
+}
+
+function getDateNow(scope: DragDropHandlerRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("dragDropHandler requires a date clock runtime");
+    }
+
+    return dateNow;
 }
 
 function getDocument(scope: DragDropHandlerRuntimeScope): Document | undefined {
@@ -94,6 +106,9 @@ export function getDragDropHandlerRuntime(
             }
 
             return new FileReaderConstructor();
+        },
+        dateNow(): number {
+            return getDateNow(scope)();
         },
         getDocument(): Document | null {
             return getDocument(scope) ?? null;

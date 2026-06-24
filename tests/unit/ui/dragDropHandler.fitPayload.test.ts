@@ -107,6 +107,7 @@ function createRuntimeScope(
 ): ConstructorParameters<typeof DragDropHandler>[0]["runtimeScope"] {
     return {
         getAbortController: () => AbortController,
+        getDateNow: () => () => 123_456,
         getDocument: () => document,
         getEventTarget: () => new EventTarget(),
         getFileReader: () => FileReaderConstructor,
