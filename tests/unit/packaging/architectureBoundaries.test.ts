@@ -12554,7 +12554,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(39);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -12584,6 +12584,21 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(mapDocumentListenersSource).toContain(
             "mapDocumentListenersRuntime.js"
+        );
+        expect(mapDocumentListenersSource).toContain(
+            "type MapDocumentListenersRuntime"
+        );
+        expect(mapDocumentListenersSource).not.toContain(
+            "const mapDocumentListenersRuntime = getMapDocumentListenersRuntime();"
+        );
+        expect(mapDocumentListenersSource).toContain(
+            "runtime: MapDocumentListenersRuntime = getMapDocumentListenersRuntime()"
+        );
+        expect(mapDocumentListenersSource).toContain(
+            "(event) => collapseLayersPanelIfClickOutside(event, runtime)"
+        );
+        expect(mapDocumentListenersSource).toContain(
+            "() => layoutLayersPanelOnResize(runtime)"
         );
         expect(mapDocumentListenersSource).toContain("createAbortController");
         expect(mapDocumentListenersSource).toContain(

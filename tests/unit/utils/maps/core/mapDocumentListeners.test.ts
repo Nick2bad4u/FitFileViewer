@@ -4,6 +4,7 @@ import {
     resetMapDocumentListenersForTests,
     setMapDocumentControlRefs,
 } from "../../../../../electron-app/utils/maps/core/mapDocumentListeners.js";
+import type { MapDocumentListenersRuntime } from "../../../../../electron-app/utils/maps/core/mapDocumentListenersRuntime.js";
 
 function cleanupFixture(): void {
     resetMapDocumentListenersForTests();
@@ -35,6 +36,55 @@ function mouseDown(target: EventTarget): void {
 }
 
 describe(ensureMapDocumentListenersInstalled, () => {
+    it("installs document listeners through an injected runtime", () => {
+        expect.assertions(6);
+
+        cleanupFixture();
+
+        try {
+            const mapTypeButton = document.createElement("button");
+            const outsideButton = document.createElement("button");
+            setMapDocumentControlRefs({ mapTypeButton });
+            document.body.append(mapTypeButton, outsideButton);
+            const layersPanel = createExpandedLayersPanel();
+            const runtime: MapDocumentListenersRuntime = {
+                addDocumentMousedownListener: vi.fn(),
+                addDocumentMouseupListener: vi.fn(),
+                addDocumentTouchendListener: vi.fn(),
+                addWindowResizeListener: vi.fn(),
+                createAbortController: vi.fn(() => new AbortController()),
+                getLayersControlElement: vi.fn(() => layersPanel),
+                isHTMLElement: vi.fn(
+                    (value): value is HTMLElement =>
+                        value instanceof HTMLElement
+                ),
+                isNode: vi.fn((value): value is Node => value instanceof Node),
+            };
+
+            ensureMapDocumentListenersInstalled(runtime);
+            ensureMapDocumentListenersInstalled(runtime);
+            const [mousedownListener] = vi.mocked(
+                runtime.addDocumentMousedownListener
+            ).mock.calls[0]!;
+            const event = new MouseEvent("mousedown", { bubbles: true });
+            Object.defineProperty(event, "target", { value: outsideButton });
+            mousedownListener(event);
+
+            expect(runtime.createAbortController).toHaveBeenCalledOnce();
+            expect(runtime.addDocumentMousedownListener).toHaveBeenCalledOnce();
+            expect(runtime.addWindowResizeListener).toHaveBeenCalledOnce();
+            expect(runtime.addDocumentMouseupListener).toHaveBeenCalledOnce();
+            expect(runtime.addDocumentTouchendListener).toHaveBeenCalledOnce();
+            expect(
+                layersPanel.classList.contains(
+                    "leaflet-control-layers-expanded"
+                )
+            ).toBe(false);
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("installs listeners once and collapses expanded layer panels on outside clicks", () => {
         expect.assertions(7);
 

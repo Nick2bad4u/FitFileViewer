@@ -7,7 +7,10 @@
  * render.
  */
 
-import { getMapDocumentListenersRuntime } from "./mapDocumentListenersRuntime.js";
+import {
+    getMapDocumentListenersRuntime,
+    type MapDocumentListenersRuntime,
+} from "./mapDocumentListenersRuntime.js";
 
 type MapZoomDraggingRef = { current: boolean };
 
@@ -26,7 +29,6 @@ let mapDocumentControlRefs: MapDocumentControlRefs = {
     mapTypeButton: null,
     zoomDraggingRef: null,
 };
-const mapDocumentListenersRuntime = getMapDocumentListenersRuntime();
 
 function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
     if (typeof value !== "object" || value === null) {
@@ -36,15 +38,17 @@ function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
     return "current" in value && typeof value.current === "boolean";
 }
 
-function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
+function collapseLayersPanelIfClickOutside(
+    event: MouseEvent,
+    runtime: MapDocumentListenersRuntime
+): void {
     try {
         const mapTypeBtn = mapDocumentControlRefs.mapTypeButton;
-        if (!mapDocumentListenersRuntime.isHTMLElement(mapTypeBtn)) {
+        if (!runtime.isHTMLElement(mapTypeBtn)) {
             return;
         }
 
-        const layersControlEl =
-            mapDocumentListenersRuntime.getLayersControlElement();
+        const layersControlEl = runtime.getLayersControlElement();
         if (
             !layersControlEl ||
             !layersControlEl.classList.contains(
@@ -54,7 +58,7 @@ function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
             return;
         }
 
-        const node = mapDocumentListenersRuntime.isNode(event.target)
+        const node = runtime.isNode(event.target)
             ? event.target
             : null;
         if (!node) {
@@ -81,10 +85,11 @@ function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
     }
 }
 
-function layoutLayersPanelOnResize(): void {
+function layoutLayersPanelOnResize(
+    runtime: MapDocumentListenersRuntime
+): void {
     try {
-        const layersControlEl =
-            mapDocumentListenersRuntime.getLayersControlElement();
+        const layersControlEl = runtime.getLayersControlElement();
         if (
             !layersControlEl ||
             !layersControlEl.classList.contains(
@@ -133,40 +138,34 @@ export function setMapDocumentControlRefs(
  * Install document-level map listeners once to avoid leaks when renderMap() is
  * invoked repeatedly.
  */
-export function ensureMapDocumentListenersInstalled(): void {
+export function ensureMapDocumentListenersInstalled(
+    runtime: MapDocumentListenersRuntime = getMapDocumentListenersRuntime()
+): void {
     if (mapDocumentListenersInstalled) {
         return;
     }
     mapDocumentListenersInstalled = true;
-    const listenerController =
-        mapDocumentListenersRuntime.createAbortController();
+    const listenerController = runtime.createAbortController();
     mapDocumentListenerController = listenerController;
     const { signal } = listenerController;
 
     // Collapse the Leaflet layers panel when clicking outside.
-    mapDocumentListenersRuntime.addDocumentMousedownListener(
-        collapseLayersPanelIfClickOutside,
+    runtime.addDocumentMousedownListener(
+        (event) => collapseLayersPanelIfClickOutside(event, runtime),
         { signal }
     );
 
     // Keep the expanded layers panel within the viewport/minimap bounds on resize.
-    mapDocumentListenersRuntime.addWindowResizeListener(
-        layoutLayersPanelOnResize,
-        { signal }
-    );
+    runtime.addWindowResizeListener(() => layoutLayersPanelOnResize(runtime), {
+        signal,
+    });
 
     // Reset the zoom-slider dragging flag when the interaction ends.
-    mapDocumentListenersRuntime.addDocumentMouseupListener(
-        resetMapZoomDraggingRef,
-        { signal }
-    );
-    mapDocumentListenersRuntime.addDocumentTouchendListener(
-        resetMapZoomDraggingRef,
-        {
-            passive: true,
-            signal,
-        }
-    );
+    runtime.addDocumentMouseupListener(resetMapZoomDraggingRef, { signal });
+    runtime.addDocumentTouchendListener(resetMapZoomDraggingRef, {
+        passive: true,
+        signal,
+    });
 }
 
 /**
