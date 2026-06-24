@@ -4238,7 +4238,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -4250,7 +4250,13 @@ describe("architecture boundaries", () => {
         );
 
         expect(developmentDebugToolsSource).toContain(
-            'import type {\n    RendererCoreModules,\n    UnknownRendererFunction,\n} from "./coreModuleResolution.js";'
+            'import type { RendererCoreModules } from "./coreModuleResolution.js";'
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "type RendererDebugCoreFunction = (...args: unknown[]) => unknown;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "UnknownRendererFunction"
         );
         expect(developmentDebugToolsSource).toContain(
             "export type RendererDevelopmentDebugCoreModules = Partial<"

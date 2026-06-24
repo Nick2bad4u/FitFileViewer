@@ -23,7 +23,6 @@ export type ShowUpdateNotification = (
     withAction?: boolean | string
 ) => void;
 
-export type UnknownRendererFunction = (...args: unknown[]) => unknown;
 export type RendererHandleOpenFile = (payload: unknown) => unknown;
 export type RendererSetupListeners = (
     options: SetupListenersOptions

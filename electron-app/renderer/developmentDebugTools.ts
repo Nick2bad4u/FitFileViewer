@@ -1,7 +1,4 @@
-import type {
-    RendererCoreModules,
-    UnknownRendererFunction,
-} from "./coreModuleResolution.js";
+import type { RendererCoreModules } from "./coreModuleResolution.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 import {
     isRendererDebugLoggingEnabled,
@@ -45,6 +42,7 @@ export type RendererDevelopmentDebugCoreModules = Partial<
 type DevelopmentCoreModuleResolver =
     () => Promise<RendererDevelopmentDebugCoreModules>;
 type RendererDebugToolCall = (...args: unknown[]) => Promise<unknown>;
+type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDebugToolsView = {
     readonly handleOpenFile: RendererDebugToolCall;
     readonly PerformanceMonitor: RendererPerformanceMonitor;
@@ -354,10 +352,10 @@ function callStateManagerMethod(
 function getDebugCoreFunction(
     coreModules: RendererDevelopmentDebugCoreModules,
     exportName: DevelopmentDebugCoreFunctionName
-): UnknownRendererFunction | undefined {
+): RendererDebugCoreFunction | undefined {
     const debugFunction = coreModules[exportName];
     return typeof debugFunction === "function"
-        ? (debugFunction as UnknownRendererFunction)
+        ? (debugFunction as RendererDebugCoreFunction)
         : undefined;
 }
 
