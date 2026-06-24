@@ -17,6 +17,30 @@ describe("renderChartJSRuntime", () => {
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
     });
 
+    it("creates elements through the scoped document runtime", () => {
+        expect.assertions(1);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("chart runtime");
+        const utils = getRenderChartJSRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(utils.createElement("canvas")).toBeInstanceOf(
+            documentRef.defaultView?.HTMLCanvasElement ?? HTMLCanvasElement
+        );
+    });
+
+    it("does not borrow ambient documents for explicit scopes", () => {
+        expect.assertions(1);
+
+        const utils = getRenderChartJSRuntime({});
+
+        expect(() => utils.createElement("canvas")).toThrow(
+            "renderChartJSRuntime requires document"
+        );
+    });
+
     it("does not borrow ambient custom events for explicit scopes", () => {
         expect.assertions(1);
 
@@ -58,7 +82,7 @@ describe("renderChartJSRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const now = vi.fn(() => 42.5);
         const utils = getRenderChartJSRuntime();
@@ -68,6 +92,9 @@ describe("renderChartJSRuntime", () => {
         vi.stubGlobal("performance", { now });
 
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
+        expect(utils.createElement("canvas")).toBeInstanceOf(
+            HTMLCanvasElement
+        );
         expect(utils.isWindowAvailable()).toBe(true);
         expect(utils.nowPerformance()).toBe(42.5);
         expect(now).toHaveBeenCalledOnce();
@@ -109,15 +136,19 @@ describe("renderChartJSRuntime", () => {
     });
 
     it("ignores legacy direct custom event and performance properties", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const now = vi.fn(() => 99);
         const utils = getRenderChartJSRuntime({
             CustomEventConstructor: CustomEvent,
             dateNow: () => 123,
+            document,
             performance: { now },
         } as unknown as Parameters<typeof getRenderChartJSRuntime>[0]);
 
+        expect(() => utils.createElement("canvas")).toThrow(
+            "renderChartJSRuntime requires document"
+        );
         expect(utils.getCustomEventConstructor()).toBeUndefined();
         expect(utils.nowPerformance()).toBe(123);
         expect(now).not.toHaveBeenCalled();

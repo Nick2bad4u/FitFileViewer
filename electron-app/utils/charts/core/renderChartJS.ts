@@ -399,7 +399,7 @@ export async function renderChartJS(
 
         const { success } = await executePreparedChartRender(
             {
-                createElement: (tagName) => document.createElement(tagName),
+                createElement: renderChartRuntime().createElement,
                 getChartLifecycleActions,
                 getRendererModules: getRendererModulesSafe,
                 isTestEnvironment,

@@ -3,6 +3,7 @@ export interface RenderChartJSRuntimeScope {
     readonly getCustomEventConstructor?:
         | (() => typeof CustomEvent | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
     readonly getPerformance?:
         | (() => Pick<Performance, "now"> | undefined)
@@ -10,6 +11,9 @@ export interface RenderChartJSRuntimeScope {
 }
 
 export interface RenderChartJSRuntime {
+    createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     getCustomEventConstructor: () => typeof CustomEvent | undefined;
     isWindowAvailable: () => boolean;
     now: () => number;
@@ -20,6 +24,7 @@ const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
     dateNow: Date.now,
     getCustomEventConstructor: () =>
         typeof CustomEvent === "function" ? CustomEvent : undefined,
+    getDocument: () => globalThis.document,
     getIsRendererScope: () => Reflect.has(globalThis, "document"),
     getPerformance: () => globalThis.performance,
 };
@@ -51,6 +56,15 @@ function getScopeCustomEventConstructor(
     return scope.getCustomEventConstructor?.();
 }
 
+function getRequiredDocument(scope: RenderChartJSRuntimeScope): Document {
+    const documentRef = scope.getDocument?.();
+    if (!documentRef) {
+        throw new TypeError("renderChartJSRuntime requires document");
+    }
+
+    return documentRef;
+}
+
 function getScopePerformance(
     scope: RenderChartJSRuntimeScope
 ): Pick<Performance, "now"> | undefined {
@@ -65,6 +79,10 @@ export function getRenderChartJSRuntime(
     scope: RenderChartJSRuntimeScope = defaultRenderChartJSRuntimeScope
 ): RenderChartJSRuntime {
     return {
+        createElement(tagName) {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
+
         getCustomEventConstructor(): typeof CustomEvent | undefined {
             return getScopeCustomEventConstructor(scope);
         },

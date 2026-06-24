@@ -6406,7 +6406,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(26);
+        expect.assertions(32);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -6436,6 +6436,10 @@ describe("architecture boundaries", () => {
         expect(renderChartSource).not.toContain("globalThis.CustomEvent");
         expect(renderChartSource).not.toContain("performance.now");
         expect(renderChartSource).not.toContain("Date.now");
+        expect(renderChartSource).toContain(
+            "createElement: renderChartRuntime().createElement"
+        );
+        expect(renderChartSource).not.toContain("document.createElement");
         expect(renderChartRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
         );
@@ -6446,7 +6450,16 @@ describe("architecture boundaries", () => {
             "renderChartJSRuntime requires dateNow"
         );
         expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires document"
+        );
+        expect(renderChartRuntimeSource).toContain(
             "defaultRenderChartJSRuntimeScope"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "getRequiredDocument(scope).createElement"
         );
         expect(renderChartRuntimeSource).toContain(
             'getIsRendererScope: () => Reflect.has(globalThis, "document")'
@@ -6460,6 +6473,7 @@ describe("architecture boundaries", () => {
         expect(renderChartRuntimeSource).not.toContain(
             "scope.CustomEventConstructor"
         );
+        expect(renderChartRuntimeSource).not.toContain("scope.document");
         expect(renderChartRuntimeSource).not.toContain("scope.performance");
         expect(renderChartRuntimeSource).not.toContain(
             "readonly isRendererScope?:"
