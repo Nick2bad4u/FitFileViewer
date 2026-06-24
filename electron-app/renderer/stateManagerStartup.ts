@@ -71,16 +71,9 @@ export function createRendererStateStartup(
                     throw new TypeError("subscribeAppDomainPath missing");
                 }
 
-                const subscribeOpeningFile = subscribeAppDomainPath as (
-                    path: string,
-                    callback: (value: unknown) => void
-                ) => unknown;
-                subscribeOpeningFile(
-                    "app.isOpeningFile",
-                    (isOpening: unknown) => {
-                        isOpeningFileRef.value = isOpening === true;
-                    }
-                );
+                subscribeAppDomainPath("app.isOpeningFile", (isOpening) => {
+                    isOpeningFileRef.value = isOpening === true;
+                });
 
                 stateInitTracker.initialized = true;
 

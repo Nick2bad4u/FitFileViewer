@@ -4231,11 +4231,9 @@ describe("architecture boundaries", () => {
         );
         expect(stateStartupSource).not.toContain("toModuleRecord");
         expect(stateStartupSource).not.toContain("masterStateManagerRecord");
+        expect(stateStartupSource).not.toContain("subscribeOpeningFile");
         expect(rendererEntrypointSource).not.toContain(
             "createRendererStateStartup({\n    ensureCoreModules,\n    logRenderer,\n    toModuleRecord,"
-        );
-        expect(stateStartupSource).toContain(
-            'subscribeOpeningFile(\n                    "app.isOpeningFile",'
         );
     });
 
@@ -4286,7 +4284,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer core module resolution on the app-domain state facade", () => {
-        expect.assertions(9);
+        expect.assertions(16);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -4294,6 +4292,25 @@ describe("architecture boundaries", () => {
 
         expect(coreModuleResolutionSource).toContain(
             "state/domain/appDomainState.js"
+        );
+        expect(coreModuleResolutionSource).toContain("AppDomainStateGetter");
+        expect(coreModuleResolutionSource).toContain(
+            "AppDomainStateSubscriber"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "AppDomainStatePathSubscriber"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "getAppDomainState: AppDomainStateGetter | undefined"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "subscribeAppDomain: AppDomainStateSubscriber | undefined"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "getAppDomainState: undefined | UnknownRendererFunction"
         );
         expect(coreModuleResolutionSource).not.toContain(
             "state/domain/appState.js"

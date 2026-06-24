@@ -4,8 +4,17 @@ import {
     type StateListener,
 } from "../core/stateManager.js";
 
-type AppDomainStateListener = (data: unknown) => void;
-type Unsubscribe = () => void;
+export type AppDomainStateListener = (data: unknown) => void;
+export type AppDomainStateGetter = (path: string) => unknown;
+export type AppDomainStatePathSubscriber = (
+    path: string,
+    callback: StateListener
+) => Unsubscribe;
+export type AppDomainStateSubscriber = (
+    event: string,
+    callback: AppDomainStateListener
+) => Unsubscribe;
+export type Unsubscribe = () => void;
 
 /** Gets app-domain state through the renderer-facing app-domain facade. */
 export function getAppDomainState(path: string): unknown {

@@ -1,4 +1,9 @@
 import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks.js";
+import type {
+    AppDomainStateGetter,
+    AppDomainStatePathSubscriber,
+    AppDomainStateSubscriber,
+} from "../utils/state/domain/appDomainState.js";
 
 export type ListenForThemeChange = (
     onThemeChange: (theme: string) => void
@@ -22,7 +27,7 @@ export type UnknownRendererFunction = (...args: unknown[]) => unknown;
 export interface RendererCoreModules {
     AppActions: Record<string, unknown> | undefined;
     applyTheme: ApplyTheme | undefined;
-    getAppDomainState: undefined | UnknownRendererFunction;
+    getAppDomainState: AppDomainStateGetter | undefined;
     handleOpenFile: undefined | UnknownRendererFunction;
     listenForThemeChange: ListenForThemeChange | undefined;
     masterStateManager: unknown;
@@ -31,8 +36,8 @@ export interface RendererCoreModules {
     showAboutModal: ((html?: string) => void) | undefined;
     showNotification: ShowNotification | undefined;
     showUpdateNotification: ShowUpdateNotification | undefined;
-    subscribeAppDomain: undefined | UnknownRendererFunction;
-    subscribeAppDomainPath: undefined | UnknownRendererFunction;
+    subscribeAppDomain: AppDomainStateSubscriber | undefined;
+    subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
     uiStateManager: unknown;
 }
 
@@ -94,7 +99,7 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
         AppActions: resolveAppActionsModule(appActionsMod),
         applyTheme: toApplyTheme(themeMod["applyTheme"]),
-        getAppDomainState: toUnknownRendererFunction(
+        getAppDomainState: toAppDomainStateGetter(
             resolveDefaultableExport(appDomainMod, "getAppDomainState")
         ),
         handleOpenFile: toUnknownRendererFunction(
@@ -114,10 +119,10 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         showUpdateNotification: toShowUpdateNotification(
             updateNotifMod["showUpdateNotification"]
         ),
-        subscribeAppDomain: toUnknownRendererFunction(
+        subscribeAppDomain: toAppDomainStateSubscriber(
             resolveDefaultableExport(appDomainMod, "subscribeAppDomain")
         ),
-        subscribeAppDomainPath: toUnknownRendererFunction(
+        subscribeAppDomainPath: toAppDomainStatePathSubscriber(
             resolveDefaultableExport(appDomainMod, "subscribeAppDomainPath")
         ),
         uiStateManager:
@@ -292,6 +297,30 @@ function resolveDefaultableExport(
 
 function toApplyTheme(value: unknown): ApplyTheme | undefined {
     return typeof value === "function" ? (value as ApplyTheme) : undefined;
+}
+
+function toAppDomainStateGetter(
+    value: unknown
+): AppDomainStateGetter | undefined {
+    return typeof value === "function"
+        ? (value as AppDomainStateGetter)
+        : undefined;
+}
+
+function toAppDomainStatePathSubscriber(
+    value: unknown
+): AppDomainStatePathSubscriber | undefined {
+    return typeof value === "function"
+        ? (value as AppDomainStatePathSubscriber)
+        : undefined;
+}
+
+function toAppDomainStateSubscriber(
+    value: unknown
+): AppDomainStateSubscriber | undefined {
+    return typeof value === "function"
+        ? (value as AppDomainStateSubscriber)
+        : undefined;
 }
 
 function toListenForThemeChange(
