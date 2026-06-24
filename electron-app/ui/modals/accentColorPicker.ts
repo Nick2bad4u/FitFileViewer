@@ -10,7 +10,10 @@ import {
     getEffectiveTheme,
     loadTheme,
 } from "../../utils/theming/core/theme.js";
-import { getAccentColorPickerRuntime } from "./accentColorPickerRuntime.js";
+import {
+    getAccentColorPickerRuntime,
+    type AccentColorPickerRuntime,
+} from "./accentColorPickerRuntime.js";
 
 // Preset accent colors for quick selection.
 const PRESET_COLORS = [
@@ -27,30 +30,33 @@ const PRESET_COLORS = [
 ] as const;
 
 let restoreFocusTarget: HTMLElement | undefined;
-const accentColorPickerRuntime = getAccentColorPickerRuntime();
+
+function accentColorPickerRuntime(): AccentColorPickerRuntime {
+    return getAccentColorPickerRuntime();
+}
 
 /**
  * Opens the accent color picker modal, creating it on first use.
  */
 export function openAccentColorPicker(): void {
-    let modal = accentColorPickerRuntime.getModalElement();
+    let modal = accentColorPickerRuntime().getModalElement();
     if (modal) {
         showModal(modal);
         return;
     }
 
     modal = createModal();
-    accentColorPickerRuntime.appendModal(modal);
+    accentColorPickerRuntime().appendModal(modal);
 
     showModal(modal);
 }
 
 function addModalStyles(): void {
-    if (accentColorPickerRuntime.hasStyleElement()) {
+    if (accentColorPickerRuntime().hasStyleElement()) {
         return;
     }
 
-    const style = accentColorPickerRuntime.createStyleElement();
+    const style = accentColorPickerRuntime().createStyleElement();
     style.id = "accent-picker-styles";
     style.textContent = `
 		.accent-picker-modal {
@@ -308,7 +314,7 @@ function addModalStyles(): void {
 			background: var(--color-btn-hover);
 		}
 	`;
-    accentColorPickerRuntime.appendStyle(style);
+    accentColorPickerRuntime().appendStyle(style);
 }
 
 function applyColor(color: string): void {
@@ -320,7 +326,7 @@ function applyColor(color: string): void {
 }
 
 function createModal(): HTMLDivElement {
-    const modal = accentColorPickerRuntime.createElement("div");
+    const modal = accentColorPickerRuntime().createElement("div");
     modal.id = "accent-color-modal";
     modal.className = "accent-picker-modal";
     modal.setAttribute("aria-hidden", "true");
@@ -338,7 +344,7 @@ function createModal(): HTMLDivElement {
 }
 
 function createModalContent(): HTMLDivElement {
-    const content = accentColorPickerRuntime.createElement("div");
+    const content = accentColorPickerRuntime().createElement("div");
     content.className = "accent-picker-content";
     content.append(createModalHeader(), createModalBody(), createModalFooter());
 
@@ -346,14 +352,14 @@ function createModalContent(): HTMLDivElement {
 }
 
 function createModalHeader(): HTMLDivElement {
-    const header = accentColorPickerRuntime.createElement("div");
+    const header = accentColorPickerRuntime().createElement("div");
     header.className = "accent-picker-header";
 
-    const title = accentColorPickerRuntime.createElement("h2");
+    const title = accentColorPickerRuntime().createElement("h2");
     title.id = "accent-picker-title";
     title.textContent = "Customize Accent Color";
 
-    const close = accentColorPickerRuntime.createElement("button");
+    const close = accentColorPickerRuntime().createElement("button");
     close.setAttribute("aria-label", "Close accent color picker");
     close.className = "close-btn";
     close.id = "accent-picker-close";
@@ -366,7 +372,7 @@ function createModalHeader(): HTMLDivElement {
 }
 
 function createModalBody(): HTMLDivElement {
-    const body = accentColorPickerRuntime.createElement("div");
+    const body = accentColorPickerRuntime().createElement("div");
     body.className = "accent-picker-body";
     body.append(
         createCurrentThemeSection(),
@@ -379,33 +385,37 @@ function createModalBody(): HTMLDivElement {
 }
 
 function createCurrentThemeSection(): HTMLDivElement {
-    const section = accentColorPickerRuntime.createElement("div");
+    const section = accentColorPickerRuntime().createElement("div");
     section.className = "current-theme-info";
 
-    const label = accentColorPickerRuntime.createElement("strong");
+    const label = accentColorPickerRuntime().createElement("strong");
     label.textContent = "Current Theme:";
 
-    const themeName = accentColorPickerRuntime.createElement("span");
+    const themeName = accentColorPickerRuntime().createElement("span");
     themeName.id = "current-theme-name";
 
-    section.append(label, accentColorPickerRuntime.createTextNode(" "), themeName);
+    section.append(
+        label,
+        accentColorPickerRuntime().createTextNode(" "),
+        themeName
+    );
 
     return section;
 }
 
 function createColorPreviewSection(): HTMLDivElement {
-    const section = accentColorPickerRuntime.createElement("div");
+    const section = accentColorPickerRuntime().createElement("div");
     section.className = "color-preview-section";
 
-    const label = accentColorPickerRuntime.createElement("div");
+    const label = accentColorPickerRuntime().createElement("div");
     label.className = "preview-label";
     label.textContent = "Current Accent Color:";
 
-    const preview = accentColorPickerRuntime.createElement("div");
+    const preview = accentColorPickerRuntime().createElement("div");
     preview.className = "color-preview";
     preview.id = "accent-color-preview";
 
-    const hex = accentColorPickerRuntime.createElement("div");
+    const hex = accentColorPickerRuntime().createElement("div");
     hex.className = "preview-hex";
     hex.id = "accent-color-hex";
 
@@ -415,7 +425,7 @@ function createColorPreviewSection(): HTMLDivElement {
 }
 
 function createPresetColorSection(): HTMLDivElement {
-    const section = accentColorPickerRuntime.createElement("div");
+    const section = accentColorPickerRuntime().createElement("div");
     section.className = "preset-colors-section";
     section.append(
         createSectionTitle("Preset Colors"),
@@ -426,21 +436,21 @@ function createPresetColorSection(): HTMLDivElement {
 }
 
 function createCustomColorSection(): HTMLDivElement {
-    const section = accentColorPickerRuntime.createElement("div");
+    const section = accentColorPickerRuntime().createElement("div");
     section.className = "custom-color-section";
 
-    const inputRow = accentColorPickerRuntime.createElement("div");
+    const inputRow = accentColorPickerRuntime().createElement("div");
     inputRow.className = "custom-color-input";
 
-    const label = accentColorPickerRuntime.createElement("label");
+    const label = accentColorPickerRuntime().createElement("label");
     label.htmlFor = "custom-color-picker";
     label.textContent = "Pick a color:";
 
-    const picker = accentColorPickerRuntime.createElement("input");
+    const picker = accentColorPickerRuntime().createElement("input");
     picker.type = "color";
     picker.id = "custom-color-picker";
 
-    const text = accentColorPickerRuntime.createElement("input");
+    const text = accentColorPickerRuntime().createElement("input");
     text.type = "text";
     text.id = "custom-color-text";
     text.placeholder = "#3b82f6";
@@ -453,16 +463,16 @@ function createCustomColorSection(): HTMLDivElement {
 }
 
 function createModalFooter(): HTMLDivElement {
-    const footer = accentColorPickerRuntime.createElement("div");
+    const footer = accentColorPickerRuntime().createElement("div");
     footer.className = "accent-picker-footer";
 
-    const reset = accentColorPickerRuntime.createElement("button");
+    const reset = accentColorPickerRuntime().createElement("button");
     reset.className = "btn-reset";
     reset.id = "accent-color-reset";
     reset.type = "button";
     reset.textContent = "Reset to Default";
 
-    const apply = accentColorPickerRuntime.createElement("button");
+    const apply = accentColorPickerRuntime().createElement("button");
     apply.className = "btn-apply";
     apply.id = "accent-color-apply";
     apply.type = "button";
@@ -474,7 +484,7 @@ function createModalFooter(): HTMLDivElement {
 }
 
 function createSectionTitle(text: string): HTMLDivElement {
-    const title = accentColorPickerRuntime.createElement("div");
+    const title = accentColorPickerRuntime().createElement("div");
     title.className = "section-title";
     title.textContent = text;
 
@@ -482,7 +492,7 @@ function createSectionTitle(text: string): HTMLDivElement {
 }
 
 function createEmptyContainer(className: string, id: string): HTMLDivElement {
-    const container = accentColorPickerRuntime.createElement("div");
+    const container = accentColorPickerRuntime().createElement("div");
     container.className = className;
     container.id = id;
 
@@ -491,14 +501,14 @@ function createEmptyContainer(className: string, id: string): HTMLDivElement {
 
 function renderPresetColors(modal: HTMLElement, signal: AbortSignal): void {
     const container = modal.querySelector("#preset-colors");
-    if (!accentColorPickerRuntime.isHTMLElement(container)) {
+    if (!accentColorPickerRuntime().isHTMLElement(container)) {
         return;
     }
 
     container.replaceChildren();
 
     for (const preset of PRESET_COLORS) {
-        const button = accentColorPickerRuntime.createElement("button");
+        const button = accentColorPickerRuntime().createElement("button");
         button.type = "button";
         button.className = "preset-color";
         button.dataset["hex"] = preset.hex;
@@ -518,7 +528,7 @@ function renderPresetColors(modal: HTMLElement, signal: AbortSignal): void {
 }
 
 function setupEventListeners(modal: HTMLElement): void {
-    const { signal } = accentColorPickerRuntime.createAbortController();
+    const { signal } = accentColorPickerRuntime().createAbortController();
     const closeBtn = modal.querySelector("#accent-picker-close");
     const resetBtn = modal.querySelector("#accent-color-reset");
     const applyBtn = modal.querySelector("#accent-color-apply");
@@ -543,7 +553,7 @@ function setupEventListeners(modal: HTMLElement): void {
         { signal }
     );
 
-    accentColorPickerRuntime.addDocumentKeydownListener(
+    accentColorPickerRuntime().addDocumentKeydownListener(
         (event) => {
             handleDialogKeydown(event, modal);
         },
@@ -570,8 +580,8 @@ function setupEventListeners(modal: HTMLElement): void {
     );
 
     if (
-        accentColorPickerRuntime.isHTMLInputElement(customPicker) &&
-        accentColorPickerRuntime.isHTMLInputElement(customText)
+        accentColorPickerRuntime().isHTMLInputElement(customPicker) &&
+        accentColorPickerRuntime().isHTMLInputElement(customText)
     ) {
         customPicker.addEventListener(
             "input",
@@ -640,7 +650,7 @@ function handleDialogKeydown(event: KeyboardEvent, modal: HTMLElement): void {
 
     if (
         event.shiftKey &&
-        accentColorPickerRuntime.getActiveElement() === firstElement
+        accentColorPickerRuntime().getActiveElement() === firstElement
     ) {
         event.preventDefault();
         lastElement.focus();
@@ -649,7 +659,7 @@ function handleDialogKeydown(event: KeyboardEvent, modal: HTMLElement): void {
 
     if (
         !event.shiftKey &&
-        accentColorPickerRuntime.getActiveElement() === lastElement
+        accentColorPickerRuntime().getActiveElement() === lastElement
     ) {
         event.preventDefault();
         firstElement.focus();
@@ -657,7 +667,7 @@ function handleDialogKeydown(event: KeyboardEvent, modal: HTMLElement): void {
 }
 
 function showModal(modal: HTMLElement): void {
-    restoreFocusTarget = accentColorPickerRuntime.getActiveElement();
+    restoreFocusTarget = accentColorPickerRuntime().getActiveElement();
     modal.style.display = "block";
     modal.setAttribute("aria-hidden", "false");
     updatePreview();
@@ -673,52 +683,53 @@ function updatePreview(): void {
     const defaultColor = getDefaultAccentColor(theme);
     const normalizedColor = color.toLowerCase();
 
-    const themeName = accentColorPickerRuntime.getElement(
+    const themeName = accentColorPickerRuntime().getElement(
         "#current-theme-name"
     );
     if (themeName) {
         themeName.textContent = theme;
     }
 
-    const preview = accentColorPickerRuntime.getElement(
+    const preview = accentColorPickerRuntime().getElement(
         "#accent-color-preview"
     );
-    if (accentColorPickerRuntime.isHTMLElement(preview)) {
+    if (accentColorPickerRuntime().isHTMLElement(preview)) {
         preview.style.backgroundColor = color;
     }
 
-    const hex = accentColorPickerRuntime.getElement("#accent-color-hex");
+    const hex = accentColorPickerRuntime().getElement("#accent-color-hex");
     if (hex) {
         hex.textContent = color.toUpperCase();
     }
 
-    const customPicker = accentColorPickerRuntime.getElement(
+    const customPicker = accentColorPickerRuntime().getElement(
         "#custom-color-picker"
     );
-    if (accentColorPickerRuntime.isHTMLInputElement(customPicker)) {
+    if (accentColorPickerRuntime().isHTMLInputElement(customPicker)) {
         customPicker.value = color;
     }
 
-    const customText = accentColorPickerRuntime.getElement(
+    const customText = accentColorPickerRuntime().getElement(
         "#custom-color-text"
     );
-    if (accentColorPickerRuntime.isHTMLInputElement(customText)) {
+    if (accentColorPickerRuntime().isHTMLInputElement(customText)) {
         customText.value = color;
     }
 
-    const presetButtons = accentColorPickerRuntime.getElements(".preset-color");
+    const presetButtons =
+        accentColorPickerRuntime().getElements(".preset-color");
     for (const button of presetButtons) {
         const selected =
-            accentColorPickerRuntime.isHTMLElement(button) &&
+            accentColorPickerRuntime().isHTMLElement(button) &&
             button.dataset["hex"] === normalizedColor;
         button.classList.toggle("selected", selected);
         button.setAttribute("aria-pressed", String(selected));
     }
 
-    const resetBtn = accentColorPickerRuntime.getElement(
+    const resetBtn = accentColorPickerRuntime().getElement(
         "#accent-color-reset"
     );
-    if (accentColorPickerRuntime.isHTMLButtonElement(resetBtn)) {
+    if (accentColorPickerRuntime().isHTMLButtonElement(resetBtn)) {
         resetBtn.disabled = color === defaultColor;
     }
 }

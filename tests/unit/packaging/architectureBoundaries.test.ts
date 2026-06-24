@@ -8949,7 +8949,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker browser access behind the runtime facade", () => {
-        expect.assertions(58);
+        expect.assertions(61);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -8967,6 +8967,15 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(accentColorPickerSource).toContain(
             "accentColorPickerRuntime.js"
+        );
+        expect(accentColorPickerSource).toContain(
+            "type AccentColorPickerRuntime"
+        );
+        expect(accentColorPickerSource).toContain(
+            "function accentColorPickerRuntime(): AccentColorPickerRuntime"
+        );
+        expect(accentColorPickerSource).not.toContain(
+            "const accentColorPickerRuntime = getAccentColorPickerRuntime();"
         );
         expect(accentColorPickerSource).toContain("createAbortController");
         expect(accentColorPickerSource).toContain("addDocumentKeydownListener");
