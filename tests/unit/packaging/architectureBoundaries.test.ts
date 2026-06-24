@@ -10949,7 +10949,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(18);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -10979,6 +10979,19 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(copyTableAsCSVSource).toContain("copyTableAsCSVRuntime.js");
+        expect(copyTableAsCSVSource).toContain("type CopyTableAsCSVRuntime");
+        expect(copyTableAsCSVSource).toContain(
+            "return getCopyTableAsCSVRuntime();"
+        );
+        expect(copyTableAsCSVSource).not.toContain(
+            "const copyTableAsCSVRuntime = getCopyTableAsCSVRuntime();"
+        );
+        expect(copyTableAsCSVSource).toContain(
+            "copyTableAsCSVRuntime().copyTextUsingBrowserClipboard"
+        );
+        expect(copyTableAsCSVSource).toContain(
+            "copyTableAsCSVRuntime().copyTextUsingLegacyExecCommand"
+        );
         expect(copyTableAsCSVRuntimeSource).toContain(
             "defaultCopyTableAsCSVRuntimeScope"
         );
@@ -13388,7 +13401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -13419,7 +13432,19 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
-        expect(loadOverlayFilesSource).toContain("getActiveTabButton()");
+        expect(loadOverlayFilesSource).toContain("type LoadOverlayFilesRuntime");
+        expect(loadOverlayFilesSource).toContain(
+            "return getLoadOverlayFilesRuntime();"
+        );
+        expect(loadOverlayFilesSource).not.toContain(
+            "const loadOverlayFilesRuntime = getLoadOverlayFilesRuntime();"
+        );
+        expect(loadOverlayFilesSource).toContain(
+            "loadOverlayFilesRuntime().getActiveTabButton()"
+        );
+        expect(loadOverlayFilesSource).toContain(
+            "loadOverlayFilesRuntime().getHardwareConcurrency()"
+        );
         expect(loadOverlayFilesRuntimeSource).toContain(
             "defaultLoadOverlayFilesRuntimeScope"
         );
@@ -13455,7 +13480,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(26);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -13486,6 +13511,18 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(loadSingleOverlayFileSource).toContain(
             "loadSingleOverlayFileRuntime.js"
+        );
+        expect(loadSingleOverlayFileSource).toContain(
+            "type LoadSingleOverlayFileRuntime"
+        );
+        expect(loadSingleOverlayFileSource).toContain(
+            "return getLoadSingleOverlayFileRuntime();"
+        );
+        expect(loadSingleOverlayFileSource).not.toContain(
+            "const loadSingleOverlayFileRuntime = getLoadSingleOverlayFileRuntime();"
+        );
+        expect(loadSingleOverlayFileSource).toContain(
+            "loadSingleOverlayFileRuntime()"
         );
         expect(loadSingleOverlayFileSource).toContain("createAbortController");
         expect(loadSingleOverlayFileSource).toContain("createFileReader");

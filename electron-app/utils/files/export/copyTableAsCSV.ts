@@ -8,7 +8,10 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import { getCopyTableAsCSVRuntime } from "./copyTableAsCSVRuntime.js";
+import {
+    getCopyTableAsCSVRuntime,
+    type CopyTableAsCSVRuntime,
+} from "./copyTableAsCSVRuntime.js";
 
 const CSV_CONFIG = {
     HEADER_ENABLED: true,
@@ -25,7 +28,9 @@ const CSV_CONFIG = {
         position: "fixed",
     },
 };
-const copyTableAsCSVRuntime = getCopyTableAsCSVRuntime();
+function copyTableAsCSVRuntime(): CopyTableAsCSVRuntime {
+    return getCopyTableAsCSVRuntime();
+}
 
 type TableRow = Record<string, unknown>;
 
@@ -146,7 +151,7 @@ async function copyToClipboard(
         /* ignore */
     }
 
-    if (await copyTableAsCSVRuntime.copyTextUsingBrowserClipboard(text)) {
+    if (await copyTableAsCSVRuntime().copyTextUsingBrowserClipboard(text)) {
         console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
         return;
     }
@@ -163,7 +168,7 @@ async function copyToClipboard(
  */
 function copyToClipboardFallback(text: string): void {
     try {
-        copyTableAsCSVRuntime.copyTextUsingLegacyExecCommand(
+        copyTableAsCSVRuntime().copyTextUsingLegacyExecCommand(
             text,
             CSV_CONFIG.TEXTAREA_STYLES
         );

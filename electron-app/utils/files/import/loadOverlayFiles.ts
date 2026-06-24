@@ -12,7 +12,10 @@ import {
     loadSingleOverlayFile,
     type OverlayFitData as SingleOverlayFitData,
 } from "./loadSingleOverlayFile.js";
-import { getLoadOverlayFilesRuntime } from "./loadOverlayFilesRuntime.js";
+import {
+    getLoadOverlayFilesRuntime,
+    type LoadOverlayFilesRuntime,
+} from "./loadOverlayFilesRuntime.js";
 
 /** Decoded FIT data used while managing overlay file state. */
 export type OverlayFitData = SingleOverlayFitData & {
@@ -43,7 +46,10 @@ const OVERLAY_PATH_KEYS = [
     "path",
     "webkitRelativePath",
 ] as const satisfies ReadonlyArray<keyof OverlayInputFile>;
-const loadOverlayFilesRuntime = getLoadOverlayFilesRuntime();
+
+function loadOverlayFilesRuntime(): LoadOverlayFilesRuntime {
+    return getLoadOverlayFilesRuntime();
+}
 
 /**
  * Loads FIT files as overlays.
@@ -154,7 +160,7 @@ export async function loadOverlayFiles(
 
     if (stateDirty) {
         // Save current tab before syncing state (which might trigger tab switches)
-        const currentTabButton = loadOverlayFilesRuntime.getActiveTabButton();
+        const currentTabButton = loadOverlayFilesRuntime().getActiveTabButton();
         const currentTabId = currentTabButton?.id ?? "";
 
         syncLoadedFitFilesState();
@@ -163,7 +169,8 @@ export async function loadOverlayFiles(
 
         // Restore the original tab if it was changed
         if (currentTabButton && currentTabId) {
-            const newActiveTab = loadOverlayFilesRuntime.getActiveTabButton();
+            const newActiveTab =
+                loadOverlayFilesRuntime().getActiveTabButton();
             if (newActiveTab?.id !== currentTabId) {
                 console.log(
                     "[loadOverlayFiles] Restoring tab to:",
@@ -376,7 +383,7 @@ function normalizePath(path: string): string {
 
 function resolveOverlayLoadConcurrency(): number {
     const hardwareConcurrency =
-        loadOverlayFilesRuntime.getHardwareConcurrency();
+        loadOverlayFilesRuntime().getHardwareConcurrency();
     if (
         typeof hardwareConcurrency === "number" &&
         Number.isFinite(hardwareConcurrency) &&

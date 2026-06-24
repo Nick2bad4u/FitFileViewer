@@ -52,7 +52,9 @@ type LoadSingleOverlayFileOptions = {
     readonly runtimeScope?: LoadSingleOverlayFileRuntimeScope | undefined;
 };
 
-const loadSingleOverlayFileRuntime = getLoadSingleOverlayFileRuntime();
+function loadSingleOverlayFileRuntime(): LoadSingleOverlayFileRuntime {
+    return getLoadSingleOverlayFileRuntime();
+}
 
 /**
  * Loads one FIT file as a map overlay.
@@ -64,7 +66,7 @@ export async function loadSingleOverlayFile(
     try {
         const runtime = runtimeScope
             ? getLoadSingleOverlayFileRuntime(runtimeScope)
-            : loadSingleOverlayFileRuntime;
+            : loadSingleOverlayFileRuntime();
         const preflightError = validateOverlayFilePreflight(file);
         if (preflightError) {
             return { error: preflightError, success: false };
