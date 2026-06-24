@@ -1,5 +1,5 @@
-import { AppState, createResetAppState } from "./stateManagerDefaults.js";
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
+import { getRootState, resetRootState } from "./stateManagerStore.js";
 
 type MutableRecord = Record<string, unknown>;
 
@@ -25,7 +25,7 @@ export function resetState(path?: string): void {
 
 function resetStatePath(path: string): void {
     const keys = path.split(".");
-    let target: unknown = AppState;
+    let target: unknown = getRootState();
 
     for (let i = 0; i < keys.length - 1; i += 1) {
         const key = keys[i];
@@ -54,11 +54,5 @@ function resetStatePath(path: string): void {
 }
 
 function resetAllState(): void {
-    const state = AppState as MutableRecord;
-
-    for (const key of Object.keys(state)) {
-        delete state[key];
-    }
-
-    Object.assign(AppState, createResetAppState());
+    resetRootState();
 }

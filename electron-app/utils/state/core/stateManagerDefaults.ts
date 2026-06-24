@@ -452,8 +452,3 @@ export function createResetAppState(): ResetAppStateShape {
 
     return resetState;
 }
-
-/**
- * Central application state container.
- */
-export const AppState: AppStateShape = createDefaultAppState();

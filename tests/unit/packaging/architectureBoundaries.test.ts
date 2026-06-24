@@ -8354,6 +8354,56 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps the mutable state-manager root behind the store module", () => {
+        expect.assertions(14);
+
+        const stateManagerDefaultsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerDefaults.ts"
+            )
+        );
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+        const stateManagerResetSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerReset.ts"
+            )
+        );
+        const stateManagerStoreSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerStore.ts"
+            )
+        );
+
+        expect(stateManagerDefaultsSource).not.toContain(
+            "export const AppState"
+        );
+        expect(stateManagerDefaultsSource).toContain(
+            "export function createDefaultAppState()"
+        );
+        expect(stateManagerDefaultsSource).toContain(
+            "export function createResetAppState()"
+        );
+        expect(stateManagerSource).toContain("stateManagerStore.js");
+        expect(stateManagerSource).toContain("getRootState()");
+        expect(stateManagerSource).not.toContain("import { AppState");
+        expect(stateManagerSource).not.toContain("return AppState");
+        expect(stateManagerSource).not.toContain("= AppState");
+        expect(stateManagerResetSource).toContain("stateManagerStore.js");
+        expect(stateManagerResetSource).toContain("resetRootState()");
+        expect(stateManagerResetSource).not.toContain("import { AppState");
+        expect(stateManagerStoreSource).toContain(
+            "const rootState: AppStateShape = createDefaultAppState();"
+        );
+        expect(stateManagerStoreSource).toContain(
+            "export function getRootState()"
+        );
+        expect(stateManagerStoreSource).toContain(
+            "export function resetRootState()"
+        );
+    });
+
     it("keeps Playwright smoke state assertions on explicit FIT activity slices", () => {
         expect.assertions(3);
 

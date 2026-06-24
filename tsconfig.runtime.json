@@ -147,6 +147,7 @@
         "electron-app/utils/state/core/stateManagerDefaults.ts",
         "electron-app/utils/state/core/stateManagerHistory.ts",
         "electron-app/utils/state/core/stateManagerPathUtils.ts",
+        "electron-app/utils/state/core/stateManagerStore.ts",
         "electron-app/utils/state/core/stateManagerReset.ts",
         "electron-app/utils/state/core/stateManager.ts",
         "electron-app/utils/state/core/computedStateManager.ts",

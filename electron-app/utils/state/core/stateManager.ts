@@ -1,4 +1,4 @@
-import { AppState, type AppStateShape } from "./stateManagerDefaults.js";
+import type { AppStateShape } from "./stateManagerDefaults.js";
 import {
     clearStateHistory as clearStateHistoryImpl,
     getStateHistory as getStateHistoryImpl,
@@ -8,6 +8,7 @@ import {
 import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { resetState as resetStateImpl } from "./stateManagerReset.js";
+import { getRootState } from "./stateManagerStore.js";
 import { getStateStorageRuntime } from "./stateStorageRuntime.js";
 
 /** Listener invoked when a subscribed state path changes. */
@@ -114,12 +115,14 @@ export function __resetStateManagerForTests(): void {
 export function getState<T = unknown>(
     path = ""
 ): T | AppStateShape | undefined {
+    const rootState = getRootState();
+
     if (!path) {
-        return AppState;
+        return rootState;
     }
 
     const keys = path.split(".");
-    let value: unknown = AppState;
+    let value: unknown = rootState;
 
     for (const key of keys) {
         if (!isRecord(value)) {
@@ -273,7 +276,7 @@ export function setState(
     const keys = path.split(".");
     const oldValue = getState(path);
     const { merge = false, silent = false, source = "unknown" } = options;
-    let target: unknown = AppState;
+    let target: unknown = getRootState();
 
     for (let i = 0; i < keys.length - 1; i += 1) {
         const key = keys[i];
