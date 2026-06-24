@@ -76,6 +76,7 @@ const scopedRendererElectronApiRegressionTests = [
     "electron-app/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
+    "tests/unit/utils/state/integration/mainProcessStateClient.test.ts",
     "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
     "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts",
     "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts",

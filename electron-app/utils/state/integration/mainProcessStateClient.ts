@@ -5,7 +5,10 @@ import type {
     MainStateSetValue,
 } from "../../../shared/ipc.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 
 type Operation = MainStateIpcValue;
@@ -29,9 +32,11 @@ type MainStateElectronAPI = Pick<
     | "setMainState"
 >;
 
-function isMainStateElectronAPI(
-    value: unknown
-): value is MainStateElectronAPI {
+type MainProcessStateClientOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
+};
+
+function isMainStateElectronAPI(value: unknown): value is MainStateElectronAPI {
     if (value === null || typeof value !== "object") {
         return false;
     }
@@ -48,8 +53,10 @@ function isMainStateElectronAPI(
     ].every((key) => typeof api[key] === "function");
 }
 
-function getMainStateElectronAPI(): MainStateElectronAPI | null {
-    return getRendererElectronApi(isMainStateElectronAPI);
+function getMainStateElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): MainStateElectronAPI | null {
+    return getRendererElectronApi(isMainStateElectronAPI, electronApiScope);
 }
 
 function isMainStateRecord(
@@ -94,12 +101,17 @@ function toNullablePort(value: MainStateIpcValue): null | number {
 export class MainProcessStateClient {
     private _isInitialized = false;
 
+    private readonly _electronApiScope: RendererElectronApiScope | undefined;
+
     private readonly _listeners = new Map<
         string,
         Set<(change: StateChangeEvent) => void>
     >();
 
-    public constructor() {
+    public constructor({
+        electronApiScope,
+    }: MainProcessStateClientOptions = {}) {
+        this._electronApiScope = electronApiScope;
         this._init();
     }
 
@@ -108,7 +120,7 @@ export class MainProcessStateClient {
             return;
         }
 
-        if (!getMainStateElectronAPI()) {
+        if (!this.getElectronAPI()) {
             console.warn(
                 "[MainProcessStateClient] electronAPI not available - client will be in degraded mode"
             );
@@ -266,7 +278,7 @@ export class MainProcessStateClient {
 
     /** Checks whether the preload state bridge is available. */
     public isAvailable(): boolean {
-        return this._isInitialized && Boolean(getMainStateElectronAPI());
+        return this._isInitialized && Boolean(this.getElectronAPI());
     }
 
     /**
@@ -342,12 +354,16 @@ export class MainProcessStateClient {
     }
 
     private requireElectronAPI(): MainStateElectronAPI {
-        const electronAPI = getMainStateElectronAPI();
+        const electronAPI = this.getElectronAPI();
         if (!this._isInitialized || !electronAPI) {
             throw new Error("MainProcessStateClient is not available");
         }
 
         return electronAPI;
+    }
+
+    private getElectronAPI(): MainStateElectronAPI | null {
+        return getMainStateElectronAPI(this._electronApiScope);
     }
 }
 
