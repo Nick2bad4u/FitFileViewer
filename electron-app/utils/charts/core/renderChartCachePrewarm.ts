@@ -193,7 +193,8 @@ async function processPrewarmFieldChunk(
  */
 export async function prewarmChartRenderCaches(
     params: PrewarmChartRenderCachesParams,
-    dependencies: ChartCachePrewarmDependencies
+    dependencies: ChartCachePrewarmDependencies,
+    timerRuntime: RenderChartTimerRuntime = getRenderChartTimerRuntime()
 ): Promise<PrewarmChartRenderCachesResult> {
     const {
         reason = "prewarm",
@@ -243,7 +244,6 @@ export async function prewarmChartRenderCaches(
         const fieldsToPrewarm = getFieldsToPrewarm(recordMesgs, (field) =>
             dependencies.getFieldVisibility(field)
         );
-        const timerRuntime = getRenderChartTimerRuntime();
 
         if (isDevelopmentEnvironment()) {
             console.log(

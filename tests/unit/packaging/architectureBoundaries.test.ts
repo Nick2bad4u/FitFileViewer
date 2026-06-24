@@ -15316,7 +15316,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -15338,6 +15338,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartTimerRuntime.ts"
             )
         );
+        const renderChartCachePrewarmSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartCachePrewarm.ts"
+            )
+        );
         const runtimeScopeSource = runtimeSource.slice(
             runtimeSource.indexOf(
                 "export interface RenderChartTimerRuntimeScope"
@@ -15347,6 +15352,15 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(renderChartCachePrewarmSource).not.toContain(
+            "const timerRuntime = getRenderChartTimerRuntime();"
+        );
+        expect(renderChartCachePrewarmSource).toContain(
+            "timerRuntime: RenderChartTimerRuntime = getRenderChartTimerRuntime()"
+        );
+        expect(renderChartCachePrewarmSource).toContain(
+            "timerRuntime,"
+        );
         expect(runtimeSource).toContain("defaultRenderChartTimerRuntimeScope");
         expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
         expect(runtimeScopeSource).not.toContain("readonly setTimeout?:");
