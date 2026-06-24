@@ -40,7 +40,6 @@ export interface RendererDependencies {
 
 interface RendererApplicationStartupOptions {
     addEventListener: typeof globalThis.addEventListener;
-    callUnknownFunction: (candidate: unknown, args?: unknown[]) => unknown;
     ensureCoreModules: () => Promise<RendererCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
     getFileInput: () => HTMLInputElement | null;
@@ -255,10 +254,10 @@ async function initializeComponents(
         try {
             const { setupTheme: setupThemeDyn } =
                 await options.ensureCoreModules();
-            options.callUnknownFunction(setupThemeDyn, [
+            setupThemeDyn?.(
                 dependencies.applyTheme,
-                dependencies.listenForThemeChange,
-            ]);
+                dependencies.listenForThemeChange
+            );
         } catch {
             /* Ignore errors */
         }
@@ -279,11 +278,11 @@ async function initializeComponents(
         try {
             const { setupListeners: setupListenersDyn } =
                 await options.ensureCoreModules();
-            options.callUnknownFunction(setupListenersDyn, [dependencies]);
+            setupListenersDyn?.(dependencies);
         } catch {
             try {
                 const { setupListeners } = await options.ensureCoreModules();
-                options.callUnknownFunction(setupListeners, [dependencies]);
+                setupListeners?.(dependencies);
             } catch (error) {
                 options.logRenderer(
                     "warn",

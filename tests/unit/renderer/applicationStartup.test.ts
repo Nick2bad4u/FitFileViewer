@@ -58,7 +58,7 @@ describe("renderer application startup", () => {
     });
 
     it("initializes state, DOM, components, file input, hooks, and app actions", async () => {
-        expect.assertions(16);
+        expect.assertions(14);
 
         const coreModules = createCoreModules();
         const fileInput = document.createElement("input");
@@ -67,16 +67,9 @@ describe("renderer application startup", () => {
             async () => undefined
         );
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
-        const callUnknownFunction = vi.fn(
-            (candidate: unknown, args: unknown[] = []) =>
-                typeof candidate === "function"
-                    ? (candidate as (...values: unknown[]) => unknown)(...args)
-                    : undefined
-        );
         const performance = createPerformanceMonitor();
         const utils = createRendererApplicationStartup({
             addEventListener,
-            callUnknownFunction,
             ensureCoreModules: async () => coreModules,
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -139,14 +132,6 @@ describe("renderer application startup", () => {
         fileInput.dispatchEvent(new Event("change"));
 
         expect(coreModules.handleOpenFile).toHaveBeenCalled();
-        expect(callUnknownFunction).toHaveBeenCalledWith(
-            coreModules.setupTheme,
-            [coreModules.applyTheme, coreModules.listenForThemeChange]
-        );
-        expect(callUnknownFunction).toHaveBeenCalledWith(
-            coreModules.setupListeners,
-            [expect.any(Object)]
-        );
         expect(performance.starts).toStrictEqual([
             "app_initialization",
             "theme_setup",
@@ -174,14 +159,6 @@ describe("renderer application startup", () => {
         const performance = createPerformanceMonitor();
         const utils = createRendererApplicationStartup({
             addEventListener,
-            callUnknownFunction: vi.fn(
-                (candidate: unknown, args: unknown[] = []) =>
-                    typeof candidate === "function"
-                        ? (candidate as (...values: unknown[]) => unknown)(
-                              ...args
-                          )
-                        : undefined
-            ),
             ensureCoreModules: async () => coreModules,
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -234,7 +211,6 @@ describe("renderer application startup", () => {
         const logRenderer = vi.fn();
         const utils = createRendererApplicationStartup({
             addEventListener: vi.fn(),
-            callUnknownFunction: vi.fn(),
             ensureCoreModules: async () =>
                 createCoreModules({
                     showNotification,

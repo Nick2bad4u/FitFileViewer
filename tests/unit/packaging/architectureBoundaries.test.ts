@@ -11587,6 +11587,37 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer application startup off the generic function bridge", () => {
+        expect.assertions(7);
+
+        const applicationStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
+
+        expect(applicationStartupSource).not.toContain("callUnknownFunction");
+        expect(applicationStartupSource).toContain(
+            "setupThemeDyn?.(\n                dependencies.applyTheme,"
+        );
+        expect(applicationStartupSource).toContain(
+            "dependencies.listenForThemeChange\n            )"
+        );
+        expect(applicationStartupSource).toContain(
+            "setupListenersDyn?.(dependencies)"
+        );
+        expect(applicationStartupSource).toContain(
+            "setupListeners?.(dependencies)"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererApplicationStartup({\n    addEventListener: runtimeEnvironment.addEventListener,\n    callUnknownFunction,"
+        );
+        expect(applicationStartupSource).toContain(
+            "handleImmediateFileInputChange("
+        );
+    });
+
     it("keeps external link browser fallbacks behind the runtime facade", () => {
         expect.assertions(22);
 

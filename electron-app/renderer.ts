@@ -142,7 +142,6 @@ const PerformanceMonitor: RendererPerformanceMonitor =
 
 const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
-    callUnknownFunction,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
     getFileInput: fileInputWiring.getFileInput,
