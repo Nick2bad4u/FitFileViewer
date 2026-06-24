@@ -1244,10 +1244,13 @@ export const exportUtils = {
      *
      * @returns {Promise<boolean>}
      */
-    async copyPngDataUrlToClipboard(pngDataUrl: string) {
+    async copyPngDataUrlToClipboard(
+        pngDataUrl: string,
+        options?: ExportElectronApiOptions
+    ) {
         // 1) Electron bridge (preferred)
         try {
-            const api = getExportElectronApi();
+            const api = getExportElectronApi(options);
             if (api && typeof api.writeClipboardPngDataUrl === "function") {
                 const ok = Boolean(
                     await api.writeClipboardPngDataUrl(pngDataUrl)
@@ -1282,7 +1285,10 @@ export const exportUtils = {
      * Copies chart image to clipboard with theme background
      *
      * @param {ChartJSInstance} chart - Chart.js instance
-     */ async copyChartToClipboard(chart: ExportableChart) {
+     */ async copyChartToClipboard(
+        chart: ExportableChart,
+        options?: ExportElectronApiOptions
+    ) {
         try {
             // Validate chart using utility function
             if (!exportUtils.isValidChart(chart)) {
@@ -1313,7 +1319,10 @@ export const exportUtils = {
             }
 
             const pngDataUrl = canvas.toDataURL("image/png", 1);
-            const ok = await exportUtils.copyPngDataUrlToClipboard(pngDataUrl);
+            const ok = await exportUtils.copyPngDataUrlToClipboard(
+                pngDataUrl,
+                options
+            );
 
             if (ok) {
                 __deps.showNotification("Chart copied to clipboard", "success");
@@ -1337,7 +1346,10 @@ export const exportUtils = {
      *
      * @param {ChartJSInstance[]} charts - Array of Chart.js instances
      */
-    async copyCombinedChartsToClipboard(charts: ExportableChart[]) {
+    async copyCombinedChartsToClipboard(
+        charts: ExportableChart[],
+        options?: ExportElectronApiOptions
+    ) {
         try {
             if (!charts || charts.length === 0) {
                 throw new Error("No charts provided");
@@ -1417,7 +1429,10 @@ export const exportUtils = {
             }
 
             const pngDataUrl = combinedCanvas.toDataURL("image/png", 1);
-            const ok = await exportUtils.copyPngDataUrlToClipboard(pngDataUrl);
+            const ok = await exportUtils.copyPngDataUrlToClipboard(
+                pngDataUrl,
+                options
+            );
 
             if (ok) {
                 __deps.showNotification(

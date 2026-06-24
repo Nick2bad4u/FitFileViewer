@@ -4,10 +4,7 @@ import {
     __setTestDeps as setRawTestDeps,
     exportUtils as rawExportUtils,
 } from "../../../electron-app/utils/files/export/exportUtils.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type NotificationType = "error" | "info" | "success";
 
@@ -20,8 +17,14 @@ type TestDeps = {
 };
 
 type ExportUtilsUnderTest = {
-    copyChartToClipboard: (chart: unknown) => Promise<void>;
-    copyCombinedChartsToClipboard: (charts: unknown) => Promise<void>;
+    copyChartToClipboard: (
+        chart: unknown,
+        options?: { electronApiScope?: RendererElectronApiScope }
+    ) => Promise<void>;
+    copyCombinedChartsToClipboard: (
+        charts: unknown,
+        options?: { electronApiScope?: RendererElectronApiScope }
+    ) => Promise<void>;
     createGyazoAuthModal: (
         authUrl: string,
         state: string,
@@ -293,7 +296,6 @@ function installClipboard(write: ClipboardApi["write"]): void {
 
 function clearElectronApi(): void {
     electronApiMock = undefined;
-    resetRendererElectronApiCandidate();
 }
 
 function getElectronApiMock(): ElectronApiMock {
@@ -306,7 +308,12 @@ function getElectronApiMock(): ElectronApiMock {
 
 function installElectronApi(api: ElectronApiMock): void {
     electronApiMock = api;
-    registerRendererElectronApiCandidate(api);
+}
+
+function createExportApiScope(api: ElectronApiMock): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 function expectCanvasSize(
@@ -826,15 +833,18 @@ describe("exportUtils chart export helpers", () => {
             >(async () => {
                 throw new Error("Permission denied");
             });
-            installElectronApi({
+            const electronApi = {
                 writeClipboardPngDataUrl: vi.fn<(dataUrl: string) => boolean>(
                     () => false
                 ),
-            });
+            };
+            installElectronApi(electronApi);
             queueCanvas(exportCanvas);
             installClipboard(writeClipboard);
 
-            await exportUtils.copyChartToClipboard(chartFixture.chart);
+            await exportUtils.copyChartToClipboard(chartFixture.chart, {
+                electronApiScope: createExportApiScope(electronApi),
+            });
 
             expect(exportCanvas.context.fillStyle).toBe("#ffffff");
             expect(
@@ -891,16 +901,18 @@ describe("exportUtils chart export helpers", () => {
                 0,
                 "data:image/png;base64,Y29tYmluZWQ="
             );
-            installElectronApi({
+            const electronApi = {
                 writeClipboardPngDataUrl: vi.fn<(dataUrl: string) => boolean>(
                     () => true
                 ),
-            });
+            };
+            installElectronApi(electronApi);
             queueCanvas(combinedCanvas, createCanvasFixture());
 
-            await exportUtils.copyCombinedChartsToClipboard([
-                chartFixture.chart,
-            ]);
+            await exportUtils.copyCombinedChartsToClipboard(
+                [chartFixture.chart],
+                { electronApiScope: createExportApiScope(electronApi) }
+            );
 
             expect(combinedCanvas.context.fillStyle).toBe("#ffffff");
             expect(
