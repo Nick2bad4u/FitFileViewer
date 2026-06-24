@@ -10215,7 +10215,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(47);
+        expect.assertions(56);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -10236,13 +10236,20 @@ describe("architecture boundaries", () => {
             )
         );
         const directRecentFilesContextMenuRuntimeGlobalPattern =
-            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b|\binstanceof\s+Node\b/u;
+            /\bDate\.now\b|\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b|\binstanceof\s+Node\b/u;
         const directRecentFilesContextMenuAmbientTimerFallbackPattern =
-            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+            /\bscope\.(?:clearTimeout|dateNow|setTimeout)\s*\?\?\s*(?:Date\.now|globalThis\.(?:clearTimeout|setTimeout))\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(|\?\?\s*Date\.now\b/u;
 
         expect(recentFilesContextMenuSource).toContain(
             "recentFilesContextMenuRuntime.js"
         );
+        expect(recentFilesContextMenuSource).toContain(
+            "const menuCreatedAt = runtime.dateNow();"
+        );
+        expect(recentFilesContextMenuSource).toContain(
+            "runtime.dateNow() - menuCreatedAt"
+        );
+        expect(recentFilesContextMenuSource).not.toContain("Date.now");
         expect(recentFilesContextMenuSource).toContain("createAbortController");
         expect(recentFilesContextMenuSource).toContain(
             "addDocumentMousedownListener"
@@ -10294,6 +10301,15 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "dateNow: () => number;"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
@@ -10318,6 +10334,9 @@ describe("architecture boundaries", () => {
             "recent files context menu requires a document event-target runtime"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires a dateNow runtime"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a setTimeout runtime"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
@@ -10325,6 +10344,7 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
         expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeScopeSource).not.toContain("readonly dateNow?:");
         expect(runtimeScopeSource).not.toContain(
             "readonly documentEventTarget?:"
         );
@@ -10336,6 +10356,9 @@ describe("architecture boundaries", () => {
         );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.dateNow"
         );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope.documentEventTarget"

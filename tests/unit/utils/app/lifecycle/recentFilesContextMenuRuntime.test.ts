@@ -75,18 +75,23 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("schedules and clears timers through the injected runtime scope", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const callback = vi.fn<() => void>();
+        const timestamp = Number("1700");
         const delayMs = Number("0");
         const timer = 31 as ReturnType<typeof globalThis.setTimeout>;
+        const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getRecentFilesContextMenuRuntime({
             getClearTimeout: () => clearTimeout,
+            getDateNow: () => dateNow,
             getSetTimeout: () => setTimeout,
         });
 
+        expect(runtime.dateNow()).toBe(timestamp);
+        expect(dateNow).toHaveBeenCalledOnce();
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
         runtime.clearTimeout(timer);
 
@@ -95,9 +100,10 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const callback = vi.fn<() => void>();
+        const timestamp = Number("2400");
         const delayMs = Number("25");
         let mousedownCount = 0;
         const documentEventTarget =
@@ -106,6 +112,7 @@ describe("recentFilesContextMenuRuntime", () => {
             mousedownCount += 1;
         };
         const timer = 47 as ReturnType<typeof globalThis.setTimeout>;
+        const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         let controllerCount = 0;
@@ -118,6 +125,7 @@ describe("recentFilesContextMenuRuntime", () => {
         const runtime = getRecentFilesContextMenuRuntime({
             getAbortController: () => TestAbortController,
             getClearTimeout: () => clearTimeout,
+            getDateNow: () => dateNow,
             getDocumentEventTarget: () => documentEventTarget,
             getNode: () => Node,
             getSetTimeout: () => setTimeout,
@@ -128,6 +136,8 @@ describe("recentFilesContextMenuRuntime", () => {
             TestAbortController
         );
         expect(controllerCount).toBe(1);
+        expect(runtime.dateNow()).toBe(timestamp);
+        expect(dateNow).toHaveBeenCalledOnce();
         runtime.addDocumentMousedownListener(mousedownListener, {
             signal: runtime.createAbortController().signal,
         });
@@ -163,11 +173,14 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const runtime = getRecentFilesContextMenuRuntime({});
         const element = document.createElement("div");
 
+        expect(() => runtime.dateNow()).toThrow(
+            "recent files context menu requires a dateNow runtime"
+        );
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "recent files context menu requires a setTimeout runtime"
         );
@@ -241,11 +254,12 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(22);
+        expect.assertions(24);
 
         const AbortControllerConstructor = vi.fn();
         const callback = vi.fn<() => void>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const dateNow = vi.fn<() => number>(() => Number("1700"));
         const setTimeout = vi.fn<typeof globalThis.setTimeout>();
         const documentEventTarget =
             document.implementation.createHTMLDocument();
@@ -259,6 +273,7 @@ describe("recentFilesContextMenuRuntime", () => {
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
             clearTimeout,
+            dateNow,
             documentEventTarget,
             Node,
             setTimeout,
@@ -270,6 +285,9 @@ describe("recentFilesContextMenuRuntime", () => {
 
         expect(() => runtime.createAbortController()).toThrow(
             "recent files context menu requires an AbortController runtime"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "recent files context menu requires a dateNow runtime"
         );
         expect(() =>
             runtime.addDocumentMousedownListener(() => undefined, {})
@@ -316,6 +334,7 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(querySelector).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
+        expect(dateNow).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });

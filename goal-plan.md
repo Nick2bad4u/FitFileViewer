@@ -762,12 +762,12 @@ constructing `AbortController`, or calling `clearTimeout` directly inside `resou
 runtime coverage and architecture guardrails blocking those direct operations from returning. Explicit resource
 manager runtime scopes must now provide timer cleanup primitives instead of falling back to `globalThis`, with
 focused runtime coverage and architecture coverage blocking that fallback from returning.
-Recent-files context-menu viewport clamping, focus-delay scheduling/cleanup, listener abort-controller creation, menu lookup/creation/body attachment, attachment verification, body debug reads, and outside-click target Node checks now go through the scoped
+Recent-files context-menu viewport clamping, focus-delay scheduling/cleanup, listener abort-controller creation, menu lookup/creation/body attachment, attachment verification, body debug reads, outside-click target Node checks, and menu-age timestamp reads now go through the scoped
 `recentFilesContextMenuRuntime.ts` adapter instead of probing `globalThis.window`, `window.innerWidth`, or
-`window.innerHeight`, calling timer globals, constructing `AbortController`, querying/creating through `document`, reading `document.body`, or checking ambient `Node` directly inside
+`window.innerHeight`, calling clock/timer globals, constructing `AbortController`, querying/creating through `document`, reading `document.body`, or checking ambient `Node` directly inside
 `recentFilesContextMenu.ts`, with focused runtime coverage and architecture guardrails blocking those direct
-viewport, timer, controller, document, and constructor globals from returning. Explicit recent-files context-menu runtime scopes must now
-provide timer, document, and Node primitives instead of falling back to `globalThis`, with focused runtime coverage
+viewport, clock, timer, controller, document, and constructor globals from returning. Explicit recent-files context-menu runtime scopes must now
+provide clock, timer, document, and Node primitives instead of falling back to `globalThis`, with focused runtime coverage
 and architecture coverage blocking those fallbacks from returning.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;

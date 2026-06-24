@@ -5,6 +5,7 @@ export interface RecentFilesContextMenuRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
     readonly getSetTimeout?:
@@ -51,6 +52,7 @@ export interface RecentFilesContextMenuRuntime {
     clearTimeout: (handle: RecentFilesContextMenuTimer) => void;
     createAbortController: () => AbortController;
     createMenuElement: () => HTMLDivElement;
+    dateNow: () => number;
     findRecentFilesMenu: () => Element | null;
     getBodyDebugInfo: () => RecentFilesContextMenuBodyDebugInfo;
     getViewport: () => RecentFilesContextMenuViewport;
@@ -72,6 +74,7 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
     {
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
+        getDateNow: () => Date.now,
         getDocumentEventTarget: () => globalThis.document,
         getNode: () => globalThis.Node,
         getSetTimeout: () => globalThis.setTimeout,
@@ -91,6 +94,19 @@ function getClearTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getRequiredDateNow(
+    scope: RecentFilesContextMenuRuntimeScope
+): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError(
+            "recent files context menu requires a dateNow runtime"
+        );
+    }
+
+    return dateNow;
 }
 
 function getDocumentEventTarget(
@@ -184,6 +200,9 @@ export function getRecentFilesContextMenuRuntime(
         },
         createMenuElement(): HTMLDivElement {
             return getRuntimeDocument(scope).createElement("div");
+        },
+        dateNow(): number {
+            return getRequiredDateNow(scope)();
         },
         findRecentFilesMenu(): Element | null {
             return getRuntimeDocument(scope).querySelector(

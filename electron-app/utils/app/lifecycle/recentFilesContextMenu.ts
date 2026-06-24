@@ -529,7 +529,7 @@ export function attachRecentFilesContextMenu({
                 "Body childNodes count:",
                 finalBodyDebugInfo.childNodeCount
             );
-            const menuCreatedAt = Date.now(); // Track when menu was created
+            const menuCreatedAt = runtime.dateNow();
 
             const removeMenu = (e: MouseEvent) => {
                 debugLog(
@@ -552,7 +552,8 @@ export function attachRecentFilesContextMenu({
                 ) {
                     // Check for test pollution: synthetic events that are both untrusted AND
                     // occur more than 2 seconds after menu creation (likely from earlier tests)
-                    const timeSinceMenuCreated = Date.now() - menuCreatedAt;
+                    const timeSinceMenuCreated =
+                        runtime.dateNow() - menuCreatedAt;
                     const isLikelyTestPollution =
                         !isTrusted &&
                         which === 0 &&
