@@ -23,10 +23,12 @@ describe("getFileBrowserTabRuntime", () => {
     });
 
     it("routes DOM helpers through the injected document", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const documentRef = document.implementation.createHTMLDocument();
+        const dateNow = vi.fn(() => 123_456);
         const runtime = getFileBrowserTabRuntime({
+            getDateNow: () => dateNow,
             getDocument: () => documentRef,
             getHTMLElement: () => HTMLElement,
             getHTMLInputElement: () => HTMLInputElement,
@@ -53,16 +55,21 @@ describe("getFileBrowserTabRuntime", () => {
         expect(runtime.isHTMLSelectElement(select)).toBe(true);
         expect(runtime.isHTMLSelectElement(input)).toBe(false);
         expect(runtime.getElement("#missing")).toBeNull();
+        expect(runtime.dateNow()).toBe(123_456);
+        expect(dateNow).toHaveBeenCalledOnce();
         expect(document.getElementById("content_browser")).toBeNull();
     });
 
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const runtime = getFileBrowserTabRuntime({});
 
         expect(() => runtime.createAbortController()).toThrow(
             "fileBrowserTab requires an AbortController runtime"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "fileBrowserTab requires a date clock runtime"
         );
         expect(() => runtime.createElement("div")).toThrow(
             "fileBrowserTab requires a document runtime"
@@ -85,12 +92,14 @@ describe("getFileBrowserTabRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const AbortControllerConstructor = vi.fn();
+        const dateNow = vi.fn(() => 123_456);
         const runtime = getFileBrowserTabRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
+            dateNow,
             document,
             HTMLElement,
             HTMLInputElement,
@@ -99,6 +108,9 @@ describe("getFileBrowserTabRuntime", () => {
 
         expect(() => runtime.createAbortController()).toThrow(
             "fileBrowserTab requires an AbortController runtime"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "fileBrowserTab requires a date clock runtime"
         );
         expect(() => runtime.createElement("div")).toThrow(
             "fileBrowserTab requires a document runtime"
@@ -119,5 +131,6 @@ describe("getFileBrowserTabRuntime", () => {
             "fileBrowserTab requires an HTMLSelectElement runtime"
         );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(dateNow).not.toHaveBeenCalled();
     });
 });

@@ -312,10 +312,11 @@ abort-controller creation now route through `openFileSelectorRuntime.ts` instead
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct selector runtime primitives from returning.
 Browser tab container/status/view-button lookups, Files/Calendar/Library view path/content/control lookups, open-file
-button lookup, Browser tab scaffold/row/card/control element and text-node creation, HTMLElement/input/select checks, and
-managed listener abort-controller creation now route through `fileBrowserTabRuntime.ts` instead of reading those Browser
-tab DOM primitives or constructing `AbortController` directly inside `fileBrowserTab.ts`, with focused runtime coverage
-and architecture guardrails blocking those direct Browser tab DOM primitives from returning.
+button lookup, Browser tab scaffold/row/card/control element and text-node creation, HTMLElement/input/select checks,
+managed listener abort-controller creation, and Browser listing/library scan timestamp reads now route through
+`fileBrowserTabRuntime.ts` instead of reading those Browser tab DOM primitives, constructing `AbortController`, or
+calling `Date.now` directly inside `fileBrowserTab.ts`, with focused runtime coverage and architecture guardrails
+blocking those direct Browser tab DOM primitives and clock reads from returning.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document

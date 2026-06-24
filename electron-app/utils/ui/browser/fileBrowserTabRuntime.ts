@@ -4,6 +4,7 @@ export interface FileBrowserTabRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
         | (() => typeof HTMLElement | undefined)
@@ -22,6 +23,7 @@ export interface FileBrowserTabRuntime {
     ) => HTMLElementTagNameMap[K];
     createTextNode: (data: string) => Text;
     createAbortController: () => AbortController;
+    dateNow: () => number;
     getElement: <TElement extends Element = Element>(
         selector: string
     ) => TElement | null;
@@ -33,6 +35,7 @@ export interface FileBrowserTabRuntime {
 
 const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
+    getDateNow: () => Date.now,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getHTMLInputElement: () => globalThis.HTMLInputElement,
@@ -50,6 +53,15 @@ function getAbortControllerConstructor(
     }
 
     return AbortControllerConstructor;
+}
+
+function getRequiredDateNow(scope: FileBrowserTabRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("fileBrowserTab requires a date clock runtime");
+    }
+
+    return dateNow;
 }
 
 function getRequiredDocument(scope: FileBrowserTabRuntimeScope): Document {
@@ -112,6 +124,9 @@ export function getFileBrowserTabRuntime(
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        dateNow(): number {
+            return getRequiredDateNow(scope)();
         },
         getElement<TElement extends Element = Element>(
             selector: string

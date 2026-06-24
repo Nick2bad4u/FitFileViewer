@@ -1204,9 +1204,9 @@ const directFitBrowserFeatureGateRuntimeGlobalPattern =
 const directFitBrowserFeatureGateRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.(?:document|HTMLElement)\b/u;
 const directFileBrowserTabRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b|\bdocument\.(?:querySelector|createElement|createTextNode)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b/u;
+    /\bnew\s+AbortController\b|\bdocument\.(?:querySelector|createElement|createTextNode)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|\bDate\.now\b/u;
 const directFileBrowserTabRuntimeAmbientGetterPattern =
-    /\breturn\s+globalThis\.(?:AbortController|document|HTMLElement|HTMLInputElement|HTMLSelectElement)\b/u;
+    /\breturn\s+globalThis\.(?:AbortController|document|HTMLElement|HTMLInputElement|HTMLSelectElement)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeAmbientFallbackPattern =
@@ -5434,7 +5434,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(57);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -5486,6 +5486,7 @@ describe("architecture boundaries", () => {
         expect(browserTabSource).toContain(
             "fileBrowserTabRuntime().createTextNode"
         );
+        expect(browserTabSource).toContain("fileBrowserTabRuntime().dateNow()");
         expect(browserTabSource).toContain(
             "fileBrowserTabRuntime().isHTMLElement"
         );
@@ -5504,6 +5505,7 @@ describe("architecture boundaries", () => {
         expect(browserTabSource).not.toMatch(
             /\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b/u
         );
+        expect(browserTabSource).not.toContain("Date.now");
         expect(browserTabSource).not.toMatch(
             /document\.querySelector<HTMLElement>\(\s*"#fit-browser-(?:pick-folder|status|view-calendar|view-files|view-library)"/u
         );
@@ -5542,6 +5544,7 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
+        expect(browserTabRuntimeSource).not.toContain("readonly dateNow?:");
         expect(browserTabRuntimeSource).not.toContain("readonly document?:");
         expect(browserTabRuntimeSource).not.toContain("readonly HTMLElement?:");
         expect(browserTabRuntimeSource).not.toContain(
@@ -5563,6 +5566,7 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(browserTabRuntimeSource).toContain("getDateNow: () => Date.now");
         expect(browserTabRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
@@ -5578,6 +5582,7 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).toContain(
             "scope.getAbortController?.()"
         );
+        expect(browserTabRuntimeSource).toContain("scope.getDateNow?.()");
         expect(browserTabRuntimeSource).toContain(
             "getRequiredDocument(scope).createElement(tagName)"
         );

@@ -797,7 +797,7 @@ function loadPersistedLibraryCache(
         const normalizedScannedAt =
             typeof scannedAt === "number" && Number.isFinite(scannedAt)
                 ? scannedAt
-                : Date.now();
+                : fileBrowserTabRuntime().dateNow();
 
         return {
             items: sortLibraryItemsByStartTimeDesc(items),
@@ -1160,7 +1160,7 @@ async function refreshListing(): Promise<void> {
     const fileCount = entries.filter((entry) => entry.kind === "file").length;
     const folderCount = entries.length - fileCount;
     const locationLabel = relPath ? relPath.replaceAll("/", " / ") : "root";
-    const loadedAt = Date.now();
+    const loadedAt = fileBrowserTabRuntime().dateNow();
     setBrowserStatus(
         `Loaded ${entries.length} item${entries.length === 1 ? "" : "s"} from ${locationLabel} at ${formatLoadedAt()} (${fileCount} file${fileCount === 1 ? "" : "s"}, ${folderCount} folder${folderCount === 1 ? "" : "s"}).`
     );
@@ -2156,7 +2156,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
 
         const files = await listAllFitFiles(libraryApi);
         if (files.length === 0) {
-            const scannedAt = Date.now();
+            const scannedAt = fileBrowserTabRuntime().dateNow();
             if (statusEl) statusEl.textContent = "No .fit files found.";
             renderLibraryResults(root, { items: [], scannedAt });
             setBrowserStatus(`Scanned ${root}. No FIT files found.`);
@@ -2212,7 +2212,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
 
         await Promise.allSettled(tasks);
 
-        const scannedAt = Date.now();
+        const scannedAt = fileBrowserTabRuntime().dateNow();
         const payload = {
             items: sortLibraryItemsByStartTimeDesc(items),
             scannedAt,
