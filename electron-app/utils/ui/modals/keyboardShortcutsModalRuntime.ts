@@ -12,6 +12,12 @@ export interface KeyboardShortcutsModalRuntimeScope {
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getKeyboardEvent?:
+        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -32,6 +38,8 @@ export interface KeyboardShortcutsModalRuntime {
         tagName: K
     ) => SVGElementTagNameMap[K];
     readonly getActiveElement: () => Element | null;
+    readonly isHTMLElement: (value: unknown) => value is HTMLElement;
+    readonly isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
     readonly querySelector: <K extends Element = Element>(
         selector: string
     ) => K | null;
@@ -53,6 +61,8 @@ const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeSc
         getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getKeyboardEvent: () => globalThis.KeyboardEvent,
         getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
         getSetTimeout: () => globalThis.setTimeout,
     };
@@ -78,6 +88,32 @@ function getScopeDocument(scope: KeyboardShortcutsModalRuntimeScope): Document {
     }
 
     return runtimeDocument;
+}
+
+function getScopeHTMLElement(
+    scope: KeyboardShortcutsModalRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError(
+            "keyboardShortcutsModalRuntime requires an HTMLElement runtime"
+        );
+    }
+
+    return HTMLElementConstructor;
+}
+
+function getScopeKeyboardEvent(
+    scope: KeyboardShortcutsModalRuntimeScope
+): typeof globalThis.KeyboardEvent {
+    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    if (typeof KeyboardEventConstructor !== "function") {
+        throw new TypeError(
+            "keyboardShortcutsModalRuntime requires a KeyboardEvent runtime"
+        );
+    }
+
+    return KeyboardEventConstructor;
 }
 
 function getScopeRequestAnimationFrame(
@@ -134,6 +170,12 @@ export function getKeyboardShortcutsModalRuntime(
         },
         getActiveElement(): Element | null {
             return getScopeDocument(scope).activeElement;
+        },
+        isHTMLElement(value): value is HTMLElement {
+            return value instanceof getScopeHTMLElement(scope);
+        },
+        isKeyboardEvent(value): value is KeyboardEvent {
+            return value instanceof getScopeKeyboardEvent(scope);
         },
         querySelector<K extends Element = Element>(selector: string): K | null {
             return getScopeDocument(scope).querySelector<K>(selector);

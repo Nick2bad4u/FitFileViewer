@@ -972,7 +972,7 @@ const directDragDropHandlerTimingRuntimeGlobalPattern =
 const directDragDropHandlerRuntimeAmbientGetterPattern =
     /\bget\s+(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\b/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b/u;
 const directKeyboardShortcutsModalSvgGlobalPattern =
     /\bdocument\.createElementNS\b/u;
 const directAboutModalTimingRuntimeGlobalPattern =
@@ -6627,7 +6627,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(64);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -6689,6 +6689,12 @@ describe("architecture boundaries", () => {
         expect(keyboardShortcutsModalSource).toContain(
             "keyboardShortcutsModalRuntime().setBodyOverflow"
         );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().isHTMLElement"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().isKeyboardEvent"
+        );
         expect(keyboardShortcutsModalSource).not.toContain(
             "document.createElement"
         );
@@ -6710,6 +6716,12 @@ describe("architecture boundaries", () => {
         expect(keyboardShortcutsModalSource).not.toContain(
             "document.createElementNS"
         );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "instanceof HTMLElement"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "instanceof KeyboardEvent"
+        );
         expect(keyboardShortcutsModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
         );
@@ -6729,6 +6741,12 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
@@ -6739,6 +6757,12 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
@@ -6754,6 +6778,12 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE"
@@ -6780,6 +6810,12 @@ describe("architecture boundaries", () => {
             "getScopeDocument(scope).activeElement"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "const KeyboardEventConstructor = scope.getKeyboardEvent?.();"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
             "getScopeDocument(scope).body.style.overflow"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
@@ -6799,6 +6835,12 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "keyboardShortcutsModalRuntime requires a document runtime"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "keyboardShortcutsModalRuntime requires an HTMLElement runtime"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "keyboardShortcutsModalRuntime requires a KeyboardEvent runtime"
         );
     });
 

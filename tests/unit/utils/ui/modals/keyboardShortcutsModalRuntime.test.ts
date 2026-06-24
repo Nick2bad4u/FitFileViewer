@@ -140,8 +140,41 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(documentRef.body.style.overflow).toBe("");
     });
 
+    it("checks elements and keyboard events through injected providers", () => {
+        expect.assertions(4);
+
+        const runtime = getKeyboardShortcutsModalRuntime({
+            getHTMLElement: () => HTMLElement,
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        expect(runtime.isHTMLElement(document.createElement("button"))).toBe(
+            true
+        );
+        expect(runtime.isHTMLElement({ nodeType: 1 })).toBe(false);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+    });
+
+    it("requires explicit constructor providers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getKeyboardShortcutsModalRuntime({});
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow(
+            "keyboardShortcutsModalRuntime requires an HTMLElement runtime"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "keyboardShortcutsModalRuntime requires a KeyboardEvent runtime"
+        );
+    });
+
     it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -159,6 +192,8 @@ describe("getKeyboardShortcutsModalRuntime", () => {
             cancelAnimationFrame,
             clearTimeout,
             document: documentRef,
+            HTMLElement,
+            KeyboardEvent,
             requestAnimationFrame,
             setTimeout,
         } as unknown as Parameters<typeof getKeyboardShortcutsModalRuntime>[0]);
@@ -190,6 +225,14 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "keyboardShortcutsModalRuntime requires a document runtime"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow(
+            "keyboardShortcutsModalRuntime requires an HTMLElement runtime"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "keyboardShortcutsModalRuntime requires a KeyboardEvent runtime"
         );
         runtime.cancelAnimationFrame(41);
 

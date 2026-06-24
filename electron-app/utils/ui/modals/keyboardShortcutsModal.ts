@@ -338,7 +338,10 @@ function createShortcutItem(item: ShortcutItem): HTMLElement {
  * @param event - Keyboard event.
  */
 function handleShortcutsEscapeKey(event: Event): void {
-    if (event instanceof KeyboardEvent && event.key === "Escape") {
+    if (
+        keyboardShortcutsModalRuntime().isKeyboardEvent(event) &&
+        event.key === "Escape"
+    ) {
         const modal = keyboardShortcutsModalRuntime().querySelector<HTMLElement>(
             "#keyboard-shortcuts-modal"
         );
@@ -741,8 +744,11 @@ export function showKeyboardShortcutsModal(
 
     // Store the currently focused element
     const activeElement = keyboardShortcutsModalRuntime().getActiveElement();
-    lastFocusedElement =
-        activeElement instanceof HTMLElement ? activeElement : null;
+    lastFocusedElement = keyboardShortcutsModalRuntime().isHTMLElement(
+        activeElement
+    )
+        ? activeElement
+        : null;
     // Show modal with animation
     modal.style.display = "flex";
     console.log("Modal display set to flex");

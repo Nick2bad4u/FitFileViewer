@@ -25,6 +25,13 @@ const runtimeMocks = vi.hoisted(() => ({
             document.createElementNS("http://www.w3.org/2000/svg", tagName)
     ),
     getActiveElement: vi.fn(() => document.activeElement),
+    isHTMLElement: vi.fn(
+        (value: unknown): value is HTMLElement => value instanceof HTMLElement
+    ),
+    isKeyboardEvent: vi.fn(
+        (value: unknown): value is KeyboardEvent =>
+            value instanceof KeyboardEvent
+    ),
     querySelector: vi.fn(<K extends Element = Element>(selector: string) =>
         document.querySelector<K>(selector)
     ),
