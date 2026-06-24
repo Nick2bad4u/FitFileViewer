@@ -181,7 +181,7 @@ export function resolveRendererCoreTestOverride(
     return null;
 }
 
-export function toModuleRecord(value: unknown): Record<string, unknown> {
+function toModuleRecord(value: unknown): Record<string, unknown> {
     return isRecord(value) ? value : {};
 }
 

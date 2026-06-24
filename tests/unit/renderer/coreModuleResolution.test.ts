@@ -6,7 +6,6 @@ import {
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
     setRendererCoreModuleTestOverrides,
-    toModuleRecord,
 } from "../../../electron-app/renderer/coreModuleResolution.js";
 
 function setTestOverrideRegistry(registry: Map<string, unknown>): void {
@@ -17,15 +16,6 @@ describe("renderer core module resolution", () => {
     afterEach(() => {
         resetRendererCoreModuleTestOverrides();
         vi.restoreAllMocks();
-    });
-
-    it("normalizes record candidates", () => {
-        expect.assertions(2);
-
-        const record = { ready: true };
-
-        expect(toModuleRecord(record)).toBe(record);
-        expect(toModuleRecord(null)).toStrictEqual({});
     });
 
     it("resolves exact and suffix-matched test overrides", () => {

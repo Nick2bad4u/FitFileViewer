@@ -4286,7 +4286,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer core module resolution on the app-domain state facade", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -4307,6 +4307,9 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain("resolveManualMock");
         expect(coreModuleResolutionSource).not.toContain(
             "toManualMockPathSuffix"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "export function toModuleRecord"
         );
         expect(coreModuleResolutionSource).not.toContain("globalThis");
     });
