@@ -1192,6 +1192,9 @@ use the environment's native element constructors without another shared global 
 Unified state facade legacy-path synchronization has been removed; `unifiedStateManager.ts` now only guards retired
 state paths such as `globalData` and otherwise routes directly through the modern state manager, with focused coverage
 and architecture coverage blocking `LEGACY_PATHS`, `syncLegacy`, `legacy-sync`, and `setSyncEnabled` from returning.
+App-domain renderer facade subscription event timestamps now route through `appDomainStateRuntime.ts` instead of calling
+`Date.now` directly inside `appDomainState.ts`, with focused runtime coverage and architecture coverage blocking direct
+clock reads and legacy direct runtime scope properties from returning.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
 Vitest setup now aligns `window.console` through the descriptor-scoped `setConsoleObject()` helper instead of

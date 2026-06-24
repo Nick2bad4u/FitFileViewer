@@ -4636,6 +4636,49 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain("globalThis");
     });
 
+    it("keeps app-domain facade timestamps behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const appDomainStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/appDomainState.ts"
+            )
+        );
+        const appDomainStateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/appDomainStateRuntime.ts"
+            )
+        );
+
+        expect(appDomainStateSource).toContain("appDomainStateRuntime.js");
+        expect(appDomainStateSource).toContain("type AppDomainStateRuntime");
+        expect(appDomainStateSource).toContain(
+            "function appDomainStateRuntime(): AppDomainStateRuntime"
+        );
+        expect(appDomainStateSource).toContain(
+            "timestamp: appDomainStateRuntime().dateNow()"
+        );
+        expect(appDomainStateSource).not.toContain("Date.now");
+        expect(appDomainStateRuntimeSource).toContain(
+            "defaultAppDomainStateRuntimeScope"
+        );
+        expect(appDomainStateRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(appDomainStateRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(appDomainStateRuntimeSource).toContain(
+            "appDomainState requires dateNow"
+        );
+        expect(appDomainStateRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(appDomainStateRuntimeSource).not.toContain("scope.dateNow");
+        expect(appDomainStateRuntimeSource).not.toContain(
+            "AppDomainStateRuntimeScope = globalThis"
+        );
+        expect(appDomainStateRuntimeSource).not.toContain("Reflect.get");
+    });
+
     it("keeps export utility test overrides off manual mock registries", () => {
         expect.assertions(4);
 

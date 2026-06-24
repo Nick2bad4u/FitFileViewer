@@ -1,0 +1,28 @@
+export type AppDomainStateDateNow = () => number;
+
+export interface AppDomainStateRuntimeScope {
+    readonly getDateNow?: (() => AppDomainStateDateNow | undefined) | undefined;
+}
+
+export interface AppDomainStateRuntime {
+    readonly dateNow: () => number;
+}
+
+const defaultAppDomainStateRuntimeScope: AppDomainStateRuntimeScope = {
+    getDateNow: () => Date.now,
+};
+
+export function getAppDomainStateRuntime(
+    scope: AppDomainStateRuntimeScope = defaultAppDomainStateRuntimeScope
+): AppDomainStateRuntime {
+    return {
+        dateNow(): number {
+            const dateNow = scope.getDateNow?.();
+            if (typeof dateNow !== "function") {
+                throw new TypeError("appDomainState requires dateNow");
+            }
+
+            return dateNow();
+        },
+    };
+}

@@ -3,6 +3,10 @@ import {
     subscribe as subscribeCoreAppDomainPath,
     type StateListener,
 } from "../core/stateManager.js";
+import {
+    getAppDomainStateRuntime,
+    type AppDomainStateRuntime,
+} from "./appDomainStateRuntime.js";
 
 export type AppDomainStateListener = (data: unknown) => void;
 export type AppDomainStateGetter = (path: string) => unknown;
@@ -15,6 +19,10 @@ export type AppDomainStateSubscriber = (
     callback: AppDomainStateListener
 ) => Unsubscribe;
 export type Unsubscribe = () => void;
+
+function appDomainStateRuntime(): AppDomainStateRuntime {
+    return getAppDomainStateRuntime();
+}
 
 /** Gets app-domain state through the renderer-facing app-domain facade. */
 export function getAppDomainState(path: string): unknown {
@@ -33,7 +41,7 @@ export function subscribeAppDomain(
             newValue,
             oldValue,
             path,
-            timestamp: Date.now(),
+            timestamp: appDomainStateRuntime().dateNow(),
         });
     });
 }
