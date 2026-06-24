@@ -108,7 +108,9 @@ export function createGlobalChartStatusIndicator(): HTMLElement | null {
         logWithContext("info", "Creating global chart status indicator");
         const runtime = getChartStatusIndicatorRuntime();
 
-        const chartTabContent = getChartContentContainer(document);
+        const chartTabContent = getChartContentContainer(
+            runtime.getDocument()
+        );
         if (!chartTabContent) {
             logWithContext("warn", "Chart tab content not found", {
                 id: "content_chartjs",

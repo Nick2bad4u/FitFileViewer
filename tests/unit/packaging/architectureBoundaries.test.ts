@@ -1265,7 +1265,7 @@ const directChartStatusCountsRuntimeGlobalPattern =
 const directChartStatusIndicatorRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|HTMLElement|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\b/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
-    /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b/u;
+    /\bdocument\.querySelector\b|\bgetChartContentContainer\(\s*document\s*\)|\binstanceof\s+HTMLElement\b/u;
 const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusEventGlobalPattern =
