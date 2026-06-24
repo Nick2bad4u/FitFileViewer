@@ -1,8 +1,8 @@
 export interface RenderChartJSRuntimeScope {
-    readonly dateNow?: (() => number) | undefined;
     readonly getCustomEventConstructor?:
         | (() => typeof CustomEvent | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
     readonly getPerformance?:
@@ -21,16 +21,16 @@ export interface RenderChartJSRuntime {
 }
 
 const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
-    dateNow: Date.now,
     getCustomEventConstructor: () =>
         typeof CustomEvent === "function" ? CustomEvent : undefined,
+    getDateNow: () => Date.now,
     getDocument: () => globalThis.document,
     getIsRendererScope: () => Reflect.has(globalThis, "document"),
     getPerformance: () => globalThis.performance,
 };
 
 function getRequiredDateNow(scope: RenderChartJSRuntimeScope): () => number {
-    const dateNow = scope.dateNow;
+    const dateNow = scope.getDateNow?.();
     if (typeof dateNow !== "function") {
         throw new TypeError("renderChartJSRuntime requires dateNow");
     }

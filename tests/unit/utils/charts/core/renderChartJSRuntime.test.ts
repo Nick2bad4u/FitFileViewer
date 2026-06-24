@@ -65,7 +65,7 @@ describe("renderChartJSRuntime", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
-            dateNow: () => 1234,
+            getDateNow: () => () => 1234,
         });
 
         expect(utils.nowPerformance()).toBe(1234);
@@ -75,7 +75,7 @@ describe("renderChartJSRuntime", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
-            dateNow: () => 5678,
+            getDateNow: () => () => 5678,
         });
 
         expect(utils.now()).toBe(5678);
@@ -135,13 +135,14 @@ describe("renderChartJSRuntime", () => {
         expect(utils.isWindowAvailable()).toBe(false);
     });
 
-    it("ignores legacy direct custom event and performance properties", () => {
-        expect.assertions(4);
+    it("ignores legacy direct date clock, custom event, and performance properties", () => {
+        expect.assertions(5);
 
         const now = vi.fn(() => 99);
+        const dateNow = vi.fn(() => 123);
         const utils = getRenderChartJSRuntime({
             CustomEventConstructor: CustomEvent,
-            dateNow: () => 123,
+            dateNow,
             document,
             performance: { now },
         } as unknown as Parameters<typeof getRenderChartJSRuntime>[0]);
@@ -150,7 +151,10 @@ describe("renderChartJSRuntime", () => {
             "renderChartJSRuntime requires document"
         );
         expect(utils.getCustomEventConstructor()).toBeUndefined();
-        expect(utils.nowPerformance()).toBe(123);
+        expect(() => utils.nowPerformance()).toThrow(
+            "renderChartJSRuntime requires dateNow"
+        );
+        expect(dateNow).not.toHaveBeenCalled();
         expect(now).not.toHaveBeenCalled();
     });
 });

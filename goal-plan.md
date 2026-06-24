@@ -862,6 +862,10 @@ RenderChartJS render session timing, prepared-render timing, chart-data render t
 devtools window availability now route through `renderChartJSRuntime.ts` instead of probing `performance.now`,
 `Date.now`, or `globalThis.window` directly inside `renderChartJS.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct chart-render runtime probes from returning.
+Chart action successful-render timestamps now receive the render clock explicitly from `renderChartJSRuntime.ts`
+instead of calling `Date.now` directly inside `renderChartActions.ts`; the runtime date clock is now supplied through
+`getDateNow` provider scopes instead of direct `dateNow` scope properties, with focused action/runtime coverage and
+architecture coverage blocking the direct clock path from returning.
 Render chart runtime helper bootstrap now registers plugins without passing a mutable global-like chart
 environment, and `process.nextTick` shimming goes through focused process providers instead of returning
 `globalThis` from `renderChartRuntimeHelpersRuntime.ts`. The default process shim provider now uses explicit

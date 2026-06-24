@@ -262,6 +262,7 @@ export const chartState = createChartStateView({
 /** State-backed chart action handlers exposed to chart integrations. */
 export const chartActions = createChartActions({
     appActions: AppActions,
+    dateNow: renderChartRuntime().now,
     debouncedDirectRerender,
     getControlsVisible: () => chartState.controlsVisible,
     getDebouncedChartStateManager,

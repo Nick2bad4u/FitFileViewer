@@ -11,6 +11,7 @@ interface PanelVisibilityManager {
 
 interface CreateChartActionsDependencies {
     appActions: unknown;
+    dateNow(): number;
     debouncedDirectRerender(reason: string): void;
     getControlsVisible(): boolean;
     getDebouncedChartStateManager(): DebouncedChartStateManager | null;
@@ -89,7 +90,7 @@ export function createChartActions(
                     isRendered: success,
                     isRendering: false,
                     ...(success && {
-                        lastRenderTime: Date.now(),
+                        lastRenderTime: dependencies.dateNow(),
                         renderedCount: chartCount,
                     }),
                 },
