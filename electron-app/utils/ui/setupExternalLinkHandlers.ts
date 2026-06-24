@@ -26,8 +26,7 @@ export function setupExternalLinkHandlers({
         // Ignore stale cleanup failures during renderer reinitialization.
     }
 
-    const cleanup = attachExternalLinkHandlers({
-        electronApiScope,
+    const externalLinkHandlerOptions = {
         onOpenExternalError: () => {
             void showNotification(
                 "Failed to open link in your browser.",
@@ -35,7 +34,12 @@ export function setupExternalLinkHandlers({
             );
         },
         root: document,
-    });
+    };
+    const cleanup = attachExternalLinkHandlers(
+        electronApiScope === undefined
+            ? externalLinkHandlerOptions
+            : { ...externalLinkHandlerOptions, electronApiScope }
+    );
 
     setCleanup(cleanup);
 }
