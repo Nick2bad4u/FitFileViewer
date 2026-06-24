@@ -10276,7 +10276,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table creation container lookup behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedCreateTablesRuntimeFiles
             .filter((relativeFile) =>
@@ -10306,8 +10306,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(createTablesSource).toContain("createTablesRuntime.js");
+        expect(createTablesSource).toContain("type CreateTablesRuntime");
+        expect(createTablesSource).toContain("return getCreateTablesRuntime();");
+        expect(createTablesSource).not.toContain(
+            "const createTablesRuntime = getCreateTablesRuntime();"
+        );
         expect(createTablesSource).toContain(
-            "createTablesRuntime.getDefaultContainer()"
+            "createTablesRuntime().getDefaultContainer()"
         );
         expect(createTablesSource).not.toContain("document.querySelector");
         expect(createTablesRuntimeSource).toContain(
@@ -10524,7 +10529,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab content DOM lookups behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const violations = migratedGetActiveTabContentRuntimeFiles
             .filter((relativeFile) =>
@@ -10556,6 +10561,15 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(activeTabContentSource).toContain(
             "getActiveTabContentRuntime.js"
+        );
+        expect(activeTabContentSource).toContain(
+            "type GetActiveTabContentRuntime"
+        );
+        expect(activeTabContentSource).toContain(
+            "return getGetActiveTabContentRuntime();"
+        );
+        expect(activeTabContentSource).not.toContain(
+            "const getActiveTabContentRuntime = getGetActiveTabContentRuntime();"
         );
         expect(activeTabContentSource).toContain("queryTabContents");
         expect(activeTabContentSource).toContain("querySelector");
