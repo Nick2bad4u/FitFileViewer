@@ -124,6 +124,26 @@ describe("getLifecycleListenersRuntime", () => {
         append.mockRestore();
     });
 
+    it("replaces document body classes through the injected runtime provider", () => {
+        expect.assertions(1);
+
+        const body = document.createElement("body");
+        body.classList.add("font-small", "high-contrast");
+        const runtime = getLifecycleListenersRuntime({
+            getDocument: () => ({
+                body,
+                createElement: document.createElement.bind(document),
+            }),
+        });
+
+        runtime.replaceBodyClasses(["font-small", "font-medium"], "font-large");
+
+        expect([...body.classList].sort()).toStrictEqual([
+            "font-large",
+            "high-contrast",
+        ]);
+    });
+
     it("throws when print is unavailable", () => {
         expect.assertions(1);
 
@@ -135,7 +155,7 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const runtime = getLifecycleListenersRuntime({});
 
@@ -153,6 +173,9 @@ describe("getLifecycleListenersRuntime", () => {
         expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
             "lifecycle listeners require a document runtime"
         );
+        expect(() =>
+            runtime.replaceBodyClasses(["font-small"], "font-large")
+        ).toThrow("lifecycle listeners require a document runtime");
         expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
             "lifecycle listeners require a URL runtime"
         );
@@ -162,7 +185,7 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -208,6 +231,9 @@ describe("getLifecycleListenersRuntime", () => {
         expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
             "lifecycle listeners require a document runtime"
         );
+        expect(() =>
+            runtime.replaceBodyClasses(["font-small"], "font-large")
+        ).toThrow("lifecycle listeners require a document runtime");
         expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
             "lifecycle listeners require a URL runtime"
         );

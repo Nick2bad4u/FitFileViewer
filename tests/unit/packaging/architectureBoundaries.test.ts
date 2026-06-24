@@ -9479,7 +9479,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(41);
+        expect.assertions(45);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -9492,7 +9492,7 @@ describe("architecture boundaries", () => {
         const directLifecycleListenersTimerGlobalPattern =
             /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
         const directLifecycleListenersDownloadGlobalPattern =
-            /\bURL\.(?:createObjectURL|revokeObjectURL)\b|\bdocument\.createElement\(\s*["']a["']\s*\)|\bdocument\.body\.append\b/u;
+            /\bURL\.(?:createObjectURL|revokeObjectURL)\b|\bdocument\.createElement\(\s*["']a["']\s*\)|\bdocument\.body\.(?:append|classList)\b/u;
         const directLifecycleListenersAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
         const directLifecycleListenersAmbientScopePattern =
@@ -9503,6 +9503,9 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersSource).toContain("createDownloadAnchor");
         expect(lifecycleListenersSource).toContain(
             "lifecycleRuntime.createObjectURL"
+        );
+        expect(lifecycleListenersSource).toContain(
+            "runtime.replaceBodyClasses"
         );
         expect(lifecycleListenersSource).not.toContain("lifecycleGlobal");
         expect(lifecycleListenersSource).toContain(
@@ -9538,6 +9541,9 @@ describe("architecture boundaries", () => {
             "lifecycle listeners require a document runtime"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
+            "replaceBodyClasses(classesToRemove, classToAdd): void"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
             "lifecycle listeners require a URL runtime"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
@@ -9563,6 +9569,9 @@ describe("architecture boundaries", () => {
             "scope.AbortController"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope.classList"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.document");
@@ -9580,6 +9589,9 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "classList.remove(...classesToRemove)"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "getPrint: getGlobalPrint"

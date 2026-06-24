@@ -155,6 +155,20 @@ export type SetupListenersOptions = {
     ) => unknown;
 };
 
+const FONT_SIZE_BODY_CLASSES = [
+    "font-xsmall",
+    "font-small",
+    "font-medium",
+    "font-large",
+    "font-xlarge",
+] as const;
+
+const HIGH_CONTRAST_BODY_CLASSES = [
+    "high-contrast",
+    "high-contrast-white",
+    "high-contrast-yellow",
+] as const;
+
 function hasOptionalLifecycleElectronFunction(
     record: Readonly<Record<string, unknown>>,
     key: keyof LifecycleElectronAPI
@@ -196,6 +210,23 @@ function getLifecycleElectronAPI(
     electronApiScope: RendererElectronApiScope | undefined
 ): LifecycleElectronAPI | null {
     return getRendererElectronApi(isLifecycleElectronAPI, electronApiScope);
+}
+
+function getHighContrastBodyClass(mode: string): string | undefined {
+    switch (mode) {
+        case "black": {
+            return "high-contrast";
+        }
+        case "white": {
+            return "high-contrast-white";
+        }
+        case "yellow": {
+            return "high-contrast-yellow";
+        }
+        default: {
+            return undefined;
+        }
+    }
 }
 
 function getErrorMessage(error: unknown): string {
@@ -776,14 +807,10 @@ export function setupListeners({
                 if (typeof size !== "string" || size.length === 0) {
                     return;
                 }
-                document.body.classList.remove(
-                    "font-xsmall",
-                    "font-small",
-                    "font-medium",
-                    "font-large",
-                    "font-xlarge"
+                runtime.replaceBodyClasses(
+                    FONT_SIZE_BODY_CLASSES,
+                    `font-${size}`
                 );
-                document.body.classList.add(`font-${size}`);
             })
         );
         trackUnsubscribe(
@@ -791,29 +818,10 @@ export function setupListeners({
                 if (typeof mode !== "string") {
                     return;
                 }
-                document.body.classList.remove(
-                    "high-contrast",
-                    "high-contrast-white",
-                    "high-contrast-yellow"
+                runtime.replaceBodyClasses(
+                    HIGH_CONTRAST_BODY_CLASSES,
+                    getHighContrastBodyClass(mode)
                 );
-                switch (mode) {
-                    case "black": {
-                        document.body.classList.add("high-contrast");
-
-                        break;
-                    }
-                    case "white": {
-                        document.body.classList.add("high-contrast-white");
-
-                        break;
-                    }
-                    case "yellow": {
-                        document.body.classList.add("high-contrast-yellow");
-
-                        break;
-                    }
-                    // No default
-                }
             })
         );
     }

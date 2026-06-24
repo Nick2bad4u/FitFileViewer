@@ -41,6 +41,8 @@ type TestElectronAPI = {
     onMenuOpenFile: Mock<ElectronAPI["onMenuOpenFile"]>;
     onMenuOpenOverlay: Mock<ElectronAPI["onMenuOpenOverlay"]>;
     onOpenRecentFile: Mock<ElectronAPI["onOpenRecentFile"]>;
+    onSetFontSize: Mock<ElectronAPI["onSetFontSize"]>;
+    onSetHighContrast: Mock<ElectronAPI["onSetHighContrast"]>;
     parseFitFile: Mock<ElectronAPI["parseFitFile"]>;
     readFile: Mock<ElectronAPI["readFile"]>;
     recentFiles: Mock<() => Promise<null | string[]>>;
@@ -69,6 +71,25 @@ function getMenuOpenOverlayHandler(
     const handler = entry[0];
     if (typeof handler !== "function") {
         throw new TypeError("Expected menu-open-overlay handler");
+    }
+
+    return handler;
+}
+
+function getAccessibilityHandler<
+    MethodName extends "onSetFontSize" | "onSetHighContrast",
+>(
+    electronAPI: TestElectronAPI,
+    methodName: MethodName
+): Parameters<NonNullable<ElectronAPI[MethodName]>>[0] {
+    const entry = electronAPI[methodName].mock.calls[0];
+    if (!entry) {
+        throw new TypeError(`Expected ${methodName} registration`);
+    }
+
+    const handler = entry[0];
+    if (typeof handler !== "function") {
+        throw new TypeError(`Expected ${methodName} handler`);
     }
 
     return handler;
@@ -147,6 +168,8 @@ describe("utils/app/lifecycle/listeners.js", () => {
             onMenuOpenFile: vi.fn<ElectronAPI["onMenuOpenFile"]>(),
             onMenuOpenOverlay: vi.fn<ElectronAPI["onMenuOpenOverlay"]>(),
             onOpenRecentFile: vi.fn<ElectronAPI["onOpenRecentFile"]>(),
+            onSetFontSize: vi.fn<ElectronAPI["onSetFontSize"]>(),
+            onSetHighContrast: vi.fn<ElectronAPI["onSetHighContrast"]>(),
             readFile: vi.fn<ElectronAPI["readFile"]>(),
             parseFitFile: vi.fn<ElectronAPI["parseFitFile"]>(),
             addRecentFile: vi.fn<ElectronAPI["addRecentFile"]>(),
@@ -288,6 +311,34 @@ describe("utils/app/lifecycle/listeners.js", () => {
         );
         expect(document.body.dataset.lastNotification).toBe(
             "error:Failed to open overlay selector."
+        );
+    });
+
+    it("accessibility IPC updates body classes through the listener runtime", () => {
+        expect.assertions(4);
+
+        const { electronAPI } = mount([]);
+        const setFontSize = getAccessibilityHandler(
+            electronAPI,
+            "onSetFontSize"
+        );
+        const setHighContrast = getAccessibilityHandler(
+            electronAPI,
+            "onSetHighContrast"
+        );
+
+        document.body.classList.add("font-small", "high-contrast-yellow");
+
+        setFontSize("large");
+        expect(document.body.classList.contains("font-small")).toBe(false);
+        expect(document.body.classList.contains("font-large")).toBe(true);
+
+        setHighContrast("white");
+        expect(document.body.classList.contains("high-contrast-yellow")).toBe(
+            false
+        );
+        expect(document.body.classList.contains("high-contrast-white")).toBe(
+            true
         );
     });
 });

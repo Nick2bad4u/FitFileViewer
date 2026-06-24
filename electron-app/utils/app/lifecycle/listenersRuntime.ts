@@ -2,7 +2,10 @@ export type LifecycleListenersTimer = ReturnType<typeof globalThis.setTimeout>;
 
 type LifecycleListenersDocument = Pick<Document, "body" | "createElement">;
 type LifecycleListenersPrint = () => void;
-type LifecycleListenersURL = Pick<typeof URL, "createObjectURL" | "revokeObjectURL">;
+type LifecycleListenersURL = Pick<
+    typeof URL,
+    "createObjectURL" | "revokeObjectURL"
+>;
 
 interface LifecycleListenersProcess {
     readonly env?: Readonly<Record<string, string | undefined>>;
@@ -37,6 +40,10 @@ export interface LifecycleListenersRuntime {
     readonly isTestEnvironment: () => boolean;
     readonly print: () => void;
     readonly revokeObjectURL: (url: string) => void;
+    readonly replaceBodyClasses: (
+        classesToRemove: readonly string[],
+        classToAdd?: string
+    ) => void;
     readonly setTimeout: (
         callback: () => void,
         delayMs: number
@@ -142,6 +149,13 @@ export function getLifecycleListenersRuntime(
         },
         revokeObjectURL(url): void {
             getRequiredURL(scope).revokeObjectURL(url);
+        },
+        replaceBodyClasses(classesToRemove, classToAdd): void {
+            const { classList } = getRequiredDocument(scope).body;
+            classList.remove(...classesToRemove);
+            if (classToAdd) {
+                classList.add(classToAdd);
+            }
         },
         setTimeout(callback, delayMs): LifecycleListenersTimer {
             const setTimeoutRef = scope.getSetTimeout?.();
