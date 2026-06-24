@@ -22,7 +22,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 /* eslint-enable import-x/no-unassigned-import */
 
 import { installLeafletMeasureLite } from "./leafletMeasureLite.js";
-import { getRendererVendorMapRuntime } from "./rendererVendorMapRuntime.js";
+import {
+    getRendererVendorMapRuntime,
+    type RendererVendorMapRuntime,
+} from "./rendererVendorMapRuntime.js";
 import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
@@ -42,10 +45,13 @@ const leafletGlobal = Leaflet as typeof Leaflet & {
         minimap?: (layer: unknown, options?: unknown) => unknown;
     };
 };
-const rendererVendorMapRuntime = getRendererVendorMapRuntime();
 
-function installMinimapToggleIcon(): void {
-    if (!rendererVendorMapRuntime.hasDocumentElement()) {
+export type RendererVendorMapOptions = Readonly<{
+    readonly runtime?: RendererVendorMapRuntime | undefined;
+}>;
+
+function installMinimapToggleIcon(runtime: RendererVendorMapRuntime): void {
+    if (!runtime.hasDocumentElement()) {
         return;
     }
 
@@ -59,20 +65,26 @@ function installMinimapToggleIcon(): void {
         String.raw`\$&`
     );
 
-    rendererVendorMapRuntime.setDocumentElementStyleProperty(
+    runtime.setDocumentElementStyleProperty(
         "--ffv-minimap-toggle-icon",
         `url("${escapedMinimapToggleIconUrl}")`
     );
 }
 
-function removeLeafletCompatibilityGlobals(): void {
-    rendererVendorMapRuntime.deleteCompatibilityGlobal("L");
-    rendererVendorMapRuntime.deleteCompatibilityGlobal("Leaflet");
+function removeLeafletCompatibilityGlobals(
+    runtime: RendererVendorMapRuntime
+): void {
+    runtime.deleteCompatibilityGlobal("L");
+    runtime.deleteCompatibilityGlobal("Leaflet");
 }
 
 /** Installs the Leaflet runtime and map plugins used by the Map tab. */
-export async function installRendererMapVendorEntry(): Promise<void> {
-    installMinimapToggleIcon();
+export async function installRendererMapVendorEntry(
+    options: RendererVendorMapOptions = {}
+): Promise<void> {
+    const runtime = options.runtime ?? getRendererVendorMapRuntime();
+
+    installMinimapToggleIcon(runtime);
 
     leafletGlobal.Control.FullScreen = FullScreen;
     leafletGlobal.Control.Locate = LocateControl;
@@ -88,7 +100,7 @@ export async function installRendererMapVendorEntry(): Promise<void> {
     await import("fitfileviewer:leaflet-draw-runtime");
     await import("@maplibre/maplibre-gl-leaflet");
     installLeafletMeasureLite(Leaflet);
-    removeLeafletCompatibilityGlobals();
+    removeLeafletCompatibilityGlobals(runtime);
 
     markRendererVendorEntryLoaded("map", {
         map: { leafletRuntime: Leaflet },
