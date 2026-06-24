@@ -1,7 +1,10 @@
 /**
  * System information display updater for FitFileViewer.
  */
-import { getUpdateSystemInfoRuntime } from "./updateSystemInfoRuntime.js";
+import {
+    getUpdateSystemInfoRuntime,
+    type UpdateSystemInfoRuntime,
+} from "./updateSystemInfoRuntime.js";
 
 /** Known fields displayed in the system information panel. */
 export type SystemInfoField =
@@ -35,7 +38,10 @@ const INFO_FIELD_ORDER = [
 const LOG_PREFIX = "[SystemInfo]";
 
 let cachedSystemInfoItems: NodeListOf<Element> | null = null;
-const updateSystemInfoRuntime = getUpdateSystemInfoRuntime();
+
+function updateSystemInfoRuntime(): UpdateSystemInfoRuntime {
+    return getUpdateSystemInfoRuntime();
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -119,7 +125,7 @@ function initializeSystemInfoCache(): NodeListOf<Element> {
         return cachedItems;
     }
 
-    cachedSystemInfoItems = updateSystemInfoRuntime.querySystemInfoItems(
+    cachedSystemInfoItems = updateSystemInfoRuntime().querySystemInfoItems(
         DOM_SELECTORS.SYSTEM_INFO_VALUE
     );
 

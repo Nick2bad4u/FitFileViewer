@@ -2,6 +2,7 @@
 import {
     getRendererEnvironmentRuntime,
     type RendererEnvironmentInput,
+    type RendererEnvironmentRuntime,
 } from "./rendererEnvironmentRuntime.js";
 
 export type RendererEnvironmentName = "development" | "production";
@@ -13,7 +14,9 @@ interface RendererLocationParts {
     search: string;
 }
 
-const rendererEnvironmentRuntime = getRendererEnvironmentRuntime();
+function rendererEnvironmentRuntime(): RendererEnvironmentRuntime {
+    return getRendererEnvironmentRuntime();
+}
 
 function getRendererLocationParts(
     environmentInput: RendererEnvironmentInput
@@ -112,7 +115,7 @@ function toRendererEnvironmentInput(
 export function getEnvironment(
     environmentInput:
         | RendererEnvironmentInput
-        | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
+        | object = rendererEnvironmentRuntime().getDefaultRendererEnvironmentInput()
 ): RendererEnvironmentName {
     return isDevelopmentMode(environmentInput) ? "development" : "production";
 }
@@ -128,7 +131,7 @@ export function getEnvironment(
 export function isDevelopmentMode(
     environmentInput:
         | RendererEnvironmentInput
-        | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
+        | object = rendererEnvironmentRuntime().getDefaultRendererEnvironmentInput()
 ): boolean {
     try {
         const resolvedEnvironmentInput =

@@ -5148,7 +5148,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(19);
+        expect.assertions(22);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
@@ -5165,7 +5165,16 @@ describe("architecture boundaries", () => {
             "rendererEnvironmentRuntime.js"
         );
         expect(rendererEnvironmentSource).toContain(
-            "getDefaultRendererEnvironmentInput()"
+            "type RendererEnvironmentRuntime"
+        );
+        expect(rendererEnvironmentSource).toContain(
+            "return getRendererEnvironmentRuntime();"
+        );
+        expect(rendererEnvironmentSource).not.toContain(
+            "const rendererEnvironmentRuntime = getRendererEnvironmentRuntime();"
+        );
+        expect(rendererEnvironmentSource).toContain(
+            "rendererEnvironmentRuntime().getDefaultRendererEnvironmentInput()"
         );
         expect(rendererEnvironmentSource).toContain(
             "toRendererEnvironmentInput"
@@ -13777,7 +13786,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps system info DOM lookup behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedUpdateSystemInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -13808,7 +13817,18 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(updateSystemInfoSource).toContain("updateSystemInfoRuntime.js");
-        expect(updateSystemInfoSource).toContain("querySystemInfoItems");
+        expect(updateSystemInfoSource).toContain(
+            "type UpdateSystemInfoRuntime"
+        );
+        expect(updateSystemInfoSource).toContain(
+            "return getUpdateSystemInfoRuntime();"
+        );
+        expect(updateSystemInfoSource).not.toContain(
+            "const updateSystemInfoRuntime = getUpdateSystemInfoRuntime();"
+        );
+        expect(updateSystemInfoSource).toContain(
+            "updateSystemInfoRuntime().querySystemInfoItems"
+        );
         expect(updateSystemInfoSource).not.toContain(
             "document.querySelectorAll"
         );
@@ -13840,7 +13860,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -13871,7 +13891,16 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadVersionInfoSource).toContain("loadVersionInfoRuntime.js");
-        expect(loadVersionInfoSource).toContain("queryVersionNumber");
+        expect(loadVersionInfoSource).toContain("type LoadVersionInfoRuntime");
+        expect(loadVersionInfoSource).toContain(
+            "return getLoadVersionInfoRuntime();"
+        );
+        expect(loadVersionInfoSource).not.toContain(
+            "const loadVersionInfoRuntime = getLoadVersionInfoRuntime();"
+        );
+        expect(loadVersionInfoSource).toContain(
+            "loadVersionInfoRuntime().queryVersionNumber"
+        );
         expect(loadVersionInfoSource).not.toContain("document.querySelector");
         expect(loadVersionInfoRuntimeSource).toContain(
             "defaultLoadVersionInfoRuntimeScope"
