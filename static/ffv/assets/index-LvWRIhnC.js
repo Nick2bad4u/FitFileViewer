@@ -15580,46 +15580,6 @@ function u1() {
     });
 }
 os.createRoot(document.getElementById("root")).render(v.jsx(u1, {}));
-
-// Expose a global loader for Alt FIT Reader automation
-if (typeof window !== "undefined") {
-    window.loadFitFileFromArrayBuffer = function (arrayBuffer) {
-        // Create a File object and call the main file loader
-        const file = new File([arrayBuffer], "electron-fit-file.fit", {
-            type: "application/octet-stream",
-        });
-        // The main file loader is 'g' in this bundle, which expects a File
-        // Try to find the main React context or loader
-        try {
-            // Try to find the root React context provider
-            // The loader is likely attached to a context or global
-            if (
-                window.ffvApp &&
-                typeof window.ffvApp.loadFitFileFromArrayBuffer === "function"
-            ) {
-                window.ffvApp.loadFitFileFromArrayBuffer(arrayBuffer);
-                return;
-            }
-            // Fallback: try to find a file input and trigger it
-            const fileInput = document.querySelector('input[type="file"]');
-            if (fileInput) {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                fileInput.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-        } catch (err) {
-            // Show a message if all else fails
-            const root = document.getElementById("root");
-            if (root) {
-                root.innerHTML =
-                    '<div style="color:red">Failed to auto-load FIT file: ' +
-                    err +
-                    "</div>";
-            }
-        }
-    };
-}
 function a1() {
     "serviceWorker" in navigator &&
         navigator.serviceWorker.ready.then((e) => {

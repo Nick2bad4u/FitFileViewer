@@ -57,6 +57,28 @@ function readAltFitHtml(): string {
     );
 }
 
+function readAltFitPrimaryModule(): string {
+    const html = readAltFitHtml();
+    const match =
+        /<script\s+[^>]*type="module"[^>]*src="\.\/assets\/(?<fileName>[^"]+\.js)"[^>]*>/v.exec(
+            html
+        );
+
+    if (!match?.groups?.fileName) {
+        throw new Error("AltFit primary module script not found");
+    }
+
+    return readFileSync(
+        path.join(
+            process.cwd(),
+            rootAlternativeFitViewPath,
+            "assets",
+            match.groups.fileName
+        ),
+        "utf8"
+    );
+}
+
 function readRootAppHtml(): string {
     return readFileSync(path.join(process.cwd(), rootAppIndexHtmlPath), "utf8");
 }
@@ -259,5 +281,17 @@ describe("root app HTML security policy", () => {
         expect(bridge).not.toContain("window.electronAPI");
         expect(bridge).toContain("window.ffvApp.loadFitFileFromArrayBuffer");
         expect(bridge).not.toContain("innerHTML");
+    });
+
+    it("keeps the generated AltFit bundle free of automation bridge globals", () => {
+        expect.assertions(3);
+
+        const primaryModule = readAltFitPrimaryModule();
+
+        expect(primaryModule).not.toMatch(
+            /window\.loadFitFileFromArrayBuffer\s*=/v
+        );
+        expect(primaryModule).not.toContain("window.ffvApp");
+        expect(primaryModule).not.toContain("Failed to auto-load FIT file");
     });
 });
