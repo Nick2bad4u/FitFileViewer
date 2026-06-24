@@ -1,10 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type FallbackOverlayFitData = {
     recordMesgs?: unknown[];
@@ -16,15 +13,20 @@ type DecodeFitFile = (
 
 type FallbackGlobalSnapshot = {
     decodeFitFile: ReturnType<typeof vi.fn<DecodeFitFile>>;
+    electronApiScope: RendererElectronApiScope;
     originalFileReader: typeof globalThis.FileReader;
     originalResponse: typeof globalThis.Response;
 };
 
 function installFallbackGlobals(): FallbackGlobalSnapshot {
+    const decodeFitFile = vi.fn<DecodeFitFile>(async () => ({
+        recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+    }));
     const snapshot = {
-        decodeFitFile: vi.fn<DecodeFitFile>(async () => ({
-            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
-        })),
+        decodeFitFile,
+        electronApiScope: {
+            getElectronAPI: () => ({ decodeFitFile }),
+        },
         originalFileReader: globalThis.FileReader,
         originalResponse: globalThis.Response,
     };
@@ -33,9 +35,6 @@ function installFallbackGlobals(): FallbackGlobalSnapshot {
     Object.defineProperty(globalThis, "Response", {
         configurable: true,
         value: undefined,
-    });
-    registerRendererElectronApiCandidate({
-        decodeFitFile: snapshot.decodeFitFile,
     });
 
     return snapshot;
@@ -50,7 +49,6 @@ function restoreFallbackGlobals(snapshot: FallbackGlobalSnapshot): void {
         configurable: true,
         value: snapshot.originalResponse,
     });
-    resetRendererElectronApiCandidate();
     vi.restoreAllMocks();
 }
 
@@ -94,7 +92,8 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
 
         try {
             const result = await loadSingleOverlayFile(
-                makeFileWithoutArrayBuffer()
+                makeFileWithoutArrayBuffer(),
+                { electronApiScope: snapshot.electronApiScope }
             );
 
             expect(result).toStrictEqual({
@@ -138,7 +137,8 @@ describe("loadSingleOverlayFile - FileReader fallbacks", () => {
 
         try {
             const result = await loadSingleOverlayFile(
-                makeFileWithoutArrayBuffer("bad.fit")
+                makeFileWithoutArrayBuffer("bad.fit"),
+                { electronApiScope: snapshot.electronApiScope }
             );
 
             expect(result).toStrictEqual({

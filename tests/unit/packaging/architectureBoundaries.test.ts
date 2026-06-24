@@ -88,8 +88,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/files/export/exportUtils.test.ts",
     "tests/unit/utils/files/export/exportUtils.ui.test.ts",
     "electron-app/utils/files/export/exportUtils.test.ts",
-    "tests/unit/utils/files/import/loadSingleOverlayFile.fallbacks.test.ts",
-    "tests/unit/utils/files/import/loadSingleOverlayFile.test.ts",
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
     "tests/unit/utils/files/import/openFileSelector.test.ts",
@@ -110,6 +108,8 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
+    "tests/unit/utils/files/import/loadSingleOverlayFile.fallbacks.test.ts",
+    "tests/unit/utils/files/import/loadSingleOverlayFile.test.ts",
     "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;

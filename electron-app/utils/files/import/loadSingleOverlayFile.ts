@@ -10,7 +10,10 @@ import {
 } from "./fitParsePayload.js";
 import type { FitMessageRow, FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { getLoadSingleOverlayFileRuntime } from "./loadSingleOverlayFileRuntime.js";
 
 /** Decoded FIT data used by map overlay loading. */
@@ -40,13 +43,18 @@ type OverlayFileLike = {
     size?: unknown;
 };
 
+type LoadSingleOverlayFileOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
+
 const loadSingleOverlayFileRuntime = getLoadSingleOverlayFileRuntime();
 
 /**
  * Loads one FIT file as a map overlay.
  */
 export async function loadSingleOverlayFile(
-    file: File | OverlayFileLike
+    file: File | OverlayFileLike,
+    { electronApiScope }: LoadSingleOverlayFileOptions = {}
 ): Promise<OverlayLoadResult> {
     try {
         const preflightError = validateOverlayFilePreflight(file);
@@ -70,7 +78,7 @@ export async function loadSingleOverlayFile(
             };
         }
 
-        const api = resolveOverlayElectronAPI();
+        const api = resolveOverlayElectronAPI(electronApiScope);
         if (!api) {
             return {
                 error: "No file data or decoder not available",
@@ -138,9 +146,13 @@ function isFitName(name: unknown): boolean {
         : true;
 }
 
-function resolveOverlayElectronAPI(): OverlayElectronAPI | undefined {
-    const electronAPI =
-        getRendererElectronApi<OverlayElectronAPI>(isOverlayElectronAPI);
+function resolveOverlayElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): OverlayElectronAPI | undefined {
+    const electronAPI = getRendererElectronApi<OverlayElectronAPI>(
+        isOverlayElectronAPI,
+        electronApiScope
+    );
     if (!electronAPI) {
         return undefined;
     }

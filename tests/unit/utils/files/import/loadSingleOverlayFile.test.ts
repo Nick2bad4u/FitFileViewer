@@ -1,11 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import type { FitDecodeResult } from "../../../../../electron-app/shared/fit.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function makeFitFile(
     bytes = new Uint8Array([
@@ -23,12 +20,10 @@ function setDecodeFitFile(
     decodeFitFile: (
         arrayBuffer: ArrayBuffer
     ) => Promise<FitDecodeResult | undefined>
-): void {
-    registerRendererElectronApiCandidate({ decodeFitFile });
-}
-
-function clearElectronApi(): void {
-    resetRendererElectronApiCandidate();
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => ({ decodeFitFile }),
+    };
 }
 
 describe(loadSingleOverlayFile, () => {
@@ -41,42 +36,35 @@ describe(loadSingleOverlayFile, () => {
                     arrayBuffer: ArrayBuffer
                 ) => Promise<FitDecodeResult | undefined>
             >();
-        setDecodeFitFile(decodeFitFile);
+        const electronApiScope = setDecodeFitFile(decodeFitFile);
+        const result = await loadSingleOverlayFile(
+            new File([new Uint8Array([1])], "overlay.txt"),
+            { electronApiScope }
+        );
 
-        try {
-            const result = await loadSingleOverlayFile(
-                new File([new Uint8Array([1])], "overlay.txt")
-            );
-
-            expect(result).toStrictEqual({
-                error: "Only .fit files can be loaded as overlays",
-                success: false,
-            });
-            expect(decodeFitFile).not.toHaveBeenCalled();
-        } finally {
-            clearElectronApi();
-        }
+        expect(result).toStrictEqual({
+            error: "Only .fit files can be loaded as overlays",
+            success: false,
+        });
+        expect(decodeFitFile).not.toHaveBeenCalled();
     });
 
     it("rejects empty files", async () => {
         expect.assertions(1);
 
-        setDecodeFitFile(async () => ({
+        const electronApiScope = setDecodeFitFile(async () => ({
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         }));
 
-        try {
-            const result = await loadSingleOverlayFile(
-                makeFitFile(new Uint8Array())
-            );
+        const result = await loadSingleOverlayFile(
+            makeFitFile(new Uint8Array()),
+            { electronApiScope }
+        );
 
-            expect(result).toStrictEqual({
-                error: "Selected file appears to be empty",
-                success: false,
-            });
-        } finally {
-            clearElectronApi();
-        }
+        expect(result).toStrictEqual({
+            error: "Selected file appears to be empty",
+            success: false,
+        });
     });
 
     it("rejects oversized declared files before reading", async () => {
@@ -99,8 +87,6 @@ describe(loadSingleOverlayFile, () => {
     it("reports a missing decoder bridge", async () => {
         expect.assertions(1);
 
-        clearElectronApi();
-
         const result = await loadSingleOverlayFile(makeFitFile());
 
         expect(result).toStrictEqual({
@@ -112,43 +98,39 @@ describe(loadSingleOverlayFile, () => {
     it("returns parser errors from decoded FIT data", async () => {
         expect.assertions(1);
 
-        setDecodeFitFile(async () => ({
+        const electronApiScope = setDecodeFitFile(async () => ({
             error: "Parse failed",
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         }));
 
-        try {
-            const result = await loadSingleOverlayFile(makeFitFile());
+        const result = await loadSingleOverlayFile(makeFitFile(), {
+            electronApiScope,
+        });
 
-            expect(result).toStrictEqual({
-                error: "Parse failed",
-                success: false,
-            });
-        } finally {
-            clearElectronApi();
-        }
+        expect(result).toStrictEqual({
+            error: "Parse failed",
+            success: false,
+        });
     });
 
     it("requires at least one record with numeric coordinates", async () => {
         expect.assertions(1);
 
-        setDecodeFitFile(async () => ({
+        const electronApiScope = setDecodeFitFile(async () => ({
             recordMesgs: [
                 { positionLat: "1", positionLong: 2 },
                 { positionLat: 1, positionLong: undefined },
             ],
         }));
 
-        try {
-            const result = await loadSingleOverlayFile(makeFitFile());
+        const result = await loadSingleOverlayFile(makeFitFile(), {
+            electronApiScope,
+        });
 
-            expect(result).toStrictEqual({
-                error: "No valid location data found in file",
-                success: false,
-            });
-        } finally {
-            clearElectronApi();
-        }
+        expect(result).toStrictEqual({
+            error: "No valid location data found in file",
+            success: false,
+        });
     });
 
     it("returns decoded FIT data when validation succeeds", async () => {
@@ -157,18 +139,16 @@ describe(loadSingleOverlayFile, () => {
         const decodedData: FitDecodeResult = {
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         };
-        setDecodeFitFile(async () => decodedData);
+        const electronApiScope = setDecodeFitFile(async () => decodedData);
 
-        try {
-            const result = await loadSingleOverlayFile(makeFitFile());
+        const result = await loadSingleOverlayFile(makeFitFile(), {
+            electronApiScope,
+        });
 
-            expect(result).toStrictEqual({
-                data: decodedData,
-                success: true,
-            });
-        } finally {
-            clearElectronApi();
-        }
+        expect(result).toStrictEqual({
+            data: decodedData,
+            success: true,
+        });
     });
 
     it("reports thrown read errors without leaking unhandled exceptions", async () => {
@@ -198,7 +178,6 @@ describe(loadSingleOverlayFile, () => {
             );
         } finally {
             consoleErrorSpy.mockRestore();
-            clearElectronApi();
         }
     });
 });
