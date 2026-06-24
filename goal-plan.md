@@ -1100,6 +1100,9 @@ blocking that retired test fixture pattern.
 Render chart timing debounce clocks now route through `renderChartTimerRuntime.ts` instead of calling `Date.now`
 directly inside `renderChartTiming.ts`, with focused timer-runtime/timing-gate coverage and architecture coverage
 blocking direct render-timing clock reads from returning.
+Chart render notification-flow state timestamps now also route through `renderChartTimerRuntime.ts` instead of calling
+`Date.now` directly inside `renderChartNotificationFlow.ts`, with focused helper coverage and architecture coverage
+blocking that direct clock read from returning.
 Map action-button strict tests now pass their `CircleMarker` fixture through the typed Leaflet runtime instead
 of stashing or clearing it on `window.L`, with architecture coverage blocking that retired fixture pattern.
 Map action-button active-file centering retry scheduling and cleanup now route through

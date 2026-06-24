@@ -1306,7 +1306,7 @@ const directRenderChartStartupRuntimeGlobalPattern =
 const directRenderChartJsTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directRenderChartTimerRuntimeGlobalPattern =
-    /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /(?:^|[^\w.])(?:setTimeout|clearTimeout|Date\.now)\(/u;
 const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directMainUiSummarySelectorRuntimeAmbientFallbackPattern =
@@ -16082,7 +16082,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -16114,6 +16114,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartTiming.ts"
             )
         );
+        const renderChartNotificationFlowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartNotificationFlow.ts"
+            )
+        );
         const runtimeScopeSource = runtimeSource.slice(
             runtimeSource.indexOf(
                 "export interface RenderChartTimerRuntimeScope"
@@ -16136,6 +16141,10 @@ describe("architecture boundaries", () => {
             "const now = runtime.dateNow();"
         );
         expect(renderChartTimingSource).not.toContain("Date.now");
+        expect(renderChartNotificationFlowSource).toContain(
+            "timestamp: dateNow(),"
+        );
+        expect(renderChartNotificationFlowSource).not.toContain("Date.now");
         expect(runtimeSource).toContain("defaultRenderChartTimerRuntimeScope");
         expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
         expect(runtimeScopeSource).not.toContain("readonly dateNow?:");

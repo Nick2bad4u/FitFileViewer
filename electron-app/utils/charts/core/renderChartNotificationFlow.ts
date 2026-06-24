@@ -2,6 +2,7 @@ import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 import { getRenderChartTimerRuntime } from "./renderChartTimerRuntime.js";
 
 type GetStateFunction = (path: string) => unknown;
+type DateNowFunction = () => number;
 type NotifySuccessFunction = (message: string, type: "success") => unknown;
 type ScheduleFunction = (callback: () => void, delay: number) => unknown;
 type ShowRenderNotificationFunction = (
@@ -23,6 +24,7 @@ interface ChartRenderNotificationDependencies {
 }
 
 interface ChartRenderNotificationInput {
+    dateNow?: DateNowFunction;
     schedule?: ScheduleFunction;
     totalChartsRendered: number;
     visibleFieldCount: number;
@@ -40,6 +42,8 @@ function createRenderSuccessMessage(totalChartsRendered: number): string {
 
 const defaultSchedule: ScheduleFunction = (callback, delay) =>
     getRenderChartTimerRuntime().setTimeout(callback, delay);
+const defaultDateNow: DateNowFunction = () =>
+    getRenderChartTimerRuntime().dateNow();
 
 function notifySuccessLater(
     notifySuccess: NotifySuccessFunction,
@@ -68,6 +72,7 @@ export function handleChartRenderNotification(
         updateState: updateChartState,
     } = dependencies;
     const {
+        dateNow = defaultDateNow,
         schedule = defaultSchedule,
         totalChartsRendered,
         visibleFieldCount,
@@ -102,7 +107,7 @@ export function handleChartRenderNotification(
                 {
                     lastNotification: {
                         message,
-                        timestamp: Date.now(),
+                        timestamp: dateNow(),
                         type: "success",
                     },
                 },
