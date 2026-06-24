@@ -5,13 +5,13 @@ type RendererStateStartupLogger = (
     ...args: unknown[]
 ) => void;
 
+export type RendererStateStartupCoreModules = Pick<
+    RendererCoreModules,
+    "masterStateManager" | "subscribeAppDomainPath"
+>;
+
 interface RendererStateStartupOptions {
-    ensureCoreModules: () => Promise<
-        Pick<
-            RendererCoreModules,
-            "masterStateManager" | "subscribeAppDomainPath"
-        >
-    >;
+    ensureCoreModules: () => Promise<RendererStateStartupCoreModules>;
     logRenderer: RendererStateStartupLogger;
 }
 
