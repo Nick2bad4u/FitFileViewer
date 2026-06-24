@@ -20,6 +20,7 @@ import {
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
 import {
     getRendererStateIntegrationRuntime,
+    type RendererStateIntegrationRuntime,
     type RendererStateIntegrationTimer,
 } from "./rendererStateIntegrationRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
@@ -32,9 +33,11 @@ type RendererStateIntegrationOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
 };
 
-const rendererStateIntegrationRuntime = getRendererStateIntegrationRuntime();
-
 let stateAwareEventHandlersAbortController: AbortController | undefined;
+
+function rendererStateIntegrationRuntime(): RendererStateIntegrationRuntime {
+    return getRendererStateIntegrationRuntime();
+}
 
 function isRendererElectronAPI(value: unknown): value is RendererElectronAPI {
     if (value === null || typeof value !== "object") {
@@ -91,10 +94,13 @@ export function exampleStateUsage(): Unsubscribe {
 
     // Later, clean up the subscription
     const cleanupTimeout: RendererStateIntegrationTimer =
-        rendererStateIntegrationRuntime.setTimeout(() => unsubscribe(), 5000);
+        rendererStateIntegrationRuntime().setTimeout(
+            () => unsubscribe(),
+            5000
+        );
 
     return () => {
-        rendererStateIntegrationRuntime.clearTimeout(cleanupTimeout);
+        rendererStateIntegrationRuntime().clearTimeout(cleanupTimeout);
         unsubscribe();
     };
 }
@@ -305,7 +311,7 @@ async function loadTableTab(): Promise<void> {
  * Set up reactive UI that responds to state changes
  */
 function setupReactiveUI(): void {
-    const documentRef = rendererStateIntegrationRuntime.getDocument();
+    const documentRef = rendererStateIntegrationRuntime().getDocument();
 
     // Update tab visibility when active tab changes
     subscribe("ui.activeTab", (activeTab) => {
@@ -315,7 +321,7 @@ function setupReactiveUI(): void {
 
         const tabContents = documentRef.querySelectorAll(".tab-content");
         for (const content of tabContents) {
-            if (rendererStateIntegrationRuntime.isHTMLElement(content)) {
+            if (rendererStateIntegrationRuntime().isHTMLElement(content)) {
                 const tabName = content.dataset["tabContent"];
                 content.style.display =
                     tabName === activeTab ? "block" : "none";
@@ -356,13 +362,13 @@ function setupStateAwareEventHandlers({
 
     stateAwareEventHandlersAbortController?.abort();
     stateAwareEventHandlersAbortController =
-        rendererStateIntegrationRuntime.createAbortController();
+        rendererStateIntegrationRuntime().createAbortController();
     const { signal } = stateAwareEventHandlersAbortController;
 
     // Tab switching (if not handled by UIStateManager)
-    rendererStateIntegrationRuntime.addDocumentClickListener(
+    rendererStateIntegrationRuntime().addDocumentClickListener(
         (event) => {
-            const target = rendererStateIntegrationRuntime.isElement(
+            const target = rendererStateIntegrationRuntime().isElement(
                 event.target
             )
                 ? event.target
@@ -371,7 +377,7 @@ function setupStateAwareEventHandlers({
                 return;
             }
             const tabButton = target.closest("[data-tab]");
-            if (rendererStateIntegrationRuntime.isHTMLElement(tabButton)) {
+            if (rendererStateIntegrationRuntime().isHTMLElement(tabButton)) {
                 const tabName = tabButton.dataset["tab"];
                 if (tabName) {
                     AppActions.switchTab(tabName);
@@ -382,9 +388,9 @@ function setupStateAwareEventHandlers({
     );
 
     // Theme switching
-    rendererStateIntegrationRuntime.addDocumentClickListener(
+    rendererStateIntegrationRuntime().addDocumentClickListener(
         (event) => {
-            const target = rendererStateIntegrationRuntime.isElement(
+            const target = rendererStateIntegrationRuntime().isElement(
                 event.target
             )
                 ? event.target
@@ -393,7 +399,7 @@ function setupStateAwareEventHandlers({
                 return;
             }
             const themeButton = target.closest("[data-theme]");
-            if (rendererStateIntegrationRuntime.isHTMLElement(themeButton)) {
+            if (rendererStateIntegrationRuntime().isHTMLElement(themeButton)) {
                 const theme = themeButton.dataset["theme"];
                 if (theme) {
                     AppActions.switchTheme(theme);

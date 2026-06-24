@@ -23,13 +23,17 @@ import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/el
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import {
     getMainProcessStateRuntime,
+    type MainProcessStateRuntime,
     type MainProcessStateTimer,
 } from "./mainProcessStateRuntime.js";
 
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
 ]);
-const mainProcessStateRuntime = getMainProcessStateRuntime();
+
+function mainProcessStateRuntime(): MainProcessStateRuntime {
+    return getMainProcessStateRuntime();
+}
 
 function getMainStateProcessEnvironmentValue(name: string): string | undefined {
     return getProcessEnvironmentValue(name);
@@ -345,11 +349,11 @@ class MainProcessState {
 
         const previousCleanup = this.operationCleanupTimers.get(operationId);
         if (previousCleanup) {
-            mainProcessStateRuntime.clearTimeout(previousCleanup);
+            mainProcessStateRuntime().clearTimeout(previousCleanup);
         }
 
         // Clean up completed operation after 30 seconds
-        const cleanupTimer = mainProcessStateRuntime.setTimeout(() => {
+        const cleanupTimer = mainProcessStateRuntime().setTimeout(() => {
             this.removeOperation(operationId);
         }, 30_000);
         this.operationCleanupTimers.set(operationId, cleanupTimer);
@@ -869,7 +873,7 @@ class MainProcessState {
     removeOperation(operationId: string): void {
         const cleanupTimer = this.operationCleanupTimers.get(operationId);
         if (cleanupTimer) {
-            mainProcessStateRuntime.clearTimeout(cleanupTimer);
+            mainProcessStateRuntime().clearTimeout(cleanupTimer);
             this.operationCleanupTimers.delete(operationId);
         }
 
@@ -1413,7 +1417,7 @@ function logWithContext(
  * @returns {number}
  */
 function monotonicNowMs(): number {
-    return mainProcessStateRuntime.monotonicNowMs();
+    return mainProcessStateRuntime().monotonicNowMs();
 }
 
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs
@@ -1568,7 +1572,7 @@ const mainProcessState = new MainProcessState();
         const { ipcMain } = safeElectron();
         if (ipcMain && typeof ipcMain.handle === "function") {
             if (state.retryTimer) {
-                mainProcessStateRuntime.clearTimeout(state.retryTimer);
+                mainProcessStateRuntime().clearTimeout(state.retryTimer);
                 delete state.retryTimer;
             }
 
@@ -1599,10 +1603,10 @@ const mainProcessState = new MainProcessState();
                     const tick = () => {
                         if (!state.done && !trySetup() && attempts++ < 50) {
                             state.retryTimer =
-                                mainProcessStateRuntime.setTimeout(tick, 50);
+                                mainProcessStateRuntime().setTimeout(tick, 50);
                         }
                     };
-                    state.retryTimer = mainProcessStateRuntime.setTimeout(
+                    state.retryTimer = mainProcessStateRuntime().setTimeout(
                         tick,
                         10
                     );
@@ -1617,7 +1621,7 @@ const mainProcessState = new MainProcessState();
     let attempts = 0;
     const tick = () => {
         if (!state.done && !trySetup() && attempts++ < 50) {
-            state.retryTimer = mainProcessStateRuntime.setTimeout(tick, 50);
+            state.retryTimer = mainProcessStateRuntime().setTimeout(tick, 50);
         }
     };
     if (!state.logged) {
@@ -1630,7 +1634,7 @@ const mainProcessState = new MainProcessState();
             /* ignore */
         }
     }
-    state.retryTimer = mainProcessStateRuntime.setTimeout(tick, 10);
+    state.retryTimer = mainProcessStateRuntime().setTimeout(tick, 10);
 })();
 
 export { mainProcessState, MainProcessState };

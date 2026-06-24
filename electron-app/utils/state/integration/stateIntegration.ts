@@ -12,6 +12,7 @@ import {
 import { uiStateManager } from "../domain/uiStateManager.js";
 import {
     getStateIntegrationRuntime,
+    type StateIntegrationRuntime,
     type StateIntegrationInterval,
     type StateIntegrationTimeout,
 } from "./stateIntegrationRuntime.js";
@@ -29,10 +30,12 @@ const PERSISTED_PATHS = [
     "tables.pageSize",
 ] as const;
 
-const stateIntegrationRuntime = getStateIntegrationRuntime();
-
 let performanceMonitoringInterval: StateIntegrationInterval | undefined,
     persistenceTimeout: StateIntegrationTimeout | undefined;
+
+function stateIntegrationRuntime(): StateIntegrationRuntime {
+    return getStateIntegrationRuntime();
+}
 
 /**
  * Migration helper to convert old state patterns to new system
@@ -99,7 +102,7 @@ export function initializeCompleteStateSystem(): void {
  * Set up performance monitoring for state changes
  */
 export function setupStatePerformanceMonitoring(): void {
-    let lastResetTime = stateIntegrationRuntime.dateNow(),
+    let lastResetTime = stateIntegrationRuntime().dateNow(),
         stateChangeCount = 0;
 
     // Monitor state change frequency
@@ -107,7 +110,7 @@ export function setupStatePerformanceMonitoring(): void {
         stateChangeCount += 1;
 
         // Reset counter every minute and log stats
-        const now = stateIntegrationRuntime.dateNow();
+        const now = stateIntegrationRuntime().dateNow();
         if (now - lastResetTime > 60_000) {
             console.log(
                 `[StatePerformance] ${stateChangeCount} state changes in the last minute`
@@ -117,28 +120,31 @@ export function setupStatePerformanceMonitoring(): void {
         }
     });
 
-    const perfMemory = stateIntegrationRuntime.getPerformanceMemory();
+    const perfMemory = stateIntegrationRuntime().getPerformanceMemory();
     if (!perfMemory) {
         return;
     }
 
     if (performanceMonitoringInterval !== undefined) {
-        stateIntegrationRuntime.clearInterval(performanceMonitoringInterval);
+        stateIntegrationRuntime().clearInterval(performanceMonitoringInterval);
         performanceMonitoringInterval = undefined;
     }
 
-    performanceMonitoringInterval = stateIntegrationRuntime.setInterval(() => {
-        const memoryInfo = {
-            limit: Math.round(perfMemory.jsHeapSizeLimit / 1024 / 1024),
-            total: Math.round(perfMemory.totalJSHeapSize / 1024 / 1024),
-            used: Math.round(perfMemory.usedJSHeapSize / 1024 / 1024),
-        };
+    performanceMonitoringInterval = stateIntegrationRuntime().setInterval(
+        () => {
+            const memoryInfo = {
+                limit: Math.round(perfMemory.jsHeapSizeLimit / 1024 / 1024),
+                total: Math.round(perfMemory.totalJSHeapSize / 1024 / 1024),
+                used: Math.round(perfMemory.usedJSHeapSize / 1024 / 1024),
+            };
 
-        setState("performance.memoryUsage", memoryInfo, {
-            silent: true,
-            source: "performanceMonitoring",
-        });
-    }, 30_000);
+            setState("performance.memoryUsage", memoryInfo, {
+                silent: true,
+                source: "performanceMonitoring",
+            });
+        },
+        30_000
+    );
 }
 
 /**
@@ -154,11 +160,11 @@ export function setupStatePersistence(): void {
     for (const path of PERSISTED_PATHS) {
         subscribe(path, () => {
             if (persistenceTimeout !== undefined) {
-                stateIntegrationRuntime.clearTimeout(persistenceTimeout);
+                stateIntegrationRuntime().clearTimeout(persistenceTimeout);
                 persistenceTimeout = undefined;
             }
 
-            persistenceTimeout = stateIntegrationRuntime.setTimeout(() => {
+            persistenceTimeout = stateIntegrationRuntime().setTimeout(() => {
                 persistenceTimeout = undefined;
                 try {
                     const stateToSave: Record<string, unknown> = {};
@@ -229,7 +235,7 @@ function getNestedValue(obj: unknown, path: string): unknown {
 }
 
 function getStorage(): Storage | undefined {
-    return stateIntegrationRuntime.getStorage();
+    return stateIntegrationRuntime().getStorage();
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

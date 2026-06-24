@@ -2689,7 +2689,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2710,6 +2710,15 @@ describe("architecture boundaries", () => {
 
         expect(mainProcessStateManagerSource).toContain(
             "mainProcessStateRuntime.js"
+        );
+        expect(mainProcessStateManagerSource).toContain(
+            "type MainProcessStateRuntime"
+        );
+        expect(mainProcessStateManagerSource).toContain(
+            "function mainProcessStateRuntime(): MainProcessStateRuntime"
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            "const mainProcessStateRuntime = getMainProcessStateRuntime();"
         );
         expect(mainProcessStateManagerSource).not.toContain(
             "globalThis.performance"
@@ -9621,7 +9630,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -9643,6 +9652,15 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(stateIntegrationSource).toContain("stateIntegrationRuntime.js");
+        expect(stateIntegrationSource).toContain(
+            "type StateIntegrationRuntime"
+        );
+        expect(stateIntegrationSource).toContain(
+            "function stateIntegrationRuntime(): StateIntegrationRuntime"
+        );
+        expect(stateIntegrationSource).not.toContain(
+            "const stateIntegrationRuntime = getStateIntegrationRuntime();"
+        );
         expect(stateIntegrationRuntimeSource).not.toMatch(
             directStateIntegrationRuntimeAmbientFallbackPattern
         );
@@ -9689,7 +9707,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(38);
+        expect.assertions(41);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -9712,6 +9730,15 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(rendererStateIntegrationSource).toContain(
             "rendererStateIntegrationRuntime.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "type RendererStateIntegrationRuntime"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "function rendererStateIntegrationRuntime(): RendererStateIntegrationRuntime"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            "const rendererStateIntegrationRuntime = getRendererStateIntegrationRuntime();"
         );
         expect(rendererStateIntegrationSource).toContain(
             "createAbortController"
