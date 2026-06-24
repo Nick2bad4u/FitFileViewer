@@ -4204,8 +4204,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps state middleware performance history off global object storage", () => {
-        expect.assertions(3);
+    it("keeps state middleware performance history and timing behind typed boundaries", () => {
+        expect.assertions(24);
 
         const scannedFiles = [
             "electron-app/utils/state/core/stateMiddleware.ts",
@@ -4224,10 +4224,68 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/state/core/stateMiddleware.ts"
             )
         );
+        const stateMiddlewareRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateMiddlewareRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(stateMiddlewareSource).toContain("getStatePerformanceHistory");
         expect(stateMiddlewareSource).toContain("resetStatePerformanceHistory");
+        expect(stateMiddlewareSource).toContain("stateMiddlewareRuntime.js");
+        expect(stateMiddlewareSource).toContain("type StateMiddlewareRuntime");
+        expect(stateMiddlewareSource).toContain(
+            "function stateMiddlewareRuntime(): StateMiddlewareRuntime"
+        );
+        expect(stateMiddlewareSource).toContain(
+            "const startTime = runtime.performanceNow();"
+        );
+        expect(stateMiddlewareSource).toContain(
+            "const duration = runtime.performanceNow() - startTime;"
+        );
+        expect(stateMiddlewareSource).toContain(
+            "const duration = runtime.performanceNow() - context._startTime;"
+        );
+        expect(stateMiddlewareSource).toContain(
+            "timestamp: runtime.dateNow()"
+        );
+        expect(stateMiddlewareSource).toContain(
+            "context._startTime = stateMiddlewareRuntime().performanceNow();"
+        );
+        expect(stateMiddlewareSource).not.toContain("performance.now");
+        expect(stateMiddlewareSource).not.toContain("Date.now");
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "defaultStateMiddlewareRuntimeScope"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "const performance = scope.getPerformance?.();"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "stateMiddleware requires dateNow"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "stateMiddleware requires performance.now"
+        );
+        expect(stateMiddlewareRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(stateMiddlewareRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(stateMiddlewareRuntimeSource).not.toContain("scope.dateNow");
+        expect(stateMiddlewareRuntimeSource).not.toContain(
+            "scope.performance"
+        );
     });
 
     it("keeps generic storage utilities on provider-based ambient storage lookup", () => {

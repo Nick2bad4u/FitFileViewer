@@ -3,6 +3,10 @@ import {
     getStateStorageRuntime,
     type StateStorageRuntime,
 } from "./stateStorageRuntime.js";
+import {
+    getStateMiddlewareRuntime,
+    type StateMiddlewareRuntime,
+} from "./stateMiddlewareRuntime.js";
 
 /** Middleware phases supported by the state middleware manager. */
 export const MIDDLEWARE_PHASES = {
@@ -99,6 +103,10 @@ const statePerformanceHistory: StatePerformanceEntry[] = [];
 
 function stateStorageRuntime(): StateStorageRuntime {
     return getStateStorageRuntime();
+}
+
+function stateMiddlewareRuntime(): StateMiddlewareRuntime {
+    return getStateMiddlewareRuntime();
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -355,13 +363,14 @@ class StateMiddlewareManager {
         handler: MiddlewarePhaseHandler
     ): MiddlewarePhaseHandler {
         return async (context) => {
-            const startTime = performance.now();
+            const runtime = stateMiddlewareRuntime();
+            const startTime = runtime.performanceNow();
 
             try {
                 try {
                     return await handler(context);
                 } finally {
-                    const duration = performance.now() - startTime;
+                    const duration = runtime.performanceNow() - startTime;
                     if (duration > 5) {
                         console.warn(
                             `[StateMiddleware] Slow middleware "${middlewareName}.${phase}": ${duration.toFixed(2)}ms`
@@ -472,7 +481,8 @@ export const validationMiddleware: MiddlewareDefinition = {
 export const performanceMiddleware: MiddlewareDefinition = {
     afterSet(context) {
         if (context._startTime) {
-            const duration = performance.now() - context._startTime;
+            const runtime = stateMiddlewareRuntime();
+            const duration = runtime.performanceNow() - context._startTime;
 
             if (duration > 10) {
                 console.warn(
@@ -483,7 +493,7 @@ export const performanceMiddleware: MiddlewareDefinition = {
             statePerformanceHistory.push({
                 duration,
                 path: context.path,
-                timestamp: Date.now(),
+                timestamp: runtime.dateNow(),
             });
 
             if (statePerformanceHistory.length > 100) {
@@ -495,7 +505,7 @@ export const performanceMiddleware: MiddlewareDefinition = {
     },
 
     beforeSet(context) {
-        context._startTime = performance.now();
+        context._startTime = stateMiddlewareRuntime().performanceNow();
         return context;
     },
 

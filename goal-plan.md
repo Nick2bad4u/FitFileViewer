@@ -745,6 +745,10 @@ timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of
 timing globals from returning. Explicit main-process state runtime scopes must now provide timer primitives instead
 of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking those fallbacks
 from returning.
+State middleware handler duration timing, performance-middleware duration timing, and performance-history
+timestamps now route through `stateMiddlewareRuntime.ts` instead of calling `performance.now` or `Date.now`
+directly inside `stateMiddleware.ts`, with focused runtime coverage and architecture coverage blocking direct
+timing globals and legacy direct runtime scope properties from returning.
 Master state manager development-scope checks, global error listeners, theme-change dispatch, window lifecycle
 listeners, and listener abort-controller creation now go through the scoped `masterStateRuntime.ts` adapter instead of probing
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or
