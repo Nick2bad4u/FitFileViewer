@@ -20,56 +20,55 @@ export interface ElectronApiStartupHooks {
     recentFiles: (() => Promise<unknown>) | undefined;
 }
 
+type ElectronApiStartupHookSource = {
+    readonly checkForUpdates?: unknown;
+    readonly isDevelopment?: unknown;
+    readonly onMenuAction?: unknown;
+    readonly onThemeChanged?: unknown;
+    readonly recentFiles?: unknown;
+};
+
 export interface ElectronApiStartupHooksScope {
     readonly getElectronApiScope?:
         | (() => RendererElectronApiScope | undefined)
         | undefined;
 }
 
-function toModuleRecord(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
-        : {};
-}
-
 export function getElectronApiHooksFromValue(
     apiValue: unknown
 ): ElectronApiStartupHooks | null {
-    const api = toModuleRecord(apiValue);
-    if (Object.keys(api).length === 0) {
+    if (!isElectronApiStartupHookRecord(apiValue)) {
         return null;
     }
 
-    const isDevelopment = api["isDevelopment"];
-    const onMenuAction = api["onMenuAction"];
-    const onThemeChanged = api["onThemeChanged"];
-    const recentFiles = api["recentFiles"];
-    const checkForUpdates = api["checkForUpdates"];
+    if (Object.keys(apiValue).length === 0) {
+        return null;
+    }
 
     return {
         checkForUpdates:
-            typeof checkForUpdates === "function"
-                ? (checkForUpdates as () => unknown)
+            typeof apiValue.checkForUpdates === "function"
+                ? (apiValue.checkForUpdates as () => unknown)
                 : undefined,
         isDevelopment:
-            typeof isDevelopment === "function"
-                ? (isDevelopment as () => Promise<unknown>)
+            typeof apiValue.isDevelopment === "function"
+                ? (apiValue.isDevelopment as () => Promise<unknown>)
                 : undefined,
         onMenuAction:
-            typeof onMenuAction === "function"
-                ? (onMenuAction as (
+            typeof apiValue.onMenuAction === "function"
+                ? (apiValue.onMenuAction as (
                       callback: (action: unknown) => void
                   ) => unknown)
                 : undefined,
         onThemeChanged:
-            typeof onThemeChanged === "function"
-                ? (onThemeChanged as (
+            typeof apiValue.onThemeChanged === "function"
+                ? (apiValue.onThemeChanged as (
                       callback: (theme: string) => void
                   ) => unknown)
                 : undefined,
         recentFiles:
-            typeof recentFiles === "function"
-                ? (recentFiles as () => Promise<unknown>)
+            typeof apiValue.recentFiles === "function"
+                ? (apiValue.recentFiles as () => Promise<unknown>)
                 : undefined,
     };
 }
@@ -91,8 +90,14 @@ export function getElectronApiStartupHooks(
 
 function isElectronApiStartupHookSource(
     value: unknown
-): value is Record<string, unknown> {
+): value is ElectronApiStartupHookSource {
     return getElectronApiHooksFromValue(value) !== null;
+}
+
+function isElectronApiStartupHookRecord(
+    value: unknown
+): value is ElectronApiStartupHookSource {
+    return typeof value === "object" && value !== null;
 }
 
 export function probeDevelopmentMode(apiHooks: ElectronApiStartupHooks): void {

@@ -18878,7 +18878,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer source on the registered Electron API runtime", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const directElectronApiGlobals = rendererElectronApiRuntimeSourceFiles
             .filter((relativeFile) =>
@@ -18917,6 +18917,7 @@ describe("architecture boundaries", () => {
         expect(electronApiStartupHooksSource).not.toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
+        expect(electronApiStartupHooksSource).not.toContain("toModuleRecord");
     });
 
     it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {
