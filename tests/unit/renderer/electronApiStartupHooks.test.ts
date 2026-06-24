@@ -52,7 +52,7 @@ describe("renderer Electron API startup hooks", () => {
         expect(getElectronApiStartupHooks({})).toBeNull();
     });
 
-    it("reads startup hooks from the registered Electron API candidate", () => {
+    it("ignores the registered Electron API candidate without an explicit scope", () => {
         expect.assertions(1);
 
         const checkForUpdates = vi.fn<() => void>();
@@ -62,12 +62,7 @@ describe("renderer Electron API startup hooks", () => {
             recentFiles,
         });
 
-        expect(getElectronApiStartupHooks({})).toEqual(
-            expect.objectContaining({
-                checkForUpdates,
-                recentFiles,
-            })
-        );
+        expect(getElectronApiStartupHooks({})).toBeNull();
     });
 
     it("ignores ambient Electron API globals without a registered candidate", () => {

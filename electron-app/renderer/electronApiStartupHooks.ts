@@ -77,13 +77,14 @@ export function getElectronApiStartupHooks(
     scope?: ElectronApiStartupHooksScope
 ): ElectronApiStartupHooks | null {
     const electronApiScope = scope?.getElectronApiScope?.();
-    const electronApi =
-        electronApiScope === undefined
-            ? getRendererElectronApi(isElectronApiStartupHookSource)
-            : getRendererElectronApi(
-                  isElectronApiStartupHookSource,
-                  electronApiScope
-              );
+    if (electronApiScope === undefined) {
+        return null;
+    }
+
+    const electronApi = getRendererElectronApi(
+        isElectronApiStartupHookSource,
+        electronApiScope
+    );
 
     return getElectronApiHooksFromValue(electronApi);
 }
