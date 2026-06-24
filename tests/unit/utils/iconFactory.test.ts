@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     createAppIconElement,
@@ -44,6 +44,31 @@ describe("iconFactory", () => {
             "path",
             "path",
         ]);
+    });
+
+    it("creates inline SVG elements through an injected runtime", () => {
+        expect.assertions(4);
+
+        const createSvgElement = vi.fn(
+            <K extends keyof SVGElementTagNameMap>(
+                tagName: K
+            ): SVGElementTagNameMap[K] =>
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    tagName
+                ) as SVGElementTagNameMap[K]
+        );
+
+        const icon = createAppIconElement(
+            "circleHelp",
+            { title: "Help" },
+            { createSvgElement }
+        );
+
+        expect(icon.tagName.toLowerCase()).toBe("svg");
+        expect(icon.querySelector("title")?.textContent).toBe("Help");
+        expect(createSvgElement).toHaveBeenCalledWith("svg");
+        expect(createSvgElement).toHaveBeenCalledWith("circle");
     });
 
     it("escapes dynamic values in the legacy SVG string API", () => {

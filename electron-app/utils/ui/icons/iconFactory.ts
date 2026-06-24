@@ -8,6 +8,7 @@
 import {
     getIconFactoryRuntime,
     SVG_NAMESPACE,
+    type IconFactoryRuntime,
 } from "./iconFactoryRuntime.js";
 
 /** Known icon names supported by the legacy icon factory. */
@@ -43,8 +44,6 @@ export type AppIconSvgOptions = {
     readonly strokeWidth?: number;
     readonly title?: string;
 };
-
-const iconFactoryRuntime = getIconFactoryRuntime();
 
 type AppIconNodeTag =
     | "circle"
@@ -218,8 +217,11 @@ const ICON_NODE_SPECS: Record<AppIconName, readonly AppIconNodeSpec[]> = {
     ],
 };
 
-function createSvgChild(spec: AppIconNodeSpec): SVGElement {
-    const element = iconFactoryRuntime.createSvgElement(spec.tag);
+function createSvgChild(
+    spec: AppIconNodeSpec,
+    runtime: IconFactoryRuntime
+): SVGElement {
+    const element = runtime.createSvgElement(spec.tag);
     for (const [name, value] of Object.entries(spec.attrs)) {
         element.setAttribute(name, value);
     }
@@ -302,9 +304,10 @@ export function getAppIconSvg(
  */
 export function createAppIconElement(
     name: AppIconName,
-    options: AppIconSvgOptions = {}
+    options: AppIconSvgOptions = {},
+    runtime: IconFactoryRuntime = getIconFactoryRuntime()
 ): SVGSVGElement {
-    const icon = iconFactoryRuntime.createSvgElement("svg");
+    const icon = runtime.createSvgElement("svg");
     const size = toBoundedNumber(options.size, 16, { min: 10, max: 48 });
     const strokeWidth = toBoundedNumber(options.strokeWidth, 2, {
         min: 1,
@@ -330,14 +333,14 @@ export function createAppIconElement(
     icon.setAttribute("focusable", "false");
 
     if (typeof options.title === "string" && options.title.trim().length > 0) {
-        const title = iconFactoryRuntime.createSvgElement("title");
+        const title = runtime.createSvgElement("title");
         title.textContent = options.title;
         icon.append(title);
     }
 
     const iconSpecs = ICON_NODE_SPECS[name] || ICON_NODE_SPECS.target;
     for (const spec of iconSpecs) {
-        icon.append(createSvgChild(spec));
+        icon.append(createSvgChild(spec, runtime));
     }
 
     return icon;
