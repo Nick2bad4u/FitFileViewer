@@ -39,18 +39,6 @@ export interface RendererCoreModules {
 
 let rendererCoreModuleTestOverrides: Map<string, unknown> | null = null;
 
-export function callUnknownFunction(
-    candidate: unknown,
-    args: unknown[] = []
-): unknown {
-    if (typeof candidate !== "function") {
-        return undefined;
-    }
-
-    const callable = /** @type {(...args: unknown[]) => unknown} */ candidate;
-    return callable(...args);
-}
-
 /**
  * Dynamically resolves core modules so Vitest doMock hooks (using ../../ paths)
  * are respected.

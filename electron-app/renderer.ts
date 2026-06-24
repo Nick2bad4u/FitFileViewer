@@ -27,7 +27,6 @@ import {
     type RendererPerformanceMonitor,
 } from "./renderer/startupPerformanceMonitor.js";
 import {
-    callUnknownFunction,
     ensureCoreModules,
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
@@ -90,7 +89,6 @@ const domAccess = createRendererDomAccess({
 });
 
 const importTimeBootstrap = createRendererImportTimeBootstrap({
-    callUnknownFunction,
     ensureCoreModules,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,

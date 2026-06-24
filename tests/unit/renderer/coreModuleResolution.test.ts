@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-    callUnknownFunction,
     ensureCoreModules,
     resetRendererCoreModuleTestOverrides,
     resolveExactRendererCoreTestOverride,
@@ -18,17 +17,6 @@ describe("renderer core module resolution", () => {
     afterEach(() => {
         resetRendererCoreModuleTestOverrides();
         vi.restoreAllMocks();
-    });
-
-    it("calls only function candidates", () => {
-        expect.assertions(2);
-
-        const callable = vi.fn((value: string) => `called ${value}`);
-
-        expect(callUnknownFunction(callable, ["ok"])).toBe("called ok");
-        expect(callUnknownFunction("not callable", ["ignored"])).toBe(
-            undefined
-        );
     });
 
     it("normalizes record candidates", () => {

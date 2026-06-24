@@ -11618,6 +11618,40 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer import-time bootstrap off the generic function bridge", () => {
+        expect.assertions(9);
+
+        const coreModuleResolutionSource = stripComments(
+            readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
+        );
+        const importTimeBootstrapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
+        );
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
+
+        expect(coreModuleResolutionSource).not.toContain("callUnknownFunction");
+        expect(importTimeBootstrapSource).not.toContain("callUnknownFunction");
+        expect(importTimeBootstrapSource).toContain(
+            'getAppDomainState?.("app.startTime")'
+        );
+        expect(importTimeBootstrapSource).toContain("setupListenersFn?.(deps)");
+        expect(importTimeBootstrapSource).toContain("setupThemeFn?.(");
+        expect(importTimeBootstrapSource).toContain(
+            'subscribeAppDomain?.("app.startTime", () => {})'
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererImportTimeBootstrap({\n    callUnknownFunction,"
+        );
+        expect(rendererEntrypointSource).toContain(
+            "createRendererImportTimeBootstrap({"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "export async function ensureCoreModules()"
+        );
+    });
+
     it("keeps external link browser fallbacks behind the runtime facade", () => {
         expect.assertions(22);
 

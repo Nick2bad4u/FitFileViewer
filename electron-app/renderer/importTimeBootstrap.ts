@@ -1,7 +1,6 @@
 import type { RendererCoreModules } from "./coreModuleResolution.js";
 
 interface RendererImportTimeBootstrapOptions {
-    callUnknownFunction: (candidate: unknown, args?: unknown[]) => unknown;
     ensureCoreModules: () => Promise<RendererCoreModules>;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
@@ -20,7 +19,6 @@ export interface RendererImportTimeBootstrap {
 }
 
 export function createRendererImportTimeBootstrap({
-    callUnknownFunction,
     ensureCoreModules,
     getOpenFileButton,
     initializeStateManager,
@@ -34,7 +32,7 @@ export function createRendererImportTimeBootstrap({
         await initializeStateManager();
         try {
             const { getAppDomainState } = await ensureCoreModules();
-            callUnknownFunction(getAppDomainState, ["app.startTime"]);
+            getAppDomainState?.("app.startTime");
         } catch {
             /* Ignore errors */
         }
@@ -103,7 +101,7 @@ export function createRendererImportTimeBootstrap({
             showUpdateNotification: showUpdateNotificationFn,
         };
 
-        callUnknownFunction(setupListenersFn, [deps]);
+        setupListenersFn?.(deps);
     }
 
     async function setupImportTimeTheme(): Promise<void> {
@@ -112,23 +110,15 @@ export function createRendererImportTimeBootstrap({
             listenForThemeChange: listenForThemeChangeFn,
             setupTheme: setupThemeFn,
         } = await ensureCoreModules();
-        callUnknownFunction(setupThemeFn, [
-            applyThemeFn,
-            listenForThemeChangeFn,
-        ]);
+        setupThemeFn?.(applyThemeFn, listenForThemeChangeFn);
     }
 
     async function touchAppDomainStateForCoverage(): Promise<void> {
         try {
             const { getAppDomainState, subscribeAppDomain } =
                 await ensureCoreModules();
-            callUnknownFunction(getAppDomainState, ["app.startTime"]);
-            if (typeof subscribeAppDomain === "function") {
-                callUnknownFunction(subscribeAppDomain, [
-                    "app.startTime",
-                    () => {},
-                ]);
-            }
+            getAppDomainState?.("app.startTime");
+            subscribeAppDomain?.("app.startTime", () => {});
         } catch {
             /* Ignore errors */
         }
