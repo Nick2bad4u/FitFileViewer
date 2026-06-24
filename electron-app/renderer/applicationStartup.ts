@@ -3,7 +3,10 @@ import {
     registerStartupElectronHooks,
     type RendererApplyTheme as ApplyTheme,
 } from "./electronApiStartupHooks.js";
-import { getRendererApplicationStartupRuntime } from "./applicationStartupRuntime.js";
+import {
+    getRendererApplicationStartupRuntime,
+    type RendererApplicationStartupRuntime,
+} from "./applicationStartupRuntime.js";
 import {
     getRendererErrorMessage,
     type RendererErrorEventHandlers,
@@ -27,8 +30,6 @@ type RendererStartupLogger = (
     level: RendererStartupLogLevel,
     ...args: unknown[]
 ) => void;
-
-const applicationStartupRuntime = getRendererApplicationStartupRuntime();
 
 export interface RendererDependencies {
     applyTheme: ApplyTheme | undefined;
@@ -66,6 +67,7 @@ interface RendererApplicationStartupOptions {
     isOpeningFileRef: { value: boolean };
     logRenderer: RendererStartupLogger;
     performanceMonitor: RendererPerformanceMonitor;
+    runtime?: RendererApplicationStartupRuntime | undefined;
     setLoading: (loading: boolean) => void;
     setupCreditsMarquee: () => void;
     validateDOMElements: () => boolean;
@@ -74,10 +76,12 @@ interface RendererApplicationStartupOptions {
 export function createRendererApplicationStartup(
     options: RendererApplicationStartupOptions
 ): () => Promise<void> {
+    const runtime =
+        options.runtime ?? getRendererApplicationStartupRuntime();
+
     async function initializeApplication(): Promise<void> {
         options.performanceMonitor.start("app_initialization");
-        const startupListenerController =
-            applicationStartupRuntime.createAbortController();
+        const startupListenerController = runtime.createAbortController();
 
         try {
             options.logRenderer(
@@ -113,7 +117,8 @@ export function createRendererApplicationStartup(
             await initializeComponents(
                 dependencies,
                 options,
-                startupListenerController
+                startupListenerController,
+                runtime
             );
 
             const electronApiHooks = getElectronApiStartupHooks({
@@ -183,7 +188,8 @@ export function createRendererApplicationStartup(
 
 async function initializeAsyncComponents(
     options: RendererApplicationStartupOptions,
-    startupListenerController: AbortController
+    startupListenerController: AbortController,
+    runtime: RendererApplicationStartupRuntime
 ): Promise<void> {
     try {
         const electronApiHooks = getElectronApiStartupHooks({
@@ -211,7 +217,7 @@ async function initializeAsyncComponents(
             !options.isDevelopmentMode()
         ) {
             try {
-                const updateCheckTimer = applicationStartupRuntime.setTimeout(
+                const updateCheckTimer = runtime.setTimeout(
                     () => {
                         electronApiHooks.checkForUpdates?.();
                     },
@@ -220,9 +226,7 @@ async function initializeAsyncComponents(
                 options.addEventListener(
                     "beforeunload",
                     () => {
-                        applicationStartupRuntime.clearTimeout(
-                            updateCheckTimer
-                        );
+                        runtime.clearTimeout(updateCheckTimer);
                     },
                     {
                         once: true,
@@ -249,7 +253,8 @@ async function initializeAsyncComponents(
 async function initializeComponents(
     dependencies: RendererDependencies,
     options: RendererApplicationStartupOptions,
-    startupListenerController: AbortController
+    startupListenerController: AbortController,
+    runtime: RendererApplicationStartupRuntime
 ): Promise<void> {
     try {
         options.performanceMonitor.start("theme_setup");
@@ -309,7 +314,11 @@ async function initializeComponents(
             "log",
             "[Renderer] Initializing async components..."
         );
-        await initializeAsyncComponents(options, startupListenerController);
+        await initializeAsyncComponents(
+            options,
+            startupListenerController,
+            runtime
+        );
         options.performanceMonitor.end("async_components");
 
         options.logRenderer(

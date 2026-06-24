@@ -15843,7 +15843,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -15864,6 +15864,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(applicationStartupSource).toContain(
             "applicationStartupRuntime.js"
+        );
+        expect(applicationStartupSource).toContain(
+            "options.runtime ?? getRendererApplicationStartupRuntime()"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "const applicationStartupRuntime ="
         );
         expect(runtimeSource).not.toMatch(
             directRendererApplicationStartupRuntimeAmbientFallbackPattern

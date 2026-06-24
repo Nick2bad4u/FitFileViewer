@@ -4,6 +4,7 @@ import {
     createRendererApplicationStartup,
     type RendererApplicationStartupCoreModules,
 } from "../../../electron-app/renderer/applicationStartup.js";
+import type { RendererApplicationStartupRuntime } from "../../../electron-app/renderer/applicationStartupRuntime.js";
 
 function createCoreModules(
     overrides: Partial<RendererApplicationStartupCoreModules> = {}
@@ -42,6 +43,16 @@ function createPerformanceMonitor() {
             }),
         },
         starts,
+    };
+}
+
+function createApplicationStartupRuntime(): RendererApplicationStartupRuntime {
+    return {
+        clearTimeout: vi.fn((handle) => {
+            clearTimeout(handle);
+        }),
+        createAbortController: vi.fn(() => new AbortController()),
+        setTimeout: vi.fn((callback, delay) => setTimeout(callback, delay)),
     };
 }
 
@@ -132,7 +143,7 @@ describe("renderer application startup", () => {
     });
 
     it("schedules production update checks and cancels the pending timer before unload", async () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
         vi.useFakeTimers();
 
@@ -140,6 +151,7 @@ describe("renderer application startup", () => {
         const coreModules = createCoreModules();
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const performance = createPerformanceMonitor();
+        const runtime = createApplicationStartupRuntime();
         const utils = createRendererApplicationStartup({
             addEventListener,
             ensureCoreModules: async () => coreModules,
@@ -158,6 +170,7 @@ describe("renderer application startup", () => {
             isOpeningFileRef: { value: false },
             logRenderer: vi.fn(),
             performanceMonitor: performance.monitor,
+            runtime,
             setLoading: vi.fn(),
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => true,
@@ -176,6 +189,12 @@ describe("renderer application startup", () => {
 
         expect(typeof beforeUnloadListener).toBe("function");
         expect(checkForUpdates).not.toHaveBeenCalled();
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(runtime.setTimeout).toHaveBeenCalledWith(
+            expect.any(Function),
+            5000
+        );
+        expect(runtime.clearTimeout).toHaveBeenCalledOnce();
         expect(addEventListener).toHaveBeenCalledWith(
             "beforeunload",
             expect.any(Function),
