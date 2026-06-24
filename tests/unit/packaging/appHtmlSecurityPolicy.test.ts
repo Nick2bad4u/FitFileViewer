@@ -241,13 +241,15 @@ describe("root app HTML security policy", () => {
     });
 
     it("accepts AltFit file data only from the parent frame", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const bridge = readAltFitBridge();
 
         expect(bridge).toContain("event.source !== window.parent");
         expect(bridge).toContain("event.origin === window.location.origin");
         expect(bridge).toContain('event.origin === "null"');
+        expect(bridge).toContain("function handleFitFileBase64(base64)");
+        expect(bridge).not.toContain("window.handleFitFileBase64");
         expect(bridge).not.toContain("innerHTML");
     });
 });

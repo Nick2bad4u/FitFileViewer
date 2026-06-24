@@ -24,7 +24,7 @@
         root.replaceChildren(message);
     }
 
-    window.handleFitFileBase64 = function handleFitFileBase64(base64) {
+    function handleFitFileBase64(base64) {
         const arrayBuffer = base64ToArrayBuffer(base64);
         if (window.loadFitFileFromArrayBuffer) {
             window.loadFitFileFromArrayBuffer(arrayBuffer);
@@ -37,7 +37,7 @@
             })
         );
         showReceivedFallback(base64);
-    };
+    }
 
     function isTrustedParentMessage(event) {
         if (event.source !== window.parent) {
@@ -48,9 +48,7 @@
             return event.origin === "file://" || event.origin === "null";
         }
 
-        return (
-            event.origin === window.location.origin
-        );
+        return event.origin === window.location.origin;
     }
 
     window.addEventListener("message", (event) => {
@@ -63,8 +61,8 @@
         }
 
         const fitFileBase64 = event.data.base64;
-        if (fitFileBase64 && window.handleFitFileBase64) {
-            window.handleFitFileBase64(fitFileBase64);
+        if (fitFileBase64) {
+            handleFitFileBase64(fitFileBase64);
             return;
         }
 
