@@ -4,8 +4,24 @@ import type {
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 
+export type RendererImportTimeCoreModules = Readonly<
+    Pick<
+        RendererCoreModules,
+        | "applyTheme"
+        | "getAppDomainState"
+        | "handleOpenFile"
+        | "listenForThemeChange"
+        | "setupListeners"
+        | "setupTheme"
+        | "showAboutModal"
+        | "showNotification"
+        | "showUpdateNotification"
+        | "subscribeAppDomain"
+    >
+>;
+
 interface RendererImportTimeBootstrapOptions {
-    ensureCoreModules: () => Promise<RendererCoreModules>;
+    ensureCoreModules: () => Promise<RendererImportTimeCoreModules>;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isOpeningFileRef: { value: boolean };

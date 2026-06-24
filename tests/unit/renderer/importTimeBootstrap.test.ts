@@ -3,9 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
+    type RendererImportTimeCoreModules,
     type RendererImportTimeBootstrap,
 } from "../../../electron-app/renderer/importTimeBootstrap.js";
-import type { RendererCoreModules } from "../../../electron-app/renderer/coreModuleResolution.js";
 import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
 function createBootstrap(
@@ -21,23 +21,19 @@ function createBootstrap(
 }
 
 function createCoreModules(
-    overrides: Partial<RendererCoreModules> = {}
-): RendererCoreModules {
+    overrides: Partial<RendererImportTimeCoreModules> = {}
+): RendererImportTimeCoreModules {
     return {
-        AppActions: undefined,
         applyTheme: vi.fn(),
         getAppDomainState: vi.fn(),
         handleOpenFile: vi.fn(),
         listenForThemeChange: vi.fn(),
-        masterStateManager: {},
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
         showAboutModal: vi.fn(),
         showNotification: vi.fn(),
         showUpdateNotification: vi.fn(),
         subscribeAppDomain: vi.fn(),
-        subscribeAppDomainPath: vi.fn(),
-        uiStateManager: {},
         ...overrides,
     };
 }

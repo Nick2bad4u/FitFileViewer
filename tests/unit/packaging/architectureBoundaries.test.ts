@@ -11817,7 +11817,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(11);
+        expect.assertions(19);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -11825,12 +11825,35 @@ describe("architecture boundaries", () => {
         const importTimeBootstrapSource = stripComments(
             readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
         );
+        const importTimeBootstrapTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/renderer/importTimeBootstrap.test.ts"
+            )
+        );
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
         );
 
         expect(coreModuleResolutionSource).not.toContain("callUnknownFunction");
         expect(importTimeBootstrapSource).not.toContain("callUnknownFunction");
+        expect(importTimeBootstrapSource).toContain(
+            "export type RendererImportTimeCoreModules = Readonly<"
+        );
+        expect(importTimeBootstrapSource).toContain("Pick<");
+        expect(importTimeBootstrapSource).toContain('"handleOpenFile"');
+        expect(importTimeBootstrapSource).toContain('"subscribeAppDomain"');
+        expect(importTimeBootstrapSource).toContain(
+            "ensureCoreModules: () => Promise<RendererImportTimeCoreModules>"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "ensureCoreModules: () => Promise<RendererCoreModules>"
+        );
+        expect(importTimeBootstrapTestSource).toContain(
+            "RendererImportTimeCoreModules"
+        );
+        expect(importTimeBootstrapTestSource).not.toContain(
+            "RendererCoreModules"
+        );
         expect(importTimeBootstrapSource).toContain(
             'getAppDomainState?.("app.startTime")'
         );
