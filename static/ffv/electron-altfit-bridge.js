@@ -116,19 +116,4 @@
         };
         trySimulateInput();
     });
-
-    if (!window.electronAPI) {
-        window.electronAPI = {};
-    }
-
-    if (typeof window.electronAPI.openFileDialog !== "function") {
-        window.electronAPI.openFileDialog = async function openFileDialog() {
-            alert(
-                "Open File is only available in the main app. Use the main Open button to load files."
-            );
-            throw new Error(
-                "openFileDialog is not available in this context. Use the main app to open files."
-            );
-        };
-    }
 })();
