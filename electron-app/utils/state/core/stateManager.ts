@@ -1,5 +1,4 @@
 import { AppState, type AppStateShape } from "./stateManagerDefaults.js";
-export { AppState as __debugState } from "./stateManagerDefaults.js";
 import {
     clearStateHistory as clearStateHistoryImpl,
     getStateHistory as getStateHistoryImpl,
