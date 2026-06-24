@@ -7,6 +7,7 @@ import type {
     ShowUpdateNotification,
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
+import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     AppDomainStateGetter,
     AppDomainStateSubscriber,
@@ -29,6 +30,7 @@ export type RendererImportTimeCoreModules = Readonly<{
 
 interface RendererImportTimeBootstrapOptions {
     ensureCoreModules: () => Promise<RendererImportTimeCoreModules>;
+    getElectronApiScope: () => RendererElectronApiScope;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isOpeningFileRef: { value: boolean };
@@ -46,6 +48,7 @@ export interface RendererImportTimeBootstrap {
 
 export function createRendererImportTimeBootstrap({
     ensureCoreModules,
+    getElectronApiScope,
     getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
@@ -113,6 +116,7 @@ export function createRendererImportTimeBootstrap({
             showUpdateNotification: showUpdateNotificationFn,
         } = await ensureCoreModules();
         const deps = createSetupListenersOptions({
+            electronApiScope: getElectronApiScope(),
             handleOpenFile: handleOpenFileFn,
             isOpeningFileRef,
             openFileBtn: getOpenFileButton(),
@@ -174,6 +178,7 @@ export function createRendererImportTimeBootstrap({
 }
 
 function createSetupListenersOptions(dependencies: {
+    readonly electronApiScope: SetupListenersOptions["electronApiScope"];
     readonly handleOpenFile:
         | SetupListenersOptions["handleOpenFile"]
         | undefined;
@@ -206,6 +211,7 @@ function createSetupListenersOptions(dependencies: {
     }
 
     return {
+        electronApiScope: dependencies.electronApiScope,
         handleOpenFile,
         isOpeningFileRef: dependencies.isOpeningFileRef,
         openFileBtn: dependencies.openFileBtn as HTMLButtonElement | null,

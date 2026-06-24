@@ -86,8 +86,13 @@ const domAccess = createRendererDomAccess({
     logRenderer,
 });
 
+const getRendererElectronApiScope = () => ({
+    getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
+});
+
 const importTimeBootstrap = createRendererImportTimeBootstrap({
     ensureCoreModules,
+    getElectronApiScope: getRendererElectronApiScope,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
@@ -138,9 +143,7 @@ const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
-    getElectronApiScope: () => ({
-        getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
-    }),
+    getElectronApiScope: getRendererElectronApiScope,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isDevelopmentMode,

@@ -46,13 +46,17 @@ async function flushImportTimeWork(): Promise<void> {
 
 describe("renderer import-time bootstrap", () => {
     it("calls import-time core module functions directly", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const openFileButton = document.createElement("button");
         const initializeStateManager = vi.fn(async () => undefined);
         const masterStateManager = { initialize: vi.fn() };
         const isOpeningFileRef = { value: false };
         const setLoading = vi.fn();
+        const electronApiScope = {
+            getElectronAPI: () => ({ readFile: vi.fn() }),
+        };
+        const getElectronApiScope = vi.fn(() => electronApiScope);
         const receivedUpdateNotifications: unknown[][] = [];
         let setupListenersOptions: SetupListenersOptions | undefined;
         const coreModules = createCoreModules({
@@ -75,6 +79,7 @@ describe("renderer import-time bootstrap", () => {
             scheduleImportTimeThemeSetup,
         } = createRendererImportTimeBootstrap({
             ensureCoreModules: async () => coreModules,
+            getElectronApiScope,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isOpeningFileRef,
@@ -99,11 +104,13 @@ describe("renderer import-time bootstrap", () => {
         expect(coreModules.setupListeners).toHaveBeenCalledWith(
             expect.objectContaining({
                 handleOpenFile: coreModules.handleOpenFile,
+                electronApiScope,
                 isOpeningFileRef,
                 openFileBtn: openFileButton,
                 setLoading,
             })
         );
+        expect(getElectronApiScope).toHaveBeenCalledOnce();
         expect(initializeStateManager).toHaveBeenCalledOnce();
         expect(masterStateManager.initialize).toHaveBeenCalledOnce();
         expect(coreModules.getAppDomainState).toHaveBeenCalledWith(
