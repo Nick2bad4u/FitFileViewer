@@ -72,7 +72,6 @@ const rendererElectronApiRuntimeSourceFiles = [
 ] as const;
 const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts",
-    "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts",
     "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
@@ -80,6 +79,7 @@ const scopedRendererElectronApiRegressionTests = [
     "electron-app/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
+    "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",

@@ -1,10 +1,7 @@
 // @ts-nocheck
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFileMock = (filePath: string) => Promise<void>;
 type AnchorClickMock = () => void;
@@ -108,7 +105,7 @@ vi.mock(
 const openFileSelectorMock = dependencyMocks.openFileSelector;
 
 // Import the module under test
-import { setupListeners } from "../../../../../../electron-app/utils/app/lifecycle/listeners.js";
+import { setupListeners as setupLifecycleListeners } from "../../../../../../electron-app/utils/app/lifecycle/listeners.js";
 import { resetMenuIpcListenerStateForTests } from "../../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import {
     getActiveFitRawData,
@@ -195,10 +192,24 @@ function createElectronAPIMock() {
     };
 }
 
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
+
+let electronApiScope: RendererElectronApiScope | undefined;
+
 function registerLifecycleElectronAPI(api: any) {
-    resetElectronApiCandidate();
-    registerElectronApiCandidate(api);
+    electronApiScope = createElectronApiScope(api);
     return api;
+}
+
+function setupListeners(options: any): void {
+    setupLifecycleListeners({
+        electronApiScope,
+        ...options,
+    });
 }
 
 function createButton(): HTMLButtonElement {
@@ -245,7 +256,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         resetMenuIpcListenerStateForTests();
         document.body.innerHTML = "";
         openFileBtn = createButton();
-        electronAPI = registerLifecycleElectronAPI(createElectronAPIMock());
+        electronAPI = createElectronAPIMock();
+        electronApiScope = createElectronApiScope(electronAPI);
 
         setLoading = vi.fn<SetLoadingMock>();
         showNotification = vi.fn<ShowNotificationMock>();
@@ -266,7 +278,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     afterEach(() => {
         __resetStateManagerForTests();
-        resetElectronApiCandidate();
+        electronApiScope = undefined;
         // Clean up any dynamically created context menus
         const existingMenu = document.querySelector("#recent-files-menu");
         if (existingMenu) {
@@ -787,11 +799,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // menu-about calls showAboutModal with no args
         electronAPI.emit("menu-about");
         expect(openFileBtn.isConnected).toBe(true);
-        expect(showAboutModal).toHaveBeenCalledWith();
+        expect(showAboutModal).toHaveBeenCalledWith("", { electronApiScope });
 
         await electronAPI.emit("menu-keyboard-shortcuts");
 
-        expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledWith();
+        expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledWith({
+            electronApiScope,
+        });
 
         await electronAPI.emit("menu-keyboard-shortcuts");
         expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledTimes(2);
@@ -2098,9 +2112,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         electronAPI.emit("menu-keyboard-shortcuts");
 
         await vi.waitFor(() => {
-            expect(
-                dependencyMocks.keyboardShortcutsModal
-            ).toHaveBeenCalledWith();
+            expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledWith(
+                { electronApiScope }
+            );
         });
         expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
 
