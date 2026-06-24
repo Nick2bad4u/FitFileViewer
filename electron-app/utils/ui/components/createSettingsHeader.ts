@@ -14,10 +14,13 @@ import {
 import { showNotification } from "../notifications/showNotification.js";
 import {
     getCreateSettingsHeaderRuntime,
+    type CreateSettingsHeaderRuntime,
     type CreateSettingsHeaderTimer,
 } from "./createSettingsHeaderRuntime.js";
 
-const createSettingsHeaderRuntime = getCreateSettingsHeaderRuntime();
+function createSettingsHeaderRuntime(): CreateSettingsHeaderRuntime {
+    return getCreateSettingsHeaderRuntime();
+}
 
 type ChartDataPoint = Record<string, unknown> & {
     x?: unknown;
@@ -140,7 +143,7 @@ export function applySettingsPanelStyles(wrapper: HTMLElement): void {
 	`;
 
     // Add subtle animated background effect
-    const bgEffect = createSettingsHeaderRuntime.createElement("div");
+    const bgEffect = createSettingsHeaderRuntime().createElement("div");
     bgEffect.style.cssText = `
 		position: absolute;
 		top: 0;
@@ -168,7 +171,7 @@ export function createControlsSection(wrapper: HTMLElement): void {
         return;
     }
 
-    const controlsSection = createSettingsHeaderRuntime.createElement("div");
+    const controlsSection = createSettingsHeaderRuntime().createElement("div");
     controlsSection.className = "controls-section";
     controlsSection.style.cssText = `
 		display: grid;
@@ -193,7 +196,7 @@ export function createExportSection(wrapper: HTMLElement): void {
         return;
     }
 
-    const exportSection = createSettingsHeaderRuntime.createElement("div");
+    const exportSection = createSettingsHeaderRuntime().createElement("div");
     exportSection.className = "export-section";
     exportSection.style.cssText = `
 		background: var(--color-glass);
@@ -205,7 +208,7 @@ export function createExportSection(wrapper: HTMLElement): void {
 		z-index: 1;
 		backdrop-filter: var(--backdrop-blur);
 	`;
-    const exportTitle = createSettingsHeaderRuntime.createElement("h4");
+    const exportTitle = createSettingsHeaderRuntime().createElement("h4");
     exportTitle.textContent = "Export & Share";
     exportTitle.style.cssText = `
 		margin: 0 0 12px 0;
@@ -214,7 +217,7 @@ export function createExportSection(wrapper: HTMLElement): void {
 		font-weight: 600;
 	`;
 
-    const exportGrid = createSettingsHeaderRuntime.createElement("div");
+    const exportGrid = createSettingsHeaderRuntime().createElement("div");
     exportGrid.style.cssText = `
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -322,10 +325,12 @@ export function createExportSection(wrapper: HTMLElement): void {
                                 }
                             ),
                             link =
-                                createSettingsHeaderRuntime.createElement("a");
+                                createSettingsHeaderRuntime().createElement(
+                                    "a"
+                                );
                         link.href = URL.createObjectURL(blob);
                         link.download = "combined-charts-data.json";
-                        createSettingsHeaderRuntime.appendToBody(link);
+                        createSettingsHeaderRuntime().appendToBody(link);
                         link.click();
                         link.remove();
                         void showNotification(
@@ -420,7 +425,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
     if (wrapper.querySelector(".settings-header")) {
         return;
     }
-    const header = createSettingsHeaderRuntime.createElement("div");
+    const header = createSettingsHeaderRuntime().createElement("div");
     header.className = "settings-header";
     header.style.cssText = `
 		display: flex;
@@ -433,7 +438,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
 		gap: 12px;
 	`;
 
-    const leftSection = createSettingsHeaderRuntime.createElement("div");
+    const leftSection = createSettingsHeaderRuntime().createElement("div");
     leftSection.style.cssText = `
 		display: flex;
 		align-items: center;
@@ -442,7 +447,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
 		min-width: 200px;
 	`;
 
-    const title = createSettingsHeaderRuntime.createElement("h3");
+    const title = createSettingsHeaderRuntime().createElement("h3");
     title.textContent = "Chart Controls";
     title.style.cssText = `
 		margin: 0;
@@ -461,7 +466,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
         leftSection.append(statusIndicator);
     }
 
-    const globalActions = createSettingsHeaderRuntime.createElement("div");
+    const globalActions = createSettingsHeaderRuntime().createElement("div");
     globalActions.className = "global-actions";
     globalActions.style.cssText = `
 		display: flex;		gap: 8px;
@@ -488,7 +493,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
                 const success = resetAllSettings();
 
                 // Re-enable button after reset completes
-                const resetTimer = createSettingsHeaderRuntime.setTimeout(
+                const resetTimer = createSettingsHeaderRuntime().setTimeout(
                     () => {
                         resetBtn.style.opacity = "1";
                         resetBtn.disabled = false;
@@ -541,9 +546,9 @@ export function showChartSelectionModal(
     }
 
     // Create modal overlay
-    const overlay = createSettingsHeaderRuntime.createElement("div");
+    const overlay = createSettingsHeaderRuntime().createElement("div");
     const modalAbortController =
-        createSettingsHeaderRuntime.createAbortController();
+        createSettingsHeaderRuntime().createAbortController();
     const closeModal = () => {
         modalAbortController.abort();
         overlay.remove();
@@ -565,7 +570,7 @@ export function showChartSelectionModal(
 	`;
 
     // Create modal content
-    const modal = createSettingsHeaderRuntime.createElement("div");
+    const modal = createSettingsHeaderRuntime().createElement("div");
     modal.style.cssText = `
 		background: var(--color-modal-bg);
 		border-radius: var(--border-radius);
@@ -579,7 +584,7 @@ export function showChartSelectionModal(
 	`;
 
     // Modal title
-    const title = createSettingsHeaderRuntime.createElement("h3");
+    const title = createSettingsHeaderRuntime().createElement("h3");
     title.textContent = `Select Chart to ${actionType}`;
     title.style.cssText = `
 		margin: 0 0 16px 0;
@@ -588,13 +593,13 @@ export function showChartSelectionModal(
 	`;
 
     // Chart selection list
-    const chartList = createSettingsHeaderRuntime.createElement("div");
+    const chartList = createSettingsHeaderRuntime().createElement("div");
     chartList.style.cssText = `
 		margin-bottom: 20px;
 	`;
 
     for (const [index, chart] of validCharts.entries()) {
-        const chartItem = createSettingsHeaderRuntime.createElement("button"),
+        const chartItem = createSettingsHeaderRuntime().createElement("button"),
             [dataset] = chart.data.datasets,
             fieldName = dataset?.label || `Chart ${index + 1}`;
         chartItem.textContent = `📊 ${fieldName}`;
@@ -642,7 +647,7 @@ export function showChartSelectionModal(
     }
 
     // Combined option
-    const combinedItem = createSettingsHeaderRuntime.createElement("button");
+    const combinedItem = createSettingsHeaderRuntime().createElement("button");
     combinedItem.textContent = `🔗 All Charts Combined (${validCharts.length} charts)`;
     combinedItem.style.cssText = `
 		display: block;
@@ -685,7 +690,7 @@ export function showChartSelectionModal(
     );
 
     // Cancel button
-    const cancelButton = createSettingsHeaderRuntime.createElement("button");
+    const cancelButton = createSettingsHeaderRuntime().createElement("button");
     cancelButton.textContent = "Cancel";
     cancelButton.style.cssText = `
 		width: 100%;
@@ -713,7 +718,7 @@ export function showChartSelectionModal(
             closeModal();
         }
     };
-    createSettingsHeaderRuntime.addDocumentKeydownListener(handleEscape, {
+    createSettingsHeaderRuntime().addDocumentKeydownListener(handleEscape, {
         signal: modalAbortController.signal,
     });
 
@@ -734,7 +739,7 @@ export function showChartSelectionModal(
     modal.append(combinedItem);
     modal.append(cancelButton);
     overlay.append(modal);
-    createSettingsHeaderRuntime.appendToBody(overlay);
+    createSettingsHeaderRuntime().appendToBody(overlay);
 }
 /*
  * Shows a modal to select which chart(s) to use for an action
@@ -753,7 +758,7 @@ function createActionButton(
     onClick: () => void,
     className = ""
 ): HTMLButtonElement {
-    const button = createSettingsHeaderRuntime.createElement("button");
+    const button = createSettingsHeaderRuntime().createElement("button");
     button.textContent = text;
     button.title = title;
     button.className = className;
@@ -773,7 +778,7 @@ function createActionButton(
 	`;
 
     const buttonController =
-        createSettingsHeaderRuntime.createAbortController();
+        createSettingsHeaderRuntime().createAbortController();
     const buttonSignal = buttonController.signal;
 
     button.addEventListener(
@@ -807,7 +812,7 @@ function createActionButton(
  * Creates individual control groups for each setting
  */
 function createControlGroup(option: ChartOption): HTMLElement {
-    const group = createSettingsHeaderRuntime.createElement("div");
+    const group = createSettingsHeaderRuntime().createElement("div");
     group.className = "control-group";
     group.style.cssText = `
 		background: var(--color-glass);
@@ -818,7 +823,8 @@ function createControlGroup(option: ChartOption): HTMLElement {
 		backdrop-filter: var(--backdrop-blur);
 	`;
 
-    const groupController = createSettingsHeaderRuntime.createAbortController();
+    const groupController =
+        createSettingsHeaderRuntime().createAbortController();
     const groupSignal = groupController.signal;
 
     // Add hover effect
@@ -842,7 +848,7 @@ function createControlGroup(option: ChartOption): HTMLElement {
         { signal: groupSignal }
     );
 
-    const label = createSettingsHeaderRuntime.createElement("label");
+    const label = createSettingsHeaderRuntime().createElement("label");
     label.textContent = option.label;
     label.style.cssText = `
 		display: block;
@@ -853,7 +859,7 @@ function createControlGroup(option: ChartOption): HTMLElement {
 	`;
 
     if (option.description) {
-        const description = createSettingsHeaderRuntime.createElement("div");
+        const description = createSettingsHeaderRuntime().createElement("div");
         description.textContent = option.description;
         description.style.cssText = `
 			color: var(--color-fg);
@@ -884,8 +890,9 @@ function createControlGroup(option: ChartOption): HTMLElement {
  * @param {ChartOption} option - The range control option configuration
  */
 function createRangeControl(option: ChartOption): HTMLDivElement {
-    const container = createSettingsHeaderRuntime.createElement("div");
-    const rangeController = createSettingsHeaderRuntime.createAbortController();
+    const container = createSettingsHeaderRuntime().createElement("div");
+    const rangeController =
+        createSettingsHeaderRuntime().createAbortController();
     const rangeSignal = rangeController.signal;
     container.style.cssText = `
 		position: relative;
@@ -910,7 +917,7 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
         return fallbackValue;
     })();
 
-    const slider = createSettingsHeaderRuntime.createElement(
+    const slider = createSettingsHeaderRuntime().createElement(
         "input"
     ) as HTMLInputElement & {
         timeout?: CreateSettingsHeaderTimer;
@@ -937,7 +944,7 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
 	`;
 
     // Style the thumb
-    const style = createSettingsHeaderRuntime.createElement("style");
+    const style = createSettingsHeaderRuntime().createElement("style");
     style.textContent = `
 		#${slider.id}::-webkit-slider-thumb {
 			-webkit-appearance: none;
@@ -958,9 +965,9 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
 			border: 2px solid var(--color-fg-alt);
 		}
 	`;
-    createSettingsHeaderRuntime.appendToHead(style);
+    createSettingsHeaderRuntime().appendToHead(style);
 
-    const valueDisplay = createSettingsHeaderRuntime.createElement("span");
+    const valueDisplay = createSettingsHeaderRuntime().createElement("span");
     valueDisplay.textContent = slider.value;
     valueDisplay.style.cssText = `
 		position: absolute;
@@ -997,10 +1004,13 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
                 slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
                 // Debounced re-render using the same approach as the reset button
-                createSettingsHeaderRuntime.clearTimeout(slider.timeout);
-                slider.timeout = createSettingsHeaderRuntime.setTimeout(() => {
-                    reRenderChartsAfterSettingChange(option.id, safeValue);
-                }, 300);
+                createSettingsHeaderRuntime().clearTimeout(slider.timeout);
+                slider.timeout = createSettingsHeaderRuntime().setTimeout(
+                    () => {
+                        reRenderChartsAfterSettingChange(option.id, safeValue);
+                    },
+                    300
+                );
             }
         },
         { signal: rangeSignal }
@@ -1021,9 +1031,9 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
  * Creates a select dropdown control
  */
 function createSelectControl(option: ChartOption): HTMLSelectElement {
-    const select = createSettingsHeaderRuntime.createElement("select");
+    const select = createSettingsHeaderRuntime().createElement("select");
     const selectController =
-        createSettingsHeaderRuntime.createAbortController();
+        createSettingsHeaderRuntime().createAbortController();
     const selectSignal = selectController.signal;
     select.id = `chartjs-${option.id}-dropdown`;
     select.style.cssText = `
@@ -1061,7 +1071,7 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
     if (option.options)
         for (const val of option.options) {
             const optionEl =
-                createSettingsHeaderRuntime.createElement("option");
+                createSettingsHeaderRuntime().createElement("option");
             optionEl.value = String(val);
             optionEl.textContent =
                 val === "all"
@@ -1142,11 +1152,11 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
  * Creates a toggle switch control
  */
 function createToggleControl(option: ChartOption): HTMLDivElementExtended {
-    const container = createSettingsHeaderRuntime.createElement(
+    const container = createSettingsHeaderRuntime().createElement(
         "div"
     ) as HTMLDivElementExtended;
     const toggleController =
-        createSettingsHeaderRuntime.createAbortController();
+        createSettingsHeaderRuntime().createAbortController();
     const toggleSignal = toggleController.signal;
     container.style.cssText = `
 		display: flex;
@@ -1154,7 +1164,7 @@ function createToggleControl(option: ChartOption): HTMLDivElementExtended {
 		gap: 8px;
 	`;
 
-    const toggle = createSettingsHeaderRuntime.createElement("div");
+    const toggle = createSettingsHeaderRuntime().createElement("div");
     toggle.className = "toggle-switch";
     toggle.style.cssText = `
 		width: 48px;
@@ -1166,7 +1176,7 @@ function createToggleControl(option: ChartOption): HTMLDivElementExtended {
 		transition: var(--transition-smooth);
 	`;
 
-    const toggleThumb = createSettingsHeaderRuntime.createElement("div");
+    const toggleThumb = createSettingsHeaderRuntime().createElement("div");
     toggleThumb.className = "toggle-thumb";
     toggleThumb.style.cssText = `
 		width: 20px;
@@ -1195,7 +1205,7 @@ function createToggleControl(option: ChartOption): HTMLDivElementExtended {
         return Boolean(stored);
     }
 
-    const statusText = createSettingsHeaderRuntime.createElement("span");
+    const statusText = createSettingsHeaderRuntime().createElement("span");
     statusText.style.cssText = `
 		font-weight: 600;
 		font-size: 14px;

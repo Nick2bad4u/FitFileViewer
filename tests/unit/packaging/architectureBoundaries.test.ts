@@ -5638,7 +5638,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(38);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -5662,16 +5662,25 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderSource).toContain(
             "createSettingsHeaderRuntime.js"
         );
+        expect(settingsHeaderSource).toContain(
+            "type CreateSettingsHeaderRuntime"
+        );
+        expect(settingsHeaderSource).toContain(
+            "return getCreateSettingsHeaderRuntime();"
+        );
+        expect(settingsHeaderSource).not.toContain(
+            "const createSettingsHeaderRuntime = getCreateSettingsHeaderRuntime();"
+        );
         expect(settingsHeaderSource).toContain("createAbortController");
         expect(settingsHeaderSource).toContain("addDocumentKeydownListener");
         expect(settingsHeaderSource).toContain(
-            "createSettingsHeaderRuntime.createElement"
+            "createSettingsHeaderRuntime().createElement"
         );
         expect(settingsHeaderSource).toContain(
-            "createSettingsHeaderRuntime.appendToBody"
+            "createSettingsHeaderRuntime().appendToBody"
         );
         expect(settingsHeaderSource).toContain(
-            "createSettingsHeaderRuntime.appendToHead"
+            "createSettingsHeaderRuntime().appendToHead"
         );
         expect(settingsHeaderSource).not.toContain("document.addEventListener");
         expect(settingsHeaderSource).not.toContain("document.createElement");
@@ -6976,7 +6985,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings modal browser APIs behind the runtime facade", () => {
-        expect.assertions(49);
+        expect.assertions(52);
 
         const timingViolations = migratedSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -7002,35 +7011,42 @@ describe("architecture boundaries", () => {
         expect(timingViolations).toStrictEqual([]);
         expect(browserViolations).toStrictEqual([]);
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
+        expect(settingsModalSource).toContain("type SettingsModalRuntime");
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.queryElement"
+            "return getSettingsModalRuntime();"
+        );
+        expect(settingsModalSource).not.toContain(
+            "const settingsModalRuntime = getSettingsModalRuntime();"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.createElement"
+            "settingsModalRuntime().queryElement"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.createSvgElement"
+            "settingsModalRuntime().createElement"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.appendToBody"
+            "settingsModalRuntime().createSvgElement"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.appendToHead"
+            "settingsModalRuntime().appendToBody"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.getActiveHTMLElement"
+            "settingsModalRuntime().appendToHead"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.getDocumentEventTarget"
+            "settingsModalRuntime().getActiveHTMLElement"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.isKeyboardEvent"
+            "settingsModalRuntime().getDocumentEventTarget"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.isHTMLInputElement"
+            "settingsModalRuntime().isKeyboardEvent"
         );
         expect(settingsModalSource).toContain(
-            "settingsModalRuntime.isHTMLSelectElement"
+            "settingsModalRuntime().isHTMLInputElement"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime().isHTMLSelectElement"
         );
         expect(settingsModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
