@@ -4,6 +4,7 @@
 
 import {
     getMapThemeToggleRuntime,
+    type MapThemeToggleRuntime,
     type MapThemeToggleTimerHandle,
 } from "./mapThemeToggleRuntime.js";
 
@@ -14,7 +15,6 @@ export const MAP_THEME_EVENTS = {
     CHANGED: "mapThemeChanged",
 } as const;
 
-const mapThemeToggleRuntime = getMapThemeToggleRuntime();
 const mapThemeToggleUpdateTimers = new Set<MapThemeToggleTimerHandle>();
 
 let currentMapThemeToggleUpdate: (() => void) | null = null;
@@ -23,8 +23,20 @@ let mapThemeToggleListenersController: AbortController | null = null;
 
 let mapThemeToggleListenersInstalled = false;
 
-function scheduleMapThemeToggleUpdate(callback: () => void): void {
-    const timeout = mapThemeToggleRuntime.setTimeout(() => {
+let mapThemeToggleRuntime: MapThemeToggleRuntime | null = null;
+
+function getMapThemeToggleStateRuntime(
+    runtime: MapThemeToggleRuntime = getMapThemeToggleRuntime()
+): MapThemeToggleRuntime {
+    mapThemeToggleRuntime ??= runtime;
+    return mapThemeToggleRuntime;
+}
+
+function scheduleMapThemeToggleUpdate(
+    callback: () => void,
+    runtime: MapThemeToggleRuntime
+): void {
+    const timeout = runtime.setTimeout(() => {
         mapThemeToggleUpdateTimers.delete(timeout);
         callback();
     }, 50);
@@ -40,23 +52,24 @@ function invokeCurrentMapThemeToggleUpdate(): void {
     }
 }
 
-function ensureMapThemeToggleListenersInstalled(): void {
+function ensureMapThemeToggleListenersInstalled(
+    runtime: MapThemeToggleRuntime
+): void {
     if (mapThemeToggleListenersInstalled) {
         return;
     }
 
     mapThemeToggleListenersInstalled = true;
-    mapThemeToggleListenersController =
-        mapThemeToggleRuntime.createAbortController();
+    mapThemeToggleListenersController = runtime.createAbortController();
 
-    mapThemeToggleRuntime.addDocumentListener(
+    runtime.addDocumentListener(
         "themechange",
         invokeCurrentMapThemeToggleUpdate,
         {
             signal: mapThemeToggleListenersController.signal,
         }
     );
-    mapThemeToggleRuntime.addDocumentListener(
+    runtime.addDocumentListener(
         MAP_THEME_EVENTS.CHANGED,
         invokeCurrentMapThemeToggleUpdate,
         {
@@ -74,26 +87,31 @@ function ensureMapThemeToggleListenersInstalled(): void {
  * @param updateButtonState - Callback that refreshes the toggle affordance.
  */
 export function registerMapThemeToggleUpdater(
-    updateButtonState: () => void
+    updateButtonState: () => void,
+    runtime: MapThemeToggleRuntime = getMapThemeToggleRuntime()
 ): void {
-    ensureMapThemeToggleListenersInstalled();
+    const stateRuntime = getMapThemeToggleStateRuntime(runtime);
+    ensureMapThemeToggleListenersInstalled(stateRuntime);
     currentMapThemeToggleUpdate = () => {
-        scheduleMapThemeToggleUpdate(updateButtonState);
+        scheduleMapThemeToggleUpdate(updateButtonState, stateRuntime);
     };
 }
 
 /**
  * Reset module state for isolated tests.
  */
-export function resetMapThemeToggleStateForTests(): void {
+export function resetMapThemeToggleStateForTests(
+    runtime: MapThemeToggleRuntime = getMapThemeToggleStateRuntime()
+): void {
     mapThemeToggleListenersController?.abort();
 
     for (const timeout of mapThemeToggleUpdateTimers) {
-        mapThemeToggleRuntime.clearTimeout(timeout);
+        runtime.clearTimeout(timeout);
     }
     mapThemeToggleUpdateTimers.clear();
 
     currentMapThemeToggleUpdate = null;
     mapThemeToggleListenersController = null;
     mapThemeToggleListenersInstalled = false;
+    mapThemeToggleRuntime = null;
 }

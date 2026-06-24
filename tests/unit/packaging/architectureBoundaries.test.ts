@@ -14390,7 +14390,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(48);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -14415,6 +14415,16 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapThemeToggleStateSource).toContain("mapThemeToggleRuntime.js");
+        expect(mapThemeToggleStateSource).toContain("type MapThemeToggleRuntime");
+        expect(mapThemeToggleStateSource).not.toContain(
+            "const mapThemeToggleRuntime = getMapThemeToggleRuntime();"
+        );
+        expect(mapThemeToggleStateSource).toContain(
+            "runtime: MapThemeToggleRuntime = getMapThemeToggleRuntime()"
+        );
+        expect(mapThemeToggleStateSource).toContain(
+            "getMapThemeToggleStateRuntime(runtime)"
+        );
         expect(mapThemeToggleStateSource).toContain("createAbortController");
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
         expect(mapThemeToggleSource).toContain("createMapThemeChangedEvent");
