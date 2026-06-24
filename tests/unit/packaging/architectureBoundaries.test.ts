@@ -16467,7 +16467,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(46);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -16590,6 +16590,24 @@ describe("architecture boundaries", () => {
         );
         expect(createShownFilesListSource).toContain(
             "shownFilesListRuntime.isDarkTheme()"
+        );
+        expect(createShownFilesListSource).toContain(
+            "shownFilesListRuntime.createElement"
+        );
+        expect(createShownFilesListSource).toContain(
+            "shownFilesListRuntime.querySelectorAll"
+        );
+        expect(createShownFilesListSource).toContain(
+            "shownFilesListRuntime.appendToBody"
+        );
+        expect(createShownFilesListSource).not.toContain(
+            "document.createElement"
+        );
+        expect(createShownFilesListSource).not.toContain(
+            "document.querySelectorAll"
+        );
+        expect(createShownFilesListSource).not.toContain(
+            "document.body.append"
         );
         expect(createShownFilesListSource).not.toContain(
             "document.body.classList"
