@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type FileSelectorElectronAPI = {
     openOverlayDialog?: () => Promise<string[]>;
@@ -54,10 +51,17 @@ const { openFileSelector } =
     await import("../../../../../electron-app/utils/files/import/openFileSelector.js");
 
 function cleanupGlobals() {
-    resetRendererElectronApiCandidate();
     document.body.replaceChildren();
     vi.restoreAllMocks();
     vi.clearAllMocks();
+}
+
+function createElectronApiScope(
+    api: FileSelectorElectronAPI
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 function getFirstNativeFileFacade(files: Array<File | NativeFileFacade>) {
@@ -84,12 +88,12 @@ describe(openFileSelector, () => {
         );
 
         try {
-            registerRendererElectronApiCandidate({
+            const electronApiScope = createElectronApiScope({
                 openOverlayDialog,
                 readFile,
             } satisfies FileSelectorElectronAPI);
 
-            await openFileSelector();
+            await openFileSelector({ electronApiScope });
 
             const files = mocks.loadOverlayFiles.mock.calls[0]?.[0] ?? [];
             const firstFile = getFirstNativeFileFacade(files);
@@ -117,11 +121,11 @@ describe(openFileSelector, () => {
         });
 
         try {
-            registerRendererElectronApiCandidate({
+            const electronApiScope = createElectronApiScope({
                 openOverlayDialog,
             } satisfies FileSelectorElectronAPI);
 
-            await openFileSelector();
+            await openFileSelector({ electronApiScope });
 
             expect(mocks.loadOverlayFiles).not.toHaveBeenCalled();
             expect(mocks.showNotification).toHaveBeenCalledWith(

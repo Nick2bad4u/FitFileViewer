@@ -1,6 +1,9 @@
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { loadOverlayFiles, type OverlayInputFile } from "./loadOverlayFiles.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import {
@@ -22,6 +25,10 @@ type NativeFileFacade = OverlayInputFile & {
 type FileSelectorInput = HTMLInputElement & {
     __files?: ArrayLike<File>;
     selectedFiles?: ArrayLike<File>;
+};
+
+type OpenFileSelectorOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
 
 type InputProcessingController = {
@@ -60,8 +67,10 @@ const PATH_SEPARATOR_REGEX = /[/\\]+/g;
  *
  * @example // Open file selector for overlay files. openFileSelector();
  */
-export async function openFileSelector(): Promise<void> {
-    const electronAPI = getFileSelectorElectronApi();
+export async function openFileSelector({
+    electronApiScope,
+}: OpenFileSelectorOptions = {}): Promise<void> {
+    const electronAPI = getFileSelectorElectronApi(electronApiScope);
 
     if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
         try {
@@ -76,7 +85,9 @@ export async function openFileSelector(): Promise<void> {
                         typeof filePath === "string" &&
                         filePath.trim().length > 0
                 )
-                .map((filePath) => createNativeFileFacade(filePath));
+                .map((filePath) =>
+                    createNativeFileFacade(filePath, electronApiScope)
+                );
 
             if (facadeFiles.length === 0) {
                 return;
@@ -129,9 +140,12 @@ function isFileSelectorElectronApi(
     );
 }
 
-function getFileSelectorElectronApi(): FileSelectorElectronAPI | null {
+function getFileSelectorElectronApi(
+    electronApiScope?: RendererElectronApiScope
+): FileSelectorElectronAPI | null {
     return getRendererElectronApi<FileSelectorElectronAPI>(
-        isFileSelectorElectronApi
+        isFileSelectorElectronApi,
+        electronApiScope
     );
 }
 
@@ -207,11 +221,14 @@ function createInputProcessingController(
     return { done, run, signal: abortController.signal };
 }
 
-function createNativeFileFacade(filePath: string): NativeFileFacade {
+function createNativeFileFacade(
+    filePath: string,
+    electronApiScope: RendererElectronApiScope | undefined
+): NativeFileFacade {
     const name = getFileNameFromPath(filePath);
     return {
         arrayBuffer: async () => {
-            const api = getFileSelectorElectronApi();
+            const api = getFileSelectorElectronApi(electronApiScope);
             if (!api || typeof api.readFile !== "function") {
                 throw new Error("readFile bridge unavailable");
             }
