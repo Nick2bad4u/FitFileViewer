@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
     vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
@@ -25,6 +22,9 @@ type StateManagerModule =
     typeof import("../../../../../electron-app/utils/state/core/stateManager.js");
 type HandleOpenFileModule =
     typeof import("../../../../../electron-app/utils/files/import/handleOpenFile.js");
+type HandleOpenFileOptions = Parameters<
+    HandleOpenFileModule["handleOpenFile"]
+>[1];
 
 type NotificationType = "error" | "info" | "success" | "warning";
 type MockNotification = (
@@ -52,6 +52,8 @@ type TestOpenFileParams = {
     setLoading: ReturnType<typeof vi.fn<(isLoading: boolean) => void>>;
     showNotification: ReturnType<typeof vi.fn<MockNotification>>;
 };
+
+type ValidateElectronAPI = HandleOpenFileModule["validateElectronAPI"];
 
 // Create direct mocks for stateManager with proper implementation
 const stateManagerMock = {
@@ -102,6 +104,30 @@ function getElectronAPI(): MockElectronAPI {
         throw new Error("electronAPI was not configured for the test");
     }
     return currentElectronApi as MockElectronAPI;
+}
+
+function createElectronApiScope(
+    api: Partial<MockElectronAPI> | undefined = currentElectronApi
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
+
+async function callHandleOpenFile(
+    params: Parameters<HandleOpenFileModule["handleOpenFile"]>[0],
+    options: HandleOpenFileOptions = {}
+): Promise<boolean> {
+    return handleOpenFileModule.handleOpenFile(params, {
+        electronApiScope: createElectronApiScope(),
+        ...options,
+    });
+}
+
+function callValidateElectronAPI(
+    validateElectronAPI: ValidateElectronAPI
+): boolean {
+    return validateElectronAPI(createElectronApiScope());
 }
 
 function createElectronAPIMock(): MockElectronAPI {
@@ -173,10 +199,7 @@ describe("handleOpenFile Module", () => {
         // Set up process.env for coverage
         setTestProcessEnv({ NODE_ENV: "development" });
 
-        // Register the preload API candidate used by handleOpenFile.
-        resetElectronApiCandidate();
         currentElectronApi = createElectronAPIMock();
-        registerElectronApiCandidate(currentElectronApi);
 
         // Import the module under test
         handleOpenFileModule =
@@ -185,7 +208,6 @@ describe("handleOpenFile Module", () => {
 
     afterEach(() => {
         vi.useRealTimers();
-        resetElectronApiCandidate();
         vi.restoreAllMocks();
         restoreProcessGlobal();
     });
@@ -274,7 +296,9 @@ describe("handleOpenFile Module", () => {
             expect.assertions(2);
 
             expect({
-                apiAvailable: handleOpenFileModule.validateElectronAPI(),
+                apiAvailable: callValidateElectronAPI(
+                    handleOpenFileModule.validateElectronAPI
+                ),
             }).toStrictEqual({ apiAvailable: true });
             expect(console.error).not.toHaveBeenCalled();
         });
@@ -282,10 +306,11 @@ describe("handleOpenFile Module", () => {
         it("should return false when Electron API is not available", () => {
             expect.assertions(2);
 
-            resetElectronApiCandidate();
             currentElectronApi = undefined;
             expect({
-                apiAvailable: handleOpenFileModule.validateElectronAPI(),
+                apiAvailable: callValidateElectronAPI(
+                    handleOpenFileModule.validateElectronAPI
+                ),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
                 "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Electron API not available"
@@ -300,9 +325,10 @@ describe("handleOpenFile Module", () => {
                 parseFitFile:
                     vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>(),
             }; // Missing openFile
-            registerElectronApiCandidate(currentElectronApi);
             expect({
-                apiAvailable: handleOpenFileModule.validateElectronAPI(),
+                apiAvailable: callValidateElectronAPI(
+                    handleOpenFileModule.validateElectronAPI
+                ),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
                 "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Electron API not available"
@@ -429,8 +455,7 @@ describe("handleOpenFile Module", () => {
                 data: { sessions: [] },
             });
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect(getElectronAPI().openFile).toHaveBeenCalledWith();
             expect(getElectronAPI().readFile).toHaveBeenCalledWith("test.fit");
@@ -447,8 +472,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -465,8 +489,7 @@ describe("handleOpenFile Module", () => {
                 showNotification: vi.fn<MockNotification>(),
             };
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -485,10 +508,9 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result = await handleOpenFileModule.handleOpenFile(
-                mockParams,
-                { validateFileSize: true }
-            );
+            const result = await callHandleOpenFile(mockParams, {
+                validateFileSize: true,
+            });
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -508,8 +530,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -530,8 +551,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -553,8 +573,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -577,8 +596,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -605,8 +623,7 @@ describe("handleOpenFile Module", () => {
             const mockParams = createOpenFileParams();
 
             // Should still return true since the file was parsed successfully
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(mockParams.showNotification).toHaveBeenCalledWith(
@@ -629,8 +646,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(getElectronAPI().readFile).toHaveBeenCalledWith("test.fit");
@@ -643,8 +659,7 @@ describe("handleOpenFile Module", () => {
 
             const mockParams = createOpenFileParams();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -677,8 +692,7 @@ describe("handleOpenFile Module", () => {
             // Reset console.log mock to track calls
             vi.spyOn(console, "log").mockImplementation();
 
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(console.log).toHaveBeenCalledWith(
@@ -702,10 +716,7 @@ describe("handleOpenFile Module", () => {
                 validateFileSize: false,
             };
 
-            const result = await handleOpenFileModule.handleOpenFile(
-                mockParams,
-                options
-            );
+            const result = await callHandleOpenFile(mockParams, options);
 
             // Should pass the empty file check since validation is disabled
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
@@ -730,8 +741,7 @@ describe("handleOpenFile Module", () => {
             const mockParams = createOpenFileParams();
 
             // Should not throw errors when optional functions are missing
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
@@ -755,8 +765,7 @@ describe("handleOpenFile Module", () => {
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
 
             // Should not resolve successfully
-            const result =
-                await handleOpenFileModule.handleOpenFile(mockParams);
+            const result = await callHandleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({
                 fileOpened: false,
@@ -769,7 +778,6 @@ describe("handleOpenFile Module", () => {
         it("should handle invalid Electron API", async () => {
             expect.assertions(2);
 
-            resetElectronApiCandidate();
             currentElectronApi = undefined;
 
             const mockParams = createOpenFileParams();

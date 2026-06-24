@@ -558,8 +558,10 @@ function getValidatedElectronAPI(
 }
 
 /** Validates that all required Electron API methods are available. */
-function validateElectronAPI(): boolean {
-    return getValidatedElectronAPI() !== null;
+function validateElectronAPI(
+    electronApiScope?: RendererElectronApiScope
+): boolean {
+    return getValidatedElectronAPI(electronApiScope) !== null;
 }
 
 // Export functions for testing
