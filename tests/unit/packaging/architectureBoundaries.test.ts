@@ -4345,7 +4345,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer core module resolution on the app-domain state facade", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -4353,6 +4353,12 @@ describe("architecture boundaries", () => {
 
         expect(coreModuleResolutionSource).toContain(
             "state/domain/appDomainState.js"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "type ResolvedRendererCoreModules = Readonly<{"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "export interface RendererCoreModules"
         );
         expect(coreModuleResolutionSource).toContain("AppDomainStateGetter");
         expect(coreModuleResolutionSource).toContain(

@@ -32,22 +32,22 @@ export type RendererSetupTheme = (
     listenForThemeChange: ListenForThemeChange | undefined
 ) => unknown;
 
-export interface RendererCoreModules {
-    AppActions: Record<string, unknown> | undefined;
-    applyTheme: ApplyTheme | undefined;
-    getAppDomainState: AppDomainStateGetter | undefined;
-    handleOpenFile: RendererHandleOpenFile | undefined;
-    listenForThemeChange: ListenForThemeChange | undefined;
-    masterStateManager: unknown;
-    setupListeners: RendererSetupListeners | undefined;
-    setupTheme: RendererSetupTheme | undefined;
-    showAboutModal: ((html?: string) => void) | undefined;
-    showNotification: ShowNotification | undefined;
-    showUpdateNotification: ShowUpdateNotification | undefined;
-    subscribeAppDomain: AppDomainStateSubscriber | undefined;
-    subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
-    uiStateManager: unknown;
-}
+type ResolvedRendererCoreModules = Readonly<{
+    readonly AppActions: Record<string, unknown> | undefined;
+    readonly applyTheme: ApplyTheme | undefined;
+    readonly getAppDomainState: AppDomainStateGetter | undefined;
+    readonly handleOpenFile: RendererHandleOpenFile | undefined;
+    readonly listenForThemeChange: ListenForThemeChange | undefined;
+    readonly masterStateManager: unknown;
+    readonly setupListeners: RendererSetupListeners | undefined;
+    readonly setupTheme: RendererSetupTheme | undefined;
+    readonly showAboutModal: ((html?: string) => void) | undefined;
+    readonly showNotification: ShowNotification | undefined;
+    readonly showUpdateNotification: ShowUpdateNotification | undefined;
+    readonly subscribeAppDomain: AppDomainStateSubscriber | undefined;
+    readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
+    readonly uiStateManager: unknown;
+}>;
 
 let rendererCoreModuleTestOverrides: Map<string, unknown> | null = null;
 
@@ -57,7 +57,7 @@ let rendererCoreModuleTestOverrides: Map<string, unknown> | null = null;
  *
  * @returns Resolved module functions/objects
  */
-export async function ensureCoreModules(): Promise<RendererCoreModules> {
+export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> {
     const notifMod = await resolveCoreModule(
         "../../utils/ui/notifications/showNotification.js",
         "../utils/ui/notifications/showNotification.js"
