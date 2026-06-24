@@ -12,7 +12,10 @@ import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
 import { UIActions } from "../domain/uiStateManager.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 // At the top of renderer.js, add these imports:
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
 import {
@@ -24,6 +27,10 @@ import type { ElectronAPI } from "../../../shared/preloadApi.js";
 type Unsubscribe = () => void;
 
 type RendererElectronAPI = Partial<Pick<ElectronAPI, "onFileOpened">>;
+
+type RendererStateIntegrationOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 const rendererStateIntegrationRuntime = getRendererStateIntegrationRuntime();
 
@@ -40,8 +47,10 @@ function isRendererElectronAPI(value: unknown): value is RendererElectronAPI {
     return onFileOpened === undefined || typeof onFileOpened === "function";
 }
 
-function getRendererStateElectronAPI(): RendererElectronAPI | null {
-    return getRendererElectronApi(isRendererElectronAPI);
+function getRendererStateElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): RendererElectronAPI | null {
+    return getRendererElectronApi(isRendererElectronAPI, electronApiScope);
 }
 
 /**
@@ -93,14 +102,16 @@ export function exampleStateUsage(): Unsubscribe {
 /**
  * Example of how to modify your existing renderer initialization
  */
-export function initializeRendererWithNewStateSystem(): void {
+export function initializeRendererWithNewStateSystem({
+    electronApiScope,
+}: RendererStateIntegrationOptions = {}): void {
     console.log("[Renderer] Starting initialization with new state system...");
 
     // Initialize the complete state system first
     initializeCompleteStateSystem();
 
     // Set up state-aware event handlers
-    setupStateAwareEventHandlers();
+    setupStateAwareEventHandlers({ electronApiScope });
 
     // Initialize components with state awareness
     initializeComponentsWithState();
@@ -331,8 +342,10 @@ function setupReactiveUI(): void {
 /**
  * Set up event handlers that work with the state system
  */
-function setupStateAwareEventHandlers(): void {
-    const electronAPI = getRendererStateElectronAPI();
+function setupStateAwareEventHandlers({
+    electronApiScope,
+}: RendererStateIntegrationOptions): void {
+    const electronAPI = getRendererStateElectronAPI(electronApiScope);
 
     // File open handler (optional in preload API)
     if (electronAPI?.onFileOpened) {

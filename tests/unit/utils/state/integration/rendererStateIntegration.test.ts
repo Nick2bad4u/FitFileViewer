@@ -107,18 +107,12 @@ type RendererStateElectronApi = {
     >;
 };
 
-async function registerRendererStateApi(
-    api: RendererStateElectronApi
-): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    registerRendererElectronApiCandidate(api);
-}
-
-async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    resetRendererElectronApiCandidate();
+function createElectronApiScope(api: RendererStateElectronApi): {
+    readonly getElectronAPI: () => RendererStateElectronApi;
+} {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 function getHandlers(key: string): SubscriptionHandler[] {
@@ -135,7 +129,6 @@ function requireValue<T>(value: T | undefined, message: string): T {
 
 beforeEach(async () => {
     vi.resetModules();
-    await resetRegisteredElectronApi();
     vi.clearAllMocks();
 
     subscriptionHandlers = new Map();
@@ -186,11 +179,10 @@ beforeEach(async () => {
     document.head.replaceChildren();
 });
 
-afterEach(async () => {
+afterEach(() => {
     vi.useRealTimers();
     document.body.replaceChildren();
     document.head.replaceChildren();
-    await resetRegisteredElectronApi();
 });
 
 describe("rendererStateIntegration", () => {
@@ -279,11 +271,11 @@ describe("rendererStateIntegration", () => {
                 fileOpenCallback = handler;
             }),
         };
-        await registerRendererStateApi(rendererStateApi);
+        const electronApiScope = createElectronApiScope(rendererStateApi);
 
         const module = await importTarget();
 
-        module.initializeRendererWithNewStateSystem();
+        module.initializeRendererWithNewStateSystem({ electronApiScope });
 
         expect(initializeCompleteStateSystemMock).toHaveBeenCalledWith();
         expect(rendererStateApi.onFileOpened).toHaveBeenCalledWith(

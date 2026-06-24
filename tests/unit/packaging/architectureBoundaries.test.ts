@@ -70,15 +70,14 @@ const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
 ] as const;
-const rendererElectronApiRuntimeRegressionTests = [
-    "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts",
-    "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
-] as const;
+const rendererElectronApiRuntimeRegressionTests = [] as const;
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "electron-app/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
+    "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
+    "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts",
     "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",

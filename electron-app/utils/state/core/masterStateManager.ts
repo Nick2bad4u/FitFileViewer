@@ -13,7 +13,10 @@ import { showNotification } from "../../ui/notifications/syncRendererNotificatio
 import { initializeRendererStateBindings } from "../../ui/rendererStateBindings.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
 import { initializeTabVisibilityState } from "../../ui/tabs/updateTabVisibility.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
@@ -74,6 +77,10 @@ type StateManagerApi = {
     subscribe: typeof subscribe;
 };
 
+type MasterStateManagerOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
+};
+
 type PerformanceWithMemory = Performance & {
     memory?: {
         totalJSHeapSize: number;
@@ -128,8 +135,10 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
     );
 }
 
-function getMasterElectronAPI(): ElectronRendererAPI | null {
-    return getRendererElectronApi(isElectronRendererAPI);
+function getMasterElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): ElectronRendererAPI | null {
+    return getRendererElectronApi(isElectronRendererAPI, electronApiScope);
 }
 
 function isDynamicModule(value: unknown): value is DynamicModule {
@@ -184,8 +193,10 @@ function hasDevelopmentModeAttribute(): boolean {
     return masterStateRuntime.hasDevelopmentModeAttribute();
 }
 
-function getElectronDevelopmentFlag(): boolean | undefined {
-    return getMasterElectronAPI()?.__devMode;
+function getElectronDevelopmentFlag(
+    electronApiScope: RendererElectronApiScope | undefined
+): boolean | undefined {
+    return getMasterElectronAPI(electronApiScope)?.__devMode;
 }
 
 function isStateManagerApi(value: unknown): value is StateManagerApi {
@@ -207,6 +218,8 @@ export class MasterStateManager {
 
     isInitialized = false;
 
+    private readonly electronApiScope: RendererElectronApiScope | undefined;
+
     private eventController = masterStateRuntime.createAbortController();
 
     private performanceMonitorInterval: ReturnType<typeof setInterval> | null =
@@ -214,7 +227,8 @@ export class MasterStateManager {
 
     private performanceMonitorUnsubscribe: (() => void) | null = null;
 
-    constructor() {
+    constructor({ electronApiScope }: MasterStateManagerOptions = {}) {
+        this.electronApiScope = electronApiScope;
         this.components = new Map();
         this.initializationOrder = [
             "core",
@@ -228,6 +242,14 @@ export class MasterStateManager {
             DEV_TOOLS_COMPONENT,
             "integration",
         ];
+    }
+
+    private getMasterElectronAPI(): ElectronRendererAPI | null {
+        return getMasterElectronAPI(this.electronApiScope);
+    }
+
+    private getElectronDevelopmentFlag(): boolean | undefined {
+        return getElectronDevelopmentFlag(this.electronApiScope);
     }
 
     /**
@@ -484,7 +506,7 @@ export class MasterStateManager {
         // Prefer Electron-provided API if available; otherwise use known package version
         let appVersion = "26.5.0"; // Fallback to current package version for deterministic tests
         try {
-            const electronAPI = getMasterElectronAPI();
+            const electronAPI = this.getMasterElectronAPI();
             if (
                 electronAPI &&
                 typeof electronAPI.getAppVersion === "function"
@@ -635,7 +657,7 @@ export class MasterStateManager {
     isDevelopmentMode() {
         try {
             return masterStateRuntime.isDevelopmentScope({
-                electronDevMode: getElectronDevelopmentFlag(),
+                electronDevMode: this.getElectronDevelopmentFlag(),
                 hasDevelopmentModeAttribute: hasDevelopmentModeAttribute(),
             });
         } catch {
@@ -814,7 +836,7 @@ export class MasterStateManager {
                 // Ctrl/Cmd + O - Open file
                 if ((event.ctrlKey || event.metaKey) && event.key === "o") {
                     event.preventDefault();
-                    void getMasterElectronAPI()?.openFileDialog?.();
+                    void this.getMasterElectronAPI()?.openFileDialog?.();
                 }
 
                 // Ctrl/Cmd + T - Toggle theme

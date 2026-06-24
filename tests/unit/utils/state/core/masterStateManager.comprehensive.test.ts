@@ -43,10 +43,7 @@ import {
     masterStateManager,
     setMasterStateManagerModuleMocksForTests,
 } from "../../../../../electron-app/utils/state/core/masterStateManager.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type StateOptions = {
     readonly source: string;
@@ -165,6 +162,20 @@ type MasterStateElectronApi = {
     openFileDialog: ReturnType<typeof vi.fn<() => void>>;
 };
 
+let activeElectronApiScope: RendererElectronApiScope | undefined;
+
+function createMasterStateManager(): MasterStateManager {
+    return new MasterStateManager({ electronApiScope: activeElectronApiScope });
+}
+
+function createElectronApiScope(
+    api: MasterStateElectronApi | null
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
+
 const globalKeys = [
     "__DEVELOPMENT__",
     "addEventListener",
@@ -199,7 +210,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 return path ? values[path] : values;
             });
 
-            const manager = new MasterStateManager();
+            const manager = createMasterStateManager();
             manager.components.set("core", {
                 initialized: true,
                 timestamp: 123,
@@ -243,7 +254,7 @@ describe("masterStateManager comprehensive behavior", () => {
 
         await withMasterStateHarness(
             async ({ mocks }) => {
-                const manager = new MasterStateManager();
+                const manager = createMasterStateManager();
 
                 await manager.initialize();
 
@@ -307,7 +318,7 @@ describe("masterStateManager comprehensive behavior", () => {
         expect.assertions(4);
 
         await withMasterStateHarness(async ({ mocks }) => {
-            const manager = new MasterStateManager();
+            const manager = createMasterStateManager();
             manager.isInitialized = true;
 
             await manager.initialize();
@@ -334,7 +345,7 @@ describe("masterStateManager comprehensive behavior", () => {
 
         await withMasterStateHarness(
             async ({ mocks }) => {
-                const manager = new MasterStateManager();
+                const manager = createMasterStateManager();
                 let appliedTheme: string | undefined;
                 mocks.uiStateManager.UIActions.setTheme.mockImplementation(
                     (themeName) => {
@@ -354,7 +365,7 @@ describe("masterStateManager comprehensive behavior", () => {
         expect.assertions(4);
 
         await withMasterStateHarness(async ({ mocks, moduleMocks }) => {
-            const manager = new MasterStateManager();
+            const manager = createMasterStateManager();
             const settingsError = new Error("Settings failed");
             mocks.settingsStateManager.settingsStateManager.initialize.mockRejectedValue(
                 settingsError
@@ -384,8 +395,8 @@ describe("masterStateManager comprehensive behavior", () => {
         expect.assertions(2);
 
         await withMasterStateHarness(
-            async ({ location }) => {
-                const manager = new MasterStateManager();
+            async ({ electronAPI, location }) => {
+                const manager = createMasterStateManager();
 
                 expect({
                     developmentMode: manager.isDevelopmentMode(),
@@ -399,7 +410,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 location.search = "";
                 location.hash = "";
                 delete (globalThis as MasterStateGlobal).__DEVELOPMENT__;
-                resetRendererElectronApiCandidate();
+                electronAPI.__devMode = undefined;
 
                 expect({
                     developmentMode: manager.isDevelopmentMode(),
@@ -416,7 +427,7 @@ describe("masterStateManager comprehensive behavior", () => {
 
         await withMasterStateHarness(
             async ({ bodyElement, documentListeners }) => {
-                const manager = new MasterStateManager();
+                const manager = createMasterStateManager();
 
                 manager.setupDragAndDrop();
 
@@ -483,7 +494,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 mocks,
                 windowListeners,
             }) => {
-                const manager = new MasterStateManager();
+                const manager = createMasterStateManager();
 
                 manager.setupKeyboardShortcuts();
                 manager.setupWindowEventListeners();
@@ -561,7 +572,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 loadingElement,
                 mocks,
             }) => {
-                const manager = new MasterStateManager();
+                const manager = createMasterStateManager();
 
                 manager.setupErrorHandling();
                 dispatchListeners(
@@ -961,7 +972,7 @@ async function withMasterStateHarness(
         defineGlobalValue(descriptors, "document", documentMock);
         defineGlobalValue(descriptors, "window", windowMock);
         defineGlobalValue(descriptors, "location", location);
-        registerRendererElectronApiCandidate(electronAPI);
+        activeElectronApiScope = createElectronApiScope(electronAPI);
         defineGlobalValue(
             descriptors,
             "__DEVELOPMENT__",
@@ -1033,7 +1044,7 @@ async function withMasterStateHarness(
             windowListeners,
         });
     } finally {
-        resetRendererElectronApiCandidate();
+        activeElectronApiScope = undefined;
         setMasterStateManagerModuleMocksForTests(null);
         restoreGlobals(descriptors);
         vi.restoreAllMocks();
