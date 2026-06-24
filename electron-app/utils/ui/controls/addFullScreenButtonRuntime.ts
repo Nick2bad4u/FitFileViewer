@@ -1,10 +1,6 @@
-import {
-    getIconFactoryRuntime,
-} from "../icons/iconFactoryRuntime.js";
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
-export {
-    SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE,
-} from "../icons/iconFactoryRuntime.js";
+export { SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE } from "../icons/iconFactoryRuntime.js";
 
 export interface AddFullScreenButtonRuntimeScope {
     readonly getAbortController?:
@@ -39,6 +35,10 @@ export interface AddFullScreenButtonRuntime {
     createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
+    createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    appendToBody: (element: HTMLElement) => void;
     getElementById: (id: string) => HTMLElement | null;
     hasBodyClass: (className: string) => boolean;
     removeDocumentEventListener: (
@@ -70,9 +70,7 @@ function getDocumentEventTarget(
 function getDocument(scope: AddFullScreenButtonRuntimeScope): Document {
     const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
-        throw new TypeError(
-            "addFullScreenButton requires a document runtime"
-        );
+        throw new TypeError("addFullScreenButton requires a document runtime");
     }
 
     return runtimeDocument;
@@ -142,6 +140,12 @@ export function getAddFullScreenButtonRuntime(
             tagName: K
         ): SVGElementTagNameMap[K] {
             return createSvgElement(scope, tagName);
+        },
+        createElement(tagName) {
+            return getDocument(scope).createElement(tagName);
+        },
+        appendToBody(element): void {
+            getDocument(scope).body.append(element);
         },
         getElementById(id): HTMLElement | null {
             return getDocument(scope).getElementById(id);

@@ -60,7 +60,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const staleDocument = document.implementation.createHTMLDocument(
             "stale fullscreen button runtime"
@@ -109,6 +109,12 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(() => runtime.hasBodyClass("app-has-file")).toThrow(
             "addFullScreenButton requires a document runtime"
         );
+        expect(() => runtime.createElement("button")).toThrow(
+            "addFullScreenButton requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("addFullScreenButton requires a document runtime");
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "addFullScreenButton requires a document runtime"
         );
@@ -117,18 +123,19 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("reads fullscreen button state through the injected document runtime", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const documentRef = document.implementation.createHTMLDocument(
             "fullscreen button runtime"
         );
-        const button = documentRef.createElement("button");
-        button.id = "global-fullscreen-btn";
-        documentRef.body.append(button);
         const runtime = getAddFullScreenButtonRuntime({
             getDocument: () => documentRef,
         });
+        const button = runtime.createElement("button");
+        button.id = "global-fullscreen-btn";
+        runtime.appendToBody(button);
 
+        expect(button).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.getElementById("global-fullscreen-btn")).toBe(button);
         expect(runtime.hasBodyClass("app-has-file")).toBe(false);
         documentRef.body.classList.add("app-has-file");

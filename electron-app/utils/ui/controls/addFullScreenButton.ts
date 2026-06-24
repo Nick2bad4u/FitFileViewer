@@ -111,7 +111,7 @@ const isChartFullscreenActive = (): boolean => {
 export function addFullScreenButton(options?: FullScreenButtonOptions): void {
     try {
         activeElectronApiScope = resolveElectronApiScope(options);
-        if (document.getElementById(FULLSCREEN_WRAPPER_ID)) {
+        if (addFullScreenButtonRuntime.getElementById(FULLSCREEN_WRAPPER_ID)) {
             logWithContext(
                 "Fullscreen button already exists, skipping creation"
             );
@@ -119,10 +119,10 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
         }
         const screenfull = getScreenfullInstance();
         if (!screenfull || !screenfull.isEnabled) {
-            const wrapper = document.createElement("div");
+            const wrapper = addFullScreenButtonRuntime.createElement("div");
             wrapper.className = "fullscreen-btn-wrapper";
             wrapper.id = FULLSCREEN_WRAPPER_ID;
-            const btn = document.createElement("button");
+            const btn = addFullScreenButtonRuntime.createElement("button");
             btn.id = FULLSCREEN_BUTTON_ID;
             btn.className = "fullscreen-btn improved themed-btn";
             btn.dataset["tooltip"] = "Fullscreen (F11)";
@@ -137,17 +137,17 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
                 signal: buttonListener.signal,
             });
             wrapper.append(btn);
-            document.body.append(wrapper);
+            addFullScreenButtonRuntime.appendToBody(wrapper);
             logWithContext(
                 "Screenfull not available or not enabled; using native fullscreen fallback",
                 "warn"
             );
             return;
         }
-        const wrapper = document.createElement("div");
+        const wrapper = addFullScreenButtonRuntime.createElement("div");
         wrapper.className = "fullscreen-btn-wrapper";
         wrapper.id = FULLSCREEN_WRAPPER_ID;
-        const btn = document.createElement("button");
+        const btn = addFullScreenButtonRuntime.createElement("button");
         btn.id = FULLSCREEN_BUTTON_ID;
         btn.className = "fullscreen-btn improved themed-btn";
         btn.dataset["tooltip"] = "Fullscreen (F11)";
@@ -162,7 +162,7 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
             signal: buttonListener.signal,
         });
         wrapper.append(btn);
-        document.body.append(wrapper);
+        addFullScreenButtonRuntime.appendToBody(wrapper);
         logWithContext("Fullscreen button created successfully");
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -331,7 +331,7 @@ export function resetFullscreenListenerStateForTests(): void {
 }
 /** Creates the icon wrapper used by the fullscreen button. */
 function createFullscreenIconWrapper(state: "enter" | "exit"): HTMLSpanElement {
-    const icon = document.createElement("span");
+    const icon = addFullScreenButtonRuntime.createElement("span");
     icon.className = "fullscreen-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.append(
@@ -416,7 +416,8 @@ function handleDOMContentLoaded(): void {
 function handleFullscreenStateChange(): void {
     try {
         const activeContent = getActiveTabContent();
-        const globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
+        const globalBtn =
+            addFullScreenButtonRuntime.getElementById(FULLSCREEN_BUTTON_ID);
         const screenfull = getScreenfullInstance();
         const fullscreenEnabled = screenfull && screenfull.isEnabled;
         const nativeFullscreen = isFullscreenActive();
@@ -442,7 +443,9 @@ function handleFullscreenStateChange(): void {
             }
             const contentBtn =
                 activeContent &&
-                document.getElementById(`${activeContent.id}-fullscreen-btn`);
+                addFullScreenButtonRuntime.getElementById(
+                    `${activeContent.id}-fullscreen-btn`
+                );
             if (contentBtn) {
                 updateButtonState(contentBtn, true);
             }
@@ -456,7 +459,9 @@ function handleFullscreenStateChange(): void {
             }
             const contentBtn =
                 activeContent &&
-                document.getElementById(`${activeContent.id}-fullscreen-btn`);
+                addFullScreenButtonRuntime.getElementById(
+                    `${activeContent.id}-fullscreen-btn`
+                );
             if (contentBtn) {
                 updateButtonState(contentBtn, false);
             }
@@ -483,7 +488,8 @@ function handleFullscreenToggle(event: Event): void {
                 `${isWindowFullscreenRequested ? "Entering" : "Exiting"} window fullscreen via IPC`
             );
 
-            const globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
+            const globalBtn =
+                addFullScreenButtonRuntime.getElementById(FULLSCREEN_BUTTON_ID);
             if (globalBtn) {
                 updateButtonState(globalBtn, isWindowFullscreenRequested);
             }
@@ -525,7 +531,10 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
                 electronAPI.setFullScreen(false);
                 logWithContext("Escape: Exiting window fullscreen via IPC");
 
-                const globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
+                const globalBtn =
+                    addFullScreenButtonRuntime.getElementById(
+                        FULLSCREEN_BUTTON_ID
+                    );
                 if (globalBtn) {
                     updateButtonState(globalBtn, false);
                 }
@@ -553,7 +562,10 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
                     `F11: ${isWindowFullscreenRequested ? "Entering" : "Exiting"} window fullscreen via IPC`
                 );
 
-                const globalBtn = document.getElementById(FULLSCREEN_BUTTON_ID);
+                const globalBtn =
+                    addFullScreenButtonRuntime.getElementById(
+                        FULLSCREEN_BUTTON_ID
+                    );
                 if (globalBtn) {
                     updateButtonState(globalBtn, isWindowFullscreenRequested);
                 }
