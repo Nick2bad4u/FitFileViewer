@@ -9,13 +9,23 @@ import {
     getStorageUtilsRuntime,
     type StorageLike,
     type StorageProvider,
+    type StorageUtilsRuntime,
 } from "./storageUtilsRuntime.js";
 
 export type { StorageLike, StorageProvider } from "./storageUtilsRuntime.js";
 
-const storageUtilsRuntime = getStorageUtilsRuntime();
-const defaultStorageProvider: StorageProvider = () =>
-    storageUtilsRuntime.getDefaultStorage();
+/**
+ * Create a storage provider from the current runtime scope.
+ *
+ * @param runtime - Optional runtime dependency bundle.
+ *
+ * @returns Storage provider that resolves default storage on demand.
+ */
+export function createDefaultStorageProvider(
+    runtime: StorageUtilsRuntime = getStorageUtilsRuntime()
+): StorageProvider {
+    return () => runtime.getDefaultStorage();
+}
 
 /**
  * Resolve an injected storage provider or the current global localStorage.
@@ -25,11 +35,10 @@ const defaultStorageProvider: StorageProvider = () =>
  * @returns A usable storage object, or null when storage is unavailable.
  */
 export function resolveStorage(
-    getStorage?: StorageProvider
+    getStorage: StorageProvider = createDefaultStorageProvider()
 ): null | StorageLike {
     try {
-        const storage =
-            getStorage === undefined ? defaultStorageProvider() : getStorage();
+        const storage = getStorage();
 
         if (typeof storage !== "object" || storage === null) {
             return null;

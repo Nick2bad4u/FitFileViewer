@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    createDefaultStorageProvider,
     resolveStorage,
     safeStorageGetItem,
     safeStorageRemoveItem,
@@ -33,6 +34,18 @@ describe("storage utilities", () => {
 
         expect(resolveStorage()).toBe(storage);
         expect(safeStorageGetItem("existing")).toBe("ambient");
+    });
+
+    it("creates a default provider from an injected runtime", () => {
+        expect.assertions(3);
+
+        const storage = createStorage({ existing: "runtime" });
+        const getDefaultStorage = vi.fn(() => storage);
+        const provider = createDefaultStorageProvider({ getDefaultStorage });
+
+        expect(resolveStorage(provider)).toBe(storage);
+        expect(safeStorageGetItem("existing", provider)).toBe("runtime");
+        expect(getDefaultStorage).toHaveBeenCalledTimes(2);
     });
 
     it("resolves injected storage and rejects unusable providers", () => {
