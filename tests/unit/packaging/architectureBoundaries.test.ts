@@ -8261,7 +8261,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(36);
+        expect.assertions(39);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -8284,6 +8284,11 @@ describe("architecture boundaries", () => {
 
         expect(showFitDataSource).toContain("showFitDataRuntime.js");
         expect(showFitDataSource).toContain("getShowFitDataRuntime");
+        expect(showFitDataSource).toContain("type ShowFitDataRuntime");
+        expect(showFitDataSource).toContain("return getShowFitDataRuntime();");
+        expect(showFitDataSource).not.toContain(
+            "const showFitDataRuntime = getShowFitDataRuntime();"
+        );
         expect(showFitDataSource).toContain("rendererActiveFileState.js");
         expect(showFitDataSource).toContain("rendererMapRenderState.js");
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");
@@ -8295,9 +8300,11 @@ describe("architecture boundaries", () => {
             /\bglobalThis\.dispatchEvent\b|\bnew\s+CustomEvent\b/u
         );
         expect(showFitDataSource).not.toMatch(/\bdocument\.querySelector\b/u);
-        expect(showFitDataSource).toContain("showFitDataRuntime.dispatchEvent");
         expect(showFitDataSource).toContain(
-            "showFitDataRuntime.hasRenderedMapContainer()"
+            "showFitDataRuntime().dispatchEvent"
+        );
+        expect(showFitDataSource).toContain(
+            "showFitDataRuntime().hasRenderedMapContainer()"
         );
         expect(showFitDataRuntimeSource).toContain(
             "defaultShowFitDataRuntimeScope"

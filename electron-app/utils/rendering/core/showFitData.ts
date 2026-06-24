@@ -37,7 +37,10 @@ import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { createTables } from "../components/createTables.js";
 import { renderSummary } from "./renderSummary.js";
-import { getShowFitDataRuntime } from "./showFitDataRuntime.js";
+import {
+    getShowFitDataRuntime,
+    type ShowFitDataRuntime,
+} from "./showFitDataRuntime.js";
 
 // Constants for better maintainability
 const DISPLAY_CONSTANTS = {
@@ -58,7 +61,10 @@ const DISPLAY_CONSTANTS = {
 } as const;
 
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
-const showFitDataRuntime = getShowFitDataRuntime();
+
+function showFitDataRuntime(): ShowFitDataRuntime {
+    return getShowFitDataRuntime();
+}
 
 type FitRecord = Record<string, unknown>;
 
@@ -185,12 +191,12 @@ export function showFitData(
             switchToMapTabOnLoad();
 
             try {
-                if (showFitDataRuntime.canScrollTo()) {
+                if (showFitDataRuntime().canScrollTo()) {
                     const prefersReducedMotion =
-                        showFitDataRuntime.prefersReducedMotion();
+                        showFitDataRuntime().prefersReducedMotion();
 
-                    showFitDataRuntime.queueMicrotask(() => {
-                        showFitDataRuntime.scrollTo({
+                    showFitDataRuntime().queueMicrotask(() => {
+                        showFitDataRuntime().scrollTo({
                             top: 0,
                             behavior: prefersReducedMotion ? "auto" : "smooth",
                         });
@@ -275,7 +281,7 @@ async function renderMapIfReady(): Promise<void> {
         if (!(await waitForMapLeafletRuntime())) {
             throw new Error("Leaflet runtime is unavailable");
         }
-        if (showFitDataRuntime.hasRenderedMapContainer()) {
+        if (showFitDataRuntime().hasRenderedMapContainer()) {
             setMapRenderedFlag(true);
             return;
         }
@@ -308,13 +314,13 @@ function enableTabsAndNotify(
         );
 
         // Dispatch custom event for other components
-        const event = showFitDataRuntime.createCustomEvent(
+        const event = showFitDataRuntime().createCustomEvent(
             DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED,
             {
                 detail: { filePath },
             }
         );
-        showFitDataRuntime.dispatchEvent(event);
+        showFitDataRuntime().dispatchEvent(event);
 
         log("info", "Tabs enabled and notifications sent", { filePath });
     } catch (error) {
