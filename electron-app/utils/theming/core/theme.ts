@@ -3,7 +3,11 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import { getThemeRuntime, type ThemeRuntimeTimer } from "./themeRuntime.js";
+import {
+    getThemeRuntime,
+    type ThemeRuntime,
+    type ThemeRuntimeTimer,
+} from "./themeRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /**
@@ -95,7 +99,9 @@ function normalizeThemePreference(
  * Theme transition class for smooth transitions
  */
 const THEME_TRANSITION_CLASS = "theme-transitioning";
-const themeRuntime = getThemeRuntime();
+function themeRuntime(): ThemeRuntime {
+    return getThemeRuntime();
+}
 const themeTransitionTimers = new Set<ThemeRuntimeTimer>();
 
 /**
@@ -106,25 +112,25 @@ export function applyTheme(theme: string, withTransition = true): void {
 
     // Add transition class for smooth theme changes
     if (withTransition) {
-        themeRuntime.addBodyClass(THEME_TRANSITION_CLASS);
+        themeRuntime().addBodyClass(THEME_TRANSITION_CLASS);
     }
 
     // Remove existing theme classes
-    themeRuntime.removeBodyClasses("theme-dark", "theme-light");
+    themeRuntime().removeBodyClasses("theme-dark", "theme-light");
 
     // Handle auto theme
     if (themePreference === THEME_MODES.AUTO) {
         const systemTheme = getSystemTheme();
-        themeRuntime.addBodyClass(`theme-${systemTheme}`);
+        themeRuntime().addBodyClass(`theme-${systemTheme}`);
         try {
-            themeRuntime.setThemeDataAttributes(systemTheme);
+            themeRuntime().setThemeDataAttributes(systemTheme);
         } catch {
             /* Ignore dataset errors */
         }
     } else {
-        themeRuntime.addBodyClass(`theme-${themePreference}`);
+        themeRuntime().addBodyClass(`theme-${themePreference}`);
         try {
-            themeRuntime.setThemeDataAttributes(themePreference);
+            themeRuntime().setThemeDataAttributes(themePreference);
         } catch {
             /* Ignore dataset errors */
         }
@@ -160,9 +166,9 @@ export function applyTheme(theme: string, withTransition = true): void {
 
     // Remove transition class after animation completes
     if (withTransition) {
-        const transitionTimer = themeRuntime.setTimeout(() => {
+        const transitionTimer = themeRuntime().setTimeout(() => {
             themeTransitionTimers.delete(transitionTimer);
-            themeRuntime.removeBodyClasses(THEME_TRANSITION_CLASS);
+            themeRuntime().removeBodyClasses(THEME_TRANSITION_CLASS);
         }, 300);
         themeTransitionTimers.add(transitionTimer);
     }
@@ -182,7 +188,7 @@ export function getEffectiveTheme(theme: null | string = null): EffectiveTheme {
  * Get the system's preferred color scheme
  */
 export function getSystemTheme(): EffectiveTheme {
-    const mediaQuery = themeRuntime.getSystemThemeMediaQuery();
+    const mediaQuery = themeRuntime().getSystemThemeMediaQuery();
     if (!mediaQuery) {
         return "dark";
     }
@@ -251,7 +257,7 @@ export function getThemeConfig(): ThemeConfig {
     const effectiveTheme = getEffectiveTheme();
     const getVar = (name: string): string => {
         try {
-            return themeRuntime.getBodyComputedStyleProperty(name);
+            return themeRuntime().getBodyComputedStyleProperty(name);
         } catch {
             return "";
         }
@@ -407,9 +413,9 @@ export function initializeTheme(): (() => void) | undefined {
  * Listen for system theme changes and update if using auto theme
  */
 export function listenForSystemThemeChange(): (() => void) | undefined {
-    const mediaQuery = themeRuntime.getSystemThemeMediaQuery();
+    const mediaQuery = themeRuntime().getSystemThemeMediaQuery();
     if (mediaQuery) {
-        const listenerController = themeRuntime.createAbortController(),
+        const listenerController = themeRuntime().createAbortController(),
             handleSystemThemeChange = () => {
                 const currentTheme = loadTheme();
                 if (currentTheme === THEME_MODES.AUTO) {
@@ -546,17 +552,17 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
         },
         targets: EventTarget[] = [];
 
-    const documentEventTarget = themeRuntime.getDocumentEventTarget();
+    const documentEventTarget = themeRuntime().getDocumentEventTarget();
     if (documentEventTarget) {
         targets.push(documentEventTarget);
     }
 
-    const bodyElement = themeRuntime.getBodyElement();
+    const bodyElement = themeRuntime().getBodyElement();
     if (bodyElement) {
         targets.push(bodyElement);
     }
 
-    const globalEventTarget = themeRuntime.getGlobalEventTarget();
+    const globalEventTarget = themeRuntime().getGlobalEventTarget();
     if (globalEventTarget) {
         targets.push(globalEventTarget);
     }
@@ -579,7 +585,7 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
  * Inject CSS for smooth theme transitions
  */
 function injectThemeTransitionCSS(): void {
-    themeRuntime.ensureThemeTransitionStyles(`
+    themeRuntime().ensureThemeTransitionStyles(`
 		.theme-transitioning *,
 		.theme-transitioning *::before,
 		.theme-transitioning *::after {
@@ -606,7 +612,7 @@ function updateMetaThemeColor(theme: ThemePreference): void {
     const effectiveTheme = getEffectiveTheme(theme),
         themeColor = effectiveTheme === "dark" ? "#181a20" : "#f8fafc";
 
-    themeRuntime.updateMetaThemeColor(themeColor);
+    themeRuntime().updateMetaThemeColor(themeColor);
 }
 
 /**

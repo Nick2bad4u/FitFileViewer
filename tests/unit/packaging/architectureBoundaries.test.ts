@@ -14407,7 +14407,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(67);
+        expect.assertions(70);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -14427,6 +14427,11 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(themeCoreSource).toContain("themeRuntime.js");
+        expect(themeCoreSource).toContain("type ThemeRuntime");
+        expect(themeCoreSource).toContain("return getThemeRuntime();");
+        expect(themeCoreSource).not.toContain(
+            "const themeRuntime = getThemeRuntime();"
+        );
         expect(themeCoreSource).toContain("createAbortController");
         expect(themeCoreSource).toContain("getBodyComputedStyleProperty");
         expect(themeCoreSource).toContain("getBodyElement");
@@ -14607,7 +14612,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -14627,6 +14632,11 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(setupThemeSource).toContain("setupThemeRuntime.js");
+        expect(setupThemeSource).toContain("type SetupThemeRuntime");
+        expect(setupThemeSource).toContain("return getSetupThemeRuntime();");
+        expect(setupThemeSource).not.toContain(
+            "const setupThemeRuntime = getSetupThemeRuntime();"
+        );
         expect(setupThemeRuntimeSource).toContain(
             "defaultSetupThemeRuntimeScope"
         );

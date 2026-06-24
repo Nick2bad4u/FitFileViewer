@@ -15,6 +15,7 @@ import {
 } from "../../runtime/electronApiRuntime.js";
 import {
     getSetupThemeRuntime,
+    type SetupThemeRuntime,
     type SetupThemeTimer,
 } from "./setupThemeRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
@@ -57,7 +58,9 @@ const THEME_CONSTANTS = {
     },
 } as const;
 
-const setupThemeRuntime = getSetupThemeRuntime();
+function setupThemeRuntime(): SetupThemeRuntime {
+    return getSetupThemeRuntime();
+}
 
 /**
  * Initializes theme state, applies the resolved theme, and registers theme
@@ -258,7 +261,7 @@ async function fetchThemeFromMainProcess(
         let timeoutHandle: SetupThemeTimer | undefined;
         const themePromise = Promise.resolve(electronAPI.getTheme()),
             timeoutPromise = new Promise<never>((_, reject) => {
-                timeoutHandle = setupThemeRuntime.setTimeout(
+                timeoutHandle = setupThemeRuntime().setTimeout(
                     () => reject(new Error("Theme fetch timeout")),
                     TIMEOUT.THEME_FETCH
                 );
@@ -269,7 +272,7 @@ async function fetchThemeFromMainProcess(
             theme = await Promise.race([themePromise, timeoutPromise]);
         } finally {
             if (timeoutHandle !== undefined) {
-                setupThemeRuntime.clearTimeout(timeoutHandle);
+                setupThemeRuntime().clearTimeout(timeoutHandle);
             }
         }
 
