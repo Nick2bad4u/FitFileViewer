@@ -2,6 +2,7 @@
 
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
+import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
 import {
     getKeyboardShortcutsModalRuntime,
     KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
@@ -18,6 +19,9 @@ type ShortcutItem = {
     action: string;
     description: string;
     keys: string;
+};
+type KeyboardShortcutsModalOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
 
 const keyboardShortcutsModalRuntime = getKeyboardShortcutsModalRuntime();
@@ -132,7 +136,9 @@ export function closeKeyboardShortcutsModal(): void {
 /**
  * Enhanced modal initialization with modern styling and smooth animations
  */
-function ensureKeyboardShortcutsModal(): void {
+function ensureKeyboardShortcutsModal(
+    options: KeyboardShortcutsModalOptions
+): void {
     const existingModal = document.querySelector("#keyboard-shortcuts-modal");
     if (existingModal) {
         console.log("Keyboard shortcuts modal already exists");
@@ -163,7 +169,7 @@ function ensureKeyboardShortcutsModal(): void {
     console.log("Modal styles injected");
 
     // Setup event handlers
-    setupKeyboardShortcutsModalHandlers(modal);
+    setupKeyboardShortcutsModalHandlers(modal, options);
     console.log("Modal event handlers set up");
 }
 
@@ -229,8 +235,7 @@ function createKeyboardShortcutsModalContent(): HTMLElement {
 function createKeyboardIcon(): SVGSVGElement {
     const icon = createSvgIcon("keyboard-icon");
 
-    const keyboardBody =
-        keyboardShortcutsModalRuntime.createSvgElement("rect");
+    const keyboardBody = keyboardShortcutsModalRuntime.createSvgElement("rect");
     keyboardBody.setAttribute("x", "2");
     keyboardBody.setAttribute("y", "4");
     keyboardBody.setAttribute("width", "20");
@@ -675,7 +680,10 @@ function injectKeyboardShortcutsModalStyles(): void {
 /**
  * Sets up event handlers for the keyboard shortcuts modal
  */
-function setupKeyboardShortcutsModalHandlers(modal: HTMLElement): void {
+function setupKeyboardShortcutsModalHandlers(
+    modal: HTMLElement,
+    { electronApiScope }: KeyboardShortcutsModalOptions
+): void {
     // Close button handler
     const closeBtn = modal.querySelector("#shortcuts-modal-close");
     if (closeBtn) {
@@ -694,15 +702,17 @@ function setupKeyboardShortcutsModalHandlers(modal: HTMLElement): void {
     });
 
     // Handle links for external navigation
-    attachExternalLinkHandlers({ root: modal });
+    attachExternalLinkHandlers({ electronApiScope, root: modal });
 }
 
 /**
  * Shows the keyboard shortcuts modal with smooth animations
  */
-export function showKeyboardShortcutsModal(): void {
+export function showKeyboardShortcutsModal(
+    options: KeyboardShortcutsModalOptions = {}
+): void {
     console.log("showKeyboardShortcutsModal function called");
-    ensureKeyboardShortcutsModal();
+    ensureKeyboardShortcutsModal(options);
 
     const modal = document.querySelector<HTMLElement>(
         "#keyboard-shortcuts-modal"

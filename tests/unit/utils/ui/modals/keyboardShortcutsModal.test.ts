@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 const runtimeMocks = vi.hoisted(() => ({
     cancelAnimationFrame: vi.fn<(handle: number) => void>(),
     clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
@@ -31,9 +33,19 @@ vi.mock(
 );
 
 type ModalExports = {
-    showKeyboardShortcutsModal: () => void;
+    showKeyboardShortcutsModal: (options?: {
+        readonly electronApiScope?: RendererElectronApiScope | undefined;
+    }) => void;
     closeKeyboardShortcutsModal: () => void;
 };
+
+function createElectronApiScope(api: {
+    readonly openExternal: (url: string) => void;
+}): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 function resolveModalExports(
     module: Partial<ModalExports> & { default?: Partial<ModalExports> }
@@ -115,11 +127,10 @@ function getModalDisplayState(modal: HTMLElement) {
 }
 
 describe("keyboardShortcutsModal", () => {
-    afterEach(async () => {
+    afterEach(() => {
         document.body.replaceChildren();
         document.head.replaceChildren();
         document.body.style.overflow = "";
-        await resetRegisteredElectronApi();
         runtimeMocks.cancelAnimationFrame.mockClear();
         runtimeMocks.clearTimeout.mockClear();
         runtimeMocks.createSvgElement.mockClear();
@@ -152,11 +163,11 @@ describe("keyboardShortcutsModal", () => {
 
         vi.useFakeTimers();
 
-        await registerElectronApi({
+        const electronApiScope = createElectronApiScope({
             openExternal: vi.fn<(url: string) => void>(),
         });
 
-        showKeyboardShortcutsModal();
+        showKeyboardShortcutsModal({ electronApiScope });
 
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
@@ -375,9 +386,9 @@ describe("keyboardShortcutsModal", () => {
         vi.useFakeTimers();
 
         const openExternal = vi.fn<(url: string) => void>();
-        await registerElectronApi({ openExternal });
+        const electronApiScope = createElectronApiScope({ openExternal });
 
-        showKeyboardShortcutsModal();
+        showKeyboardShortcutsModal({ electronApiScope });
         const modal = document.querySelector<HTMLDivElement>(
             "#keyboard-shortcuts-modal"
         );
@@ -401,17 +412,3 @@ describe("keyboardShortcutsModal", () => {
         expect(clickEvent.defaultPrevented).toBe(true);
     });
 });
-
-async function registerElectronApi(api: {
-    readonly openExternal: (url: string) => void;
-}): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    registerRendererElectronApiCandidate(api);
-}
-
-async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    resetRendererElectronApiCandidate();
-}
