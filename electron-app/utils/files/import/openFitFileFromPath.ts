@@ -11,7 +11,10 @@ import { getOpenFitFileFromPathRuntime } from "./openFitFileFromPathRuntime.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 
@@ -39,6 +42,7 @@ type ShowNotification = (
 ) => void;
 
 type OpenFitFileFromPathParams = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     filePath: string;
     openFileBtn?: HTMLElement;
     showNotification: ShowNotification;
@@ -51,6 +55,7 @@ type OpenFitFileFromPathParams = {
  *   file-state error handling.
  */
 export async function openFitFileFromPath({
+    electronApiScope,
     filePath,
     showNotification,
     openFileBtn,
@@ -60,7 +65,7 @@ export async function openFitFileFromPath({
         return false;
     }
 
-    const api = resolveFitFileElectronAPI();
+    const api = resolveFitFileElectronAPI(electronApiScope);
     if (!api) {
         showNotification("Electron file API unavailable.", "error");
         return false;
@@ -146,10 +151,14 @@ function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
 }
 
-function resolveFitFileElectronAPI(): FitFileElectronAPI | undefined {
+function resolveFitFileElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): FitFileElectronAPI | undefined {
     return (
-        getRendererElectronApi<FitFileElectronAPI>(isFitFileElectronAPI) ??
-        undefined
+        getRendererElectronApi<FitFileElectronAPI>(
+            isFitFileElectronAPI,
+            electronApiScope
+        ) ?? undefined
     );
 }
 

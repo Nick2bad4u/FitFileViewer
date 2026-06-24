@@ -10,11 +10,8 @@ vi.mock(
 );
 
 import { openFitFileFromPath } from "../../../../electron-app/utils/files/import/openFitFileFromPath.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { fitFileStateManager } from "../../../../electron-app/utils/state/domain/fitFileState.js";
+import type { RendererElectronApiScope } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type HandleFileLoadingError = (error: Error) => void;
 type NotifyFitFileLoaded = (filePath: string) => void;
@@ -25,6 +22,7 @@ type ShowNotification = Parameters<
 >[0]["showNotification"];
 
 type Harness = {
+    electronApiScope: RendererElectronApiScope;
     handleFileLoadingError: ReturnType<typeof vi.fn<HandleFileLoadingError>>;
     notifyFitFileLoaded: ReturnType<typeof vi.fn<NotifyFitFileLoaded>>;
     parseFitFile: ReturnType<typeof vi.fn<ParseFitFile>>;
@@ -33,11 +31,22 @@ type Harness = {
 };
 
 function createHarness(): Harness {
+    const notifyFitFileLoaded = vi.fn<NotifyFitFileLoaded>();
+    const parseFitFile = vi.fn<ParseFitFile>();
+    const readFile = vi.fn<ReadFile>();
+
     return {
+        electronApiScope: {
+            getElectronAPI: () => ({
+                notifyFitFileLoaded,
+                parseFitFile,
+                readFile,
+            }),
+        },
         handleFileLoadingError: vi.fn<HandleFileLoadingError>(),
-        notifyFitFileLoaded: vi.fn<NotifyFitFileLoaded>(),
-        parseFitFile: vi.fn<ParseFitFile>(),
-        readFile: vi.fn<ReadFile>(),
+        notifyFitFileLoaded,
+        parseFitFile,
+        readFile,
         showNotification: vi.fn<ShowNotification>(),
     };
 }
@@ -59,11 +68,6 @@ async function withOpenFitFileHarness(
 
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
-    registerRendererElectronApiCandidate({
-        notifyFitFileLoaded: harness.notifyFitFileLoaded,
-        parseFitFile: harness.parseFitFile,
-        readFile: harness.readFile,
-    });
     vi.spyOn(fitFileStateManager, "handleFileLoadingError").mockImplementation(
         harness.handleFileLoadingError
     );
@@ -71,7 +75,6 @@ async function withOpenFitFileHarness(
     try {
         await runTest(harness);
     } finally {
-        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     }
 }
@@ -88,6 +91,7 @@ describe(openFitFileFromPath, () => {
             harness.parseFitFile.mockResolvedValue(decodedMessages);
 
             const result = await openFitFileFromPath({
+                electronApiScope: harness.electronApiScope,
                 filePath: "C:\\activities\\ride.fit",
                 openFileBtn,
                 showNotification: harness.showNotification,
@@ -122,6 +126,7 @@ describe(openFitFileFromPath, () => {
             });
 
             const result = await openFitFileFromPath({
+                electronApiScope: harness.electronApiScope,
                 filePath: "C:\\activities\\broken.fit",
                 showNotification: harness.showNotification,
             });
@@ -146,6 +151,7 @@ describe(openFitFileFromPath, () => {
             harness.readFile.mockResolvedValue(new ArrayBuffer(0));
 
             const result = await openFitFileFromPath({
+                electronApiScope: harness.electronApiScope,
                 filePath: "C:\\activities\\empty.fit",
                 showNotification: harness.showNotification,
             });
@@ -174,6 +180,7 @@ describe(openFitFileFromPath, () => {
             });
 
             const result = await openFitFileFromPath({
+                electronApiScope: harness.electronApiScope,
                 filePath: "C:\\activities\\wrapped-error.fit",
                 showNotification: harness.showNotification,
             });

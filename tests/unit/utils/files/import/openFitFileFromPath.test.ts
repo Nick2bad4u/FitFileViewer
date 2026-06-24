@@ -18,11 +18,8 @@ vi.mock(
 );
 
 import { openFitFileFromPath } from "../../../../../electron-app/utils/files/import/openFitFileFromPath.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { fitFileStateManager } from "../../../../../electron-app/utils/state/domain/fitFileState.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type ShowNotification = (
     message: string,
@@ -46,15 +43,18 @@ type LoadingPhase =
     | "validating";
 
 function cleanupFixture(): void {
-    resetRendererElectronApiCandidate();
     vi.restoreAllMocks();
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
     sendFitFileToAltFitReaderMock.mockReset();
 }
 
-function registerElectronApi(api: TestElectronAPI): void {
-    registerRendererElectronApiCandidate(api);
+function createElectronApiScope(
+    api: TestElectronAPI
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 describe(openFitFileFromPath, () => {
@@ -137,7 +137,7 @@ describe(openFitFileFromPath, () => {
 
             readFile.mockResolvedValue(fitBuffer);
             parseFitFile.mockResolvedValue({ data: fitData });
-            registerElectronApi({
+            const electronApiScope = createElectronApiScope({
                 notifyFitFileLoaded,
                 parseFitFile,
                 readFile,
@@ -156,6 +156,7 @@ describe(openFitFileFromPath, () => {
             ).mockImplementation(transitionLoadingPhase);
 
             const result = await openFitFileFromPath({
+                electronApiScope,
                 filePath,
                 openFileBtn,
                 showNotification,
@@ -225,13 +226,17 @@ describe(openFitFileFromPath, () => {
             const filePath = "C:\\activities\\empty.fit";
 
             readFile.mockResolvedValue(new ArrayBuffer(0));
-            registerElectronApi({ parseFitFile, readFile });
+            const electronApiScope = createElectronApiScope({
+                parseFitFile,
+                readFile,
+            });
             vi.spyOn(
                 fitFileStateManager,
                 "handleFileLoadingError"
             ).mockImplementation(handleFileLoadingError);
 
             const result = await openFitFileFromPath({
+                electronApiScope,
                 filePath,
                 openFileBtn,
                 showNotification,
