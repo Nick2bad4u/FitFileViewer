@@ -5,9 +5,10 @@
  */
 /* eslint-disable max-classes-per-file -- Token and source intentionally share one public utility module. */
 
-import { getCancellationTokenRuntime } from "./cancellationTokenRuntime.js";
-
-const cancellationTokenRuntime = getCancellationTokenRuntime();
+import {
+    getCancellationTokenRuntime,
+    type CancellationTokenRuntime,
+} from "./cancellationTokenRuntime.js";
 
 /**
  * Cancellation token for async operations.
@@ -129,15 +130,16 @@ export class CancellationTokenSource {
  * @returns Cancellation token source.
  */
 export function createTimeoutCancellationToken(
-    timeout: number
+    timeout: number,
+    runtime: CancellationTokenRuntime = getCancellationTokenRuntime()
 ): CancellationTokenSource {
     const source = new CancellationTokenSource();
 
-    const timeoutId = cancellationTokenRuntime.setTimeout(() => {
+    const timeoutId = runtime.setTimeout(() => {
         source.cancel();
     }, timeout);
     source.token.onCancel(() => {
-        cancellationTokenRuntime.clearTimeout(timeoutId);
+        runtime.clearTimeout(timeoutId);
     });
 
     return source;
@@ -153,7 +155,8 @@ export function createTimeoutCancellationToken(
  */
 export async function delay(
     ms: number,
-    token?: CancellationToken
+    token?: CancellationToken,
+    runtime: CancellationTokenRuntime = getCancellationTokenRuntime()
 ): Promise<void> {
     return new Promise((resolve, reject) => {
         if (token?.isCancelled) {
@@ -163,7 +166,7 @@ export async function delay(
 
         let unsubscribe: (() => void) | undefined;
 
-        const timeoutId = cancellationTokenRuntime.setTimeout(() => {
+        const timeoutId = runtime.setTimeout(() => {
             if (unsubscribe) {
                 unsubscribe();
             }
@@ -172,7 +175,7 @@ export async function delay(
 
         if (token) {
             unsubscribe = token.onCancel(() => {
-                cancellationTokenRuntime.clearTimeout(timeoutId);
+                runtime.clearTimeout(timeoutId);
                 reject(new Error("Operation was cancelled"));
             });
         }

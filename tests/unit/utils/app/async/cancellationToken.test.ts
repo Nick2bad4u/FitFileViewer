@@ -70,6 +70,32 @@ describe("cancellationToken", () => {
         expect(vi.getTimerCount()).toBe(0);
     });
 
+    it("creates timeout tokens through an injected timer runtime", () => {
+        expect.assertions(5);
+
+        const clearTimeout = vi.fn<(handle: number) => void>();
+        let scheduledCallback: (() => void) | undefined;
+        const setTimeout = vi.fn((callback: () => void, timeout: number) => {
+            scheduledCallback = callback;
+            expect(timeout).toBe(250);
+
+            return 41;
+        });
+
+        const source = createTimeoutCancellationToken(250, {
+            clearTimeout,
+            setTimeout,
+        });
+
+        expect(source.token.isCancelled).toBe(false);
+        expect(setTimeout).toHaveBeenCalledOnce();
+
+        scheduledCallback?.();
+
+        expect(source.token.isCancelled).toBe(true);
+        expect(clearTimeout).toHaveBeenCalledWith(41);
+    });
+
     it("resolves delay after the configured timeout", async () => {
         expect.assertions(1);
 
@@ -95,6 +121,33 @@ describe("cancellationToken", () => {
 
         await expect(delayed).rejects.toThrow("Operation was cancelled");
         expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("delays through an injected timer runtime", async () => {
+        expect.assertions(5);
+
+        const delayMs = Number("75");
+        const clearTimeout = vi.fn<(handle: number) => void>();
+        let scheduledCallback: (() => void) | undefined;
+        const setTimeout = vi.fn((callback: () => void, timeout: number) => {
+            scheduledCallback = callback;
+            expect(timeout).toBe(delayMs);
+
+            return 51;
+        });
+
+        const delayed = delay(delayMs, undefined, {
+            clearTimeout,
+            setTimeout,
+        });
+
+        expect(setTimeout).toHaveBeenCalledOnce();
+
+        scheduledCallback?.();
+
+        await expect(delayed).resolves.toBeUndefined();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(scheduledCallback).toBeTypeOf("function");
     });
 
     it("identifies cancellation errors", () => {

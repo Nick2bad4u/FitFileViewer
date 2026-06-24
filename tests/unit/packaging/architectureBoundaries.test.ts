@@ -16366,7 +16366,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedCancellationTokenRuntimeFiles
             .filter((relativeFile) =>
@@ -16398,6 +16398,15 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(cancellationTokenSource).toContain(
             "cancellationTokenRuntime.js"
+        );
+        expect(cancellationTokenSource).toContain(
+            "type CancellationTokenRuntime"
+        );
+        expect(cancellationTokenSource).not.toContain(
+            "const cancellationTokenRuntime = getCancellationTokenRuntime();"
+        );
+        expect(cancellationTokenSource).toContain(
+            "runtime: CancellationTokenRuntime = getCancellationTokenRuntime()"
         );
         expect(cancellationTokenRuntimeSource).not.toMatch(
             directCancellationTokenRuntimeAmbientFallbackPattern
