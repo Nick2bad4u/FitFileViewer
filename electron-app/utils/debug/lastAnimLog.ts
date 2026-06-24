@@ -3,26 +3,171 @@
  */
 
 import { isDevelopmentEnvironment } from "../runtime/processEnvironment.js";
-import { getLastAnimLogRuntime } from "./lastAnimLogRuntime.js";
+import {
+    getLastAnimLogRuntime,
+    type LastAnimLogRuntime,
+} from "./lastAnimLogRuntime.js";
 import { isRendererDebugLoggingEnabled } from "./rendererDebugLoggingState.js";
-import { getRendererDebugRuntime } from "./rendererDebugRuntime.js";
+import {
+    getRendererDebugRuntime,
+    type RendererDebugRuntime,
+} from "./rendererDebugRuntime.js";
 
-const lastAnimLogRuntime = getLastAnimLogRuntime();
-const rendererDebugRuntime = getRendererDebugRuntime();
+interface AnimationDebugConsole {
+    log: (...args: unknown[]) => void;
+}
+
+export interface AnimationDebugLogger {
+    readonly criticalAnimLog: (message: string) => void;
+    readonly perfAnimLog: (message: string, startTime?: number) => void;
+    readonly throttledAnimLog: (message: string) => void;
+}
+
+export interface AnimationDebugLoggerRuntime {
+    readonly getConsole?: (() => AnimationDebugConsole | undefined) | undefined;
+    readonly getLastAnimLogRuntime?: (() => LastAnimLogRuntime) | undefined;
+    readonly getRendererDebugRuntime?: (() => RendererDebugRuntime) | undefined;
+    readonly isDevelopmentEnvironment?: (() => boolean) | undefined;
+    readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
+}
+
+interface ResolvedAnimationDebugLoggerRuntime {
+    readonly getConsole: () => AnimationDebugConsole | undefined;
+    readonly getLastAnimLogRuntime: () => LastAnimLogRuntime;
+    readonly getRendererDebugRuntime: () => RendererDebugRuntime;
+    readonly isDevelopmentEnvironment: () => boolean;
+    readonly isRendererDebugLoggingEnabled: () => boolean;
+}
+
+const defaultAnimationDebugLoggerRuntime: ResolvedAnimationDebugLoggerRuntime = {
+    getConsole: () => console,
+    getLastAnimLogRuntime,
+    getRendererDebugRuntime,
+    isDevelopmentEnvironment,
+    isRendererDebugLoggingEnabled,
+};
+
+function resolveAnimationDebugLoggerRuntime(
+    runtime: AnimationDebugLoggerRuntime
+): ResolvedAnimationDebugLoggerRuntime {
+    return {
+        getConsole:
+            runtime.getConsole ?? defaultAnimationDebugLoggerRuntime.getConsole,
+        getLastAnimLogRuntime:
+            runtime.getLastAnimLogRuntime ??
+            defaultAnimationDebugLoggerRuntime.getLastAnimLogRuntime,
+        getRendererDebugRuntime:
+            runtime.getRendererDebugRuntime ??
+            defaultAnimationDebugLoggerRuntime.getRendererDebugRuntime,
+        isDevelopmentEnvironment:
+            runtime.isDevelopmentEnvironment ??
+            defaultAnimationDebugLoggerRuntime.isDevelopmentEnvironment,
+        isRendererDebugLoggingEnabled:
+            runtime.isRendererDebugLoggingEnabled ??
+            defaultAnimationDebugLoggerRuntime.isRendererDebugLoggingEnabled,
+    };
+}
 
 /**
  * Checks whether renderer animation debug logging should be enabled.
  *
  * @returns True when development logging is enabled.
  */
-function isDevelopmentMode(): boolean {
+function isDevelopmentMode(
+    runtime: ResolvedAnimationDebugLoggerRuntime
+): boolean {
     return (
-        rendererDebugRuntime.isRendererDebugLoggingAvailable(
-            isRendererDebugLoggingEnabled()
-        ) ||
-        isDevelopmentEnvironment()
+        runtime
+            .getRendererDebugRuntime()
+            .isRendererDebugLoggingAvailable(
+                runtime.isRendererDebugLoggingEnabled()
+            ) ||
+        runtime.isDevelopmentEnvironment()
     );
 }
+
+/**
+ * Creates throttled animation debug loggers with explicit runtime providers.
+ *
+ * @param options - Optional runtime provider overrides.
+ * @returns Animation debug logger functions.
+ */
+export function createAnimationDebugLogger(
+    options: AnimationDebugLoggerRuntime = {}
+): AnimationDebugLogger {
+    const runtime = resolveAnimationDebugLoggerRuntime(options);
+    let lastAnimLogTimestamp = 0;
+    let lastPerfLogTimestamp = 0;
+    const PERFORMANCE_THROTTLE_INTERVAL_MS = 1000,
+        THROTTLE_INTERVAL_MS = 500;
+
+    return {
+        criticalAnimLog(message): void {
+            const consoleRef = runtime.getConsole();
+            if (typeof consoleRef?.log !== "function") {
+                return;
+            }
+
+            if (!isDevelopmentMode(runtime)) {
+                return;
+            }
+            try {
+                consoleRef.log(`[AnimCritical] ${message}`);
+            } catch {
+                // Silently fail if logging encounters an error
+            }
+        },
+
+        perfAnimLog(message, startTime): void {
+            const consoleRef = runtime.getConsole();
+            if (typeof consoleRef?.log !== "function") {
+                return;
+            }
+
+            if (!isDevelopmentMode(runtime)) {
+                return;
+            }
+
+            try {
+                const now = runtime.getLastAnimLogRuntime().performanceNow();
+                if (now - lastPerfLogTimestamp > PERFORMANCE_THROTTLE_INTERVAL_MS) {
+                    const duration = startTime
+                        ? ` (${(now - startTime).toFixed(2)}ms)`
+                        : "";
+                    consoleRef.log(
+                        `[AnimPerf@${now.toFixed(2)}ms] ${message}${duration}`
+                    );
+                    lastPerfLogTimestamp = now;
+                }
+            } catch {
+                // Silently fail if logging encounters an error
+            }
+        },
+
+        throttledAnimLog(message): void {
+            const consoleRef = runtime.getConsole();
+            if (typeof consoleRef?.log !== "function") {
+                return;
+            }
+
+            if (!isDevelopmentMode(runtime)) {
+                return;
+            }
+            try {
+                const now = runtime.getLastAnimLogRuntime().dateNow();
+                if (now - lastAnimLogTimestamp > THROTTLE_INTERVAL_MS) {
+                    consoleRef.log(`[AnimDebug] ${message}`);
+                    lastAnimLogTimestamp = now;
+                }
+            } catch {
+                // Silently fail if logging encounters an error
+                // Don't use console.error to avoid potential recursion
+            }
+        },
+    };
+}
+
+const defaultAnimationDebugLogger = createAnimationDebugLogger();
 
 /**
  * Logs animation progress messages to the console at most once every 500ms to
@@ -35,31 +180,8 @@ function isDevelopmentMode(): boolean {
  *
  * @param message - The message to log to the console.
  */
-export const throttledAnimLog = (() => {
-    let lastAnimLogTimestamp = 0;
-    const THROTTLE_INTERVAL_MS = 500;
-
-    return function throttledAnimationLog(message: string): void {
-        // Skip logging in production or if console is not available
-        if (typeof console === "undefined" || !console.log) {
-            return;
-        }
-
-        if (!isDevelopmentMode()) {
-            return;
-        }
-        try {
-            const now = lastAnimLogRuntime.dateNow();
-            if (now - lastAnimLogTimestamp > THROTTLE_INTERVAL_MS) {
-                console.log(`[AnimDebug] ${message}`);
-                lastAnimLogTimestamp = now;
-            }
-        } catch {
-            // Silently fail if logging encounters an error
-            // Don't use console.error to avoid potential recursion
-        }
-    };
-})();
+export const throttledAnimLog = (message: string): void =>
+    defaultAnimationDebugLogger.throttledAnimLog(message);
 
 /**
  * Alternative logging function for critical animation events that should always
@@ -68,21 +190,8 @@ export const throttledAnimLog = (() => {
  *
  * @param message - The critical message to log immediately.
  */
-export const criticalAnimLog = (message: string): void => {
-    // Skip logging in production or if console is not available
-    if (typeof console === "undefined" || !console.log) {
-        return;
-    }
-
-    if (!isDevelopmentMode()) {
-        return;
-    }
-    try {
-        console.log(`[AnimCritical] ${message}`);
-    } catch {
-        // Silently fail if logging encounters an error
-    }
-};
+export const criticalAnimLog = (message: string): void =>
+    defaultAnimationDebugLogger.criticalAnimLog(message);
 
 /**
  * Performance-aware animation logger that includes timing information.
@@ -90,36 +199,5 @@ export const criticalAnimLog = (message: string): void => {
  * @param message - The message to log with timing information.
  * @param startTime - Optional start time for duration calculation.
  */
-export const perfAnimLog = (() => {
-    let lastPerfLogTimestamp = 0;
-    const THROTTLE_INTERVAL_MS = 1000; // Less frequent for performance logs
-
-    return function performanceAnimationLog(
-        message: string,
-        startTime?: number
-    ): void {
-        // Skip logging in production or if console is not available
-        if (typeof console === "undefined" || !console.log) {
-            return;
-        }
-
-        if (!isDevelopmentMode()) {
-            return;
-        }
-
-        try {
-            const now = lastAnimLogRuntime.performanceNow();
-            if (now - lastPerfLogTimestamp > THROTTLE_INTERVAL_MS) {
-                const duration = startTime
-                    ? ` (${(now - startTime).toFixed(2)}ms)`
-                    : "";
-                console.log(
-                    `[AnimPerf@${now.toFixed(2)}ms] ${message}${duration}`
-                );
-                lastPerfLogTimestamp = now;
-            }
-        } catch {
-            // Silently fail if logging encounters an error
-        }
-    };
-})();
+export const perfAnimLog = (message: string, startTime?: number): void =>
+    defaultAnimationDebugLogger.perfAnimLog(message, startTime);

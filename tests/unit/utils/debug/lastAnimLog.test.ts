@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+    createAnimationDebugLogger,
     criticalAnimLog,
     perfAnimLog,
     throttledAnimLog,
@@ -44,6 +45,39 @@ describe("animation debug logging", () => {
 
         expect(result).toBeUndefined();
         expect(consoleLog).toHaveBeenCalledWith(
+            "[AnimPerf@1500.00ms] frame (1499.00ms)"
+        );
+    });
+
+    it("creates animation loggers with injected runtime providers", () => {
+        expect.assertions(5);
+
+        const consoleLog = vi.fn<(...args: unknown[]) => void>();
+        const logger = createAnimationDebugLogger({
+            getConsole: () => ({ log: consoleLog }),
+            getLastAnimLogRuntime: () => ({
+                dateNow: () => 600,
+                performanceNow: () => 1500,
+            }),
+            getRendererDebugRuntime: () => ({
+                isRendererDebugLoggingAvailable: (enabled) => enabled,
+            }),
+            isDevelopmentEnvironment: () => false,
+            isRendererDebugLoggingEnabled: () => true,
+        });
+
+        const results = [
+            logger.criticalAnimLog("critical"),
+            logger.throttledAnimLog("progress"),
+            logger.perfAnimLog("frame", 1),
+        ];
+
+        expect(results).toStrictEqual([undefined, undefined, undefined]);
+        expect(consoleLog).toHaveBeenCalledTimes(3);
+        expect(consoleLog).toHaveBeenNthCalledWith(1, "[AnimCritical] critical");
+        expect(consoleLog).toHaveBeenNthCalledWith(2, "[AnimDebug] progress");
+        expect(consoleLog).toHaveBeenNthCalledWith(
+            3,
             "[AnimPerf@1500.00ms] frame (1499.00ms)"
         );
     });

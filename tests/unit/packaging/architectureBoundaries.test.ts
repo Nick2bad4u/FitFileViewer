@@ -8932,7 +8932,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
@@ -8945,6 +8945,9 @@ describe("architecture boundaries", () => {
             directLastAnimLogRuntimeGlobalPattern.test(lastAnimLogSource)
         ).toBe(false);
         expect(lastAnimLogSource).toContain("lastAnimLogRuntime.js");
+        expect(lastAnimLogSource).toContain("createAnimationDebugLogger");
+        expect(lastAnimLogSource).not.toContain("const lastAnimLogRuntime =");
+        expect(lastAnimLogSource).not.toContain("const rendererDebugRuntime =");
         expect(lastAnimLogRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
         );
