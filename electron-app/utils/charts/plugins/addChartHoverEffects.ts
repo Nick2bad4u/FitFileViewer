@@ -11,7 +11,10 @@ import { getRegisteredChartInstanceForCanvas } from "../core/chartInstanceRegist
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
-import { getChartHoverEffectsRuntime } from "./addChartHoverEffectsRuntime.js";
+import {
+    getChartHoverEffectsRuntime,
+    type ChartHoverEffectsRuntime,
+} from "./addChartHoverEffectsRuntime.js";
 const FULLSCREEN_EVENTS = [
     "fullscreenchange",
     "webkitfullscreenchange",
@@ -58,7 +61,9 @@ interface FullscreenHTMLElement extends HTMLElement {
     webkitRequestFullscreen?: () => Promise<void> | void;
 }
 
-const chartHoverEffectsRuntime = getChartHoverEffectsRuntime();
+function chartHoverEffectsRuntime(): ChartHoverEffectsRuntime {
+    return getChartHoverEffectsRuntime();
+}
 const wrapperCleanupControllers = new WeakMap<HTMLElement, AbortController>();
 
 /** Theme color values consumed by chart hover styling. */
@@ -75,7 +80,7 @@ function isPromiseLike(value: unknown): value is PromiseLike<void> {
 }
 
 function createSvgPath(pathData: string): SVGPathElement {
-    const path = chartHoverEffectsRuntime.createSvgElement("path");
+    const path = chartHoverEffectsRuntime().createSvgElement("path");
     path.setAttribute("d", pathData);
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", "currentColor");
@@ -85,7 +90,7 @@ function createSvgPath(pathData: string): SVGPathElement {
 }
 
 function createFullscreenIcon(mode: "enter" | "exit"): SVGSVGElement {
-    const svg = chartHoverEffectsRuntime.createSvgElement("svg");
+    const svg = chartHoverEffectsRuntime().createSvgElement("svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
 
@@ -112,7 +117,7 @@ function createFullscreenIcon(mode: "enter" | "exit"): SVGSVGElement {
 }
 
 function createTitleIcon(iconName: AppIconName): SVGSVGElement {
-    const svg = chartHoverEffectsRuntime.createSvgElement("svg");
+    const svg = chartHoverEffectsRuntime().createSvgElement("svg");
     svg.setAttribute("class", "chart-title-overlay__icon");
     svg.setAttribute("width", "12");
     svg.setAttribute("height", "12");
@@ -159,7 +164,7 @@ function scheduleAnimationFrame(
     callback: () => void,
     signal?: AbortSignal
 ): void {
-    const animationFrameId = chartHoverEffectsRuntime.requestAnimationFrame(
+    const animationFrameId = chartHoverEffectsRuntime().requestAnimationFrame(
         () => {
             if (signal?.aborted === true) {
                 return;
@@ -176,7 +181,7 @@ function scheduleTimeout(
     delay: number,
     signal?: AbortSignal
 ): void {
-    const timeoutId = chartHoverEffectsRuntime.setTimeout(() => {
+    const timeoutId = chartHoverEffectsRuntime().setTimeout(() => {
         if (signal?.aborted === true) {
             return;
         }
@@ -294,7 +299,7 @@ function getFullscreenElement(): Element | null {
 }
 
 async function waitForAnimationFrame(): Promise<void> {
-    await chartHoverEffectsRuntime.waitForAnimationFrame();
+    await chartHoverEffectsRuntime().waitForAnimationFrame();
 }
 
 async function waitForFullscreenTarget(
@@ -532,7 +537,7 @@ export function addChartHoverEffects(
         let overlayParent: HTMLElement | null = null;
         let overlayEscHandler: (event: KeyboardEvent) => void = () => {};
         const cleanupController =
-            chartHoverEffectsRuntime.createAbortController();
+            chartHoverEffectsRuntime().createAbortController();
         const { signal } = cleanupController;
         wrapperCleanupControllers.set(wrapper, cleanupController);
 
@@ -552,16 +557,16 @@ export function addChartHoverEffects(
             overlayPlaceholder.style.height = `${wrapper.getBoundingClientRect().height}px`;
             wrapper.before(overlayPlaceholder);
 
-            chartHoverEffectsRuntime.appendToBody(wrapper);
+            chartHoverEffectsRuntime().appendToBody(wrapper);
             wrapper.classList.add("chart-wrapper--overlay-fullscreen");
-            chartHoverEffectsRuntime.setBodyClass(
+            chartHoverEffectsRuntime().setBodyClass(
                 "chart-overlay-fullscreen-active",
                 true
             );
 
             applyCanvasSize(chartCanvas, true);
             requestChartResize(chartCanvas);
-            chartHoverEffectsRuntime.addDocumentKeydownListener(
+            chartHoverEffectsRuntime().addDocumentKeydownListener(
                 overlayEscHandler,
                 {
                     signal,
@@ -584,13 +589,13 @@ export function addChartHoverEffects(
             overlayParent = null;
 
             wrapper.classList.remove("chart-wrapper--overlay-fullscreen");
-            chartHoverEffectsRuntime.setBodyClass(
+            chartHoverEffectsRuntime().setBodyClass(
                 "chart-overlay-fullscreen-active",
                 false
             );
             applyCanvasSize(chartCanvas, false);
             requestChartResize(chartCanvas);
-            chartHoverEffectsRuntime.removeDocumentKeydownListener(
+            chartHoverEffectsRuntime().removeDocumentKeydownListener(
                 overlayEscHandler
             );
 
@@ -645,7 +650,7 @@ export function addChartHoverEffects(
         };
 
         for (const evt of FULLSCREEN_EVENTS) {
-            chartHoverEffectsRuntime.addDocumentEventListener(
+            chartHoverEffectsRuntime().addDocumentEventListener(
                 evt,
                 handleFullscreenChange,
                 { signal }

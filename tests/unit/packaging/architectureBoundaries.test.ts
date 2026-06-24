@@ -16914,7 +16914,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(50);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -16945,6 +16945,15 @@ describe("architecture boundaries", () => {
         expect(svgViolations).toStrictEqual([]);
         expect(chartHoverEffectsSource).toContain(
             "addChartHoverEffectsRuntime.js"
+        );
+        expect(chartHoverEffectsSource).toContain(
+            "type ChartHoverEffectsRuntime"
+        );
+        expect(chartHoverEffectsSource).toContain(
+            "return getChartHoverEffectsRuntime();"
+        );
+        expect(chartHoverEffectsSource).not.toContain(
+            "const chartHoverEffectsRuntime = getChartHoverEffectsRuntime();"
         );
         expect(chartHoverEffectsSource).toContain("createAbortController");
         expect(chartHoverEffectsSource).toContain("createSvgElement");
