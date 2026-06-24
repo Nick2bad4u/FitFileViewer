@@ -1170,7 +1170,7 @@ export const exportUtils = {
                     // Ensure cancel paths clean up subscriptions and state.
                     cleanup
                 );
-                document.body.append(modal);
+                exportUtilsRuntime.appendToBody(modal);
             });
         } catch (error) {
             // Stop the server if it was started
@@ -3367,7 +3367,7 @@ body {
         });
 
         overlay.append(modal);
-        document.body.append(overlay);
+        exportUtilsRuntime.appendToBody(overlay);
     },
 
     /*
@@ -3527,7 +3527,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         });
 
         overlay.append(modal);
-        document.body.append(overlay);
+        exportUtilsRuntime.appendToBody(overlay);
     },
 
     /*
@@ -4054,7 +4054,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         });
 
         overlay.append(modal);
-        document.body.append(overlay);
+        exportUtilsRuntime.appendToBody(overlay);
     },
 
     /*
@@ -4256,7 +4256,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         });
 
         overlay.append(modal);
-        document.body.append(overlay);
+        exportUtilsRuntime.appendToBody(overlay);
     },
 
     /*

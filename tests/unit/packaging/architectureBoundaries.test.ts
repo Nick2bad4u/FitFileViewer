@@ -4432,7 +4432,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(58);
+        expect.assertions(60);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4460,6 +4460,10 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("addDocumentKeydownListener");
         expect(exportUtilsSource).toContain("appendToBody");
         expect(exportUtilsSource).not.toContain("document.body.append(link)");
+        expect(exportUtilsSource).not.toContain("document.body.append(modal)");
+        expect(exportUtilsSource).not.toContain(
+            "document.body.append(overlay)"
+        );
         expect(exportUtilsSource).not.toContain("Reflect.get(globalThis");
         expect(exportUtilsSource).not.toContain("globalThis.window");
         expect(exportUtilsSource).not.toContain("globalThis.localStorage");
