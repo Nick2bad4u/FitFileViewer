@@ -13,9 +13,14 @@ import {
     updateShownFilesList,
 } from "./shownFilesListUpdater.js";
 import { clearOverlayTooltipTimeout } from "./shownFilesListTooltipState.js";
-import { getShownFilesListRuntime } from "./shownFilesListRuntime.js";
+import {
+    getShownFilesListRuntime,
+    type ShownFilesListRuntime,
+} from "./shownFilesListRuntime.js";
 
-const shownFilesListRuntime = getShownFilesListRuntime();
+function shownFilesListRuntime(): ShownFilesListRuntime {
+    return getShownFilesListRuntime();
+}
 
 type ShownFilesContainer = HTMLDivElement & {
     _dispose?: () => void;
@@ -37,7 +42,7 @@ type Rgb = readonly [
 ];
 
 function removeOverlayFilenameTooltips(): void {
-    const tooltips = shownFilesListRuntime.querySelectorAll(
+    const tooltips = shownFilesListRuntime().querySelectorAll(
         ".overlay-filename-tooltip"
     );
     for (const tooltip of tooltips) {
@@ -115,11 +120,11 @@ function getFilteredColor(color: string, filter: string): string {
         return color;
     }
 
-    const temp = shownFilesListRuntime.createElement("span");
+    const temp = shownFilesListRuntime().createElement("span");
     temp.style.color = color;
     temp.style.filter = filter;
     temp.style.display = "none";
-    shownFilesListRuntime.appendToBody(temp);
+    shownFilesListRuntime().appendToBody(temp);
     const filteredColor = getComputedStyle(temp).color;
     temp.remove();
     return filteredColor;
@@ -163,10 +168,10 @@ function getStringThemeColor(
  * @returns The files list container.
  */
 export function createShownFilesList(): HTMLElement {
-    const container = shownFilesListRuntime.createElement(
+    const container = shownFilesListRuntime().createElement(
         "div"
     ) as ShownFilesContainer;
-    const lifecycle = shownFilesListRuntime.createAbortController();
+    const lifecycle = shownFilesListRuntime().createAbortController();
 
     container.className = "shown-files-list map-controls-secondary-card";
     container.style.margin = "0";
@@ -185,9 +190,9 @@ export function createShownFilesList(): HTMLElement {
 
     // Security: avoid innerHTML. The header/list markup is static, but using DOM APIs
     // keeps the pattern consistent and prevents future accidental interpolation.
-    const heading = shownFilesListRuntime.createElement("b");
+    const heading = shownFilesListRuntime().createElement("b");
     heading.textContent = "Extra Files shown on map:";
-    const listElement = shownFilesListRuntime.createElement("ul");
+    const listElement = shownFilesListRuntime().createElement("ul");
     listElement.id = "shown-files-ul";
     listElement.style.margin = "0";
     listElement.style.paddingLeft = "18px";
@@ -205,7 +210,7 @@ export function createShownFilesList(): HTMLElement {
     };
     applyTheme();
 
-    shownFilesListRuntime.addBodyThemeChangeListener(applyTheme, {
+    shownFilesListRuntime().addBodyThemeChangeListener(applyTheme, {
         signal: lifecycle.signal,
     });
 
@@ -401,7 +406,7 @@ export function createShownFilesList(): HTMLElement {
             }
 
             anyOverlays = true;
-            const item = shownFilesListRuntime.createElement(
+            const item = shownFilesListRuntime().createElement(
                 "li"
             ) as OverlayListItem;
             item.style.position = "relative";
@@ -414,7 +419,7 @@ export function createShownFilesList(): HTMLElement {
 
             const colorIndex = overlayIndex % chartOverlayColorPalette.length;
             const color = chartOverlayColorPalette[colorIndex] || "#1976d2";
-            const isDark = shownFilesListRuntime.isDarkTheme();
+            const isDark = shownFilesListRuntime().isDarkTheme();
             const filter = isDark
                 ? "invert(0.92) hue-rotate(180deg) brightness(0.9) contrast(1.1)"
                 : "";
@@ -439,7 +444,7 @@ export function createShownFilesList(): HTMLElement {
             item.setAttribute("aria-label", `Overlay ${fullPath}`);
             item.setAttribute("aria-selected", "false");
 
-            const removeButton = shownFilesListRuntime.createElement("span");
+            const removeButton = shownFilesListRuntime().createElement("span");
             removeButton.className = "overlay-remove-btn";
             removeButton.textContent = "×";
             removeButton.title = "Remove this overlay";
@@ -500,7 +505,7 @@ export function createShownFilesList(): HTMLElement {
             shownFilesList.parentNode instanceof HTMLElement &&
             !shownFilesList.parentNode.querySelector(".overlay-clear-all-btn")
         ) {
-            const clearAll = shownFilesListRuntime.createElement("button");
+            const clearAll = shownFilesListRuntime().createElement("button");
             clearAll.type = "button";
             clearAll.textContent = "Clear All";
             clearAll.className = "overlay-clear-all-btn";

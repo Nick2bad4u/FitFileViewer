@@ -14,10 +14,13 @@ import {
 } from "./shownFilesListTooltipState.js";
 import {
     getShownFilesListRuntime,
+    type ShownFilesListRuntime,
     type ShownFilesListTimerHandle,
 } from "./shownFilesListRuntime.js";
 
-const shownFilesListRuntime = getShownFilesListRuntime();
+function shownFilesListRuntime(): ShownFilesListRuntime {
+    return getShownFilesListRuntime();
+}
 
 type OverlayListItem = HTMLLIElement & {
     _overlayListItemCleanup?: (() => void) | null;
@@ -78,7 +81,7 @@ function isCircleMarkerLeafletRuntime(
 }
 
 function removeOverlayFilenameTooltips(): void {
-    const tooltips = shownFilesListRuntime.querySelectorAll(
+    const tooltips = shownFilesListRuntime().querySelectorAll(
         ".overlay-filename-tooltip"
     );
     for (const tooltip of tooltips) {
@@ -87,7 +90,7 @@ function removeOverlayFilenameTooltips(): void {
 }
 
 function scheduleTooltipCleanup(): ShownFilesListTimerHandle {
-    return shownFilesListRuntime.setTimeout(() => {
+    return shownFilesListRuntime().setTimeout(() => {
         removeOverlayFilenameTooltips();
     }, 10);
 }
@@ -138,7 +141,7 @@ function highlightPolylineElement(
     const color = polyline.options?.color || "#1976d2";
     polylineElement.style.transition = "filter 0.2s";
     polylineElement.style.filter = `drop-shadow(0 0 16px ${color})`;
-    return shownFilesListRuntime.setTimeout(() => {
+    return shownFilesListRuntime().setTimeout(() => {
         if (getHighlightedOverlayIndex() === overlayIndex) {
             polylineElement.style.filter = `drop-shadow(0 0 8px ${color})`;
         }
@@ -164,7 +167,7 @@ function showOverlayTooltip({
         return;
     }
 
-    const tooltip = shownFilesListRuntime.createElement("div");
+    const tooltip = shownFilesListRuntime().createElement("div");
     tooltip.className = "overlay-filename-tooltip";
     tooltip.style.position = "fixed";
     tooltip.style.zIndex = "9999";
@@ -180,13 +183,13 @@ function showOverlayTooltip({
 
     // Avoid innerHTML because file paths are user-controlled.
     tooltip.textContent = `File: ${String(fullPath)}${showWarning ? "\n⚠️ This color may be hard to read in this theme." : ""}`;
-    shownFilesListRuntime.appendToBody(tooltip);
+    shownFilesListRuntime().appendToBody(tooltip);
 
-    const tooltipMovement = shownFilesListRuntime.createAbortController();
+    const tooltipMovement = shownFilesListRuntime().createAbortController();
     const moveTooltip = (event: MouseEvent): void => {
         const pad = 12;
         const { height: viewportHeight, width: viewportWidth } =
-            shownFilesListRuntime.getViewport();
+            shownFilesListRuntime().getViewport();
         let x = event.clientX + pad;
         let y = event.clientY + pad;
         if (x + tooltip.offsetWidth > viewportWidth) {
@@ -200,7 +203,7 @@ function showOverlayTooltip({
     };
 
     moveTooltip(initialEvent);
-    shownFilesListRuntime.addMouseMoveListener(moveTooltip, {
+    shownFilesListRuntime().addMouseMoveListener(moveTooltip, {
         signal: tooltipMovement.signal,
     });
     li._tooltipRemover = () => {
@@ -227,7 +230,7 @@ export function attachOverlayListItemHandlers({
     showWarning,
 }: AttachOverlayListItemHandlersParams): () => void {
     const listItem = li as OverlayListItem;
-    const eventListeners = shownFilesListRuntime.createAbortController();
+    const eventListeners = shownFilesListRuntime().createAbortController();
     const { signal } = eventListeners;
     const timers = new Set<ShownFilesListTimerHandle>();
     const trackTimer = (timer: ShownFilesListTimerHandle | null): void => {
@@ -241,7 +244,7 @@ export function attachOverlayListItemHandlers({
 
     const cleanup = (): void => {
         for (const timer of timers) {
-            shownFilesListRuntime.clearTimeout(timer);
+            shownFilesListRuntime().clearTimeout(timer);
         }
         timers.clear();
         clearOverlayTooltipTimeout();
@@ -327,7 +330,7 @@ export function attachOverlayListItemHandlers({
             listItem._tooltipRemover?.();
 
             setOverlayTooltipTimeout(
-                shownFilesListRuntime.setTimeout(() => {
+                shownFilesListRuntime().setTimeout(() => {
                     showOverlayTooltip({
                         fullPath,
                         initialEvent: event,

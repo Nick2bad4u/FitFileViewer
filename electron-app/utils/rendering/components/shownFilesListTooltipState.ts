@@ -1,9 +1,12 @@
 import {
     getShownFilesListRuntime,
+    type ShownFilesListRuntime,
     type ShownFilesListTimerHandle,
 } from "./shownFilesListRuntime.js";
 
-const shownFilesListRuntime = getShownFilesListRuntime();
+function shownFilesListRuntime(): ShownFilesListRuntime {
+    return getShownFilesListRuntime();
+}
 
 let overlayTooltipTimeout: null | ShownFilesListTimerHandle = null;
 
@@ -20,7 +23,7 @@ export function setOverlayTooltipTimeout(
 
 export function clearOverlayTooltipTimeout(): void {
     if (overlayTooltipTimeout) {
-        shownFilesListRuntime.clearTimeout(overlayTooltipTimeout);
+        shownFilesListRuntime().clearTimeout(overlayTooltipTimeout);
         overlayTooltipTimeout = null;
     }
 }

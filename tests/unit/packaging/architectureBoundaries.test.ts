@@ -17352,7 +17352,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(49);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -17367,12 +17367,35 @@ describe("architecture boundaries", () => {
                 return !source.includes("shownFilesListRuntime.js");
             })
             .sort();
+        const sourcesMissingRuntimeType = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return !source.includes("type ShownFilesListRuntime");
+            })
+            .sort();
+        const sourcesMissingRuntimeResolver = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return !source.includes("return getShownFilesListRuntime();");
+            })
+            .sort();
+        const sourcesCapturingRuntime = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return source.includes(
+                    "const shownFilesListRuntime = getShownFilesListRuntime();"
+                );
+            })
+            .sort();
         const shownFilesListRuntimeSource = stripComments(
             readRepositoryFile(shownFilesListRuntimeSourceFile)
         );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(sourcesMissingRuntimeType).toStrictEqual([]);
+        expect(sourcesMissingRuntimeResolver).toStrictEqual([]);
+        expect(sourcesCapturingRuntime).toStrictEqual([]);
         expect(shownFilesListRuntimeSource).toContain(
             "const body = scope.getDocument?.()?.body;"
         );
@@ -17450,13 +17473,13 @@ describe("architecture boundaries", () => {
         expect(shownFilesItemHandlerSource).toContain("createAbortController");
         expect(shownFilesItemHandlerSource).toContain("getViewport");
         expect(shownFilesItemHandlerSource).toContain(
-            "shownFilesListRuntime.createElement"
+            "shownFilesListRuntime().createElement"
         );
         expect(shownFilesItemHandlerSource).toContain(
-            "shownFilesListRuntime.querySelectorAll"
+            "shownFilesListRuntime().querySelectorAll"
         );
         expect(shownFilesItemHandlerSource).toContain(
-            "shownFilesListRuntime.appendToBody"
+            "shownFilesListRuntime().appendToBody"
         );
         expect(shownFilesItemHandlerSource).not.toContain(
             "document.createElement"
@@ -17474,16 +17497,16 @@ describe("architecture boundaries", () => {
             "addBodyThemeChangeListener"
         );
         expect(createShownFilesListSource).toContain(
-            "shownFilesListRuntime.isDarkTheme()"
+            "shownFilesListRuntime().isDarkTheme()"
         );
         expect(createShownFilesListSource).toContain(
-            "shownFilesListRuntime.createElement"
+            "shownFilesListRuntime().createElement"
         );
         expect(createShownFilesListSource).toContain(
-            "shownFilesListRuntime.querySelectorAll"
+            "shownFilesListRuntime().querySelectorAll"
         );
         expect(createShownFilesListSource).toContain(
-            "shownFilesListRuntime.appendToBody"
+            "shownFilesListRuntime().appendToBody"
         );
         expect(createShownFilesListSource).not.toContain(
             "document.createElement"
