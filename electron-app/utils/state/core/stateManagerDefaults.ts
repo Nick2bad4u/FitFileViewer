@@ -1,6 +1,11 @@
-import { getStateManagerDefaultsRuntime } from "./stateManagerDefaultsRuntime.js";
+import {
+    getStateManagerDefaultsRuntime,
+    type StateManagerDefaultsRuntime,
+} from "./stateManagerDefaultsRuntime.js";
 
-const stateManagerDefaultsRuntime = getStateManagerDefaultsRuntime();
+function stateManagerDefaultsRuntime(): StateManagerDefaultsRuntime {
+    return getStateManagerDefaultsRuntime();
+}
 
 /**
  * Persisted window geometry and maximized state.
@@ -279,7 +284,7 @@ export function createDefaultAppState(): AppStateShape {
         app: {
             initialized: false,
             isOpeningFile: false,
-            startTime: stateManagerDefaultsRuntime.getStartTime(),
+            startTime: stateManagerDefaultsRuntime().getStartTime(),
         },
         browser: {
             listing: {
@@ -374,7 +379,7 @@ export function createDefaultAppState(): AppStateShape {
             fileInfo: {
                 displayName: "",
                 hasFile: false,
-                title: stateManagerDefaultsRuntime.getDefaultDocumentTitle(),
+                title: stateManagerDefaultsRuntime().getDefaultDocumentTitle(),
             },
             isFullscreen: false,
             loadingIndicator: {

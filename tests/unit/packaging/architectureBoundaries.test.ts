@@ -8562,7 +8562,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state-manager defaults on scoped runtime access", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const stateManagerDefaultsSource = stripComments(
             readRepositoryFile(
@@ -8579,6 +8579,15 @@ describe("architecture boundaries", () => {
 
         expect(stateManagerDefaultsSource).toContain(
             "stateManagerDefaultsRuntime.js"
+        );
+        expect(stateManagerDefaultsSource).toContain(
+            "type StateManagerDefaultsRuntime"
+        );
+        expect(stateManagerDefaultsSource).toContain(
+            "return getStateManagerDefaultsRuntime();"
+        );
+        expect(stateManagerDefaultsSource).not.toContain(
+            "const stateManagerDefaultsRuntime = getStateManagerDefaultsRuntime();"
         );
         expect(stateManagerDefaultsSource).not.toContain(
             "globalThis.performance"
