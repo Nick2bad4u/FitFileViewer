@@ -124,15 +124,4 @@
             );
         };
     }
-
-    (function exposeFFVLoader() {
-        if (
-            !window.loadFitFileFromArrayBuffer &&
-            window.ffvApp &&
-            typeof window.ffvApp.loadFitFileFromArrayBuffer === "function"
-        ) {
-            window.loadFitFileFromArrayBuffer =
-                window.ffvApp.loadFitFileFromArrayBuffer;
-        }
-    })();
 })();

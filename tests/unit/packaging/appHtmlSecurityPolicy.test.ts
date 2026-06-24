@@ -241,7 +241,7 @@ describe("root app HTML security policy", () => {
     });
 
     it("accepts AltFit file data only from the parent frame", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const bridge = readAltFitBridge();
 
@@ -250,6 +250,8 @@ describe("root app HTML security policy", () => {
         expect(bridge).toContain('event.origin === "null"');
         expect(bridge).toContain("function handleFitFileBase64(base64)");
         expect(bridge).not.toContain("window.handleFitFileBase64");
+        expect(bridge).not.toContain("window.loadFitFileFromArrayBuffer =");
+        expect(bridge).toContain("window.ffvApp.loadFitFileFromArrayBuffer");
         expect(bridge).not.toContain("innerHTML");
     });
 });
