@@ -170,7 +170,7 @@ export async function showNotification(
         onClick: options.onClick,
         resolveShown,
         runtime,
-        timestamp: Date.now(),
+        timestamp: runtime.dateNow(),
         type: normalizedType,
     };
 

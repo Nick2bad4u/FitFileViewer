@@ -257,7 +257,7 @@ describe("showNotification.js - branches (strict)", () => {
     });
 
     it("uses the injected runtime for DOM, animation, and timeout work", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const host = document.getElementById(
             "notification"
@@ -270,6 +270,7 @@ describe("showNotification.js - branches (strict)", () => {
             createElement: vi.fn((tagName) =>
                 document.createElement(tagName)
             ) as ShowNotificationRuntime["createElement"],
+            dateNow: vi.fn(() => Number("1000")),
             queryElement: vi.fn(() => host),
             requestAnimationFrame: vi.fn((onFrame) => {
                 onFrame(0);
@@ -285,6 +286,7 @@ describe("showNotification.js - branches (strict)", () => {
         });
 
         expect(runtime.queryElement).toHaveBeenCalledWith("#notification");
+        expect(runtime.dateNow).toHaveBeenCalledOnce();
         expect(runtime.createElement).toHaveBeenCalledWith("div");
         expect(runtime.createElement).toHaveBeenCalledWith("span");
         expect(runtime.requestAnimationFrame).toHaveBeenCalledOnce();

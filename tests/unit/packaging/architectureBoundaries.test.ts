@@ -992,9 +992,9 @@ const directAboutModalBrowserRuntimeGlobalPattern =
 const directAboutModalHelperDocumentRuntimeGlobalPattern =
     /\bdocument\.(?:body|createElement|head|querySelector)\b/u;
 const directShowNotificationTimingRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+    /\bDate\.now\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directShowNotificationRuntimeAmbientGetterPattern =
-    /\bget\s+(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\b/u;
+    /\bget\s+(?:cancelAnimationFrame|clearTimeout|DateNow|requestAnimationFrame|setTimeout|window)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directShowNotificationDomRuntimeGlobalPattern =
     /\bdocument\.(?:createElement|querySelector)\b|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b/u;
 const directNotificationTimerRuntimeGlobalPattern =
@@ -7356,7 +7356,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(37);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -7393,6 +7393,8 @@ describe("architecture boundaries", () => {
         expect(notificationSource).toContain(
             "options.runtime ?? getShowNotificationRuntime()"
         );
+        expect(notificationSource).toContain("timestamp: runtime.dateNow(),");
+        expect(notificationSource).not.toContain("Date.now");
         expect(notificationSource).not.toMatch(
             directShowNotificationDomRuntimeGlobalPattern
         );
@@ -7408,11 +7410,26 @@ describe("architecture boundaries", () => {
         expect(notificationRuntimeSource).toContain(
             "globalThis.requestAnimationFrame?.bind(globalThis)"
         );
+        expect(notificationRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "readonly dateNow: () => number;"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow?.();"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "show notification runtime requires dateNow"
+        );
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly cancelAnimationFrame?:"
         );
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly dateNow?:"
         );
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly requestAnimationFrame?:"
@@ -7440,6 +7457,7 @@ describe("architecture boundaries", () => {
             "scope.cancelAnimationFrame"
         );
         expect(notificationRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(notificationRuntimeSource).not.toContain("scope.dateNow");
         expect(notificationRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );

@@ -8,15 +8,17 @@ import {
 
 describe("getShowNotificationRuntime", () => {
     it("delegates timing APIs through scoped runtime providers", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const frameCallback = vi.fn<FrameRequestCallback>();
         const timerCallback = vi.fn<() => void>();
         const delay = Number("250");
+        const timestamp = Number("1234");
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 17);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn<
             (
                 callback: () => void,
@@ -28,6 +30,7 @@ describe("getShowNotificationRuntime", () => {
         const scope: ShowNotificationRuntimeScope = {
             getCancelAnimationFrame: () => cancelAnimationFrame,
             getClearTimeout: () => clearTimeout,
+            getDateNow: () => dateNow,
             getRequestAnimationFrame: () => requestAnimationFrame,
             getSetTimeout: () => setTimeout,
         };
@@ -35,6 +38,7 @@ describe("getShowNotificationRuntime", () => {
 
         expect(runtime.requestAnimationFrame(frameCallback)).toBe(17);
         runtime.cancelAnimationFrame(17);
+        expect(runtime.dateNow()).toBe(timestamp);
         expect(runtime.setTimeout(timerCallback, delay)).toBe(29);
         runtime.clearTimeout(29);
 
@@ -42,6 +46,7 @@ describe("getShowNotificationRuntime", () => {
         expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
         expect(cancelAnimationFrame).toHaveBeenCalledWith(17);
         expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
+        expect(dateNow).toHaveBeenCalledTimes(1);
         expect(setTimeout).toHaveBeenCalledWith(timerCallback, delay);
         expect(setTimeout.mock.contexts[0]).toBe(scope);
         expect(clearTimeout).toHaveBeenCalledWith(29);
@@ -111,7 +116,7 @@ describe("getShowNotificationRuntime", () => {
     });
 
     it("fails fast when required providers are unavailable", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const runtime = getShowNotificationRuntime({});
 
@@ -120,6 +125,9 @@ describe("getShowNotificationRuntime", () => {
         );
         expect(() => runtime.clearTimeout(1)).toThrow(
             "show notification runtime requires clearTimeout"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "show notification runtime requires dateNow"
         );
         expect(() => runtime.queryElement("#notification")).toThrow(
             "show notification runtime requires document"
@@ -136,14 +144,16 @@ describe("getShowNotificationRuntime", () => {
     });
 
     it("ignores legacy direct timer, document, and constructor scope properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const querySelector = vi.fn<Document["querySelector"]>();
         const createElement = vi.fn<Document["createElement"]>();
+        const dateNow = vi.fn<() => number>(() => 1234);
         const setTimeout = vi.fn();
         const clearTimeout = vi.fn();
         const runtime = getShowNotificationRuntime({
             clearTimeout,
+            dateNow,
             document: { createElement, querySelector },
             HTMLElement,
             KeyboardEvent,
@@ -155,6 +165,9 @@ describe("getShowNotificationRuntime", () => {
         );
         expect(() => runtime.clearTimeout(1)).toThrow(
             "show notification runtime requires clearTimeout"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "show notification runtime requires dateNow"
         );
         expect(() => runtime.queryElement("#notification")).toThrow(
             "show notification runtime requires document"
@@ -170,6 +183,7 @@ describe("getShowNotificationRuntime", () => {
         );
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
+        expect(dateNow).not.toHaveBeenCalled();
         expect(querySelector).not.toHaveBeenCalled();
         expect(createElement).not.toHaveBeenCalled();
     });

@@ -7,6 +7,7 @@ import {
 
 describe("showNotificationRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -79,22 +80,28 @@ describe("showNotificationRuntime", () => {
     });
 
     it("delegates notification timers through the scoped runtime providers", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const callback = vi.fn();
+        const timestamp = Number("1700");
         const timer = Number("31");
         const duration = Number("300");
         const clearTimeout = vi.fn();
+        const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn(() => timer);
         const scopeRuntime = {
             getClearTimeout: () => clearTimeout,
+            getDateNow: () => dateNow,
             getSetTimeout: () => setTimeout,
         };
         const runtime = getShowNotificationRuntime(scopeRuntime);
 
+        const currentTimestamp = runtime.dateNow();
         const scheduledTimer = runtime.setTimeout(callback, duration);
         runtime.clearTimeout(scheduledTimer);
 
+        expect(currentTimestamp).toBe(timestamp);
+        expect(dateNow).toHaveBeenCalledTimes(1);
         expect(scheduledTimer).toBe(timer);
         expect(setTimeout).toHaveBeenCalledWith(callback, duration);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
@@ -136,10 +143,11 @@ describe("showNotificationRuntime", () => {
     });
 
     it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const callback = vi.fn();
         const frameCallback = vi.fn();
+        const dateNow = vi.fn<() => number>(() => 1234);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 41);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const requestAnimationFrame = vi.fn(() => 43);
@@ -147,6 +155,7 @@ describe("showNotificationRuntime", () => {
         const runtime = getShowNotificationRuntime({
             cancelAnimationFrame,
             clearTimeout,
+            dateNow,
             requestAnimationFrame,
             setTimeout,
         } as unknown as Parameters<typeof getShowNotificationRuntime>[0]);
@@ -157,12 +166,16 @@ describe("showNotificationRuntime", () => {
         expect(() => runtime.clearTimeout(41)).toThrow(
             "show notification runtime requires clearTimeout"
         );
+        expect(() => runtime.dateNow()).toThrow(
+            "show notification runtime requires dateNow"
+        );
         expect(runtime.requestAnimationFrame(frameCallback)).toBeNull();
         runtime.cancelAnimationFrame(43);
 
         expect(frameCallback).toHaveBeenCalledWith(0);
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
+        expect(dateNow).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
@@ -188,21 +201,27 @@ describe("showNotificationRuntime", () => {
     });
 
     it("resolves default browser timers when notification operations run", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const callback = vi.fn();
         const duration = Number("500");
         const timer = Number("37");
+        const timestamp = Number("2000");
+        const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getShowNotificationRuntime();
 
+        vi.spyOn(Date, "now").mockImplementation(dateNow);
         vi.stubGlobal("setTimeout", setTimeout);
         vi.stubGlobal("clearTimeout", clearTimeout);
 
+        const currentTimestamp = runtime.dateNow();
         const scheduledTimer = runtime.setTimeout(callback, duration);
         runtime.clearTimeout(scheduledTimer);
 
+        expect(currentTimestamp).toBe(timestamp);
+        expect(dateNow).toHaveBeenCalledTimes(1);
         expect(scheduledTimer).toBe(timer);
         expect(setTimeout).toHaveBeenCalledWith(callback, duration);
         expect(clearTimeout).toHaveBeenCalledWith(timer);

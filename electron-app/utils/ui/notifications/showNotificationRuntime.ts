@@ -9,6 +9,7 @@ export type ShowNotificationRuntimeScope = {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?:
         | (() => ShowNotificationDocument | undefined)
         | undefined;
@@ -32,6 +33,7 @@ export type ShowNotificationRuntime = {
     readonly createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
+    readonly dateNow: () => number;
     readonly queryElement: <TElement extends Element = Element>(
         selector: string
     ) => TElement | null;
@@ -55,6 +57,7 @@ const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
     getCancelAnimationFrame: () =>
         globalThis.cancelAnimationFrame?.bind(globalThis),
     getClearTimeout: () => globalThis.clearTimeout,
+    getDateNow: () => Date.now,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getKeyboardEvent: () => globalThis.KeyboardEvent,
@@ -73,6 +76,15 @@ function getClearTimeout(
     scope: ShowNotificationRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getRequiredDateNow(scope: ShowNotificationRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("show notification runtime requires dateNow");
+    }
+
+    return dateNow;
 }
 
 function getRequiredDocument(
@@ -146,6 +158,9 @@ export function getShowNotificationRuntime(
         },
         createElement(tagName) {
             return getRequiredDocument(scope).createElement(tagName);
+        },
+        dateNow() {
+            return getRequiredDateNow(scope)();
         },
         queryElement(selector) {
             return getRequiredDocument(scope).querySelector(selector);
