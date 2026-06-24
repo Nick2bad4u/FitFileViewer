@@ -66,6 +66,8 @@ export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
             MAIN_UI_CONSTANTS.DOM_IDS.CONTENT_CHART,
             MAIN_UI_CONSTANTS.DOM_IDS.CONTENT_SUMMARY,
         ],
+        dateNow: mainUiRuntimeEnvironment.dateNow,
+        documentRef: mainUiRuntimeEnvironment.documentRef,
         getElectronAPI,
         logMainUi,
     });
@@ -93,6 +95,7 @@ export async function initializeMainUiStartup(): Promise<MainUiStartupHandles> {
     void setupWindow();
 
     const externalLinks = createMainUiExternalLinkLifecycle({
+        documentRef: mainUiRuntimeEnvironment.documentRef,
         electronApiScope,
     });
     registerMainUiShutdownHook({

@@ -4687,7 +4687,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(105);
+        expect.assertions(106);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4915,27 +4915,34 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiStartupSource).toContain("createMainUiDragDropHandler({");
         expect(mainUiStartupSource).toContain("electronApiScope,");
-        expect(mainUiExternalLinksSource).toContain(
+        expect(mainUiExternalLinksSource).not.toContain(
             "mainUiRuntimeEnvironment.js"
         );
-        expect(mainUiExternalLinksSource).toContain("mainUiBrowserRuntime.js");
+        expect(mainUiExternalLinksSource).not.toContain(
+            "mainUiBrowserRuntime.js"
+        );
         expect(mainUiExternalLinksSource).not.toContain(
             "getMainUiRuntimeEnvironment();"
         );
         expect(mainUiExternalLinksSource).toContain("electronApiScope");
         expect(mainUiExternalLinksSource).toContain(
-            "documentRef = mainUiRuntimeEnvironment.documentRef"
+            "readonly documentRef: Document"
         );
         expect(mainUiExternalLinksSource).not.toContain(
             "documentRef = document"
         );
-        expect(mainUiUnloadFlowSource).toContain("mainUiRuntimeEnvironment.js");
-        expect(mainUiUnloadFlowSource).toContain("mainUiBrowserRuntime.js");
+        expect(mainUiUnloadFlowSource).not.toContain(
+            "mainUiRuntimeEnvironment.js"
+        );
+        expect(mainUiUnloadFlowSource).not.toContain("mainUiBrowserRuntime.js");
         expect(mainUiUnloadFlowSource).not.toContain(
             "getMainUiRuntimeEnvironment();"
         );
         expect(mainUiUnloadFlowSource).toContain(
-            "documentRef = mainUiRuntimeEnvironment.documentRef"
+            "readonly dateNow: () => number"
+        );
+        expect(mainUiUnloadFlowSource).toContain(
+            "readonly documentRef: Document"
         );
         expect(mainUiUnloadFlowSource).not.toContain("documentRef = document");
         expect(mainUiUnloadFlowSource).not.toMatch(

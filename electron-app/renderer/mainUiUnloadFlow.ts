@@ -1,7 +1,5 @@
 import type { MainUiElectronApi } from "./mainUiElectronApi.js";
 
-import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
-import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
 import { AppActions } from "../utils/app/lifecycle/appActions.js";
 import { performanceMonitor } from "../utils/debug/stateDevTools.js";
 import { fitFileStateManager } from "../utils/state/domain/fitFileState.js";
@@ -22,7 +20,8 @@ interface PerformanceMonitorLike {
 
 export interface MainUiUnloadFlowOptions {
     readonly contentIds: readonly string[];
-    readonly documentRef?: Document;
+    readonly dateNow: () => number;
+    readonly documentRef: Document;
     readonly getElectronAPI: () => MainUiElectronApi | null;
     readonly logMainUi: (
         level: "error" | "info" | "warn",
@@ -42,10 +41,6 @@ function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
         ? monitor.isEnabled()
         : Boolean(monitor.isEnabled);
 }
-
-const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment(
-    getBrowserMainUiRuntimeEnvironmentScope()
-);
 
 function clearContentAreas(
     documentRef: Document,
@@ -79,12 +74,13 @@ function clearFitFileDomainState(
 
 export function createMainUiUnloadFitFile({
     contentIds,
-    documentRef = mainUiRuntimeEnvironment.documentRef,
+    dateNow,
+    documentRef,
     getElectronAPI,
     logMainUi,
 }: MainUiUnloadFlowOptions): () => void {
     return () => {
-        const operationId = `unload_file_${mainUiRuntimeEnvironment.dateNow()}`;
+        const operationId = `unload_file_${dateNow()}`;
         const pm = performanceMonitor as PerformanceMonitorLike;
         const startTimer = pm.startTimer;
 

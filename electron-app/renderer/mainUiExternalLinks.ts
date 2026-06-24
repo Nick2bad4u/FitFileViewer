@@ -1,7 +1,5 @@
 import { addEventListenerWithCleanup } from "../utils/ui/mainUiDomUtils.js";
 import { setupExternalLinkHandlers } from "../utils/ui/setupExternalLinkHandlers.js";
-import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
-import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 export interface MainUiExternalLinkLifecycle {
@@ -10,18 +8,14 @@ export interface MainUiExternalLinkLifecycle {
 }
 
 export interface MainUiExternalLinkLifecycleOptions {
-    readonly documentRef?: Document;
+    readonly documentRef: Document;
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 }
 
-const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment(
-    getBrowserMainUiRuntimeEnvironmentScope()
-);
-
 export function createMainUiExternalLinkLifecycle({
-    documentRef = mainUiRuntimeEnvironment.documentRef,
+    documentRef,
     electronApiScope,
-}: MainUiExternalLinkLifecycleOptions = {}): MainUiExternalLinkLifecycle {
+}: MainUiExternalLinkLifecycleOptions): MainUiExternalLinkLifecycle {
     let cleanupExternalLinkHandlers: (() => void) | null = null;
 
     const initialize = (): void => {
