@@ -4005,6 +4005,36 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps dependency validation on the scheduled release gate", () => {
+        expect.assertions(9);
+
+        const dependencyValidationWorkflow = readRepositoryFile(
+            ".github/workflows/dependency-validation.yml"
+        );
+
+        expect(dependencyValidationWorkflow).toContain("schedule:");
+        expect(dependencyValidationWorkflow).toContain("pull_request:");
+        expect(dependencyValidationWorkflow).toContain("merge_group:");
+        expect(dependencyValidationWorkflow).toContain(
+            "npm ci --no-audit --no-fund"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "npm ci --prefix docusaurus --no-audit --no-fund"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "xvfb-run -a npm run release:verify"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "Verify unsigned package artifacts"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "npm run release:list-release-dist-files"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "dependency-validation-diagnostics"
+        );
+    });
+
     it("keeps migrated packaging and main tests off avoidable CJS loading", () => {
         expect.assertions(1);
 
@@ -8458,6 +8488,25 @@ describe("architecture boundaries", () => {
             "./utils/state/domain/fitActivityDataState.js"
         );
         expect(smokeSource).toContain("getActiveFitActivityData");
+    });
+
+    it("keeps Playwright smoke coverage for recent renderer regressions", () => {
+        expect.assertions(1);
+
+        const smokeSource = readRepositoryFile(playwrightSmokeFiles[0]);
+        const requiredSmokeTests = [
+            'test("auto-renders the selected FIT file in the Raw Data tab"',
+            'test("loads the Zwift map iframe when the Zwift tab is selected"',
+            'test("clears distance and area map measurements through the registered measure control"',
+            'test("shows loading and loaded states for an empty Browser folder"',
+            "await expectAltFitIframeLoadedActivity();",
+            'await expectLoadedActivityStatePreserved(`switching to ${tabId}`);',
+        ];
+        const missingSmokeTests = requiredSmokeTests.filter(
+            (requiredSnippet) => !smokeSource.includes(requiredSnippet)
+        );
+
+        expect(missingSmokeTests).toStrictEqual([]);
     });
 
     it("keeps Playwright popup fixtures descriptor-scoped", () => {
