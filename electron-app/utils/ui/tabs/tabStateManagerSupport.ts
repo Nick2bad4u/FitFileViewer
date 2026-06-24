@@ -21,23 +21,28 @@ function isRecord(candidate: unknown): candidate is Record<string, unknown> {
     return candidate !== null && typeof candidate === "object";
 }
 
-const tabDocumentRuntime = getTabDocumentRuntime();
-
 /**
  * Resolve the active document used by the tab-state manager.
  */
 export function getDoc(): Document {
-    return (
-        tabDocumentRuntime.getDocument(getTabTestDocumentForTests()) ?? document
+    const documentRef = getTabDocumentRuntime().getDocument(
+        getTabTestDocumentForTests()
     );
+    if (!documentRef) {
+        throw new TypeError(
+            "tabStateManagerSupport requires a document runtime"
+        );
+    }
+
+    return documentRef;
 }
 
 export function isTabElement(value: unknown): value is Element {
-    return tabDocumentRuntime.isElement(value);
+    return getTabDocumentRuntime().isElement(value);
 }
 
 export function isTabHTMLElement(value: unknown): value is HTMLElement {
-    return tabDocumentRuntime.isHTMLElement(value);
+    return getTabDocumentRuntime().isHTMLElement(value);
 }
 
 /**
