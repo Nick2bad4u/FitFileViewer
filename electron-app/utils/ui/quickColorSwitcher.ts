@@ -5,6 +5,7 @@ import {
 import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
 import {
     getQuickColorSwitcherRuntime,
+    type QuickColorSwitcherRuntime,
     type QuickColorSwitcherTimerHandle,
 } from "./quickColorSwitcherRuntime.js";
 
@@ -36,24 +37,27 @@ const quickColorSwitcherStates = new WeakMap<
     HTMLDivElement,
     QuickColorSwitcherState
 >();
-const quickColorSwitcherRuntime = getQuickColorSwitcherRuntime();
 const trackedQuickColorSwitcherElements = new Set<HTMLDivElement>();
 
+function quickColorSwitcherRuntime(): QuickColorSwitcherRuntime {
+    return getQuickColorSwitcherRuntime();
+}
+
 function createPaletteIcon(): SVGSVGElement {
-    const icon = quickColorSwitcherRuntime.createSvgElement("svg");
+    const icon = quickColorSwitcherRuntime().createSvgElement("svg");
     icon.classList.add("switcher-icon");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
 
-    const path = quickColorSwitcherRuntime.createSvgElement("path");
+    const path = quickColorSwitcherRuntime().createSvgElement("path");
     path.setAttribute(
         "d",
         "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
     );
     path.setAttribute("fill", "currentColor");
 
-    const circle = quickColorSwitcherRuntime.createSvgElement("circle");
+    const circle = quickColorSwitcherRuntime().createSvgElement("circle");
     circle.setAttribute("cx", "12");
     circle.setAttribute("cy", "12");
     circle.setAttribute("r", "5");
@@ -65,21 +69,21 @@ function createPaletteIcon(): SVGSVGElement {
 }
 
 function createSettingsIcon(): SVGSVGElement {
-    const icon = quickColorSwitcherRuntime.createSvgElement("svg");
+    const icon = quickColorSwitcherRuntime().createSvgElement("svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
     icon.setAttribute("width", "16");
     icon.setAttribute("height", "16");
 
-    const circlePath = quickColorSwitcherRuntime.createSvgElement("path");
+    const circlePath = quickColorSwitcherRuntime().createSvgElement("path");
     circlePath.setAttribute("d", "M12 15a3 3 0 100-6 3 3 0 000 6z");
     circlePath.setAttribute("stroke", "currentColor");
     circlePath.setAttribute("stroke-width", "2");
     circlePath.setAttribute("stroke-linecap", "round");
     circlePath.setAttribute("stroke-linejoin", "round");
 
-    const gearPath = quickColorSwitcherRuntime.createSvgElement("path");
+    const gearPath = quickColorSwitcherRuntime().createSvgElement("path");
     gearPath.setAttribute(
         "d",
         "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"
@@ -94,14 +98,14 @@ function createSettingsIcon(): SVGSVGElement {
 }
 
 function createToggleButton(): HTMLButtonElement {
-    const button = quickColorSwitcherRuntime.createElement("button");
+    const button = quickColorSwitcherRuntime().createElement("button");
     button.className = "switcher-toggle";
     button.id = "color-switcher-toggle";
     button.type = "button";
     button.dataset["tooltip"] = "Quick Colors";
     button.setAttribute("aria-label", "Open color switcher");
 
-    const label = quickColorSwitcherRuntime.createElement("span");
+    const label = quickColorSwitcherRuntime().createElement("span");
     label.className = "switcher-label";
     label.textContent = "Colors";
     button.append(createPaletteIcon(), label);
@@ -113,7 +117,7 @@ function createColorOption(
     preset: ColorPreset,
     currentColor: string
 ): HTMLButtonElement {
-    const button = quickColorSwitcherRuntime.createElement("button");
+    const button = quickColorSwitcherRuntime().createElement("button");
     button.className = "color-option";
     if (preset.color === currentColor) {
         button.classList.add("active");
@@ -124,11 +128,11 @@ function createColorOption(
     button.style.background = preset.color;
     button.setAttribute("aria-label", `Switch to ${preset.name}`);
 
-    const name = quickColorSwitcherRuntime.createElement("span");
+    const name = quickColorSwitcherRuntime().createElement("span");
     name.className = "color-name";
     name.textContent = preset.name;
 
-    const check = quickColorSwitcherRuntime.createElement("span");
+    const check = quickColorSwitcherRuntime().createElement("span");
     check.className = "color-check";
     check.textContent = "✓";
     button.append(name, check);
@@ -137,33 +141,33 @@ function createColorOption(
 }
 
 function createSwitcherDropdown(currentColor: string): HTMLDivElement {
-    const dropdown = quickColorSwitcherRuntime.createElement("div");
+    const dropdown = quickColorSwitcherRuntime().createElement("div");
     dropdown.className = "switcher-dropdown";
     dropdown.id = "color-switcher-dropdown";
 
-    const header = quickColorSwitcherRuntime.createElement("div");
+    const header = quickColorSwitcherRuntime().createElement("div");
     header.className = "switcher-header";
-    const title = quickColorSwitcherRuntime.createElement("span");
+    const title = quickColorSwitcherRuntime().createElement("span");
     title.className = "witty-title";
     title.textContent = "🎨 Pick Your Vibe";
     header.append(title);
 
-    const grid = quickColorSwitcherRuntime.createElement("div");
+    const grid = quickColorSwitcherRuntime().createElement("div");
     grid.className = "color-grid";
     for (const preset of COLOR_PRESETS) {
         grid.append(createColorOption(preset, currentColor));
     }
 
-    const footer = quickColorSwitcherRuntime.createElement("div");
+    const footer = quickColorSwitcherRuntime().createElement("div");
     footer.className = "switcher-footer";
-    const settingsButton = quickColorSwitcherRuntime.createElement("button");
+    const settingsButton = quickColorSwitcherRuntime().createElement("button");
     settingsButton.className = "open-settings-btn";
     settingsButton.id = "open-full-settings";
     settingsButton.type = "button";
     settingsButton.title = "Advanced color settings";
     settingsButton.append(
         createSettingsIcon(),
-        quickColorSwitcherRuntime.createTextNode("More Options")
+        quickColorSwitcherRuntime().createTextNode("More Options")
     );
     footer.append(settingsButton);
 
@@ -177,13 +181,13 @@ function createSwitcherDropdown(currentColor: string): HTMLDivElement {
  */
 export function initQuickColorSwitcher(): void {
     // Check if already initialized
-    if (quickColorSwitcherRuntime.querySelector(`#${SWITCHER_ID}`)) {
+    if (quickColorSwitcherRuntime().querySelector(`#${SWITCHER_ID}`)) {
         return;
     }
 
     // Create and inject the switcher
     const switcher = createSwitcherElement();
-    quickColorSwitcherRuntime.appendToBody(switcher);
+    quickColorSwitcherRuntime().appendToBody(switcher);
 
     // Inject styles
     injectSwitcherStyles();
@@ -199,7 +203,7 @@ export function initQuickColorSwitcher(): void {
  */
 export function updateSwitcherActiveColor(color: string): void {
     const switcher =
-        quickColorSwitcherRuntime.querySelector(`#${SWITCHER_ID}`);
+        quickColorSwitcherRuntime().querySelector(`#${SWITCHER_ID}`);
     if (!switcher) return;
 
     const colorOptions =
@@ -210,7 +214,7 @@ export function updateSwitcherActiveColor(color: string): void {
 }
 
 function createSwitcherElement(): HTMLDivElement {
-    const switcher = quickColorSwitcherRuntime.createElement("div");
+    const switcher = quickColorSwitcherRuntime().createElement("div");
     switcher.id = SWITCHER_ID;
     switcher.className = "quick-color-switcher";
 
@@ -224,11 +228,11 @@ function createSwitcherElement(): HTMLDivElement {
 }
 
 function injectSwitcherStyles(): void {
-    if (quickColorSwitcherRuntime.querySelector("#quick-color-switcher-styles")) {
+    if (quickColorSwitcherRuntime().querySelector("#quick-color-switcher-styles")) {
         return;
     }
 
-    const style = quickColorSwitcherRuntime.createElement("style");
+    const style = quickColorSwitcherRuntime().createElement("style");
     style.id = "quick-color-switcher-styles";
     style.textContent = `
 	.quick-color-switcher {
@@ -440,7 +444,7 @@ function injectSwitcherStyles(): void {
 		}
 	`;
 
-    quickColorSwitcherRuntime.appendToHead(style);
+    quickColorSwitcherRuntime().appendToHead(style);
 }
 
 function cleanupSwitcherState(switcher: HTMLDivElement): void {
@@ -451,7 +455,7 @@ function cleanupSwitcherState(switcher: HTMLDivElement): void {
 
     existingState.listenerController.abort();
     if (existingState.closeTimer) {
-        quickColorSwitcherRuntime.clearTimeout(existingState.closeTimer);
+        quickColorSwitcherRuntime().clearTimeout(existingState.closeTimer);
     }
     quickColorSwitcherStates.delete(switcher);
     trackedQuickColorSwitcherElements.delete(switcher);
@@ -468,7 +472,7 @@ function setupSwitcherListeners(switcher: HTMLDivElement): void {
     cleanupSwitcherState(switcher);
 
     const listenerController =
-        quickColorSwitcherRuntime.createAbortController();
+        quickColorSwitcherRuntime().createAbortController();
     const state: QuickColorSwitcherState = {
         closeTimer: null,
         listenerController,
@@ -500,10 +504,10 @@ function setupSwitcherListeners(switcher: HTMLDivElement): void {
     }
 
     // Close dropdown when clicking outside
-    quickColorSwitcherRuntime.addDocumentClickListener(
+    quickColorSwitcherRuntime().addDocumentClickListener(
         (e) => {
             if (
-                quickColorSwitcherRuntime.isNode(e.target) &&
+                quickColorSwitcherRuntime().isNode(e.target) &&
                 !switcher.contains(e.target)
             ) {
                 dropdown?.classList.remove("open");
@@ -531,11 +535,11 @@ function setupSwitcherListeners(switcher: HTMLDivElement): void {
 
                     // Close dropdown after short delay
                     if (state.closeTimer) {
-                        quickColorSwitcherRuntime.clearTimeout(
+                        quickColorSwitcherRuntime().clearTimeout(
                             state.closeTimer
                         );
                     }
-                    state.closeTimer = quickColorSwitcherRuntime.setTimeout(
+                    state.closeTimer = quickColorSwitcherRuntime().setTimeout(
                         () => {
                             state.closeTimer = null;
                             dropdown?.classList.remove("open");

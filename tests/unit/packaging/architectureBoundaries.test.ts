@@ -17050,7 +17050,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(34);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -17069,6 +17069,15 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(quickColorSwitcherSource).toContain(
             "quickColorSwitcherRuntime.js"
+        );
+        expect(quickColorSwitcherSource).toContain(
+            "type QuickColorSwitcherRuntime"
+        );
+        expect(quickColorSwitcherSource).not.toContain(
+            "const quickColorSwitcherRuntime = getQuickColorSwitcherRuntime();"
+        );
+        expect(quickColorSwitcherSource).toContain(
+            "return getQuickColorSwitcherRuntime();"
         );
         expect(quickColorSwitcherSource).toContain("createAbortController");
         expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
