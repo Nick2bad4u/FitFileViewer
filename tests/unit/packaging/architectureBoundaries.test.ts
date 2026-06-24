@@ -9527,7 +9527,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(22);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -9547,6 +9547,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
+        expect(stateDevToolsSource).toContain("type StateDevToolsRuntime");
+        expect(stateDevToolsSource).toContain(
+            "return getStateDevToolsRuntime();"
+        );
+        expect(stateDevToolsSource).not.toContain(
+            "const stateDevToolsRuntime = getStateDevToolsRuntime();"
+        );
         expect(stateDevToolsRuntimeSource).not.toMatch(
             directStateDevToolsRuntimeAmbientIntervalFallbackPattern
         );

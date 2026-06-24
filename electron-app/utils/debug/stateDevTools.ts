@@ -11,6 +11,7 @@ import {
 import {
     getStateDevToolsRuntime,
     type StateDevToolsIntervalHandle,
+    type StateDevToolsRuntime,
 } from "./stateDevToolsRuntime.js";
 
 type StateRecord = Record<string, unknown>;
@@ -85,7 +86,9 @@ const PERFORMANCE_CONFIG = {
     memoryCheckInterval: 30_000, // 30 seconds
     slowOperationThreshold: 10, // Ms
 };
-const stateDevToolsRuntime = getStateDevToolsRuntime();
+function stateDevToolsRuntime(): StateDevToolsRuntime {
+    return getStateDevToolsRuntime();
+}
 
 /**
  * Checks whether a value is a plain state record.
@@ -361,7 +364,7 @@ class StatePerformanceMonitor {
         console.log("[StateMonitor] Performance monitoring disabled");
 
         if (this.intervalId) {
-            stateDevToolsRuntime.clearInterval(this.intervalId);
+            stateDevToolsRuntime().clearInterval(this.intervalId);
             this.intervalId = null;
         }
     }
@@ -378,7 +381,7 @@ class StatePerformanceMonitor {
         console.log("[StateMonitor] Performance monitoring enabled");
 
         // Set up memory monitoring
-        this.intervalId = stateDevToolsRuntime.setInterval(() => {
+        this.intervalId = stateDevToolsRuntime().setInterval(() => {
             this.recordMemoryUsage();
         }, PERFORMANCE_CONFIG.memoryCheckInterval);
 
@@ -623,7 +626,7 @@ export function cleanupStateDevTools(): void {
  * @param enableInProduction - Whether to enable in production.
  */
 export function initializeStateDevTools(enableInProduction = false): void {
-    const isDevelopment = stateDevToolsRuntime.isDevelopmentScope();
+    const isDevelopment = stateDevToolsRuntime().isDevelopmentScope();
 
     if (isDevelopment || enableInProduction) {
         debugUtilities.enableDebugMode();
