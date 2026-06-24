@@ -11645,7 +11645,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer test-only bootstrap off the generic function bridge", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -11663,12 +11663,17 @@ describe("architecture boundaries", () => {
         );
         expect(testOnlyBootstrapSource).toContain("setupListenersFn?.({");
         expect(testOnlyBootstrapSource).toContain(
-            "setupThemeFn(applyThemeFn, listenForThemeChangeFn)"
+            "setupThemeFn(\n                    themeOverrides.applyTheme,\n                    themeOverrides.listenForThemeChange\n                )"
         );
+        expect(testOnlyBootstrapSource).toContain(
+            "getTestSetupListenersOverride"
+        );
+        expect(testOnlyBootstrapSource).toContain("getTestThemeOverrides");
         expect(testOnlyBootstrapSource).toContain(
             "toRendererTestSetupListeners"
         );
         expect(testOnlyBootstrapSource).toContain("toRendererTestSetupTheme");
+        expect(testOnlyBootstrapSource).not.toContain("toModuleRecord");
         expect(rendererEntrypointSource).not.toContain(
             "testOnlyBootstrapOptions = {\n    callUnknownFunction,"
         );

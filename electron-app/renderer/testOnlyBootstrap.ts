@@ -43,17 +43,7 @@ export function createTestDOMContentLoadedSetupHandler(
 ): () => void {
     return () => {
         try {
-            const moduleRecord = toModuleRecord(
-                options.resolveExactRendererCoreTestOverride(
-                    "../../utils/app/lifecycle/listeners.js"
-                ) ??
-                    options.resolveRendererCoreTestOverride(
-                        "/utils/app/lifecycle/listeners.js"
-                    )
-            );
-            const setupListenersFn = toRendererTestSetupListeners(
-                moduleRecord["setupListeners"]
-            );
+            const setupListenersFn = getTestSetupListenersOverride(options);
             setupListenersFn?.({
                 applyTheme: () => {},
                 handleOpenFile: () => {},
@@ -76,35 +66,17 @@ export function createTestWindowLoadThemeSetupHandler(
 ): () => void {
     return () => {
         try {
-            const setupThemeModule = toModuleRecord(
-                options.resolveExactRendererCoreTestOverride(
-                    "../../utils/theming/core/setupTheme.js"
-                ) ??
-                    options.resolveRendererCoreTestOverride(
-                        "/utils/theming/core/setupTheme.js"
-                    )
-            );
-            const themeModule = toModuleRecord(
-                options.resolveExactRendererCoreTestOverride(
-                    "../../utils/theming/core/theme.js"
-                ) ??
-                    options.resolveRendererCoreTestOverride(
-                        "/utils/theming/core/theme.js"
-                    )
-            );
-            const setupThemeFn = toRendererTestSetupTheme(
-                setupThemeModule["setupTheme"]
-            );
-            const applyThemeFn = toNoopFunction(themeModule["applyTheme"]);
-            const listenForThemeChangeFn = toNoopFunction(
-                themeModule["listenForThemeChange"]
-            );
+            const setupThemeFn = getTestSetupThemeOverride(options);
+            const themeOverrides = getTestThemeOverrides(options);
             if (
                 setupThemeFn !== undefined &&
-                applyThemeFn !== undefined &&
-                listenForThemeChangeFn !== undefined
+                themeOverrides.applyTheme !== undefined &&
+                themeOverrides.listenForThemeChange !== undefined
             ) {
-                setupThemeFn(applyThemeFn, listenForThemeChangeFn);
+                setupThemeFn(
+                    themeOverrides.applyTheme,
+                    themeOverrides.listenForThemeChange
+                );
                 return;
             }
         } catch {
@@ -112,6 +84,76 @@ export function createTestWindowLoadThemeSetupHandler(
         }
 
         options.scheduleImportTimeThemeSetup();
+    };
+}
+
+function getTestSetupListenersOverride(
+    options: RendererTestOnlyBootstrapOptions
+): RendererTestSetupListeners | undefined {
+    const override =
+        options.resolveExactRendererCoreTestOverride(
+            "../../utils/app/lifecycle/listeners.js"
+        ) ??
+        options.resolveRendererCoreTestOverride(
+            "/utils/app/lifecycle/listeners.js"
+        );
+
+    if (typeof override !== "object" || override === null) {
+        return undefined;
+    }
+
+    return toRendererTestSetupListeners(
+        (override as { readonly setupListeners?: unknown }).setupListeners
+    );
+}
+
+function getTestSetupThemeOverride(
+    options: RendererTestOnlyBootstrapOptions
+): RendererTestSetupTheme | undefined {
+    const override =
+        options.resolveExactRendererCoreTestOverride(
+            "../../utils/theming/core/setupTheme.js"
+        ) ??
+        options.resolveRendererCoreTestOverride(
+            "/utils/theming/core/setupTheme.js"
+        );
+
+    if (typeof override !== "object" || override === null) {
+        return undefined;
+    }
+
+    return toRendererTestSetupTheme(
+        (override as { readonly setupTheme?: unknown }).setupTheme
+    );
+}
+
+function getTestThemeOverrides(options: RendererTestOnlyBootstrapOptions): {
+    readonly applyTheme: (() => void) | undefined;
+    readonly listenForThemeChange: (() => void) | undefined;
+} {
+    const override =
+        options.resolveExactRendererCoreTestOverride(
+            "../../utils/theming/core/theme.js"
+        ) ??
+        options.resolveRendererCoreTestOverride("/utils/theming/core/theme.js");
+
+    if (typeof override !== "object" || override === null) {
+        return {
+            applyTheme: undefined,
+            listenForThemeChange: undefined,
+        };
+    }
+
+    const themeOverride = override as {
+        readonly applyTheme?: unknown;
+        readonly listenForThemeChange?: unknown;
+    };
+
+    return {
+        applyTheme: toNoopFunction(themeOverride.applyTheme),
+        listenForThemeChange: toNoopFunction(
+            themeOverride.listenForThemeChange
+        ),
     };
 }
 
@@ -188,12 +230,6 @@ export function registerRendererTestOnlyBootstrap(
     } catch {
         /* Ignore errors */
     }
-}
-
-function toModuleRecord(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
-        : {};
 }
 
 function toNoopFunction(value: unknown): (() => void) | undefined {
