@@ -12,11 +12,8 @@ import {
     clearExportZipRuntimeForTests,
     setExportZipRuntime,
 } from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import type { ExportableChart } from "../../../../../electron-app/utils/files/export/exportUtils.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddCombinedCsvZip = Parameters<typeof exportUtils.addCombinedCSVToZip>[0];
 type ChartDataPoint = Parameters<typeof exportUtils.exportChartDataAsCSV>[0][0];
@@ -95,6 +92,12 @@ const mockElectronAPI = {
     startGyazoServer: vi.fn<StartGyazoServer>(),
     stopGyazoServer: vi.fn<() => Promise<void> | void>(),
 };
+
+function createExportApiScope(api: unknown): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
 
 const mockJSZip = vi.fn<() => AddCombinedCsvZip>(() => ({
     file: vi.fn<
@@ -260,9 +263,6 @@ describe("exportUtils", () => {
         mockURL.createObjectURL.mockReturnValue("blob:mock-url");
 
         // Setup global/runtime mocks
-        resetElectronApiCandidate();
-        registerElectronApiCandidate(mockElectronAPI);
-
         Object.defineProperty(globalThis, "localStorage", {
             value: mockLocalStorage,
             writable: true,
@@ -303,7 +303,6 @@ describe("exportUtils", () => {
     });
 
     afterEach(() => {
-        resetElectronApiCandidate();
         clearExportZipRuntimeForTests();
     });
 
@@ -408,7 +407,11 @@ describe("exportUtils", () => {
                 message: "Server failed to start",
             });
 
-            await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow(
+            await expect(
+                exportUtils.authenticateWithGyazo({
+                    electronApiScope: createExportApiScope(mockElectronAPI),
+                })
+            ).rejects.toThrow(
                 "Failed to start OAuth server: Server failed to start"
             );
         });
@@ -423,7 +426,11 @@ describe("exportUtils", () => {
                 message: "Authentication setup required",
             });
 
-            await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow(
+            await expect(
+                exportUtils.authenticateWithGyazo({
+                    electronApiScope: createExportApiScope(mockElectronAPI),
+                })
+            ).rejects.toThrow(
                 "Failed to start OAuth server: Authentication setup required"
             );
         });
