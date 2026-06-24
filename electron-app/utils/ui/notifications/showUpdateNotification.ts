@@ -10,14 +10,20 @@ import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import {
     getNotificationTimerRuntime,
     type NotificationTimerHandle,
+    type NotificationTimerRuntime,
 } from "./notificationTimerRuntime.js";
-import { getShowUpdateNotificationRuntime } from "./showUpdateNotificationRuntime.js";
+import {
+    getShowUpdateNotificationRuntime,
+    type ShowUpdateNotificationRuntime,
+} from "./showUpdateNotificationRuntime.js";
 
 type UpdateNotificationAction = boolean | string;
 
 type ElectronUpdateAPI = Partial<Pick<ElectronAPI, "installUpdate">>;
 type ShowUpdateNotificationOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
+    readonly notificationRuntime?: ShowUpdateNotificationRuntime | undefined;
+    readonly timerRuntime?: NotificationTimerRuntime | undefined;
 };
 
 // Constants for better maintainability
@@ -36,12 +42,14 @@ const BUTTON_TEXTS = {
     } as const;
 
 const log = createRendererLogger(LOG_SCOPE);
-const notificationTimerRuntime = getNotificationTimerRuntime();
-const showUpdateNotificationRuntime = getShowUpdateNotificationRuntime();
 
 const activeAutoHideTimers = new WeakMap<
     HTMLElement,
     NotificationTimerHandle
+>();
+const activeAutoHideTimerRuntimes = new WeakMap<
+    HTMLElement,
+    NotificationTimerRuntime
 >();
 
 /**
@@ -70,6 +78,11 @@ export function showUpdateNotification(
     options: ShowUpdateNotificationOptions = {}
 ): void {
     try {
+        const notificationRuntime =
+                options.notificationRuntime ?? getShowUpdateNotificationRuntime(),
+            timerRuntime =
+                options.timerRuntime ?? getNotificationTimerRuntime();
+
         log("info", "Showing update notification", {
             duration,
             message,
@@ -78,7 +91,7 @@ export function showUpdateNotification(
         });
 
         // Get and validate notification element
-        const notification = getNotificationElement();
+        const notification = getNotificationElement(notificationRuntime);
         if (!notification) {
             return;
         }
@@ -91,20 +104,23 @@ export function showUpdateNotification(
         notification.style.display = "block";
 
         // Create message span
-        const msgSpan = showUpdateNotificationRuntime.createElement("span");
+        const msgSpan = notificationRuntime.createElement("span");
         msgSpan.textContent = message;
         notification.append(msgSpan);
 
         // Handle different action types
         if (withAction === NOTIFICATION_CONSTANTS.UPDATE_DOWNLOADED) {
-            createUpdateDownloadedButtons(notification, options);
+            createUpdateDownloadedButtons(notification, options, {
+                notificationRuntime,
+                timerRuntime,
+            });
         } else if (withAction) {
-            createUpdateActionButton(notification, options);
+            createUpdateActionButton(notification, options, notificationRuntime);
         }
 
         // Set up auto-hide if needed
         if (!withAction || withAction === true) {
-            setupAutoHide(notification, duration);
+            setupAutoHide(notification, duration, timerRuntime);
         }
 
         log("info", "Update notification displayed successfully");
@@ -140,10 +156,11 @@ function clearNotificationContent(notification: HTMLElement): void {
 function createThemedButton(
     text: string,
     clickHandler: EventListener,
+    notificationRuntime: ShowUpdateNotificationRuntime,
     styles: Partial<CSSStyleDeclaration> = {}
 ): HTMLElement | null {
     try {
-        const button = showUpdateNotificationRuntime.createElement("button");
+        const button = notificationRuntime.createElement("button");
         button.textContent = text;
         button.className = NOTIFICATION_CONSTANTS.BUTTON_CLASS;
         addEventListenerWithCleanup(button, "click", clickHandler);
@@ -164,11 +181,14 @@ function createThemedButton(
 /** Create simple update action button. */
 function createUpdateActionButton(
     notification: HTMLElement,
-    options: ShowUpdateNotificationOptions
+    options: ShowUpdateNotificationOptions,
+    notificationRuntime: ShowUpdateNotificationRuntime
 ): void {
     try {
-        const button = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, () =>
-            handleUpdateInstall(options)
+        const button = createThemedButton(
+            BUTTON_TEXTS.RESTART_UPDATE,
+            () => handleUpdateInstall(options),
+            notificationRuntime
         );
 
         if (button) {
@@ -185,18 +205,25 @@ function createUpdateActionButton(
 /** Create update downloaded action buttons. */
 function createUpdateDownloadedButtons(
     notification: HTMLElement,
-    options: ShowUpdateNotificationOptions
+    options: ShowUpdateNotificationOptions,
+    runtimes: {
+        readonly notificationRuntime: ShowUpdateNotificationRuntime;
+        readonly timerRuntime: NotificationTimerRuntime;
+    }
 ): void {
     try {
         const laterBtn = createThemedButton(
                 BUTTON_TEXTS.LATER,
-                () => hideNotification(notification),
+                () => hideNotification(notification, runtimes.timerRuntime),
+                runtimes.notificationRuntime,
                 {
                     marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
                 }
             ),
-            restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, () =>
-                handleUpdateInstall(options)
+            restartBtn = createThemedButton(
+                BUTTON_TEXTS.RESTART_UPDATE,
+                () => handleUpdateInstall(options),
+                runtimes.notificationRuntime
             );
 
         if (restartBtn && laterBtn) {
@@ -216,8 +243,10 @@ function createUpdateDownloadedButtons(
  *
  * @returns Notification element or null if not found.
  */
-function getNotificationElement(): HTMLElement | null {
-    const notification = showUpdateNotificationRuntime.queryNotificationElement(
+function getNotificationElement(
+    notificationRuntime: ShowUpdateNotificationRuntime
+): HTMLElement | null {
+    const notification = notificationRuntime.queryNotificationElement(
         `#${NOTIFICATION_CONSTANTS.NOTIFICATION_ID}`
     );
     if (!notification) {
@@ -247,10 +276,13 @@ function handleUpdateInstall({
 }
 
 /** Hide notification with validation. */
-function hideNotification(notification: HTMLElement): void {
+function hideNotification(
+    notification: HTMLElement,
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
+): void {
     try {
         if (notification && notification.style) {
-            clearAutoHideTimer(notification);
+            clearAutoHideTimer(notification, timerRuntime);
             notification.style.display = "none";
             log("info", "Notification hidden");
         }
@@ -264,14 +296,20 @@ function hideNotification(notification: HTMLElement): void {
 /**
  * Set up auto-hide for a notification.
  */
-function setupAutoHide(notification: HTMLElement, duration: number): void {
+function setupAutoHide(
+    notification: HTMLElement,
+    duration: number,
+    timerRuntime: NotificationTimerRuntime
+): void {
     try {
-        clearAutoHideTimer(notification);
-        const timeoutHandle = notificationTimerRuntime.setTimeout(() => {
+        clearAutoHideTimer(notification, timerRuntime);
+        const timeoutHandle = timerRuntime.setTimeout(() => {
             activeAutoHideTimers.delete(notification);
-            hideNotification(notification);
+            activeAutoHideTimerRuntimes.delete(notification);
+            hideNotification(notification, timerRuntime);
         }, duration);
         activeAutoHideTimers.set(notification, timeoutHandle);
+        activeAutoHideTimerRuntimes.set(notification, timerRuntime);
 
         log("info", "Auto-hide timeout set", { duration });
     } catch (error) {
@@ -317,14 +355,19 @@ function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
     return installUpdate === undefined || typeof installUpdate === "function";
 }
 
-function clearAutoHideTimer(notification: HTMLElement): void {
+function clearAutoHideTimer(
+    notification: HTMLElement,
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
+): void {
     const timeoutHandle = activeAutoHideTimers.get(notification);
     if (timeoutHandle === undefined) {
         return;
     }
 
-    notificationTimerRuntime.clearTimeout(timeoutHandle);
+    const runtime = activeAutoHideTimerRuntimes.get(notification) ?? timerRuntime;
+    runtime.clearTimeout(timeoutHandle);
     activeAutoHideTimers.delete(notification);
+    activeAutoHideTimerRuntimes.delete(notification);
 }
 
 function getErrorMessage(error: unknown): string {

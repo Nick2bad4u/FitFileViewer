@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { NotificationTimerRuntime } from "../../../../../electron-app/utils/ui/notifications/notificationTimerRuntime.js";
+import type { ShowUpdateNotificationRuntime } from "../../../../../electron-app/utils/ui/notifications/showUpdateNotificationRuntime.js";
 
 type UpdateElectronApi = {
     installUpdate: () => void;
@@ -136,6 +138,53 @@ describe("showUpdateNotification", () => {
 
         vi.runAllTimers();
         expect(host.style.display).toBe("none");
+    });
+
+    it("uses injected DOM and timer runtimes for auto-hide notifications", async () => {
+        expect.assertions(8);
+
+        const host = createNotificationHost();
+        const timeoutHandle = Number("59");
+        const timerRuntime: NotificationTimerRuntime = {
+            clearTimeout: vi.fn(),
+            setTimeout: vi.fn(() => timeoutHandle),
+        };
+        const notificationRuntime: ShowUpdateNotificationRuntime = {
+            createElement: vi.fn((tagName) =>
+                document.createElement(tagName)
+            ) as ShowUpdateNotificationRuntime["createElement"],
+            queryNotificationElement: vi.fn(() => host),
+        };
+
+        const { showUpdateNotification } =
+            await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
+
+        showUpdateNotification("Injected update", "info", 4321, false, {
+            notificationRuntime,
+            timerRuntime,
+        });
+
+        expect(notificationRuntime.queryNotificationElement).toHaveBeenCalledWith(
+            "#notification"
+        );
+        expect(notificationRuntime.createElement).toHaveBeenCalledWith("span");
+        expect(host.textContent).toBe("Injected update");
+        expect(host.style.display).toBe("block");
+        expect(timerRuntime.setTimeout).toHaveBeenCalledExactlyOnceWith(
+            expect.any(Function),
+            4321
+        );
+
+        showUpdateNotification("Replacement update", "success", 0, false, {
+            notificationRuntime,
+            timerRuntime,
+        });
+
+        expect(timerRuntime.clearTimeout).toHaveBeenCalledExactlyOnceWith(
+            timeoutHandle
+        );
+        expect(host.textContent).toBe("Replacement update");
+        expect(host.className).toBe("notification success");
     });
 
     it("logs update install failures when electronAPI is missing", async () => {

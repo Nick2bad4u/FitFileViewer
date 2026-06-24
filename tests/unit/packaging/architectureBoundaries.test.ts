@@ -7299,7 +7299,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -7318,6 +7318,11 @@ describe("architecture boundaries", () => {
         const syncRendererNotificationsSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/notifications/syncRendererNotifications.ts"
+            )
+        );
+        const showUpdateNotificationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showUpdateNotification.ts"
             )
         );
         const notificationTimerRuntimeScopeSource =
@@ -7339,6 +7344,15 @@ describe("architecture boundaries", () => {
         );
         expect(syncRendererNotificationsSource).toContain(
             "timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()"
+        );
+        expect(showUpdateNotificationSource).toContain(
+            "type NotificationTimerRuntime"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "const notificationTimerRuntime = getNotificationTimerRuntime();"
+        );
+        expect(showUpdateNotificationSource).toContain(
+            "options.timerRuntime ?? getNotificationTimerRuntime()"
         );
         expect(notificationTimerRuntimeSource).toContain(
             "defaultNotificationTimerRuntimeScope"
@@ -7373,7 +7387,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update notification DOM access behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedShowUpdateNotificationDomRuntimeFiles
             .filter((relativeFile) =>
@@ -7410,6 +7424,15 @@ describe("architecture boundaries", () => {
             "queryNotificationElement"
         );
         expect(showUpdateNotificationSource).toContain("createElement");
+        expect(showUpdateNotificationSource).toContain(
+            "type ShowUpdateNotificationRuntime"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "const showUpdateNotificationRuntime = getShowUpdateNotificationRuntime();"
+        );
+        expect(showUpdateNotificationSource).toContain(
+            "options.notificationRuntime ?? getShowUpdateNotificationRuntime()"
+        );
         expect(showUpdateNotificationSource).not.toMatch(
             directShowUpdateNotificationDomRuntimeGlobalPattern
         );
