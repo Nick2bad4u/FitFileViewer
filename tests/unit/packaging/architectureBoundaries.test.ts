@@ -5383,7 +5383,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(49);
+        expect.assertions(52);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -5417,27 +5417,32 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
+        expect(browserTabSource).toContain("type FileBrowserTabRuntime");
+        expect(browserTabSource).toContain("return getFileBrowserTabRuntime();");
+        expect(browserTabSource).not.toContain(
+            "const fileBrowserTabRuntime = getFileBrowserTabRuntime();"
+        );
         expect(browserTabSource).toContain("createAbortController");
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.getElementById"
+            "fileBrowserTabRuntime().getElementById"
         );
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.getElement<HTMLElement>"
+            "fileBrowserTabRuntime().getElement<HTMLElement>"
         );
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.createElement"
+            "fileBrowserTabRuntime().createElement"
         );
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.createTextNode"
+            "fileBrowserTabRuntime().createTextNode"
         );
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.isHTMLElement"
+            "fileBrowserTabRuntime().isHTMLElement"
         );
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.isHTMLInputElement"
+            "fileBrowserTabRuntime().isHTMLInputElement"
         );
         expect(browserTabSource).toContain(
-            "fileBrowserTabRuntime.isHTMLSelectElement"
+            "fileBrowserTabRuntime().isHTMLSelectElement"
         );
         expect(browserTabSource).not.toContain(
             "getElementByIdFlexible(document"
@@ -5452,10 +5457,10 @@ describe("architecture boundaries", () => {
             /document\.querySelector<HTMLElement>\(\s*"#fit-browser-(?:pick-folder|status|view-calendar|view-files|view-library)"/u
         );
         expect(openBrowserFileSource).toContain(
-            'fileBrowserTabRuntime.getElement<HTMLElement>("#open_file_btn")'
+            'fileBrowserTabRuntime().getElement<HTMLElement>("#open_file_btn")'
         );
         expect(openBrowserFileSource).toContain(
-            "fileBrowserTabRuntime.isHTMLElement(openFileBtn)"
+            "fileBrowserTabRuntime().isHTMLElement(openFileBtn)"
         );
         expect(openBrowserFileSource).not.toContain(
             'document.querySelector<HTMLElement>("#open_file_btn")'
@@ -5464,14 +5469,14 @@ describe("architecture boundaries", () => {
             "openFileBtn instanceof HTMLElement"
         );
         expect(refreshListingSource).toMatch(
-            /fileBrowserTabRuntime\.getElement<HTMLElement>\(\s*"#fit-browser-current-path"\s*\)/u
+            /fileBrowserTabRuntime\(\)\.getElement<HTMLElement>\(\s*"#fit-browser-current-path"\s*\)/u
         );
         expect(refreshListingSource).toMatch(
-            /fileBrowserTabRuntime\.getElement<HTMLElement>\(\s*"#fit-browser-list"\s*\)/u
+            /fileBrowserTabRuntime\(\)\.getElement<HTMLElement>\(\s*"#fit-browser-list"\s*\)/u
         );
         expect(refreshListingSource).not.toContain("document.querySelector");
         expect(browserItemButtonSource).toContain(
-            'fileBrowserTabRuntime.createElement("button")'
+            'fileBrowserTabRuntime().createElement("button")'
         );
         expect(browserItemButtonSource).not.toContain(
             'document.createElement("button")'
