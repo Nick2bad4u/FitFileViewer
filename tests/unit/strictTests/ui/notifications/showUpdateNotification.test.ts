@@ -1,22 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type UpdateElectronApi = {
     installUpdate: () => void;
 };
+type ScopedUpdateElectronApi = {
+    api: UpdateElectronApi;
+    electronApiScope: RendererElectronApiScope;
+};
 
-const installUpdateApi = (): UpdateElectronApi => {
+const createUpdateApiFixture = (): ScopedUpdateElectronApi => {
     const api = {
         installUpdate: vi.fn<() => void>(),
     };
 
-    registerElectronApiCandidate(api);
-
-    return api;
+    return {
+        api,
+        electronApiScope: {
+            getElectronAPI: () => api,
+        },
+    };
 };
 
 function createNotificationHost(): HTMLDivElement {
@@ -51,14 +55,12 @@ describe("showUpdateNotification", () => {
     beforeEach(() => {
         document.body.replaceChildren();
         vi.useFakeTimers();
-        resetElectronApiCandidate();
     });
 
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
         vi.restoreAllMocks();
-        resetElectronApiCandidate();
     });
 
     it("returns early when notification element missing", async () => {
@@ -76,7 +78,7 @@ describe("showUpdateNotification", () => {
         expect.assertions(10);
 
         const host = createNotificationHost();
-        const api = installUpdateApi();
+        const { api, electronApiScope } = createUpdateApiFixture();
 
         const { showUpdateNotification } =
             await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
@@ -85,7 +87,8 @@ describe("showUpdateNotification", () => {
             "Update ready",
             "success",
             0,
-            "update-downloaded"
+            "update-downloaded",
+            { electronApiScope }
         );
         const buttons = getNotificationButtons(host);
         expect(buttons).toHaveLength(2);
@@ -115,11 +118,13 @@ describe("showUpdateNotification", () => {
         expect.assertions(5);
 
         const host = createNotificationHost();
-        const api = installUpdateApi();
+        const { api, electronApiScope } = createUpdateApiFixture();
 
         const { showUpdateNotification } =
             await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
-        showUpdateNotification("Update available", "info", 1234, true);
+        showUpdateNotification("Update available", "info", 1234, true, {
+            electronApiScope,
+        });
         expect(host.className).toBe("notification info");
         expect(host.style.display).toBe("block");
         expect(getNotificationButtons(host)).toHaveLength(1);

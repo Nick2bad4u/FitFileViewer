@@ -1,7 +1,10 @@
 /** Specialized utility for showing update-related notifications with actions. */
 
 import { createRendererLogger } from "../../logging/rendererLogger.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import {
@@ -13,6 +16,9 @@ import { getShowUpdateNotificationRuntime } from "./showUpdateNotificationRuntim
 type UpdateNotificationAction = boolean | string;
 
 type ElectronUpdateAPI = Partial<Pick<ElectronAPI, "installUpdate">>;
+type ShowUpdateNotificationOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 // Constants for better maintainability
 const BUTTON_TEXTS = {
@@ -60,7 +66,8 @@ export function showUpdateNotification(
     message: string,
     type: string = NOTIFICATION_CONSTANTS.DEFAULT_TYPE,
     duration: number = NOTIFICATION_CONSTANTS.DEFAULT_DURATION,
-    withAction: UpdateNotificationAction = false
+    withAction: UpdateNotificationAction = false,
+    options: ShowUpdateNotificationOptions = {}
 ): void {
     try {
         log("info", "Showing update notification", {
@@ -90,9 +97,9 @@ export function showUpdateNotification(
 
         // Handle different action types
         if (withAction === NOTIFICATION_CONSTANTS.UPDATE_DOWNLOADED) {
-            createUpdateDownloadedButtons(notification);
+            createUpdateDownloadedButtons(notification, options);
         } else if (withAction) {
-            createUpdateActionButton(notification);
+            createUpdateActionButton(notification, options);
         }
 
         // Set up auto-hide if needed
@@ -155,11 +162,13 @@ function createThemedButton(
 }
 
 /** Create simple update action button. */
-function createUpdateActionButton(notification: HTMLElement): void {
+function createUpdateActionButton(
+    notification: HTMLElement,
+    options: ShowUpdateNotificationOptions
+): void {
     try {
-        const button = createThemedButton(
-            BUTTON_TEXTS.RESTART_UPDATE,
-            handleUpdateInstall
+        const button = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, () =>
+            handleUpdateInstall(options)
         );
 
         if (button) {
@@ -174,7 +183,10 @@ function createUpdateActionButton(notification: HTMLElement): void {
 }
 
 /** Create update downloaded action buttons. */
-function createUpdateDownloadedButtons(notification: HTMLElement): void {
+function createUpdateDownloadedButtons(
+    notification: HTMLElement,
+    options: ShowUpdateNotificationOptions
+): void {
     try {
         const laterBtn = createThemedButton(
                 BUTTON_TEXTS.LATER,
@@ -183,9 +195,8 @@ function createUpdateDownloadedButtons(notification: HTMLElement): void {
                     marginLeft: NOTIFICATION_CONSTANTS.BUTTON_MARGIN,
                 }
             ),
-            restartBtn = createThemedButton(
-                BUTTON_TEXTS.RESTART_UPDATE,
-                handleUpdateInstall
+            restartBtn = createThemedButton(BUTTON_TEXTS.RESTART_UPDATE, () =>
+                handleUpdateInstall(options)
             );
 
         if (restartBtn && laterBtn) {
@@ -217,10 +228,12 @@ function getNotificationElement(): HTMLElement | null {
 }
 
 /** Handle update installation with validation. */
-function handleUpdateInstall(): void {
+function handleUpdateInstall({
+    electronApiScope,
+}: ShowUpdateNotificationOptions): void {
     try {
-        if (validateElectronAPI()) {
-            const installUpdate = getInstallUpdate();
+        if (validateElectronAPI(electronApiScope)) {
+            const installUpdate = getInstallUpdate(electronApiScope);
             log("info", "Initiating update installation");
             installUpdate?.();
         } else {
@@ -274,17 +287,23 @@ function setupAutoHide(notification: HTMLElement, duration: number): void {
  *
  * @returns True if electronAPI is available.
  */
-function validateElectronAPI(): boolean {
-    const hasAPI = getInstallUpdate() !== null;
+function validateElectronAPI(
+    electronApiScope: RendererElectronApiScope | undefined
+): boolean {
+    const hasAPI = getInstallUpdate(electronApiScope) !== null;
     if (!hasAPI) {
         log("warn", "electronAPI.installUpdate not available");
     }
     return hasAPI;
 }
 
-function getInstallUpdate(): (() => void) | null {
-    const installUpdate =
-        getRendererElectronApi(isElectronUpdateApi)?.installUpdate;
+function getInstallUpdate(
+    electronApiScope: RendererElectronApiScope | undefined
+): (() => void) | null {
+    const installUpdate = getRendererElectronApi(
+        isElectronUpdateApi,
+        electronApiScope
+    )?.installUpdate;
 
     return typeof installUpdate === "function" ? installUpdate : null;
 }
