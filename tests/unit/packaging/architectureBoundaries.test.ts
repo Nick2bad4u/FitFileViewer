@@ -1343,7 +1343,7 @@ const directChartHoverEffectsRuntimeAmbientFallbackPattern =
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
-    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b/u;
+    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b|\binstanceof\s+KeyboardEvent\b/u;
 const directRenderSummarySchedulingRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b|\bnew\s+AbortController\b/u;
 const directUserDeviceInfoBoxRuntimeGlobalPattern =
@@ -15815,7 +15815,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(37);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -15851,8 +15851,10 @@ describe("architecture boundaries", () => {
         expect(summaryColModalSource).toContain("runtime.createTextNode");
         expect(summaryColModalSource).toContain("runtime.appendToBody");
         expect(summaryColModalSource).toContain("runtime.getActiveElement");
+        expect(summaryColModalSource).toContain("runtime.isKeyboardEvent");
         expect(summaryColModalSource).not.toContain("document.");
         expect(summaryColModalSource).not.toContain("instanceof HTMLElement");
+        expect(summaryColModalSource).not.toContain("instanceof KeyboardEvent");
         expect(summaryColModalRuntimeSource).toContain(
             "defaultSummaryColModalRuntimeScope"
         );
@@ -15872,6 +15874,9 @@ describe("architecture boundaries", () => {
             "readonly HTMLElement?:"
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
             "readonly innerHeight?:"
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
@@ -15882,6 +15887,9 @@ describe("architecture boundaries", () => {
         );
         expect(summaryColModalRuntimeSource).not.toContain("scope.document");
         expect(summaryColModalRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
+        );
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerHeight");
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerWidth");
         expect(summaryColModalRuntimeSource).toContain(
@@ -15894,6 +15902,9 @@ describe("architecture boundaries", () => {
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(summaryColModalRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
             "height: globalThis.innerHeight"
         );
         expect(summaryColModalRuntimeSource).toContain(
@@ -15904,6 +15915,9 @@ describe("architecture boundaries", () => {
         );
         expect(summaryColModalRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "const KeyboardEventConstructor = scope.getKeyboardEvent?.();"
         );
         expect(summaryColModalRuntimeSource).toContain(
             "getRuntimeDocument(scope).body.append(node)"

@@ -215,7 +215,7 @@ export function showColModal({
     overlay.addEventListener(
         "keydown",
         (e) => {
-            if (e instanceof KeyboardEvent && e.key === "Escape") {
+            if (runtime.isKeyboardEvent(e) && e.key === "Escape") {
                 e.preventDefault();
                 closeOverlay();
             }

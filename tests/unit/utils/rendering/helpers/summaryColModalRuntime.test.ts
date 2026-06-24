@@ -97,8 +97,22 @@ describe("getSummaryColModalRuntime", () => {
         ).toBeNull();
     });
 
+    it("checks keyboard events through the injected constructor provider", () => {
+        expect.assertions(3);
+
+        const runtime = getSummaryColModalRuntime({
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(runtime.isKeyboardEvent({ key: "Escape" })).toBe(false);
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtime = getSummaryColModalRuntime({});
 
@@ -114,6 +128,9 @@ describe("getSummaryColModalRuntime", () => {
         expect(() => runtime.getActiveElement()).toThrow(
             "summaryColModal requires a document runtime"
         );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "summaryColModal requires a KeyboardEvent runtime"
+        );
     });
 
     it("uses zero dimensions when viewport values are unavailable", () => {
@@ -126,12 +143,13 @@ describe("getSummaryColModalRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const legacyScope = {
             AbortController,
             document,
             HTMLElement,
+            KeyboardEvent,
             innerHeight: 900,
             innerWidth: 1440,
         } as unknown as SummaryColModalRuntimeScope;
@@ -155,6 +173,9 @@ describe("getSummaryColModalRuntime", () => {
         );
         expect(() => runtime.getActiveElement()).toThrow(
             "summaryColModal requires a document runtime"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "summaryColModal requires a KeyboardEvent runtime"
         );
     });
 });

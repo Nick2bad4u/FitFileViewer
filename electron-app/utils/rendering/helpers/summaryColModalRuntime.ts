@@ -6,6 +6,9 @@ export interface SummaryColModalRuntimeScope {
     readonly getHTMLElement?:
         | (() => typeof HTMLElement | undefined)
         | undefined;
+    readonly getKeyboardEvent?:
+        | (() => typeof KeyboardEvent | undefined)
+        | undefined;
     readonly getViewport?:
         | (() => SummaryColModalViewport | undefined)
         | undefined;
@@ -25,12 +28,14 @@ export interface SummaryColModalRuntime {
     readonly createTextNode: (data: string) => Text;
     readonly getActiveElement: () => HTMLElement | null;
     readonly getViewport: () => SummaryColModalViewport;
+    readonly isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
 }
 
 const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
+    getKeyboardEvent: () => globalThis.KeyboardEvent,
     getViewport: () => ({
         height: globalThis.innerHeight,
         width: globalThis.innerWidth,
@@ -75,6 +80,9 @@ export function getSummaryColModalRuntime(
         getViewport(): SummaryColModalViewport {
             return scope.getViewport?.() ?? { height: 0, width: 0 };
         },
+        isKeyboardEvent(value): value is KeyboardEvent {
+            return value instanceof getKeyboardEventConstructor(scope);
+        },
     };
 }
 
@@ -85,4 +93,15 @@ function getRuntimeDocument(scope: SummaryColModalRuntimeScope): Document {
     }
 
     return runtimeDocument;
+}
+
+function getKeyboardEventConstructor(
+    scope: SummaryColModalRuntimeScope
+): typeof KeyboardEvent {
+    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    if (typeof KeyboardEventConstructor !== "function") {
+        throw new TypeError("summaryColModal requires a KeyboardEvent runtime");
+    }
+
+    return KeyboardEventConstructor;
 }
