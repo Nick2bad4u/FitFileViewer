@@ -1,5 +1,8 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type MenuSendChannel = "menu-export" | "menu-save-as";
@@ -25,8 +28,12 @@ type MenuElectronAPI = Partial<
 
 type RegisterMenuIpcListenersParams = {
     debugMenuLog: (...args: unknown[]) => void;
+    electronApiScope?: RendererElectronApiScope | undefined;
     isTestEnvironment: boolean;
-    showAboutModal: (html?: string) => void;
+    showAboutModal: (
+        html?: string,
+        options?: { electronApiScope?: RendererElectronApiScope | undefined }
+    ) => void;
     showNotification: (
         message: string,
         type?: string,
@@ -40,8 +47,14 @@ type AccentColorPickerModule = {
 };
 
 type KeyboardShortcutsModalModule = {
-    showKeyboardShortcutsModal?: () => void;
+    showKeyboardShortcutsModal?: (options?: {
+        electronApiScope?: RendererElectronApiScope | undefined;
+    }) => void;
 };
+
+type ShowKeyboardShortcutsModal = NonNullable<
+    KeyboardShortcutsModalModule["showKeyboardShortcutsModal"]
+>;
 
 type ShortcutDefinition = readonly [action: string, keys: string];
 
@@ -51,11 +64,13 @@ const keyboardShortcutsModalModulePath =
     "../../ui/modals/keyboardShortcutsModal.js" as const;
 
 let cachedAccentColorPicker: (() => void) | undefined;
-let cachedKeyboardShortcutsModal: (() => void) | undefined;
+let cachedKeyboardShortcutsModal: ShowKeyboardShortcutsModal | undefined;
 const menuForwardRegistry = new Set<MenuSendChannel>();
 
-function getMenuElectronApi(): MenuElectronAPI | null {
-    return getRendererElectronApi(isMenuElectronApi);
+function getMenuElectronApi(
+    electronApiScope: RendererElectronApiScope | undefined
+): MenuElectronAPI | null {
+    return getRendererElectronApi(isMenuElectronApi, electronApiScope);
 }
 
 function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
@@ -138,10 +153,11 @@ function buildKeyboardShortcutsHtml(): string {
 
 async function openKeyboardShortcutsModalFromModule({
     debugMenuLog,
+    electronApiScope,
     showAboutModal,
 }: Pick<
     RegisterMenuIpcListenersParams,
-    "debugMenuLog" | "showAboutModal"
+    "debugMenuLog" | "electronApiScope" | "showAboutModal"
 >): Promise<void> {
     try {
         // eslint-disable-next-line no-unsanitized/method -- Static local module path owned by the app bundle.
@@ -150,17 +166,17 @@ async function openKeyboardShortcutsModalFromModule({
         )) as KeyboardShortcutsModalModule;
         if (typeof mod.showKeyboardShortcutsModal === "function") {
             cachedKeyboardShortcutsModal = mod.showKeyboardShortcutsModal;
-            cachedKeyboardShortcutsModal();
+            cachedKeyboardShortcutsModal({ electronApiScope });
             return;
         }
 
         debugMenuLog(
             "Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable"
         );
-        showAboutModal(buildKeyboardShortcutsHtml());
+        showAboutModal(buildKeyboardShortcutsHtml(), { electronApiScope });
     } catch (error) {
         debugMenuLog("Failed to load keyboard shortcuts modal module:", error);
-        showAboutModal(buildKeyboardShortcutsHtml());
+        showAboutModal(buildKeyboardShortcutsHtml(), { electronApiScope });
     }
 }
 
@@ -170,12 +186,13 @@ async function openKeyboardShortcutsModalFromModule({
  */
 export function registerMenuIpcListeners({
     debugMenuLog,
+    electronApiScope,
     isTestEnvironment,
     showAboutModal,
     showNotification,
     trackUnsubscribe,
 }: RegisterMenuIpcListenersParams): void {
-    const electronAPI = getMenuElectronApi();
+    const electronAPI = getMenuElectronApi(electronApiScope);
     if (!electronAPI) {
         return;
     }
@@ -237,7 +254,7 @@ export function registerMenuIpcListeners({
 
     trackMenuEvent("onMenuAbout", () => {
         // The styled system info section loads version data by itself.
-        showAboutModal();
+        showAboutModal("", { electronApiScope });
     });
 
     trackMenuEvent("onOpenAccentColorPicker", async () => {
@@ -263,6 +280,7 @@ export function registerMenuIpcListeners({
             );
             await openKeyboardShortcutsModalFromModule({
                 debugMenuLog,
+                electronApiScope,
                 showAboutModal,
             });
             return;
@@ -271,7 +289,7 @@ export function registerMenuIpcListeners({
         debugMenuLog(
             "Keyboard shortcuts modal already loaded, calling function directly"
         );
-        globalKeyboardShortcutsModal();
+        globalKeyboardShortcutsModal({ electronApiScope });
     });
 }
 

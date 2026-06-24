@@ -73,7 +73,6 @@ const rendererElectronApiRuntimeSourceFiles = [
 const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/lifecycle/listeners.test.ts",
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
-    "tests/unit/lifecycle/menuIpcKeyboardShortcuts.test.ts",
     "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts",
     "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts",
     "tests/unit/utils/app/lifecycle/menuIpcListeners.test.ts",
@@ -86,6 +85,7 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
+    "tests/unit/lifecycle/menuIpcKeyboardShortcuts.test.ts",
     "tests/unit/lifecycle/recentFilesContextMenu.fitPayload.test.ts",
     "tests/unit/files/import/openFitFileFromPath.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",

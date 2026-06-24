@@ -5,10 +5,7 @@ import {
     registerMenuIpcListeners,
     resetMenuIpcListenerStateForTests,
 } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { closeKeyboardShortcutsModal } from "../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js";
 
 const modalFocusTrapMock = vi.hoisted(() => ({
@@ -46,6 +43,14 @@ type MenuElectronApi = {
     requestSaveAs: () => void;
 };
 
+function createElectronApiScope(
+    api: MenuElectronApi
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
+}
+
 function getRequiredHandler(
     handlers: Map<MenuIpcChannel, MenuIpcCallback>,
     channel: MenuIpcChannel
@@ -82,12 +87,18 @@ function resetKeyboardShortcutsFixture(): void {
     document.body.style.overflow = "";
 
     resetMenuIpcListenerStateForTests();
-    resetRendererElectronApiCandidate();
 }
 
 function registerTestMenuListeners(): {
     handlers: Map<MenuIpcChannel, MenuIpcCallback>;
-    showAboutModal: ReturnType<typeof vi.fn<(html?: string) => void>>;
+    showAboutModal: ReturnType<
+        typeof vi.fn<
+            (
+                html?: string,
+                options?: { electronApiScope?: RendererElectronApiScope }
+            ) => void
+        >
+    >;
     showNotification: ReturnType<
         typeof vi.fn<
             (message: string, type?: string, durationMs?: number) => void
@@ -103,12 +114,18 @@ function registerTestMenuListeners(): {
             return unsubscribe;
         };
     const debugMenuLog = vi.fn<(...args: unknown[]) => void>();
-    const showAboutModal = vi.fn<(html?: string) => void>();
+    const showAboutModal =
+        vi.fn<
+            (
+                html?: string,
+                options?: { electronApiScope?: RendererElectronApiScope }
+            ) => void
+        >();
     const showNotification =
         vi.fn<(message: string, type?: string, durationMs?: number) => void>();
     const trackUnsubscribe = vi.fn<(maybeUnsubscribe: unknown) => void>();
 
-    registerRendererElectronApiCandidate({
+    const electronApiScope = createElectronApiScope({
         onMenuAbout: vi.fn(register("menu-about")),
         onMenuExport: vi.fn(register("menu-export")),
         onMenuKeyboardShortcuts: vi.fn(register("menu-keyboard-shortcuts")),
@@ -122,6 +139,7 @@ function registerTestMenuListeners(): {
 
     registerMenuIpcListeners({
         debugMenuLog,
+        electronApiScope,
         isTestEnvironment: true,
         showAboutModal,
         showNotification,
