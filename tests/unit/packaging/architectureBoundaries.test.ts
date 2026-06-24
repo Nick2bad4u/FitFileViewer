@@ -7299,7 +7299,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(14);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -7315,6 +7315,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/notifications/notificationTimerRuntime.ts"
             )
         );
+        const syncRendererNotificationsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/syncRendererNotifications.ts"
+            )
+        );
         const notificationTimerRuntimeScopeSource =
             notificationTimerRuntimeSource.slice(
                 notificationTimerRuntimeSource.indexOf(
@@ -7326,6 +7331,15 @@ describe("architecture boundaries", () => {
             );
 
         expect(violations).toStrictEqual([]);
+        expect(syncRendererNotificationsSource).toContain(
+            "type NotificationTimerRuntime"
+        );
+        expect(syncRendererNotificationsSource).not.toContain(
+            "const notificationTimerRuntime = getNotificationTimerRuntime();"
+        );
+        expect(syncRendererNotificationsSource).toContain(
+            "timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()"
+        );
         expect(notificationTimerRuntimeSource).toContain(
             "defaultNotificationTimerRuntimeScope"
         );

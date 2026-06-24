@@ -10,6 +10,7 @@ import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import {
     getNotificationTimerRuntime,
     type NotificationTimerHandle,
+    type NotificationTimerRuntime,
 } from "./notificationTimerRuntime.js";
 
 export type {
@@ -17,15 +18,16 @@ export type {
     RendererNotification,
 } from "../../state/domain/rendererNotificationState.js";
 
-const notificationTimerRuntime = getNotificationTimerRuntime();
-
 let notificationHideTimeout: NotificationTimerHandle | undefined;
+let notificationHideTimeoutRuntime: NotificationTimerRuntime | undefined;
 
 /**
  * Clear current notification.
  */
-export function clearNotification(): void {
-    clearNotificationHideTimeout();
+export function clearNotification(
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
+): void {
+    clearNotificationHideTimeout(timerRuntime);
 
     const notificationElement = querySelectorByIdFlexible(
         document,
@@ -66,7 +68,8 @@ export function showInfo(message: string, timeout = 4000): void {
 export function showNotification(
     message: string,
     type: NotificationType = "error",
-    timeout = 5000
+    timeout = 5000,
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
 ): void {
     const notificationElement = querySelectorByIdFlexible(
         document,
@@ -78,7 +81,7 @@ export function showNotification(
         return;
     }
 
-    clearNotificationHideTimeout();
+    clearNotificationHideTimeout(timerRuntime);
 
     notificationElement.textContent = message;
     notificationElement.className = `notification ${type}`;
@@ -94,13 +97,15 @@ export function showNotification(
     );
 
     if (timeout > 0) {
-        notificationHideTimeout = notificationTimerRuntime.setTimeout(() => {
+        notificationHideTimeout = timerRuntime.setTimeout(() => {
             notificationHideTimeout = undefined;
+            notificationHideTimeoutRuntime = undefined;
             notificationElement.style.display = "none";
             clearCurrentNotification({
                 source: "showNotification",
             });
         }, timeout);
+        notificationHideTimeoutRuntime = timerRuntime;
     }
 
     console.log(`[RendererUtils] Notification shown: ${type} - ${message}`);
@@ -128,10 +133,14 @@ export function updateNotificationFromState(notification: unknown): void {
     }
 }
 
-function clearNotificationHideTimeout(): void {
+function clearNotificationHideTimeout(
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
+): void {
     if (notificationHideTimeout !== undefined) {
-        notificationTimerRuntime.clearTimeout(notificationHideTimeout);
+        const runtime = notificationHideTimeoutRuntime ?? timerRuntime;
+        runtime.clearTimeout(notificationHideTimeout);
         notificationHideTimeout = undefined;
+        notificationHideTimeoutRuntime = undefined;
     }
 }
 

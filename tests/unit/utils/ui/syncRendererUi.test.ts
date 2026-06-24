@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { NotificationTimerRuntime } from "../../../../electron-app/utils/ui/notifications/notificationTimerRuntime.js";
 
 type StateListener = (
     newValue: unknown,
@@ -154,6 +155,39 @@ describe("sync renderer UI helpers", () => {
         vi.runAllTimers();
 
         expect(notification.style.display).toBe("none");
+    });
+
+    it("showNotification schedules and clears through an injected timer runtime", async () => {
+        expect.assertions(6);
+
+        resetTestState();
+
+        const timeoutHandle = Number("47");
+        const runtime: NotificationTimerRuntime = {
+            clearTimeout: vi.fn(),
+            setTimeout: vi.fn(() => timeoutHandle),
+        };
+        const { clearNotification, getCurrentNotification, showNotification } =
+            await importSyncRendererNotifications();
+
+        showNotification("Injected timer", "warning", 2500, runtime);
+
+        const notification = requireHTMLElement("notification");
+
+        expect(notification.textContent).toBe("Injected timer");
+        expect(notification.style.display).toBe("block");
+        expect(runtime.setTimeout).toHaveBeenCalledExactlyOnceWith(
+            expect.any(Function),
+            2500
+        );
+
+        clearNotification();
+
+        expect(runtime.clearTimeout).toHaveBeenCalledExactlyOnceWith(
+            timeoutHandle
+        );
+        expect(notification.style.display).toBe("none");
+        expect(getCurrentNotification()).toBeNull();
     });
 
     it("showNotification warns when the notification element is missing", async () => {
