@@ -4,14 +4,14 @@ import {
     resetMenuIpcListenerStateForTests,
 } from "../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import { openFileSelector } from "../../../../../electron-app/utils/files/import/openFileSelector.js";
-import {
-    registerRendererElectronApiCandidate as registerElectronApiCandidate,
-    resetRendererElectronApiCandidate as resetElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
     moduleHasExport: true,
-    showKeyboardShortcutsModal: vi.fn<() => void>(),
+    showKeyboardShortcutsModal:
+        vi.fn<
+            (options?: { electronApiScope?: RendererElectronApiScope }) => void
+        >(),
 }));
 const accentColorPickerMock = vi.hoisted(() => ({
     moduleHasExport: true,
@@ -83,9 +83,17 @@ type TestMenuElectronAPI = {
 
 type MenuFixture = {
     debugMenuLog: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
+    electronApiScope: RendererElectronApiScope;
     handlers: Map<TestMenuChannel, TestMenuHandler>;
     menuApi: TestMenuElectronAPI;
-    showAboutModal: ReturnType<typeof vi.fn<(html?: string) => void>>;
+    showAboutModal: ReturnType<
+        typeof vi.fn<
+            (
+                html?: string,
+                options?: { electronApiScope?: RendererElectronApiScope }
+            ) => void
+        >
+    >;
     showNotification: ReturnType<
         typeof vi.fn<
             (message: string, type?: string, durationMs?: number) => void
@@ -98,7 +106,6 @@ const openFileSelectorMock = vi.mocked(openFileSelector);
 
 function cleanupFixture(): void {
     resetMenuIpcListenerStateForTests();
-    resetElectronApiCandidate();
     document.head.replaceChildren();
     openFileSelectorMock.mockReset();
     accentColorPickerMock.moduleHasExport = true;
@@ -127,11 +134,21 @@ function setupFixture(): MenuFixture {
         requestExport: vi.fn<() => void>(),
         requestSaveAs: vi.fn<() => void>(),
     };
+    const electronApiScope: RendererElectronApiScope = {
+        getElectronAPI: () => electronAPI,
+    };
     const fixture: MenuFixture = {
         debugMenuLog: vi.fn<(...args: unknown[]) => void>(),
+        electronApiScope,
         handlers,
         menuApi: electronAPI,
-        showAboutModal: vi.fn<(html?: string) => void>(),
+        showAboutModal:
+            vi.fn<
+                (
+                    html?: string,
+                    options?: { electronApiScope?: RendererElectronApiScope }
+                ) => void
+            >(),
         showNotification:
             vi.fn<
                 (message: string, type?: string, durationMs?: number) => void
@@ -140,11 +157,11 @@ function setupFixture(): MenuFixture {
     };
 
     vi.spyOn(console, "error").mockImplementation(() => {});
-    registerElectronApiCandidate(electronAPI);
     openFileSelectorMock.mockResolvedValue(undefined);
 
     registerMenuIpcListeners({
         debugMenuLog: fixture.debugMenuLog,
+        electronApiScope,
         isTestEnvironment: true,
         showAboutModal: fixture.showAboutModal,
         showNotification: fixture.showNotification,
@@ -249,7 +266,9 @@ describe(registerMenuIpcListeners, () => {
 
             expect(
                 keyboardShortcutsModalMock.showKeyboardShortcutsModal
-            ).toHaveBeenCalledOnce();
+            ).toHaveBeenCalledExactlyOnceWith({
+                electronApiScope: fixture.electronApiScope,
+            });
             expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
             expect(fixture.debugMenuLog).toHaveBeenCalledWith(
                 "Keyboard shortcuts modal not loaded, importing dynamically..."
@@ -279,7 +298,8 @@ describe(registerMenuIpcListeners, () => {
                 "<h2>Keyboard Shortcuts</h2><ul class=\"shortcut-list\"><li class='shortcut-list-item'><strong>Open File:</strong> <span class='shortcut-key'>Ctrl+O</span></li><li class='shortcut-list-item'><strong>Save As:</strong> <span class='shortcut-key'>Ctrl+S</span></li><li class='shortcut-list-item'><strong>Print:</strong> <span class='shortcut-key'>Ctrl+P</span></li><li class='shortcut-list-item'><strong>Close Window:</strong> <span class='shortcut-key'>Ctrl+W</span></li><li class='shortcut-list-item'><strong>Reload:</strong> <span class='shortcut-key'>Ctrl+R</span></li><li class='shortcut-list-item'><strong>Toggle DevTools:</strong> <span class='shortcut-key'>Ctrl+Shift+I</span></li><li class='shortcut-list-item'><strong>Toggle Fullscreen:</strong> <span class='shortcut-key'>F11</span></li><li class='shortcut-list-item'><strong>Export:</strong> <span class='shortcut-key'>No default</span></li><li class='shortcut-list-item'><strong>Theme: Dark/Light:</strong> <span class='shortcut-key'>Settings > Theme</span></li></ul>";
             expect(fallbackHtml).toBe(expectedFallbackHtml);
             expect(fixture.showAboutModal).toHaveBeenCalledWith(
-                expectedFallbackHtml
+                expectedFallbackHtml,
+                { electronApiScope: fixture.electronApiScope }
             );
             expect(fixture.debugMenuLog).toHaveBeenCalledWith(
                 "Keyboard shortcuts modal module loaded, but showKeyboardShortcutsModal is unavailable"
