@@ -1,21 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import { copyTableAsCSV } from "../../../../../electron-app/utils/files/export/copyTableAsCSV.js";
-import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
-} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type ClipboardElectronAPI = {
     writeClipboardText?: (text: string) => boolean | Promise<boolean>;
 };
 
-function cleanupGlobals() {
-    resetRendererElectronApiCandidate();
-}
-
-function registerClipboardApi(api: ClipboardElectronAPI): void {
-    registerRendererElectronApiCandidate(api);
+function createClipboardApiScope(
+    api: ClipboardElectronAPI
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 describe(copyTableAsCSV, () => {
@@ -23,16 +20,15 @@ describe(copyTableAsCSV, () => {
         expect.assertions(1);
 
         let clipboardText = "";
+        const electronApiScope = createClipboardApiScope({
+            writeClipboardText: async (text) => {
+                clipboardText = text;
+                return true;
+            },
+        });
 
-        try {
-            registerClipboardApi({
-                writeClipboardText: async (text) => {
-                    clipboardText = text;
-                    return true;
-                },
-            });
-
-            await copyTableAsCSV([
+        await copyTableAsCSV(
+            [
                 {
                     extra: undefined,
                     name: "A, B",
@@ -43,46 +39,43 @@ describe(copyTableAsCSV, () => {
                     name: "C",
                     nested: null,
                 },
-            ]);
+            ],
+            { electronApiScope }
+        );
 
-            expect(clipboardText).toBe(
-                [
-                    "extra,name,nested",
-                    ',\"A, B\",\"{\"\"x\"\":1}\"',
-                    "z,C,",
-                ].join("\r\n")
-            );
-        } finally {
-            cleanupGlobals();
-        }
+        expect(clipboardText).toBe(
+            [
+                "extra,name,nested",
+                ',\"A, B\",\"{\"\"x\"\":1}\"',
+                "z,C,",
+            ].join("\r\n")
+        );
     });
 
     it("supports legacy objects table inputs without unsafe casts", async () => {
         expect.assertions(1);
 
         let clipboardText = "";
+        const electronApiScope = createClipboardApiScope({
+            writeClipboardText: (text) => {
+                clipboardText = text;
+                return true;
+            },
+        });
 
-        try {
-            registerClipboardApi({
-                writeClipboardText: (text) => {
-                    clipboardText = text;
-                    return true;
-                },
-            });
-
-            await copyTableAsCSV({
+        await copyTableAsCSV(
+            {
                 objects: () => [
                     {
                         cadence: 90,
                         speed: 10,
                     },
                 ],
-            });
+            },
+            { electronApiScope }
+        );
 
-            expect(clipboardText).toBe("cadence,speed\r\n90,10");
-        } finally {
-            cleanupGlobals();
-        }
+        expect(clipboardText).toBe("cadence,speed\r\n90,10");
     });
 
     it("rejects unsupported table inputs", async () => {

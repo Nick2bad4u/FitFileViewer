@@ -4,7 +4,10 @@
  * @readonly
  */
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import { getCopyTableAsCSVRuntime } from "./copyTableAsCSVRuntime.js";
 
 const CSV_CONFIG = {
@@ -36,6 +39,10 @@ type ObjectsTable = {
 
 type ClipboardElectronAPI = Required<Pick<ElectronAPI, "writeClipboardText">>;
 
+type CopyTableAsCSVOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
+
 /**
  * Copies the contents of a table as a CSV string to the clipboard
  *
@@ -47,12 +54,15 @@ type ClipboardElectronAPI = Required<Pick<ElectronAPI, "writeClipboardText">>;
  *
  * @throws When the input table cannot be normalized or clipboard copying fails.
  */
-export async function copyTableAsCSV(table: unknown): Promise<void> {
+export async function copyTableAsCSV(
+    table: unknown,
+    { electronApiScope }: CopyTableAsCSVOptions = {}
+): Promise<void> {
     try {
         const csvString = serializeTableToCSV(table);
 
         // Attempt clipboard copy
-        await copyToClipboard(csvString);
+        await copyToClipboard(csvString, electronApiScope);
     } catch (error) {
         console.error("[copyTableAsCSV] Failed to copy table:", error);
         throw error;
@@ -109,10 +119,13 @@ function buildCsvString(
  *
  * @throws When all clipboard copy strategies fail.
  */
-async function copyToClipboard(text: string): Promise<void> {
+async function copyToClipboard(
+    text: string,
+    electronApiScope: RendererElectronApiScope | undefined
+): Promise<void> {
     // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
     try {
-        const electronAPI = getCopyCsvElectronAPI();
+        const electronAPI = getCopyCsvElectronAPI(electronApiScope);
         if (electronAPI) {
             const { writeClipboardText } = electronAPI;
             const ok = Boolean(await writeClipboardText(text));
@@ -243,8 +256,13 @@ function processTableRows(rows: TableRow[]): TableRow[] {
     });
 }
 
-function getCopyCsvElectronAPI(): ClipboardElectronAPI | null {
-    return getRendererElectronApi<ClipboardElectronAPI>(isClipboardElectronAPI);
+function getCopyCsvElectronAPI(
+    scope?: RendererElectronApiScope
+): ClipboardElectronAPI | null {
+    return getRendererElectronApi<ClipboardElectronAPI>(
+        isClipboardElectronAPI,
+        scope
+    );
 }
 
 function isClipboardElectronAPI(value: unknown): value is ClipboardElectronAPI {

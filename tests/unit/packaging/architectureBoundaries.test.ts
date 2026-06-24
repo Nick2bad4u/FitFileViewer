@@ -84,7 +84,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/strictTests/rendering/core/showFitData.test.ts",
     "tests/unit/strictTests/ui/modals/aboutModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
-    "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/export/exportUtils.oauthState.test.ts",
     "tests/unit/utils/files/export/exportUtils.test.ts",
     "tests/unit/utils/files/export/exportUtils.ui.test.ts",
@@ -110,6 +109,7 @@ const rendererElectronApiRuntimeRegressionTests = [
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
+    "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
