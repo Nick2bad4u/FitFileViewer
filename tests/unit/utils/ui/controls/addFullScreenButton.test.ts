@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 type AddFullScreenButtonModule =
     typeof import("../../../../../electron-app/utils/ui/controls/addFullScreenButton.js");
 
@@ -107,11 +109,11 @@ describe("addFullScreenButton", () => {
         controlMocks.getActiveTabContent.mockReturnValue(activeContent);
 
         const setFullScreen = vi.fn<(flag: boolean) => void>();
-        await registerFullscreenApi({ setFullScreen });
+        const electronApiScope = createElectronApiScope({ setFullScreen });
 
         try {
             const module = await loadModule();
-            module.addFullScreenButton();
+            module.addFullScreenButton({ electronApiScope });
 
             const button = getRequiredFullscreenButton();
 
@@ -126,7 +128,7 @@ describe("addFullScreenButton", () => {
 
             expect(setFullScreen).toHaveBeenCalledWith(false);
 
-            module.setupFullscreenListeners();
+            module.setupFullscreenListeners({ electronApiScope });
 
             expect(screenfullMock.on).toHaveBeenCalledWith(
                 "change",
@@ -174,11 +176,11 @@ describe("addFullScreenButton", () => {
         controlMocks.getActiveTabContent.mockReturnValue(activeContent);
 
         const setFullScreen = vi.fn<(flag: boolean) => void>();
-        await registerFullscreenApi({ setFullScreen });
+        const electronApiScope = createElectronApiScope({ setFullScreen });
 
         try {
             const module = await loadModule();
-            module.setupFullscreenListeners();
+            module.setupFullscreenListeners({ electronApiScope });
 
             const button = getRequiredFullscreenButton();
 
@@ -238,7 +240,6 @@ async function cleanupStoredEventHandlers(): Promise<void> {
 
 async function cleanupTestState(): Promise<void> {
     await cleanupStoredEventHandlers();
-    await resetRegisteredElectronApi();
     await clearScreenfullRuntime();
     document.body.replaceChildren();
     document.body.style.overflow = "";
@@ -320,10 +321,12 @@ function getFullscreenButtonState(button: HTMLButtonElement) {
     };
 }
 
-async function registerFullscreenApi(api: TestElectronAPI): Promise<void> {
-    const { registerRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    registerRendererElectronApiCandidate(api);
+function createElectronApiScope(
+    api: TestElectronAPI
+): RendererElectronApiScope {
+    return {
+        getElectronAPI: () => api,
+    };
 }
 
 async function registerScreenfullRuntime(runtime: unknown): Promise<void> {
@@ -331,12 +334,6 @@ async function registerScreenfullRuntime(runtime: unknown): Promise<void> {
         await import("../../../../../electron-app/utils/ui/controls/screenfullRuntime.js");
 
     setScreenfullRuntime(runtime);
-}
-
-async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } =
-        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
-    resetRendererElectronApiCandidate();
 }
 
 function resetDocumentFullscreenMethods(): void {

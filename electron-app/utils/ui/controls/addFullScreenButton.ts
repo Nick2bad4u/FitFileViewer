@@ -5,11 +5,17 @@ import {
     resolveScreenfullRuntime,
     type ScreenfullRuntime,
 } from "./screenfullRuntime.js";
-import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { getAddFullScreenButtonRuntime } from "./addFullScreenButtonRuntime.js";
 
 type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
+type FullScreenButtonOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+};
 
 type StoredEventHandler = (event: Event) => void;
 
@@ -41,10 +47,20 @@ const NATIVE_FULLSCREEN_EVENTS = [
 let isWindowFullscreenRequested = false;
 let fullscreenKeydownHandler: null | StoredEventHandler = null;
 let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
+let activeElectronApiScope: RendererElectronApiScope | undefined;
 const addFullScreenButtonRuntime = getAddFullScreenButtonRuntime();
 
 const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
-    getRendererElectronApi(isElectronFullscreenApi) ?? undefined;
+    getRendererElectronApi(isElectronFullscreenApi, activeElectronApiScope) ??
+    undefined;
+
+function resolveElectronApiScope(
+    options: FullScreenButtonOptions | undefined
+): RendererElectronApiScope | undefined {
+    return options && Object.hasOwn(options, "electronApiScope")
+        ? options.electronApiScope
+        : activeElectronApiScope;
+}
 
 function isElectronFullscreenApi(
     value: unknown
@@ -92,8 +108,9 @@ const isChartFullscreenActive = (): boolean => {
     return nativeChartFullscreen || overlayChartFullscreen;
 };
 /** Adds a global fullscreen toggle button for the active tab content. */
-export function addFullScreenButton(): void {
+export function addFullScreenButton(options?: FullScreenButtonOptions): void {
     try {
+        activeElectronApiScope = resolveElectronApiScope(options);
         if (document.getElementById(FULLSCREEN_WRAPPER_ID)) {
             logWithContext(
                 "Fullscreen button already exists, skipping creation"
@@ -156,8 +173,11 @@ export function addFullScreenButton(): void {
     }
 }
 /** Sets up fullscreen state listeners, F11 handling, and initialization. */
-export function setupFullscreenListeners(): void {
+export function setupFullscreenListeners({
+    electronApiScope,
+}: FullScreenButtonOptions = {}): void {
     try {
+        activeElectronApiScope = electronApiScope;
         const screenfull = getScreenfullInstance();
         if (fullscreenKeydownHandler) {
             addFullScreenButtonRuntime.removeWindowEventListener(
@@ -248,8 +268,7 @@ export function setupFullscreenListeners(): void {
                 handleKeyboardShortcuts(event);
             }
         };
-        const keyListener =
-            addFullScreenButtonRuntime.createAbortController();
+        const keyListener = addFullScreenButtonRuntime.createAbortController();
         addFullScreenButtonRuntime.addWindowEventListener(
             "keydown",
             keyHandler,
@@ -308,6 +327,7 @@ export function resetFullscreenListenerStateForTests(): void {
         handleDOMContentLoaded
     );
     isWindowFullscreenRequested = false;
+    activeElectronApiScope = undefined;
 }
 /** Creates the icon wrapper used by the fullscreen button. */
 function createFullscreenIconWrapper(state: "enter" | "exit"): HTMLSpanElement {
@@ -650,9 +670,7 @@ function updateButtonState(button: HTMLElement, isFullscreen: boolean): void {
 // logWithContext moved above nativeToggleFullscreen to satisfy lint ordering
 /** Updates fullscreen button state based on whether a file is loaded. */
 function updateFullscreenButtonState(): void {
-    const btn = addFullScreenButtonRuntime.getElementById(
-        FULLSCREEN_BUTTON_ID
-    );
+    const btn = addFullScreenButtonRuntime.getElementById(FULLSCREEN_BUTTON_ID);
     if (!btn) return;
     const hasFile = addFullScreenButtonRuntime.hasBodyClass("app-has-file");
     btn.setAttribute("tabindex", hasFile ? "0" : "-1");

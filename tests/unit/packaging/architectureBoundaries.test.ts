@@ -84,7 +84,6 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/app/lifecycle/menuIpcListeners.test.ts",
     "tests/unit/utils/app/events.test.ts",
     "tests/unit/utils/ui/browser/fileBrowserTab.accessibility.test.ts",
-    "tests/unit/utils/ui/controls/addFullScreenButton.test.ts",
     "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts",
     "tests/unit/utils/ui/settingsModal.test.ts",
     "tests/unit/utils/state/integration/rendererStateIntegration.test.ts",
@@ -110,6 +109,7 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/utils/files/import/openFileSelector.test.ts",
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
     "tests/unit/utils/ui/browser/initFitBrowserFeatureGate.test.ts",
+    "tests/unit/utils/ui/controls/addFullScreenButton.test.ts",
     "tests/unit/utils/ui/links/externalLinkHandlers.test.ts",
     "tests/unit/utils/ui/mainUiDomUtils.test.ts",
 ] as const;
