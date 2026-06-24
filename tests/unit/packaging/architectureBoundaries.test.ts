@@ -14390,7 +14390,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(48);
+        expect.assertions(52);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -14427,17 +14427,27 @@ describe("architecture boundaries", () => {
         );
         expect(mapThemeToggleStateSource).toContain("createAbortController");
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
+        expect(mapThemeToggleSource).toContain("type MapThemeToggleRuntime");
+        expect(mapThemeToggleSource).not.toContain(
+            "const mapThemeToggleRuntime = getMapThemeToggleRuntime();"
+        );
+        expect(mapThemeToggleSource).toContain(
+            "runtime: MapThemeToggleRuntime = getMapThemeToggleRuntime()"
+        );
         expect(mapThemeToggleSource).toContain("createMapThemeChangedEvent");
         expect(mapThemeToggleSource).toContain("dispatchDocumentEvent");
         expect(mapThemeToggleSource).toContain("findExistingToggle()");
         expect(mapThemeToggleSource).toContain(
-            'mapThemeToggleRuntime.createElement("button")'
+            'runtime.createElement("button")'
         );
         expect(mapThemeToggleSource).toContain(
-            'mapThemeToggleRuntime.createSvgElement("svg")'
+            'runtime.createSvgElement("svg")'
         );
         expect(mapThemeToggleSource).toContain(
-            "mapThemeToggleRuntime.isBodyThemeDark()"
+            "runtime.isBodyThemeDark()"
+        );
+        expect(mapThemeToggleSource).toContain(
+            "registerMapThemeToggleUpdater(updateButtonState, runtime)"
         );
         expect(mapThemeToggleSource).not.toContain("document.querySelector");
         expect(mapThemeToggleSource).not.toContain("document.body");

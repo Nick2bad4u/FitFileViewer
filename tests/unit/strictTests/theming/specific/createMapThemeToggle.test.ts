@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { MapThemeToggleRuntime } from "../../../../../electron-app/utils/theming/specific/mapThemeToggleRuntime.js";
+
 vi.mock(
     import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
@@ -126,6 +128,54 @@ describe("createMapThemeToggle", () => {
         );
 
         eventController.abort();
+    });
+
+    it("creates button and dispatches changes through an injected runtime", async () => {
+        expect.assertions(8);
+
+        const { createMapThemeToggle, MAP_THEME_EVENTS } =
+            await importCreateMapThemeToggle();
+        const { showNotification } = await importShowNotificationMock();
+        const event = new CustomEvent(MAP_THEME_EVENTS.CHANGED, {
+            detail: { inverted: false },
+        });
+        const runtime: MapThemeToggleRuntime = {
+            addDocumentListener: vi.fn(),
+            clearTimeout: vi.fn(),
+            createAbortController: vi.fn(() => new AbortController()),
+            createElement: vi.fn((tagName) => document.createElement(tagName)),
+            createMapThemeChangedEvent: vi.fn(() => event),
+            createSvgElement: vi.fn((tagName) =>
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    tagName
+                )
+            ),
+            dispatchDocumentEvent: vi.fn(() => true),
+            findExistingToggle: vi.fn(() => null),
+            isBodyThemeDark: vi.fn(() => false),
+            setTimeout: vi.fn(() => 1),
+        };
+
+        const btn = createMapThemeToggle(runtime);
+
+        expect(runtime.findExistingToggle).toHaveBeenCalledOnce();
+        expect(runtime.createElement).toHaveBeenCalledWith("button");
+        expect(runtime.createSvgElement).toHaveBeenCalledWith("svg");
+        expect(runtime.addDocumentListener).toHaveBeenCalledTimes(2);
+
+        btn.click();
+
+        expect(runtime.createMapThemeChangedEvent).toHaveBeenCalledWith(
+            MAP_THEME_EVENTS.CHANGED,
+            false
+        );
+        expect(runtime.dispatchDocumentEvent).toHaveBeenCalledWith(event);
+        expect(showNotification).toHaveBeenCalledWith(
+            "Map theme set to light",
+            "success"
+        );
+        expect(btn.title).toBe("Map: Light theme (click for dark theme)");
     });
 
     it("renders the persisted light preference without active dark-map affordances", async () => {

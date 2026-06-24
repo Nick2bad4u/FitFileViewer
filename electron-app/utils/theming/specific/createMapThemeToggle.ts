@@ -16,7 +16,10 @@ import {
     MAP_THEME_EVENTS,
     registerMapThemeToggleUpdater,
 } from "./mapThemeToggleState.js";
-import { getMapThemeToggleRuntime } from "./mapThemeToggleRuntime.js";
+import {
+    getMapThemeToggleRuntime,
+    type MapThemeToggleRuntime,
+} from "./mapThemeToggleRuntime.js";
 
 type MapThemeIconVariant = "moon" | "sun";
 type SvgRayCoordinates = readonly [
@@ -36,8 +39,6 @@ function getThemeColorValue(value: unknown, fallback: string): string {
 
 export { MAP_THEME_EVENTS } from "./mapThemeToggleState.js";
 
-const mapThemeToggleRuntime = getMapThemeToggleRuntime();
-
 /**
  * Local storage key used for the map theme preference.
  *
@@ -50,27 +51,29 @@ export const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted";
  *
  * @returns The configured map theme toggle button.
  */
-export function createMapThemeToggle(): HTMLElement {
+export function createMapThemeToggle(
+    runtime: MapThemeToggleRuntime = getMapThemeToggleRuntime()
+): HTMLElement {
     try {
         // Prevent duplicate toggle creation when renderMap is invoked multiple times.
-        const existing = mapThemeToggleRuntime.findExistingToggle();
+        const existing = runtime.findExistingToggle();
         if (existing) {
             return existing;
         }
 
         const runningInTest = isTestEnvironment();
 
-        const button = mapThemeToggleRuntime.createElement("button");
+        const button = runtime.createElement("button");
         button.className = "map-action-btn map-theme-toggle";
         button.title = "Toggle map theme (independent of UI theme)";
         button.setAttribute("aria-label", "Toggle map theme");
 
         // Create icon container
-        const iconContainer = mapThemeToggleRuntime.createElement("span");
+        const iconContainer = runtime.createElement("span");
         iconContainer.className = "icon";
 
         // Create label
-        const label = mapThemeToggleRuntime.createElement("span");
+        const label = runtime.createElement("span");
         label.textContent = "Map Theme";
 
         button.append(iconContainer);
@@ -79,13 +82,13 @@ export function createMapThemeToggle(): HTMLElement {
         // Update button appearance based on current state
         const updateButtonState = (): void => {
             try {
-                const isDarkMode = mapThemeToggleRuntime.isBodyThemeDark();
+                const isDarkMode = runtime.isBodyThemeDark();
                 const isInverted = getMapThemeInverted();
                 const themeColors = getThemeColors();
                 const createIcon = (
                     variant: MapThemeIconVariant
                 ): SVGElement => {
-                    const svg = mapThemeToggleRuntime.createSvgElement("svg");
+                    const svg = runtime.createSvgElement("svg");
                     svg.setAttribute("viewBox", "0 0 20 20");
                     svg.setAttribute("width", "18");
                     svg.setAttribute("height", "18");
@@ -103,8 +106,7 @@ export function createMapThemeToggle(): HTMLElement {
                     );
 
                     if (variant === "moon") {
-                        const path =
-                            mapThemeToggleRuntime.createSvgElement("path");
+                        const path = runtime.createSvgElement("path");
                         path.setAttribute(
                             "d",
                             "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
@@ -117,8 +119,7 @@ export function createMapThemeToggle(): HTMLElement {
                     }
 
                     // Sun icon
-                    const circle =
-                        mapThemeToggleRuntime.createSvgElement("circle");
+                    const circle = runtime.createSvgElement("circle");
                     circle.setAttribute("cx", "10");
                     circle.setAttribute("cy", "10");
                     circle.setAttribute("r", "5");
@@ -183,8 +184,7 @@ export function createMapThemeToggle(): HTMLElement {
                         x2,
                         y2,
                     ] of rays) {
-                        const line =
-                            mapThemeToggleRuntime.createSvgElement("line");
+                        const line = runtime.createSvgElement("line");
                         line.setAttribute("x1", x1);
                         line.setAttribute("y1", y1);
                         line.setAttribute("x2", x2);
@@ -224,8 +224,7 @@ export function createMapThemeToggle(): HTMLElement {
         };
 
         // Handle button click
-        const listenerController =
-            mapThemeToggleRuntime.createAbortController();
+        const listenerController = runtime.createAbortController();
         button.addEventListener(
             "click",
             () => {
@@ -233,7 +232,7 @@ export function createMapThemeToggle(): HTMLElement {
                     const currentInverted = getMapThemeInverted(),
                         newInverted = !currentInverted;
 
-                    setMapThemeInverted(newInverted);
+                    setMapThemeInverted(newInverted, runtime);
                     updateButtonState();
 
                     const action = newInverted ? "dark" : "light";
@@ -255,7 +254,7 @@ export function createMapThemeToggle(): HTMLElement {
 
         // Install document listeners once and register the updater for the currently-mounted toggle.
         // This avoids leaking document/body listeners when the map UI is re-rendered.
-        registerMapThemeToggleUpdater(updateButtonState);
+        registerMapThemeToggleUpdater(updateButtonState, runtime);
 
         // Initial state update
         updateButtonState();
@@ -267,7 +266,7 @@ export function createMapThemeToggle(): HTMLElement {
             error
         );
         showNotification("Failed to create map theme toggle", "error");
-        return mapThemeToggleRuntime.createElement("div"); // Return empty div as fallback
+        return runtime.createElement("div"); // Return empty div as fallback
     }
 }
 
@@ -294,17 +293,20 @@ export function getMapThemeInverted(): boolean {
  *
  * @param inverted - Whether map should use dark theme.
  */
-export function setMapThemeInverted(inverted: boolean): void {
+export function setMapThemeInverted(
+    inverted: boolean,
+    runtime: MapThemeToggleRuntime = getMapThemeToggleRuntime()
+): void {
     try {
         // Persist via the canonical settings manager.
         setMapThemeSetting(inverted);
 
         // Dispatch custom event for other components to listen to
-        const event = mapThemeToggleRuntime.createMapThemeChangedEvent(
+        const event = runtime.createMapThemeChangedEvent(
             MAP_THEME_EVENTS.CHANGED,
             inverted
         );
-        mapThemeToggleRuntime.dispatchDocumentEvent(event);
+        runtime.dispatchDocumentEvent(event);
 
         console.log(
             `[createMapThemeToggle] Map theme inversion set to: ${inverted}`
