@@ -1,9 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CreateFieldTogglesSectionRuntimeScope } from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
 import { getCreateFieldTogglesSectionRuntime } from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
 
 describe("getCreateFieldTogglesSectionRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates elements and queries field checkbox toggles through the injected document", () => {
         expect.assertions(3);
 
@@ -68,6 +72,28 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const timer = Symbol(
+            "field-toggle-production-timer"
+        ) as unknown as ReturnType<typeof setTimeout>;
+        const timeoutMs = Number("120");
+        const handler = vi.fn<() => void>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getCreateFieldTogglesSectionRuntime();
+        const timerHandle = runtime.setTimeout(handler, timeoutMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
     it("schedules and clears timers through injected timer functions", () => {
