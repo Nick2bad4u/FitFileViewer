@@ -8901,7 +8901,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps flexible element-id HTMLElement checks behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const elementIdUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/dom/elementIdUtils.ts")
@@ -8937,6 +8937,9 @@ describe("architecture boundaries", () => {
             "defaultElementIdUtilsRuntimeScope"
         );
         expect(elementIdUtilsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(elementIdUtilsRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(elementIdUtilsRuntimeSource).not.toContain(
