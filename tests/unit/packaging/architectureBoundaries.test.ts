@@ -19165,7 +19165,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(26);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -19238,6 +19238,9 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(

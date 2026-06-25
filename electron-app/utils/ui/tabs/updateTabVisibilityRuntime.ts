@@ -1,5 +1,6 @@
 import {
     getBrowserClearTimeout,
+    getBrowserDocument,
     getBrowserRequestAnimationFrame,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
@@ -46,7 +47,7 @@ export interface UpdateTabVisibilityRuntime {
 const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope =
     {
         getClearTimeout: getBrowserClearTimeout,
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
         getRequestAnimationFrame: getBrowserRequestAnimationFrame,
         getSetTimeout: getBrowserSetTimeout,
     };
