@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getChartThemeRuntime } from "../../../../../electron-app/utils/charts/theming/chartThemeRuntime.js";
 
 describe("getChartThemeRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("reads body theme classes from an injected runtime scope", () => {
         expect.assertions(2);
 
@@ -85,6 +89,38 @@ describe("getChartThemeRuntime", () => {
         expect(getLocalStorage).toHaveBeenCalledOnce();
         expect(getMatchMedia).toHaveBeenCalledOnce();
         expect(classList.contains).toHaveBeenCalledWith("theme-light");
+        expect(getItem).toHaveBeenCalledWith("ffv-theme");
+        expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+    });
+
+    it("uses browser runtime providers for production browser defaults", () => {
+        expect.assertions(6);
+
+        const classList = {
+            contains: vi.fn<(themeClass: string) => boolean>(
+                (themeClass) => themeClass === "theme-dark"
+            ),
+        } as unknown as DOMTokenList;
+        const getItem = vi.fn<(key: string) => null | string>(() => "dark");
+        const matchMedia = vi.fn<
+            (query: string) => Pick<MediaQueryList, "matches">
+        >(() => ({ matches: true }));
+        vi.stubGlobal("document", {
+            body: {
+                classList,
+            },
+        });
+        vi.stubGlobal("localStorage", {
+            getItem,
+        });
+        vi.stubGlobal("matchMedia", matchMedia);
+
+        const runtime = getChartThemeRuntime();
+
+        expect(runtime.hasBodyThemeClass("theme-dark")).toBe(true);
+        expect(runtime.getSavedTheme()).toBe("dark");
+        expect(runtime.getSystemPreferredTheme()).toBe("dark");
+        expect(classList.contains).toHaveBeenCalledWith("theme-dark");
         expect(getItem).toHaveBeenCalledWith("ffv-theme");
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
     });

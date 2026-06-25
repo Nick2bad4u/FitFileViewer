@@ -16387,7 +16387,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(18);
 
         const violations = migratedChartThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -16419,12 +16419,24 @@ describe("architecture boundaries", () => {
             "const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = globalThis"
         );
         expect(chartThemeRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "getMatchMedia: getBrowserMatchMedia"
+        );
+        expect(chartThemeRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(chartThemeRuntimeSource).toContain(
+        expect(chartThemeRuntimeSource).not.toContain(
             "getLocalStorage: () => globalThis.localStorage"
         );
-        expect(chartThemeRuntimeSource).toContain(
+        expect(chartThemeRuntimeSource).not.toContain(
             "getMatchMedia: () => globalThis.matchMedia"
         );
         expect(chartThemeRuntimeSource).not.toContain("readonly document?:");

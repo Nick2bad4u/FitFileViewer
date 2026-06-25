@@ -1,3 +1,9 @@
+import {
+    getBrowserDocument,
+    getBrowserLocalStorage,
+    getBrowserMatchMedia,
+} from "../../runtime/browserRuntime.js";
+
 export type ChartTheme = "dark" | "light";
 
 export interface ChartThemeRuntimeScope {
@@ -23,9 +29,9 @@ export interface ChartThemeRuntime {
 const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
 
 const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getLocalStorage: () => globalThis.localStorage,
-    getMatchMedia: () => globalThis.matchMedia,
+    getDocument: getBrowserDocument,
+    getLocalStorage: getBrowserLocalStorage,
+    getMatchMedia: getBrowserMatchMedia,
 };
 
 function getScopeDocument(
