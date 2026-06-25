@@ -13428,7 +13428,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -13489,6 +13489,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
     });
