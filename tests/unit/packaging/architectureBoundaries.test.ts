@@ -12759,7 +12759,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps sanitize HTML allowlist fallback DOM APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(29);
 
         const sanitizerSource = stripComments(
             readRepositoryFile(
@@ -12802,15 +12802,27 @@ describe("architecture boundaries", () => {
             "defaultSanitizeHtmlAllowlistRuntimeScope"
         );
         expect(sanitizerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(sanitizerRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(sanitizerRuntimeSource).toContain(
+            "getDOMParser: getBrowserDOMParser"
+        );
+        expect(sanitizerRuntimeSource).not.toContain(
             "getDOMParser: () => globalThis.DOMParser"
         );
         expect(sanitizerRuntimeSource).toContain(
+            "getElement: getBrowserElement"
+        );
+        expect(sanitizerRuntimeSource).not.toContain(
             "getElement: () => globalThis.Element"
         );
         expect(sanitizerRuntimeSource).toContain(
+            "getNodeFilter: getBrowserNodeFilter"
+        );
+        expect(sanitizerRuntimeSource).not.toContain(
             "getNodeFilter: () => globalThis.NodeFilter"
         );
         expect(sanitizerRuntimeSource).not.toContain(

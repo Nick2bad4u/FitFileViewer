@@ -45,6 +45,27 @@ describe("getSanitizeHtmlAllowlistRuntime", () => {
         expect(parsed.body.textContent).toBe("safe");
     });
 
+    it("creates sanitizer DOM values through default browser providers", () => {
+        expect.assertions(6);
+
+        const runtime = getSanitizeHtmlAllowlistRuntime();
+        const fragment = runtime.createDocumentFragment();
+        const parsed = runtime
+            .createDomParser()
+            .parseFromString("<main><strong>safe</strong></main>", "text/html");
+        const text = runtime.createTextNode("fallback");
+
+        fragment.append(text);
+        const walker = runtime.createElementTreeWalker(parsed.body);
+
+        expect(fragment).toBeInstanceOf(DocumentFragment);
+        expect(text.textContent).toBe("fallback");
+        expect(runtime.isElement(parsed.body)).toBe(true);
+        expect(walker.nextNode()).toBe(parsed.querySelector("main"));
+        expect(walker.nextNode()).toBe(parsed.querySelector("strong"));
+        expect(parsed.body.textContent).toBe("safe");
+    });
+
     it("fails clearly when required browser primitives are unavailable", () => {
         expect.assertions(6);
 

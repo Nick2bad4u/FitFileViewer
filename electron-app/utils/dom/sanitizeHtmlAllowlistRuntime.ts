@@ -1,3 +1,10 @@
+import {
+    getBrowserDocument,
+    getBrowserDOMParser,
+    getBrowserElement,
+    getBrowserNodeFilter,
+} from "../runtime/browserRuntime.js";
+
 type SanitizeHtmlAllowlistDocument = Pick<
     Document,
     "createDocumentFragment" | "createTextNode" | "createTreeWalker"
@@ -28,10 +35,10 @@ export interface SanitizeHtmlAllowlistRuntime {
 
 const defaultSanitizeHtmlAllowlistRuntimeScope: SanitizeHtmlAllowlistRuntimeScope =
     {
-        getDocument: () => globalThis.document,
-        getDOMParser: () => globalThis.DOMParser,
-        getElement: () => globalThis.Element,
-        getNodeFilter: () => globalThis.NodeFilter,
+        getDocument: getBrowserDocument,
+        getDOMParser: getBrowserDOMParser,
+        getElement: getBrowserElement,
+        getNodeFilter: getBrowserNodeFilter,
     };
 
 function getRequiredDocument(
