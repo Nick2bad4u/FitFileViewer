@@ -228,13 +228,10 @@ export function addLapSelector(
         helpTooltip.classList.add("is-visible");
         helpBtn.setAttribute("aria-expanded", "true");
         if (tooltipPinned) {
-            runtime.addDocumentMousedownListener(
-                handleOutsideClick,
-                {
-                    capture: true,
-                    signal,
-                }
-            );
+            runtime.addDocumentMousedownListener(handleOutsideClick, {
+                capture: true,
+                signal,
+            });
             runtime.addDocumentKeydownListener(handleEscapeKey, {
                 signal,
             });
@@ -301,7 +298,7 @@ export function addLapSelector(
             opt.selected = false;
         }
         lapSelectEl.selectedIndex = 0;
-        lapSelectEl.dispatchEvent(new Event("change"));
+        lapSelectEl.dispatchEvent(runtime.createSelectChangeEvent());
     }
 
     const renderToggleIcon = (on: boolean): void => {
@@ -348,7 +345,7 @@ export function addLapSelector(
                     lapSelectEl.selectedOptions[0]?.value !== "all")
             ) {
                 lapSelectEl.selectedIndex = 0;
-                lapSelectEl.dispatchEvent(new Event("change"));
+                lapSelectEl.dispatchEvent(runtime.createSelectChangeEvent());
             }
         }
     }
@@ -421,7 +418,7 @@ export function addLapSelector(
                         lapSelectEl.options[0].selected = false;
                     }
                 }
-                lapSelectEl.dispatchEvent(new Event("change"));
+                lapSelectEl.dispatchEvent(runtime.createSelectChangeEvent());
             }
         },
         { signal }
@@ -440,7 +437,7 @@ export function addLapSelector(
                 if (lapSelectEl.options[0]) {
                     lapSelectEl.options[0].selected = false;
                 }
-                lapSelectEl.dispatchEvent(new Event("change"));
+                lapSelectEl.dispatchEvent(runtime.createSelectChangeEvent());
             }
         },
         { signal }
@@ -480,7 +477,7 @@ export function addLapSelector(
             } else if (event.deltaY < 0 && idx > 0) {
                 lapSelectEl.selectedIndex = idx - 1;
             }
-            lapSelectEl.dispatchEvent(new Event("change"));
+            lapSelectEl.dispatchEvent(runtime.createSelectChangeEvent());
         },
         { passive: false, signal }
     );

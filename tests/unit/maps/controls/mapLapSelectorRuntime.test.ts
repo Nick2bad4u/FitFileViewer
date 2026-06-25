@@ -56,6 +56,34 @@ describe("getMapLapSelectorRuntime", () => {
         expect(runtime.createElement("button")).toBe(element);
     });
 
+    it("creates select change events through the injected Event runtime", () => {
+        expect.assertions(3);
+
+        class TestEvent extends Event {
+            public constructor(type: string) {
+                super(`test:${type}`);
+            }
+        }
+        const runtime = getMapLapSelectorRuntime({
+            getEvent: () => TestEvent,
+        });
+        const event = runtime.createSelectChangeEvent();
+
+        expect(event).toBeInstanceOf(TestEvent);
+        expect(event.type).toBe("test:change");
+        expect(event.bubbles).toBe(false);
+    });
+
+    it("fails clearly when the Event runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMapLapSelectorRuntime({});
+
+        expect(() => {
+            runtime.createSelectChangeEvent();
+        }).toThrow("mapLapSelector requires an Event runtime");
+    });
+
     it("registers and removes document mouseup listeners through the injected document", () => {
         expect.assertions(2);
 
@@ -156,13 +184,14 @@ describe("getMapLapSelectorRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const eventTarget = new EventTarget();
         const documentRef = createDocumentRuntime(eventTarget);
         const legacyScope = {
             AbortController,
             document: documentRef,
+            Event,
         } as unknown as MapLapSelectorRuntimeScope;
         const runtime = getMapLapSelectorRuntime(legacyScope);
 
@@ -175,6 +204,9 @@ describe("getMapLapSelectorRuntime", () => {
         expect(() => {
             runtime.createElement("div");
         }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.createSelectChangeEvent();
+        }).toThrow("mapLapSelector requires an Event runtime");
     });
 });
 

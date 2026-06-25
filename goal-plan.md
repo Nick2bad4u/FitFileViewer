@@ -535,6 +535,9 @@ instead of a broad `globalThis` default scope or legacy direct scope properties.
 Map lap selector control, label, option, and help-tooltip element creation now also routes through
 `mapLapSelectorRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
 `document.createElement` calls from returning to `mapLapSelector.ts`.
+Map lap selector select change-event construction now also routes through `mapLapSelectorRuntime.ts` instead of
+calling `new Event("change")` directly inside `mapLapSelector.ts`, with focused runtime coverage and architecture
+guardrails blocking direct Event construction and legacy direct Event scope properties from returning.
 Chart settings header reset-button feedback timing, range-slider re-render debounce, and listener
 abort-controller creation now route through `createSettingsHeaderRuntime.ts` instead of calling timer globals or
 constructing `AbortController` directly inside `createSettingsHeader.ts`, with focused runtime coverage and

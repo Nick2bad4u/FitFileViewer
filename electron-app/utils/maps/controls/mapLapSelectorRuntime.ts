@@ -12,6 +12,7 @@ export interface MapLapSelectorRuntimeScope {
     readonly getDocument?:
         | (() => MapLapSelectorDocument | undefined)
         | undefined;
+    readonly getEvent?: (() => typeof globalThis.Event | undefined) | undefined;
 }
 
 export interface MapLapSelectorRuntime {
@@ -31,6 +32,7 @@ export interface MapLapSelectorRuntime {
     readonly createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
+    readonly createSelectChangeEvent: () => Event;
     readonly removeDocumentKeydownListener: (
         listener: MapLapSelectorKeydownListener
     ) => void;
@@ -56,7 +58,19 @@ function getRuntimeDocument(
 const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getDocument: () => globalThis.document,
+    getEvent: () => globalThis.Event,
 };
+
+function getRequiredEvent(
+    scope: MapLapSelectorRuntimeScope
+): typeof globalThis.Event {
+    const EventConstructor = scope.getEvent?.();
+    if (typeof EventConstructor !== "function") {
+        throw new TypeError("mapLapSelector requires an Event runtime");
+    }
+
+    return EventConstructor;
+}
 
 export function getMapLapSelectorRuntime(
     scope: MapLapSelectorRuntimeScope = defaultMapLapSelectorRuntimeScope
@@ -94,6 +108,9 @@ export function getMapLapSelectorRuntime(
             const runtimeDocument = getRuntimeDocument(scope);
 
             return runtimeDocument.createElement(tagName);
+        },
+        createSelectChangeEvent(): Event {
+            return new (getRequiredEvent(scope))("change");
         },
         removeDocumentKeydownListener(listener): void {
             const runtimeDocument = getRuntimeDocument(scope);

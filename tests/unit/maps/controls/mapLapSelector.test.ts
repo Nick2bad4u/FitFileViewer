@@ -125,10 +125,7 @@ describe("mapLapSelector", () => {
 
         setActiveFitRawData(
             {
-                lapMesgs: [
-                    {},
-                    {},
-                ],
+                lapMesgs: [{}, {}],
             },
             { source: "test" }
         );
@@ -139,6 +136,7 @@ describe("mapLapSelector", () => {
             addDocumentMouseupListener: vi.fn(),
             createAbortController: vi.fn(() => new AbortController()),
             createElement: vi.fn((tagName) => document.createElement(tagName)),
+            createSelectChangeEvent: vi.fn(() => new Event("change")),
             removeDocumentKeydownListener: vi.fn(),
             removeDocumentMousedownListener: vi.fn(),
             removeDocumentMouseupListener: vi.fn(),

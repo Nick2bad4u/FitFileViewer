@@ -1190,7 +1190,7 @@ const directMapMeasureToolRuntimeGlobalPattern =
 const directMapMeasureToolRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapLapSelectorRuntimeGlobalPattern =
-    /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b/u;
+    /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+(?:AbortController|Event)\b/u;
 const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:createElement|createTextNode)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapDrawLapsRuntimeAmbientFallbackPattern =
@@ -14381,7 +14381,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document access behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(33);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -14416,7 +14416,11 @@ describe("architecture boundaries", () => {
         );
         expect(mapLapSelectorSource).toContain("createAbortController");
         expect(mapLapSelectorSource).toContain("runtime.createElement");
+        expect(mapLapSelectorSource).toContain(
+            "runtime.createSelectChangeEvent()"
+        );
         expect(mapLapSelectorSource).not.toContain("document.createElement");
+        expect(mapLapSelectorSource).not.toContain('new Event("change")');
         expect(mapLapSelectorRuntimeSource).toContain(
             "defaultMapLapSelectorRuntimeScope"
         );
@@ -14429,6 +14433,9 @@ describe("architecture boundaries", () => {
         expect(mapLapSelectorRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "getEvent: () => globalThis.Event"
+        );
         expect(mapLapSelectorRuntimeSource).not.toContain(
             "MapLapSelectorRuntimeScope = globalThis"
         );
@@ -14438,10 +14445,12 @@ describe("architecture boundaries", () => {
         expect(mapLapSelectorRuntimeSource).not.toContain(
             "readonly document?:"
         );
+        expect(mapLapSelectorRuntimeSource).not.toContain("readonly Event?:");
         expect(mapLapSelectorRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(mapLapSelectorRuntimeSource).not.toContain("scope.document");
+        expect(mapLapSelectorRuntimeSource).not.toContain("scope.Event");
         expect(mapLapSelectorRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
         );
@@ -14452,6 +14461,12 @@ describe("architecture boundaries", () => {
             "const AbortControllerConstructor = scope.getAbortController?.();"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
+            "const EventConstructor = scope.getEvent?.();"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            'new (getRequiredEvent(scope))("change")'
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
             "runtimeDocument.removeEventListener"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
@@ -14459,6 +14474,9 @@ describe("architecture boundaries", () => {
         );
         expect(mapLapSelectorRuntimeSource).toContain(
             "mapLapSelector requires an AbortController runtime"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "mapLapSelector requires an Event runtime"
         );
     });
 
