@@ -1,4 +1,7 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+} from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
@@ -47,7 +50,7 @@ const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileBut
     {
         getAbortController: getBrowserAbortController,
         getChartOverlayColorPalette: getGlobalChartOverlayColorPalette,
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
         getOpen: getGlobalOpen,
     };
 

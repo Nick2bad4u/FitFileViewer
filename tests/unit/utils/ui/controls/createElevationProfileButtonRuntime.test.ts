@@ -112,7 +112,7 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const utils = getCreateElevationProfileButtonRuntime();
         const palette = ["#ff0000", "#00ff00"];
@@ -133,6 +133,8 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         expect(controller).toBeInstanceOf(AbortController);
         expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.createElement("span")).toBeInstanceOf(HTMLSpanElement);
+        expect(utils.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
         expect(utils.getChartOverlayColorPalette()).toBe(palette);
         expect(openedWindow).toBe(popup);
         expect(open).toHaveBeenCalledOnce();

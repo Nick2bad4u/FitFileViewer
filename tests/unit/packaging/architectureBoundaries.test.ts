@@ -16159,7 +16159,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(28);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -16204,8 +16204,14 @@ describe("architecture boundaries", () => {
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "createElementNS"
