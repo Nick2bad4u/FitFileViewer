@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 type RenderChartDirectRerenderDocument = Pick<
     Document,
     "defaultView" | "querySelector"
@@ -27,8 +32,8 @@ const chartContainerSelectors = [
 
 const defaultRenderChartDirectRerenderRuntimeScope: RenderChartDirectRerenderRuntimeScope =
     {
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getHTMLElementConstructor(

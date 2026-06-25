@@ -18083,7 +18083,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const violations = migratedRenderChartDirectRerenderRuntimeFiles
             .filter((relativeFile) =>
@@ -18121,9 +18121,18 @@ describe("architecture boundaries", () => {
             "defaultRenderChartDirectRerenderRuntimeScope"
         );
         expect(runtimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "../../runtime/browserRuntime.js"
         );
         expect(runtimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(runtimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(runtimeSource).not.toContain(

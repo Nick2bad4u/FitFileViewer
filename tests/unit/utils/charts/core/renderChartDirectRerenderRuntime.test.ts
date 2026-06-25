@@ -74,6 +74,25 @@ describe("getRenderChartDirectRerenderRuntime", () => {
         }
     });
 
+    it("resolves production DOM defaults through browser runtime providers", () => {
+        expect.assertions(2);
+
+        try {
+            const chartContainer = document.createElement("section");
+            chartContainer.id = "content_chart";
+            document.body.append(chartContainer);
+
+            const utils = getRenderChartDirectRerenderRuntime();
+
+            expect(utils.queryChartContainer()).toBe(chartContainer);
+            expect(utils.querySelector("#content_chart")).toBe(
+                chartContainer
+            );
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
