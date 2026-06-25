@@ -1,5 +1,7 @@
 import {
     getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -95,8 +97,8 @@ function getTimeoutScheduler(
 const defaultEnsureChartSettingsDropdownsRuntimeScope: EnsureChartSettingsDropdownsRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
         getSetTimeout: getBrowserSetTimeout,
     };
 

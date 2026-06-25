@@ -113,6 +113,20 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, 0);
     });
 
+    it("uses browser runtime providers for production document and HTMLElement defaults", () => {
+        expect.assertions(5);
+
+        const runtime = getEnsureChartSettingsDropdownsRuntime();
+        const element = runtime.createElement("div");
+        const text = document.createTextNode("label");
+
+        expect(runtime.document).toBe(document);
+        expect(runtime.getBody()).toBe(document.body);
+        expect(element).toBeInstanceOf(HTMLElement);
+        expect(runtime.isHTMLElement(element)).toBe(true);
+        expect(runtime.isHTMLElement(text)).toBe(false);
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(5);
 

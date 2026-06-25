@@ -6132,7 +6132,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(23);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -6194,9 +6194,15 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartSettingsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(chartSettingsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(chartSettingsRuntimeSource).toContain(
