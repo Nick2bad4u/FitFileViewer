@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 const BROWSER_TAB_BUTTON_ID = "tab_browser";
 const BROWSER_TAB_CONTENT_ID = "content_browser";
 
@@ -30,8 +35,8 @@ export interface FitBrowserFeatureGateRuntime {
 
 const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScope =
     {
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getHTMLElementConstructor(
