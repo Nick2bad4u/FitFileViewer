@@ -136,6 +136,26 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(runtime.isHTMLElement(element)).toBe(true);
     });
 
+    it("uses browser runtime providers for production DOM defaults", () => {
+        expect.assertions(6);
+
+        document.body.replaceChildren();
+        const element = document.createElement("div");
+        element.className = "status";
+        document.body.append(element);
+
+        const runtime = getChartStatusIndicatorRuntime();
+        const createdElement = runtime.createElement("span");
+        const textNode = runtime.createTextNode("Chart status");
+
+        expect(runtime.getDocument()).toBe(document);
+        expect(runtime.getBody()).toBe(document.body);
+        expect(createdElement.ownerDocument).toBe(document);
+        expect(textNode.ownerDocument).toBe(document);
+        expect(runtime.querySelector(".status")).toBe(element);
+        expect(runtime.isHTMLElement(element)).toBe(true);
+    });
+
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 

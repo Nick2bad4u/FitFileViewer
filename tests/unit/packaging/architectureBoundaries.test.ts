@@ -17698,7 +17698,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(49);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -17745,13 +17745,19 @@ describe("architecture boundaries", () => {
             "getClearTimeout: getBrowserClearTimeout"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "getHTMLElement: () => globalThis.HTMLElement"
+            "getHTMLElement: getBrowserHTMLElement"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"

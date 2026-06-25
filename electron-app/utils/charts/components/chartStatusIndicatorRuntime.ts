@@ -1,6 +1,8 @@
 import {
     getBrowserAbortController,
     getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserHTMLElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -79,8 +81,8 @@ const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope 
         getAbortController: getBrowserAbortController,
         getAddEventListener: () => globalThis.addEventListener,
         getClearTimeout: getBrowserClearTimeout,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
         getSetTimeout: getBrowserSetTimeout,
         getViewport: getGlobalViewport,
     };
