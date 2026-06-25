@@ -7669,7 +7669,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal browser APIs behind the runtime facade", () => {
-        expect.assertions(62);
+        expect.assertions(72);
 
         const timingViolations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -7785,33 +7785,63 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).not.toContain("scope.setTimeout");
         expect(aboutModalRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getDOMParser: getBrowserDOMParser"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getDOMParser: () => globalThis.DOMParser"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getElement: getBrowserElement"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getElement: () => globalThis.Element"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getNodeFilter: getBrowserNodeFilter"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getNodeFilter: () => globalThis.NodeFilter"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(aboutModalRuntimeSource).toContain(

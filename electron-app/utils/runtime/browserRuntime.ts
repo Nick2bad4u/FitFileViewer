@@ -40,6 +40,16 @@ export function getBrowserDocument(): Document | undefined {
     return globalThis.document;
 }
 
+export function getBrowserDOMParser():
+    | typeof globalThis.DOMParser
+    | undefined {
+    return globalThis.DOMParser;
+}
+
+export function getBrowserElement(): typeof globalThis.Element | undefined {
+    return globalThis.Element;
+}
+
 export function getBrowserEventTarget(): EventTarget | undefined {
     return globalThis;
 }
@@ -116,6 +126,12 @@ export function getBrowserMutationObserver():
     | typeof globalThis.MutationObserver
     | undefined {
     return globalThis.MutationObserver;
+}
+
+export function getBrowserNodeFilter():
+    | typeof globalThis.NodeFilter
+    | undefined {
+    return globalThis.NodeFilter;
 }
 
 export function getBrowserSetInterval():

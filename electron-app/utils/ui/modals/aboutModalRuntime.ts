@@ -1,4 +1,16 @@
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+import {
+    getBrowserCancelAnimationFrame,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserDOMParser,
+    getBrowserElement,
+    getBrowserHTMLElement,
+    getBrowserKeyboardEvent,
+    getBrowserNodeFilter,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type AboutModalTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
@@ -67,16 +79,16 @@ export interface AboutModalRuntime {
 }
 
 const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = {
-    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDocument: () => globalThis.document,
-    getDOMParser: () => globalThis.DOMParser,
-    getElement: () => globalThis.Element,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getKeyboardEvent: () => globalThis.KeyboardEvent,
-    getNodeFilter: () => globalThis.NodeFilter,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getSetTimeout: () => globalThis.setTimeout,
+    getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+    getClearTimeout: getBrowserClearTimeout,
+    getDocument: getBrowserDocument,
+    getDOMParser: getBrowserDOMParser,
+    getElement: getBrowserElement,
+    getHTMLElement: getBrowserHTMLElement,
+    getKeyboardEvent: getBrowserKeyboardEvent,
+    getNodeFilter: getBrowserNodeFilter,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getScopeCancelAnimationFrame(
