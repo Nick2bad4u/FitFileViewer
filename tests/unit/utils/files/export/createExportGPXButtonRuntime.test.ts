@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getCreateExportGPXButtonRuntime,
@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/files/export/createExportGPXButtonRuntime.js";
 
 describe("getCreateExportGPXButtonRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -119,6 +124,30 @@ describe("getCreateExportGPXButtonRuntime", () => {
         expect(handle).toBe(42);
         expect(callbackRan).toBe(true);
         expect(scheduledTimeout).toBe(cleanupDelayMs);
+    });
+
+    it("uses browser runtime providers for production timeout defaults", () => {
+        expect.assertions(4);
+
+        const callback = vi.fn<() => void>();
+        const cleanupDelayMs = Number.parseInt("100", 10);
+        const timer = 17 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getCreateExportGPXButtonRuntime();
+        const timerHandle = runtime.setTimeout(callback, cleanupDelayMs);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(
+            callback,
+            cleanupDelayMs
+        );
+        expect(callback).not.toHaveBeenCalled();
+        expect(setTimeoutMock).toHaveBeenCalledOnce();
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {

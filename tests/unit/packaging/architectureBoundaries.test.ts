@@ -12913,7 +12913,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(25);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -12991,7 +12991,13 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(createExportGPXButtonRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "getBrowserSetTimeout"
         );
         expect(createExportGPXButtonRuntimeSource).toContain(
             "getURL: () => globalThis.URL"

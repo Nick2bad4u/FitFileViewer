@@ -1,4 +1,7 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
@@ -81,7 +84,7 @@ const defaultCreateExportGPXButtonRuntimeScope: CreateExportGPXButtonRuntimeScop
     {
         getAbortController: getBrowserAbortController,
         getDocument: () => globalThis.document,
-        getSetTimeout: () => globalThis.setTimeout,
+        getSetTimeout: getBrowserSetTimeout,
         getURL: () => globalThis.URL,
     };
 
