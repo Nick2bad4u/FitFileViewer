@@ -6205,7 +6205,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(48);
+        expect.assertions(50);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -6294,9 +6294,15 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderRuntimeSource).not.toContain("scope.Event");
         expect(settingsHeaderRuntimeSource).not.toContain("scope.setTimeout");
         expect(settingsHeaderRuntimeSource).toContain(
-            "getSetTimeout: () => globalThis.setTimeout"
+            "getSetTimeout: getBrowserSetTimeout"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(settingsHeaderRuntimeSource).toContain(

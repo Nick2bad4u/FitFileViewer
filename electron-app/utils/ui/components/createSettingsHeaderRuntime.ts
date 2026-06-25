@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type CreateSettingsHeaderTimer = ReturnType<
     typeof globalThis.setTimeout
@@ -86,11 +90,11 @@ function getSetTimeout(
 
 const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
-        getClearTimeout: () => globalThis.clearTimeout,
+        getAbortController: getBrowserAbortController,
+        getClearTimeout: getBrowserClearTimeout,
         getDocument: () => globalThis.document,
         getEvent: () => globalThis.Event,
-        getSetTimeout: () => globalThis.setTimeout,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 export function getCreateSettingsHeaderRuntime(
