@@ -1,3 +1,8 @@
+import {
+    getBrowserDateNow,
+    getBrowserPerformance,
+} from "../../runtime/browserRuntime.js";
+
 export type StateMiddlewareDateNow = () => number;
 
 export interface StateMiddlewarePerformance {
@@ -19,8 +24,8 @@ export interface StateMiddlewareRuntime {
 }
 
 const defaultStateMiddlewareRuntimeScope: StateMiddlewareRuntimeScope = {
-    getDateNow: () => Date.now,
-    getPerformance: () => globalThis.performance,
+    getDateNow: getBrowserDateNow,
+    getPerformance: getBrowserPerformance,
 };
 
 export function getStateMiddlewareRuntime(

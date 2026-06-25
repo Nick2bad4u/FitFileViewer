@@ -4434,7 +4434,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state middleware performance history and timing behind typed boundaries", () => {
-        expect.assertions(24);
+        expect.assertions(27);
 
         const scannedFiles = [
             "electron-app/utils/state/core/stateMiddleware.ts",
@@ -4486,9 +4486,18 @@ describe("architecture boundaries", () => {
             "defaultStateMiddlewareRuntimeScope"
         );
         expect(stateMiddlewareRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            '"../../runtime/browserRuntime.js"'
         );
         expect(stateMiddlewareRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(stateMiddlewareRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(stateMiddlewareRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(stateMiddlewareRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(stateMiddlewareRuntimeSource).toContain(

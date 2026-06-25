@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getStateMiddlewareRuntime,
@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/state/core/stateMiddlewareRuntime.js";
 
 describe("getStateMiddlewareRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("reads wall-clock and performance time through injected providers", () => {
         expect.assertions(4);
 
@@ -55,5 +60,24 @@ describe("getStateMiddlewareRuntime", () => {
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(5);
+
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
+        const now = vi.fn(function defaultPerformanceNow(this: Performance) {
+            return 567.8;
+        });
+
+        vi.stubGlobal("performance", { now });
+
+        const runtime = getStateMiddlewareRuntime();
+
+        expect(runtime.dateNow()).toBe(1234);
+        expect(runtime.performanceNow()).toBe(567.8);
+        expect(dateNow).toHaveBeenCalledOnce();
+        expect(now).toHaveBeenCalledOnce();
+        expect(now.mock.contexts[0]).toBe(globalThis.performance);
     });
 });
