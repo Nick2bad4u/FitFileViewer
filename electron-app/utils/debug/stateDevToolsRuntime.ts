@@ -1,3 +1,11 @@
+import {
+    getBrowserClearInterval,
+    getBrowserDateNow,
+    getBrowserLocation,
+    getBrowserPerformance,
+    getBrowserSetInterval,
+} from "../runtime/browserRuntime.js";
+
 export type StateDevToolsIntervalHandle = ReturnType<
     typeof globalThis.setInterval
 >;
@@ -42,12 +50,12 @@ export interface StateDevToolsRuntime {
 }
 
 const defaultStateDevToolsRuntimeScope: StateDevToolsRuntimeScope = {
-    getClearInterval: () => globalThis.clearInterval,
-    getDateNow: () => Date.now,
+    getClearInterval: getBrowserClearInterval,
+    getDateNow: getBrowserDateNow,
     getIsRendererScope: () => Reflect.has(globalThis, "document"),
-    getLocation: () => globalThis.location,
-    getPerformance: () => globalThis.performance,
-    getSetInterval: () => globalThis.setInterval,
+    getLocation: getBrowserLocation,
+    getPerformance: getBrowserPerformance,
+    getSetInterval: getBrowserSetInterval,
 };
 
 function getRequiredDateNow(scope: StateDevToolsRuntimeScope): () => number {

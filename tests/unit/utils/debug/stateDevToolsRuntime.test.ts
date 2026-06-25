@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getStateDevToolsRuntime } from "../../../../electron-app/utils/debug/stateDevToolsRuntime.js";
 
 describe("stateDevToolsRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("treats localhost renderer scopes as development", () => {
         expect.assertions(2);
 
@@ -145,6 +150,50 @@ describe("stateDevToolsRuntime", () => {
         expect(getIsRendererScope).toHaveBeenCalledOnce();
         expect(getSetInterval).toHaveBeenCalledOnce();
         expect(getClearInterval).toHaveBeenCalledOnce();
+        expect(setIntervalMock).toHaveBeenCalledWith(callback, delay);
+        expect(clearIntervalMock).toHaveBeenCalledWith(intervalHandle);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(11);
+
+        const intervalHandle = 222 as ReturnType<typeof globalThis.setInterval>;
+        const callback = vi.fn();
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
+        const memory = {
+            jsHeapSizeLimit: 3,
+            totalJSHeapSize: 2,
+            usedJSHeapSize: 1,
+        };
+        const now = vi.fn(function defaultPerformanceNow(this: Performance) {
+            return 56.78;
+        });
+        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
+        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
+            () => intervalHandle
+        );
+        const delay = Number("1000");
+
+        vi.stubGlobal("clearInterval", clearIntervalMock);
+        vi.stubGlobal("document", {});
+        vi.stubGlobal("location", { hostname: "localhost", protocol: "http:" });
+        vi.stubGlobal("performance", { memory, now });
+        vi.stubGlobal("setInterval", setIntervalMock);
+
+        const utils = getStateDevToolsRuntime();
+
+        expect(utils.isDevelopmentScope()).toBe(true);
+        expect(utils.dateNow()).toBe(1234);
+        expect(utils.performanceNow()).toBe(56.78);
+        expect(utils.getPerformanceMemory()).toBe(memory);
+        const handle = utils.setInterval(callback, delay);
+        expect(handle).toBe(intervalHandle);
+        utils.clearInterval(handle);
+
+        expect(dateNow).toHaveBeenCalledOnce();
+        expect(now).toHaveBeenCalledOnce();
+        expect(now.mock.contexts[0]).toBe(globalThis.performance);
         expect(setIntervalMock).toHaveBeenCalledWith(callback, delay);
         expect(clearIntervalMock).toHaveBeenCalledWith(intervalHandle);
         expect(callback).not.toHaveBeenCalled();

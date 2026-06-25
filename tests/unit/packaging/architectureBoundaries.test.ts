@@ -10873,7 +10873,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(47);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -10924,18 +10924,39 @@ describe("architecture boundaries", () => {
             "const defaultStateDevToolsRuntimeScope: StateDevToolsRuntimeScope = globalThis"
         );
         expect(stateDevToolsRuntimeSource).toContain(
-            "getClearInterval: () => globalThis.clearInterval"
+            '"../runtime/browserRuntime.js"'
         );
         expect(stateDevToolsRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "getClearInterval: getBrowserClearInterval"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
         );
         expect(stateDevToolsRuntimeSource).toContain(
             'getIsRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(stateDevToolsRuntimeSource).toContain(
-            "getPerformance: () => globalThis.performance"
+            "getLocation: getBrowserLocation"
         );
         expect(stateDevToolsRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "getSetInterval: getBrowserSetInterval"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "getClearInterval: () => globalThis.clearInterval"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "getLocation: () => globalThis.location"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
             "getSetInterval: () => globalThis.setInterval"
         );
         expect(stateDevToolsRuntimeSource).toContain(
