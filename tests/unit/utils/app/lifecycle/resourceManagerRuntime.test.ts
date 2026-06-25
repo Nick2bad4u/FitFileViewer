@@ -8,6 +8,7 @@ import {
 
 describe("resourceManagerRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -140,6 +141,23 @@ describe("resourceManagerRuntime", () => {
             listener
         );
         expect(cleanup).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production timer and clock defaults", () => {
+        expect.assertions(4);
+
+        const timer = 31 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(987_654);
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+
+        clearResourceManagerTimer(timer);
+
+        expect(getResourceManagerDateNow()).toBe(987_654);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(clearTimeoutMock).toHaveBeenCalledOnce();
+        expect(dateNowMock).toHaveBeenCalledOnce();
     });
 
     it("skips registration outside event-target scopes", () => {

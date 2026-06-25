@@ -11501,7 +11501,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(29);
+        expect.assertions(33);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -11550,10 +11550,22 @@ describe("architecture boundaries", () => {
             "getEventTarget: () => globalThis"
         );
         expect(resourceManagerRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(resourceManagerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getBrowserClearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getBrowserDateNow"
         );
         expect(resourceManagerRuntimeSource).toContain(
             "const dateNow = scope.getDateNow?.();"

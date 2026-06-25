@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+} from "../../runtime/browserRuntime.js";
 
 type ResourceManagerEventTarget = Pick<
     EventTarget,
@@ -22,8 +26,8 @@ export type ResourceManagerTimer = ReturnType<typeof globalThis.setTimeout>;
 
 const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDateNow: () => Date.now,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
     getEventTarget: () => globalThis,
 };
 
