@@ -44,8 +44,18 @@ export function getBrowserRendererDateNow(): (() => number) | undefined {
     return Date.now;
 }
 
+export function deleteBrowserRendererGlobalProperty(
+    property: PropertyKey
+): boolean {
+    return Reflect.deleteProperty(globalThis, property);
+}
+
 export function getBrowserRendererDocument(): Document | undefined {
     return globalThis.document;
+}
+
+export function getBrowserRendererEventTarget(): EventTarget | undefined {
+    return globalThis;
 }
 
 export function getBrowserRendererHTMLScriptElement():

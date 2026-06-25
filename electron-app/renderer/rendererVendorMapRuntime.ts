@@ -1,3 +1,8 @@
+import {
+    deleteBrowserRendererGlobalProperty,
+    getBrowserRendererDocument,
+} from "./rendererBrowserRuntime.js";
+
 export interface RendererVendorMapRuntimeScope {
     readonly deleteGlobalProperty?:
         | ((property: "L" | "Leaflet") => boolean)
@@ -14,9 +19,8 @@ export interface RendererVendorMapRuntime {
 }
 
 const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
-    deleteGlobalProperty: (property) =>
-        Reflect.deleteProperty(globalThis, property),
-    getDocument: () => globalThis.document,
+    deleteGlobalProperty: deleteBrowserRendererGlobalProperty,
+    getDocument: getBrowserRendererDocument,
 };
 
 function getDocument(

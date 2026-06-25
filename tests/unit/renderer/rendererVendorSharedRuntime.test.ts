@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getRendererVendorSharedRuntime } from "../../../electron-app/renderer/rendererVendorSharedRuntime.js";
 
 describe("rendererVendorSharedRuntime", () => {
-    it("dispatches renderer vendor readiness events through the default browser scope", () => {
+    it("dispatches renderer vendor readiness events through renderer browser runtime providers", () => {
         expect.assertions(2);
 
         const controller = new AbortController();

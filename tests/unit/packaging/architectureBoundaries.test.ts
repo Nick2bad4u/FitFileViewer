@@ -12180,7 +12180,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -12230,9 +12230,18 @@ describe("architecture boundaries", () => {
             "scope: RendererVendorSharedRuntimeScope = getDefaultRendererVendorSharedRuntimeScope()"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "getCustomEvent: () => globalThis.CustomEvent"
+            "rendererBrowserRuntime.js"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
+            "getCustomEvent: getBrowserRendererCustomEvent"
+        );
+        expect(rendererVendorSharedRuntimeSource).toContain(
+            "getEventTarget: getBrowserRendererEventTarget"
+        );
+        expect(rendererVendorSharedRuntimeSource).not.toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(rendererVendorSharedRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
         );
         expect(rendererVendorSharedRuntimeSource).not.toContain(
@@ -20029,7 +20038,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(68);
+        expect.assertions(73);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -20124,6 +20133,19 @@ describe("architecture boundaries", () => {
         expect(vendorMapRuntimeSource).not.toContain("scope.globalScope");
         expect(vendorMapRuntimeSource).not.toContain("getGlobalScope");
         expect(vendorMapRuntimeSource).toContain("deleteGlobalProperty");
+        expect(vendorMapRuntimeSource).toContain("rendererBrowserRuntime.js");
+        expect(vendorMapRuntimeSource).toContain(
+            "deleteGlobalProperty: deleteBrowserRendererGlobalProperty"
+        );
+        expect(vendorMapRuntimeSource).toContain(
+            "getDocument: getBrowserRendererDocument"
+        );
+        expect(vendorMapRuntimeSource).not.toContain(
+            "Reflect.deleteProperty(globalThis"
+        );
+        expect(vendorMapRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
         expect(leafletMeasureLiteRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );

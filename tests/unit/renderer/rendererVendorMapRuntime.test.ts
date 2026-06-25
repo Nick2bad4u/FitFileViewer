@@ -1,8 +1,35 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRendererVendorMapRuntime } from "../../../electron-app/renderer/rendererVendorMapRuntime.js";
 
 describe("rendererVendorMapRuntime", () => {
+    afterEach(() => {
+        document.documentElement.style.removeProperty("--ffv-runtime-test");
+        vi.unstubAllGlobals();
+    });
+
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(4);
+
+        vi.stubGlobal("L", {});
+        vi.stubGlobal("Leaflet", {});
+
+        const utils = getRendererVendorMapRuntime();
+
+        expect(utils.hasDocumentElement()).toBe(true);
+        utils.setDocumentElementStyleProperty("--ffv-runtime-test", "1");
+        utils.deleteCompatibilityGlobal("L");
+        utils.deleteCompatibilityGlobal("Leaflet");
+
+        expect(
+            document.documentElement.style.getPropertyValue(
+                "--ffv-runtime-test"
+            )
+        ).toBe("1");
+        expect(Reflect.has(globalThis, "L")).toBe(false);
+        expect(Reflect.has(globalThis, "Leaflet")).toBe(false);
+    });
+
     it("writes document-element style properties through the scoped document", () => {
         expect.assertions(3);
 
