@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export type MapThemeToggleTimerHandle =
@@ -73,7 +75,7 @@ function getDocument(scope: MapThemeToggleRuntimeScope): Document {
 }
 
 const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getCustomEvent: () => globalThis.CustomEvent,
     getDocument: () => globalThis.document,

@@ -24,6 +24,14 @@ describe("getRenderMapRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("routes map scheduling dependencies through provider functions", () => {
         expect.assertions(15);
 

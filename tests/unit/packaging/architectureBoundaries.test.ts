@@ -1273,7 +1273,7 @@ const directChartThemeListenerRuntimeAmbientFallbackPattern =
 const directMapThemeToggleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|dispatchEvent|querySelector|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directMapThemeToggleRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:CustomEvent|clearTimeout|setTimeout)\b/u;
+    /\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:CustomEvent|clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directCreateChartCanvasRuntimeGlobalPattern =
@@ -9284,7 +9284,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(37);
+        expect.assertions(39);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -9305,7 +9305,7 @@ describe("architecture boundaries", () => {
         const directRenderMapTimingGlobalPattern =
             /\b(?:globalThis|window)\.(?:requestAnimationFrame|clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:requestAnimationFrame|clearTimeout|setTimeout)\(|\bnew\s+(?:AbortController|Event)\b/u;
         const directRenderMapRuntimeAmbientTimerFallbackPattern =
-            /\bscope\.(?:Event|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+            /\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\bscope\.(?:Event|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 
         expect(renderMapSource).toContain("renderMapRuntime.js");
         expect(renderMapSource).toContain("createAbortController");
@@ -9326,6 +9326,12 @@ describe("architecture boundaries", () => {
             "const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = globalThis"
         );
         expect(renderMapRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(renderMapRuntimeSource).toContain(
@@ -16339,7 +16345,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(54);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -16419,6 +16425,12 @@ describe("architecture boundaries", () => {
             "defaultMapThemeToggleRuntimeScope"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
@@ -16481,7 +16493,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(21);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -16508,6 +16520,12 @@ describe("architecture boundaries", () => {
             "defaultUpdateMapThemeRuntimeScope"
         );
         expect(updateMapThemeRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(updateMapThemeRuntimeSource).toContain(

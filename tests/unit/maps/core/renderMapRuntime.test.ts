@@ -90,6 +90,14 @@ describe("getRenderMapRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("fails clearly when the Event runtime is unavailable", () => {
         expect.assertions(1);
 

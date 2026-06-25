@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type RenderMapTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface RenderMapRuntimeScope {
@@ -86,7 +88,7 @@ function getRequiredSetTimeout(
 }
 
 const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getEvent: () => globalThis.Event,

@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 type UpdateMapThemeEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface UpdateMapThemeRuntimeScope {
@@ -40,7 +42,7 @@ function isHTMLElement(
 }
 
 const defaultUpdateMapThemeRuntimeScope: UpdateMapThemeRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getBeforeUnloadTarget: () => globalThis,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
