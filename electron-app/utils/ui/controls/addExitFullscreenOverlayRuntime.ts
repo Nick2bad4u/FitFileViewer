@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface AddExitFullscreenOverlayRuntimeScope {
@@ -23,7 +25,7 @@ export interface AddExitFullscreenOverlayRuntime {
 
 const defaultAddExitFullscreenOverlayRuntimeScope: AddExitFullscreenOverlayRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getDocument: () => globalThis.document,
     };
 

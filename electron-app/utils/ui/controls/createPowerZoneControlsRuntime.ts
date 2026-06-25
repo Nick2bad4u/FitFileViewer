@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 type PowerZoneControlsStorage = Pick<Storage, "getItem" | "setItem">;
 
 export interface PowerZoneControlsRuntimeScope {
@@ -25,7 +27,7 @@ export interface PowerZoneControlsRuntime {
 }
 
 const defaultPowerZoneControlsRuntimeScope: PowerZoneControlsRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getLocalStorage: () => globalThis.localStorage,

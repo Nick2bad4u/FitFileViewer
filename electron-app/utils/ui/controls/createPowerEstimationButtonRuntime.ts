@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface CreatePowerEstimationButtonRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -12,7 +14,7 @@ export interface CreatePowerEstimationButtonRuntime {
 
 const defaultCreatePowerEstimationButtonRuntimeScope: CreatePowerEstimationButtonRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getDocument: () => globalThis.document,
     };
 

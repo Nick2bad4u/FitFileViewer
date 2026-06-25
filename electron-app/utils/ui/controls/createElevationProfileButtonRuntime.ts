@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 type ElevationProfilePopupWindow = Window | null;
@@ -43,7 +45,7 @@ export interface CreateElevationProfileButtonRuntime {
 
 const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getChartOverlayColorPalette: getGlobalChartOverlayColorPalette,
         getDocument: () => globalThis.document,
         getOpen: getGlobalOpen,

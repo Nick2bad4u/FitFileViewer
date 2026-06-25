@@ -12680,7 +12680,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -12729,6 +12729,12 @@ describe("architecture boundaries", () => {
             "scope.document"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
@@ -12737,7 +12743,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -12789,6 +12795,12 @@ describe("architecture boundaries", () => {
             "scope.document"
         );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
@@ -12845,7 +12857,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -12888,6 +12900,12 @@ describe("architecture boundaries", () => {
             "scope.document"
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
@@ -12987,7 +13005,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -13045,6 +13063,12 @@ describe("architecture boundaries", () => {
             "scope.Event"
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
@@ -13056,7 +13080,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -13110,6 +13134,12 @@ describe("architecture boundaries", () => {
             "scope.queueMicrotask"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
@@ -13144,7 +13174,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -13192,10 +13222,19 @@ describe("architecture boundaries", () => {
         expect(hrZoneControlsRuntimeSource).not.toContain("scope.document");
         expect(hrZoneControlsRuntimeSource).not.toContain("scope.HTMLElement");
         expect(hrZoneControlsRuntimeSource).not.toContain("scope.localStorage");
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -13247,10 +13286,19 @@ describe("architecture boundaries", () => {
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "scope.localStorage"
         );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
     });
 
     it("keeps simple power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const violations = migratedCreatePowerZoneControlsSimpleRuntimeFiles
             .filter((relativeFile) =>
@@ -13301,6 +13349,15 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "scope.localStorage"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
     });
 
@@ -15237,7 +15294,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -15275,6 +15332,15 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "iconFactoryRuntime.js"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "createElementNS"

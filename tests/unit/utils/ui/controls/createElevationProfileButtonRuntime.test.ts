@@ -32,6 +32,14 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getCreateElevationProfileButtonRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("reads dark-theme state from the injected document", () => {
         expect.assertions(2);
 

@@ -51,6 +51,14 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getCreateMarkerCountSelectorRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("does not borrow ambient constructors for explicit documents", () => {
         expect.assertions(2);
 

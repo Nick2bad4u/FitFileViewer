@@ -22,6 +22,14 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         expect(option.tagName).toBe("OPTION");
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getCreateDataPointFilterControlRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("schedules microtasks through the injected scheduler", () => {
         expect.assertions(2);
 

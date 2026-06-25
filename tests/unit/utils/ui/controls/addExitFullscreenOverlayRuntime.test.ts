@@ -68,6 +68,14 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getAddExitFullscreenOverlayRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("resolves default browser primitives when runtime operations run", () => {
         expect.assertions(4);
 

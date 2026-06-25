@@ -40,6 +40,14 @@ describe("getHRZoneControlsRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getHRZoneControlsRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("reads and writes through the injected storage runtime", () => {
         expect.assertions(3);
 

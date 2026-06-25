@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 type HRZoneControlsStorage = Pick<Storage, "getItem" | "setItem">;
 
 export interface HRZoneControlsRuntimeScope {
@@ -25,7 +27,7 @@ export interface HRZoneControlsRuntime {
 }
 
 const defaultHRZoneControlsRuntimeScope: HRZoneControlsRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getLocalStorage: () => globalThis.localStorage,

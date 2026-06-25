@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateAddFitFileToMapButtonRuntimeScope {
@@ -20,7 +22,7 @@ export interface CreateAddFitFileToMapButtonRuntime {
 
 const defaultCreateAddFitFileToMapButtonRuntimeScope: CreateAddFitFileToMapButtonRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getDocument: () => globalThis.document,
     };
 
