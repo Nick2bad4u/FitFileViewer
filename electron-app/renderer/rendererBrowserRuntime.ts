@@ -10,10 +10,54 @@ export function getBrowserRendererAbortController():
     return globalThis.AbortController;
 }
 
+export function getBrowserRendererAddEventListener():
+    | typeof globalThis.addEventListener
+    | undefined {
+    return globalThis.addEventListener.bind(globalThis);
+}
+
+export function getBrowserRendererBoundClearTimeout():
+    | typeof globalThis.clearTimeout
+    | undefined {
+    return globalThis.clearTimeout.bind(globalThis);
+}
+
+export function getBrowserRendererBoundSetTimeout():
+    | typeof globalThis.setTimeout
+    | undefined {
+    return globalThis.setTimeout.bind(globalThis);
+}
+
 export function getBrowserRendererClearTimeout():
     | typeof globalThis.clearTimeout
     | undefined {
     return globalThis.clearTimeout;
+}
+
+export function getBrowserRendererCustomEvent():
+    | typeof globalThis.CustomEvent
+    | undefined {
+    return globalThis.CustomEvent;
+}
+
+export function getBrowserRendererDateNow(): (() => number) | undefined {
+    return Date.now;
+}
+
+export function getBrowserRendererDocument(): Document | undefined {
+    return globalThis.document;
+}
+
+export function getBrowserRendererHTMLScriptElement():
+    | typeof globalThis.HTMLScriptElement
+    | undefined {
+    return globalThis.HTMLScriptElement;
+}
+
+export function getBrowserRendererRemoveEventListener():
+    | typeof globalThis.removeEventListener
+    | undefined {
+    return globalThis.removeEventListener.bind(globalThis);
 }
 
 export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvironmentScope {

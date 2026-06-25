@@ -1,4 +1,14 @@
-import { getBrowserRendererAbortController } from "./rendererBrowserRuntime.js";
+import {
+    getBrowserRendererAbortController,
+    getBrowserRendererAddEventListener,
+    getBrowserRendererBoundClearTimeout,
+    getBrowserRendererBoundSetTimeout,
+    getBrowserRendererCustomEvent,
+    getBrowserRendererDateNow,
+    getBrowserRendererDocument,
+    getBrowserRendererHTMLScriptElement,
+    getBrowserRendererRemoveEventListener,
+} from "./rendererBrowserRuntime.js";
 
 export type RendererVendorBundleLoaderTimerHandle = ReturnType<
     typeof globalThis.setTimeout
@@ -59,15 +69,14 @@ export interface RendererVendorBundleLoaderRuntime {
 const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderRuntimeScope =
     {
         getAbortController: getBrowserRendererAbortController,
-        getAddEventListener: () => globalThis.addEventListener.bind(globalThis),
-        getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
-        getCustomEvent: () => globalThis.CustomEvent,
-        getDocument: () => globalThis.document,
-        getHTMLScriptElement: () => globalThis.HTMLScriptElement,
-        getNow: () => Date.now,
-        getRemoveEventListener: () =>
-            globalThis.removeEventListener.bind(globalThis),
-        getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
+        getAddEventListener: getBrowserRendererAddEventListener,
+        getClearTimeout: getBrowserRendererBoundClearTimeout,
+        getCustomEvent: getBrowserRendererCustomEvent,
+        getDocument: getBrowserRendererDocument,
+        getHTMLScriptElement: getBrowserRendererHTMLScriptElement,
+        getNow: getBrowserRendererDateNow,
+        getRemoveEventListener: getBrowserRendererRemoveEventListener,
+        getSetTimeout: getBrowserRendererBoundSetTimeout,
     };
 
 function addEventListenerForScope(

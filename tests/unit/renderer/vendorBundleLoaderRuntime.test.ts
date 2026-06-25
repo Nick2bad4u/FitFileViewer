@@ -4,6 +4,7 @@ import { getRendererVendorBundleLoaderRuntime } from "../../../electron-app/rend
 
 describe("getRendererVendorBundleLoaderRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -53,7 +54,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect(receivedEventType).toBe(eventType);
     });
 
-    it("uses the renderer browser runtime provider for production AbortController defaults", () => {
+    it("uses renderer browser runtime providers for production defaults", () => {
         expect.assertions(1);
 
         vi.stubGlobal("AbortController", AbortController);
@@ -64,7 +65,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
@@ -75,6 +76,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             vi.fn<typeof globalThis.removeEventListener>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 29);
         const utils = getRendererVendorBundleLoaderRuntime();
+        vi.spyOn(Date, "now").mockReturnValue(2468);
 
         vi.stubGlobal("AbortController", AbortController);
         vi.stubGlobal("addEventListener", addEventListener);
@@ -105,6 +107,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect(script).toBeInstanceOf(HTMLScriptElement);
         expect(script.dataset["ffvRendererVendorEntry"]).toBe("map");
         expect(utils.getExistingVendorScript("map")).toBe(script);
+        expect(utils.now()).toBe(2468);
         expect(utils.setTimeout(vi.fn(), pollDelayMs)).toBe(29);
         expect(addEventListener).toHaveBeenCalledWith(
             "ready",

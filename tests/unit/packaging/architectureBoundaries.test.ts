@@ -18775,7 +18775,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(47);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -18821,17 +18821,59 @@ describe("architecture boundaries", () => {
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "getAbortController: getBrowserRendererAbortController"
         );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getAddEventListener: getBrowserRendererAddEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getClearTimeout: getBrowserRendererBoundClearTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getCustomEvent: getBrowserRendererCustomEvent"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getDocument: getBrowserRendererDocument"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getHTMLScriptElement: getBrowserRendererHTMLScriptElement"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getNow: getBrowserRendererDateNow"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getRemoveEventListener: getBrowserRendererRemoveEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getSetTimeout: getBrowserRendererBoundSetTimeout"
+        );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
-        expect(vendorBundleLoaderRuntimeSource).toContain(
-            "renderer vendor loader requires a setTimeout runtime"
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
         );
-        expect(vendorBundleLoaderRuntimeSource).toContain(
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout.bind(globalThis)"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getHTMLScriptElement: () => globalThis.HTMLScriptElement"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "getNow: () => Date.now"
         );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "globalThis.removeEventListener.bind(globalThis)"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
+        );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getCustomEvent: () => globalThis.CustomEvent"
+            "renderer vendor loader requires a setTimeout runtime"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "getScopeCustomEvent"
