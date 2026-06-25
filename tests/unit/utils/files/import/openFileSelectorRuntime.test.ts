@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getOpenFileSelectorRuntime,
@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/files/import/openFileSelectorRuntime.js";
 
 describe("getOpenFileSelectorRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -132,6 +137,32 @@ describe("getOpenFileSelectorRuntime", () => {
         expect(callbackRan).toBe(true);
         expect(scheduledDelayMs).toBe(cleanupDelayMs);
         expect(clearedTimer).toBe(timer);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(6);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number.parseInt("0", 10);
+        const timer = 41 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getOpenFileSelectorRuntime();
+        const timerHandle = runtime.setTimeout(callback, delayMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+        expect(setTimeoutMock).toHaveBeenCalledOnce();
+        expect(clearTimeoutMock).toHaveBeenCalledOnce();
     });
 
     it("throws when timeout cleanup is unavailable", () => {
