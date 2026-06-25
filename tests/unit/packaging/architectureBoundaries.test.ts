@@ -4800,7 +4800,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(63);
+        expect.assertions(72);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4829,9 +4829,12 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("createAbortController");
         expect(exportUtilsSource).toContain("getSecureRandomScope");
         expect(exportUtilsSource).toContain("getStorage");
+        expect(exportUtilsSource).toContain("getActiveElement");
         expect(exportUtilsSource).toContain("openPrintWindow");
         expect(exportUtilsSource).toContain("addDocumentKeydownListener");
         expect(exportUtilsSource).toContain("appendToBody");
+        expect(exportUtilsSource).not.toContain("document.activeElement");
+        expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
         expect(exportUtilsSource).not.toContain("document.body.append(link)");
         expect(exportUtilsSource).not.toContain("document.body.append(modal)");
         expect(exportUtilsSource).not.toContain(
@@ -4863,10 +4866,16 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => getGlobalDocument()"
         );
         expect(exportUtilsRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
             "exportUtils requires a document event-target runtime"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "exportUtils requires a document runtime"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "exportUtils requires an HTMLElement runtime"
         );
         expect(exportUtilsRuntimeSource).not.toContain("globalThis.window");
         expect(exportUtilsRuntimeSource).not.toContain("getWindow");
@@ -4904,6 +4913,9 @@ describe("architecture boundaries", () => {
             "readonly documentEventTarget?:"
         );
         expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
             "readonly localStorage?:"
         );
         expect(exportUtilsRuntimeScopeSource).not.toContain(
@@ -4917,6 +4929,7 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
+        expect(exportUtilsRuntimeSource).not.toContain("scope.HTMLElement");
         expect(exportUtilsRuntimeSource).not.toContain("scope.localStorage");
         expect(exportUtilsRuntimeSource).not.toContain("scope.openPrintWindow");
         expect(exportUtilsRuntimeSource).toContain(
@@ -4927,6 +4940,12 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "return scope.getDocumentEventTarget?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "return scope.getHTMLElement?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "documentRef.activeElement instanceof HTMLElementConstructor"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "documentRef.body.append(element)"

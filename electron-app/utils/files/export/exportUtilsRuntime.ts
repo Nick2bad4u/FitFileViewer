@@ -26,6 +26,9 @@ export interface ExportUtilsRuntimeScope {
         | (() => ConfirmDangerousActionFunction | undefined)
         | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
     readonly getOpenPrintWindow?:
         | (() => OpenPrintWindowFunction | undefined)
         | undefined;
@@ -43,6 +46,7 @@ export interface ExportUtilsRuntime {
     readonly appendToBody: (element: HTMLElement) => void;
     readonly confirmDangerousAction: (message: string) => boolean;
     readonly createAbortController: () => AbortController;
+    readonly getActiveElement: () => HTMLElement | null;
     readonly getSecureRandomScope: () => SecureRandomScope;
     readonly getStorage: () => ExportStorageLike | null;
     readonly openPrintWindow: (
@@ -61,6 +65,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     },
     getAbortController: () => globalThis.AbortController,
     getDocumentEventTarget: () => getGlobalDocument(),
+    getHTMLElement: () => globalThis.HTMLElement,
     getOpenPrintWindow: () => {
         const openPrintWindow = globalThis.open;
         return typeof openPrintWindow === "function"
@@ -92,6 +97,12 @@ function getScopeDocumentEventTarget(
     scope: ExportUtilsRuntimeScope
 ): Document | undefined {
     return scope.getDocumentEventTarget?.();
+}
+
+function getScopeHTMLElement(
+    scope: ExportUtilsRuntimeScope
+): typeof globalThis.HTMLElement | undefined {
+    return scope.getHTMLElement?.();
 }
 
 function getScopeOpenPrintWindow(
@@ -165,6 +176,24 @@ export function getExportUtilsRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+
+        getActiveElement(): HTMLElement | null {
+            const documentRef = getScopeDocumentEventTarget(scope);
+            if (!documentRef) {
+                throw new TypeError("exportUtils requires a document runtime");
+            }
+
+            const HTMLElementConstructor = getScopeHTMLElement(scope);
+            if (typeof HTMLElementConstructor !== "function") {
+                throw new TypeError(
+                    "exportUtils requires an HTMLElement runtime"
+                );
+            }
+
+            return documentRef.activeElement instanceof HTMLElementConstructor
+                ? documentRef.activeElement
+                : null;
         },
 
         getSecureRandomScope(): SecureRandomScope {

@@ -227,8 +227,28 @@ describe("exportUtilsRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("resolves active elements through scoped document and HTMLElement providers", () => {
+        expect.assertions(2);
+
+        const button = document.createElement("button");
+        let activeElement: Element | null = button;
+        const runtime = getExportUtilsRuntime({
+            getDocumentEventTarget: () =>
+                ({ activeElement }) as unknown as Document,
+            getHTMLElement: () => HTMLElement,
+        });
+
+        expect(runtime.getActiveElement()).toBe(button);
+
+        activeElement = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
+        expect(runtime.getActiveElement()).toBeNull();
+    });
+
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const storage = {
             getItem: vi.fn<Storage["getItem"]>(),
@@ -251,6 +271,7 @@ describe("exportUtilsRuntime", () => {
             confirmDangerousAction,
             crypto,
             documentEventTarget,
+            HTMLElement,
             localStorage: storage,
             openPrintWindow,
         } as unknown as ExportUtilsRuntimeScope);
@@ -270,6 +291,9 @@ describe("exportUtilsRuntime", () => {
         expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
             "exportUtils requires a document runtime"
         );
+        expect(() => runtime.getActiveElement()).toThrow(
+            "exportUtils requires a document runtime"
+        );
         expect(confirmDangerousAction).not.toHaveBeenCalled();
         expect(openPrintWindow).not.toHaveBeenCalled();
         expect(storage.getItem).not.toHaveBeenCalled();
@@ -278,7 +302,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("throws when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         expect(() => getExportUtilsRuntime({}).createAbortController()).toThrow(
             "exportUtils requires an AbortController runtime"
@@ -292,6 +316,14 @@ describe("exportUtilsRuntime", () => {
         expect(() =>
             getExportUtilsRuntime({}).appendToBody(document.createElement("a"))
         ).toThrow("exportUtils requires a document runtime");
+        expect(() => getExportUtilsRuntime({}).getActiveElement()).toThrow(
+            "exportUtils requires a document runtime"
+        );
+        expect(() =>
+            getExportUtilsRuntime({
+                getDocumentEventTarget: () => document,
+            }).getActiveElement()
+        ).toThrow("exportUtils requires an HTMLElement runtime");
     });
 
     it("resolves default storage and crypto providers when runtime operations run", () => {

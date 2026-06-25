@@ -195,10 +195,7 @@ function setupExportModalAccessibility({
     signal,
     title,
 }: ExportModalAccessibilityOptions): () => void {
-    const previousFocus =
-        document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : null;
+    const previousFocus = exportUtilsRuntime().getActiveElement();
     const titleId =
         title.id || `export-modal-title-${++exportModalTitleCounter}`;
     title.id = titleId;
