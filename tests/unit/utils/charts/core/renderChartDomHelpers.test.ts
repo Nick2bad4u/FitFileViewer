@@ -14,6 +14,17 @@ import {
 } from "../../../../../electron-app/utils/charts/core/renderChartDomHelpersRuntime.js";
 
 describe("renderChartDomHelpers", () => {
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(3);
+
+        const utils = getRenderChartDomHelpersRuntime();
+        const element = utils.createElement("div");
+
+        expect(element).toBeInstanceOf(HTMLDivElement);
+        expect(utils.isHTMLElement(element)).toBe(true);
+        expect(utils.isHTMLElement({ nodeType: 1 })).toBe(false);
+    });
+
     it("renders a no-data message through the runtime-created element", () => {
         expect.assertions(4);
 

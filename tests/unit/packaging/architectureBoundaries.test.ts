@@ -18089,7 +18089,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-chart DOM helper creation behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(31);
 
         const violations = migratedRenderChartDomHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -18172,9 +18172,15 @@ describe("architecture boundaries", () => {
             "defaultRenderChartDomHelpersRuntimeScope"
         );
         expect(runtimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(runtimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(runtimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(runtimeSource).not.toContain(

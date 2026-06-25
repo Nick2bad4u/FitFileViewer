@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 type RenderChartDomHelpersDocument = Pick<Document, "createElement">;
 
 export interface RenderChartDomHelpersRuntimeScope {
@@ -18,8 +23,8 @@ export interface RenderChartDomHelpersRuntime {
 
 const defaultRenderChartDomHelpersRuntimeScope: RenderChartDomHelpersRuntimeScope =
     {
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getRequiredDocument(
