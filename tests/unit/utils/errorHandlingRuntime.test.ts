@@ -7,6 +7,14 @@ describe("getErrorHandlingRuntime", () => {
         vi.unstubAllGlobals();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getErrorHandlingRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("reads timestamps through the injected runtime", () => {
         expect.assertions(2);
 

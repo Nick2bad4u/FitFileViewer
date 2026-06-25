@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+
 export interface ErrorHandlingRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -28,7 +30,7 @@ export interface ErrorHandlingRuntime {
 }
 
 const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getAddEventListener: () => globalThis.addEventListener,
     getDateConstructor: () => Date,
     getDateNow: () => Date.now,
