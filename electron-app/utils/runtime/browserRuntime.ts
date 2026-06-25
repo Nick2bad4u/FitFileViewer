@@ -54,6 +54,18 @@ export function getBrowserHTMLElement():
     return globalThis.HTMLElement;
 }
 
+export function getBrowserHTMLInputElement():
+    | typeof globalThis.HTMLInputElement
+    | undefined {
+    return globalThis.HTMLInputElement;
+}
+
+export function getBrowserHTMLSelectElement():
+    | typeof globalThis.HTMLSelectElement
+    | undefined {
+    return globalThis.HTMLSelectElement;
+}
+
 export function getBrowserKeyboardEvent():
     | typeof globalThis.KeyboardEvent
     | undefined {

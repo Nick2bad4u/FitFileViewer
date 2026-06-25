@@ -1,8 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getSettingsModalRuntime } from "../../../../electron-app/utils/ui/settingsModalRuntime.js";
 
 describe("getSettingsModalRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        document.body.replaceChildren();
+        document.head.replaceChildren();
+    });
+
     it("schedules and clears timers through the injected runtime providers", () => {
         expect.assertions(4);
 
@@ -79,6 +86,54 @@ describe("getSettingsModalRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "settingsModalRuntime requires a clearTimeout runtime"
         );
+    });
+
+    it("uses shared browser providers for production defaults", () => {
+        expect.assertions(13);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const delayMs = Number("70");
+        const timeoutHandle = Number("52");
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(
+            () => timeoutHandle
+        );
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            typeof globalThis.requestAnimationFrame
+        >(() => 15);
+        const cancelAnimationFrame =
+            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        vi.stubGlobal("setTimeout", setTimeout);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+
+        const button = document.createElement("button");
+        const input = document.createElement("input");
+        const select = document.createElement("select");
+        document.body.append(button, input, select);
+        button.focus();
+
+        const runtime = getSettingsModalRuntime();
+
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timeoutHandle);
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        runtime.clearTimeout(timeoutHandle);
+        expect(clearTimeout).toHaveBeenCalledWith(timeoutHandle);
+        expect(runtime.requestAnimationFrame(frameCallback)).toBe(15);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+        runtime.cancelAnimationFrame(15);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(15);
+        expect(runtime.queryElement("button")).toBe(button);
+        expect(document.body.contains(button)).toBe(true);
+        expect(runtime.getActiveHTMLElement()).toBe(button);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLSelectElement(select)).toBe(true);
+        expect(
+            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
     });
 
     it("routes document operations through the injected runtime provider", () => {
