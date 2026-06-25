@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 export const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 type IconFactoryDocument = Pick<Document, "createElementNS">;
@@ -13,7 +15,7 @@ export type IconFactoryRuntime = {
 };
 
 const defaultIconFactoryRuntimeScope: IconFactoryRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getRequiredDocument(

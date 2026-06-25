@@ -24,6 +24,16 @@ describe("iconFactoryRuntime", () => {
         createElementNS.mockRestore();
     });
 
+    it("creates SVG elements through default browser providers", () => {
+        expect.assertions(2);
+
+        const runtime = getIconFactoryRuntime();
+        const icon = runtime.createSvgElement("svg");
+
+        expect(icon.tagName.toLowerCase()).toBe("svg");
+        expect(icon.namespaceURI).toBe(SVG_NAMESPACE);
+    });
+
     it("fails clearly when no document provider is available", () => {
         expect.assertions(1);
 

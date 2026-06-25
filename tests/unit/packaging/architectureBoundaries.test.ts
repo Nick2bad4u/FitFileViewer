@@ -14366,7 +14366,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps icon SVG element creation behind the icon factory runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const violations = migratedIconFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -14395,6 +14395,9 @@ describe("architecture boundaries", () => {
         );
         expect(iconFactorySource).toContain("runtime.createSvgElement(");
         expect(iconFactoryRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(iconFactoryRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(iconFactoryRuntimeSource).not.toContain(
