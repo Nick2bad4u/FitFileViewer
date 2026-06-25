@@ -4538,7 +4538,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps generic storage utilities on provider-based ambient storage lookup", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         const storageUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/storage/storageUtils.ts")
@@ -4563,11 +4563,17 @@ describe("architecture boundaries", () => {
         expect(storageUtilsRuntimeSource).toContain(
             "defaultStorageUtilsRuntimeScope"
         );
+        expect(storageUtilsRuntimeSource).toContain(
+            '"../runtime/browserRuntime.js"'
+        );
         expect(storageUtilsSource).toContain("runtime.getDefaultStorage()");
         expect(storageUtilsSource).toContain(
             "getStorage: StorageProvider = createDefaultStorageProvider()"
         );
         expect(storageUtilsRuntimeSource).toContain(
+            "getLocalStorage: () => getBrowserLocalStorage() ?? null"
+        );
+        expect(storageUtilsRuntimeSource).not.toContain(
             "getLocalStorage: () => globalThis.localStorage ?? null"
         );
         expect(storageUtilsRuntimeSource).not.toContain(

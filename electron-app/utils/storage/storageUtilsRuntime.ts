@@ -1,6 +1,8 @@
 /**
  * Minimal storage API used by renderer helpers.
  */
+import { getBrowserLocalStorage } from "../runtime/browserRuntime.js";
+
 export type StorageLike = {
     getItem?: (key: string) => null | string;
     removeItem?: (key: string) => void;
@@ -21,7 +23,7 @@ export interface StorageUtilsRuntime {
 }
 
 const defaultStorageUtilsRuntimeScope: StorageUtilsRuntimeScope = {
-    getLocalStorage: () => globalThis.localStorage ?? null,
+    getLocalStorage: () => getBrowserLocalStorage() ?? null,
 };
 
 function getScopeLocalStorage(
