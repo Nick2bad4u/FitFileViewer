@@ -78,6 +78,12 @@ export function getBrowserHTMLElement():
     return globalThis.HTMLElement;
 }
 
+export function getBrowserHTMLAnchorElement():
+    | typeof globalThis.HTMLAnchorElement
+    | undefined {
+    return globalThis.HTMLAnchorElement;
+}
+
 export function getBrowserHTMLCanvasElement():
     | typeof globalThis.HTMLCanvasElement
     | undefined {
@@ -146,6 +152,12 @@ export function getBrowserMutationObserver():
     | typeof globalThis.MutationObserver
     | undefined {
     return globalThis.MutationObserver;
+}
+
+export function getBrowserOpen(): typeof globalThis.open | undefined {
+    return typeof globalThis.open === "function"
+        ? globalThis.open.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserNodeFilter():

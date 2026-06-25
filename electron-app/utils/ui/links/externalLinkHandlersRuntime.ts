@@ -1,3 +1,10 @@
+import {
+    getBrowserElement,
+    getBrowserHTMLAnchorElement,
+    getBrowserKeyboardEvent,
+    getBrowserOpen,
+} from "../../runtime/browserRuntime.js";
+
 type BrowserWindowOpen = (
     url?: string,
     target?: string,
@@ -31,10 +38,10 @@ export interface ExternalLinkHandlersRuntime {
 
 const defaultExternalLinkHandlersRuntimeScope: ExternalLinkHandlersRuntimeScope =
     {
-        getElement: () => globalThis.Element,
-        getHTMLAnchorElement: () => globalThis.HTMLAnchorElement,
-        getKeyboardEvent: () => globalThis.KeyboardEvent,
-        getOpen: () => globalThis.open,
+        getElement: getBrowserElement,
+        getHTMLAnchorElement: getBrowserHTMLAnchorElement,
+        getKeyboardEvent: getBrowserKeyboardEvent,
+        getOpen: getBrowserOpen,
     };
 
 function getElementConstructor(

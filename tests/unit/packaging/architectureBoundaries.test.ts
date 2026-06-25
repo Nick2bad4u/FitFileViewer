@@ -14704,7 +14704,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(27);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -14753,6 +14753,9 @@ describe("architecture boundaries", () => {
         expect(externalLinkHandlersRuntimeSource).toContain(
             "defaultExternalLinkHandlersRuntimeScope"
         );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
         expect(runtimeScopeSource).not.toContain("readonly Element?:");
         expect(runtimeScopeSource).not.toContain(
             "readonly HTMLAnchorElement?:"
@@ -14773,15 +14776,27 @@ describe("architecture boundaries", () => {
             "return scope.getOpen?.();"
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
+            "getElement: getBrowserElement"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
             "getElement: () => globalThis.Element"
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
+            "getHTMLAnchorElement: getBrowserHTMLAnchorElement"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
             "getHTMLAnchorElement: () => globalThis.HTMLAnchorElement"
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
+            "getOpen: getBrowserOpen"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
             "getOpen: () => globalThis.open"
         );
     });

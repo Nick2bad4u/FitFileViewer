@@ -143,4 +143,35 @@ describe("getExternalLinkHandlersRuntime", () => {
             "noopener,noreferrer"
         );
     });
+
+    it("uses shared browser providers for production defaults", () => {
+        expect.assertions(5);
+
+        const openedWindow = {} as WindowProxy;
+        const open = vi.fn(() => openedWindow);
+        vi.stubGlobal("open", open);
+
+        const anchor = document.createElement("a");
+        const child = document.createElement("span");
+        const keyboardEvent = new KeyboardEvent("keydown", { key: "Enter" });
+        const runtime = getExternalLinkHandlersRuntime();
+        anchor.dataset.externalLink = "";
+        anchor.append(child);
+
+        expect(runtime.resolveExternalLinkAnchor(child)).toBe(anchor);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(
+            runtime.openBrowserWindow(
+                "https://example.com",
+                "_blank",
+                "noopener,noreferrer"
+            )
+        ).toBe(openedWindow);
+        expect(open).toHaveBeenCalledWith(
+            "https://example.com",
+            "_blank",
+            "noopener,noreferrer"
+        );
+    });
 });
