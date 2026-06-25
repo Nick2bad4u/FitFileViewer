@@ -6602,6 +6602,56 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps shared performance monitor timing behind its runtime facade", () => {
+        expect.assertions(12);
+
+        const performanceMonitorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/performance/performanceMonitor.ts"
+            )
+        );
+        const performanceMonitorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/performance/performanceMonitorRuntime.ts"
+            )
+        );
+
+        expect(performanceMonitorSource).toContain(
+            "performanceMonitorRuntime.js"
+        );
+        expect(performanceMonitorSource).toContain(
+            "type PerformanceMonitorRuntime"
+        );
+        expect(performanceMonitorSource).toContain(
+            "this.runtime.nowPerformance()"
+        );
+        expect(performanceMonitorSource).not.toContain("performance.now");
+        expect(performanceMonitorRuntimeSource).toContain(
+            "defaultPerformanceMonitorRuntimeScope"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "const performanceNow = performance?.now"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "performanceMonitorRuntime requires performance.now"
+        );
+        expect(performanceMonitorRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(performanceMonitorRuntimeSource).not.toContain(
+            "scope.performance"
+        );
+        expect(performanceMonitorRuntimeSource).not.toContain(
+            "scope: PerformanceMonitorRuntimeScope = globalThis"
+        );
+        expect(performanceMonitorRuntimeSource).not.toContain(
+            "PerformanceMonitorRuntimeScope = globalThis"
+        );
+    });
+
     it("keeps chart state manager on chart and renderer state facades", () => {
         expect.assertions(4);
 

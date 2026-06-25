@@ -39,11 +39,12 @@ describe(PerformanceMonitor, () => {
     it("records and ends timers while monitoring is enabled", () => {
         expect.assertions(5);
 
-        const monitor = new PerformanceMonitor();
-        const now = vi
-            .spyOn(performance, "now")
+        const now = vi.fn<() => number>()
             .mockReturnValueOnce(100)
             .mockReturnValueOnce(142.5);
+        const monitor = new PerformanceMonitor({
+            nowPerformance: now,
+        });
         const consoleLog = vi
             .spyOn(console, "log")
             .mockImplementation(() => {});

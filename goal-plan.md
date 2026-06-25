@@ -344,6 +344,9 @@ coverage and architecture guardrails blocking those direct scheduling globals fr
 production defaults now live behind named provider functions, and explicit runtime scopes must now provide timer,
 idle-callback, and clock providers instead of direct properties or falling back to `globalThis` or `Date.now`, with
 focused coverage blocking those ambient fallbacks from returning.
+Shared `PerformanceMonitor` start/end timing now routes through `performanceMonitorRuntime.ts` instead of calling
+`performance.now` directly inside `performanceMonitor.ts`, with focused runtime coverage and architecture guardrails
+blocking direct performance reads and direct runtime scope properties from returning.
 Tab render lifecycle recency checks, duration timing, and completed-render timestamp writes now route through
 `tabRenderingManagerRuntime.ts` instead of calling `Date.now` or `performance.now` directly inside
 `tabRenderingManager.ts`, with focused runtime/behavior coverage and architecture guardrails blocking those direct

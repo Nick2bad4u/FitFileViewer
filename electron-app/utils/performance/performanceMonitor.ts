@@ -2,6 +2,10 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../runtime/processEnvironment.js";
+import {
+    getPerformanceMonitorRuntime,
+    type PerformanceMonitorRuntime,
+} from "./performanceMonitorRuntime.js";
 
 /**
  * Timer data captured for one measured operation.
@@ -21,6 +25,11 @@ export class PerformanceMonitor {
         getProcessEnvironmentValue("PERFORMANCE_MONITORING") === "true";
 
     private readonly timers = new Map<string, PerformanceTimer>();
+
+    constructor(
+        private readonly runtime: PerformanceMonitorRuntime =
+            getPerformanceMonitorRuntime()
+    ) {}
 
     /**
      * Clear all tracked timers.
@@ -44,7 +53,7 @@ export class PerformanceMonitor {
             return null;
         }
 
-        timer.end = performance.now();
+        timer.end = this.runtime.nowPerformance();
         timer.duration = timer.end - timer.start;
 
         console.log(
@@ -93,7 +102,7 @@ export class PerformanceMonitor {
         this.timers.set(operationId, {
             duration: null,
             end: null,
-            start: performance.now(),
+            start: this.runtime.nowPerformance(),
         });
     }
 }
