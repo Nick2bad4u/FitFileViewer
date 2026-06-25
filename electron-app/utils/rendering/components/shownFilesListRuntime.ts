@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type ShownFilesListTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -76,7 +78,7 @@ export interface ShownFilesListRuntime {
 }
 
 const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getEventTarget: () => globalThis,

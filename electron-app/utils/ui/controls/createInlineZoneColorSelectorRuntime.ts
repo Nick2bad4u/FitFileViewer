@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface CreateInlineZoneColorSelectorRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
@@ -45,7 +47,7 @@ export interface CreateInlineZoneColorSelectorRuntime {
 
 const defaultCreateInlineZoneColorSelectorRuntimeScope: CreateInlineZoneColorSelectorRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
         getCustomEvent: () => globalThis.CustomEvent,
         getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),
         getDocument: () => globalThis.document,

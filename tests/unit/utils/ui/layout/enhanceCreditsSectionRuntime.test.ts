@@ -24,6 +24,16 @@ describe("getCreditsMarqueeRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getCreditsMarqueeRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 

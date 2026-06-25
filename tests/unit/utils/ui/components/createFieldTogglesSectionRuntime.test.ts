@@ -60,6 +60,16 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         );
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateFieldTogglesSectionRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 

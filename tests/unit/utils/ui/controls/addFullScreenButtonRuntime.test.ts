@@ -226,6 +226,16 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getAddFullScreenButtonRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("creates mutation observers and checks keyboard events through injected constructors", () => {
         expect.assertions(4);
 

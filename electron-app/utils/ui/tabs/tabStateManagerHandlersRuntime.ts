@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type TabStateManagerHandlersTimerHandle = ReturnType<
     typeof globalThis.setTimeout
 >;
@@ -40,7 +42,7 @@ export interface TabStateManagerHandlersRuntime {
 
 const defaultTabStateManagerHandlersRuntimeScope: TabStateManagerHandlersRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
         getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,

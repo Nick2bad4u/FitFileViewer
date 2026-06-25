@@ -6069,7 +6069,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(20);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -6122,6 +6122,12 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRuntimeSource).not.toContain("scope.HTMLElement");
         expect(chartSettingsRuntimeSource).not.toContain("scope.setTimeout");
         expect(chartSettingsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartSettingsRuntimeSource).toContain(
@@ -6136,7 +6142,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(48);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -6231,6 +6237,12 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(settingsHeaderRuntimeSource).toContain(
@@ -6269,7 +6281,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(27);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -6336,6 +6348,15 @@ describe("architecture boundaries", () => {
         expect(fieldTogglesRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(fieldTogglesRuntimeSource).not.toContain("scope.setTimeout");
         expect(fieldTogglesRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
         expect(fieldTogglesRuntimeSource).toContain(
@@ -6350,7 +6371,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(29);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6428,6 +6449,15 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "scope.setTimeout"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
@@ -12914,7 +12944,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(25);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -12972,6 +13002,12 @@ describe("architecture boundaries", () => {
             "scope: OpenPowerEstimationSettingsModalRuntimeScope = globalThis"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
@@ -13409,7 +13445,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -13473,6 +13509,12 @@ describe("architecture boundaries", () => {
             directDataPointFilterPanelControllerRuntimeAmbientFallbackPattern
         );
         expect(panelControllerRuntimeSource).toContain(
+            "../../../runtime/browserRuntime.js"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(panelControllerRuntimeSource).toContain(
@@ -13669,7 +13711,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(46);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -13743,6 +13785,12 @@ describe("architecture boundaries", () => {
             "defaultAddFullScreenButtonRuntimeScope"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
@@ -16119,7 +16167,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(78);
+        expect.assertions(80);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -16171,6 +16219,12 @@ describe("architecture boundaries", () => {
             "const defaultThemeRuntimeScope: ThemeRuntimeScope = globalThis"
         );
         expect(themeRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(themeRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(themeRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(themeRuntimeSource).toContain(
@@ -17963,7 +18017,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(28);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -18003,6 +18057,12 @@ describe("architecture boundaries", () => {
             "defaultEnableTabButtonsDebugRuntimeScope"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
@@ -19227,7 +19287,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(39);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -19327,6 +19387,12 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
@@ -19461,7 +19527,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher browser APIs behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(37);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -19548,6 +19614,15 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
+            "../runtime/browserRuntime.js"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
             "getNode: () => globalThis.Node"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
@@ -19556,7 +19631,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(59);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -19652,6 +19727,15 @@ describe("architecture boundaries", () => {
         expect(shownFilesListRuntimeSource).not.toContain("scope.innerWidth");
         expect(shownFilesListRuntimeSource).not.toContain("scope.setTimeout");
         expect(shownFilesListRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
         expect(shownFilesListRuntimeSource).toContain(
@@ -19746,7 +19830,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(28);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -19824,6 +19908,15 @@ describe("architecture boundaries", () => {
         );
         expect(creditsMarqueeRuntimeSource).not.toContain(
             "scope.ResizeObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(creditsMarqueeRuntimeSource).toContain(
             "getDocument: () => globalThis.document"

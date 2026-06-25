@@ -70,6 +70,16 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect(runtime.isHTMLSelectElement(select)).toBe(true);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateInlineZoneColorSelectorRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("schedules timers through the injected timer function", () => {
         expect.assertions(2);
 

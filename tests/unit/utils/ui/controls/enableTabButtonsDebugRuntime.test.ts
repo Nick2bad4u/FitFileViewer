@@ -44,6 +44,16 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsDebugRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 

@@ -79,6 +79,16 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getEnsureChartSettingsDropdownsRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(5);
 

@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface ThemeRuntimeScope {
@@ -59,7 +61,7 @@ function getDefaultEventTarget(): EventTarget | undefined {
 }
 
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getComputedStyle: () => globalThis.getComputedStyle,
     getCustomEvent: () => globalThis.CustomEvent,

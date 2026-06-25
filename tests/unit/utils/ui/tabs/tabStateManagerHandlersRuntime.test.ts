@@ -26,6 +26,16 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect(AbortControllerConstructorMock).toHaveBeenCalledTimes(1);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getTabStateManagerHandlersRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(3);
 

@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type CreditsMarqueeAnimationFrameHandle = number;
 
 type CreditsMarqueeEventTarget = Pick<
@@ -66,7 +68,7 @@ export interface CreditsMarqueeRuntime {
 }
 
 const defaultCreditsMarqueeRuntimeScope: CreditsMarqueeRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
     getDocument: () => globalThis.document,
     getEventTarget: () => globalThis,

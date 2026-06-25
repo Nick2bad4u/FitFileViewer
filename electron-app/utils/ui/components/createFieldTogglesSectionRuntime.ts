@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface CreateFieldTogglesSectionRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
@@ -104,7 +106,7 @@ function getHTMLInputElementConstructor(
 
 const defaultCreateFieldTogglesSectionRuntimeScope: CreateFieldTogglesSectionRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getCustomEvent: () => globalThis.CustomEvent,
         getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),

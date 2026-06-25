@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../../runtime/browserRuntime.js";
+
 export type DataPointFilterPanelAnimationFrameHandle = number;
 
 type PanelFrameRequestCallback = (time: number) => void;
@@ -147,7 +149,7 @@ function getAnimationFrameCanceler(
 
 const defaultDataPointFilterPanelControllerRuntimeScope: DataPointFilterPanelControllerRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
         getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
         getDocument: () => globalThis.document,
         getNode: () => globalThis.Node,

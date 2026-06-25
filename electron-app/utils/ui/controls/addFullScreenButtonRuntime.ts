@@ -1,3 +1,4 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export { SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE } from "../icons/iconFactoryRuntime.js";
@@ -144,7 +145,7 @@ function isAddFullScreenButtonEventTarget(
 
 const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
         getDocument: () => globalThis.document,
         getGlobalEventTarget: () =>
             isAddFullScreenButtonEventTarget(globalThis)
