@@ -126,6 +126,7 @@ describe("recentFilesContextMenuRuntime", () => {
             getAbortController: () => TestAbortController,
             getClearTimeout: () => clearTimeout,
             getDateNow: () => dateNow,
+            getDocument: () => documentEventTarget,
             getDocumentEventTarget: () => documentEventTarget,
             getNode: () => Node,
             getSetTimeout: () => setTimeout,
@@ -195,28 +196,28 @@ describe("recentFilesContextMenuRuntime", () => {
             "recent files context menu requires a document event-target runtime"
         );
         expect(() => runtime.appendToBody(element)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.bodyContains(element)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.createMenuElement()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.findRecentFilesMenu()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.getBodyDebugInfo()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.hasRecentFilesMenu()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.insertBeforeBodyFirstChild(element)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.isBodyParent(element)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.isNode(element)).toThrow(
             "recent files context menu requires a Node runtime"
@@ -251,6 +252,32 @@ describe("recentFilesContextMenuRuntime", () => {
         });
         expect(mousedownCount).toBe(1);
         expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("derives document mousedown listeners from the scoped document provider", () => {
+        expect.assertions(3);
+
+        let mousedownCount = 0;
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const listener = () => {
+            mousedownCount += 1;
+        };
+        const controller = new AbortController();
+        const runtime = getRecentFilesContextMenuRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentMousedownListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(new MouseEvent("mousedown"));
+
+        expect(addEventListener).toHaveBeenCalledWith("mousedown", listener, {
+            signal: controller.signal,
+        });
+        expect(mousedownCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -301,28 +328,28 @@ describe("recentFilesContextMenuRuntime", () => {
             runtime.clearTimeout(31 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("recent files context menu requires a clearTimeout runtime");
         expect(() => runtime.appendToBody(document.body)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.bodyContains(document.body)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.createMenuElement()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.findRecentFilesMenu()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.getBodyDebugInfo()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.hasRecentFilesMenu()).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.insertBeforeBodyFirstChild(document.body)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.isBodyParent(document.body)).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
         expect(() => runtime.isNode(document.body)).toThrow(
             "recent files context menu requires a Node runtime"

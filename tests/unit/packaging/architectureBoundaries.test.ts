@@ -11143,7 +11143,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(56);
+        expect.assertions(59);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -11238,7 +11238,13 @@ describe("architecture boundaries", () => {
             "const dateNow = scope.getDateNow?.();"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "getNode: () => globalThis.Node"
@@ -11260,6 +11266,9 @@ describe("architecture boundaries", () => {
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a document event-target runtime"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires a document runtime"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a dateNow runtime"

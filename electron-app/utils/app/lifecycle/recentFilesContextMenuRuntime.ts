@@ -6,6 +6,7 @@ export interface RecentFilesContextMenuRuntimeScope {
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
     readonly getSetTimeout?:
@@ -75,7 +76,7 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getDateNow: () => Date.now,
-        getDocumentEventTarget: () => globalThis.document,
+        getDocument: () => globalThis.document,
         getNode: () => globalThis.Node,
         getSetTimeout: () => globalThis.setTimeout,
         getViewport: () => ({
@@ -112,7 +113,7 @@ function getRequiredDateNow(
 function getDocumentEventTarget(
     scope: RecentFilesContextMenuRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getNodeConstructor(
@@ -131,10 +132,10 @@ function getNodeConstructor(
 function getRuntimeDocument(
     scope: RecentFilesContextMenuRuntimeScope
 ): Document {
-    const documentRef = getDocumentEventTarget(scope);
+    const documentRef = scope.getDocument?.();
     if (!documentRef) {
         throw new TypeError(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires a document runtime"
         );
     }
 
