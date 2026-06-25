@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getEnableTabButtonsRuntime,
@@ -7,6 +7,10 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/enableTabButtonsRuntime.js";
 
 describe("getEnableTabButtonsRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("reports renderer availability through the injected scope", () => {
         expect.assertions(2);
 
@@ -82,6 +86,40 @@ describe("getEnableTabButtonsRuntime", () => {
         expect(primaryConstructor).toHaveBeenCalledWith(callback);
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+    });
+
+    it("uses browser runtime providers for production timer, observer, and renderer defaults", () => {
+        expect.assertions(7);
+
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+        const timeoutMs = Number("50");
+        const handler = vi.fn<() => void>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const observe = vi.fn();
+        const ObserverConstructor = vi.fn(function MutationObserverMock(
+            callback: MutationCallback
+        ) {
+            return { callback, observe };
+        }) as unknown as MutationObserverConstructorLike;
+        const callback = vi.fn<MutationCallback>();
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("MutationObserver", ObserverConstructor);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+        const runtime = getEnableTabButtonsRuntime();
+
+        expect(runtime.isWindowAvailable()).toBe(true);
+        expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+        const observer = runtime.createMutationObserver(callback);
+
+        expect(observer?.observe).toBe(observe);
+        expect(ObserverConstructor).toHaveBeenCalledWith(callback);
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(handler).not.toHaveBeenCalled();
     });
 
     it("throws when timer cleanup is unavailable", () => {

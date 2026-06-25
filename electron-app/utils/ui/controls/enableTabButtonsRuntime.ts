@@ -1,3 +1,10 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserMutationObserver,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type TabButtonObserver = {
     observe?: (
         target: Readonly<Element>,
@@ -33,10 +40,10 @@ export interface EnableTabButtonsRuntime {
 }
 
 const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getMutationObserver: () => globalThis.MutationObserver,
-    getSetTimeout: () => globalThis.setTimeout,
-    isRendererScope: () => Reflect.has(globalThis, "document"),
+    getClearTimeout: getBrowserClearTimeout,
+    getMutationObserver: getBrowserMutationObserver,
+    getSetTimeout: getBrowserSetTimeout,
+    isRendererScope: () => getBrowserDocument() !== undefined,
 };
 
 function getMutationObserverConstructor(

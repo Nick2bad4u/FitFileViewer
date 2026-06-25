@@ -19433,7 +19433,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(33);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -19471,15 +19471,30 @@ describe("architecture boundaries", () => {
             "defaultEnableTabButtonsRuntimeScope"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
+            "getMutationObserver: getBrowserMutationObserver"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
             "getMutationObserver: () => globalThis.MutationObserver"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
+            "isRendererScope: () => getBrowserDocument() !== undefined"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
             'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(enableTabButtonsRuntimeSource).not.toContain(
