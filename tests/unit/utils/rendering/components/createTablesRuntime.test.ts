@@ -26,6 +26,19 @@ describe("createTablesRuntime", () => {
         });
     });
 
+    it("resolves the default data-table container through browser providers", () => {
+        expect.assertions(1);
+
+        const container = document.createElement("div");
+        container.id = "content_data";
+        document.body.append(container);
+        const runtime = getCreateTablesRuntime();
+
+        expect(runtime.getDefaultContainer()).toBe(container);
+
+        container.remove();
+    });
+
     it("returns null when explicit scopes do not provide a document", () => {
         expect.assertions(1);
 

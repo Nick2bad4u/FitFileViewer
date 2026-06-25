@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 type CreateTablesDocument = Pick<Document, "querySelector">;
 
 export interface CreateTablesRuntimeScope {
@@ -9,7 +11,7 @@ export interface CreateTablesRuntime {
 }
 
 const defaultCreateTablesRuntimeScope: CreateTablesRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getScopeDocument(
