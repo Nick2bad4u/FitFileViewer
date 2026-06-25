@@ -8765,14 +8765,14 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).toContain(
             "defaultUIStateManagerRuntimeScope"
         );
-        expect(uiStateManagerRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'createSpanElement: () => getGlobalDocument().createElement("span")'
+            'createSpanElement: () => globalThis.document.createElement("span")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getDateNow: () => Date.now"
@@ -8784,10 +8784,10 @@ describe("architecture boundaries", () => {
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getFileStateBody: () => getGlobalDocument().body"
+            "getFileStateBody: () => globalThis.document.body"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getDocumentTitle: () => getGlobalDocument().title"
+            "getDocumentTitle: () => globalThis.document.title"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'typeof globalThis.addEventListener === "function"'
@@ -8796,58 +8796,58 @@ describe("architecture boundaries", () => {
             "getMatchMedia: () => globalThis.matchMedia"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getChartControlsToggle(getGlobalDocument())"
+            "getChartControlsToggle(globalThis.document)"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getChartSettingsWrapper(getGlobalDocument())"
+            "getChartSettingsWrapper(globalThis.document)"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(\n            getGlobalDocument(),\n            "active_file_name_container"'
+            'getElementByIdFlexible(\n            globalThis.document,\n            "active_file_name_container"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(getGlobalDocument(), "active_file_name")'
+            'getElementByIdFlexible(globalThis.document, "active_file_name")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(getGlobalDocument(), "altfit_iframe")'
+            'getElementByIdFlexible(globalThis.document, "altfit_iframe")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(getGlobalDocument(), "drop_overlay")'
+            'getElementByIdFlexible(globalThis.document, "drop_overlay")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(getGlobalDocument(), "zwift_iframe")'
+            'getElementByIdFlexible(globalThis.document, "zwift_iframe")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(getGlobalDocument(), "unload_file_btn")'
+            'getElementByIdFlexible(globalThis.document, "unload_file_btn")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#file-loading-progress"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelector<HTMLElement>("#loading-indicator")'
+            'globalThis.document.querySelector<HTMLElement>("#loading-indicator")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelector<HTMLElement>("#main-content")'
+            'globalThis.document.querySelector<HTMLElement>("#main-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelector<HTMLElement>("#map-container")'
+            'globalThis.document.querySelector<HTMLElement>("#map-container")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#measurement-mode-toggle"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelector<HTMLElement>("#sidebar")'
+            'globalThis.document.querySelector<HTMLElement>("#sidebar")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelectorAll("[data-tab]")'
+            'globalThis.document.querySelectorAll("[data-tab]")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelectorAll(".tab-content")'
+            'globalThis.document.querySelectorAll(".tab-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getGlobalDocument().documentElement || getGlobalDocument().body"
+            "globalThis.document.documentElement || globalThis.document.body"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getGlobalDocument().querySelectorAll("[data-theme]")'
+            'globalThis.document.querySelectorAll("[data-theme]")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "'button[data-theme], [role=\"button\"][data-theme]'"

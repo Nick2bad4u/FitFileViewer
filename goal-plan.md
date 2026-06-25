@@ -1055,7 +1055,7 @@ resize/beforeunload listener registration now route through `uiStateManagerRunti
 `document.body` file-state classes/dataset fields, querying active-file display, chart-controls, drop-overlay, loading-state, sidebar, measurement-mode, tab, theme, or unload-button DOM elements directly, creating active-file display spans directly, checking tab/theme elements against the ambient `HTMLElement` constructor directly, writing
 `document.body.style.cursor`, registering on `window.addEventListener`, or constructing `AbortController` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails
 blocking those direct browser/controller operations from returning. Default document access inside the runtime now
-centralizes through `getGlobalDocument()` instead of repeating `globalThis.document` across the provider table.
+lives on named providers that read `globalThis.document` directly instead of bouncing through a private helper.
 UI state manager last-notification timestamps now also route through `uiStateManagerRuntime.ts` instead of calling
 `Date.now` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails blocking
 direct clock reads and legacy direct runtime scope properties from returning.
