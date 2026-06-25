@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type LifecycleListenersTimer = ReturnType<typeof globalThis.setTimeout>;
 
@@ -70,11 +74,11 @@ function getGlobalPrint(): LifecycleListenersPrint | undefined {
 
 const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
+    getClearTimeout: getBrowserClearTimeout,
     getDocument: () => globalThis.document,
     getPrint: getGlobalPrint,
     getProcess: getGlobalProcess,
-    getSetTimeout: () => globalThis.setTimeout,
+    getSetTimeout: getBrowserSetTimeout,
     getURL: () => globalThis.URL,
 };
 
