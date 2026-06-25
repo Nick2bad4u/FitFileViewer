@@ -96,54 +96,6 @@ const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
     getSetTimeout: () => globalThis.setTimeout,
 };
 
-function getScopeDocument(
-    scope: LazyRenderingRuntimeScope
-): LazyRenderingRuntimeDocument | undefined {
-    return scope.getDocument?.();
-}
-
-function getScopeHTMLElement(
-    scope: LazyRenderingRuntimeScope
-): typeof HTMLElement | undefined {
-    return scope.getHTMLElement?.();
-}
-
-function getScopeInnerHeight(
-    scope: LazyRenderingRuntimeScope
-): number | undefined {
-    return scope.getInnerHeight?.();
-}
-
-function getScopeInnerWidth(
-    scope: LazyRenderingRuntimeScope
-): number | undefined {
-    return scope.getInnerWidth?.();
-}
-
-function getScopeIntersectionObserver(
-    scope: LazyRenderingRuntimeScope
-): typeof IntersectionObserver | undefined {
-    return scope.getIntersectionObserver?.();
-}
-
-function getScopeRequestAnimationFrame(
-    scope: LazyRenderingRuntimeScope
-): LazyRenderingRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
-}
-
-function getScopeRequestIdleCallback(
-    scope: LazyRenderingRuntimeScope
-): LazyRenderingRequestIdleCallback | undefined {
-    return scope.getRequestIdleCallback?.();
-}
-
-function getScopeSetTimeout(
-    scope: LazyRenderingRuntimeScope
-): LazyRenderingSetTimeout | undefined {
-    return scope.getSetTimeout?.();
-}
-
 export function getLazyRenderingRuntime(
     scope: LazyRenderingRuntimeScope = defaultLazyRenderingRuntimeScope
 ): LazyRenderingRuntime {
@@ -152,7 +104,7 @@ export function getLazyRenderingRuntime(
             callback: IntersectionObserverCallback,
             options: Readonly<IntersectionObserverInit>
         ): IntersectionObserver | undefined {
-            const Observer = getScopeIntersectionObserver(scope);
+            const Observer = scope.getIntersectionObserver?.();
             if (typeof Observer !== "function") {
                 return undefined;
             }
@@ -160,20 +112,20 @@ export function getLazyRenderingRuntime(
             return new Observer(callback, options);
         },
         getViewport(): LazyRenderingViewport {
-            const document = getScopeDocument(scope);
+            const document = scope.getDocument?.();
             return {
                 height: resolveViewportDimension(
-                    getScopeInnerHeight(scope),
+                    scope.getInnerHeight?.(),
                     document?.documentElement?.clientHeight
                 ),
                 width: resolveViewportDimension(
-                    getScopeInnerWidth(scope),
+                    scope.getInnerWidth?.(),
                     document?.documentElement?.clientWidth
                 ),
             };
         },
         isHTMLElement(element: Readonly<Element>): element is HTMLElement {
-            const HTMLElementConstructor = getScopeHTMLElement(scope);
+            const HTMLElementConstructor = scope.getHTMLElement?.();
             return (
                 typeof HTMLElementConstructor === "function" &&
                 element instanceof HTMLElementConstructor
@@ -182,7 +134,7 @@ export function getLazyRenderingRuntime(
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): number | undefined {
-            const requestAnimationFrame = getScopeRequestAnimationFrame(scope);
+            const requestAnimationFrame = scope.getRequestAnimationFrame?.();
             if (typeof requestAnimationFrame !== "function") {
                 return undefined;
             }
@@ -193,7 +145,7 @@ export function getLazyRenderingRuntime(
             callback: IdleRequestCallback,
             options: Readonly<IdleRequestOptions>
         ): number | undefined {
-            const requestIdleCallback = getScopeRequestIdleCallback(scope);
+            const requestIdleCallback = scope.getRequestIdleCallback?.();
             if (typeof requestIdleCallback !== "function") {
                 return undefined;
             }
@@ -201,7 +153,7 @@ export function getLazyRenderingRuntime(
             return requestIdleCallback(callback, options);
         },
         setTimeout(callback: () => void): LazyRenderingTimeoutHandle {
-            const timeout = getScopeSetTimeout(scope);
+            const timeout = scope.getSetTimeout?.();
             if (typeof timeout !== "function") {
                 throw new TypeError("lazyRenderingRuntime requires setTimeout");
             }
