@@ -10037,6 +10037,54 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
+    it("keeps renderer logging timestamps behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const logWithLevelSource = stripComments(
+            readRepositoryFile("electron-app/utils/logging/logWithLevel.ts")
+        );
+        const rendererLoggerSource = stripComments(
+            readRepositoryFile("electron-app/utils/logging/rendererLogger.ts")
+        );
+        const loggingTimestampRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/logging/loggingTimestampRuntime.ts"
+            )
+        );
+
+        expect(logWithLevelSource).toContain("loggingTimestampRuntime.js");
+        expect(rendererLoggerSource).toContain("loggingTimestampRuntime.js");
+        expect(logWithLevelSource).toContain(
+            "loggingTimestampRuntime().isoNow()"
+        );
+        expect(rendererLoggerSource).toContain(
+            "loggingTimestampRuntime().isoNow()"
+        );
+        expect(logWithLevelSource).not.toContain(
+            "new Date().toISOString()"
+        );
+        expect(rendererLoggerSource).not.toContain(
+            "new Date().toISOString()"
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "defaultLoggingTimestampRuntimeScope"
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "getDateConstructor: () => Date"
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "new DateConstructor().toISOString()"
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "loggingTimestampRuntime requires a date constructor"
+        );
+        expect(loggingTimestampRuntimeSource).not.toContain("readonly Date?:");
+        expect(loggingTimestampRuntimeSource).not.toContain("scope.Date");
+        expect(loggingTimestampRuntimeSource).not.toContain(
+            "LoggingTimestampRuntimeScope = globalThis"
+        );
+    });
+
     it("keeps strict renderer startup tests off renderer dev globals", () => {
         expect.assertions(1);
 

@@ -1,3 +1,5 @@
+import { loggingTimestampRuntime } from "./loggingTimestampRuntime.js";
+
 /**
  * Valid console levels supported by the renderer logger.
  */
@@ -47,7 +49,7 @@ export function logWithRendererContext(
         context &&
         typeof context === "object" &&
         Object.keys(context).length > 0;
-    const timestamp = new Date().toISOString();
+    const timestamp = loggingTimestampRuntime().isoNow();
     const prefix = `[${timestamp}] [renderer]`;
 
     const logger = console[level];

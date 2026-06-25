@@ -1,3 +1,5 @@
+import { loggingTimestampRuntime } from "./loggingTimestampRuntime.js";
+
 /**
  * Console levels supported by the structured logger.
  */
@@ -22,7 +24,7 @@ export function logWithLevel(
         setObjectKeysThrowFlag(true);
 
         const prefix = "[FFV]";
-        const timestamp = new Date().toISOString();
+        const timestamp = loggingTimestampRuntime().isoNow();
         const base = `${timestamp} ${prefix} ${String(message)}`;
         const payload = createLogPayload(context);
 

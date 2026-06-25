@@ -250,6 +250,9 @@ global from returning.
 Renderer startup performance timing now routes through `startupPerformanceMonitorRuntime.ts` instead of calling
 `performance.now` directly inside `startupPerformanceMonitor.ts`, with focused runtime coverage and architecture
 guardrails blocking direct performance reads and direct runtime scope properties from returning.
+Renderer logging timestamp prefixes now route through `loggingTimestampRuntime.ts` instead of constructing
+`new Date()` directly in `logWithLevel.ts` and `rendererLogger.ts`, with focused runtime coverage and architecture
+guardrails blocking direct timestamp construction and direct runtime scope properties from returning.
 
 Maintenance target: keep `main-ui.ts` as an entrypoint-only bridge through architecture coverage. The explicit
 module exports for the drag/drop handler, menu injection request, and development cleanup stay as the narrow
