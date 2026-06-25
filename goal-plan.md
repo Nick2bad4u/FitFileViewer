@@ -911,8 +911,8 @@ Tab visibility fallback timers now route through `updateTabVisibilityRuntime.ts`
 provide timer primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture
 coverage blocking those ambient fallbacks from returning. Tab visibility runtime scopes now also resolve document
 access and animation-frame scheduling through named provider functions instead of a broad `globalThis` default scope
-or direct document/timer/frame properties, with focused coverage and architecture coverage blocking those legacy
-runtime shapes from returning.
+or helper-level document, direct document, timer, or frame properties, with focused coverage and architecture coverage
+blocking those legacy runtime shapes from returning.
 Tab-state manager regression tests now pass `rawFitData` table fixtures into `updateTabAvailability` instead of
 retired `globalData` entries, with architecture coverage blocking that stale regression vocabulary.
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state

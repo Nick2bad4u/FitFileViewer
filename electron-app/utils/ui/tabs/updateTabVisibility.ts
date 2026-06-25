@@ -64,24 +64,19 @@ function canUseDocument(candidate: unknown): candidate is Document {
     );
 }
 
-function getGlobalDocument(): Document | undefined {
-    try {
-        return getUpdateTabVisibilityRuntime().getDocument();
-    } catch {
-        return undefined;
-    }
-}
-
 function getEffectiveDocument(): Document | undefined {
     return getTabTestDocumentForTests();
 }
 
 function getDoc(): Document {
-    const candidates = [
-        getGlobalDocument(),
-        getGlobalDocument(),
-        getEffectiveDocument(),
-    ];
+    let runtimeDocument: Document | undefined;
+    try {
+        runtimeDocument = getUpdateTabVisibilityRuntime().getDocument();
+    } catch {
+        runtimeDocument = undefined;
+    }
+
+    const candidates = [runtimeDocument, getEffectiveDocument()];
 
     for (const candidate of candidates) {
         if (canUseDocument(candidate)) {
