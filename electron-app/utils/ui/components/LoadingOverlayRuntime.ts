@@ -1,4 +1,5 @@
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 
 export interface LoadingOverlayRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
@@ -16,7 +17,7 @@ export interface LoadingOverlayRuntime {
 }
 
 const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getDocument(scope: LoadingOverlayRuntimeScope): Document {

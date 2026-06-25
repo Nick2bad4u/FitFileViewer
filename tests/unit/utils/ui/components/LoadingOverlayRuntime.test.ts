@@ -33,6 +33,20 @@ describe("getLoadingOverlayRuntime", () => {
         expect(document.body.lastElementChild).toBe(overlay);
     });
 
+    it("uses default browser document providers", () => {
+        expect.assertions(3);
+
+        const runtime = getLoadingOverlayRuntime();
+        const overlay = runtime.createElement("div");
+        overlay.id = "fitfile-loading-overlay";
+
+        runtime.appendToBody(overlay);
+
+        expect(overlay).toBeInstanceOf(HTMLDivElement);
+        expect(runtime.querySelector("#fitfile-loading-overlay")).toBe(overlay);
+        expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 

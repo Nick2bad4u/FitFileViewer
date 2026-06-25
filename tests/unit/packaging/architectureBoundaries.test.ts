@@ -14027,7 +14027,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const violations = migratedLoadingOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -14074,6 +14074,9 @@ describe("architecture boundaries", () => {
         );
         expect(loadingOverlayRuntimeSource).not.toContain("scope.document");
         expect(loadingOverlayRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(loadingOverlayRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(loadingOverlayRuntimeSource).toContain(
