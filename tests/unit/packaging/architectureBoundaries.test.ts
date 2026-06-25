@@ -8388,7 +8388,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(150);
+        expect.assertions(157);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -8413,6 +8413,8 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createSpanElement");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("dateNow");
+        expect(uiStateManagerSource).toContain("uiStateManagerRuntime().dateNow()");
         expect(uiStateManagerSource).toContain(
             "getActiveFileNameContainerElement"
         );
@@ -8514,6 +8516,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain(
             'document.createElement("span")'
         );
+        expect(uiStateManagerSource).not.toContain("Date.now");
         expect(uiStateManagerSource).not.toContain(
             'const tabButtons = safeQuerySelectorAll("[data-tab]")'
         );
@@ -8540,6 +8543,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'createSpanElement: () => getGlobalDocument().createElement("span")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "UI state manager requires dateNow"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
@@ -8633,6 +8642,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
+        expect(uiStateManagerRuntimeSource).not.toContain("readonly dateNow?:");
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly documentTitle?:"
         );
@@ -8714,6 +8724,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.AbortController"
         );
+        expect(uiStateManagerRuntimeSource).not.toContain("scope.dateNow");
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.documentTitle"
         );

@@ -42,6 +42,7 @@ export interface UIStateManagerRuntimeScope {
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
     readonly createSpanElement?: (() => HTMLSpanElement) | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getFileStateBody?:
         | (() => UIStateManagerFileStateBody | undefined)
         | undefined;
@@ -117,6 +118,7 @@ export interface UIStateManagerRuntime {
     ) => void;
     createAbortController: () => AbortController;
     createSpanElement: () => HTMLSpanElement;
+    dateNow: () => number;
     getDefaultDocumentTitle: (fallbackTitle: string) => string;
     getActiveFileNameContainerElement: () => HTMLElement | null;
     getActiveFileNameElement: () => HTMLElement | null;
@@ -152,6 +154,7 @@ function getGlobalDocument(): Document {
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     createSpanElement: () => getGlobalDocument().createElement("span"),
+    getDateNow: () => Date.now,
     getAbortController: () => globalThis.AbortController,
     getFileStateBody: () => getGlobalDocument().body,
     getDocumentTitle: () => getGlobalDocument().title,
@@ -243,6 +246,15 @@ function createSpanElement(scope: UIStateManagerRuntimeScope): HTMLSpanElement {
     }
 
     return createSpan();
+}
+
+function getDateNow(scope: UIStateManagerRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("UI state manager requires dateNow");
+    }
+
+    return dateNow;
 }
 
 function getEventTarget(
@@ -481,6 +493,9 @@ export function getUIStateManagerRuntime(
         },
         createSpanElement(): HTMLSpanElement {
             return createSpanElement(scope);
+        },
+        dateNow(): number {
+            return getDateNow(scope)();
         },
         getDefaultDocumentTitle(fallbackTitle): string {
             return getDocumentTitle(scope) ?? fallbackTitle;

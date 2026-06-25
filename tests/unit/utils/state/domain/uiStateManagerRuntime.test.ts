@@ -3,6 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 import { getUIStateManagerRuntime } from "../../../../../electron-app/utils/state/domain/uiStateManagerRuntime.js";
 
 describe("uiStateManagerRuntime", () => {
+    it("reads timestamps through the scoped runtime", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.fn<() => number>(() => 1234);
+        const utils = getUIStateManagerRuntime({
+            getDateNow: () => dateNow,
+        });
+
+        expect(utils.dateNow()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
+    });
+
     it("creates abort controllers through the scoped runtime", () => {
         expect.assertions(2);
 
@@ -31,6 +43,14 @@ describe("uiStateManagerRuntime", () => {
         expect(() =>
             getUIStateManagerRuntime({}).createAbortController()
         ).toThrow("UI state manager requires an AbortController runtime");
+    });
+
+    it("throws when date clocks are unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => getUIStateManagerRuntime({}).dateNow()).toThrow(
+            "UI state manager requires dateNow"
+        );
     });
 
     it("resolves system theme media queries from the scoped runtime", () => {
@@ -442,7 +462,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(56);
+        expect.assertions(58);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -473,6 +493,7 @@ describe("uiStateManagerRuntime", () => {
         const unloadFileButtonElement = document.createElement("button");
         const zwiftIframeElement = document.createElement("iframe");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
+        const dateNow = vi.fn<() => number>(() => 1234);
         const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
         const runtime = getUIStateManagerRuntime({
@@ -482,6 +503,7 @@ describe("uiStateManagerRuntime", () => {
             activeFileNameElement,
             altFitIframeElement,
             documentTitle: "Legacy title",
+            dateNow,
             eventTarget: { addEventListener },
             chartControlsToggleElement,
             chartSettingsWrapperElement,
@@ -524,6 +546,9 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "UI state manager requires an AbortController runtime"
         );
+        expect(() => runtime.dateNow()).toThrow(
+            "UI state manager requires dateNow"
+        );
         expect(runtime.getSystemThemeMediaQuery()).toBeNull();
         expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
             "Fit File Viewer"
@@ -554,6 +579,7 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.setBodyCursor("wait")).not.toThrow();
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
+        expect(dateNow).not.toHaveBeenCalled();
         expect(fileStateToggle).not.toHaveBeenCalled();
         expect(runtime.getActiveFileNameContainerElement()).not.toBe(
             activeFileNameContainerElement

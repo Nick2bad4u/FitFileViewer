@@ -393,7 +393,7 @@ export class UIStateManager {
                 "ui.lastNotification",
                 {
                     message,
-                    timestamp: Date.now(),
+                    timestamp: uiStateManagerRuntime().dateNow(),
                     type,
                 },
                 { source: "UIStateManager.showNotification" }
