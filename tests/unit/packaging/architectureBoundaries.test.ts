@@ -7129,7 +7129,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(40);
+        expect.assertions(44);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -7194,7 +7194,19 @@ describe("architecture boundaries", () => {
             "defaultRenderChartJSRuntimeScope"
         );
         expect(renderChartRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
+            "getPerformance: () => globalThis.performance"
         );
         expect(renderChartRuntimeSource).toContain(
             "getDocument: () => globalThis.document"

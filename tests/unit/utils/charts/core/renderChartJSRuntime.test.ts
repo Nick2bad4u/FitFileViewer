@@ -4,6 +4,7 @@ import { getRenderChartJSRuntime } from "../../../../../electron-app/utils/chart
 
 describe("renderChartJSRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -82,9 +83,10 @@ describe("renderChartJSRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const now = vi.fn(() => 42.5);
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(5678);
         const utils = getRenderChartJSRuntime();
 
         vi.stubGlobal("CustomEvent", CustomEvent);
@@ -97,8 +99,10 @@ describe("renderChartJSRuntime", () => {
         );
         expect(utils.isWindowAvailable()).toBe(true);
         expect(utils.nowPerformance()).toBe(42.5);
+        expect(utils.now()).toBe(5678);
         expect(now).toHaveBeenCalledOnce();
         expect(now).toHaveBeenCalledWith();
+        expect(dateNow).toHaveBeenCalledOnce();
     });
 
     it("does not borrow ambient date clocks for explicit scopes", () => {
