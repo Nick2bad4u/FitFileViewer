@@ -1,3 +1,8 @@
+import {
+    getBrowserDateNow,
+    getBrowserPerformance,
+} from "../../runtime/browserRuntime.js";
+
 export type AppActionsDateNow = () => number;
 
 export interface AppActionsPerformance {
@@ -17,8 +22,8 @@ export interface AppActionsRuntime {
 }
 
 const defaultAppActionsRuntimeScope: AppActionsRuntimeScope = {
-    getDateNow: () => Date.now,
-    getPerformance: () => globalThis.performance,
+    getDateNow: getBrowserDateNow,
+    getPerformance: getBrowserPerformance,
 };
 
 export function getAppActionsRuntime(

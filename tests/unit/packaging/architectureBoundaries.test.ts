@@ -11785,7 +11785,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(20);
+        expect.assertions(23);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -11814,8 +11814,19 @@ describe("architecture boundaries", () => {
         expect(appActionsRuntimeSource).toContain(
             "defaultAppActionsRuntimeScope"
         );
-        expect(appActionsRuntimeSource).toContain("getDateNow: () => Date.now");
         expect(appActionsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(appActionsRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(appActionsRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(appActionsRuntimeSource).toContain(

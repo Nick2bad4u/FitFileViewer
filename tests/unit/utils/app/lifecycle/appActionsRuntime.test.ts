@@ -23,6 +23,15 @@ describe("getAppActionsRuntime", () => {
         expect(performanceNow).toHaveBeenCalledOnce();
     });
 
+    it("reads production timing defaults through browser runtime providers", () => {
+        expect.assertions(2);
+
+        const runtime = getAppActionsRuntime();
+
+        expect(runtime.dateNow()).toBeGreaterThan(0);
+        expect(runtime.performanceNow()).toBeGreaterThanOrEqual(0);
+    });
+
     it("fails clearly when explicit scopes omit clocks", () => {
         expect.assertions(2);
 
