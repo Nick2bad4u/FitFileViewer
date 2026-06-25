@@ -182,6 +182,7 @@ describe("exportUtilsRuntime", () => {
             keydownCount += 1;
         };
         const runtime = getExportUtilsRuntime({
+            getDocument: () => documentEventTarget,
             getDocumentEventTarget: () => documentEventTarget,
         });
 
@@ -200,6 +201,39 @@ describe("exportUtilsRuntime", () => {
         expect(keydownCount).toBe(1);
         expect(documentEventTarget.body.childElementCount).toBe(1);
         expect(documentEventTarget.body.contains(link)).toBe(true);
+    });
+
+    it("derives document keydown listeners from the scoped document provider", () => {
+        expect.assertions(4);
+
+        const controller = new AbortController();
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        let keydownCount = 0;
+        const runtime = getExportUtilsRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentKeydownListener(
+            () => {
+                keydownCount += 1;
+            },
+            { signal: controller.signal }
+        );
+        documentRef.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape" })
+        );
+
+        expect(addEventListener).toHaveBeenCalledWith(
+            "keydown",
+            expect.any(Function),
+            {
+                signal: controller.signal,
+            }
+        );
+        expect(addEventListener.mock.contexts[0]).toBe(documentRef);
+        expect(keydownCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
     });
 
     it("routes document keydown listeners through provider functions", () => {
@@ -233,8 +267,7 @@ describe("exportUtilsRuntime", () => {
         const button = document.createElement("button");
         let activeElement: Element | null = button;
         const runtime = getExportUtilsRuntime({
-            getDocumentEventTarget: () =>
-                ({ activeElement }) as unknown as Document,
+            getDocument: () => ({ activeElement }) as unknown as Document,
             getHTMLElement: () => HTMLElement,
         });
 
@@ -321,7 +354,7 @@ describe("exportUtilsRuntime", () => {
         );
         expect(() =>
             getExportUtilsRuntime({
-                getDocumentEventTarget: () => document,
+                getDocument: () => document,
             }).getActiveElement()
         ).toThrow("exportUtils requires an HTMLElement runtime");
     });

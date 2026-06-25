@@ -25,6 +25,7 @@ export interface ExportUtilsRuntimeScope {
     readonly getConfirmDangerousAction?:
         | (() => ConfirmDangerousActionFunction | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
         | (() => typeof globalThis.HTMLElement | undefined)
@@ -64,7 +65,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
             : undefined;
     },
     getAbortController: () => globalThis.AbortController,
-    getDocumentEventTarget: () => globalThis.document,
+    getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getOpenPrintWindow: () => {
         const openPrintWindow = globalThis.open;
@@ -92,7 +93,13 @@ function getScopeConfirmDangerousAction(
 function getScopeDocumentEventTarget(
     scope: ExportUtilsRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+}
+
+function getScopeDocument(
+    scope: ExportUtilsRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.();
 }
 
 function getScopeHTMLElement(
@@ -149,7 +156,7 @@ export function getExportUtilsRuntime(
         },
 
         appendToBody(element): void {
-            const documentRef = getScopeDocumentEventTarget(scope);
+            const documentRef = getScopeDocument(scope);
             if (!documentRef) {
                 throw new TypeError("exportUtils requires a document runtime");
             }
@@ -175,7 +182,7 @@ export function getExportUtilsRuntime(
         },
 
         getActiveElement(): HTMLElement | null {
-            const documentRef = getScopeDocumentEventTarget(scope);
+            const documentRef = getScopeDocument(scope);
             if (!documentRef) {
                 throw new TypeError("exportUtils requires a document runtime");
             }

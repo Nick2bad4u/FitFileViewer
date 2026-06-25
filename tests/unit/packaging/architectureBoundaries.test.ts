@@ -4800,7 +4800,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(72);
+        expect.assertions(74);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4860,6 +4860,12 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain("getSecureRandomCrypto");
         expect(exportUtilsRuntimeSource).toContain("getStorage");
         expect(exportUtilsRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
@@ -4939,7 +4945,7 @@ describe("architecture boundaries", () => {
             "return scope.getConfirmDangerousAction?.();"
         );
         expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.();"
+            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "return scope.getHTMLElement?.();"
