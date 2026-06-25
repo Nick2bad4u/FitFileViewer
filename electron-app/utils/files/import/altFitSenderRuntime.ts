@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserLocation,
+} from "../../runtime/browserRuntime.js";
 
 export type AltFitSenderLogger = Pick<Console, "error" | "warn">;
 
@@ -25,8 +29,8 @@ interface AltFitSenderRuntimeScope {
 const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getConsole: () => globalThis.console,
-    getDocument: () => globalThis.document,
-    getLocation: () => globalThis.location,
+    getDocument: getBrowserDocument,
+    getLocation: getBrowserLocation,
 };
 
 function getScopeAbortController(

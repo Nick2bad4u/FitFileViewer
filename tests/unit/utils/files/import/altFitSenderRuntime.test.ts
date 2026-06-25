@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getAltFitSenderRuntimeEnvironment } from "../../../../../electron-app/utils/files/import/altFitSenderRuntime.js";
 
 describe("altFitSenderRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -69,6 +73,29 @@ describe("altFitSenderRuntime", () => {
 
         expect(runtime.console).toBe(logger);
         expect(runtime.location).toBe(location);
+        expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
+    });
+
+    it("uses browser runtime providers for production document and location defaults", () => {
+        expect.assertions(2);
+
+        const iframe = document.createElement("iframe");
+        iframe.id = "altfit-iframe";
+        const getElementById = vi.fn<(id: string) => HTMLElement | null>(
+            () => iframe
+        );
+        vi.stubGlobal("document", { getElementById });
+        vi.stubGlobal("location", {
+            origin: "app://fit-file-viewer",
+            protocol: "app:",
+        });
+
+        const runtime = getAltFitSenderRuntimeEnvironment();
+
+        expect(runtime.location).toStrictEqual({
+            origin: "app://fit-file-viewer",
+            protocol: "app:",
+        });
         expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
     });
 
