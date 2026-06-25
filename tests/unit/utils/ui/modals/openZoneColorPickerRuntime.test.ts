@@ -77,18 +77,30 @@ describe("openZoneColorPickerRuntime", () => {
         expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
     });
 
-    it("creates and dispatches custom events through the default production scope", () => {
-        expect.assertions(3);
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(10);
 
         const dispatchEvent = vi.spyOn(window, "dispatchEvent");
         const runtime = getOpenZoneColorPickerRuntime();
 
         const event = runtime.createCustomEvent("ffv:request-render-charts");
+        const button = runtime.createElement("button");
+        const input = runtime.createElement("input");
+        const keydown = new KeyboardEvent("keydown", { key: "Escape" });
+        const cleanup = runtime.addDocumentKeydownListener(vi.fn());
 
         expect(event).toBeInstanceOf(CustomEvent);
         expect(runtime.dispatchEvent(event)).toBe(true);
         expect(dispatchEvent).toHaveBeenCalledWith(event);
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(input).toBeInstanceOf(HTMLInputElement);
+        expect(runtime.getDocument()).toBe(document);
+        expect(runtime.getBody()).toBe(document.body);
+        expect(runtime.isHTMLElement(button)).toBe(true);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isKeyboardEvent(keydown)).toBe(true);
 
+        cleanup();
         dispatchEvent.mockRestore();
     });
 

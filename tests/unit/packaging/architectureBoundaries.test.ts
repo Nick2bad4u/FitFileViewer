@@ -6598,7 +6598,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(43);
+        expect.assertions(53);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -6697,10 +6697,40 @@ describe("architecture boundaries", () => {
             "scope.KeyboardEvent"
         );
         expect(zoneColorPickerRuntimeSource).toContain(
-            "getCustomEvent: () => globalThis.CustomEvent"
+            "getCustomEvent: getBrowserCustomEvent"
         );
         expect(zoneColorPickerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "getDispatchEvent: getBrowserDispatchEvent"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis)"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(zoneColorPickerRuntimeSource).toContain(
             "openZoneColorPicker requires a dispatchEvent runtime"

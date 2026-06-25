@@ -1,3 +1,12 @@
+import {
+    getBrowserCustomEvent,
+    getBrowserDispatchEvent,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserHTMLInputElement,
+    getBrowserKeyboardEvent,
+} from "../../runtime/browserRuntime.js";
+
 export interface OpenZoneColorPickerRuntimeScope {
     readonly getCustomEvent?:
         | (() => typeof globalThis.CustomEvent | undefined)
@@ -115,12 +124,12 @@ function getKeyboardEventConstructor(
 
 const defaultOpenZoneColorPickerRuntimeScope: OpenZoneColorPickerRuntimeScope =
     {
-        getCustomEvent: () => globalThis.CustomEvent,
-        getDocument: () => globalThis.document,
-        getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),
-        getHTMLElement: () => globalThis.HTMLElement,
-        getHTMLInputElement: () => globalThis.HTMLInputElement,
-        getKeyboardEvent: () => globalThis.KeyboardEvent,
+        getCustomEvent: getBrowserCustomEvent,
+        getDocument: getBrowserDocument,
+        getDispatchEvent: getBrowserDispatchEvent,
+        getHTMLElement: getBrowserHTMLElement,
+        getHTMLInputElement: getBrowserHTMLInputElement,
+        getKeyboardEvent: getBrowserKeyboardEvent,
     };
 
 export function getOpenZoneColorPickerRuntime(
