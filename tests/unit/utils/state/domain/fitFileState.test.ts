@@ -160,9 +160,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         expect.assertions(14);
 
         const mgr = new FitFileStateManager();
-        stateManager.setState("currentFile", "C:/stale.fit", {
-            source: "test",
-        });
         stateManager.setState("fitFile.currentFile", "C:/stale.fit", {
             source: "test",
         });
@@ -174,7 +171,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         [
             "fitFile.isLoading",
             "fitFile.currentFile",
-            "currentFile",
             "fitFile.rawData",
             "fitFile.processedData",
             "fitFile.validation",
@@ -184,14 +180,9 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             "fitFile.loaded",
             "fitFile.loadedFiles",
         ].forEach((p) => expect(calls).toContain(p));
+        expect(calls).not.toContain("currentFile");
         expect(stateManager.getState("fitFile.loadedFiles")).toStrictEqual([]);
-        expect({
-            currentFile: stateManager.getState("currentFile"),
-            fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
-        }).toStrictEqual({
-            currentFile: null,
-            fitFileCurrentFile: null,
-        });
+        expect(stateManager.getState("fitFile.currentFile")).toBeNull();
         expect(logSpy).toHaveBeenCalledWith(
             "[FitFileState] File state cleared"
         );
@@ -237,9 +228,9 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             "C:/file.fit",
             expect.any(Object)
         );
-        expect(spy).toHaveBeenCalledWith(
+        expect(spy).not.toHaveBeenCalledWith(
             "currentFile",
-            "C:/file.fit",
+            expect.anything(),
             expect.any(Object)
         );
         expect(spy).toHaveBeenCalledWith(
@@ -254,13 +245,9 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             domainLoading: true,
             legacyLoading: true,
         });
-        expect({
-            currentFile: stateManager.getState("currentFile"),
-            fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
-        }).toStrictEqual({
-            currentFile: "C:/file.fit",
-            fitFileCurrentFile: "C:/file.fit",
-        });
+        expect(stateManager.getState("fitFile.currentFile")).toBe(
+            "C:/file.fit"
+        );
         expect(stateManager.getState("fitFile.loadingProgress")).toBe(0);
         expect(stateManager.getState("fitFile.loadingError")).toBeNull();
     });
@@ -303,9 +290,9 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             data,
             expect.any(Object)
         );
-        expect(ss).toHaveBeenCalledWith(
+        expect(ss).not.toHaveBeenCalledWith(
             "currentFile",
-            "C:/demo.fit",
+            expect.anything(),
             expect.any(Object)
         );
         expect(ss).toHaveBeenCalledWith(
@@ -341,7 +328,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         );
         expect({
             chartsRendered: stateManager.getState("charts.isRendered"),
-            currentFile: stateManager.getState("currentFile"),
             fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
             isLoading: stateManager.getState("fitFile.isLoading"),
             loadingPhase: stateManager.getState("fitFile.loadingPhase"),
@@ -353,7 +339,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             tablesRendered: stateManager.getState("tables.isRendered"),
         }).toEqual({
             chartsRendered: false,
-            currentFile: "C:/demo.fit",
             fitFileCurrentFile: "C:/demo.fit",
             isLoading: false,
             loadingPhase: "loaded",

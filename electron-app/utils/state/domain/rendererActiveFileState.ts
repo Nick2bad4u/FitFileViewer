@@ -18,7 +18,6 @@ export const DEFAULT_RENDERER_FILE_INFO: RendererFileInfoState = {
 
 const RENDERER_FILE_INFO_STATE_PATH = "ui.fileInfo";
 const RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH = "ui.unloadButtonVisible";
-const LEGACY_RENDERER_CURRENT_FILE_STATE_PATH = "currentFile";
 const RENDERER_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";
 
 export function getRendererFileInfo(): RendererFileInfoState {
@@ -64,10 +63,6 @@ export function setRendererCurrentFile(
     filePath: null | string,
     options: StateUpdateOptions = {}
 ): void {
-    setState(LEGACY_RENDERER_CURRENT_FILE_STATE_PATH, filePath, {
-        source: "rendererActiveFileState.setCurrentFile",
-        ...options,
-    });
     setState(RENDERER_CURRENT_FILE_STATE_PATH, filePath, {
         source: "rendererActiveFileState.setCurrentFile",
         ...options,

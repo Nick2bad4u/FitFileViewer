@@ -4241,7 +4241,7 @@ describe("architecture boundaries", () => {
         expect(fitFileStateRuntimeSource).not.toContain("globalThis.Date");
     });
 
-    it("keeps FIT file current-file state behind a domain mirror helper", () => {
+    it("keeps FIT file current-file state off the retired root mirror", () => {
         expect.assertions(9);
 
         const fitFileStateSource = stripComments(
@@ -4253,8 +4253,8 @@ describe("architecture boundaries", () => {
         expect(fitFileStateSource).toContain(
             'const FIT_FILE_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";'
         );
-        expect(fitFileStateSource).toContain(
-            'const LEGACY_CURRENT_FILE_STATE_PATH = "currentFile";'
+        expect(fitFileStateSource).not.toContain(
+            "LEGACY_CURRENT_FILE_STATE_PATH"
         );
         expect(fitFileStateSource).toMatch(
             /function\s+getStoredCurrentFile\(\):\s+null\s+\|\s+string/u
@@ -4265,8 +4265,8 @@ describe("architecture boundaries", () => {
         expect(fitFileStateSource).toMatch(
             /stateCore\.setState\(\s*FIT_FILE_CURRENT_FILE_STATE_PATH\s*,\s*filePath,\s*\{\s*source\s*\}\s*\)/u
         );
-        expect(fitFileStateSource).toMatch(
-            /stateCore\.setState\(\s*LEGACY_CURRENT_FILE_STATE_PATH\s*,\s*filePath,\s*\{\s*source\s*\}\s*\)/u
+        expect(fitFileStateSource).not.toMatch(
+            /stateCore\.setState\(\s*["']currentFile["']\s*,/u
         );
         expect(fitFileStateSource).toContain(
             "setCurrentFileState(null, SOURCE_CLEAR_FILE_STATE);"
@@ -4275,7 +4275,7 @@ describe("architecture boundaries", () => {
             "setCurrentFileState(resolvedPath, source);"
         );
         expect(fitFileStateSource).not.toMatch(
-            /stateCore\.setState\(\s*["']currentFile["']\s*,/u
+            /LEGACY_CURRENT_FILE_STATE_PATH\s*=/u
         );
     });
 
@@ -9241,14 +9241,14 @@ describe("architecture boundaries", () => {
         expect(rendererActiveFileStateSource).toContain(
             'const RENDERER_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";'
         );
-        expect(rendererActiveFileStateSource).toContain(
-            'const LEGACY_RENDERER_CURRENT_FILE_STATE_PATH = "currentFile";'
+        expect(rendererActiveFileStateSource).not.toContain(
+            "LEGACY_RENDERER_CURRENT_FILE_STATE_PATH"
         );
         expect(rendererActiveFileStateSource).toMatch(
             /getState\(\s*RENDERER_CURRENT_FILE_STATE_PATH\s*\)/u
         );
-        expect(rendererActiveFileStateSource).toMatch(
-            /setState\(\s*LEGACY_RENDERER_CURRENT_FILE_STATE_PATH\s*,/u
+        expect(rendererActiveFileStateSource).not.toMatch(
+            /setState\(\s*["']currentFile["']\s*,/u
         );
     });
 

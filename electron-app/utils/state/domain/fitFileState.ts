@@ -155,7 +155,6 @@ type LoadingPhaseTransitionOptions = {
 
 const SOURCE_CLEAR_FILE_STATE = "FitFileStateManager.clearFileState";
 const FIT_FILE_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";
-const LEGACY_CURRENT_FILE_STATE_PATH = "currentFile";
 const FIT_FILE_LOADING_PHASES = [
     "idle",
     "selecting",
@@ -325,7 +324,6 @@ function getStoredCurrentFile(): null | string {
 
 function setCurrentFileState(filePath: null | string, source: string): void {
     stateCore.setState(FIT_FILE_CURRENT_FILE_STATE_PATH, filePath, { source });
-    stateCore.setState(LEGACY_CURRENT_FILE_STATE_PATH, filePath, { source });
 }
 
 /**

@@ -45,7 +45,7 @@ describe("rendererActiveFileState", () => {
     });
 
     it("reads current file state from the fit-file domain path", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         expect(getRendererCurrentFile()).toBeNull();
 
@@ -54,12 +54,9 @@ describe("rendererActiveFileState", () => {
         expect(stateManager.getState("fitFile.currentFile")).toBe(
             "C:/rides/activity.fit"
         );
-        expect(stateManager.getState("currentFile")).toBe(
-            "C:/rides/activity.fit"
-        );
     });
 
-    it("does not read stale legacy currentFile state as active", () => {
+    it("does not read or overwrite stale legacy currentFile state", () => {
         expect.assertions(3);
 
         stateManager.setState("currentFile", "C:/rides/stale.fit", {
@@ -70,7 +67,7 @@ describe("rendererActiveFileState", () => {
 
         setRendererCurrentFile(null);
         expect(getRendererCurrentFile()).toBeNull();
-        expect(stateManager.getState("currentFile")).toBeNull();
+        expect(stateManager.getState("currentFile")).toBe("C:/rides/stale.fit");
     });
 
     it("normalizes file info values", () => {
