@@ -22342,7 +22342,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -22371,6 +22371,12 @@ describe("architecture boundaries", () => {
             "getEventTarget: () => globalThis"
         );
         expect(eventListenerManagerRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(eventListenerManagerRuntimeSource).not.toContain(

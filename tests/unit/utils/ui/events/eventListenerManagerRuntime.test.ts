@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { getEventListenerManagerRuntime } from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
 
 describe("getEventListenerManagerRuntime", () => {
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getEventListenerManagerRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("resolves the default event target through the injected event-target scope", () => {
         expect.assertions(1);
 

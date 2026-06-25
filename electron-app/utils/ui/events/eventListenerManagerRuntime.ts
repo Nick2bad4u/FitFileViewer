@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface EventListenerManagerRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -12,7 +14,7 @@ export interface EventListenerManagerRuntime {
 
 const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getEventTarget: () => globalThis,
     };
 
