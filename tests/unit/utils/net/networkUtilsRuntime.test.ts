@@ -3,6 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { getNetworkUtilsRuntime } from "../../../../electron-app/utils/net/networkUtilsRuntime.js";
 
 describe("getNetworkUtilsRuntime", () => {
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getNetworkUtilsRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("routes fetch through the injected runtime scope", async () => {
         expect.assertions(2);
 
