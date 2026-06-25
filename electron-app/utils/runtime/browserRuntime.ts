@@ -20,6 +20,10 @@ export function getBrowserDateNow(): (() => number) | undefined {
     return Date.now;
 }
 
+export function getBrowserDocument(): Document | undefined {
+    return globalThis.document;
+}
+
 export function getBrowserLocalStorage(): Storage | undefined {
     return globalThis.localStorage;
 }

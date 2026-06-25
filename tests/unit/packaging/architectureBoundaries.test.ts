@@ -9604,7 +9604,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state-manager defaults on scoped runtime access", () => {
-        expect.assertions(16);
+        expect.assertions(25);
 
         const stateManagerDefaultsSource = stripComments(
             readRepositoryFile(
@@ -9644,6 +9644,27 @@ describe("architecture boundaries", () => {
             stateManagerDefaultsRuntimeAmbientGetterPattern
         );
         expect(stateManagerDefaultsRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "dateNow: Date.now"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
             "stateManagerDefaultsRuntime requires a clock"
         );
         expect(stateManagerDefaultsRuntimeSource).toContain(
@@ -9654,6 +9675,12 @@ describe("architecture boundaries", () => {
         );
         expect(stateManagerDefaultsRuntimeSource).not.toContain(
             "readonly performance?:"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "scope.dateNow"
         );
         expect(stateManagerDefaultsRuntimeSource).not.toContain(
             "scope.document"

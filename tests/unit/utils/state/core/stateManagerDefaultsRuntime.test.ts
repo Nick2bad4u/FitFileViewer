@@ -4,6 +4,7 @@ import { getStateManagerDefaultsRuntime } from "../../../../../electron-app/util
 
 describe("stateManagerDefaultsRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -12,7 +13,7 @@ describe("stateManagerDefaultsRuntime", () => {
 
         expect(
             getStateManagerDefaultsRuntime({
-                dateNow: () => 123,
+                getDateNow: () => () => 123,
                 getPerformance: () => ({ now: () => 45.5 }),
             }).getStartTime()
         ).toBe(45.5);
@@ -23,7 +24,7 @@ describe("stateManagerDefaultsRuntime", () => {
 
         expect(
             getStateManagerDefaultsRuntime({
-                dateNow: () => 123,
+                getDateNow: () => () => 123,
             }).getStartTime()
         ).toBe(123);
     });
@@ -54,18 +55,22 @@ describe("stateManagerDefaultsRuntime", () => {
         ).toBe("Fit File Viewer");
     });
 
-    it("ignores legacy direct document and performance runtime properties", () => {
-        expect.assertions(3);
+    it("ignores legacy direct document, clock, and performance runtime properties", () => {
+        expect.assertions(4);
 
+        const dateNow = vi.fn<() => number>(() => 123);
         const performanceNow = vi.fn<() => number>(() => 45.5);
         const runtime = getStateManagerDefaultsRuntime({
-            dateNow: () => 123,
+            dateNow,
             document: { title: "Ignored Activity Viewer" },
             performance: { now: performanceNow },
         } as unknown as Parameters<typeof getStateManagerDefaultsRuntime>[0]);
 
         expect(runtime.getDefaultDocumentTitle()).toBe("Fit File Viewer");
-        expect(runtime.getStartTime()).toBe(123);
+        expect(() => runtime.getStartTime()).toThrow(
+            "stateManagerDefaultsRuntime requires a clock"
+        );
+        expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();
     });
 
@@ -84,5 +89,17 @@ describe("stateManagerDefaultsRuntime", () => {
         expect(runtime.getDefaultDocumentTitle()).toBe("Late Activity Viewer");
         expect(runtime.getStartTime()).toBe(77.25);
         expect(performance.now).toHaveBeenCalledOnce();
+    });
+
+    it("resolves the default date clock when browser performance is unavailable", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
+        const runtime = getStateManagerDefaultsRuntime();
+
+        vi.stubGlobal("performance", undefined);
+
+        expect(runtime.getStartTime()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
     });
 });

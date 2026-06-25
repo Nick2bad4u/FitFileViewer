@@ -1,3 +1,9 @@
+import {
+    getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserPerformance,
+} from "../../runtime/browserRuntime.js";
+
 type StateManagerDefaultsDocumentRuntime = {
     readonly title?: string | undefined;
 };
@@ -7,7 +13,7 @@ type StateManagerDefaultsPerformanceRuntime = {
 };
 
 export interface StateManagerDefaultsRuntimeScope {
-    readonly dateNow?: (() => number) | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?:
         | (() => StateManagerDefaultsDocumentRuntime | undefined)
         | undefined;
@@ -23,9 +29,9 @@ export interface StateManagerDefaultsRuntime {
 
 const defaultStateManagerDefaultsRuntimeScope: StateManagerDefaultsRuntimeScope =
     {
-        dateNow: Date.now,
-        getDocument: () => globalThis.document,
-        getPerformance: () => globalThis.performance,
+        getDateNow: getBrowserDateNow,
+        getDocument: getBrowserDocument,
+        getPerformance: getBrowserPerformance,
     };
 
 function getRequiredStartClock(
@@ -37,7 +43,7 @@ function getRequiredStartClock(
         return performanceNow.bind(performance);
     }
 
-    const dateNow = scope.dateNow;
+    const dateNow = scope.getDateNow?.();
     if (typeof dateNow === "function") {
         return dateNow;
     }
