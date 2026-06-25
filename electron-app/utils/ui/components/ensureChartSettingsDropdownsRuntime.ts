@@ -1,4 +1,7 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type EnsureChartSettingsDropdownsTimerHandle = ReturnType<
     typeof globalThis.setTimeout
@@ -91,10 +94,10 @@ function getTimeoutScheduler(
 
 const defaultEnsureChartSettingsDropdownsRuntimeScope: EnsureChartSettingsDropdownsRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
+        getAbortController: getBrowserAbortController,
         getDocument: () => globalThis.document,
         getHTMLElement: () => globalThis.HTMLElement,
-        getSetTimeout: () => globalThis.setTimeout,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 export function getEnsureChartSettingsDropdownsRuntime(

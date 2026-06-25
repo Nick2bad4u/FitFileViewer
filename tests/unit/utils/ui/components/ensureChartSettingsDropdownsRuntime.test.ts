@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getEnsureChartSettingsDropdownsRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.js";
 
 describe("getEnsureChartSettingsDropdownsRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates elements and exposes the injected document body", () => {
         expect.assertions(3);
 
@@ -87,6 +91,26 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const setTimeoutMock = vi.fn(
+            (callback: () => void, delay: number) => {
+                callback();
+                return 11 as ReturnType<typeof setTimeout>;
+            }
+        );
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getEnsureChartSettingsDropdownsRuntime();
+        const callback = vi.fn();
+        const handle = runtime.setTimeout(callback, 0);
+
+        expect(handle).toBe(11);
+        expect(callback).toHaveBeenCalledOnce();
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, 0);
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
