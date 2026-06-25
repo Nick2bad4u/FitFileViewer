@@ -14981,7 +14981,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(48);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -15042,6 +15042,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
@@ -15051,6 +15054,9 @@ describe("architecture boundaries", () => {
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapMeasureToolRuntimeSource).not.toContain(
