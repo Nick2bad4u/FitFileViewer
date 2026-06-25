@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 type LocationLike = Partial<
     Pick<Location, "hash" | "hostname" | "href" | "protocol" | "search">
 >;
@@ -122,7 +124,7 @@ function getLocationText(
 }
 
 const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getAddEventListener: () => globalThis.addEventListener,
     getClearInterval: () => globalThis.clearInterval,
     getCustomEvent: () => globalThis.CustomEvent,

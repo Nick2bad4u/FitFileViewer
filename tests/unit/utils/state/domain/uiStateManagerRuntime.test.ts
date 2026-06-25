@@ -37,6 +37,16 @@ describe("uiStateManagerRuntime", () => {
         expect(created).toBe(true);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getUIStateManagerRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("throws when abort controllers are unavailable", () => {
         expect.assertions(1);
 

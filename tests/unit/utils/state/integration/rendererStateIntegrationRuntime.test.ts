@@ -76,6 +76,16 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRendererStateIntegrationRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 

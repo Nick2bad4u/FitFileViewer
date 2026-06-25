@@ -8713,7 +8713,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(164);
+        expect.assertions(166);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -8866,6 +8866,12 @@ describe("architecture boundaries", () => {
             "function getGlobalDocument"
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -10447,7 +10453,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(106);
+        expect.assertions(108);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10544,6 +10550,12 @@ describe("architecture boundaries", () => {
             "const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = globalThis"
         );
         expect(masterStateRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(masterStateRuntimeSource).toContain(
@@ -10989,7 +11001,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(42);
+        expect.assertions(45);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -11051,6 +11063,15 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "defaultRendererStateIntegrationRuntimeScope"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
@@ -21182,7 +21203,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(38);
+        expect.assertions(40);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -21285,6 +21306,12 @@ describe("architecture boundaries", () => {
             "scope.localStorage"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(settingsStateCoreRuntimeSource).toContain(

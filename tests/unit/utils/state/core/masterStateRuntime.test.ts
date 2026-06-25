@@ -472,6 +472,16 @@ describe("masterStateRuntime", () => {
         expect(created).toBe(true);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getMasterStateRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("ignores legacy direct browser, clock, and development runtime properties", () => {
         expect.assertions(26);
 

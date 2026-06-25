@@ -87,6 +87,16 @@ describe("getSettingsStateCoreRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getSettingsStateCoreRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 

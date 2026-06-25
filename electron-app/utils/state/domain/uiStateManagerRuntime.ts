@@ -2,6 +2,7 @@ import {
     getChartControlsToggle,
     getChartSettingsWrapper,
 } from "../../charts/dom/chartDomUtils.js";
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
@@ -151,7 +152,7 @@ export interface UIStateManagerRuntime {
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getDateNow: () => Date.now,
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
     getEventTarget: () =>
         typeof globalThis.addEventListener === "function"
