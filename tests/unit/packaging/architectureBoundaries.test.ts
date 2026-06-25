@@ -1186,7 +1186,7 @@ const directMapFullscreenControlRuntimeGlobalPattern =
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapMeasureToolRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|createElement|createElementNS|createTextNode|removeEventListener)\b|\binstanceof\s+HTMLElement\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:AbortController|setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|createElement|createElementNS|createTextNode|removeEventListener)\b|\binstanceof\s+HTMLElement\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapLapSelectorRuntimeGlobalPattern =
@@ -14511,7 +14511,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(46);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -14563,6 +14563,12 @@ describe("architecture boundaries", () => {
             "scope: MapMeasureToolRuntimeScope = globalThis"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapMeasureToolRuntimeSource).toContain(

@@ -1,3 +1,4 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export type MapMeasureToolTimer = ReturnType<typeof globalThis.setTimeout>;
@@ -48,7 +49,7 @@ export interface MapMeasureToolRuntime {
 }
 
 const defaultMapMeasureToolRuntimeScope: MapMeasureToolRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
