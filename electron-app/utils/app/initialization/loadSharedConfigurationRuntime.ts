@@ -1,3 +1,8 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type SharedConfigurationLocation = Pick<Location, "search">;
 export type LoadSharedConfigurationTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
@@ -34,9 +39,9 @@ export interface LoadSharedConfigurationRuntimeScope {
 
 const defaultLoadSharedConfigurationRuntimeScope: LoadSharedConfigurationRuntimeScope =
     {
-        getClearTimeout: () => globalThis.clearTimeout,
+        getClearTimeout: getBrowserClearTimeout,
         getLocation: () => globalThis.location,
-        getSetTimeout: () => globalThis.setTimeout,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 export function getLoadSharedConfigurationRuntime(

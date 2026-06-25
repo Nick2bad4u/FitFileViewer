@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getLoadSharedConfigurationRuntime,
@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/app/initialization/loadSharedConfigurationRuntime.js";
 
 describe("getLoadSharedConfigurationRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("reads the current location search from an injected runtime scope", () => {
         expect.assertions(1);
 
@@ -42,6 +47,32 @@ describe("getLoadSharedConfigurationRuntime", () => {
 
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(6);
+
+        const callback = vi.fn<() => void>();
+        const timeoutMs = Number("100");
+        const timer = 29 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getLoadSharedConfigurationRuntime();
+        const timerHandle = runtime.setTimeout(callback, timeoutMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+        expect(setTimeoutMock).toHaveBeenCalledOnce();
+        expect(clearTimeoutMock).toHaveBeenCalledOnce();
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {

@@ -15847,7 +15847,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(22);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -15911,13 +15911,25 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
             "getLocation: () => globalThis.location"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "getBrowserSetTimeout"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
             "const clearTimeoutRef = scope.getClearTimeout?.();"
