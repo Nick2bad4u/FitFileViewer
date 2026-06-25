@@ -17724,7 +17724,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(23);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -17763,9 +17763,15 @@ describe("architecture boundaries", () => {
             "getBeforeUnloadTarget: () => globalThis"
         );
         expect(updateMapThemeRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(updateMapThemeRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(updateMapThemeRuntimeSource).not.toContain(

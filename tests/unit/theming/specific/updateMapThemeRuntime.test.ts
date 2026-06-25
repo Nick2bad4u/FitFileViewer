@@ -39,6 +39,22 @@ describe("getUpdateMapThemeRuntime", () => {
         );
     });
 
+    it("uses browser runtime providers for production document and HTMLElement defaults", () => {
+        expect.assertions(2);
+
+        try {
+            const map = document.createElement("div");
+            map.id = "leaflet-map";
+            document.body.append(map);
+            const runtime = getUpdateMapThemeRuntime();
+
+            expect(runtime.queryLeafletMap()).toBe(map);
+            expect(runtime.isHTMLElement(map)).toBe(true);
+        } finally {
+            document.body.replaceChildren();
+        }
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
