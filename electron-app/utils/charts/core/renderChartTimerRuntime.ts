@@ -1,3 +1,9 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type RenderChartTimeout = ReturnType<typeof globalThis.setTimeout>;
 
 export interface RenderChartTimerRuntimeScope {
@@ -19,9 +25,9 @@ export interface RenderChartTimerRuntime {
 }
 
 const defaultRenderChartTimerRuntimeScope: RenderChartTimerRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDateNow: () => Date.now,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function getRenderChartTimerRuntime(
