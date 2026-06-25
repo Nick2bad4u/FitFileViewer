@@ -3,6 +3,41 @@ import { describe, expect, it, vi } from "vitest";
 import { getShowFitDataRuntime } from "../../../../../electron-app/utils/rendering/core/showFitDataRuntime.js";
 
 describe("showFitDataRuntime", () => {
+    it("uses browser runtime providers for production defaults", async () => {
+        expect.assertions(6);
+
+        const runtime = getShowFitDataRuntime();
+        const mapContainer = document.createElement("div");
+        const listener = vi.fn();
+
+        mapContainer.id = "leaflet-map";
+        document.body.append(mapContainer);
+        globalThis.addEventListener("fitfile-loaded", listener);
+
+        try {
+            const event = runtime.createCustomEvent("fitfile-loaded", {
+                detail: { filePath: "activity.fit" },
+            });
+            let microtaskRan = false;
+
+            expect(event).toBeInstanceOf(CustomEvent);
+            expect(event.detail).toStrictEqual({ filePath: "activity.fit" });
+            expect(runtime.dispatchEvent(event)).toBe(true);
+            expect(listener).toHaveBeenCalledWith(event);
+            expect(runtime.hasRenderedMapContainer()).toBe(true);
+
+            runtime.queueMicrotask(() => {
+                microtaskRan = true;
+            });
+            await Promise.resolve();
+
+            expect(microtaskRan).toBe(true);
+        } finally {
+            globalThis.removeEventListener("fitfile-loaded", listener);
+            mapContainer.remove();
+        }
+    });
+
     it("resolves scroll support and reduced-motion preference through scoped browser APIs", () => {
         expect.assertions(4);
 

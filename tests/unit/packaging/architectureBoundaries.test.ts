@@ -9533,7 +9533,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(43);
+        expect.assertions(49);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -9593,21 +9593,39 @@ describe("architecture boundaries", () => {
             "const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = globalThis"
         );
         expect(showFitDataRuntimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getDispatchEvent: getBrowserDispatchEvent"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getMatchMedia: getBrowserMatchMedia"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getQueueMicrotask: getBrowserQueueMicrotask"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getScrollTo: getBrowserScrollTo"
+        );
+        expect(showFitDataRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
-        expect(showFitDataRuntimeSource).toContain(
+        expect(showFitDataRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(showFitDataRuntimeSource).toContain(
+        expect(showFitDataRuntimeSource).not.toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent"
         );
-        expect(showFitDataRuntimeSource).toContain(
+        expect(showFitDataRuntimeSource).not.toContain(
             "getMatchMedia: () => globalThis.matchMedia"
         );
-        expect(showFitDataRuntimeSource).toContain(
+        expect(showFitDataRuntimeSource).not.toContain(
             "getQueueMicrotask: () => globalThis.queueMicrotask"
         );
-        expect(showFitDataRuntimeSource).toContain(
+        expect(showFitDataRuntimeSource).not.toContain(
             "getScrollTo: () => globalThis.scrollTo"
         );
         expect(runtimeScopeSource).not.toContain("readonly CustomEvent?:");

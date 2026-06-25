@@ -48,8 +48,22 @@ export function getBrowserComputedStyle():
         : undefined;
 }
 
+export function getBrowserCustomEvent():
+    | typeof globalThis.CustomEvent
+    | undefined {
+    return globalThis.CustomEvent;
+}
+
 export function getBrowserDateNow(): (() => number) | undefined {
     return Date.now;
+}
+
+export function getBrowserDispatchEvent():
+    | typeof globalThis.dispatchEvent
+    | undefined {
+    return typeof globalThis.dispatchEvent === "function"
+        ? globalThis.dispatchEvent.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserDocument(): Document | undefined {
@@ -156,6 +170,14 @@ export function getBrowserPerformance(): Performance | undefined {
     return globalThis.performance;
 }
 
+export function getBrowserQueueMicrotask():
+    | typeof globalThis.queueMicrotask
+    | undefined {
+    return typeof globalThis.queueMicrotask === "function"
+        ? globalThis.queueMicrotask.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserRequestIdleCallback():
     | typeof globalThis.requestIdleCallback
     | undefined {
@@ -210,6 +232,14 @@ export function getBrowserSetTimeout():
     | typeof globalThis.setTimeout
     | undefined {
     return globalThis.setTimeout;
+}
+
+export function getBrowserScrollTo():
+    | ((options: Readonly<ScrollToOptions>) => void)
+    | undefined {
+    return typeof globalThis.scrollTo === "function"
+        ? globalThis.scrollTo.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserViewport():

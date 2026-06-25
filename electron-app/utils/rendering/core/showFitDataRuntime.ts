@@ -1,3 +1,12 @@
+import {
+    getBrowserCustomEvent,
+    getBrowserDispatchEvent,
+    getBrowserDocument,
+    getBrowserMatchMedia,
+    getBrowserQueueMicrotask,
+    getBrowserScrollTo,
+} from "../../runtime/browserRuntime.js";
+
 type ShowFitDataScrollTo = (options: Readonly<ScrollToOptions>) => void;
 type ShowFitDataDocument = Pick<Document, "querySelector">;
 
@@ -83,12 +92,12 @@ function getScopeScrollTo(
 }
 
 const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = {
-    getCustomEvent: () => globalThis.CustomEvent,
-    getDocument: () => globalThis.document,
-    getDispatchEvent: () => globalThis.dispatchEvent,
-    getMatchMedia: () => globalThis.matchMedia,
-    getQueueMicrotask: () => globalThis.queueMicrotask,
-    getScrollTo: () => globalThis.scrollTo,
+    getCustomEvent: getBrowserCustomEvent,
+    getDocument: getBrowserDocument,
+    getDispatchEvent: getBrowserDispatchEvent,
+    getMatchMedia: getBrowserMatchMedia,
+    getQueueMicrotask: getBrowserQueueMicrotask,
+    getScrollTo: getBrowserScrollTo,
 };
 
 export function getShowFitDataRuntime(
