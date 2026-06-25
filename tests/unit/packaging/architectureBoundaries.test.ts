@@ -15115,7 +15115,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(45);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -15187,15 +15187,27 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getNode: getBrowserNode"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getResizeTarget: getBrowserEventTarget"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(mapDocumentListenersRuntimeSource).toContain(
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
-        expect(mapDocumentListenersRuntimeSource).toContain(
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
             "getNode: () => globalThis.Node"
         );
-        expect(mapDocumentListenersRuntimeSource).toContain(
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
             "getResizeTarget: () => globalThis"
         );
         expect(mapDocumentListenersRuntimeSource).not.toContain(

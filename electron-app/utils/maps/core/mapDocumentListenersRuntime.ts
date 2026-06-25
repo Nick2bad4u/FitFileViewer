@@ -1,10 +1,16 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserEventTarget,
+    getBrowserHTMLElement,
+    getBrowserNode,
+} from "../../runtime/browserRuntime.js";
 
 type MapDocumentListenersDocument = Pick<
     Document,
     "addEventListener" | "querySelector"
 >;
-type MapDocumentListenersResizeTarget = Pick<Window, "addEventListener">;
+type MapDocumentListenersResizeTarget = Pick<EventTarget, "addEventListener">;
 
 export interface MapDocumentListenersRuntimeScope {
     readonly getAbortController?:
@@ -72,10 +78,10 @@ function getRuntimeResizeTarget(
 const defaultMapDocumentListenersRuntimeScope: MapDocumentListenersRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getNode: () => globalThis.Node,
-        getResizeTarget: () => globalThis,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
+        getNode: getBrowserNode,
+        getResizeTarget: getBrowserEventTarget,
     };
 
 function getAbortController(

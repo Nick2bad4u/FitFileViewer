@@ -40,6 +40,36 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production DOM defaults", () => {
+        expect.assertions(5);
+
+        const layersControl = document.createElement("div");
+        layersControl.className = "leaflet-control-layers";
+        document.body.append(layersControl);
+        const controller = new AbortController();
+        let resizeCount = 0;
+        const utils = getMapDocumentListenersRuntime();
+
+        try {
+            utils.addWindowResizeListener(
+                () => {
+                    resizeCount += 1;
+                },
+                { signal: controller.signal }
+            );
+            window.dispatchEvent(new Event("resize"));
+
+            expect(utils.getLayersControlElement()).toBe(layersControl);
+            expect(utils.isHTMLElement(layersControl)).toBe(true);
+            expect(utils.isHTMLElement({ nodeType: 1 })).toBe(false);
+            expect(utils.isNode(layersControl)).toBe(true);
+            expect(resizeCount).toBe(1);
+        } finally {
+            controller.abort();
+            layersControl.remove();
+        }
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
@@ -286,8 +316,8 @@ function createDocumentListenerTarget(
 
 function createResizeListenerTarget(
     eventTarget: Readonly<EventTarget>
-): Pick<Window, "addEventListener"> {
+): Pick<EventTarget, "addEventListener"> {
     return {
         addEventListener: eventTarget.addEventListener.bind(eventTarget),
-    } as Pick<Window, "addEventListener">;
+    };
 }
