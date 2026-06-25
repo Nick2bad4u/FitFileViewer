@@ -16461,7 +16461,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(23);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -16534,6 +16534,9 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
+            "getLocation: getBrowserLocation"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
             "getLocation: () => globalThis.location"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(

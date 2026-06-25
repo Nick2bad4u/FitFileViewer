@@ -1,5 +1,6 @@
 import {
     getBrowserClearTimeout,
+    getBrowserLocation,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -40,7 +41,7 @@ export interface LoadSharedConfigurationRuntimeScope {
 const defaultLoadSharedConfigurationRuntimeScope: LoadSharedConfigurationRuntimeScope =
     {
         getClearTimeout: getBrowserClearTimeout,
-        getLocation: () => globalThis.location,
+        getLocation: getBrowserLocation,
         getSetTimeout: getBrowserSetTimeout,
     };
 

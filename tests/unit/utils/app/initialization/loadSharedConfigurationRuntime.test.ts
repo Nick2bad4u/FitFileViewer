@@ -23,6 +23,18 @@ describe("getLoadSharedConfigurationRuntime", () => {
         expect(runtime.locationSearch).toBe("?chartConfig=abc");
     });
 
+    it("uses browser runtime providers for production location defaults", () => {
+        expect.assertions(1);
+
+        vi.stubGlobal("location", {
+            search: "?chartConfig=production",
+        });
+
+        expect(getLoadSharedConfigurationRuntime().locationSearch).toBe(
+            "?chartConfig=production"
+        );
+    });
+
     it("uses an empty search string when no location is available", () => {
         expect.assertions(1);
 
