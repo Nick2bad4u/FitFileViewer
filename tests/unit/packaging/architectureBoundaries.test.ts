@@ -5932,7 +5932,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(59);
+        expect.assertions(64);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -6072,17 +6072,34 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
-        expect(browserTabRuntimeSource).toContain("getDateNow: () => Date.now");
         expect(browserTabRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getHTMLSelectElement: getBrowserHTMLSelectElement"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(browserTabRuntimeSource).toContain(
+        expect(browserTabRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
-        expect(browserTabRuntimeSource).toContain(
+        expect(browserTabRuntimeSource).not.toContain(
             "getHTMLInputElement: () => globalThis.HTMLInputElement"
         );
-        expect(browserTabRuntimeSource).toContain(
+        expect(browserTabRuntimeSource).not.toContain(
             "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
         );
         expect(browserTabRuntimeSource).toContain(

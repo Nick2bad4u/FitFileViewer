@@ -1,4 +1,11 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserHTMLInputElement,
+    getBrowserHTMLSelectElement,
+} from "../../runtime/browserRuntime.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 
 export interface FileBrowserTabRuntimeScope {
@@ -36,11 +43,11 @@ export interface FileBrowserTabRuntime {
 
 const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getDateNow: () => Date.now,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getHTMLInputElement: () => globalThis.HTMLInputElement,
-    getHTMLSelectElement: () => globalThis.HTMLSelectElement,
+    getDateNow: getBrowserDateNow,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getHTMLInputElement: getBrowserHTMLInputElement,
+    getHTMLSelectElement: getBrowserHTMLSelectElement,
 };
 
 function getAbortControllerConstructor(
