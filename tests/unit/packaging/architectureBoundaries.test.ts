@@ -13362,7 +13362,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -13420,6 +13420,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
     });
