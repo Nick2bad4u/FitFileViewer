@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getLoadSingleOverlayFileRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFileRuntime.js";
 
 describe("getLoadSingleOverlayFileRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
@@ -48,6 +52,36 @@ describe("getLoadSingleOverlayFileRuntime", () => {
 
         expect(runtime.createFileReader()).toBe(reader);
         expect(FileReaderConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("uses browser runtime providers for production FileReader and Response defaults", async () => {
+        expect.assertions(5);
+
+        const reader = new FileReader();
+        const FileReaderConstructor = vi.fn(function FakeFileReader() {
+            return reader;
+        });
+        const arrayBuffer = new ArrayBuffer(8);
+        const ResponseConstructor = vi.fn(function FakeResponse(file: Blob) {
+            return {
+                arrayBuffer: async () => arrayBuffer,
+                file,
+            };
+        });
+        const blob = new Blob(["overlay"]);
+
+        vi.stubGlobal("FileReader", FileReaderConstructor);
+        vi.stubGlobal("Response", ResponseConstructor);
+
+        const runtime = getLoadSingleOverlayFileRuntime();
+
+        expect(runtime.createFileReader()).toBe(reader);
+        expect(FileReaderConstructor).toHaveBeenCalledOnce();
+        await expect(
+            runtime.readBlobArrayBufferWithResponse(blob)
+        ).resolves.toBe(arrayBuffer);
+        expect(ResponseConstructor).toHaveBeenCalledWith(blob);
+        expect(ResponseConstructor).toHaveBeenCalledOnce();
     });
 
     it("reads blob data through the injected Response runtime", async () => {

@@ -210,6 +210,10 @@ export function getBrowserRequestAnimationFrame():
         : undefined;
 }
 
+export function getBrowserResponse(): typeof globalThis.Response | undefined {
+    return globalThis.Response;
+}
+
 export function getBrowserResizeObserver():
     | typeof globalThis.ResizeObserver
     | undefined {

@@ -16122,7 +16122,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(30);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -16202,9 +16202,15 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "getFileReader: getBrowserFileReader"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "getFileReader: () => globalThis.FileReader"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "getResponse: getBrowserResponse"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "getResponse: () => globalThis.Response"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(

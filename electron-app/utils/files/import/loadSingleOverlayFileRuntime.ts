@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserFileReader,
+    getBrowserResponse,
+} from "../../runtime/browserRuntime.js";
 
 export interface LoadSingleOverlayFileRuntimeScope {
     readonly getAbortController?:
@@ -51,8 +55,8 @@ function getResponseConstructor(
 const defaultLoadSingleOverlayFileRuntimeScope: LoadSingleOverlayFileRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getFileReader: () => globalThis.FileReader,
-        getResponse: () => globalThis.Response,
+        getFileReader: getBrowserFileReader,
+        getResponse: getBrowserResponse,
     };
 
 export function getLoadSingleOverlayFileRuntime(
