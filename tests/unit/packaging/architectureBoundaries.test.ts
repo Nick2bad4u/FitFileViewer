@@ -18198,7 +18198,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart request listener browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(25);
 
         const violations = migratedRenderChartRequestListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -18236,15 +18236,27 @@ describe("architecture boundaries", () => {
             "defaultRenderChartRequestListenerRuntimeScope"
         );
         expect(runtimeSource).toContain(
+            "getAddEventListener: getBrowserAddEventListener"
+        );
+        expect(runtimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(runtimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(runtimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );
-        expect(runtimeSource).toContain(
+        expect(runtimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
-        expect(runtimeSource).toContain(
+        expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(runtimeSource).toContain(
+        expect(runtimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(runtimeSource).not.toContain(

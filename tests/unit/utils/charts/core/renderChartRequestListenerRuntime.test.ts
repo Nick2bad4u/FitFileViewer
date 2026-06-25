@@ -12,6 +12,46 @@ function cleanupFixture(): void {
 }
 
 describe("getRenderChartRequestListenerRuntime", () => {
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(5);
+
+        const abortController = new AbortController();
+        const addEventListener = vi.spyOn(globalThis, "addEventListener");
+
+        try {
+            const runtime = getChartRequestListenerRuntime();
+            const container = document.createElement("section");
+
+            container.id = "chartjs_chart_container";
+            document.body.append(container);
+
+            runtime.addChartRequestListener(() => undefined, {
+                signal: abortController.signal,
+            });
+
+            expect(addEventListener).toHaveBeenCalledWith(
+                "ffv:request-render-charts",
+                expect.any(Function),
+                { signal: abortController.signal }
+            );
+            expect(runtime.getFallbackChartContainer()).toBe(container);
+            expect(runtime.querySelector("#chartjs_chart_container")).toBe(
+                container
+            );
+            expect(
+                runtime.isCustomEvent(
+                    new CustomEvent("ffv:request-render-charts")
+                )
+            ).toBe(true);
+            expect(
+                runtime.isCustomEvent(new Event("ffv:request-render-charts"))
+            ).toBe(false);
+        } finally {
+            abortController.abort();
+            cleanupFixture();
+        }
+    });
+
     it("registers chart request listeners through the injected event target", () => {
         expect.assertions(2);
 

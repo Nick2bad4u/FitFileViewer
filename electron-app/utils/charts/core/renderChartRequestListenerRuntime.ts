@@ -1,3 +1,10 @@
+import {
+    getBrowserAddEventListener,
+    getBrowserCustomEvent,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 type RenderChartRequestEventListener =
     | EventListener
     | Readonly<EventListenerObject>;
@@ -50,10 +57,10 @@ const fallbackContainerSelectors = [
 
 const defaultRenderChartRequestListenerRuntimeScope: RenderChartRequestListenerRuntimeScope =
     {
-        getAddEventListener: () => globalThis.addEventListener,
-        getCustomEvent: () => globalThis.CustomEvent,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getAddEventListener: getBrowserAddEventListener,
+        getCustomEvent: getBrowserCustomEvent,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getCustomEventConstructor(
