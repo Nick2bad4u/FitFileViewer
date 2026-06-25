@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserEvent,
+} from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
@@ -24,8 +28,8 @@ export interface CreateMarkerCountSelectorRuntime {
 const defaultCreateMarkerCountSelectorRuntimeScope: CreateMarkerCountSelectorRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
-        getEvent: () => globalThis.Event,
+        getDocument: getBrowserDocument,
+        getEvent: getBrowserEvent,
     };
 
 function getScopeDocument(
