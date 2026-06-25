@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getChartThemeListenerRuntime,
@@ -7,12 +7,38 @@ import {
 } from "../../../../../electron-app/utils/charts/theming/chartThemeListenerRuntime.js";
 
 describe("getChartThemeListenerRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("uses browser runtime providers for production AbortController defaults", () => {
         expect.assertions(1);
 
         const utils = getChartThemeListenerRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const timer = Symbol(
+            "theme-listener-production-timer"
+        ) as unknown as ChartThemeListenerTimerHandle;
+        const handler = vi.fn<() => void>();
+        const timeoutMs = Number("125");
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getChartThemeListenerRuntime();
+        const timerHandle = runtime.setTimeout(handler, timeoutMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
     it("adds abortable themechange listeners through the injected body", () => {
