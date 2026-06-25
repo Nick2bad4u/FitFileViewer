@@ -170,6 +170,35 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("derives document keydown listeners from the scoped document provider", () => {
+        expect.assertions(4);
+
+        let keydownCount = 0;
+        const documentRef =
+            document.implementation.createHTMLDocument("settings header");
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const controller = new AbortController();
+        const runtime = getCreateSettingsHeaderRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+
+        documentRef.dispatchEvent(new KeyboardEvent("keydown"));
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(addEventListener.mock.contexts[0]).toBe(documentRef);
+        expect(keydownCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("routes all defaults through provider functions", () => {
         expect.assertions(17);
 

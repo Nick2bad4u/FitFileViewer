@@ -62,7 +62,7 @@ function getDocument(scope: CreateSettingsHeaderRuntimeScope): Document {
 function getDocumentEventTarget(
     scope: CreateSettingsHeaderRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getEventConstructor(
@@ -87,7 +87,6 @@ const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope 
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,
-        getDocumentEventTarget: () => globalThis.document,
         getEvent: () => globalThis.Event,
         getSetTimeout: () => globalThis.setTimeout,
     };
