@@ -53,6 +53,16 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect(receivedEventType).toBe(eventType);
     });
 
+    it("uses the renderer browser runtime provider for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        vi.stubGlobal("AbortController", AbortController);
+
+        const utils = getRendererVendorBundleLoaderRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("resolves default browser primitives when runtime operations run", () => {
         expect.assertions(14);
 

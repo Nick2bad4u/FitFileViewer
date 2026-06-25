@@ -18775,7 +18775,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(33);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -18814,6 +18814,15 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).not.toMatch(
             directRendererVendorBundleLoaderRuntimeAmbientGetterPattern
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getAbortController: getBrowserRendererAbortController"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "renderer vendor loader requires a setTimeout runtime"

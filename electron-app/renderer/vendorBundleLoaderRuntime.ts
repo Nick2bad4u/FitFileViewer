@@ -1,3 +1,5 @@
+import { getBrowserRendererAbortController } from "./rendererBrowserRuntime.js";
+
 export type RendererVendorBundleLoaderTimerHandle = ReturnType<
     typeof globalThis.setTimeout
 >;
@@ -56,7 +58,7 @@ export interface RendererVendorBundleLoaderRuntime {
 
 const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserRendererAbortController,
         getAddEventListener: () => globalThis.addEventListener.bind(globalThis),
         getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
         getCustomEvent: () => globalThis.CustomEvent,
