@@ -180,6 +180,12 @@ export function getBrowserPerformance(): Performance | undefined {
     return globalThis.performance;
 }
 
+export function getBrowserPrint(): typeof globalThis.print | undefined {
+    return typeof globalThis.print === "function"
+        ? globalThis.print.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserQueueMicrotask():
     | typeof globalThis.queueMicrotask
     | undefined {

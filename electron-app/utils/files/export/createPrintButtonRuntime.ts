@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserPrint,
+} from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
@@ -43,8 +47,8 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(
 
 const defaultCreatePrintButtonRuntimeScope: CreatePrintButtonRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getDocument: () => globalThis.document,
-    getPrint: () => globalThis.print,
+    getDocument: getBrowserDocument,
+    getPrint: getBrowserPrint,
 };
 
 export function getCreatePrintButtonRuntime(

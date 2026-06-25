@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getCreatePrintButtonRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/files/export/createPrintButtonRuntime.js";
 
 describe("getCreatePrintButtonRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -40,6 +44,25 @@ describe("getCreatePrintButtonRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses browser runtime providers for production document and print defaults", () => {
+        expect.assertions(4);
+
+        const print = vi.fn();
+
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("print", print);
+
+        const runtime = getCreatePrintButtonRuntime();
+
+        expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
+        expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+
+        runtime.print();
+
+        expect(print).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
