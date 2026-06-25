@@ -36,6 +36,32 @@ describe("getMapLapSelectorRuntime", () => {
         expect(createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production DOM defaults", () => {
+        expect.assertions(5);
+
+        const runtime = getMapLapSelectorRuntime();
+        const controller = new AbortController();
+        const option = runtime.createElement("option");
+        const changeEvent = runtime.createSelectChangeEvent();
+        let mouseupCount = 0;
+
+        runtime.addDocumentMouseupListener(
+            () => {
+                mouseupCount += 1;
+            },
+            { signal: controller.signal }
+        );
+        document.dispatchEvent(new MouseEvent("mouseup"));
+        controller.abort();
+        document.dispatchEvent(new MouseEvent("mouseup"));
+
+        expect(option).toBeInstanceOf(HTMLOptionElement);
+        expect(option.ownerDocument).toBe(document);
+        expect(changeEvent).toBeInstanceOf(Event);
+        expect(changeEvent.type).toBe("change");
+        expect(mouseupCount).toBe(1);
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 

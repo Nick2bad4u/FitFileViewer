@@ -15548,7 +15548,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document access behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(37);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -15604,9 +15604,15 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
+            "getEvent: getBrowserEvent"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
             "getEvent: () => globalThis.Event"
         );
         expect(mapLapSelectorRuntimeSource).not.toContain(
