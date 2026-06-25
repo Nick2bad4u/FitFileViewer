@@ -87,16 +87,16 @@ describe("renderChartJSRuntime", () => {
 
         const now = vi.fn(() => 42.5);
         const dateNow = vi.spyOn(Date, "now").mockReturnValue(5678);
+        const documentRef =
+            document.implementation.createHTMLDocument("chart runtime");
         const utils = getRenderChartJSRuntime();
 
         vi.stubGlobal("CustomEvent", CustomEvent);
-        vi.stubGlobal("document", document);
+        vi.stubGlobal("document", documentRef);
         vi.stubGlobal("performance", { now });
 
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
-        expect(utils.createElement("canvas")).toBeInstanceOf(
-            HTMLCanvasElement
-        );
+        expect(utils.createElement("canvas").ownerDocument).toBe(documentRef);
         expect(utils.isWindowAvailable()).toBe(true);
         expect(utils.nowPerformance()).toBe(42.5);
         expect(utils.now()).toBe(5678);
