@@ -6208,7 +6208,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(52);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -6318,6 +6318,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(settingsHeaderRuntimeSource).toContain(
@@ -6327,6 +6330,9 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "getEvent: getBrowserEvent"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
             "getEvent: () => globalThis.Event"
         );
         expect(settingsHeaderRuntimeSource).toContain(

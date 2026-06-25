@@ -1,6 +1,8 @@
 import {
     getBrowserAbortController,
     getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserEvent,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -92,8 +94,8 @@ const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope 
     {
         getAbortController: getBrowserAbortController,
         getClearTimeout: getBrowserClearTimeout,
-        getDocument: () => globalThis.document,
-        getEvent: () => globalThis.Event,
+        getDocument: getBrowserDocument,
+        getEvent: getBrowserEvent,
         getSetTimeout: getBrowserSetTimeout,
     };
 

@@ -62,6 +62,10 @@ export function getBrowserEventTarget(): EventTarget | undefined {
     return globalThis;
 }
 
+export function getBrowserEvent(): typeof globalThis.Event | undefined {
+    return globalThis.Event;
+}
+
 export function getBrowserFetch(): typeof globalThis.fetch | undefined {
     return globalThis.fetch;
 }

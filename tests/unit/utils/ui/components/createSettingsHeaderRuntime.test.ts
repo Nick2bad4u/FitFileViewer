@@ -165,6 +165,29 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
+    it("uses browser runtime providers for production document and Event defaults", () => {
+        expect.assertions(7);
+
+        const createElement = vi.spyOn(document, "createElement");
+        const bodyAppend = vi.spyOn(document.body, "append");
+        const headAppend = vi.spyOn(document.head, "append");
+        const runtime = getCreateSettingsHeaderRuntime();
+
+        const div = runtime.createElement("div");
+        const style = runtime.createElement("style");
+        const changeEvent = runtime.createChangeEvent();
+        runtime.appendToBody(div);
+        runtime.appendToHead(style);
+
+        expect(changeEvent).toBeInstanceOf(Event);
+        expect(changeEvent.type).toBe("change");
+        expect(createElement).toHaveBeenCalledWith("div");
+        expect(createElement).toHaveBeenCalledWith("style");
+        expect(bodyAppend).toHaveBeenCalledWith(div);
+        expect(headAppend).toHaveBeenCalledWith(style);
+        expect(document.body.contains(div)).toBe(true);
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
