@@ -19707,7 +19707,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab render lifecycle clocks behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedTabRenderingManagerRuntimeFiles
             .filter((relativeFile) =>
@@ -19759,9 +19759,18 @@ describe("architecture boundaries", () => {
             "defaultTabRenderingManagerRuntimeScope"
         );
         expect(tabRenderingManagerRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "../../runtime/browserRuntime.js"
         );
         expect(tabRenderingManagerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(tabRenderingManagerRuntimeSource).not.toContain(

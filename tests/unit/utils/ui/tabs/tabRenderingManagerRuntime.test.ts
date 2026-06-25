@@ -34,6 +34,15 @@ describe("tabRenderingManagerRuntime", () => {
         expect(performanceNow).toHaveBeenCalledOnce();
     });
 
+    it("reads production timing defaults through browser runtime providers", () => {
+        expect.assertions(2);
+
+        const utils = getTabRenderingManagerRuntime();
+
+        expect(utils.dateNow()).toBeGreaterThan(0);
+        expect(utils.performanceNow()).toBeGreaterThanOrEqual(0);
+    });
+
     it("binds default performance.now to globalThis.performance", () => {
         expect.assertions(3);
 
