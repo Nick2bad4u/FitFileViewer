@@ -1,4 +1,11 @@
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
+import {
+    getBrowserDocument,
+    getBrowserHTMLButtonElement,
+    getBrowserHTMLInputElement,
+    getBrowserHTMLSelectElement,
+    getBrowserHTMLTextAreaElement,
+} from "../../runtime/browserRuntime.js";
 
 type DisableableFormControl =
     | HTMLButtonElement
@@ -33,11 +40,11 @@ export interface SyncRendererLoadingRuntime {
 
 const defaultSyncRendererLoadingRuntimeScope: SyncRendererLoadingRuntimeScope =
     {
-        getDocument: () => globalThis.document,
-        getHTMLButtonElement: () => globalThis.HTMLButtonElement,
-        getHTMLInputElement: () => globalThis.HTMLInputElement,
-        getHTMLSelectElement: () => globalThis.HTMLSelectElement,
-        getHTMLTextAreaElement: () => globalThis.HTMLTextAreaElement,
+        getDocument: getBrowserDocument,
+        getHTMLButtonElement: getBrowserHTMLButtonElement,
+        getHTMLInputElement: getBrowserHTMLInputElement,
+        getHTMLSelectElement: getBrowserHTMLSelectElement,
+        getHTMLTextAreaElement: getBrowserHTMLTextAreaElement,
     };
 
 function getDocument(scope: SyncRendererLoadingRuntimeScope): Document {

@@ -96,6 +96,12 @@ export function getBrowserHTMLAnchorElement():
     return globalThis.HTMLAnchorElement;
 }
 
+export function getBrowserHTMLButtonElement():
+    | typeof globalThis.HTMLButtonElement
+    | undefined {
+    return globalThis.HTMLButtonElement;
+}
+
 export function getBrowserHTMLCanvasElement():
     | typeof globalThis.HTMLCanvasElement
     | undefined {
@@ -112,6 +118,12 @@ export function getBrowserHTMLSelectElement():
     | typeof globalThis.HTMLSelectElement
     | undefined {
     return globalThis.HTMLSelectElement;
+}
+
+export function getBrowserHTMLTextAreaElement():
+    | typeof globalThis.HTMLTextAreaElement
+    | undefined {
+    return globalThis.HTMLTextAreaElement;
 }
 
 export function getBrowserKeyboardEvent():

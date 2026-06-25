@@ -1506,7 +1506,7 @@ const directLoadingOverlayRuntimeAmbientGetterPattern =
 const directSyncRendererLoadingRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|querySelector|querySelectorAll)\b|\binstanceof\s+(?:HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
-    /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]|\bscope\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b|\bscope\.document\?\.defaultView\b/u;
+    /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]|\bscope\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b|\bscope\.document\?\.defaultView\b|\bget(?:Document|HTML(?:Button|Input|Select|TextArea)Element):\s*\(\)\s*=>\s*globalThis\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 const directDocumentSvgElementCreationPattern =
     /\bdocument\.createElementNS\b/u;
 const topLevelRendererRuntimeSingletonPattern =
@@ -14138,7 +14138,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(31);
 
         const violations = migratedSyncRendererLoadingRuntimeFiles
             .filter((relativeFile) =>
@@ -14169,18 +14169,33 @@ describe("architecture boundaries", () => {
             "defaultSyncRendererLoadingRuntimeScope"
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLButtonElement: getBrowserHTMLButtonElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLSelectElement: getBrowserHTMLSelectElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLTextAreaElement: getBrowserHTMLTextAreaElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(syncRendererLoadingRuntimeSource).toContain(
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
             "getHTMLButtonElement: () => globalThis.HTMLButtonElement"
         );
-        expect(syncRendererLoadingRuntimeSource).toContain(
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
             "getHTMLInputElement: () => globalThis.HTMLInputElement"
         );
-        expect(syncRendererLoadingRuntimeSource).toContain(
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
             "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
         );
-        expect(syncRendererLoadingRuntimeSource).toContain(
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
             "getHTMLTextAreaElement: () => globalThis.HTMLTextAreaElement"
         );
         expect(syncRendererLoadingRuntimeSource).not.toContain(
