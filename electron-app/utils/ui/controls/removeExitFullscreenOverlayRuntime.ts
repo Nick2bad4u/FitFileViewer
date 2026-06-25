@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 export interface RemoveExitFullscreenOverlayRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -8,7 +10,7 @@ export interface RemoveExitFullscreenOverlayRuntime {
 
 const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverlayRuntimeScope =
     {
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
     };
 
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
