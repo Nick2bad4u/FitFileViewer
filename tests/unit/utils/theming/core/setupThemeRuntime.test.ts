@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getSetupThemeRuntime } from "../../../../../electron-app/utils/theming/core/setupThemeRuntime.js";
 
 describe("getSetupThemeRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 
@@ -51,6 +56,32 @@ describe("getSetupThemeRuntime", () => {
         expect(getClearTimeout).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(6);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("5000");
+        const timer = 61 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getSetupThemeRuntime();
+        const timerHandle = runtime.setTimeout(callback, delayMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+        expect(setTimeoutMock).toHaveBeenCalledOnce();
+        expect(clearTimeoutMock).toHaveBeenCalledOnce();
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {

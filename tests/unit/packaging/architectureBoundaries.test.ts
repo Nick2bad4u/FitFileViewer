@@ -16815,7 +16815,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(21);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -16850,10 +16850,25 @@ describe("architecture boundaries", () => {
             "const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = globalThis"
         );
         expect(setupThemeRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(setupThemeRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(setupThemeRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(setupThemeRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "getBrowserClearTimeout"
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "getBrowserSetTimeout"
         );
         expect(setupThemeRuntimeSource).not.toMatch(
             directSetupThemeRuntimeAmbientFallbackPattern

@@ -1,3 +1,8 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type SetupThemeTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface SetupThemeRuntimeScope {
@@ -15,8 +20,8 @@ export interface SetupThemeRuntime {
 }
 
 const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getScopeClearTimeout(
