@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     clearResourceManagerTimer,
@@ -7,6 +7,10 @@ import {
 } from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
 
 describe("resourceManagerRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("clears timers through the injected runtime scope", () => {
         expect.assertions(1);
 
@@ -103,6 +107,39 @@ describe("resourceManagerRuntime", () => {
         unregister?.();
 
         expect(options).toStrictEqual({ signal });
+    });
+
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(4);
+
+        const cleanup = vi.fn();
+        const addEventListener = vi.fn();
+        const removeEventListener = vi.fn();
+
+        vi.stubGlobal("addEventListener", addEventListener);
+        vi.stubGlobal("removeEventListener", removeEventListener);
+
+        const unregister = registerResourceManagerUnloadCleanup(cleanup);
+        const [
+            ,
+            listener,
+            options,
+        ] = addEventListener.mock.calls[0] ?? [];
+
+        expect(addEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            expect.any(Function),
+            { signal: expect.any(AbortSignal) }
+        );
+        expect(options).toEqual({ signal: expect.any(AbortSignal) });
+
+        unregister?.();
+
+        expect(removeEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            listener
+        );
+        expect(cleanup).not.toHaveBeenCalled();
     });
 
     it("skips registration outside event-target scopes", () => {
