@@ -104,6 +104,12 @@ export function getBrowserHTMLElement():
     return globalThis.HTMLElement;
 }
 
+export function getBrowserSVGElement():
+    | typeof globalThis.SVGElement
+    | undefined {
+    return globalThis.SVGElement;
+}
+
 export function getBrowserHTMLAnchorElement():
     | typeof globalThis.HTMLAnchorElement
     | undefined {

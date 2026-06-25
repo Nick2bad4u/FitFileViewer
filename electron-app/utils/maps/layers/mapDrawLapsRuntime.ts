@@ -1,6 +1,8 @@
 import {
     getBrowserClearTimeout,
+    getBrowserDocument,
     getBrowserSetTimeout,
+    getBrowserSVGElement,
 } from "../../runtime/browserRuntime.js";
 
 export type MapDrawLapsTimer = ReturnType<typeof globalThis.setTimeout>;
@@ -32,9 +34,9 @@ export interface MapDrawLapsRuntime {
 
 const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
     getSetTimeout: getBrowserSetTimeout,
-    getSVGElement: () => globalThis.SVGElement,
+    getSVGElement: getBrowserSVGElement,
 };
 
 function getScopeClearTimeout(

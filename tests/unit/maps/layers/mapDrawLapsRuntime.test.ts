@@ -75,6 +75,27 @@ describe("getMapDrawLapsRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
+    it("uses browser runtime providers for production DOM defaults", () => {
+        expect.assertions(6);
+
+        const runtime = getMapDrawLapsRuntime();
+        const paragraph = runtime.createElement("p");
+        const text = runtime.createTextNode("Lap 1");
+        const svg = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
+
+        paragraph.append(text);
+
+        expect(paragraph).toBeInstanceOf(HTMLParagraphElement);
+        expect(paragraph.ownerDocument).toBe(document);
+        expect(paragraph.textContent).toBe("Lap 1");
+        expect(runtime.isSVGElement(svg)).toBe(true);
+        expect(runtime.isSVGElement(paragraph)).toBe(false);
+        expect(runtime.isSVGElement(null)).toBe(false);
+    });
+
     it("creates DOM nodes through the injected document provider", () => {
         expect.assertions(9);
 

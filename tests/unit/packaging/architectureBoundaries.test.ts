@@ -15660,7 +15660,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(25);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -15706,6 +15706,9 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapDrawLapsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(mapDrawLapsRuntimeSource).toContain(
@@ -21153,7 +21156,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(73);
+        expect.assertions(74);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -21323,6 +21326,9 @@ describe("architecture boundaries", () => {
         expect(mapDrawLapsSource).toContain("runtime.isSVGElement");
         expect(mapDrawLapsSource).not.toContain("instanceof SVGElement");
         expect(mapDrawLapsRuntimeSource).toContain(
+            "getSVGElement: getBrowserSVGElement"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
             "getSVGElement: () => globalThis.SVGElement"
         );
         expect(mapDrawLapsRuntimeScopeSource).not.toContain(
