@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ChartStateManagerRuntimeScope } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 import { getChartStateManagerRuntime } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 
 describe("getChartStateManagerRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("routes timers through the injected runtime scope", () => {
         expect.assertions(5);
 
@@ -61,6 +66,39 @@ describe("getChartStateManagerRuntime", () => {
         document.body.innerHTML = "";
 
         expect(runtime.getControlsPanel()).toBeNull();
+    });
+
+    it("resolves production timer defaults through browser runtime providers", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const timer = 44 as ReturnType<typeof setTimeout>;
+        const setTimeoutMock = vi.fn<
+            (
+                callback: () => void,
+                delay: number
+            ) => ReturnType<typeof setTimeout>
+        >(() => timer);
+        const clearTimeoutMock =
+            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(654_321);
+        const scheduleDelay = 125;
+
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+
+        const runtime = getChartStateManagerRuntime();
+        const scheduled = {
+            handle: runtime.setRenderTimeout(callback, scheduleDelay),
+        };
+
+        runtime.clearRenderTimeout(scheduled.handle);
+
+        expect(scheduled.handle).toBe(timer);
+        expect(runtime.dateNow()).toBe(654_321);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, scheduleDelay);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(dateNow).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when timer functions are unavailable", () => {
