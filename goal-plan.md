@@ -1347,6 +1347,10 @@ App-actions lifecycle load-file timestamps and chart/map/table render duration m
 `appActionsRuntime.ts` instead of calling `Date.now` or `performance.now` directly inside `appActions.ts`, with
 focused runtime coverage and architecture coverage blocking direct timing globals and legacy direct scope properties
 from returning.
+Renderer vendor bundle readiness-event detail extraction now routes through `vendorBundleLoaderRuntime.ts` instead
+of checking the ambient `CustomEvent` constructor directly inside `vendorBundleLoader.ts`, with focused loader/runtime
+coverage and architecture coverage blocking direct readiness-event constructor checks and legacy direct scope
+properties from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

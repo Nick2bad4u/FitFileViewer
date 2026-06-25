@@ -12,6 +12,9 @@ export interface RendererVendorBundleLoaderRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getCustomEvent?:
+        | (() => typeof CustomEvent | undefined)
+        | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLScriptElement?:
         | (() => typeof HTMLScriptElement | undefined)
@@ -34,6 +37,7 @@ export interface RendererVendorBundleLoaderRuntime {
     clearTimeout(handle: RendererVendorBundleLoaderTimerHandle): void;
     createAbortController(): AbortController;
     createVendorScript(entryName: string, src: string): HTMLScriptElement;
+    getCustomEventDetail<T>(event: Event): T | undefined;
     getExistingVendorScript(entryName: string): HTMLScriptElement | null;
     appendVendorScript(script: HTMLScriptElement): void;
     addScriptEventListener(
@@ -55,6 +59,7 @@ const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderR
         getAbortController: () => globalThis.AbortController,
         getAddEventListener: () => globalThis.addEventListener.bind(globalThis),
         getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
+        getCustomEvent: () => globalThis.CustomEvent,
         getDocument: () => globalThis.document,
         getHTMLScriptElement: () => globalThis.HTMLScriptElement,
         getNow: () => Date.now,
@@ -129,6 +134,12 @@ function getRequiredClearTimeout(
     return clearTimeoutRef;
 }
 
+function getScopeCustomEvent(
+    scope: RendererVendorBundleLoaderRuntimeScope
+): typeof CustomEvent | undefined {
+    return scope.getCustomEvent?.();
+}
+
 function getRequiredNow(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): () => number {
@@ -186,6 +197,13 @@ export function getRendererVendorBundleLoaderRuntime(
             script.src = src;
             script.type = "module";
             return script;
+        },
+        getCustomEventDetail<T>(event: Event): T | undefined {
+            const CustomEventConstructor = getScopeCustomEvent(scope);
+            return typeof CustomEventConstructor === "function" &&
+                event instanceof CustomEventConstructor
+                ? (event.detail as T)
+                : undefined;
         },
         getExistingVendorScript(entryName): HTMLScriptElement | null {
             const documentTarget = getDocument(scope);

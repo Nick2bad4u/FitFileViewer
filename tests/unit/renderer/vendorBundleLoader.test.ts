@@ -81,6 +81,9 @@ function createVendorLoaderRuntime(): RendererVendorBundleLoaderRuntime {
             script.type = "module";
             return script;
         }),
+        getCustomEventDetail: vi.fn(<T>(event: Event): T | undefined =>
+            event instanceof CustomEvent ? (event.detail as T) : undefined
+        ),
         getExistingVendorScript: vi.fn((entryName) => {
             const script = document.querySelector(
                 `script[data-ffv-renderer-vendor-entry="${entryName}"]`
@@ -178,7 +181,7 @@ describe("renderer vendor bundle loader", () => {
     });
 
     it("uses an injected loader runtime for split vendor script readiness", async () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const vendorLoaderRuntime = createVendorLoaderRuntime();
         const pendingLoads = [
@@ -188,9 +191,9 @@ describe("renderer vendor bundle loader", () => {
         ];
         const script = getVendorScript("map");
 
-        expect(vendorLoaderRuntime.getExistingVendorScript).toHaveBeenCalledWith(
-            "map"
-        );
+        expect(
+            vendorLoaderRuntime.getExistingVendorScript
+        ).toHaveBeenCalledWith("map");
         expect(vendorLoaderRuntime.createVendorScript).toHaveBeenCalledWith(
             "map",
             expect.stringMatching(/renderer-vendor-map\.js$/u)
@@ -221,6 +224,9 @@ describe("renderer vendor bundle loader", () => {
         script.dispatchEvent(new Event("load"));
 
         await expect(pendingLoads[0]).resolves.toBeUndefined();
+        expect(vendorLoaderRuntime.getCustomEventDetail).toHaveBeenCalledWith(
+            expect.any(CustomEvent)
+        );
         expect(vendorLoaderRuntime.clearTimeout).toHaveBeenCalled();
         expect(vendorLoaderRuntime.removeEventListener).toHaveBeenCalledWith(
             "ffv-renderer-vendor-entry-loaded",

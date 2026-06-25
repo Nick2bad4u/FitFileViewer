@@ -18144,7 +18144,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(30);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -18169,6 +18169,12 @@ describe("architecture boundaries", () => {
         expect(vendorBundleLoaderSource).toContain(
             "options.runtime ?? getRendererVendorBundleLoaderRuntime()"
         );
+        expect(vendorBundleLoaderSource).toContain(
+            "runtime.getCustomEventDetail<RendererVendorEntryLoadedEventDetail>"
+        );
+        expect(vendorBundleLoaderSource).not.toContain(
+            "instanceof CustomEvent"
+        );
         expect(vendorBundleLoaderSource).not.toContain(
             "const vendorBundleLoaderRuntime ="
         );
@@ -18184,6 +18190,12 @@ describe("architecture boundaries", () => {
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "getNow: () => Date.now"
         );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getScopeCustomEvent"
+        );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -18192,6 +18204,9 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
         );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "readonly document?:"
@@ -18214,6 +18229,9 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.CustomEvent"
         );
         expect(vendorBundleLoaderRuntimeSource).not.toContain("scope.document");
         expect(vendorBundleLoaderRuntimeSource).not.toContain(

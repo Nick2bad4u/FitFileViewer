@@ -54,7 +54,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
@@ -75,6 +75,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         vi.stubGlobal("setTimeout", setTimeout);
 
         const controller = utils.createAbortController();
+        const customEventDetail = { entryName: "core" };
         const script = utils.createVendorScript(
             "map",
             "http://localhost/renderer-vendor-map.js"
@@ -86,6 +87,11 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         utils.clearTimeout(29 as ReturnType<typeof globalThis.setTimeout>);
 
         expect(controller).toBeInstanceOf(AbortController);
+        expect(
+            utils.getCustomEventDetail(
+                new CustomEvent("ready", { detail: customEventDetail })
+            )
+        ).toBe(customEventDetail);
         expect(script).toBeInstanceOf(HTMLScriptElement);
         expect(script.dataset["ffvRendererVendorEntry"]).toBe("map");
         expect(utils.getExistingVendorScript("map")).toBe(script);
@@ -222,6 +228,20 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect(utils.now()).toBe(1234);
     });
 
+    it("reads CustomEvent details through the injected constructor", () => {
+        expect.assertions(2);
+
+        const detail = { entryName: "chart-data" };
+        const utils = getRendererVendorBundleLoaderRuntime({
+            getCustomEvent: () => CustomEvent,
+        });
+
+        expect(
+            utils.getCustomEventDetail(new CustomEvent("ready", { detail }))
+        ).toBe(detail);
+        expect(utils.getCustomEventDetail(new Event("ready"))).toBeUndefined();
+    });
+
     it("throws when clock access is unavailable", () => {
         expect.assertions(1);
 
@@ -249,7 +269,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
@@ -261,6 +281,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             AbortController,
             addEventListener,
             clearTimeout,
+            CustomEvent,
             document,
             HTMLScriptElement,
             now: () => 1234,
@@ -284,6 +305,9 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect(() => utils.now()).toThrow(
             "renderer vendor loader requires a clock runtime"
         );
+        expect(
+            utils.getCustomEventDetail(new CustomEvent("ready", { detail: {} }))
+        ).toBeUndefined();
         expect(() => utils.createAbortController()).toThrow(
             "renderer vendor loader requires an AbortController"
         );

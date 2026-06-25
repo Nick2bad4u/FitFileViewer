@@ -106,16 +106,23 @@ function waitForRendererVendorEntry(
         };
         const isMatchingEntryEvent = (
             event: Event
-        ): event is CustomEvent<RendererVendorEntryLoadedEventDetail> =>
-            event instanceof CustomEvent &&
-            isRendererVendorBundleEntry(event.detail?.entryName) &&
-            event.detail?.entryName === entryName;
+        ): RendererVendorEntryLoadedEventDetail | undefined => {
+            const detail =
+                runtime.getCustomEventDetail<RendererVendorEntryLoadedEventDetail>(
+                    event
+                );
+            return isRendererVendorBundleEntry(detail?.entryName) &&
+                detail.entryName === entryName
+                ? detail
+                : undefined;
+        };
         const onEntryLoaded = (event: Event): void => {
-            if (!isMatchingEntryEvent(event)) {
+            const detail = isMatchingEntryEvent(event);
+            if (detail === undefined) {
                 return;
             }
 
-            registerRendererVendorRuntimePayload(event.detail);
+            registerRendererVendorRuntimePayload(detail);
             cleanup();
             resolve();
         };
@@ -126,10 +133,7 @@ function waitForRendererVendorEntry(
                 return;
             }
 
-            if (
-                runtime.now() - startedAt >=
-                vendorEntryMarkerTimeoutMs
-            ) {
+            if (runtime.now() - startedAt >= vendorEntryMarkerTimeoutMs) {
                 cleanup();
                 reject(
                     new Error(
@@ -182,10 +186,7 @@ export async function ensureRendererVendorBundle(
                 createVendorScriptUrl(entryName)
             );
         const controller = runtime.createAbortController();
-        const readinessPromise = waitForRendererVendorEntry(
-            entryName,
-            runtime
-        );
+        const readinessPromise = waitForRendererVendorEntry(entryName, runtime);
         readinessPromise.catch(() => {});
 
         const cleanup = (): void => {
@@ -219,24 +220,14 @@ export async function ensureRendererVendorBundle(
             return;
         }
 
-        runtime.addScriptEventListener(
-            script,
-            "error",
-            onError,
-            {
-                once: true,
-                signal: controller.signal,
-            }
-        );
-        runtime.addScriptEventListener(
-            script,
-            "load",
-            onLoad,
-            {
-                once: true,
-                signal: controller.signal,
-            }
-        );
+        runtime.addScriptEventListener(script, "error", onError, {
+            once: true,
+            signal: controller.signal,
+        });
+        runtime.addScriptEventListener(script, "load", onLoad, {
+            once: true,
+            signal: controller.signal,
+        });
 
         runtime.appendVendorScript(script);
     }).finally(() => {
