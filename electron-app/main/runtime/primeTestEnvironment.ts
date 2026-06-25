@@ -157,7 +157,11 @@ type PrimeTestMainWindowLike = {
             windows.length > 0 &&
             !getAppState("mainWindow")
         ) {
-            setAppState("mainWindow", windows[0]);
+            const firstWindow = windows[0];
+            if (!firstWindow) {
+                return;
+            }
+            setAppState("mainWindow", firstWindow);
             if (shouldInitialize) {
                 try {
                     ignoreSettledPromise(initializeApplication());

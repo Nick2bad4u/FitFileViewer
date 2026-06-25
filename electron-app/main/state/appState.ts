@@ -58,10 +58,10 @@ export function cleanupEventHandlers(): void {
  */
 export function getAppState<Path extends MainAppStateKnownPath>(
     statePath: Path
-): MainAppStateValueByPath[Path];
-export function getAppState(statePath: string): unknown;
-export function getAppState(statePath: string): unknown {
-    return runtimeMainProcessState.get(statePath);
+): MainAppStateValueByPath[Path] {
+    return runtimeMainProcessState.get(
+        statePath
+    ) as MainAppStateValueByPath[Path];
 }
 
 /**
@@ -98,16 +98,6 @@ export function setAppState<Path extends MainAppStateKnownPath>(
     statePath: Path,
     value: MainAppStateValueByPath[Path],
     options?: StateUpdateOptions
-): void;
-export function setAppState(
-    statePath: string,
-    value: unknown,
-    options?: StateUpdateOptions
-): void;
-export function setAppState(
-    statePath: string,
-    value: unknown,
-    options: StateUpdateOptions = {}
 ): void {
     runtimeMainProcessState.set(statePath, value, options);
 }

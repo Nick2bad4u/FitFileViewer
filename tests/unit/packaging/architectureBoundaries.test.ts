@@ -2505,7 +2505,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2539,6 +2539,10 @@ describe("architecture boundaries", () => {
         expect(appStateSource).toContain("MainAppStateValueByPath");
         expect(appStateSource).toContain("MainAppStateKnownPath");
         expect(appStateSource).toContain("Path extends MainAppStateKnownPath");
+        expect(appStateSource).not.toContain(
+            "getAppState(statePath: string): unknown"
+        );
+        expect(appStateSource).not.toContain("statePath: string");
         expect(constantsSource).not.toContain("module.exports");
         expect(gyazoStartupTimerSource).not.toContain("module.exports");
         expect(primeTestEnvironmentSource).not.toContain("module.exports");
