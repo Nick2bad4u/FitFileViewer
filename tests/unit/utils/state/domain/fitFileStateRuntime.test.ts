@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getFitFileStateRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/state/domain/fitFileStateRuntime.js";
 
 describe("getFitFileStateRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
     it("reads wall-clock time through the injected provider", () => {
         expect.assertions(2);
 
@@ -38,5 +42,15 @@ describe("getFitFileStateRuntime", () => {
             "fitFileState requires dateNow"
         );
         expect(dateNow).not.toHaveBeenCalled();
+    });
+
+    it("uses the browser runtime provider for the production clock default", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
+        const runtime = getFitFileStateRuntime();
+
+        expect(runtime.dateNow()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
     });
 });

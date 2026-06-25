@@ -1,3 +1,5 @@
+import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
+
 export type AppDomainStateDateNow = () => number;
 
 export interface AppDomainStateRuntimeScope {
@@ -9,7 +11,7 @@ export interface AppDomainStateRuntime {
 }
 
 const defaultAppDomainStateRuntimeScope: AppDomainStateRuntimeScope = {
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
 };
 
 export function getAppDomainStateRuntime(

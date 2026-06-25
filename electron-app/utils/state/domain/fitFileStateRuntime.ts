@@ -1,3 +1,5 @@
+import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
+
 export type FitFileStateDateNow = () => number;
 
 export interface FitFileStateRuntimeScope {
@@ -9,7 +11,7 @@ export interface FitFileStateRuntime {
 }
 
 const defaultFitFileStateRuntimeScope: FitFileStateRuntimeScope = {
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
 };
 
 export function getFitFileStateRuntime(

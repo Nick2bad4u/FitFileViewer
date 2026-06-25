@@ -4196,7 +4196,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT file state timestamps behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const fitFileStateSource = stripComments(
             readRepositoryFile(
@@ -4226,6 +4226,12 @@ describe("architecture boundaries", () => {
             "defaultFitFileStateRuntimeScope"
         );
         expect(fitFileStateRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(fitFileStateRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(fitFileStateRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(fitFileStateRuntimeSource).toContain(
@@ -4800,7 +4806,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app-domain facade timestamps behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const appDomainStateSource = stripComments(
             readRepositoryFile(
@@ -4826,6 +4832,12 @@ describe("architecture boundaries", () => {
             "defaultAppDomainStateRuntimeScope"
         );
         expect(appDomainStateRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(appDomainStateRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(appDomainStateRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(appDomainStateRuntimeSource).toContain(
