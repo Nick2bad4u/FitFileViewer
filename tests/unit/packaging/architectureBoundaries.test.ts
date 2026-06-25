@@ -9099,11 +9099,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(39);
+        expect.assertions(43);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/core/showFitData.ts"
+            )
+        );
+        const rendererActiveFileStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererActiveFileState.ts"
             )
         );
         const showFitDataRuntimeSource = stripComments(
@@ -9194,6 +9199,18 @@ describe("architecture boundaries", () => {
         );
         expect(showFitDataRuntimeSource).toContain(
             "return scope.getScrollTo?.();"
+        );
+        expect(rendererActiveFileStateSource).toContain(
+            'const RENDERER_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";'
+        );
+        expect(rendererActiveFileStateSource).toContain(
+            'const LEGACY_RENDERER_CURRENT_FILE_STATE_PATH = "currentFile";'
+        );
+        expect(rendererActiveFileStateSource).toMatch(
+            /getState\(\s*RENDERER_CURRENT_FILE_STATE_PATH\s*\)/u
+        );
+        expect(rendererActiveFileStateSource).toMatch(
+            /setState\(\s*LEGACY_RENDERER_CURRENT_FILE_STATE_PATH\s*,/u
         );
     });
 

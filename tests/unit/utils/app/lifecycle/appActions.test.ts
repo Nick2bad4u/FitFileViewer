@@ -138,7 +138,7 @@ afterEach(() => {
 
 describe("appActions", () => {
     it("clearData should reset core slices and notify", () => {
-        expect.assertions(9);
+        expect.assertions(10);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         expect(AppActions.clearData()).toBeUndefined();
@@ -147,6 +147,7 @@ describe("appActions", () => {
         const keys = [
             "fitFile.rawData",
             "currentFile",
+            "fitFile.currentFile",
             "charts.isRendered",
             "map.isRendered",
             "tables.isRendered",
@@ -189,7 +190,7 @@ describe("appActions", () => {
     });
 
     it("loadFile falls back to explicit FIT state when domain manager is unavailable", async () => {
-        expect.assertions(11);
+        expect.assertions(12);
         expect(Date.now()).toBe(1_704_067_200_000);
 
         const originalHandle = h.mockFitManager.handleFileLoaded;
@@ -220,6 +221,11 @@ describe("appActions", () => {
         );
         expect(h.mockSetState).toHaveBeenCalledWith(
             "currentFile",
+            "path/fit.fit",
+            expect.any(Object)
+        );
+        expect(h.mockSetState).toHaveBeenCalledWith(
+            "fitFile.currentFile",
             "path/fit.fit",
             expect.any(Object)
         );
@@ -480,7 +486,7 @@ describe("appSelectors", () => {
             "tables.isRendered",
             "ui.theme",
             "charts",
-            "currentFile",
+            "fitFile.currentFile",
             "map",
             "performance",
             "isLoading",

@@ -44,16 +44,33 @@ describe("rendererActiveFileState", () => {
         expect(isRendererUnloadButtonVisible()).toBe(false);
     });
 
-    it("reads and writes the legacy currentFile bridge through typed helpers", () => {
-        expect.assertions(3);
+    it("reads current file state from the fit-file domain path", () => {
+        expect.assertions(4);
 
         expect(getRendererCurrentFile()).toBeNull();
 
         setRendererCurrentFile("C:/rides/activity.fit");
         expect(getRendererCurrentFile()).toBe("C:/rides/activity.fit");
+        expect(stateManager.getState("fitFile.currentFile")).toBe(
+            "C:/rides/activity.fit"
+        );
+        expect(stateManager.getState("currentFile")).toBe(
+            "C:/rides/activity.fit"
+        );
+    });
+
+    it("does not read stale legacy currentFile state as active", () => {
+        expect.assertions(3);
+
+        stateManager.setState("currentFile", "C:/rides/stale.fit", {
+            source: "test",
+        });
+
+        expect(getRendererCurrentFile()).toBeNull();
 
         setRendererCurrentFile(null);
         expect(getRendererCurrentFile()).toBeNull();
+        expect(stateManager.getState("currentFile")).toBeNull();
     });
 
     it("normalizes file info values", () => {
