@@ -14124,7 +14124,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(31);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -14193,16 +14193,31 @@ describe("architecture boundaries", () => {
         expect(panelControllerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
+        expect(panelControllerRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getNode: getBrowserNode"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
         expect(panelControllerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
-        expect(panelControllerRuntimeSource).toContain(
+        expect(panelControllerRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
-        expect(panelControllerRuntimeSource).toContain(
+        expect(panelControllerRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(panelControllerRuntimeSource).toContain(
+        expect(panelControllerRuntimeSource).not.toContain(
+            "getNode: () => globalThis.Node"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(panelControllerRuntimeSource).toContain(

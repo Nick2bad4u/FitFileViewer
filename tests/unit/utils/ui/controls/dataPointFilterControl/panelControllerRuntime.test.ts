@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getDataPointFilterPanelControllerRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/panelControllerRuntime.js";
 
 describe("getDataPointFilterPanelControllerRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("reads body, viewport size, and Node checks from injected runtimes", () => {
         expect.assertions(4);
 
@@ -121,6 +125,35 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses browser runtime providers for production panel defaults", () => {
+        expect.assertions(5);
+
+        const requestAnimationFrame = vi.fn(
+            (callback: FrameRequestCallback) => {
+                callback(0);
+                return 17;
+            }
+        );
+        const cancelAnimationFrame = vi.fn();
+
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("Node", Node);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+
+        const runtime = getDataPointFilterPanelControllerRuntime();
+        const callback = vi.fn();
+        const handle = runtime.requestAnimationFrame(callback);
+
+        runtime.cancelAnimationFrame(handle);
+
+        expect(runtime.getBody()).toBe(document.body);
+        expect(runtime.isNode(document.body)).toBe(true);
+        expect(handle).toBe(17);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(17);
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
