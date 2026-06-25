@@ -3,6 +3,19 @@ import { describe, expect, it, vi } from "vitest";
 import { getRendererApplicationStartupRuntime } from "../../../electron-app/renderer/applicationStartupRuntime.js";
 
 describe("getRendererApplicationStartupRuntime", () => {
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(2);
+
+        const utils = getRendererApplicationStartupRuntime();
+        const callback = vi.fn<() => void>();
+        const startupDelayMs = Number("1");
+        const timer = utils.setTimeout(callback, startupDelayMs);
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+        expect(timer).toBeDefined();
+        utils.clearTimeout(timer);
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 

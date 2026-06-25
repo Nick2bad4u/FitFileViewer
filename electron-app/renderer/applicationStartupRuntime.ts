@@ -1,3 +1,9 @@
+import {
+    getBrowserRendererAbortController,
+    getBrowserRendererClearTimeout,
+    getBrowserRendererSetTimeout,
+} from "./rendererBrowserRuntime.js";
+
 export type RendererApplicationStartupTimerHandle = ReturnType<
     typeof globalThis.setTimeout
 >;
@@ -25,9 +31,9 @@ export interface RendererApplicationStartupRuntime {
 
 const defaultRendererApplicationStartupRuntimeScope: RendererApplicationStartupRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getSetTimeout: () => globalThis.setTimeout,
+        getAbortController: getBrowserRendererAbortController,
+        getClearTimeout: getBrowserRendererClearTimeout,
+        getSetTimeout: getBrowserRendererSetTimeout,
     };
 
 export function getRendererApplicationStartupRuntime(

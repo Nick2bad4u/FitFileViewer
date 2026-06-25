@@ -4,6 +4,18 @@ type RendererRuntimeGlobalScope = typeof globalThis & {
     readonly electronAPI?: unknown;
 };
 
+export function getBrowserRendererAbortController():
+    | typeof globalThis.AbortController
+    | undefined {
+    return globalThis.AbortController;
+}
+
+export function getBrowserRendererClearTimeout():
+    | typeof globalThis.clearTimeout
+    | undefined {
+    return globalThis.clearTimeout;
+}
+
 export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvironmentScope {
     return {
         getAddEventListener: () => globalThis.addEventListener.bind(globalThis),
@@ -18,4 +30,10 @@ export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvi
         getSetInterval: () => globalThis.setInterval.bind(globalThis),
         getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
     };
+}
+
+export function getBrowserRendererSetTimeout():
+    | typeof globalThis.setTimeout
+    | undefined {
+    return globalThis.setTimeout;
 }
