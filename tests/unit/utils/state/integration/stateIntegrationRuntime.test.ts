@@ -9,9 +9,9 @@ function createRuntimeScope(
     overrides: Partial<StateIntegrationRuntimeScope> = {}
 ): StateIntegrationRuntimeScope {
     return {
-        dateNow: vi.fn<() => number>(() => 42),
         getClearInterval: () => vi.fn<typeof globalThis.clearInterval>(),
         getClearTimeout: () => vi.fn<typeof globalThis.clearTimeout>(),
+        getDateNow: () => vi.fn<() => number>(() => 42),
         getSetInterval: () => vi.fn<typeof globalThis.setInterval>(),
         getSetTimeout: () => vi.fn<typeof globalThis.setTimeout>(),
         ...overrides,
@@ -20,6 +20,7 @@ function createRuntimeScope(
 
 describe("getStateIntegrationRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -52,9 +53,9 @@ describe("getStateIntegrationRuntime", () => {
             setInterval: scheduleInterval,
             setTimeout: scheduleTimeout,
         } = getStateIntegrationRuntime({
-            dateNow,
             getClearInterval: () => clearInterval,
             getClearTimeout: () => clearTimeout,
+            getDateNow: () => dateNow,
             getLocalStorage: () => storage,
             getPerformance: () => ({ memory: performanceMemory }),
             getSetInterval: () => setInterval,
@@ -94,7 +95,7 @@ describe("getStateIntegrationRuntime", () => {
         ],
         [
             "dateNow",
-            { dateNow: undefined },
+            { getDateNow: () => undefined },
             (scope: StateIntegrationRuntimeScope) =>
                 getStateIntegrationRuntime(scope).dateNow(),
         ],
@@ -166,7 +167,9 @@ describe("getStateIntegrationRuntime", () => {
         expect(() => runtime.clearTimeout(timeout)).toThrow(
             "stateIntegrationRuntime requires clearTimeout"
         );
-        expect(runtime.dateNow()).toBe(42);
+        expect(() => runtime.dateNow()).toThrow(
+            "stateIntegrationRuntime requires dateNow"
+        );
         expect(runtime.getStorage()).toBeUndefined();
         expect(runtime.getPerformanceMemory()).toBeUndefined();
         expect(setInterval).not.toHaveBeenCalled();
@@ -177,7 +180,7 @@ describe("getStateIntegrationRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const intervalCallback = vi.fn<() => void>();
         const timeoutCallback = vi.fn<() => void>();
@@ -193,6 +196,7 @@ describe("getStateIntegrationRuntime", () => {
         };
         const clearInterval = vi.fn<typeof globalThis.clearInterval>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
         const setInterval = vi.fn<typeof globalThis.setInterval>(
             () => interval
         );
@@ -225,6 +229,8 @@ describe("getStateIntegrationRuntime", () => {
             timeoutDelayMs
         );
         expect(clearTimeout).toHaveBeenCalledWith(timeout);
+        expect(runtime.dateNow()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
         expect(runtime.getStorage()).toBe(storage);
         expect(runtime.getPerformanceMemory()).toBe(performanceMemory);
     });

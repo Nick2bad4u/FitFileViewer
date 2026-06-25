@@ -11005,7 +11005,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(38);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -11043,8 +11043,55 @@ describe("architecture boundaries", () => {
             directStateIntegrationRuntimeAmbientGetterPattern
         );
         expect(stateIntegrationRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getClearInterval: getBrowserClearInterval"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getSetInterval: getBrowserSetInterval"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain("dateNow: Date.now");
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "getClearInterval: () => globalThis.clearInterval"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "getSetInterval: () => globalThis.setInterval"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
             "stateIntegrationRuntime requires setTimeout"
         );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "const dateNowRef = scope.getDateNow?.();"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain("readonly dateNow?:");
         expect(stateIntegrationRuntimeSource).not.toContain(
             "readonly clearInterval?:"
         );
@@ -11079,6 +11126,7 @@ describe("architecture boundaries", () => {
             "scope.setInterval"
         );
         expect(stateIntegrationRuntimeSource).not.toContain("scope.setTimeout");
+        expect(stateIntegrationRuntimeSource).not.toContain("scope.dateNow");
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {

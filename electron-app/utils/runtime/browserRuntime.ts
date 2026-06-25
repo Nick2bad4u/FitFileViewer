@@ -10,8 +10,18 @@ export function getBrowserClearInterval():
     return globalThis.clearInterval;
 }
 
+export function getBrowserClearTimeout():
+    | typeof globalThis.clearTimeout
+    | undefined {
+    return globalThis.clearTimeout;
+}
+
 export function getBrowserDateNow(): (() => number) | undefined {
     return Date.now;
+}
+
+export function getBrowserLocalStorage(): Storage | undefined {
+    return globalThis.localStorage;
 }
 
 export function getBrowserLocation(): Location | undefined {
@@ -26,4 +36,10 @@ export function getBrowserSetInterval():
     | typeof globalThis.setInterval
     | undefined {
     return globalThis.setInterval;
+}
+
+export function getBrowserSetTimeout():
+    | typeof globalThis.setTimeout
+    | undefined {
+    return globalThis.setTimeout;
 }

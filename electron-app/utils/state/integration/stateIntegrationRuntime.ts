@@ -1,3 +1,13 @@
+import {
+    getBrowserClearInterval,
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserLocalStorage,
+    getBrowserPerformance,
+    getBrowserSetInterval,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type StateIntegrationInterval = ReturnType<
     typeof globalThis.setInterval
 >;
@@ -14,13 +24,13 @@ type StateIntegrationPerformance = Performance & {
 };
 
 export interface StateIntegrationRuntimeScope {
-    readonly dateNow?: (() => number) | undefined;
     readonly getClearInterval?:
         | (() => typeof globalThis.clearInterval | undefined)
         | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getLocalStorage?: (() => Storage | undefined) | undefined;
     readonly getPerformance?:
         | (() => StateIntegrationPerformance | undefined)
@@ -50,17 +60,17 @@ export interface StateIntegrationRuntime {
 }
 
 const defaultStateIntegrationRuntimeScope: StateIntegrationRuntimeScope = {
-    getClearInterval: () => globalThis.clearInterval,
-    getClearTimeout: () => globalThis.clearTimeout,
-    dateNow: Date.now,
-    getLocalStorage: () => globalThis.localStorage,
-    getPerformance: () => globalThis.performance,
-    getSetInterval: () => globalThis.setInterval,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearInterval: getBrowserClearInterval,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
+    getLocalStorage: getBrowserLocalStorage,
+    getPerformance: getBrowserPerformance,
+    getSetInterval: getBrowserSetInterval,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getRequiredDateNow(scope: StateIntegrationRuntimeScope): () => number {
-    const dateNowRef = scope.dateNow;
+    const dateNowRef = scope.getDateNow?.();
     if (typeof dateNowRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires dateNow");
     }
