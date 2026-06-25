@@ -1,5 +1,7 @@
 import {
     getBrowserClearTimeout,
+    getBrowserHTMLInputElement,
+    getBrowserHTMLSelectElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -36,8 +38,8 @@ export interface GetCurrentSettingsRuntime {
 
 const defaultGetCurrentSettingsRuntimeScope: GetCurrentSettingsRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
-    getHTMLInputElement: () => globalThis.HTMLInputElement,
-    getHTMLSelectElement: () => globalThis.HTMLSelectElement,
+    getHTMLInputElement: getBrowserHTMLInputElement,
+    getHTMLSelectElement: getBrowserHTMLSelectElement,
     getSetTimeout: getBrowserSetTimeout,
 };
 

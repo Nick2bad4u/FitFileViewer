@@ -16332,7 +16332,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(35);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -16438,9 +16438,15 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
             "getHTMLInputElement: () => globalThis.HTMLInputElement"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
+            "getHTMLSelectElement: getBrowserHTMLSelectElement"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
             "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(

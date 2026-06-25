@@ -72,6 +72,19 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect(runtime.isHTMLSelectElement(input)).toBe(false);
     });
 
+    it("uses browser runtime providers for production form element defaults", () => {
+        expect.assertions(4);
+
+        const runtime = getGetCurrentSettingsRuntime();
+        const input = document.createElement("input");
+        const select = document.createElement("select");
+
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLInputElement(select)).toBe(false);
+        expect(runtime.isHTMLSelectElement(select)).toBe(true);
+        expect(runtime.isHTMLSelectElement(input)).toBe(false);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(4);
 
