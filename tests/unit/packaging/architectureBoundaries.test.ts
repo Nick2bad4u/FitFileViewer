@@ -10391,13 +10391,19 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(masterStateRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocumentBody: () => globalThis.document.body"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocumentBody: () => getGlobalDocument().body"
+            "getDocumentElement: () => globalThis.document.documentElement"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocumentElement: () => getGlobalDocument().documentElement"
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDocumentQueryScope: () => globalThis.document"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(masterStateRuntimeSource).toContain(
             "getAddEventListener: () => globalThis.addEventListener"
@@ -10430,12 +10436,6 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "master state manager requires setInterval runtime"
-        );
-        expect(masterStateRuntimeSource).toContain(
-            "getDocumentEventTarget: () => getGlobalDocument()"
-        );
-        expect(masterStateRuntimeSource).toContain(
-            "getDocumentQueryScope: () => getGlobalDocument()"
         );
         expect(masterStateRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "__DEVELOPMENT__")'

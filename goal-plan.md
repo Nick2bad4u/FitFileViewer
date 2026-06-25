@@ -835,8 +835,8 @@ document-element checks now also route through that runtime instead of reading `
 `document.querySelectorAll`, `document.body`, and `document.documentElement` access plus legacy direct scope
 properties from returning. The default master-state runtime no longer reads ambient `globalThis.__DEVELOPMENT__`;
 development flag checks now require an explicit runtime provider or the existing location/DOM/options signals.
-Default document access inside the master-state runtime now centralizes through `getGlobalDocument()` instead of
-repeating `globalThis.document` across document providers.
+Default document access inside the master-state runtime now lives on named providers that read `globalThis.document`
+directly instead of bouncing through a private helper.
 Master state manager component initialization timestamps, startup-time state writes, global-error timestamps,
 promise-rejection timestamps, and performance-monitor timestamps now also route through `masterStateRuntime.ts`
 instead of calling `Date.now` directly inside `masterStateManager.ts`, with focused runtime coverage and architecture
