@@ -240,6 +240,7 @@ describe("error handling utilities", () => {
             const createAbortController = vi.fn(() => controller);
             const runtime: ErrorHandlingRuntime = {
                 createAbortController,
+                dateNow: () => 1234,
                 getGlobalEventTarget: () => ({
                     addEventListener: listenerSpy,
                 }),

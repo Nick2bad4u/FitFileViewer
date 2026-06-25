@@ -135,7 +135,7 @@ export class AppError extends Error {
         super(message);
         this.name = "AppError";
         this.context = context;
-        this.timestamp = Date.now();
+        this.timestamp = errorHandlingRuntime().dateNow();
     }
 
     public getFormattedMessage(): string {

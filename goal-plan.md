@@ -707,6 +707,9 @@ performance-monitor global fixture; architecture coverage blocks the source fall
 construction, and test-global mutation pattern from returning. Error-handling runtime defaults now read
 `AbortController` and `addEventListener` explicitly through focused helpers instead of generic
 `Reflect.get(globalThis, ...)` probes.
+`AppError` timestamp creation now also routes through `errorHandlingRuntime.ts` instead of calling `Date.now`
+directly inside `errorHandling.ts`, with focused runtime coverage and architecture guardrails blocking direct
+clock reads and legacy direct runtime scope properties from returning.
 Accent color picker modal lookup/body append, element and text-node creation, style element creation/head append, focus
 tracking, preview DOM queries, element-list queries, element constructor checks, listener abort-controller creation, and
 Escape-key document listener registration now route through `accentColorPickerRuntime.ts` instead of using ambient

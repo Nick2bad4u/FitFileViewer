@@ -7,6 +7,18 @@ describe("getErrorHandlingRuntime", () => {
         vi.unstubAllGlobals();
     });
 
+    it("reads timestamps through the injected runtime", () => {
+        expect.assertions(2);
+
+        const dateNow = vi.fn<() => number>(() => 1234);
+        const utils = getErrorHandlingRuntime({
+            getDateNow: () => dateNow,
+        });
+
+        expect(utils.dateNow()).toBe(1234);
+        expect(dateNow).toHaveBeenCalledOnce();
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
@@ -33,6 +45,14 @@ describe("getErrorHandlingRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "errorHandling requires an AbortController runtime"
         );
+    });
+
+    it("fails clearly when the date clock runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getErrorHandlingRuntime({});
+
+        expect(() => utils.dateNow()).toThrow("errorHandling requires dateNow");
     });
 
     it("resolves the default AbortController when controllers are created", () => {
@@ -100,7 +120,7 @@ describe("getErrorHandlingRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -109,15 +129,21 @@ describe("getErrorHandlingRuntime", () => {
             }
         );
         const addEventListener = vi.fn();
+        const dateNow = vi.fn<() => number>(() => 1234);
         const runtime = getErrorHandlingRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
+            dateNow,
             eventTarget: { addEventListener },
         } as unknown as Parameters<typeof getErrorHandlingRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
             "errorHandling requires an AbortController runtime"
         );
+        expect(() => runtime.dateNow()).toThrow(
+            "errorHandling requires dateNow"
+        );
+        expect(dateNow).not.toHaveBeenCalled();
         expect(runtime.getGlobalEventTarget()).toBeUndefined();
     });
 });

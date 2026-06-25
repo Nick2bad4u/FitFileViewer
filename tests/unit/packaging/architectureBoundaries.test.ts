@@ -9452,7 +9452,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(24);
+        expect.assertions(31);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -9485,10 +9485,13 @@ describe("architecture boundaries", () => {
         expect(errorHandlingSource).toContain(
             "return getErrorHandlingRuntime();"
         );
+        expect(errorHandlingSource).toContain("errorHandlingRuntime().dateNow()");
+        expect(errorHandlingSource).not.toContain("Date.now");
         expect(errorHandlingSource).not.toContain(
             "const errorHandlingRuntime = getErrorHandlingRuntime();"
         );
         expect(errorHandlingRuntimeSource).toContain("getGlobalEventTarget");
+        expect(errorHandlingRuntimeSource).toContain("dateNow");
         expect(errorHandlingRuntimeSource).not.toMatch(
             directErrorHandlingRuntimeAmbientGetterPattern
         );
@@ -9497,6 +9500,12 @@ describe("architecture boundaries", () => {
         );
         expect(errorHandlingRuntimeSource).toContain(
             "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires dateNow"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
             "const AbortControllerConstructor = globalThis.AbortController;"
@@ -9516,6 +9525,7 @@ describe("architecture boundaries", () => {
         expect(errorHandlingRuntimeSource).not.toContain(
             "readonly addEventListener?:"
         );
+        expect(errorHandlingRuntimeSource).not.toContain("readonly dateNow?:");
         expect(errorHandlingRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
@@ -9525,6 +9535,7 @@ describe("architecture boundaries", () => {
         expect(errorHandlingRuntimeSource).not.toContain(
             "scope.addEventListener"
         );
+        expect(errorHandlingRuntimeSource).not.toContain("scope.dateNow");
         expect(errorHandlingRuntimeSource).not.toContain("scope.eventTarget");
         expect(errorHandlingRuntimeSource).toContain(
             "defaultErrorHandlingRuntimeScope"

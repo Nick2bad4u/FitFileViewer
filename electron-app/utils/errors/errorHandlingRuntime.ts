@@ -5,6 +5,7 @@ export interface ErrorHandlingRuntimeScope {
     readonly getAddEventListener?:
         | (() => Window["addEventListener"] | undefined)
         | undefined;
+    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getEventTarget?:
         | (() => ErrorHandlingEventTarget | undefined)
         | undefined;
@@ -16,12 +17,14 @@ export interface ErrorHandlingEventTarget {
 
 export interface ErrorHandlingRuntime {
     createAbortController: () => AbortController;
+    dateNow: () => number;
     getGlobalEventTarget: () => ErrorHandlingEventTarget | undefined;
 }
 
 const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
+    getDateNow: () => Date.now,
     getEventTarget: getDefaultEventTarget,
 };
 
@@ -51,6 +54,15 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+function getDateNow(scope: ErrorHandlingRuntimeScope): () => number {
+    const dateNow = scope.getDateNow?.();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("errorHandling requires dateNow");
+    }
+
+    return dateNow;
+}
+
 function getEventTarget(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
@@ -63,6 +75,9 @@ export function getErrorHandlingRuntime(
     return {
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        dateNow(): number {
+            return getDateNow(scope)();
         },
         getGlobalEventTarget(): ErrorHandlingEventTarget | undefined {
             return getEventTarget(scope);
