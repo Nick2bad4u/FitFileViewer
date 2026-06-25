@@ -17665,7 +17665,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(54);
+        expect.assertions(58);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -17754,15 +17754,27 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain(

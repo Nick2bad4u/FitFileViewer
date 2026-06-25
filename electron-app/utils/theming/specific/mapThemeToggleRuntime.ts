@@ -1,4 +1,10 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserCustomEvent,
+    getBrowserDocument,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
@@ -76,10 +82,10 @@ function getDocument(scope: MapThemeToggleRuntimeScope): Document {
 
 const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getCustomEvent: () => globalThis.CustomEvent,
-    getDocument: () => globalThis.document,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getCustomEvent: getBrowserCustomEvent,
+    getDocument: getBrowserDocument,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(

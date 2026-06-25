@@ -72,6 +72,25 @@ describe("getMapThemeToggleRuntime", () => {
         expect(changed).toBe(true);
     });
 
+    it("uses browser runtime providers for production document defaults", () => {
+        expect.assertions(3);
+
+        const button = document.createElement("button");
+        button.className = "map-theme-toggle";
+        document.body.append(button);
+        const runtime = getMapThemeToggleRuntime();
+
+        try {
+            expect(runtime.findExistingToggle()).toBe(button);
+            expect(runtime.createElement("button")).toBeInstanceOf(
+                HTMLButtonElement
+            );
+            expect(runtime.isBodyThemeDark()).toBe(false);
+        } finally {
+            button.remove();
+        }
+    });
+
     it("finds existing map theme toggles through the injected document runtime", () => {
         expect.assertions(1);
 
@@ -159,6 +178,19 @@ describe("getMapThemeToggleRuntime", () => {
         controller.abort();
     });
 
+    it("uses browser runtime providers for production CustomEvent defaults", () => {
+        expect.assertions(2);
+
+        const runtime = getMapThemeToggleRuntime();
+        const event = runtime.createMapThemeChangedEvent(
+            "mapThemeChanged",
+            true
+        );
+
+        expect(event).toBeInstanceOf(CustomEvent);
+        expect(event.detail).toStrictEqual({ inverted: true });
+    });
+
     it("fails clearly when event runtimes are unavailable", () => {
         expect.assertions(2);
 
@@ -200,6 +232,25 @@ describe("getMapThemeToggleRuntime", () => {
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
         });
+
+        expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const timeoutMs = Number("50");
+        const timer = 20 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        vi.stubGlobal("setTimeout", setTimeout);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        const runtime = getMapThemeToggleRuntime();
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
