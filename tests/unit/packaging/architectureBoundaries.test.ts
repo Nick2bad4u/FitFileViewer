@@ -8259,7 +8259,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(29);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -8322,7 +8322,10 @@ describe("architecture boundaries", () => {
             "defaultNotificationTimerRuntimeScope"
         );
         expect(notificationTimerRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "../../runtime/browserRuntime.js"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
         );
         expect(notificationTimerRuntimeSource).toContain(
             "readonly dateNow: () => number;"
@@ -8356,9 +8359,18 @@ describe("architecture boundaries", () => {
             directNotificationTimerRuntimeAmbientGetterPattern
         );
         expect(notificationTimerRuntimeSource).toContain(
-            "getClearTimeout: () => globalThis.clearTimeout"
+            "getClearTimeout: getBrowserClearTimeout"
         );
         expect(notificationTimerRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(notificationTimerRuntimeSource).toContain(

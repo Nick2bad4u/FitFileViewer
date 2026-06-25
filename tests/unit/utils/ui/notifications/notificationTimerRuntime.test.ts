@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getNotificationTimerRuntime,
@@ -6,6 +6,36 @@ import {
 } from "../../../../../electron-app/utils/ui/notifications/notificationTimerRuntime.js";
 
 describe("notificationTimerRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
+    it("uses browser runtime providers for production clock and timer defaults", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const timestamp = Number("1700");
+        const timer = 43 as ReturnType<typeof globalThis.setTimeout>;
+        const delay = Number("250");
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+
+        vi.spyOn(Date, "now").mockReturnValue(timestamp);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const runtime = getNotificationTimerRuntime();
+        const scheduledTimer = runtime.setTimeout(callback, delay);
+
+        expect(runtime.dateNow()).toBe(timestamp);
+        expect(scheduledTimer).toBe(timer);
+        runtime.clearTimeout(scheduledTimer);
+        expect(setTimeout).toHaveBeenCalledWith(callback, delay);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("delegates clock, timer scheduling, and clearing through the scoped runtime", () => {
         expect.assertions(6);
 

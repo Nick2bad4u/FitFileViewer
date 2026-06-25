@@ -1,3 +1,9 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type NotificationTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 export interface NotificationTimerRuntimeScope {
@@ -20,9 +26,9 @@ export interface NotificationTimerRuntime {
 }
 
 const defaultNotificationTimerRuntimeScope: NotificationTimerRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDateNow: () => Date.now,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getRequiredDateNow(scope: NotificationTimerRuntimeScope): () => number {
