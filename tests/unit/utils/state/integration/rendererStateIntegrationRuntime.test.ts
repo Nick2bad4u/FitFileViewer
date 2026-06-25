@@ -116,6 +116,33 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("derives document click listeners from the scoped document provider", () => {
+        expect.assertions(4);
+
+        const controller = new AbortController();
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        let clickCount = 0;
+        const listener = () => {
+            clickCount += 1;
+        };
+        const utils = getRendererStateIntegrationRuntime({
+            getDocument: () => documentRef,
+        });
+
+        utils.addDocumentClickListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(new MouseEvent("click"));
+
+        expect(addEventListener).toHaveBeenCalledWith("click", listener, {
+            signal: controller.signal,
+        });
+        expect(addEventListener.mock.contexts[0]).toBe(documentRef);
+        expect(clickCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("resolves DOM documents through the injected runtime scope", () => {
         expect.assertions(1);
 

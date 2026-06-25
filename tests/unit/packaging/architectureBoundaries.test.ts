@@ -10860,7 +10860,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(42);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -10927,6 +10927,9 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(

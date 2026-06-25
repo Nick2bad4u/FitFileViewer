@@ -47,7 +47,6 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,
-        getDocumentEventTarget: () => globalThis.document,
         getElement: () => globalThis.Element,
         getHTMLElement: () => globalThis.HTMLElement,
         getSetTimeout: () => globalThis.setTimeout,
@@ -69,7 +68,7 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: RendererStateIntegrationRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getElementConstructor(
