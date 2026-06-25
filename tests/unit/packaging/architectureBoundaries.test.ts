@@ -1220,7 +1220,7 @@ const directCreateElevationProfileButtonRuntimeAmbientFallbackPattern =
 const directCreateElevationProfileButtonRuntimeAmbientGetterPattern =
     /\bget\s+(?:AbortController|chartOverlayColorPalette|document|open)\s*\(\)\s*\{|\breturn\s+(?:\(globalThis\s+as\s+ElevationProfileButtonGlobalScope\)|globalThis)\.(?:AbortController|chartOverlayColorPalette|document|open)\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
-    /\bglobalThis\.(?:console|document|location)\b|\bnew\s+AbortController\b/u;
+    /\bglobalThis\.(?:AbortController|console|document|location)\b|\bnew\s+AbortController\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directLoadSharedConfigurationRuntimeAmbientFallbackPattern =
@@ -15218,7 +15218,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(21);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -15257,6 +15257,12 @@ describe("architecture boundaries", () => {
             "const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = globalThis"
         );
         expect(altFitSenderRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(altFitSenderRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(altFitSenderRuntimeSource).toContain(
