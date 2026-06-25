@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getMapDrawLapsRuntime } from "../../../../electron-app/utils/maps/layers/mapDrawLapsRuntime.js";
 
 describe("getMapDrawLapsRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 
@@ -46,6 +50,29 @@ describe("getMapDrawLapsRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("50");
+        const timer = 74 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getMapDrawLapsRuntime();
+        const timerHandle = runtime.setTimeout(callback, delayMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
     it("creates DOM nodes through the injected document provider", () => {
