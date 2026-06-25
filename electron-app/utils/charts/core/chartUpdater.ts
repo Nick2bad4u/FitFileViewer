@@ -1,6 +1,7 @@
 import { destroyRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { renderChartJS } from "./renderChartJS.js";
 import { getRegisteredChartStateManager } from "./chartStateManagerRegistry.js";
+import { chartUpdaterRuntime } from "./chartUpdaterRuntime.js";
 
 /**
  * Snapshot of chart updater availability and runtime wiring.
@@ -26,7 +27,7 @@ export function getChartUpdateSystemStatus(): ChartUpdateSystemStatus {
         globalRenderChartJS: false,
         modernSystemAvailable: isModernChartSystemAvailable(),
         renderChartJSAvailable: typeof renderChartJS === "function",
-        timestamp: new Date().toISOString(),
+        timestamp: chartUpdaterRuntime().isoNow(),
     };
 }
 

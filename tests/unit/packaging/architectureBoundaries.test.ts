@@ -6787,6 +6787,48 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps chart updater timestamps behind the runtime facade", () => {
+        expect.assertions(12);
+
+        const chartUpdaterSource = stripComments(
+            readRepositoryFile("electron-app/utils/charts/core/chartUpdater.ts")
+        );
+        const chartUpdaterRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartUpdaterRuntime.ts"
+            )
+        );
+
+        expect(chartUpdaterSource).toContain("chartUpdaterRuntime.js");
+        expect(chartUpdaterSource).toContain("chartUpdaterRuntime().isoNow()");
+        expect(chartUpdaterSource).not.toContain(
+            "new Date().toISOString()"
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "defaultChartUpdaterRuntimeScope"
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "getDateConstructor: () => Date"
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "new DateConstructor().toISOString()"
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "chartUpdaterRuntime requires a date constructor"
+        );
+        expect(chartUpdaterRuntimeSource).not.toContain("readonly Date?:");
+        expect(chartUpdaterRuntimeSource).not.toContain("scope.Date");
+        expect(chartUpdaterRuntimeSource).not.toContain(
+            "ChartUpdaterRuntimeScope = globalThis"
+        );
+        expect(chartUpdaterRuntimeSource).not.toContain(
+            "globalThis as Partial"
+        );
+        expect(chartUpdaterRuntimeSource).not.toContain(
+            "Pick<typeof globalThis"
+        );
+    });
+
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
         expect.assertions(30);
 

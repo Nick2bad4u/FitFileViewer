@@ -80,22 +80,29 @@ function resetMocks(): void {
 
 describe("chartUpdater", () => {
     it("reports modern chart system availability from the initialized manager", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         resetMocks();
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
 
-        const status = getChartUpdateSystemStatus();
+        try {
+            const status = getChartUpdateSystemStatus();
 
-        expect({
-            available: isModernChartSystemAvailable(),
-        }).toStrictEqual({ available: true });
-        expect(status).toMatchObject({
-            chartStateManager: true,
-            globalRenderChartJS: false,
-            modernSystemAvailable: true,
-            renderChartJSAvailable: true,
-        });
-        expect(status.timestamp).toBeTypeOf("string");
+            expect({
+                available: isModernChartSystemAvailable(),
+            }).toStrictEqual({ available: true });
+            expect(status).toMatchObject({
+                chartStateManager: true,
+                globalRenderChartJS: false,
+                modernSystemAvailable: true,
+                renderChartJSAvailable: true,
+            });
+            expect(status.timestamp).toBe("2026-01-02T03:04:05.006Z");
+            expect(status.timestamp).toBeTypeOf("string");
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("uses the chart state manager for regular chart updates", async () => {
