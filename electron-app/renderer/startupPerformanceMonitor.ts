@@ -1,3 +1,8 @@
+import {
+    getStartupPerformanceMonitorRuntime,
+    type StartupPerformanceMonitorRuntime,
+} from "./startupPerformanceMonitorRuntime.js";
+
 export type RendererPerformanceLogLevel = "log" | "warn";
 
 export type RendererPerformanceLogger = (
@@ -15,11 +20,13 @@ export interface RendererPerformanceMonitor {
 interface RendererPerformanceMonitorOptions {
     readonly isDevelopmentMode: () => boolean;
     readonly logRenderer: RendererPerformanceLogger;
+    readonly runtime?: StartupPerformanceMonitorRuntime | undefined;
 }
 
 export function createRendererPerformanceMonitor({
     isDevelopmentMode,
     logRenderer,
+    runtime = getStartupPerformanceMonitorRuntime(),
 }: RendererPerformanceMonitorOptions): RendererPerformanceMonitor {
     return {
         end(operation) {
@@ -32,7 +39,7 @@ export function createRendererPerformanceMonitor({
                 return 0;
             }
 
-            const duration = performance.now() - startTime;
+            const duration = runtime.nowPerformance() - startTime;
             this.metrics.set(operation, duration);
 
             if (isDevelopmentMode()) {
@@ -58,7 +65,7 @@ export function createRendererPerformanceMonitor({
         metrics: new Map<string, number>(),
 
         start(operation) {
-            this.metrics.set(`${operation}_start`, performance.now());
+            this.metrics.set(`${operation}_start`, runtime.nowPerformance());
         },
     };
 }

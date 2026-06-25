@@ -5065,6 +5065,58 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).toContain("subscribeAppDomainPath");
     });
 
+    it("keeps renderer startup performance timing behind its runtime facade", () => {
+        expect.assertions(12);
+
+        const startupPerformanceMonitorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/startupPerformanceMonitor.ts"
+            )
+        );
+        const startupPerformanceMonitorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/startupPerformanceMonitorRuntime.ts"
+            )
+        );
+
+        expect(startupPerformanceMonitorSource).toContain(
+            "startupPerformanceMonitorRuntime.js"
+        );
+        expect(startupPerformanceMonitorSource).toContain(
+            "type StartupPerformanceMonitorRuntime"
+        );
+        expect(startupPerformanceMonitorSource).toContain(
+            "runtime.nowPerformance()"
+        );
+        expect(startupPerformanceMonitorSource).not.toContain(
+            "performance.now"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "defaultStartupPerformanceMonitorRuntimeScope"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "const performanceNow = performance?.now"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "startupPerformanceMonitorRuntime requires performance.now"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).not.toContain(
+            "scope.performance"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).not.toContain(
+            "scope: StartupPerformanceMonitorRuntimeScope = globalThis"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).not.toContain(
+            "StartupPerformanceMonitorRuntimeScope = globalThis"
+        );
+    });
+
     it("keeps renderer runtime facades resolved away from module-level singletons", () => {
         expect.assertions(1);
 

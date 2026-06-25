@@ -247,6 +247,9 @@ live in focused modules under electron-app/renderer/.
 FIT unload operation IDs now read time through `mainUiRuntimeEnvironment.ts` instead of calling `Date.now`
 directly in `mainUiUnloadFlow.ts`, with runtime-environment and architecture coverage blocking the direct clock
 global from returning.
+Renderer startup performance timing now routes through `startupPerformanceMonitorRuntime.ts` instead of calling
+`performance.now` directly inside `startupPerformanceMonitor.ts`, with focused runtime coverage and architecture
+guardrails blocking direct performance reads and direct runtime scope properties from returning.
 
 Maintenance target: keep `main-ui.ts` as an entrypoint-only bridge through architecture coverage. The explicit
 module exports for the drag/drop handler, menu injection request, and development cleanup stay as the narrow

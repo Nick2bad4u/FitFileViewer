@@ -1,16 +1,12 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createRendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
-
-afterEach(() => {
-    vi.restoreAllMocks();
-});
 
 describe("renderer startup performance monitor", () => {
     it("records completed operation metrics", () => {
         expect.assertions(3);
 
-        vi.spyOn(performance, "now")
+        const nowPerformance = vi.fn<() => number>()
             .mockReturnValueOnce(10)
             .mockReturnValueOnce(34);
         const logRenderer =
@@ -18,6 +14,7 @@ describe("renderer startup performance monitor", () => {
         const utils = createRendererPerformanceMonitor({
             isDevelopmentMode: () => false,
             logRenderer,
+            runtime: { nowPerformance },
         });
 
         utils.start("startup");
@@ -30,7 +27,7 @@ describe("renderer startup performance monitor", () => {
     it("logs timing details in development mode", () => {
         expect.assertions(2);
 
-        vi.spyOn(performance, "now")
+        const nowPerformance = vi.fn<() => number>()
             .mockReturnValueOnce(100)
             .mockReturnValueOnce(125.5);
         const logRenderer =
@@ -38,6 +35,7 @@ describe("renderer startup performance monitor", () => {
         const utils = createRendererPerformanceMonitor({
             isDevelopmentMode: () => true,
             logRenderer,
+            runtime: { nowPerformance },
         });
 
         utils.start("theme_setup");
