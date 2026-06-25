@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getRenderChartPerformanceMonitorRuntime,
@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/charts/core/renderChartPerformanceMonitorRuntime.js";
 
 describe("renderChartPerformanceMonitorRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("reads date timestamps through the injected provider", () => {
         expect.assertions(2);
 
@@ -27,6 +32,22 @@ describe("renderChartPerformanceMonitorRuntime", () => {
         });
 
         expect(utils.nowPerformance()).toBe(42);
+        expect(now).toHaveBeenCalledOnce();
+    });
+
+    it("resolves production clock defaults through browser runtime providers", () => {
+        expect.assertions(4);
+
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(5678);
+        const now = vi.fn<() => number>(() => 84);
+
+        vi.stubGlobal("performance", { now });
+
+        const utils = getRenderChartPerformanceMonitorRuntime();
+
+        expect(utils.dateNow()).toBe(5678);
+        expect(utils.nowPerformance()).toBe(84);
+        expect(dateNow).toHaveBeenCalledOnce();
         expect(now).toHaveBeenCalledOnce();
     });
 

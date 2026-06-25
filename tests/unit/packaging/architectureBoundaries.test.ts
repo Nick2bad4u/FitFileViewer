@@ -6803,7 +6803,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart performance monitoring on the chart performance state facade", () => {
-        expect.assertions(15);
+        expect.assertions(18);
 
         const chartPerformanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -6837,9 +6837,18 @@ describe("architecture boundaries", () => {
             "defaultRenderChartPerformanceMonitorRuntimeScope"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "../../runtime/browserRuntime.js"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(

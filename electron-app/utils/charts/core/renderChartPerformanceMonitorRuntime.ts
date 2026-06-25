@@ -1,3 +1,8 @@
+import {
+    getBrowserDateNow,
+    getBrowserPerformance,
+} from "../../runtime/browserRuntime.js";
+
 export interface RenderChartPerformanceMonitorRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getPerformance?:
@@ -12,8 +17,8 @@ export interface RenderChartPerformanceMonitorRuntime {
 
 const defaultRenderChartPerformanceMonitorRuntimeScope: RenderChartPerformanceMonitorRuntimeScope =
     {
-        getDateNow: () => Date.now,
-        getPerformance: () => globalThis.performance,
+        getDateNow: getBrowserDateNow,
+        getPerformance: getBrowserPerformance,
     };
 
 function getRequiredDateNow(
