@@ -41,6 +41,31 @@ describe("getChartThemeListenerRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
+    it("uses browser runtime providers for production document and CustomEvent defaults", () => {
+        expect.assertions(4);
+
+        const runtime = getChartThemeListenerRuntime();
+        const listenerController = runtime.createAbortController();
+        let observedThemeEvents = 0;
+
+        runtime.addThemeChangeListener(
+            () => {
+                observedThemeEvents += 1;
+            },
+            { signal: listenerController.signal }
+        );
+        document.body.dispatchEvent(new CustomEvent("themechange"));
+        listenerController.abort();
+        document.body.dispatchEvent(new CustomEvent("themechange"));
+
+        expect(observedThemeEvents).toBe(1);
+        expect(listenerController.signal.aborted).toBe(true);
+        expect(runtime.isCustomEvent(new CustomEvent("themechange"))).toBe(
+            true
+        );
+        expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
+    });
+
     it("adds abortable themechange listeners through the injected body", () => {
         expect.assertions(2);
 

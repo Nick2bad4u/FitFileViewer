@@ -17305,7 +17305,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(27);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -17348,9 +17348,15 @@ describe("architecture boundaries", () => {
             "getClearTimeout: getBrowserClearTimeout"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
-            "getCustomEvent: () => globalThis.CustomEvent"
+            "getCustomEvent: getBrowserCustomEvent"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
