@@ -17940,7 +17940,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(49);
+        expect.assertions(50);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -17981,6 +17981,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
+            "getAddEventListener: getBrowserAddEventListener"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(

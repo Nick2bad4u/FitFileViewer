@@ -1,5 +1,6 @@
 import {
     getBrowserAbortController,
+    getBrowserAddEventListener,
     getBrowserClearTimeout,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -79,7 +80,7 @@ export interface ChartStatusIndicatorRuntime {
 const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getAddEventListener: () => globalThis.addEventListener,
+        getAddEventListener: getBrowserAddEventListener,
         getClearTimeout: getBrowserClearTimeout,
         getDocument: getBrowserDocument,
         getHTMLElement: getBrowserHTMLElement,

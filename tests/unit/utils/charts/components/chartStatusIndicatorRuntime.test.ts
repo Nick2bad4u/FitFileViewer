@@ -38,6 +38,33 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(fieldToggleEvents).toBe(1);
     });
 
+    it("registers field toggle listeners through production listener defaults", () => {
+        expect.assertions(2);
+
+        const target = new EventTarget();
+        const controller = new AbortController();
+        let fieldToggleEvents = 0;
+        const listener = (): void => {
+            fieldToggleEvents += 1;
+        };
+        vi.stubGlobal("addEventListener", target.addEventListener.bind(target));
+
+        getChartStatusIndicatorRuntime().addFieldToggleChangedListener(
+            listener,
+            {
+                signal: controller.signal,
+            }
+        );
+        target.dispatchEvent(new Event("fieldToggleChanged"));
+
+        expect(fieldToggleEvents).toBe(1);
+
+        controller.abort();
+        target.dispatchEvent(new Event("fieldToggleChanged"));
+
+        expect(fieldToggleEvents).toBe(1);
+    });
+
     it("registers charts-rendered listeners through an injected document", () => {
         expect.assertions(2);
 
