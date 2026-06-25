@@ -82,6 +82,8 @@ The FIT parser source now exposes named exports plus a default module object ins
 FIT parser state integration now import the parser/state-manager source through typed ESM imports instead of
 requiring the source files directly. FIT parser state-integration test reset and adapter overrides now stay in
 module-local state behind named test helper exports instead of custom `globalThis` properties.
+FIT parser decode operation IDs and `FitDecodeError` ISO timestamps now route through `fitParserRuntime.ts` instead
+of calling `Date.now` or constructing `new Date()` directly inside `fitParser.ts`.
 Main-process constants, the main app-state facade, the state-integration barrel, and application event handler
 source now use named source exports/imports instead of source-level `module.exports` or direct source requires
 for constants/app-state/state-manager dependencies; app-event OAuth/theme/window-validation dependencies are

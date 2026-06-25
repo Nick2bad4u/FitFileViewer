@@ -1,5 +1,9 @@
 import { Buffer } from "node:buffer";
 
+import {
+    getFitParserRuntime,
+    type FitParserRuntime,
+} from "./fitParserRuntime.js";
 import { applyUnknownMessageLabels as labelUnknownMessages } from "./shared/fitUnknownMessageLabels.js";
 
 export { applyUnknownMessageLabels } from "./shared/fitUnknownMessageLabels.js";
@@ -36,6 +40,10 @@ let fitFileStateManager: FitFileStateManager | null = null;
 let performanceMonitor: null | PerformanceMonitor = null;
 let settingsStateManager: null | SettingsStateManager = null;
 
+function fitParserRuntime(): FitParserRuntime {
+    return getFitParserRuntime();
+}
+
 export class FitDecodeError extends Error {
     details: FitFieldValue;
     metadata: FitDecodeMetadata & { category: string; timestamp: string };
@@ -50,7 +58,7 @@ export class FitDecodeError extends Error {
         this.details = details;
         this.metadata = {
             category: "fit_parsing",
-            timestamp: new Date().toISOString(),
+            timestamp: fitParserRuntime().isoTimestamp(),
             ...metadata,
         };
     }
@@ -320,7 +328,7 @@ export async function decodeFitFile(
     options: unknown = {},
     fitsdk: FitSdkModule | null = null
 ): Promise<FitDecodeResult> {
-    const operationId = `fitFile_decode_${Date.now()}`;
+    const operationId = `fitFile_decode_${fitParserRuntime().dateNow()}`;
 
     // Start performance monitoring if available
     if (performanceMonitor) {
