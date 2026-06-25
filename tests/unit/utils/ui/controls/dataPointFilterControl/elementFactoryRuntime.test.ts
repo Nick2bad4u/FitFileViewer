@@ -21,6 +21,15 @@ describe("getDataPointFilterElementFactoryRuntime", () => {
         expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
     });
 
+    it("uses browser runtime providers for production document defaults", () => {
+        expect.assertions(2);
+
+        const runtime = getDataPointFilterElementFactoryRuntime();
+
+        expect(runtime.createElement("div")).toBeInstanceOf(HTMLDivElement);
+        expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(2);
 

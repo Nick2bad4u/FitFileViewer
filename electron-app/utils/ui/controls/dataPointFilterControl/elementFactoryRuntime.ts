@@ -1,3 +1,4 @@
+import { getBrowserDocument } from "../../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../../icons/iconFactoryRuntime.js";
 
 export interface DataPointFilterElementFactoryRuntimeScope {
@@ -28,7 +29,7 @@ function getDocument(
 
 const defaultDataPointFilterElementFactoryRuntimeScope: DataPointFilterElementFactoryRuntimeScope =
     {
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
     };
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(

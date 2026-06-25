@@ -14071,7 +14071,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter element creation behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const violations = migratedDataPointFilterElementFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -14096,6 +14096,9 @@ describe("architecture boundaries", () => {
         expect(elementFactoryRuntimeSource).toContain(
             "defaultDataPointFilterElementFactoryRuntimeScope"
         );
+        expect(elementFactoryRuntimeSource).toContain(
+            "../../../runtime/browserRuntime.js"
+        );
         expect(elementFactoryRuntimeSource).toContain("iconFactoryRuntime.js");
         expect(elementFactoryRuntimeSource).not.toContain("createElementNS");
         expect(elementFactoryRuntimeSource).not.toMatch(
@@ -14112,6 +14115,9 @@ describe("architecture boundaries", () => {
         );
         expect(elementFactoryRuntimeSource).not.toContain("scope.document");
         expect(elementFactoryRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(elementFactoryRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(elementFactoryRuntimeSource).toContain("scope.getDocument?.()");
