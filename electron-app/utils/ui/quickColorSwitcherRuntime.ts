@@ -1,4 +1,10 @@
-import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserNode,
+    getBrowserSetTimeout,
+} from "../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "./icons/iconFactoryRuntime.js";
 
 export type QuickColorSwitcherTimerHandle =
@@ -58,10 +64,10 @@ export interface QuickColorSwitcherRuntime {
 
 const defaultQuickColorSwitcherRuntimeScope: QuickColorSwitcherRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDocument: () => globalThis.document,
-    getNode: () => globalThis.Node,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getDocument: getBrowserDocument,
+    getNode: getBrowserNode,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getAbortControllerConstructor(
