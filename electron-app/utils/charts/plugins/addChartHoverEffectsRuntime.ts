@@ -63,7 +63,6 @@ export const CHART_HOVER_EFFECTS_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getDocument: () => globalThis.document,
-    getDocumentEventTarget: () => globalThis.document,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,
 };
@@ -91,7 +90,7 @@ function getRequiredDocument(scope: ChartHoverEffectsRuntimeScope): Document {
 function getDocumentEventTarget(
     scope: ChartHoverEffectsRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getRequiredDocumentEventTarget(

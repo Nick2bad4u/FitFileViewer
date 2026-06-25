@@ -157,6 +157,40 @@ describe("getChartHoverEffectsRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("derives document listeners from the scoped document provider", () => {
+        expect.assertions(4);
+
+        const controller = new AbortController();
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const removeEventListener = vi.spyOn(
+            documentRef,
+            "removeEventListener"
+        );
+        let keydownCount = 0;
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const runtime = getChartHoverEffectsRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape" })
+        );
+        runtime.removeDocumentKeydownListener(listener);
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(removeEventListener).toHaveBeenCalledWith("keydown", listener);
+        expect(keydownCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("creates SVG elements through the injected document runtime", () => {
         expect.assertions(4);
 

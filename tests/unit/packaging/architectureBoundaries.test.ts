@@ -18711,7 +18711,7 @@ describe("architecture boundaries", () => {
         expect(chartHoverEffectsRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(chartHoverEffectsRuntimeSource).toContain(
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
@@ -18777,7 +18777,7 @@ describe("architecture boundaries", () => {
             "const setTimeoutRef = scope.getSetTimeout?.();"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
-            "scope.getDocumentEventTarget?.()"
+            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
