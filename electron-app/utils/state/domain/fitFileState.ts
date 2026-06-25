@@ -154,6 +154,8 @@ type LoadingPhaseTransitionOptions = {
 };
 
 const SOURCE_CLEAR_FILE_STATE = "FitFileStateManager.clearFileState";
+const FIT_FILE_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";
+const LEGACY_CURRENT_FILE_STATE_PATH = "currentFile";
 const FIT_FILE_LOADING_PHASES = [
     "idle",
     "selecting",
@@ -316,6 +318,16 @@ function getStoredRawFitData(): RawFitData | null {
     return isRawFitData(domainRawData) ? domainRawData : null;
 }
 
+function getStoredCurrentFile(): null | string {
+    const currentFile = stateCore.getState(FIT_FILE_CURRENT_FILE_STATE_PATH);
+    return typeof currentFile === "string" ? currentFile : null;
+}
+
+function setCurrentFileState(filePath: null | string, source: string): void {
+    stateCore.setState(FIT_FILE_CURRENT_FILE_STATE_PATH, filePath, { source });
+    stateCore.setState(LEGACY_CURRENT_FILE_STATE_PATH, filePath, { source });
+}
+
 /**
  * Handles FIT file specific state operations.
  */
@@ -436,9 +448,7 @@ export class FitFileStateManager {
         stateCore.setState("fitFile.isLoading", false, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.currentFile", null, {
-            source: SOURCE_CLEAR_FILE_STATE,
-        });
+        setCurrentFileState(null, SOURCE_CLEAR_FILE_STATE);
         stateCore.setState("fitFile.rawData", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
@@ -576,18 +586,14 @@ export class FitFileStateManager {
         const providedPath = isNonEmptyString(options.filePath)
             ? options.filePath
             : null;
-        const currentFile = stateCore.getState("fitFile.currentFile");
-        const resolvedPath =
-            providedPath ??
-            (typeof currentFile === "string" ? currentFile : null);
+        const resolvedPath = providedPath ?? getStoredCurrentFile();
 
         this.transitionLoadingPhase("loaded", {
             filePath: resolvedPath,
             progress: 100,
             source,
         });
-        stateCore.setState("currentFile", resolvedPath, { source });
-        stateCore.setState("fitFile.currentFile", resolvedPath, { source });
+        setCurrentFileState(resolvedPath, source);
         stateCore.setState("fitFile.loaded", safeData, { source });
 
         stateCore.setState("charts.isRendered", false, { source });
@@ -759,7 +765,7 @@ export class FitFileStateManager {
         });
         stateCore.setState("fitFile.isLoading", true, { source });
         stateCore.setState("isLoading", true, { source });
-        stateCore.setState("fitFile.currentFile", filePath, { source });
+        setCurrentFileState(filePath, source);
         stateCore.setState("fitFile.loadingProgress", 0, { source });
         stateCore.setState("fitFile.loadingError", null, { source });
 
@@ -933,8 +939,7 @@ export class FitFileStateManager {
  */
 export const FitFileSelectors = {
     getCurrentFile(): string | null {
-        const currentFile = stateCore.getState("fitFile.currentFile");
-        return typeof currentFile === "string" ? currentFile : null;
+        return getStoredCurrentFile();
     },
 
     getDataQuality(): DataQuality | null {

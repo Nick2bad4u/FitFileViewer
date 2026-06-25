@@ -4241,6 +4241,44 @@ describe("architecture boundaries", () => {
         expect(fitFileStateRuntimeSource).not.toContain("globalThis.Date");
     });
 
+    it("keeps FIT file current-file state behind a domain mirror helper", () => {
+        expect.assertions(9);
+
+        const fitFileStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/fitFileState.ts"
+            )
+        );
+
+        expect(fitFileStateSource).toContain(
+            'const FIT_FILE_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";'
+        );
+        expect(fitFileStateSource).toContain(
+            'const LEGACY_CURRENT_FILE_STATE_PATH = "currentFile";'
+        );
+        expect(fitFileStateSource).toMatch(
+            /function\s+getStoredCurrentFile\(\):\s+null\s+\|\s+string/u
+        );
+        expect(fitFileStateSource).toMatch(
+            /function\s+setCurrentFileState\(\s*filePath:\s+null\s+\|\s+string,\s*source:\s+string\s*\):\s+void/u
+        );
+        expect(fitFileStateSource).toMatch(
+            /stateCore\.setState\(\s*FIT_FILE_CURRENT_FILE_STATE_PATH\s*,\s*filePath,\s*\{\s*source\s*\}\s*\)/u
+        );
+        expect(fitFileStateSource).toMatch(
+            /stateCore\.setState\(\s*LEGACY_CURRENT_FILE_STATE_PATH\s*,\s*filePath,\s*\{\s*source\s*\}\s*\)/u
+        );
+        expect(fitFileStateSource).toContain(
+            "setCurrentFileState(null, SOURCE_CLEAR_FILE_STATE);"
+        );
+        expect(fitFileStateSource).toContain(
+            "setCurrentFileState(resolvedPath, source);"
+        );
+        expect(fitFileStateSource).not.toMatch(
+            /stateCore\.setState\(\s*["']currentFile["']\s*,/u
+        );
+    });
+
     it("keeps state core modules out of broad renderer utilities", () => {
         expect.assertions(1);
 
