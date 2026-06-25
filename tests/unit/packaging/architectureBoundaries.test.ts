@@ -1190,7 +1190,7 @@ const directMapMeasureToolRuntimeGlobalPattern =
 const directMapMeasureToolRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapLapSelectorRuntimeGlobalPattern =
-    /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+(?:AbortController|Event)\b/u;
+    /\bglobalThis\.AbortController\b|\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+(?:AbortController|Event)\b/u;
 const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:createElement|createTextNode)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapDrawLapsRuntimeAmbientFallbackPattern =
@@ -14634,7 +14634,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document access behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(35);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -14681,6 +14681,12 @@ describe("architecture boundaries", () => {
             "scope: MapLapSelectorRuntimeScope = globalThis"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapLapSelectorRuntimeSource).toContain(

@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 type MapLapSelectorDocument = Pick<
     Document,
     "addEventListener" | "createElement" | "removeEventListener"
@@ -56,7 +58,7 @@ function getRuntimeDocument(
 }
 
 const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
     getEvent: () => globalThis.Event,
 };
