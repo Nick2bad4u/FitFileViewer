@@ -13530,7 +13530,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -13582,6 +13582,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
     });
