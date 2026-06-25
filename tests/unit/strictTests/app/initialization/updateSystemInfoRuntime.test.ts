@@ -26,6 +26,27 @@ describe("getUpdateSystemInfoRuntime", () => {
         expect(Array.from(items)).toStrictEqual([first, second]);
     });
 
+    it("uses the shared browser document provider for production defaults", () => {
+        expect.assertions(2);
+
+        const first = document.createElement("span");
+        const second = document.createElement("span");
+        first.className = "system-info-value";
+        second.className = "system-info-value";
+        document.body.append(first, second);
+
+        try {
+            const runtime = getUpdateSystemInfoRuntime();
+            const items = runtime.querySystemInfoItems(".system-info-value");
+
+            expect(items).toHaveLength(2);
+            expect(Array.from(items)).toContain(first);
+        } finally {
+            first.remove();
+            second.remove();
+        }
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 

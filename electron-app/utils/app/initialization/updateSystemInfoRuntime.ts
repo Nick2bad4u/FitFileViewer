@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 type UpdateSystemInfoDocument = Pick<Document, "querySelectorAll">;
 
 export interface UpdateSystemInfoRuntimeScope {
@@ -11,7 +13,7 @@ export interface UpdateSystemInfoRuntime {
 }
 
 const defaultUpdateSystemInfoRuntimeScope: UpdateSystemInfoRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getRequiredDocument(

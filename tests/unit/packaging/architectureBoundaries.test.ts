@@ -16411,7 +16411,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps system info DOM lookup behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const violations = migratedUpdateSystemInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -16461,6 +16461,12 @@ describe("architecture boundaries", () => {
             "defaultUpdateSystemInfoRuntimeScope"
         );
         expect(updateSystemInfoRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(updateSystemInfoRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(updateSystemInfoRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(updateSystemInfoRuntimeScopeSource).not.toContain(
