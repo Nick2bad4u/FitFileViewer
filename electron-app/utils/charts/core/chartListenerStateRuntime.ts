@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface ChartListenerStateRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -9,7 +11,7 @@ export interface ChartListenerStateRuntime {
 }
 
 const defaultChartListenerStateRuntimeScope: ChartListenerStateRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
 };
 
 function getAbortControllerConstructor(

@@ -6,6 +6,14 @@ import {
 } from "../../../../../electron-app/utils/charts/core/chartListenerStateRuntime.js";
 
 describe("getChartListenerStateRuntime", () => {
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(1);
+
+        const utils = getChartListenerStateRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates abort controllers through the injected constructor", () => {
         expect.assertions(2);
 
