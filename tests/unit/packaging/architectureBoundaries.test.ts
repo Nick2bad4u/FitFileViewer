@@ -5530,10 +5530,10 @@ describe("architecture boundaries", () => {
             "defaultInitStartupRuntimeScope"
         );
         expect(initStartupRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocumentTarget: () => globalThis.document"
         );
-        expect(initStartupRuntimeSource).toContain(
-            "getDocumentTarget: () => getGlobalDocument()"
+        expect(initStartupRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(initStartupRuntimeSource).not.toContain(
             "scope: InitStartupRuntimeScope = globalThis"
