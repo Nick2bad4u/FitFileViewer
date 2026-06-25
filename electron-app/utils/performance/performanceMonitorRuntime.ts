@@ -1,3 +1,5 @@
+import { getBrowserPerformance } from "../runtime/browserRuntime.js";
+
 type PerformanceMonitorPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
@@ -13,7 +15,7 @@ export interface PerformanceMonitorRuntime {
 }
 
 const defaultPerformanceMonitorRuntimeScope: PerformanceMonitorRuntimeScope = {
-    getPerformance: () => globalThis.performance,
+    getPerformance: getBrowserPerformance,
 };
 
 function getRequiredPerformanceNow(
