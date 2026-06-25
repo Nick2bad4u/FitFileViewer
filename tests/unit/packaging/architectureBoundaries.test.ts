@@ -1158,7 +1158,8 @@ const electronApiRuntimeTestDirectGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*\)/u;
 const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*\)/u;
-const directMainUiDomUtilsRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directMainUiDomUtilsRuntimeGlobalPattern =
+    /\bglobalThis\.AbortController\b|\bnew\s+AbortController\b/u;
 const directMainUiDomUtilsRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.AbortController\b/u;
 const directEventListenerManagerRuntimeGlobalPattern =
@@ -22350,7 +22351,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -22379,6 +22380,12 @@ describe("architecture boundaries", () => {
             "scope.AbortController"
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(
+            "../runtime/browserRuntime.js"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(

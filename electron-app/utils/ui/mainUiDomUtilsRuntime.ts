@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+
 export interface MainUiDomUtilsRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -9,7 +11,7 @@ export interface MainUiDomUtilsRuntime {
 }
 
 const defaultMainUiDomUtilsRuntimeScope: MainUiDomUtilsRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
 };
 
 export function getMainUiDomUtilsRuntime(
