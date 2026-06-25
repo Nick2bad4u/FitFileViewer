@@ -146,6 +146,10 @@ The window bootstrap/initialization boundaries now use named source exports, and
 imports `bootstrapMainWindow` natively instead of requiring that source file.
 The FIT parser integration boundary now uses named source exports and imports constants/logging natively;
 `setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file.
+FIT parser integration duration timing and last-result timestamps now route through
+`fitParserIntegrationRuntime.ts` instead of probing ambient `performance.now` or calling `Date.now` directly inside
+`fitParserIntegration.ts`, with focused runtime coverage and architecture guardrails blocking legacy direct runtime
+scope properties from returning.
 The main-process state manager boundary now uses named source exports instead of a source-level
 `module.exports` fallback, while the state-integration barrel continues importing it natively.
 The menu-event setup boundary now uses a named source export and imports migrated constants, IPC registry,

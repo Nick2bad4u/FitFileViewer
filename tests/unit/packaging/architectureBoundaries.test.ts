@@ -2807,7 +2807,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(196);
+        expect.assertions(212);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -2860,6 +2860,11 @@ describe("architecture boundaries", () => {
         const fitParserIntegrationSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/runtime/fitParserIntegration.ts"
+            )
+        );
+        const fitParserIntegrationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/fitParserIntegrationRuntime.ts"
             )
         );
         const initializeApplicationSource = stripComments(
@@ -3120,6 +3125,50 @@ describe("architecture boundaries", () => {
             'getAppState("mainWindow") as'
         );
         expect(fitParserIntegrationSource).toContain("createElectronConf");
+        expect(fitParserIntegrationSource).toContain(
+            "fitParserIntegrationRuntime.js"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "type FitParserIntegrationRuntime"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "return getFitParserIntegrationRuntime();"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "fitParserIntegrationRuntime().monotonicNowMs()"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "fitParserIntegrationRuntime().dateNow()"
+        );
+        expect(fitParserIntegrationSource).not.toContain("Date.now");
+        expect(fitParserIntegrationSource).not.toContain("performance.now");
+        expect(fitParserIntegrationSource).not.toContain(
+            'typeof performance !== "undefined"'
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "defaultFitParserIntegrationRuntimeScope"
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "fitParserIntegrationRuntime requires a date clock"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "scope.dateNow"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "scope.performance"
+        );
         expect(setupMenuAndEventHandlersSource).toContain("createElectronConf");
         expect(createAppMenuSource).toContain("createElectronConf");
         expect(initializeApplicationSource).not.toContain(

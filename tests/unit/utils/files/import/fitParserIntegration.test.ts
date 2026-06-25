@@ -26,8 +26,21 @@ type FitParserIntegrationModule = {
     setFitParserStateAdaptersOverrideForTests: (override: unknown) => void;
 };
 
+type FitParserIntegrationRuntimeModule = {
+    getFitParserIntegrationRuntime: (
+        scope?: Record<string, unknown>
+    ) => {
+        dateNow: () => number;
+        monotonicNowMs: () => number;
+    };
+};
+
 async function importIntegrationModule(): Promise<FitParserIntegrationModule> {
     return (await import("../../../../../electron-app/main/runtime/fitParserIntegration.js")) as unknown as FitParserIntegrationModule;
+}
+
+async function importIntegrationRuntimeModule(): Promise<FitParserIntegrationRuntimeModule> {
+    return (await import("../../../../../electron-app/main/runtime/fitParserIntegrationRuntime.js")) as unknown as FitParserIntegrationRuntimeModule;
 }
 
 describe("fitParserIntegration runtime state adapters", () => {
@@ -101,6 +114,20 @@ describe("fitParserIntegration runtime state adapters", () => {
         );
         expect(performanceMonitor.endTimer("decode")).toBeTypeOf("number");
         expect(performanceMonitor.endTimer("missing")).toBeNull();
+    });
+
+    it("exposes scoped parser integration clock providers", async () => {
+        expect.assertions(2);
+
+        const { getFitParserIntegrationRuntime } =
+            await importIntegrationRuntimeModule();
+        const utils = getFitParserIntegrationRuntime({
+            getDateNow: () => () => 1234,
+            getPerformance: () => ({ now: () => 56.7 }),
+        });
+
+        expect(utils.dateNow()).toBe(1234);
+        expect(utils.monotonicNowMs()).toBe(56.7);
     });
 
     it("resolves state integration without rethrowing optional runtime dependency failures", async () => {

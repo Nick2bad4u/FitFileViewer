@@ -2,6 +2,10 @@ import { CONSTANTS } from "../constants.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 import { createElectronConf } from "./electronConfAccess.js";
+import {
+    getFitParserIntegrationRuntime,
+    type FitParserIntegrationRuntime,
+} from "./fitParserIntegrationRuntime.js";
 import { getFitParserModule } from "./fitParserFacade.js";
 
 type DecoderOptions = import("../../shared/fit").DecoderOptions;
@@ -64,6 +68,10 @@ let fitParserStateIntegrationPromise: Promise<void> | null = null;
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : "Unknown error";
 
+function fitParserIntegrationRuntime(): FitParserIntegrationRuntime {
+    return getFitParserIntegrationRuntime();
+}
+
 function isFitParserStateManagers(
     value: unknown
 ): value is FitParserStateManagers {
@@ -77,11 +85,7 @@ function getFitParserStateAdaptersOverride(): FitParserStateManagers | null {
 }
 
 function now(): number {
-    return typeof performance !== "undefined" &&
-        performance &&
-        typeof performance.now === "function"
-        ? performance.now()
-        : Date.now();
+    return fitParserIntegrationRuntime().monotonicNowMs();
 }
 
 function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
@@ -224,7 +228,7 @@ export function createFitParserStateAdapters(): FitParserStateAdapters {
                     "fitFile.lastResult",
                     {
                         metadata: payload?.metadata || null,
-                        timestamp: Date.now(),
+                        timestamp: fitParserIntegrationRuntime().dateNow(),
                     },
                     { source: "fitParser" }
                 );
