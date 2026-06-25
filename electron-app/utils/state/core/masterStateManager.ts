@@ -826,7 +826,7 @@ export class MasterStateManager {
         stateAPI.subscribe("ui.theme", (theme: unknown) => {
             // Notify other components about theme changes
             masterStateRuntime().dispatchGlobalEvent(
-                new CustomEvent("themeChanged", { detail: { theme } })
+                masterStateRuntime().createThemeChangedEvent(theme)
             );
         });
 

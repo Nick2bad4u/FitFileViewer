@@ -37,6 +37,9 @@ export interface MasterStateRuntimeScope {
     readonly getClearInterval?:
         | (() => typeof globalThis.clearInterval | undefined)
         | undefined;
+    readonly getCustomEvent?:
+        | (() => typeof globalThis.CustomEvent | undefined)
+        | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
     readonly getDocumentEventTarget?:
@@ -90,6 +93,9 @@ export interface MasterStateRuntime {
     addBodyClass: (className: string) => void;
     clearInterval: (handle: MasterStateIntervalHandle) => void;
     createAbortController: () => AbortController;
+    createThemeChangedEvent: (
+        theme: unknown
+    ) => CustomEvent<{ theme: unknown }>;
     dateNow: () => number;
     dispatchGlobalEvent: (event: Readonly<Event>) => boolean;
     getLoadingSensitiveElements: () => Iterable<HTMLElement>;
@@ -122,6 +128,7 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
     getClearInterval: () => globalThis.clearInterval,
+    getCustomEvent: () => globalThis.CustomEvent,
     getDateNow: () => Date.now,
     getDocumentBody: () => getGlobalDocument().body,
     getDocumentElement: () => getGlobalDocument().documentElement,
@@ -158,6 +165,19 @@ function getRequiredClearInterval(
     }
 
     return clearIntervalRef;
+}
+
+function getRequiredCustomEvent(
+    scope: MasterStateRuntimeScope
+): typeof globalThis.CustomEvent {
+    const CustomEventConstructor = scope.getCustomEvent?.();
+    if (typeof CustomEventConstructor !== "function") {
+        throw new TypeError(
+            "master state manager requires a CustomEvent runtime"
+        );
+    }
+
+    return CustomEventConstructor;
 }
 
 function getScopeDevelopmentFlag(
@@ -310,6 +330,11 @@ export function getMasterStateRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createThemeChangedEvent(theme): CustomEvent<{ theme: unknown }> {
+            return new (getRequiredCustomEvent(scope))("themeChanged", {
+                detail: { theme },
+            });
         },
         dateNow(): number {
             return getRequiredDateNow(scope)();

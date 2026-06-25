@@ -816,6 +816,9 @@ listeners, and listener abort-controller creation now go through the scoped `mas
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or
 registering on `window.addEventListener`, or constructing `AbortController` directly, with focused adapter coverage and architecture guardrails blocking those direct runtime
 operations from returning.
+Master state manager theme-change event construction now also goes through `masterStateRuntime.ts` instead of
+constructing `CustomEvent` directly inside `masterStateManager.ts`, with focused runtime coverage and architecture
+guardrails blocking direct CustomEvent construction and legacy direct CustomEvent scope properties from returning.
 Master state manager loading-sensitive element lookup now also routes through `masterStateRuntime.ts` instead of
 querying `document` directly inside `masterStateManager.ts`; drag-over body class updates and development-mode
 document-element checks now also route through that runtime instead of reading `document.body` or

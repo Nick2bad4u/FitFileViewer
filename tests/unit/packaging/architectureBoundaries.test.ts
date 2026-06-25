@@ -10274,7 +10274,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(92);
+        expect.assertions(101);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10296,6 +10296,7 @@ describe("architecture boundaries", () => {
             "const masterStateRuntime = getMasterStateRuntime();"
         );
         expect(masterStateManagerSource).toContain("createAbortController");
+        expect(masterStateManagerSource).toContain("createThemeChangedEvent");
         expect(masterStateManagerSource).toContain("addDocumentEventListener");
         expect(masterStateManagerSource).toContain("addBodyClass");
         expect(masterStateManagerSource).toContain("removeBodyClass");
@@ -10321,6 +10322,7 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).not.toMatch(
             /\bnew\s+AbortController\b/u
         );
+        expect(masterStateManagerSource).not.toContain("new CustomEvent");
         expect(masterStateManagerSource).not.toContain("Date.now");
         expect(masterStateManagerSource).not.toMatch(
             /(?<!\.)\bclearInterval\s*\(/u
@@ -10387,6 +10389,9 @@ describe("architecture boundaries", () => {
             "getClearInterval: () => globalThis.clearInterval"
         );
         expect(masterStateRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(masterStateRuntimeSource).toContain(
             "getDateNow: () => Date.now"
         );
         expect(masterStateRuntimeSource).toContain("getPerformanceMemory: ()");
@@ -10394,10 +10399,14 @@ describe("architecture boundaries", () => {
             "getSetInterval: () => globalThis.setInterval"
         );
         expect(masterStateRuntimeSource).toContain("getRequiredClearInterval");
+        expect(masterStateRuntimeSource).toContain("getRequiredCustomEvent");
         expect(masterStateRuntimeSource).toContain("getRequiredDateNow");
         expect(masterStateRuntimeSource).toContain("getRequiredSetInterval");
         expect(masterStateRuntimeSource).toContain(
             "master state manager requires clearInterval runtime"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "master state manager requires a CustomEvent runtime"
         );
         expect(masterStateRuntimeSource).toContain(
             "master state manager requires dateNow"
@@ -10440,6 +10449,9 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "readonly clearInterval?:"
         );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
         expect(masterStateRuntimeSource).not.toContain("readonly dateNow?:");
         expect(masterStateRuntimeSource).not.toContain(
             "readonly documentBody?:"
@@ -10472,6 +10484,7 @@ describe("architecture boundaries", () => {
             "scope.addEventListener"
         );
         expect(masterStateRuntimeSource).not.toContain("scope.clearInterval");
+        expect(masterStateRuntimeSource).not.toContain("scope.CustomEvent");
         expect(masterStateRuntimeSource).not.toContain("scope.dateNow");
         expect(masterStateRuntimeSource).not.toContain("scope.documentBody");
         expect(masterStateRuntimeSource).not.toContain("scope.documentElement");
@@ -10483,6 +10496,12 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "querySelectorAll<HTMLElement>"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "const CustomEventConstructor = scope.getCustomEvent?.();"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'new (getRequiredCustomEvent(scope))("themeChanged"'
         );
         expect(masterStateRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(masterStateRuntimeSource).not.toContain("scope.eventTarget");

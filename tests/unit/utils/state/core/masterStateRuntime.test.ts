@@ -268,7 +268,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("routes browser state dependencies through provider functions", () => {
-        expect.assertions(21);
+        expect.assertions(25);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -297,6 +297,12 @@ describe("masterStateRuntime", () => {
             () => TestAbortController as unknown as typeof AbortController
         );
         const getAddEventListener = vi.fn(() => addGlobalEventListener);
+        class TestCustomEvent<T = unknown> extends CustomEvent<T> {
+            public constructor(type: string, init?: CustomEventInit<T>) {
+                super(`test:${type}`, init);
+            }
+        }
+        const getCustomEvent = vi.fn(() => TestCustomEvent);
         const getDevelopmentFlag = vi.fn(() => false);
         const getDocumentEventTarget = vi.fn(() => documentEventTarget);
         const getDispatchEvent = vi.fn(() => dispatchGlobalEvent);
@@ -305,6 +311,7 @@ describe("masterStateRuntime", () => {
         const utils = getMasterStateRuntime({
             getAbortController,
             getAddEventListener,
+            getCustomEvent,
             getDevelopmentFlag,
             getDocumentEventTarget,
             getDispatchEvent,
@@ -321,9 +328,11 @@ describe("masterStateRuntime", () => {
         utils.addGlobalEventListener("error", listener, options);
         utils.addWindowEventListener("resize", listener, options);
         expect(utils.dispatchGlobalEvent(event)).toBe(true);
+        const themeChangedEvent = utils.createThemeChangedEvent("dark");
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getAddEventListener).toHaveBeenCalledOnce();
+        expect(getCustomEvent).toHaveBeenCalledOnce();
         expect(getDevelopmentFlag).toHaveBeenCalledOnce();
         expect(getDocumentEventTarget).toHaveBeenCalledOnce();
         expect(getDispatchEvent).toHaveBeenCalledOnce();
@@ -355,8 +364,38 @@ describe("masterStateRuntime", () => {
         expect(dispatchGlobalEvent.mock.contexts[0]).toMatchObject({
             getDispatchEvent,
         });
+        expect(themeChangedEvent).toBeInstanceOf(TestCustomEvent);
+        expect(themeChangedEvent.type).toBe("test:themeChanged");
+        expect(themeChangedEvent.detail).toStrictEqual({ theme: "dark" });
         expect(created).toBe(true);
         expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("creates themeChanged events through the scoped CustomEvent runtime", () => {
+        expect.assertions(4);
+
+        class TestCustomEvent<T = unknown> extends CustomEvent<T> {
+            public constructor(type: string, init?: CustomEventInit<T>) {
+                super(`test:${type}`, init);
+            }
+        }
+        const runtime = getMasterStateRuntime({
+            getCustomEvent: () => TestCustomEvent,
+        });
+        const event = runtime.createThemeChangedEvent("system");
+
+        expect(event).toBeInstanceOf(TestCustomEvent);
+        expect(event.type).toBe("test:themeChanged");
+        expect(event.detail).toStrictEqual({ theme: "system" });
+        expect(event.bubbles).toBe(false);
+    });
+
+    it("throws when themeChanged event creation is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getMasterStateRuntime({}).createThemeChangedEvent("dark")
+        ).toThrow("master state manager requires a CustomEvent runtime");
     });
 
     it("fails clearly when document event target runtime is unavailable", () => {
@@ -394,7 +433,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("ignores legacy direct browser, clock, and development runtime properties", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -415,6 +454,9 @@ describe("masterStateRuntime", () => {
         );
         const addBodyClass = vi.fn();
         const clearInterval = vi.fn();
+        const CustomEventConstructor = vi.fn(function FakeCustomEvent() {
+            return new CustomEvent("legacy");
+        });
         const dateNow = vi.fn<() => number>(() => 1234);
         const removeBodyClass = vi.fn();
         const setInterval = vi.fn();
@@ -422,6 +464,8 @@ describe("masterStateRuntime", () => {
             __DEVELOPMENT__: true,
             AbortController:
                 TestAbortController as unknown as typeof AbortController,
+            CustomEvent:
+                CustomEventConstructor as unknown as typeof CustomEvent,
             addEventListener: addGlobalEventListener,
             documentBody: {
                 classList: {
@@ -479,10 +523,14 @@ describe("masterStateRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "master state manager requires an AbortController runtime"
         );
+        expect(() => runtime.createThemeChangedEvent("dark")).toThrow(
+            "master state manager requires a CustomEvent runtime"
+        );
         expect(() => runtime.dateNow()).toThrow(
             "master state manager requires dateNow"
         );
         expect(created).toBe(false);
+        expect(CustomEventConstructor).not.toHaveBeenCalled();
         expect(dateNow).not.toHaveBeenCalled();
         expect(addGlobalEventListener).not.toHaveBeenCalled();
         expect(addWindowEventListener).not.toHaveBeenCalled();
