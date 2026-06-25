@@ -103,6 +103,31 @@ describe("getRenderMapRuntime", () => {
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production document and Event defaults", () => {
+        expect.assertions(4);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("render map runtime");
+        const mapContainer = documentRef.createElement("div");
+        mapContainer.id = "leaflet-map";
+        documentRef.body.append(mapContainer);
+
+        vi.stubGlobal("document", documentRef);
+        vi.stubGlobal("Event", Event);
+
+        const utils = getRenderMapRuntime();
+        const changeEvent = utils.createChangeEvent();
+
+        expect(utils.getMapContainerFallback("#leaflet-map")).toBe(
+            mapContainer
+        );
+        expect(utils.getMapContainerFallback("#missing")).toBe(
+            documentRef.body
+        );
+        expect(changeEvent).toBeInstanceOf(Event);
+        expect(changeEvent.type).toBe("change");
+    });
+
     it("uses browser runtime providers for production scheduling defaults", () => {
         expect.assertions(8);
 

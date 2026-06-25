@@ -1,6 +1,8 @@
 import {
     getBrowserAbortController,
     getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserEvent,
     getBrowserRequestAnimationFrame,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
@@ -95,8 +97,8 @@ function getRequiredSetTimeout(
 const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
-    getDocument: () => globalThis.document,
-    getEvent: () => globalThis.Event,
+    getDocument: getBrowserDocument,
+    getEvent: getBrowserEvent,
     getRequestAnimationFrame: getBrowserRequestAnimationFrame,
     getSetTimeout: getBrowserSetTimeout,
 };

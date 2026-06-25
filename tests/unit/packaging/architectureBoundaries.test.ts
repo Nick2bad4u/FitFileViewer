@@ -9726,7 +9726,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(43);
+        expect.assertions(45);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -9783,9 +9783,15 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(renderMapRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(renderMapRuntimeSource).toContain(
+            "getEvent: getBrowserEvent"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
             "getEvent: () => globalThis.Event"
         );
         expect(renderMapRuntimeSource).toContain(
