@@ -1,3 +1,8 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type CancellationTokenTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -25,8 +30,8 @@ export interface CancellationTokenRuntime {
 }
 
 const defaultCancellationTokenRuntimeScope: CancellationTokenRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function getCancellationTokenRuntime(

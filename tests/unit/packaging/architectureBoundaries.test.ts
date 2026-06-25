@@ -19318,7 +19318,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const violations = migratedCancellationTokenRuntimeFiles
             .filter((relativeFile) =>
@@ -19382,9 +19382,18 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(cancellationTokenRuntimeSource).toContain(
-            "getClearTimeout: () => globalThis.clearTimeout"
+            "../../runtime/browserRuntime.js"
         );
         expect(cancellationTokenRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(cancellationTokenRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(cancellationTokenRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(cancellationTokenRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(cancellationTokenRuntimeSource).toContain(

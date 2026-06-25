@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getCancellationTokenRuntime,
@@ -6,6 +6,32 @@ import {
 } from "../../../../../electron-app/utils/app/async/cancellationTokenRuntime.js";
 
 describe("getCancellationTokenRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(4);
+
+        const callback = vi.fn<() => void>();
+        const timeoutMs = Number("125");
+        const timer = 31 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("setTimeout", setTimeout);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+
+        const runtime = getCancellationTokenRuntime();
+
+        expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 
