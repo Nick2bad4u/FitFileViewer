@@ -1,3 +1,11 @@
+import {
+    getBrowserCancelIdleCallback,
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserRequestIdleCallback,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type PerformanceUtilsTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -51,17 +59,11 @@ export interface PerformanceUtilsRuntime {
 
 function getDefaultPerformanceUtilsRuntimeScope(): PerformanceUtilsRuntimeScope {
     return {
-        getCancelIdleCallback: () =>
-            typeof globalThis.cancelIdleCallback === "function"
-                ? globalThis.cancelIdleCallback.bind(globalThis)
-                : undefined,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getDateNow: () => Date.now,
-        getRequestIdleCallback: () =>
-            typeof globalThis.requestIdleCallback === "function"
-                ? globalThis.requestIdleCallback.bind(globalThis)
-                : undefined,
-        getSetTimeout: () => globalThis.setTimeout,
+        getCancelIdleCallback: getBrowserCancelIdleCallback,
+        getClearTimeout: getBrowserClearTimeout,
+        getDateNow: getBrowserDateNow,
+        getRequestIdleCallback: getBrowserRequestIdleCallback,
+        getSetTimeout: getBrowserSetTimeout,
     };
 }
 

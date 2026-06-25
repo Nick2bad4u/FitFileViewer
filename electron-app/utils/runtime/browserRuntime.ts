@@ -4,6 +4,14 @@ export function getBrowserAbortController():
     return globalThis.AbortController;
 }
 
+export function getBrowserCancelIdleCallback():
+    | typeof globalThis.cancelIdleCallback
+    | undefined {
+    return typeof globalThis.cancelIdleCallback === "function"
+        ? globalThis.cancelIdleCallback.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserClearInterval():
     | typeof globalThis.clearInterval
     | undefined {
@@ -44,6 +52,14 @@ export function getBrowserMatchMedia():
 
 export function getBrowserPerformance(): Performance | undefined {
     return globalThis.performance;
+}
+
+export function getBrowserRequestIdleCallback():
+    | typeof globalThis.requestIdleCallback
+    | undefined {
+    return typeof globalThis.requestIdleCallback === "function"
+        ? globalThis.requestIdleCallback.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserSetInterval():

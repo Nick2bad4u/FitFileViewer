@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getPerformanceUtilsRuntime,
@@ -6,6 +6,36 @@ import {
 } from "../../../../../electron-app/utils/app/performance/performanceUtilsRuntime.js";
 
 describe("getPerformanceUtilsRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
+    it("uses browser runtime providers for production clock and timer defaults", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const timestamp = Number("1700");
+        const timer = 42 as ReturnType<typeof globalThis.setTimeout>;
+        const timeoutMs = Number("25");
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+
+        vi.spyOn(Date, "now").mockReturnValue(timestamp);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const runtime = getPerformanceUtilsRuntime();
+
+        expect(runtime.now()).toBe(timestamp);
+        expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

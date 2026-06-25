@@ -19237,7 +19237,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(32);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -19307,9 +19307,27 @@ describe("architecture boundaries", () => {
         );
         expect(performanceUtilsRuntimeSource).not.toContain("scope.setTimeout");
         expect(performanceUtilsRuntimeSource).toContain(
-            "getClearTimeout: () => globalThis.clearTimeout"
+            "../../runtime/browserRuntime.js"
         );
         expect(performanceUtilsRuntimeSource).toContain(
+            "getCancelIdleCallback: getBrowserCancelIdleCallback"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getRequestIdleCallback: getBrowserRequestIdleCallback"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(performanceUtilsRuntimeSource).not.toContain(
@@ -19318,13 +19336,13 @@ describe("architecture boundaries", () => {
         expect(performanceUtilsRuntimeSource).not.toContain(
             "getDefaultRequestIdleCallback"
         );
-        expect(performanceUtilsRuntimeSource).toContain(
+        expect(performanceUtilsRuntimeSource).not.toContain(
             "getCancelIdleCallback: () =>"
         );
-        expect(performanceUtilsRuntimeSource).toContain(
+        expect(performanceUtilsRuntimeSource).not.toContain(
             "getRequestIdleCallback: () =>"
         );
-        expect(performanceUtilsRuntimeSource).toContain(
+        expect(performanceUtilsRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
     });
