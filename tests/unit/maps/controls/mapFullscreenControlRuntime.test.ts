@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getMapFullscreenControlRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../electron-app/utils/maps/controls/mapFullscreenControlRuntime.js";
 
 describe("getMapFullscreenControlRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -187,6 +191,29 @@ describe("getMapFullscreenControlRuntime", () => {
 
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("300");
+        const timer = 68 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getMapFullscreenControlRuntime();
+        const timerHandle = runtime.setTimeout(callback, delayMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {

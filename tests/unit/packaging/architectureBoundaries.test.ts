@@ -14840,7 +14840,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(46);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -14913,12 +14913,18 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
