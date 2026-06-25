@@ -1,9 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getBrowserRendererRuntimeEnvironmentScope } from "../../../electron-app/renderer/rendererBrowserRuntime.js";
 import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "../../../electron-app/renderer/runtimeEnvironment.js";
 
 describe("renderer runtime environment", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates the production browser scope explicitly", () => {
         expect.assertions(5);
 
@@ -16,6 +20,21 @@ describe("renderer runtime environment", () => {
         expect(environment.rendererEventTarget).toBe(globalThis);
         expect(typeof environment.addEventListener).toBe("function");
         expect(typeof environment.setTimeout).toBe("function");
+    });
+
+    it("resolves the production browser electron API from the runtime scope", () => {
+        expect.assertions(2);
+
+        const electronApiCandidate = {};
+
+        vi.stubGlobal("electronAPI", electronApiCandidate);
+
+        const environment = createRuntimeEnvironment(
+            getBrowserRendererRuntimeEnvironmentScope()
+        );
+
+        expect(environment.electronApiCandidate).toBe(electronApiCandidate);
+        expect(environment.rendererEventTarget).toBe(globalThis);
     });
 
     it("captures browser globals through named providers", () => {

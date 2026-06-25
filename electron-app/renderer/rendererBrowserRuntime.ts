@@ -1,23 +1,8 @@
-import type {
-    RendererRuntimeEnvironmentScope,
-    RendererRuntimeEventTarget,
-} from "./runtimeEnvironment.js";
+import type { RendererRuntimeEnvironmentScope } from "./runtimeEnvironment.js";
 
 type RendererRuntimeGlobalScope = typeof globalThis & {
     readonly electronAPI?: unknown;
 };
-
-function getDefaultElectronApiCandidate(): unknown {
-    const rendererScope = globalThis as RendererRuntimeGlobalScope;
-
-    return rendererScope.electronAPI;
-}
-
-function getDefaultRendererEventTarget():
-    | RendererRuntimeEventTarget
-    | undefined {
-    return globalThis;
-}
 
 export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvironmentScope {
     return {
@@ -25,10 +10,11 @@ export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvi
         getClearInterval: () => globalThis.clearInterval.bind(globalThis),
         getConsole: () => globalThis.console,
         getDocument: () => globalThis.document,
-        getElectronApiCandidate: getDefaultElectronApiCandidate,
+        getElectronApiCandidate: () =>
+            (globalThis as RendererRuntimeGlobalScope).electronAPI,
         getRemoveEventListener: () =>
             globalThis.removeEventListener.bind(globalThis),
-        getRendererEventTarget: getDefaultRendererEventTarget,
+        getRendererEventTarget: () => globalThis,
         getSetInterval: () => globalThis.setInterval.bind(globalThis),
         getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
     };
