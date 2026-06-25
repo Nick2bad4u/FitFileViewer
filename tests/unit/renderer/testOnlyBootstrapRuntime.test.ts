@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { getRendererTestOnlyBootstrapRuntime } from "../../../electron-app/renderer/testOnlyBootstrapRuntime.js";
 
 describe("getRendererTestOnlyBootstrapRuntime", () => {
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRendererTestOnlyBootstrapRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 

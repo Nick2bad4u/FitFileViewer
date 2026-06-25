@@ -18410,7 +18410,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
             .filter((relativeFile) =>
@@ -18438,6 +18438,12 @@ describe("architecture boundaries", () => {
             "defaultRendererTestOnlyBootstrapRuntimeScope"
         );
         expect(testOnlyBootstrapRuntimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(testOnlyBootstrapRuntimeSource).toContain(
+            "getAbortController: getBrowserRendererAbortController"
+        );
+        expect(testOnlyBootstrapRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(testOnlyBootstrapRuntimeSource).not.toMatch(
