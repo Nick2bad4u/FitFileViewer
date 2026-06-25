@@ -1246,13 +1246,13 @@ const directListenersResizeRuntimeAmbientTimerFallbackPattern =
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+(?:AbortController|CustomEvent)\b/u;
 const directAccentColorRuntimeGlobalPattern =
     /\bdocument\.(?:body|documentElement)\b|\blocalStorage\.(?:getItem|removeItem|setItem)\b|\binstanceof\s+HTMLElement\b|\btypeof\s+document\b/u;
 const directAccentColorRuntimeAmbientGetterPattern =
     /\bget\s+(?:document|HTMLElement|localStorage|storage)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:document|HTMLElement|localStorage)\b/u;
 const directThemeCoreRuntimeAmbientTimerFallbackPattern =
-    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+    /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directSetupThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directSetupThemeRuntimeAmbientFallbackPattern =
@@ -15705,7 +15705,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(70);
+        expect.assertions(78);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -15731,6 +15731,7 @@ describe("architecture boundaries", () => {
             "const themeRuntime = getThemeRuntime();"
         );
         expect(themeCoreSource).toContain("createAbortController");
+        expect(themeCoreSource).toContain("createThemeChangeEvent");
         expect(themeCoreSource).toContain("getBodyComputedStyleProperty");
         expect(themeCoreSource).toContain("getBodyElement");
         expect(themeCoreSource).toContain("getDocumentEventTarget");
@@ -15747,6 +15748,7 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).not.toContain("document.querySelector");
         expect(themeCoreSource).not.toContain("document.createElement");
         expect(themeCoreSource).not.toContain("document.head.append");
+        expect(themeCoreSource).not.toContain("new CustomEvent");
         expect(themeRuntimeSource).toContain("defaultThemeRuntimeScope");
         expect(themeRuntimeSource).not.toContain(
             "scope: ThemeRuntimeScope = globalThis"
@@ -15762,6 +15764,9 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).toContain(
             "getComputedStyle: () => globalThis.getComputedStyle"
+        );
+        expect(themeRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
         );
         expect(themeRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
@@ -15781,6 +15786,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain(
             "readonly globalEventTarget?:"
         );
+        expect(themeRuntimeSource).not.toContain("readonly CustomEvent?:");
         expect(themeRuntimeSource).not.toContain("readonly document?:");
         expect(themeRuntimeSource).not.toMatch(
             /export interface ThemeRuntimeScope \{(?:(?!\n\})[\s\S])*readonly matchMedia\?:/
@@ -15793,6 +15799,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain("browserGlobal");
         expect(themeRuntimeSource).not.toContain("scope.AbortController");
         expect(themeRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(themeRuntimeSource).not.toContain("scope.CustomEvent");
         expect(themeRuntimeSource).not.toContain("scope.document");
         expect(themeRuntimeSource).not.toContain("scope.globalEventTarget");
         expect(themeRuntimeSource).not.toContain("scope.matchMedia");
@@ -15815,7 +15822,16 @@ describe("architecture boundaries", () => {
             "theme core requires a setTimeout runtime"
         );
         expect(themeRuntimeSource).toContain(
+            "theme core requires a CustomEvent runtime"
+        );
+        expect(themeRuntimeSource).toContain(
             "theme core requires a document runtime"
+        );
+        expect(themeRuntimeSource).toContain(
+            "const CustomEventConstructor = scope.getCustomEvent?.();"
+        );
+        expect(themeRuntimeSource).toContain(
+            'new (getRequiredCustomEvent(scope))("themechange"'
         );
         expect(themeRuntimeSource).toContain("documentRef.createElement");
         expect(themeRuntimeSource).toContain("documentRef.querySelector");

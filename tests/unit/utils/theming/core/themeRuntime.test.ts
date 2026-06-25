@@ -55,7 +55,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -82,6 +82,12 @@ describe("getThemeRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
+        class TestCustomEvent<T = unknown> extends CustomEvent<T> {
+            public constructor(type: string, init?: CustomEventInit<T>) {
+                super(`test:${type}`, init);
+            }
+        }
+        const getCustomEvent = vi.fn(() => TestCustomEvent);
         const getDocument = vi.fn(() => documentRef);
         const getGlobalEventTarget = vi.fn(() => globalEventTarget);
         const getMatchMedia = vi.fn(() => matchMedia);
@@ -89,6 +95,7 @@ describe("getThemeRuntime", () => {
         const runtime = getThemeRuntime({
             getAbortController,
             getClearTimeout,
+            getCustomEvent,
             getDocument,
             getGlobalEventTarget,
             getMatchMedia,
@@ -106,14 +113,18 @@ describe("getThemeRuntime", () => {
         runtime.removeBodyClasses("theme-transitioning", "theme-light");
         runtime.ensureThemeTransitionStyles(".theme-transitioning{}");
         runtime.updateMetaThemeColor("#181a20");
+        const event = runtime.createThemeChangeEvent({ theme: "dark" });
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getCustomEvent).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledTimes(6);
         expect(getMatchMedia).toHaveBeenCalledOnce();
         expect(getGlobalEventTarget).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(event).toBeInstanceOf(TestCustomEvent);
+        expect(event.type).toBe("test:themechange");
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
@@ -133,7 +144,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const utils = getThemeRuntime({});
 
@@ -143,6 +154,31 @@ describe("getThemeRuntime", () => {
         expect(() => {
             utils.clearTimeout(89 as ReturnType<typeof globalThis.setTimeout>);
         }).toThrow("theme core requires a clearTimeout runtime");
+        expect(() => utils.createThemeChangeEvent({})).toThrow(
+            "theme core requires a CustomEvent runtime"
+        );
+    });
+
+    it("creates theme-change events through the injected CustomEvent runtime", () => {
+        expect.assertions(6);
+
+        const detail = { effectiveTheme: "dark", theme: "system" };
+        class TestCustomEvent<T = unknown> extends CustomEvent<T> {
+            public constructor(type: string, init?: CustomEventInit<T>) {
+                super(`test:${type}`, init);
+            }
+        }
+        const runtime = getThemeRuntime({
+            getCustomEvent: () => TestCustomEvent,
+        });
+        const event = runtime.createThemeChangeEvent(detail);
+
+        expect(event).toBeInstanceOf(TestCustomEvent);
+        expect(event.type).toBe("test:themechange");
+        expect(event.detail).toBe(detail);
+        expect(event.bubbles).toBe(true);
+        expect(event.composed).toBe(true);
+        expect(event.cancelable).toBe(false);
     });
 
     it("resolves system theme media queries from the scoped runtime", () => {
@@ -294,7 +330,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -305,6 +341,9 @@ describe("getThemeRuntime", () => {
         const callback = vi.fn<() => void>();
         const timer = 89 as ReturnType<typeof globalThis.setTimeout>;
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const CustomEventConstructor = vi.fn(function FakeCustomEvent() {
+            return new CustomEvent("legacy");
+        });
         const mediaQuery = { matches: true } as MediaQueryList;
         const matchMedia = vi.fn(() => mediaQuery);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
@@ -316,6 +355,8 @@ describe("getThemeRuntime", () => {
         const runtime = getThemeRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
+            CustomEvent:
+                CustomEventConstructor as unknown as typeof CustomEvent,
             clearTimeout,
             document,
             globalEventTarget,
@@ -331,6 +372,9 @@ describe("getThemeRuntime", () => {
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
             "theme core requires a clearTimeout runtime"
+        );
+        expect(() => runtime.createThemeChangeEvent({})).toThrow(
+            "theme core requires a CustomEvent runtime"
         );
         expect(() => runtime.addBodyClass("theme-dark")).toThrow(
             "theme core requires a document runtime"
@@ -350,6 +394,7 @@ describe("getThemeRuntime", () => {
         expect(runtime.getSystemThemeMediaQuery()).toBeNull();
         expect(runtime.getGlobalEventTarget()).toBeNull();
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(CustomEventConstructor).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(matchMedia).not.toHaveBeenCalled();

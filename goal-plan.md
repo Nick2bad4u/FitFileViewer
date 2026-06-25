@@ -460,6 +460,9 @@ module-level `browserGlobal` alias.
 Core theme transition-style injection and meta theme-color updates now also route through `themeRuntime.ts` instead
 of querying, creating, or appending through `document` directly inside `theme.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct theme DOM calls from returning.
+Core theme `themechange` event construction now also routes through `themeRuntime.ts` instead of constructing
+`CustomEvent` directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking direct
+theme CustomEvent construction and legacy direct CustomEvent scope properties from returning.
 Accent color target lookup and persisted color storage access now route through `accentColorRuntime.ts` instead of
 probing `document`, `HTMLElement`, or `localStorage` directly inside `accentColor.ts`, with focused runtime/behavior
 coverage and architecture coverage blocking those direct browser/storage calls from returning.

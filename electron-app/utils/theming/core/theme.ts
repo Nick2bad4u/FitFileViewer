@@ -569,11 +569,7 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
 
     for (const target of targets) {
         try {
-            const event = new CustomEvent("themechange", {
-                bubbles: true,
-                composed: true,
-                detail,
-            });
+            const event = themeRuntime().createThemeChangeEvent(detail);
             target.dispatchEvent(event);
         } catch (error) {
             console.warn("[Theme] Failed to dispatch themechange event", error);

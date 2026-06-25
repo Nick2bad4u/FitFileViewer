@@ -10,6 +10,9 @@ export interface ThemeRuntimeScope {
     readonly getComputedStyle?:
         | (() => typeof globalThis.getComputedStyle | undefined)
         | undefined;
+    readonly getCustomEvent?:
+        | (() => typeof globalThis.CustomEvent | undefined)
+        | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getMatchMedia?:
@@ -24,6 +27,7 @@ export interface ThemeRuntime {
     readonly addBodyClass: (className: string) => void;
     readonly clearTimeout: (timer: ThemeRuntimeTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly createThemeChangeEvent: <T>(detail: T) => CustomEvent<T>;
     readonly ensureThemeTransitionStyles: (cssText: string) => void;
     readonly getBodyComputedStyleProperty: (name: string) => string;
     readonly getBodyElement: () => HTMLElement | null;
@@ -58,6 +62,7 @@ const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getComputedStyle: () => globalThis.getComputedStyle,
+    getCustomEvent: () => globalThis.CustomEvent,
     getDocument: () => globalThis.document,
     getGlobalEventTarget: getDefaultEventTarget,
     getMatchMedia: () => globalThis.matchMedia?.bind(globalThis),
@@ -80,6 +85,17 @@ function getScopeComputedStyle(
     scope: ThemeRuntimeScope
 ): typeof globalThis.getComputedStyle | undefined {
     return scope.getComputedStyle?.();
+}
+
+function getRequiredCustomEvent(
+    scope: ThemeRuntimeScope
+): typeof globalThis.CustomEvent {
+    const CustomEventConstructor = scope.getCustomEvent?.();
+    if (typeof CustomEventConstructor !== "function") {
+        throw new TypeError("theme core requires a CustomEvent runtime");
+    }
+
+    return CustomEventConstructor;
 }
 
 function getScopeDocument(scope: ThemeRuntimeScope): Document | undefined {
@@ -148,6 +164,13 @@ export function getThemeRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createThemeChangeEvent<T>(detail: T): CustomEvent<T> {
+            return new (getRequiredCustomEvent(scope))("themechange", {
+                bubbles: true,
+                composed: true,
+                detail,
+            });
         },
         ensureThemeTransitionStyles(cssText): void {
             const documentRef = getRequiredDocument(scope);
