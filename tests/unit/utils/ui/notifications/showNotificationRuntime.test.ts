@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getShowNotificationRuntime,
@@ -7,6 +7,12 @@ import {
 } from "../../../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
 describe("getShowNotificationRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("delegates timing APIs through scoped runtime providers", () => {
         expect.assertions(14);
 
@@ -52,6 +58,57 @@ describe("getShowNotificationRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(29);
         expect(clearTimeout.mock.contexts[0]).toBe(scope);
         expect(frameCallback).not.toHaveBeenCalled();
+        expect(timerCallback).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production timing, DOM, and constructor defaults", () => {
+        expect.assertions(16);
+
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const timerCallback = vi.fn<() => void>();
+        const delay = Number("250");
+        const timestamp = Number("1234");
+        const frame = Number("17");
+        const timer = 29 as ShowNotificationTimerHandle;
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => frame);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(timestamp);
+
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const host = document.createElement("div");
+        host.id = "notification";
+        document.body.append(host);
+
+        const runtime = getShowNotificationRuntime();
+        const button = runtime.createElement("button");
+        const keyboardEvent = new KeyboardEvent("keydown");
+
+        expect(runtime.requestAnimationFrame(frameCallback)).toBe(frame);
+        runtime.cancelAnimationFrame(frame);
+        expect(runtime.dateNow()).toBe(timestamp);
+        expect(runtime.setTimeout(timerCallback, delay)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(runtime.queryElement("#notification")).toBe(host);
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(button.ownerDocument).toBe(document);
+        expect(runtime.isHTMLElement(button)).toBe(true);
+        expect(runtime.isHTMLElement({ closest: () => null })).toBe(false);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(frame);
+        expect(setTimeout).toHaveBeenCalledWith(timerCallback, delay);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(dateNow).toHaveBeenCalled();
         expect(timerCallback).not.toHaveBeenCalled();
     });
 

@@ -1,3 +1,14 @@
+import {
+    getBrowserCancelAnimationFrame,
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserKeyboardEvent,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type ShowNotificationTimerHandle =
     | number
     | ReturnType<typeof globalThis.setTimeout>;
@@ -54,16 +65,14 @@ type ShowNotificationDocument = Pick<
 >;
 
 const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
-    getCancelAnimationFrame: () =>
-        globalThis.cancelAnimationFrame?.bind(globalThis),
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDateNow: () => Date.now,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getKeyboardEvent: () => globalThis.KeyboardEvent,
-    getRequestAnimationFrame: () =>
-        globalThis.requestAnimationFrame?.bind(globalThis),
-    getSetTimeout: () => globalThis.setTimeout,
+    getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getKeyboardEvent: getBrowserKeyboardEvent,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getCancelAnimationFrame(

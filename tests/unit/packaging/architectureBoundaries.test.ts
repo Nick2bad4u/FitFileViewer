@@ -8124,7 +8124,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(45);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -8173,13 +8173,37 @@ describe("architecture boundaries", () => {
             "defaultShowNotificationRuntimeScope"
         );
         expect(notificationRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(notificationRuntimeSource).not.toContain(
             "globalThis.cancelAnimationFrame?.bind(globalThis)"
         );
         expect(notificationRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(notificationRuntimeSource).not.toContain(
             "globalThis.requestAnimationFrame?.bind(globalThis)"
         );
         expect(notificationRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(notificationRuntimeSource).toContain(
             "readonly dateNow: () => number;"
@@ -8244,7 +8268,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification DOM access behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(25);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -8290,12 +8314,35 @@ describe("architecture boundaries", () => {
             "defaultShowNotificationRuntimeScope"
         );
         expect(notificationRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(notificationRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
         expect(notificationRuntimeSource).not.toContain("scope.document");
+        expect(notificationRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(notificationRuntimeSource).not.toContain("scope.KeyboardEvent");
         expect(notificationRuntimeSource).not.toContain(
             "scope: ShowNotificationRuntimeScope = globalThis"
         );
