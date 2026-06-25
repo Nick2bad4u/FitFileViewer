@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 type ChartTabIntegrationDocument = Pick<
     Document,
     "defaultView" | "querySelector"
@@ -28,8 +33,8 @@ const chartTabButtonSelectors = [
 
 const defaultChartTabIntegrationRuntimeScope: ChartTabIntegrationRuntimeScope =
     {
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getHTMLElementConstructor(

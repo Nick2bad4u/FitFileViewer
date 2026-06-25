@@ -6772,7 +6772,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(26);
+        expect.assertions(29);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -6839,9 +6839,18 @@ describe("architecture boundaries", () => {
             "defaultChartTabIntegrationRuntimeScope"
         );
         expect(chartTabIntegrationRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "../../runtime/browserRuntime.js"
         );
         expect(chartTabIntegrationRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(chartTabIntegrationRuntimeSource).not.toContain(

@@ -74,6 +74,24 @@ describe("getChartTabIntegrationRuntime", () => {
         }
     });
 
+    it("resolves production DOM defaults through browser runtime providers", () => {
+        expect.assertions(3);
+
+        try {
+            const tab = document.createElement("button");
+            tab.dataset.tab = "chart";
+            document.body.append(tab);
+
+            const runtime = getChartTabIntegrationRuntime();
+
+            expect(runtime.queryChartTabButton()).toBe(tab);
+            expect(runtime.querySelector('[data-tab="chart"]')).toBe(tab);
+            expect(runtime.isHTMLElement(tab)).toBe(true);
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(3);
 
