@@ -8,6 +8,7 @@ import {
 function cleanupFixture(): void {
     document.body.replaceChildren();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
 }
 
 describe("getListenersResizeRuntime", () => {
@@ -45,6 +46,83 @@ describe("getListenersResizeRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses shared browser providers for production defaults", () => {
+        expect.assertions(14);
+
+        const abortController = new AbortController();
+        try {
+            const controller = new AbortController();
+            const AbortControllerConstructor = vi.fn(
+                function AbortControllerDouble() {
+                    return controller;
+                }
+            );
+            const addEventListener = vi.fn();
+            const animationCallback = vi.fn<FrameRequestCallback>();
+            const cancelAnimationFrame =
+                vi.fn<typeof globalThis.cancelAnimationFrame>();
+            const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+            const frameHandle = Number.parseInt("23", 10);
+            const timeoutHandle = Number.parseInt("31", 10);
+            const timeoutMs = Number.parseInt("80", 10);
+            const requestAnimationFrame = vi.fn<
+                typeof globalThis.requestAnimationFrame
+            >(() => frameHandle);
+            const setTimeout = vi.fn<typeof globalThis.setTimeout>(
+                () => timeoutHandle
+            );
+            vi.stubGlobal("AbortController", AbortControllerConstructor);
+            vi.stubGlobal("addEventListener", addEventListener);
+            vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+            vi.stubGlobal("clearTimeout", clearTimeout);
+            vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+            vi.stubGlobal("setTimeout", setTimeout);
+
+            const canvas = document.createElement("canvas");
+            canvas.className = "chart-canvas";
+            document.body.append(canvas);
+            const runtime = getListenersResizeRuntime();
+
+            runtime.addResizeListener(() => {}, {
+                signal: abortController.signal,
+            });
+            expect(addEventListener).toHaveBeenCalledWith(
+                "resize",
+                expect.any(Function),
+                {
+                    signal: abortController.signal,
+                }
+            );
+            expect(runtime.createAbortController()).toBe(controller);
+            expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+            expect(runtime.queryChartCanvases()).toStrictEqual([canvas]);
+            expect(runtime.queryChartTab("#tab_chart")).toBeNull();
+            expect(runtime.getFullscreenElement()).toBeNull();
+            expect(runtime.requestAnimationFrame(animationCallback)).toBe(
+                frameHandle
+            );
+            expect(requestAnimationFrame).toHaveBeenCalledWith(
+                animationCallback
+            );
+            runtime.cancelAnimationFrame(frameHandle);
+            expect(cancelAnimationFrame).toHaveBeenCalledWith(frameHandle);
+            expect(runtime.setTimeout(() => {}, timeoutMs)).toBe(
+                timeoutHandle
+            );
+            expect(setTimeout).toHaveBeenCalledWith(
+                expect.any(Function),
+                timeoutMs
+            );
+            runtime.clearTimeout(timeoutHandle);
+            expect(clearTimeout).toHaveBeenCalledWith(timeoutHandle);
+            expect(animationCallback).not.toHaveBeenCalled();
+            expect(canvas.isConnected).toBe(true);
+        } finally {
+            abortController.abort();
+            cleanupFixture();
+        }
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {

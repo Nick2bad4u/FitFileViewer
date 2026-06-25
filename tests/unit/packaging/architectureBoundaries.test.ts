@@ -16548,7 +16548,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(55);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -16596,27 +16596,51 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getElement: getBrowserElement"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getElement: () => globalThis.Element"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getHTMLCanvasElement: getBrowserHTMLCanvasElement"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getHTMLCanvasElement: () => globalThis.HTMLCanvasElement"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getResizeTarget: getBrowserEventTarget"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getResizeTarget: () => globalThis"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(listenersResizeRuntimeSource).not.toContain(

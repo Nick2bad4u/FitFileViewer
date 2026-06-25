@@ -78,6 +78,12 @@ export function getBrowserHTMLElement():
     return globalThis.HTMLElement;
 }
 
+export function getBrowserHTMLCanvasElement():
+    | typeof globalThis.HTMLCanvasElement
+    | undefined {
+    return globalThis.HTMLCanvasElement;
+}
+
 export function getBrowserHTMLInputElement():
     | typeof globalThis.HTMLInputElement
     | undefined {

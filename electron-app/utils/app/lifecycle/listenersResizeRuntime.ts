@@ -1,4 +1,14 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserCancelAnimationFrame,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserElement,
+    getBrowserEventTarget,
+    getBrowserHTMLCanvasElement,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
@@ -95,14 +105,14 @@ function getOptionalElementProperty(
 
 const defaultListenersResizeRuntimeScope: ListenersResizeRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDocument: () => globalThis.document,
-    getElement: () => globalThis.Element,
-    getHTMLCanvasElement: () => globalThis.HTMLCanvasElement,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getResizeTarget: () => globalThis,
-    getSetTimeout: () => globalThis.setTimeout,
+    getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+    getClearTimeout: getBrowserClearTimeout,
+    getDocument: getBrowserDocument,
+    getElement: getBrowserElement,
+    getHTMLCanvasElement: getBrowserHTMLCanvasElement,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+    getResizeTarget: getBrowserEventTarget,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getAbortController(
