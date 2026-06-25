@@ -32,6 +32,14 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(controllerCount).toBe(1);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getMapDocumentListenersRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 

@@ -1180,7 +1180,7 @@ const directMapActionButtonsRuntimeGlobalPattern =
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapDocumentListenersRuntimeGlobalPattern =
-    /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b|\binstanceof\s+(?:HTMLElement|Node)\b/u;
+    /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.(?:AbortController|window)\b|\bnew\s+AbortController\b|\binstanceof\s+(?:HTMLElement|Node)\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:AbortController|setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|body|exitFullscreen|fullscreenElement|querySelector)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
@@ -14243,7 +14243,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(41);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -14306,6 +14306,12 @@ describe("architecture boundaries", () => {
             "defaultMapDocumentListenersRuntimeScope"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
