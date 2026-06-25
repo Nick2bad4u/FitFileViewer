@@ -8104,7 +8104,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(44);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -8150,6 +8150,42 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getEventTarget: () => globalThis"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getFileReader: getBrowserFileReader"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getFileReader: () => globalThis.FileReader"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -8183,15 +8219,6 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.FileReader");
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
-        );
-        expect(dragDropHandlerRuntimeSource).toContain(
-            "getEventTarget: () => globalThis"
-        );
-        expect(dragDropHandlerRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
-        );
-        expect(dragDropHandlerRuntimeSource).toContain(
-            "getFileReader: () => globalThis.FileReader"
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "const FileReaderConstructor = getFileReaderConstructor(scope);"

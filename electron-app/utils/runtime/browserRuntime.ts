@@ -58,6 +58,12 @@ export function getBrowserFetch(): typeof globalThis.fetch | undefined {
     return globalThis.fetch;
 }
 
+export function getBrowserFileReader():
+    | typeof globalThis.FileReader
+    | undefined {
+    return globalThis.FileReader;
+}
+
 export function getBrowserHTMLElement():
     | typeof globalThis.HTMLElement
     | undefined {

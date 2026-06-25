@@ -1,4 +1,12 @@
-import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserCancelAnimationFrame,
+    getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserEventTarget,
+    getBrowserFileReader,
+    getBrowserRequestAnimationFrame,
+} from "../runtime/browserRuntime.js";
 
 export interface DragDropHandlerRuntimeScope {
     readonly getAbortController?:
@@ -30,12 +38,12 @@ export interface DragDropHandlerRuntime {
 
 const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-    getDateNow: () => Date.now,
-    getDocument: () => globalThis.document,
-    getEventTarget: () => globalThis,
-    getFileReader: () => globalThis.FileReader,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+    getDateNow: getBrowserDateNow,
+    getDocument: getBrowserDocument,
+    getEventTarget: getBrowserEventTarget,
+    getFileReader: getBrowserFileReader,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
 };
 
 function getAbortControllerConstructor(
