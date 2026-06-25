@@ -1089,7 +1089,7 @@ export function renderMap(): void {
             return false;
         }
         lapSelect.selectedIndex = 0;
-        lapSelect.dispatchEvent(new Event("change"));
+        lapSelect.dispatchEvent(runtime.createChangeEvent());
         return true;
     };
 

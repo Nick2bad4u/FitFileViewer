@@ -25,7 +25,7 @@ describe("getRenderMapRuntime", () => {
     });
 
     it("routes map scheduling dependencies through provider functions", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -47,11 +47,18 @@ describe("getRenderMapRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
+        class TestEvent extends Event {
+            public constructor(type: string) {
+                super(`test:${type}`);
+            }
+        }
+        const getEvent = vi.fn(() => TestEvent);
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
         const getSetTimeout = vi.fn(() => setTimeout);
         const utils = getRenderMapRuntime({
             getAbortController,
             getClearTimeout,
+            getEvent,
             getRequestAnimationFrame,
             getSetTimeout,
         });
@@ -60,12 +67,16 @@ describe("getRenderMapRuntime", () => {
         expect(utils.setTimeout(callback, delayMs)).toBe(timer);
         utils.clearTimeout(timer);
         utils.requestAnimationFrame(frameCallback);
+        const changeEvent = utils.createChangeEvent();
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getEvent).toHaveBeenCalledOnce();
         expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(changeEvent).toBeInstanceOf(TestEvent);
+        expect(changeEvent.type).toBe("test:change");
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
@@ -80,6 +91,34 @@ describe("getRenderMapRuntime", () => {
 
         expect(() => utils.createAbortController()).toThrow(
             "renderMap requires an AbortController runtime"
+        );
+    });
+
+    it("creates change events through the injected Event runtime", () => {
+        expect.assertions(3);
+
+        class TestEvent extends Event {
+            public constructor(type: string) {
+                super(`test:${type}`);
+            }
+        }
+        const utils = getRenderMapRuntime({
+            getEvent: () => TestEvent,
+        });
+        const event = utils.createChangeEvent();
+
+        expect(event).toBeInstanceOf(TestEvent);
+        expect(event.type).toBe("test:change");
+        expect(event.bubbles).toBe(false);
+    });
+
+    it("throws when change event creation is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime({});
+
+        expect(() => utils.createChangeEvent()).toThrow(
+            "renderMap requires an Event runtime"
         );
     });
 
@@ -190,7 +229,7 @@ describe("getRenderMapRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -206,9 +245,13 @@ describe("getRenderMapRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 23);
+        const EventConstructor = vi.fn(function FakeEvent() {
+            return new Event("legacy");
+        });
         const utils = getRenderMapRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
+            Event: EventConstructor as unknown as typeof Event,
             clearTimeout,
             requestAnimationFrame,
             setTimeout,
@@ -223,9 +266,14 @@ describe("getRenderMapRuntime", () => {
         expect(() => utils.setTimeout(callback, 1)).toThrow(
             "renderMap requires a setTimeout runtime"
         );
+        expect(() => utils.createChangeEvent()).toThrow(
+            "renderMap requires an Event runtime"
+        );
         expect(() => utils.requestAnimationFrame(frameCallback)).toThrow(
             "renderMap requires a setTimeout runtime"
         );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(EventConstructor).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
     });

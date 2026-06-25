@@ -9141,7 +9141,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(29);
+        expect.assertions(37);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -9160,14 +9160,16 @@ describe("architecture boundaries", () => {
             )
         );
         const directRenderMapTimingGlobalPattern =
-            /\b(?:globalThis|window)\.(?:requestAnimationFrame|clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:requestAnimationFrame|clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+            /\b(?:globalThis|window)\.(?:requestAnimationFrame|clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:requestAnimationFrame|clearTimeout|setTimeout)\(|\bnew\s+(?:AbortController|Event)\b/u;
         const directRenderMapRuntimeAmbientTimerFallbackPattern =
-            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+            /\bscope\.(?:Event|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 
         expect(renderMapSource).toContain("renderMapRuntime.js");
         expect(renderMapSource).toContain("createAbortController");
+        expect(renderMapSource).toContain("createChangeEvent");
         expect(renderMapSource).toContain("getMapContainerFallback");
         expect(renderMapSource).not.toContain("document.body");
+        expect(renderMapSource).not.toContain('new Event("change")');
         expect(directRenderMapTimingGlobalPattern.test(renderMapSource)).toBe(
             false
         );
@@ -9190,6 +9192,9 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(renderMapRuntimeSource).toContain(
+            "getEvent: () => globalThis.Event"
+        );
+        expect(renderMapRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(renderMapRuntimeSource).toContain(
@@ -9204,6 +9209,7 @@ describe("architecture boundaries", () => {
         expect(renderMapRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(renderMapRuntimeScopeSource).not.toContain("readonly Event?:");
         expect(renderMapRuntimeScopeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
@@ -9213,6 +9219,7 @@ describe("architecture boundaries", () => {
         expect(renderMapRuntimeSource).not.toContain("scope.AbortController");
         expect(renderMapRuntimeSource).not.toContain("scope.clearTimeout");
         expect(renderMapRuntimeSource).not.toContain("scope.document");
+        expect(renderMapRuntimeSource).not.toContain("scope.Event");
         expect(renderMapRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
@@ -9227,6 +9234,12 @@ describe("architecture boundaries", () => {
             "const documentRef = scope.getDocument?.();"
         );
         expect(renderMapRuntimeSource).toContain(
+            "const EventConstructor = scope.getEvent?.();"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            'new (getRequiredEvent(scope))("change")'
+        );
+        expect(renderMapRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"
         );
         expect(renderMapRuntimeSource).not.toMatch(
@@ -9234,6 +9247,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).toContain(
             "renderMap requires a setTimeout runtime"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "renderMap requires an Event runtime"
         );
     });
 

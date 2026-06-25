@@ -43,7 +43,7 @@ describe("getRenderMapRuntime", () => {
     });
 
     it("routes timers and abort controllers through provider functions", () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const callback = vi.fn<FrameRequestCallback>();
         const timerCallback = vi.fn<() => void>();
@@ -59,10 +59,17 @@ describe("getRenderMapRuntime", () => {
         const requestAnimationFrame =
             vi.fn<typeof globalThis.requestAnimationFrame>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timeout);
+        class TestEvent extends Event {
+            public constructor(type: string) {
+                super(`test:${type}`);
+            }
+        }
+        const getEvent = vi.fn(() => TestEvent);
         const utils = getRenderMapRuntime({
             getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
             getClearTimeout: () => clearTimeout,
+            getEvent,
             getRequestAnimationFrame: () => requestAnimationFrame,
             getSetTimeout: () => setTimeout,
         });
@@ -71,11 +78,25 @@ describe("getRenderMapRuntime", () => {
         utils.clearTimeout(timeout);
         utils.requestAnimationFrame(callback);
         expect(utils.setTimeout(timerCallback, delayMs)).toBe(timeout);
+        const changeEvent = utils.createChangeEvent();
 
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(clearTimeout).toHaveBeenCalledWith(timeout);
+        expect(getEvent).toHaveBeenCalledOnce();
+        expect(changeEvent).toBeInstanceOf(TestEvent);
+        expect(changeEvent.type).toBe("test:change");
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
         expect(setTimeout).toHaveBeenCalledWith(timerCallback, delayMs);
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when the Event runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime({});
+
+        expect(() => utils.createChangeEvent()).toThrow(
+            "renderMap requires an Event runtime"
+        );
     });
 });

@@ -8,6 +8,7 @@ export interface RenderMapRuntimeScope {
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getEvent?: (() => typeof globalThis.Event | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -19,6 +20,7 @@ export interface RenderMapRuntimeScope {
 export interface RenderMapRuntime {
     readonly clearTimeout: (timer: RenderMapTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly createChangeEvent: () => Event;
     readonly getMapContainerFallback: (selector: string) => HTMLElement;
     readonly requestAnimationFrame: (
         frameCallback: FrameRequestCallback
@@ -55,6 +57,17 @@ function getRequiredDocument(scope: RenderMapRuntimeScope): Document {
     return documentRef;
 }
 
+function getRequiredEvent(
+    scope: RenderMapRuntimeScope
+): typeof globalThis.Event {
+    const EventConstructor = scope.getEvent?.();
+    if (typeof EventConstructor !== "function") {
+        throw new TypeError("renderMap requires an Event runtime");
+    }
+
+    return EventConstructor;
+}
+
 function getScopeRequestAnimationFrame(
     scope: RenderMapRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
@@ -76,6 +89,7 @@ const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
+    getEvent: () => globalThis.Event,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,
 };
@@ -97,6 +111,9 @@ export function getRenderMapRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createChangeEvent(): Event {
+            return new (getRequiredEvent(scope))("change");
         },
         getMapContainerFallback(selector): HTMLElement {
             const documentRef = getRequiredDocument(scope);
