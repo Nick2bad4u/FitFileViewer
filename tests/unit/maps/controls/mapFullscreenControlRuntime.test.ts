@@ -112,6 +112,30 @@ describe("getMapFullscreenControlRuntime", () => {
         await expect(runtime.exitFullscreen()).resolves.toBeUndefined();
     });
 
+    it("uses the browser runtime provider for production document defaults", () => {
+        expect.assertions(4);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("fullscreen control");
+        const mapContainer = documentRef.createElement("div");
+        mapContainer.id = "leaflet-map";
+        const mapControls = documentRef.createElement("div");
+        mapControls.id = "map-controls";
+        const legacyButton = documentRef.createElement("button");
+        legacyButton.id = "fullscreen-btn";
+        mapControls.append(legacyButton);
+        documentRef.body.append(mapContainer, mapControls);
+
+        vi.stubGlobal("document", documentRef);
+
+        const runtime = getMapFullscreenControlRuntime();
+
+        expect(runtime.getMapContainer()).toBe(mapContainer);
+        expect(runtime.getLegacyFullscreenButton()).toBe(legacyButton);
+        expect(runtime.documentBodyContains(mapContainer)).toBe(true);
+        expect(runtime.createElement("button").ownerDocument).toBe(documentRef);
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(6);
 

@@ -1,6 +1,7 @@
 import {
     getBrowserAbortController,
     getBrowserClearTimeout,
+    getBrowserDocument,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
@@ -54,7 +55,7 @@ const defaultMapFullscreenControlRuntimeScope: MapFullscreenControlRuntimeScope 
     {
         getAbortController: getBrowserAbortController,
         getClearTimeout: getBrowserClearTimeout,
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
         getSetTimeout: getBrowserSetTimeout,
     };
 
