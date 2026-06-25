@@ -35,6 +35,7 @@ import {
 } from "./stateManager.js";
 import {
     getMasterStateRuntime,
+    type MasterStateIntervalHandle,
     type MasterStateRuntime,
 } from "./masterStateRuntime.js";
 import {
@@ -85,13 +86,6 @@ type StateManagerApi = {
 
 type MasterStateManagerOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
-};
-
-type PerformanceWithMemory = Performance & {
-    memory?: {
-        totalJSHeapSize: number;
-        usedJSHeapSize: number;
-    };
 };
 
 type DynamicModule = Record<string, unknown>;
@@ -233,8 +227,7 @@ export class MasterStateManager {
 
     private eventController = masterStateRuntime().createAbortController();
 
-    private performanceMonitorInterval: ReturnType<typeof setInterval> | null =
-        null;
+    private performanceMonitorInterval: MasterStateIntervalHandle | null = null;
 
     private performanceMonitorUnsubscribe: (() => void) | null = null;
 
@@ -273,7 +266,7 @@ export class MasterStateManager {
         this.eventController = masterStateRuntime().createAbortController();
 
         if (this.performanceMonitorInterval !== null) {
-            clearInterval(this.performanceMonitorInterval);
+            masterStateRuntime().clearInterval(this.performanceMonitorInterval);
             this.performanceMonitorInterval = null;
         }
 
@@ -537,9 +530,13 @@ export class MasterStateManager {
         stateAPI.setState("system.version", appVersion, {
             source: "MasterStateManager",
         });
-        stateAPI.setState("system.startupTime", masterStateRuntime().dateNow(), {
-            source: "MasterStateManager",
-        });
+        stateAPI.setState(
+            "system.startupTime",
+            masterStateRuntime().dateNow(),
+            {
+                source: "MasterStateManager",
+            }
+        );
 
         // Detect mode without using process (not available in renderer)
         const mode = this.isDevelopmentMode() ? "development" : "production";
@@ -817,8 +814,7 @@ export class MasterStateManager {
         // Integrate loading state with UI
         stateAPI.subscribe("isLoading", (isLoading: unknown) => {
             // Update UI elements based on loading state
-            const elements =
-                masterStateRuntime().getLoadingSensitiveElements();
+            const elements = masterStateRuntime().getLoadingSensitiveElements();
             for (const el of elements) {
                 const isLoadingActive = Boolean(isLoading);
                 el.style.pointerEvents = isLoadingActive ? "none" : "auto";
@@ -898,7 +894,7 @@ export class MasterStateManager {
      */
     setupPerformanceMonitoring() {
         if (this.performanceMonitorInterval !== null) {
-            clearInterval(this.performanceMonitorInterval);
+            masterStateRuntime().clearInterval(this.performanceMonitorInterval);
         }
 
         // Monitor state change frequency
@@ -916,39 +912,46 @@ export class MasterStateManager {
         });
 
         // Reset counter every minute
-        this.performanceMonitorInterval = setInterval(() => {
-            const now = masterStateRuntime().dateNow(),
-                elapsed = now - lastResetTime;
+        this.performanceMonitorInterval = masterStateRuntime().setInterval(
+            () => {
+                const now = masterStateRuntime().dateNow(),
+                    elapsed = now - lastResetTime;
 
-            const performanceMemory = (performance as PerformanceWithMemory)
-                .memory;
-            stateAPI.setState(
-                "system.performance",
-                {
-                    memoryUsage: performanceMemory
-                        ? {
-                              total: Math.round(
-                                  performanceMemory.totalJSHeapSize /
-                                      1024 /
-                                      1024
-                              ),
-                              used: Math.round(
-                                  performanceMemory.usedJSHeapSize / 1024 / 1024
-                              ),
-                          }
-                        : null,
-                    stateChangesPerMinute:
-                        elapsed > 0
-                            ? Math.round((stateChangeCount * 60_000) / elapsed)
-                            : 0,
-                    timestamp: now,
-                },
-                { source: "performanceMonitor" }
-            );
+                const performanceMemory =
+                    masterStateRuntime().getPerformanceMemory();
+                stateAPI.setState(
+                    "system.performance",
+                    {
+                        memoryUsage: performanceMemory
+                            ? {
+                                  total: Math.round(
+                                      performanceMemory.totalJSHeapSize /
+                                          1024 /
+                                          1024
+                                  ),
+                                  used: Math.round(
+                                      performanceMemory.usedJSHeapSize /
+                                          1024 /
+                                          1024
+                                  ),
+                              }
+                            : null,
+                        stateChangesPerMinute:
+                            elapsed > 0
+                                ? Math.round(
+                                      (stateChangeCount * 60_000) / elapsed
+                                  )
+                                : 0,
+                        timestamp: now,
+                    },
+                    { source: "performanceMonitor" }
+                );
 
-            stateChangeCount = 0;
-            lastResetTime = now;
-        }, 60_000);
+                stateChangeCount = 0;
+                lastResetTime = now;
+            },
+            60_000
+        );
 
         console.log("[MasterState] Performance monitoring set up");
     }

@@ -10245,7 +10245,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(73);
+        expect.assertions(92);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10280,10 +10280,26 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).toContain(
             "masterStateRuntime().dateNow()"
         );
+        expect(masterStateManagerSource).toContain(
+            "masterStateRuntime().clearInterval("
+        );
+        expect(masterStateManagerSource).toContain(
+            "masterStateRuntime().setInterval("
+        );
+        expect(masterStateManagerSource).toContain(
+            "masterStateRuntime().getPerformanceMemory()"
+        );
         expect(masterStateManagerSource).not.toMatch(
             /\bnew\s+AbortController\b/u
         );
         expect(masterStateManagerSource).not.toContain("Date.now");
+        expect(masterStateManagerSource).not.toMatch(
+            /(?<!\.)\bclearInterval\s*\(/u
+        );
+        expect(masterStateManagerSource).not.toMatch(
+            /(?<!\.)\bsetInterval\s*\(/u
+        );
+        expect(masterStateManagerSource).not.toContain("(performance as");
         expect(masterStateManagerSource).not.toContain("globalThis.window");
         expect(masterStateManagerSource).not.toContain("globalThis.location");
         expect(masterStateManagerSource).not.toContain(
@@ -10339,11 +10355,26 @@ describe("architecture boundaries", () => {
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(masterStateRuntimeSource).toContain(
+            "getClearInterval: () => globalThis.clearInterval"
+        );
+        expect(masterStateRuntimeSource).toContain(
             "getDateNow: () => Date.now"
         );
+        expect(masterStateRuntimeSource).toContain("getPerformanceMemory: ()");
+        expect(masterStateRuntimeSource).toContain(
+            "getSetInterval: () => globalThis.setInterval"
+        );
+        expect(masterStateRuntimeSource).toContain("getRequiredClearInterval");
         expect(masterStateRuntimeSource).toContain("getRequiredDateNow");
+        expect(masterStateRuntimeSource).toContain("getRequiredSetInterval");
+        expect(masterStateRuntimeSource).toContain(
+            "master state manager requires clearInterval runtime"
+        );
         expect(masterStateRuntimeSource).toContain(
             "master state manager requires dateNow"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "master state manager requires setInterval runtime"
         );
         expect(masterStateRuntimeSource).toContain(
             "getDocumentEventTarget: () => getGlobalDocument()"
@@ -10377,6 +10408,9 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "readonly addEventListener?:"
         );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly clearInterval?:"
+        );
         expect(masterStateRuntimeSource).not.toContain("readonly dateNow?:");
         expect(masterStateRuntimeSource).not.toContain(
             "readonly documentBody?:"
@@ -10397,11 +10431,18 @@ describe("architecture boundaries", () => {
             "readonly eventTarget?:"
         );
         expect(masterStateRuntimeSource).not.toContain("readonly location?:");
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly performanceMemory?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly setInterval?:"
+        );
         expect(masterStateRuntimeSource).not.toContain("scope.__DEVELOPMENT__");
         expect(masterStateRuntimeSource).not.toContain("scope.AbortController");
         expect(masterStateRuntimeSource).not.toContain(
             "scope.addEventListener"
         );
+        expect(masterStateRuntimeSource).not.toContain("scope.clearInterval");
         expect(masterStateRuntimeSource).not.toContain("scope.dateNow");
         expect(masterStateRuntimeSource).not.toContain("scope.documentBody");
         expect(masterStateRuntimeSource).not.toContain("scope.documentElement");
@@ -10417,6 +10458,10 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(masterStateRuntimeSource).not.toContain("scope.eventTarget");
         expect(masterStateRuntimeSource).not.toContain("scope.location");
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.performanceMemory"
+        );
+        expect(masterStateRuntimeSource).not.toContain("scope.setInterval");
         expect(masterStateRuntimeSource).toContain(
             "master state manager requires a document body runtime"
         );

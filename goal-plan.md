@@ -820,6 +820,10 @@ Master state manager component initialization timestamps, startup-time state wri
 promise-rejection timestamps, and performance-monitor timestamps now also route through `masterStateRuntime.ts`
 instead of calling `Date.now` directly inside `masterStateManager.ts`, with focused runtime coverage and architecture
 guardrails blocking direct clock reads and legacy direct runtime scope properties from returning.
+Master state manager performance-monitor interval scheduling, interval cleanup, and memory reads now also route through
+`masterStateRuntime.ts` instead of calling timer globals or reading `performance.memory` directly inside
+`masterStateManager.ts`, with focused runtime coverage and architecture guardrails blocking direct interval and
+performance-memory access from returning.
 Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
 `resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,
 constructing `AbortController`, or calling `clearTimeout` directly inside `resourceManager.ts`, with focused

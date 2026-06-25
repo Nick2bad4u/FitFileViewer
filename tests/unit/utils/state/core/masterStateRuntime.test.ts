@@ -15,6 +15,44 @@ describe("masterStateRuntime", () => {
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
+    it("routes performance monitor timers and memory through scoped providers", () => {
+        expect.assertions(8);
+
+        const intervalHandle = 456;
+        const clearInterval = vi.fn<(handle: typeof intervalHandle) => void>();
+        const setInterval = vi.fn<
+            (callback: () => void, delayMs: number) => typeof intervalHandle
+        >(() => intervalHandle);
+        const performanceMemory = {
+            totalJSHeapSize: 2048,
+            usedJSHeapSize: 1024,
+        };
+        const getClearInterval = vi.fn(
+            () => clearInterval as unknown as typeof globalThis.clearInterval
+        );
+        const getPerformanceMemory = vi.fn(() => performanceMemory);
+        const getSetInterval = vi.fn(
+            () => setInterval as unknown as typeof globalThis.setInterval
+        );
+        const callback = vi.fn();
+        const runtime = getMasterStateRuntime({
+            getClearInterval,
+            getPerformanceMemory,
+            getSetInterval,
+        });
+
+        expect(runtime.getPerformanceMemory()).toBe(performanceMemory);
+        expect(runtime.setInterval(callback, 60_000)).toBe(intervalHandle);
+        runtime.clearInterval(intervalHandle);
+
+        expect(setInterval).toHaveBeenCalledExactlyOnceWith(callback, 60_000);
+        expect(clearInterval).toHaveBeenCalledExactlyOnceWith(intervalHandle);
+        expect(getPerformanceMemory).toHaveBeenCalledOnce();
+        expect(getSetInterval).toHaveBeenCalledOnce();
+        expect(getClearInterval).toHaveBeenCalledOnce();
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("detects development scopes from local renderer locations", () => {
         expect.assertions(4);
 
@@ -356,7 +394,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("ignores legacy direct browser, clock, and development runtime properties", () => {
-        expect.assertions(19);
+        expect.assertions(24);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -376,8 +414,10 @@ describe("masterStateRuntime", () => {
                 ] as unknown as NodeListOf<Element>
         );
         const addBodyClass = vi.fn();
+        const clearInterval = vi.fn();
         const dateNow = vi.fn<() => number>(() => 1234);
         const removeBodyClass = vi.fn();
+        const setInterval = vi.fn();
         const runtime = getMasterStateRuntime({
             __DEVELOPMENT__: true,
             AbortController:
@@ -397,8 +437,14 @@ describe("masterStateRuntime", () => {
             documentQueryScope: { querySelectorAll },
             dispatchEvent: dispatchGlobalEvent,
             eventTarget: { addEventListener: addWindowEventListener },
+            clearInterval,
             dateNow,
             location: { hostname: "localhost", protocol: "file:" },
+            performanceMemory: {
+                totalJSHeapSize: 2048,
+                usedJSHeapSize: 1024,
+            },
+            setInterval,
         } as unknown as Parameters<typeof getMasterStateRuntime>[0]);
         const listener = vi.fn();
         const event = new Event("stateChanged");
@@ -410,8 +456,15 @@ describe("masterStateRuntime", () => {
         expect(Array.from(runtime.getLoadingSensitiveElements())).toStrictEqual(
             []
         );
+        expect(runtime.getPerformanceMemory()).toBeUndefined();
         runtime.addGlobalEventListener("error", listener);
         runtime.addWindowEventListener("resize", listener);
+        expect(() => runtime.clearInterval(123)).toThrow(
+            "master state manager requires clearInterval runtime"
+        );
+        expect(() => runtime.setInterval(listener, 60_000)).toThrow(
+            "master state manager requires setInterval runtime"
+        );
         expect(() => runtime.addBodyClass("drag-over")).toThrow(
             "master state manager requires a document body runtime"
         );
@@ -437,7 +490,9 @@ describe("masterStateRuntime", () => {
         expect(dispatchGlobalEvent).not.toHaveBeenCalled();
         expect(querySelectorAll).not.toHaveBeenCalled();
         expect(addBodyClass).not.toHaveBeenCalled();
+        expect(clearInterval).not.toHaveBeenCalled();
         expect(removeBodyClass).not.toHaveBeenCalled();
+        expect(setInterval).not.toHaveBeenCalled();
     });
 
     it("throws when abort controllers are unavailable", () => {
@@ -453,6 +508,17 @@ describe("masterStateRuntime", () => {
 
         expect(() => getMasterStateRuntime({}).dateNow()).toThrow(
             "master state manager requires dateNow"
+        );
+    });
+
+    it("throws when interval primitives are unavailable", () => {
+        expect.assertions(2);
+
+        expect(() => getMasterStateRuntime({}).clearInterval(123)).toThrow(
+            "master state manager requires clearInterval runtime"
+        );
+        expect(() => getMasterStateRuntime({}).setInterval(vi.fn(), 1)).toThrow(
+            "master state manager requires setInterval runtime"
         );
     });
 });

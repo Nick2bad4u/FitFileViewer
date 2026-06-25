@@ -15,6 +15,16 @@ type MasterStateDocumentElement = {
     readonly hasAttribute?: Element["hasAttribute"] | undefined;
 };
 type MasterStateEventTarget = Pick<EventTarget, "addEventListener">;
+export type MasterStateIntervalHandle = ReturnType<
+    typeof globalThis.setInterval
+>;
+type MasterStatePerformanceMemory = {
+    readonly totalJSHeapSize: number;
+    readonly usedJSHeapSize: number;
+};
+type MasterStatePerformance = Performance & {
+    readonly memory?: MasterStatePerformanceMemory | undefined;
+};
 type MasterStateQueryScope = Pick<Document, "querySelectorAll">;
 
 export interface MasterStateRuntimeScope {
@@ -23,6 +33,9 @@ export interface MasterStateRuntimeScope {
         | undefined;
     readonly getAddEventListener?:
         | (() => typeof globalThis.addEventListener | undefined)
+        | undefined;
+    readonly getClearInterval?:
+        | (() => typeof globalThis.clearInterval | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
@@ -45,6 +58,12 @@ export interface MasterStateRuntimeScope {
         | (() => MasterStateEventTarget | undefined)
         | undefined;
     readonly getLocation?: (() => LocationLike | undefined) | undefined;
+    readonly getPerformanceMemory?:
+        | (() => MasterStatePerformanceMemory | undefined)
+        | undefined;
+    readonly getSetInterval?:
+        | (() => typeof globalThis.setInterval | undefined)
+        | undefined;
 }
 
 export interface MasterStateDevelopmentOptions {
@@ -69,16 +88,22 @@ export interface MasterStateRuntime {
         options?: Readonly<AddEventListenerOptions>
     ) => void;
     addBodyClass: (className: string) => void;
+    clearInterval: (handle: MasterStateIntervalHandle) => void;
     createAbortController: () => AbortController;
     dateNow: () => number;
     dispatchGlobalEvent: (event: Readonly<Event>) => boolean;
     getLoadingSensitiveElements: () => Iterable<HTMLElement>;
+    getPerformanceMemory: () => MasterStatePerformanceMemory | undefined;
     isDevelopmentScope: (
         options?: Readonly<MasterStateDevelopmentOptions>
     ) => boolean;
     readonly location: LocationLike;
     hasDevelopmentModeAttribute: () => boolean;
     removeBodyClass: (className: string) => void;
+    setInterval: (
+        callback: () => void,
+        delayMs: number
+    ) => MasterStateIntervalHandle;
 }
 
 function getLocationText(
@@ -96,6 +121,7 @@ function getGlobalDocument(): Document {
 const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
+    getClearInterval: () => globalThis.clearInterval,
     getDateNow: () => Date.now,
     getDocumentBody: () => getGlobalDocument().body,
     getDocumentElement: () => getGlobalDocument().documentElement,
@@ -104,6 +130,9 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getDispatchEvent: () => globalThis.dispatchEvent,
     getEventTarget: () => globalThis,
     getLocation: () => globalThis.location,
+    getPerformanceMemory: () =>
+        (globalThis.performance as MasterStatePerformance | undefined)?.memory,
+    getSetInterval: () => globalThis.setInterval,
 };
 
 function getScopeAbortController(
@@ -116,6 +145,19 @@ function getScopeAddEventListener(
     scope: MasterStateRuntimeScope
 ): typeof globalThis.addEventListener | undefined {
     return scope.getAddEventListener?.();
+}
+
+function getRequiredClearInterval(
+    scope: MasterStateRuntimeScope
+): typeof globalThis.clearInterval {
+    const clearIntervalRef = scope.getClearInterval?.();
+    if (typeof clearIntervalRef !== "function") {
+        throw new TypeError(
+            "master state manager requires clearInterval runtime"
+        );
+    }
+
+    return clearIntervalRef;
 }
 
 function getScopeDevelopmentFlag(
@@ -201,6 +243,19 @@ function getScopeLocation(
     return scope.getLocation?.();
 }
 
+function getRequiredSetInterval(
+    scope: MasterStateRuntimeScope
+): typeof globalThis.setInterval {
+    const setIntervalRef = scope.getSetInterval?.();
+    if (typeof setIntervalRef !== "function") {
+        throw new TypeError(
+            "master state manager requires setInterval runtime"
+        );
+    }
+
+    return setIntervalRef;
+}
+
 export function getMasterStateRuntime(
     scope: MasterStateRuntimeScope = defaultMasterStateRuntimeScope
 ): MasterStateRuntime {
@@ -222,6 +277,9 @@ export function getMasterStateRuntime(
         },
         addBodyClass(className): void {
             getRequiredDocumentBody(scope).classList.add(className);
+        },
+        clearInterval(handle): void {
+            getRequiredClearInterval(scope)(handle);
         },
         addGlobalEventListener(type, listener, options): void {
             const addEventListenerRef = getScopeAddEventListener(scope);
@@ -266,6 +324,9 @@ export function getMasterStateRuntime(
                 )?.querySelectorAll<HTMLElement>(".loading-sensitive") ?? []
             );
         },
+        getPerformanceMemory(): MasterStatePerformanceMemory | undefined {
+            return scope.getPerformanceMemory?.();
+        },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();
             const eventTarget = getScopeEventTarget(scope);
@@ -301,6 +362,9 @@ export function getMasterStateRuntime(
         },
         removeBodyClass(className): void {
             getRequiredDocumentBody(scope).classList.remove(className);
+        },
+        setInterval(callback, delayMs): MasterStateIntervalHandle {
+            return getRequiredSetInterval(scope)(callback, delayMs);
         },
     };
 }
