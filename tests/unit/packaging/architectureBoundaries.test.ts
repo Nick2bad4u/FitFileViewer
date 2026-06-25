@@ -19403,7 +19403,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(60);
+        expect.assertions(67);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -19432,6 +19432,19 @@ describe("architecture boundaries", () => {
         );
         const mapDrawLapsSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/layers/mapDrawLaps.ts")
+        );
+        const mapDrawLapsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/layers/mapDrawLapsRuntime.ts"
+            )
+        );
+        const mapDrawLapsRuntimeScopeSource = mapDrawLapsRuntimeSource.slice(
+            mapDrawLapsRuntimeSource.indexOf(
+                "export interface MapDrawLapsRuntimeScope"
+            ),
+            mapDrawLapsRuntimeSource.indexOf(
+                "export interface MapDrawLapsRuntime"
+            )
         );
         const allowed = new Set<string>(
             leafletCompatibilityGlobalDefinitionAllowedFiles
@@ -19541,6 +19554,21 @@ describe("architecture boundaries", () => {
         expect(viteRendererConfig).not.toContain("leaflet.markercluster");
         expect(renderMapSource).not.toContain("markerClusterGroup");
         expect(mapDrawLapsSource).not.toContain("markerClusterGroup");
+        expect(mapDrawLapsSource).toContain("runtime.isSVGElement");
+        expect(mapDrawLapsSource).not.toContain("instanceof SVGElement");
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "getSVGElement: () => globalThis.SVGElement"
+        );
+        expect(mapDrawLapsRuntimeScopeSource).not.toContain(
+            "readonly SVGElement?:"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain("scope.SVGElement");
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "const SVGElementConstructor = scope.getSVGElement?.();"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "mapDrawLapsRuntime requires SVGElement"
+        );
         expect(viteRendererConfig).not.toContain(
             "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"
         );

@@ -10,6 +10,9 @@ export interface MapDrawLapsRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
+    readonly getSVGElement?:
+        | (() => typeof globalThis.SVGElement | undefined)
+        | undefined;
 }
 
 export interface MapDrawLapsRuntime {
@@ -18,6 +21,7 @@ export interface MapDrawLapsRuntime {
         tagName: K
     ) => HTMLElementTagNameMap[K];
     createTextNode: (data: string) => Text;
+    isSVGElement: (value: unknown) => value is SVGElement;
     setTimeout: (callback: () => void, delayMs: number) => MapDrawLapsTimer;
 }
 
@@ -25,6 +29,7 @@ const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getSetTimeout: () => globalThis.setTimeout,
+    getSVGElement: () => globalThis.SVGElement,
 };
 
 function getScopeClearTimeout(
@@ -43,6 +48,17 @@ function getScopeSetTimeout(
     scope: MapDrawLapsRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
     return scope.getSetTimeout?.();
+}
+
+function getRequiredSVGElement(
+    scope: MapDrawLapsRuntimeScope
+): typeof globalThis.SVGElement {
+    const SVGElementConstructor = scope.getSVGElement?.();
+    if (typeof SVGElementConstructor !== "function") {
+        throw new TypeError("mapDrawLapsRuntime requires SVGElement");
+    }
+
+    return SVGElementConstructor;
 }
 
 function getRequiredDocument(
@@ -75,6 +91,9 @@ export function getMapDrawLapsRuntime(
         },
         createTextNode(data): Text {
             return getRequiredDocument(scope).createTextNode(data);
+        },
+        isSVGElement(value): value is SVGElement {
+            return value instanceof getRequiredSVGElement(scope);
         },
         setTimeout(callback, delayMs): MapDrawLapsTimer {
             const setTimeoutRef = getScopeSetTimeout(scope);

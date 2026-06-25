@@ -596,6 +596,9 @@ of calling timer globals directly inside `mapDrawLaps.ts`, with focused runtime 
 guardrails blocking those direct timer globals from returning. Explicit map draw-laps runtime scopes must now
 provide timer primitives instead of falling back to `globalThis`, with focused coverage and architecture coverage
 blocking those ambient fallbacks from returning.
+Map draw-laps marker SVG element checks now also route through `mapDrawLapsRuntime.ts` instead of checking
+`SVGElement` directly inside `mapDrawLaps.ts`, with focused runtime coverage and architecture guardrails blocking
+direct SVGElement checks and legacy direct SVGElement scope properties from returning.
 Renderer state integration example subscription cleanup scheduling, cleanup, state-aware event-handler
 abort-controller creation, reactive UI document access, and state-aware event target/content element checks now route
 through `rendererStateIntegrationRuntime.ts` instead of calling timer globals, constructing `AbortController`,

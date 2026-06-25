@@ -161,6 +161,7 @@ type DrawOverlayForFitFileOptions = {
     ) => null | number | undefined;
     map: MapLike;
     overlayIdx?: number | undefined;
+    runtime?: MapDrawLapsRuntime | undefined;
     startIcon?: unknown;
 };
 
@@ -210,6 +211,7 @@ type DrawLoadedFitFileOverlaysOptions = {
     getLapNumForIdx: MapDrawLapsOptions["getLapNumForIdx"];
     leaflet: LeafletRuntimeLike;
     map: MapLike;
+    runtime: MapDrawLapsRuntime;
     startIcon?: unknown;
 };
 
@@ -224,6 +226,7 @@ export function drawOverlayForFitFile({
     getLapNumForIdx,
     map,
     overlayIdx,
+    runtime = getMapDrawLapsRuntime(),
     startIcon,
 }: DrawOverlayForFitFileOptions): LeafletBoundsLike | null {
     const L = getLeaflet();
@@ -330,7 +333,7 @@ export function drawOverlayForFitFile({
                 marker.on("add", () => {
                     try {
                         const el = marker.getElement && marker.getElement();
-                        if (el instanceof SVGElement) {
+                        if (runtime.isSVGElement(el)) {
                             el.style.filter = `drop-shadow(0 0 4px ${paletteColor || "#1976d2"})`;
                         }
                     } catch {
@@ -727,6 +730,7 @@ export function mapDrawLaps(
             getLapNumForIdx,
             leaflet: L,
             map,
+            runtime,
             startIcon,
         });
         if (lastOverlayBounds) {
@@ -861,6 +865,7 @@ export function mapDrawLaps(
                 getLapNumForIdx,
                 leaflet: L,
                 map,
+                runtime,
                 startIcon,
             });
             if (lastOverlayBounds) {
@@ -968,6 +973,7 @@ export function mapDrawLaps(
             getLapNumForIdx,
             leaflet: L,
             map,
+            runtime,
             startIcon,
         });
         if (lastOverlayBounds) {
@@ -1168,6 +1174,7 @@ export function mapDrawLaps(
             getLapNumForIdx,
             leaflet: L,
             map,
+            runtime,
             startIcon,
         });
         if (lastOverlayBounds) {
@@ -1271,6 +1278,7 @@ function drawLoadedFitFileOverlays({
     getLapNumForIdx,
     leaflet,
     map,
+    runtime,
     startIcon,
 }: DrawLoadedFitFileOverlaysOptions): LeafletBoundsLike | null {
     let lastOverlayBounds: LeafletBoundsLike | null = null;
@@ -1304,6 +1312,7 @@ function drawLoadedFitFileOverlays({
                 getLapNumForIdx,
                 map,
                 overlayIdx: fileIndex,
+                runtime,
                 startIcon,
             });
 
