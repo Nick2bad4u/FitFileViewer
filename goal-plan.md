@@ -613,8 +613,8 @@ Main UI summary selector tab lookup, gear-button lookup, and delayed gear-button
 `mainUiSummaryColumnSelector.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 DOM/timer globals from returning. Main UI summary selector runtime scopes now also resolve document access,
 HTMLElement checks, and timer scheduling through named provider functions instead of a broad `globalThis` default
-scope or direct document/constructor/timer properties, and default document access now centralizes through
-`getGlobalDocument()` instead of repeating `globalThis.document`, with focused coverage and architecture coverage
+scope or direct document/constructor/timer properties, and default document access now lives on the named default
+provider instead of a private `getGlobalDocument()` helper, with focused coverage and architecture coverage
 blocking the legacy runtime shape from returning.
 Summary column modal tooltip viewport reads and modal listener abort-controller creation now route through
 `summaryColModalRuntime.ts` instead of reading viewport globals or constructing `AbortController` directly inside

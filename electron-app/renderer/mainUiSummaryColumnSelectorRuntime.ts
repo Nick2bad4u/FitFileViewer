@@ -25,14 +25,10 @@ export interface MainUiSummaryColumnSelectorRuntime {
 
 const defaultMainUiSummaryColumnSelectorRuntimeScope: MainUiSummaryColumnSelectorRuntimeScope =
     {
-        getDocument: () => getGlobalDocument(),
+        getDocument: () => globalThis.document,
         getHTMLElement: () => globalThis.HTMLElement,
         getSetTimeout: () => globalThis.setTimeout,
     };
-
-function getGlobalDocument(): Document {
-    return globalThis.document;
-}
 
 function isHTMLElement(
     scope: MainUiSummaryColumnSelectorRuntimeScope,

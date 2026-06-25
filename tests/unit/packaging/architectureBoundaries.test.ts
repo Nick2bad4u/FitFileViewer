@@ -5698,11 +5698,9 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).not.toContain("scope.setTimeout");
         expect(runtimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocument: () => globalThis.document"
         );
-        expect(runtimeSource).toContain(
-            "getDocument: () => getGlobalDocument()"
-        );
+        expect(runtimeSource).not.toContain("function getGlobalDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
