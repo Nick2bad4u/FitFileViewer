@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+
 export interface DomHelpersRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -11,7 +13,7 @@ export interface DomHelpersRuntime {
 }
 
 const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
 };
 

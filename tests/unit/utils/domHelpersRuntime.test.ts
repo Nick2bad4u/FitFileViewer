@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { getDomHelpersRuntime } from "../../../electron-app/utils/dom/domHelpersRuntime.js";
 
 describe("getDomHelpersRuntime", () => {
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getDomHelpersRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
