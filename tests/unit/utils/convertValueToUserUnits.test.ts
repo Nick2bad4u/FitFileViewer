@@ -1,22 +1,31 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { convertValueToUserUnits } from "../../../electron-app/utils/formatting/converters/convertValueToUserUnits.js";
-import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
+
+type ConvertValueToUserUnits =
+    typeof import("../../../electron-app/utils/formatting/converters/convertValueToUserUnits.js").convertValueToUserUnits;
+
+const settingsMocks = vi.hoisted(() => ({
+    getChartSetting: vi.fn<(key: string) => unknown>(),
+}));
 
 vi.mock(
     import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
-        getChartSetting: vi.fn<(key: string) => unknown>(),
+        getChartSetting: settingsMocks.getChartSetting,
     })
 );
 
-const mockGetChartSetting = vi.mocked(getChartSetting);
+const mockGetChartSetting = settingsMocks.getChartSetting;
 
-describe(convertValueToUserUnits, () => {
+describe("convertValueToUserUnits", () => {
+    let convertValueToUserUnits: ConvertValueToUserUnits;
     let errorSpy: ReturnType<typeof vi.spyOn>,
         warnSpy: ReturnType<typeof vi.spyOn>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        vi.resetModules();
         vi.clearAllMocks();
+        ({ convertValueToUserUnits } =
+            await import("../../../electron-app/utils/formatting/converters/convertValueToUserUnits.js"));
         errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
         warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         mockGetChartSetting.mockReturnValue(undefined);

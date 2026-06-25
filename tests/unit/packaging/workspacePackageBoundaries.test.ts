@@ -140,6 +140,7 @@ const staleNestedGeneratedAppPaths = [
 
 const expectedElectronAppRootEntries = [
     "fitParser.ts",
+    "fitParserRuntime.ts",
     "main",
     "main-ui.ts",
     "main.ts",
