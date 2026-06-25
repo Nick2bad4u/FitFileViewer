@@ -15966,7 +15966,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(35);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -16056,12 +16056,21 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(openFileSelectorRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(openFileSelectorRuntimeSource).toContain(
+            "getNavigator: getBrowserNavigator"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
             "getNavigator: () => globalThis.navigator"
         );
         expect(openFileSelectorRuntimeSource).toContain(
+            "getQueueMicrotask: getBrowserQueueMicrotask"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
             "getQueueMicrotask: () => globalThis.queueMicrotask"
         );
         expect(openFileSelectorRuntimeSource).toContain(
@@ -16075,6 +16084,9 @@ describe("architecture boundaries", () => {
         );
         expect(openFileSelectorRuntimeSource).toContain(
             "getBrowserSetTimeout"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getBrowserQueueMicrotask"
         );
     });
 

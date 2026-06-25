@@ -66,6 +66,24 @@ describe("getOpenFileSelectorRuntime", () => {
         input.remove();
     });
 
+    it("uses browser runtime providers for production document and navigator defaults", () => {
+        expect.assertions(4);
+
+        vi.stubGlobal("navigator", { userAgent: "jsdom/26.0" });
+
+        const runtime = getOpenFileSelectorRuntime();
+        const input = runtime.createInput();
+
+        runtime.appendToBody(input);
+
+        expect(input).toBeInstanceOf(HTMLInputElement);
+        expect(document.body.contains(input)).toBe(true);
+        expect(runtime.isJsdom()).toBe(true);
+        expect(input.ownerDocument).toBe(document);
+
+        input.remove();
+    });
+
     it("detects jsdom from the injected navigator user agent", () => {
         expect.assertions(2);
 
@@ -96,6 +114,25 @@ describe("getOpenFileSelectorRuntime", () => {
         });
 
         expect(microtaskRan).toBe(true);
+    });
+
+    it("uses browser runtime providers for production microtask defaults", () => {
+        expect.assertions(2);
+
+        let microtaskRan = false;
+        const queueMicrotask = vi.fn<typeof globalThis.queueMicrotask>(
+            (callback) => {
+                callback();
+            }
+        );
+        vi.stubGlobal("queueMicrotask", queueMicrotask);
+
+        getOpenFileSelectorRuntime().queueMicrotask(() => {
+            microtaskRan = true;
+        });
+
+        expect(microtaskRan).toBe(true);
+        expect(queueMicrotask).toHaveBeenCalledOnce();
     });
 
     it("throws when microtask scheduling is unavailable", () => {

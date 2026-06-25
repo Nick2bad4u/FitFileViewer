@@ -1,6 +1,9 @@
 import {
     getBrowserAbortController,
     getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserNavigator,
+    getBrowserQueueMicrotask,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -97,9 +100,9 @@ function getRequiredSetTimeout(
 const defaultOpenFileSelectorRuntimeScope: OpenFileSelectorRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
-    getDocument: () => globalThis.document,
-    getNavigator: () => globalThis.navigator,
-    getQueueMicrotask: () => globalThis.queueMicrotask,
+    getDocument: getBrowserDocument,
+    getNavigator: getBrowserNavigator,
+    getQueueMicrotask: getBrowserQueueMicrotask,
     getSetTimeout: getBrowserSetTimeout,
 };
 
