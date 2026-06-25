@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createMainUiSummaryColumnSelectorHandler } from "../../../electron-app/renderer/mainUiSummaryColumnSelector.js";
 import {
@@ -28,6 +28,11 @@ function createRuntime({
 }
 
 describe("main UI summary column selector", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+        vi.unstubAllGlobals();
+    });
+
     it("clicks the summary tab before opening the delayed gear selector", () => {
         expect.assertions(6);
 
@@ -160,6 +165,32 @@ describe("main UI summary column selector", () => {
         expect(runtime.getSummaryTab("missing")).toBeNull();
 
         document.body.replaceChildren();
+    });
+
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(4);
+
+        const summaryTab = document.createElement("button");
+        summaryTab.id = "tab-summary";
+        document.body.append(summaryTab);
+        const gearButton = document.createElement("button");
+        gearButton.className = "summary-gear-btn";
+        document.body.append(gearButton);
+        const delayMs = Number("250");
+        const timer = 51 as MainUiSummaryColumnSelectorTimer;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const runtime = getMainUiSummaryColumnSelectorRuntime();
+        const callback = vi.fn();
+
+        expect(runtime.getSummaryTab("tab-summary")).toBe(summaryTab);
+        expect(runtime.getSummaryGearButton(".summary-gear-btn")).toBe(
+            gearButton
+        );
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
     });
 
     it("schedules through the injected timeout runtime", () => {

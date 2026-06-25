@@ -5739,7 +5739,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(20);
 
         const violations = migratedMainUiSummarySelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -5783,11 +5783,26 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).not.toContain("scope.setTimeout");
         expect(runtimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(runtimeSource).toContain(
+            "getDocument: getBrowserRendererDocument"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: getBrowserRendererHTMLElement"
+        );
+        expect(runtimeSource).toContain(
+            "getSetTimeout: getBrowserRendererSetTimeout"
+        );
+        expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(runtimeSource).not.toContain("function getGlobalDocument");
-        expect(runtimeSource).toContain(
+        expect(runtimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(runtimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
     });
 

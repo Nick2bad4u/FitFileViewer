@@ -64,6 +64,12 @@ export function getBrowserRendererHTMLScriptElement():
     return globalThis.HTMLScriptElement;
 }
 
+export function getBrowserRendererHTMLElement():
+    | typeof globalThis.HTMLElement
+    | undefined {
+    return globalThis.HTMLElement;
+}
+
 export function getBrowserRendererLocation(): Location | undefined {
     return globalThis.location;
 }
