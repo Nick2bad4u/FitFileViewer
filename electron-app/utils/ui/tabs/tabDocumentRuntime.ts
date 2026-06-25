@@ -1,3 +1,9 @@
+import {
+    getBrowserDocument,
+    getBrowserElement,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 export interface TabDocumentRuntimeScope {
     readonly getDocument?: (() => unknown) | undefined;
     readonly getElement?:
@@ -37,9 +43,9 @@ function getScopeDocument(
 }
 
 const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getElement: () => globalThis.Element,
-    getHTMLElement: () => globalThis.HTMLElement,
+    getDocument: getBrowserDocument,
+    getElement: getBrowserElement,
+    getHTMLElement: getBrowserHTMLElement,
 };
 
 function getElementConstructor(
