@@ -19467,7 +19467,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(67);
+        expect.assertions(68);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -19563,13 +19563,16 @@ describe("architecture boundaries", () => {
         expect(vendorMapRuntimeSource).not.toContain("getGlobalScope");
         expect(vendorMapRuntimeSource).toContain("deleteGlobalProperty");
         expect(leafletMeasureLiteRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(leafletMeasureLiteRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(leafletMeasureLiteRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
         expect(leafletMeasureLiteRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.();"
+            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");

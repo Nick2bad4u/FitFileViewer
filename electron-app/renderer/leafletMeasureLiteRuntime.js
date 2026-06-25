@@ -1,9 +1,9 @@
 const defaultLeafletMeasureLiteRuntimeScope = {
-    getDocumentEventTarget: () => globalThis.document,
+    getDocument: () => globalThis.document,
 };
 
 function getDocumentEventTarget(scope) {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getRequiredDocumentEventTarget(scope) {

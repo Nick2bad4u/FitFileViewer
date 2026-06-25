@@ -23,6 +23,29 @@ describe("leafletMeasureLiteRuntime", () => {
         expect(handledEventTypes).toStrictEqual(["keydown"]);
     });
 
+    it("derives keydown listeners from the scoped document provider", () => {
+        expect.assertions(3);
+
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const handledEventTypes: string[] = [];
+        const listener = (event: Event): void => {
+            handledEventTypes.push(event.type);
+        };
+        const runtime = getLeafletMeasureLiteRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentKeydownListener(listener);
+        documentRef.dispatchEvent(new Event("keydown"));
+        runtime.removeDocumentKeydownListener(listener);
+        documentRef.dispatchEvent(new Event("keydown"));
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener);
+        expect(handledEventTypes).toStrictEqual(["keydown"]);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("ignores legacy direct document event-target runtime properties", () => {
         expect.assertions(3);
 
