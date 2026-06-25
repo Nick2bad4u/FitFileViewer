@@ -40,6 +40,35 @@ describe("getSummaryColModalRuntime", () => {
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production DOM and event defaults", () => {
+        expect.assertions(7);
+
+        const runtime = getSummaryColModalRuntime();
+        const button = document.createElement("button");
+
+        document.body.append(button);
+        button.focus();
+
+        try {
+            const div = runtime.createElement("div");
+            const text = runtime.createTextNode("Modal text");
+
+            expect(div).toBeInstanceOf(HTMLDivElement);
+            expect(text.data).toBe("Modal text");
+            expect(runtime.getActiveElement()).toBe(button);
+            expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+                true
+            );
+            expect(runtime.isMouseEvent(new MouseEvent("mousedown"))).toBe(
+                true
+            );
+            expect(runtime.getViewport().height).toBe(globalThis.innerHeight);
+            expect(runtime.getViewport().width).toBe(globalThis.innerWidth);
+        } finally {
+            button.remove();
+        }
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 

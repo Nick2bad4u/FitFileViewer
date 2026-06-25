@@ -132,6 +132,12 @@ export function getBrowserKeyboardEvent():
     return globalThis.KeyboardEvent;
 }
 
+export function getBrowserMouseEvent():
+    | typeof globalThis.MouseEvent
+    | undefined {
+    return globalThis.MouseEvent;
+}
+
 export function getBrowserLocalStorage(): Storage | undefined {
     return globalThis.localStorage;
 }

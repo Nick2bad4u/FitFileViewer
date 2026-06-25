@@ -1,4 +1,11 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserKeyboardEvent,
+    getBrowserMouseEvent,
+    getBrowserViewport,
+} from "../../runtime/browserRuntime.js";
 
 export interface SummaryColModalRuntimeScope {
     readonly getAbortController?:
@@ -37,14 +44,11 @@ export interface SummaryColModalRuntime {
 
 const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getKeyboardEvent: () => globalThis.KeyboardEvent,
-    getMouseEvent: () => globalThis.MouseEvent,
-    getViewport: () => ({
-        height: globalThis.innerHeight,
-        width: globalThis.innerWidth,
-    }),
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getKeyboardEvent: getBrowserKeyboardEvent,
+    getMouseEvent: getBrowserMouseEvent,
+    getViewport: getBrowserViewport,
 };
 
 export function getSummaryColModalRuntime(

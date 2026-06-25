@@ -18411,7 +18411,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(51);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -18504,21 +18504,36 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(summaryColModalRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getMouseEvent: getBrowserMouseEvent"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getViewport: getBrowserViewport"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(summaryColModalRuntimeSource).toContain(
+        expect(summaryColModalRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
-        expect(summaryColModalRuntimeSource).toContain(
+        expect(summaryColModalRuntimeSource).not.toContain(
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
-        expect(summaryColModalRuntimeSource).toContain(
+        expect(summaryColModalRuntimeSource).not.toContain(
             "getMouseEvent: () => globalThis.MouseEvent"
         );
-        expect(summaryColModalRuntimeSource).toContain(
+        expect(summaryColModalRuntimeSource).not.toContain(
             "height: globalThis.innerHeight"
         );
-        expect(summaryColModalRuntimeSource).toContain(
+        expect(summaryColModalRuntimeSource).not.toContain(
             "width: globalThis.innerWidth"
         );
         expect(summaryColModalRuntimeSource).toContain(
