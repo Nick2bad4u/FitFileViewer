@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRenderMapRuntime } from "../../../../electron-app/utils/maps/core/renderMapRuntime.js";
 
 describe("getRenderMapRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("resolves the map container fallback through the injected document", () => {
         expect.assertions(3);
 
@@ -96,6 +101,39 @@ describe("getRenderMapRuntime", () => {
         const utils = getRenderMapRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses browser runtime providers for production scheduling defaults", () => {
+        expect.assertions(8);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const delayMs = Number("125");
+        const timer = 22 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrameMock =
+            vi.fn<typeof globalThis.requestAnimationFrame>(() => 5);
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrameMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const utils = getRenderMapRuntime();
+        const timerHandle = utils.setTimeout(callback, delayMs);
+        utils.clearTimeout(timerHandle);
+        utils.requestAnimationFrame(frameCallback);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(requestAnimationFrameMock).toHaveBeenCalledWith(frameCallback);
+        expect(requestAnimationFrameMock.mock.contexts[0]).toBe(globalThis);
+        expect(callback).not.toHaveBeenCalled();
+        expect(frameCallback).not.toHaveBeenCalled();
+        expect(setTimeoutMock).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when the Event runtime is unavailable", () => {

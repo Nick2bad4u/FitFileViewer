@@ -9456,7 +9456,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(39);
+        expect.assertions(43);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -9507,6 +9507,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(renderMapRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(renderMapRuntimeSource).toContain(
@@ -9516,9 +9519,15 @@ describe("architecture boundaries", () => {
             "getEvent: () => globalThis.Event"
         );
         expect(renderMapRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(renderMapRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(renderMapRuntimeScopeSource).not.toContain(
@@ -9565,6 +9574,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).not.toMatch(
             directRenderMapRuntimeAmbientTimerFallbackPattern
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getBrowserRequestAnimationFrame"
         );
         expect(renderMapRuntimeSource).toContain(
             "renderMap requires a setTimeout runtime"

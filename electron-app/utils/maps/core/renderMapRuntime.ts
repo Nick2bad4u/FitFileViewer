@@ -1,4 +1,9 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type RenderMapTimer = ReturnType<typeof globalThis.setTimeout>;
 
@@ -89,11 +94,11 @@ function getRequiredSetTimeout(
 
 const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
+    getClearTimeout: getBrowserClearTimeout,
     getDocument: () => globalThis.document,
     getEvent: () => globalThis.Event,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getSetTimeout: () => globalThis.setTimeout,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function getRenderMapRuntime(

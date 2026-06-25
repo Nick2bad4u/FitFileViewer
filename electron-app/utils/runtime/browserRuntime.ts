@@ -62,6 +62,14 @@ export function getBrowserRequestIdleCallback():
         : undefined;
 }
 
+export function getBrowserRequestAnimationFrame():
+    | typeof globalThis.requestAnimationFrame
+    | undefined {
+    return typeof globalThis.requestAnimationFrame === "function"
+        ? globalThis.requestAnimationFrame.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserSetInterval():
     | typeof globalThis.setInterval
     | undefined {
