@@ -63,8 +63,26 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(documentRef.head.contains(style)).toBe(true);
     });
 
+    it("creates change events through the injected Event runtime", () => {
+        expect.assertions(3);
+
+        class TestEvent extends Event {
+            public constructor(type: string) {
+                super(`test:${type}`);
+            }
+        }
+        const runtime = getCreateSettingsHeaderRuntime({
+            getEvent: () => TestEvent,
+        });
+        const event = runtime.createChangeEvent();
+
+        expect(event).toBeInstanceOf(TestEvent);
+        expect(event.type).toBe("test:change");
+        expect(event.bubbles).toBe(false);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const runtime = getCreateSettingsHeaderRuntime({});
 
@@ -88,6 +106,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(() =>
             runtime.appendToHead(document.createElement("style"))
         ).toThrow("createSettingsHeader requires a document runtime");
+        expect(() => runtime.createChangeEvent()).toThrow(
+            "createSettingsHeader requires an Event runtime"
+        );
     });
 
     it("creates abort controllers through the injected runtime provider", () => {
@@ -150,7 +171,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
     });
 
     it("routes all defaults through provider functions", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const callback = vi.fn<() => void>();
         let keydownCount = 0;
@@ -183,12 +204,19 @@ describe("getCreateSettingsHeaderRuntime", () => {
         const getClearTimeout = vi.fn(() => clearScheduledTimeout);
         const getDocument = vi.fn(() => documentRef);
         const getDocumentEventTarget = vi.fn(() => documentEventTarget);
+        class TestEvent extends Event {
+            public constructor(type: string) {
+                super(`test:${type}`);
+            }
+        }
+        const getEvent = vi.fn(() => TestEvent);
         const getSetTimeout = vi.fn(() => scheduleTimeout);
         const runtime = getCreateSettingsHeaderRuntime({
             getAbortController,
             getClearTimeout,
             getDocument,
             getDocumentEventTarget,
+            getEvent,
             getSetTimeout,
         });
 
@@ -202,13 +230,17 @@ describe("getCreateSettingsHeaderRuntime", () => {
             signal: controller.signal,
         });
         documentEventTarget.dispatchEvent(new KeyboardEvent("keydown"));
+        const changeEvent = runtime.createChangeEvent();
         expect(runtime.createAbortController()).toBe(controller);
 
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledTimes(4);
         expect(getDocumentEventTarget).toHaveBeenCalledOnce();
+        expect(getEvent).toHaveBeenCalledOnce();
         expect(getAbortController).toHaveBeenCalledOnce();
+        expect(changeEvent).toBeInstanceOf(TestEvent);
+        expect(changeEvent.type).toBe("test:change");
         expect(createElement).toHaveBeenCalledWith("div");
         expect(createElement).toHaveBeenCalledWith("style");
         expect(bodyAppend).toHaveBeenCalledWith(div);
@@ -219,7 +251,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         const callback = vi.fn<() => void>();
         const timer = 71 as ReturnType<typeof globalThis.setTimeout>;
@@ -236,9 +268,13 @@ describe("getCreateSettingsHeaderRuntime", () => {
                 return controller;
             }
         );
+        const EventConstructor = vi.fn(function FakeEvent() {
+            return new Event("legacy");
+        });
         const runtime = getCreateSettingsHeaderRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
+            Event: EventConstructor as unknown as typeof Event,
             clearTimeout,
             document: documentRef,
             documentEventTarget,
@@ -257,6 +293,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "createSettingsHeader requires an AbortController runtime"
         );
+        expect(() => runtime.createChangeEvent()).toThrow(
+            "createSettingsHeader requires an Event runtime"
+        );
         expect(() => runtime.createElement("div")).toThrow(
             "createSettingsHeader requires a document runtime"
         );
@@ -271,6 +310,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(listener).not.toHaveBeenCalled();
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(EventConstructor).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
         expect(documentEventTarget.body.childElementCount).toBe(0);
         expect(documentRef.body.childElementCount).toBe(0);

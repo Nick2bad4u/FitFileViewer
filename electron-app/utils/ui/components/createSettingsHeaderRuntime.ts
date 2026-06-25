@@ -11,6 +11,7 @@ export interface CreateSettingsHeaderRuntimeScope {
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
+    readonly getEvent?: (() => typeof globalThis.Event | undefined) | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -27,6 +28,7 @@ export interface CreateSettingsHeaderRuntime {
         timer: CreateSettingsHeaderTimer | undefined
     ) => void;
     readonly createAbortController: () => AbortController;
+    readonly createChangeEvent: () => Event;
     readonly createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
@@ -63,6 +65,17 @@ function getDocumentEventTarget(
     return scope.getDocumentEventTarget?.();
 }
 
+function getEventConstructor(
+    scope: CreateSettingsHeaderRuntimeScope
+): typeof globalThis.Event {
+    const EventConstructor = scope.getEvent?.();
+    if (typeof EventConstructor !== "function") {
+        throw new TypeError("createSettingsHeader requires an Event runtime");
+    }
+
+    return EventConstructor;
+}
+
 function getSetTimeout(
     scope: CreateSettingsHeaderRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
@@ -75,6 +88,7 @@ const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope 
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,
         getDocumentEventTarget: () => globalThis.document,
+        getEvent: () => globalThis.Event,
         getSetTimeout: () => globalThis.setTimeout,
     };
 
@@ -122,6 +136,9 @@ export function getCreateSettingsHeaderRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createChangeEvent(): Event {
+            return new (getEventConstructor(scope))("change");
         },
         createElement(tagName) {
             return getDocument(scope).createElement(tagName);

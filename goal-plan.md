@@ -548,6 +548,9 @@ Chart settings header settings-panel DOM creation, chart-selection modal DOM cre
 range-slider style head append now also route through `createSettingsHeaderRuntime.ts`, with focused runtime
 coverage and architecture guardrails blocking direct `document.createElement`, `document.body`, and `document.head`
 access from returning to `createSettingsHeader.ts`.
+Chart settings header select change-event construction now also routes through `createSettingsHeaderRuntime.ts`
+instead of calling `new Event("change")` directly inside `createSettingsHeader.ts`, with focused runtime coverage
+and architecture guardrails blocking direct Event construction and legacy direct Event scope properties from returning.
 Current chart settings reset UI timer scheduling and cleanup now route through `getCurrentSettingsRuntime.ts`
 instead of calling timer globals directly inside `getCurrentSettings.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct timer globals from returning. Explicit current-settings runtime scopes

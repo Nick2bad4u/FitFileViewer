@@ -1119,7 +1119,9 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
                     newIdx = (option.options?.length ?? 1) - 1;
                 }
                 select.value = String(option.options?.[newIdx] ?? "");
-                select.dispatchEvent(new Event("change"));
+                select.dispatchEvent(
+                    createSettingsHeaderRuntime().createChangeEvent()
+                );
             },
             { passive: false, signal: selectSignal }
         );
