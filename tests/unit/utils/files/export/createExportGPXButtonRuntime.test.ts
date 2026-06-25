@@ -150,6 +150,40 @@ describe("getCreateExportGPXButtonRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production document and URL defaults", () => {
+        expect.assertions(7);
+
+        const createObjectURL = vi.fn<(blob: Blob) => string>(
+            () => "blob:track"
+        );
+        const revokeObjectURL = vi.fn<(url: string) => void>();
+        const urlRuntime = {
+            createObjectURL,
+            revokeObjectURL,
+        } satisfies Pick<typeof globalThis.URL, "createObjectURL" | "revokeObjectURL">;
+        const blob = new Blob(["track"]);
+
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("URL", urlRuntime);
+
+        const runtime = getCreateExportGPXButtonRuntime();
+        const link = runtime.createElement("a");
+
+        expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(link).toBeInstanceOf(HTMLAnchorElement);
+        expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+        expect(runtime.createObjectURL(blob)).toBe("blob:track");
+
+        runtime.appendToBody(link);
+        runtime.revokeObjectURL("blob:track");
+
+        expect(link.isConnected).toBe(true);
+        expect(createObjectURL).toHaveBeenCalledWith(blob);
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:track");
+
+        link.remove();
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(1);
 

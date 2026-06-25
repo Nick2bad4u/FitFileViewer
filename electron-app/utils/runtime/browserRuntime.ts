@@ -254,6 +254,10 @@ export function getBrowserSetTimeout():
     return globalThis.setTimeout;
 }
 
+export function getBrowserURL(): typeof globalThis.URL | undefined {
+    return globalThis.URL;
+}
+
 export function getBrowserScrollTo():
     | ((options: Readonly<ScrollToOptions>) => void)
     | undefined {

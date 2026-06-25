@@ -1,6 +1,8 @@
 import {
     getBrowserAbortController,
+    getBrowserDocument,
     getBrowserSetTimeout,
+    getBrowserURL,
 } from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
@@ -83,9 +85,9 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(
 const defaultCreateExportGPXButtonRuntimeScope: CreateExportGPXButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
         getSetTimeout: getBrowserSetTimeout,
-        getURL: () => globalThis.URL,
+        getURL: getBrowserURL,
     };
 
 export function getCreateExportGPXButtonRuntime(
