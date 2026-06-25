@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 type ShowUpdateNotificationDocument = Pick<
     Document,
     "createElement" | "querySelector"
@@ -18,7 +20,7 @@ export interface ShowUpdateNotificationRuntime {
 
 const defaultShowUpdateNotificationRuntimeScope: ShowUpdateNotificationRuntimeScope =
     {
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
     };
 
 function getRequiredDocument(

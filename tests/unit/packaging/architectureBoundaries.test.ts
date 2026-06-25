@@ -8759,7 +8759,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update notification DOM access behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const violations = migratedShowUpdateNotificationDomRuntimeFiles
             .filter((relativeFile) =>
@@ -8812,6 +8812,12 @@ describe("architecture boundaries", () => {
             "defaultShowUpdateNotificationRuntimeScope"
         );
         expect(showUpdateNotificationRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(showUpdateNotificationRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(showUpdateNotificationRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(showUpdateNotificationRuntimeScopeSource).not.toContain(

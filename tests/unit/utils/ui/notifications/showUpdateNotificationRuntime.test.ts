@@ -27,6 +27,27 @@ describe("getShowUpdateNotificationRuntime", () => {
         expect(button.tagName).toBe("BUTTON");
     });
 
+    it("uses the shared browser document provider for production defaults", () => {
+        expect.assertions(4);
+
+        const host = document.createElement("div");
+        host.id = "notification";
+        document.body.append(host);
+
+        try {
+            const utils = getShowUpdateNotificationRuntime();
+            const queried = utils.queryNotificationElement("#notification");
+            const button = utils.createElement("button");
+
+            expect(queried).toBe(host);
+            expect(button).toBeInstanceOf(HTMLButtonElement);
+            expect(button.ownerDocument).toBe(document);
+            expect(button.tagName).toBe("BUTTON");
+        } finally {
+            host.remove();
+        }
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(2);
 
