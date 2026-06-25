@@ -195,7 +195,7 @@ export function getBrowserSetTimeout():
 }
 
 export function getBrowserViewport():
-    | Readonly<{ height?: number | undefined; width?: number | undefined }>
+    | Readonly<{ height: number; width: number }>
     | undefined {
     return {
         height: globalThis.innerHeight,

@@ -1,4 +1,12 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserEventTarget,
+    getBrowserHTMLElement,
+    getBrowserSetTimeout,
+    getBrowserViewport,
+} from "../../runtime/browserRuntime.js";
 
 export type ShownFilesListTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
@@ -77,17 +85,30 @@ export interface ShownFilesListRuntime {
     ) => ShownFilesListTimerHandle;
 }
 
+function getShownFilesListEventTarget():
+    | ShownFilesListMouseMoveEventTarget
+    | undefined {
+    const eventTarget = getBrowserEventTarget();
+    if (!eventTarget) {
+        return undefined;
+    }
+
+    return {
+        addEventListener(type, listener, options): void {
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The runtime call site requires and forwards the caller-owned AbortSignal.
+            eventTarget.addEventListener(type, listener as EventListener, options);
+        },
+    };
+}
+
 const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDocument: () => globalThis.document,
-    getEventTarget: () => globalThis,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getSetTimeout: () => globalThis.setTimeout,
-    getViewport: () => ({
-        height: globalThis.innerHeight,
-        width: globalThis.innerWidth,
-    }),
+    getClearTimeout: getBrowserClearTimeout,
+    getDocument: getBrowserDocument,
+    getEventTarget: getShownFilesListEventTarget,
+    getHTMLElement: getBrowserHTMLElement,
+    getSetTimeout: getBrowserSetTimeout,
+    getViewport: getBrowserViewport,
 };
 
 function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {

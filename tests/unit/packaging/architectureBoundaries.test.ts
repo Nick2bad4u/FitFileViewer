@@ -20561,7 +20561,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(59);
+        expect.assertions(69);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -20666,7 +20666,43 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(shownFilesListRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getEventTarget: getShownFilesListEventTarget"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "const eventTarget = getBrowserEventTarget();"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getViewport: getBrowserViewport"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "getEventTarget: () => globalThis"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "height: globalThis.innerHeight"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "getRequiredDocument(scope).createElement"
@@ -20680,12 +20716,6 @@ describe("architecture boundaries", () => {
         expect(shownFilesListRuntimeSource).toContain("isDarkTheme(): boolean");
         expect(shownFilesListRuntimeSource).toContain(
             '.classList.contains(\n                "theme-dark"'
-        );
-        expect(shownFilesListRuntimeSource).toContain(
-            "getEventTarget: () => globalThis"
-        );
-        expect(shownFilesListRuntimeSource).toContain(
-            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "scope.getHTMLElement?.()"
