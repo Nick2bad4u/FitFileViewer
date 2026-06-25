@@ -5135,7 +5135,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer startup performance timing behind its runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const startupPerformanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -5164,6 +5164,12 @@ describe("architecture boundaries", () => {
             "defaultStartupPerformanceMonitorRuntimeScope"
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "getPerformance: getBrowserRendererPerformance"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
@@ -11864,7 +11870,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(20);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -11920,12 +11926,24 @@ describe("architecture boundaries", () => {
             "scope.performance"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getLocation: getBrowserRendererLocation"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getNavigator: getBrowserRendererNavigator"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getPerformance: getBrowserRendererPerformance"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
             "getLocation: () => globalThis.location"
         );
-        expect(developmentDebugToolsRuntimeSource).toContain(
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
             "getNavigator: () => globalThis.navigator"
         );
-        expect(developmentDebugToolsRuntimeSource).toContain(
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
     });

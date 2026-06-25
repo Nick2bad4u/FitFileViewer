@@ -15,7 +15,7 @@ describe("getStartupPerformanceMonitorRuntime", () => {
         expect(now).toHaveBeenCalledOnce();
     });
 
-    it("binds default performance.now to globalThis.performance", () => {
+    it("uses the renderer browser runtime provider for production performance defaults", () => {
         expect.assertions(2);
 
         const originalPerformance = globalThis.performance;

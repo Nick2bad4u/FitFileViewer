@@ -64,6 +64,18 @@ export function getBrowserRendererHTMLScriptElement():
     return globalThis.HTMLScriptElement;
 }
 
+export function getBrowserRendererLocation(): Location | undefined {
+    return globalThis.location;
+}
+
+export function getBrowserRendererNavigator(): Navigator | undefined {
+    return globalThis.navigator;
+}
+
+export function getBrowserRendererPerformance(): Performance | undefined {
+    return globalThis.performance;
+}
+
 export function getBrowserRendererRemoveEventListener():
     | typeof globalThis.removeEventListener
     | undefined {

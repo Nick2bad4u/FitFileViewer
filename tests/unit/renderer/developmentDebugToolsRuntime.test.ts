@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getRendererDevelopmentDebugToolsRuntime,
@@ -6,6 +6,38 @@ import {
 } from "../../../electron-app/renderer/developmentDebugToolsRuntime.js";
 
 describe("renderer development debug tools runtime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(3);
+
+        vi.stubGlobal("location", { protocol: "fitfileviewer:" });
+        vi.stubGlobal("navigator", { language: "en-US" });
+        vi.stubGlobal("performance", {
+            memory: {
+                jsHeapSizeLimit: 30,
+                totalJSHeapSize: 20,
+                usedJSHeapSize: 10,
+            },
+        });
+
+        const view = getRendererDevelopmentDebugToolsRuntime();
+
+        expect(view.getLocationRecord()).toMatchObject({
+            protocol: "fitfileviewer:",
+        });
+        expect(view.getNavigatorRecord()).toMatchObject({
+            language: "en-US",
+        });
+        expect(view.getPerformanceMemoryRecord()).toStrictEqual({
+            jsHeapSizeLimit: 30,
+            totalJSHeapSize: 20,
+            usedJSHeapSize: 10,
+        });
+    });
+
     it("reads runtime location, navigator, and memory records from the provided scope", () => {
         expect.assertions(3);
 
