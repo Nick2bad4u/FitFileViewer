@@ -18983,7 +18983,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(52);
+        expect.assertions(60);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -19074,6 +19074,22 @@ describe("architecture boundaries", () => {
         );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
+        expect(leafletRuntimeSource).toContain(
+            "defaultLeafletRuntimeEnvironmentScope"
+        );
+        expect(leafletRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(leafletRuntimeSource).toContain(
+            "waitForNextPoll: () => Promise<void>"
+        );
+        expect(leafletRuntimeSource).toContain(
+            "await environment.waitForNextPoll()"
+        );
+        expect(leafletRuntimeSource).not.toContain("Date.now() - startedAt");
+        expect(leafletRuntimeSource).not.toContain("const startedAt = Date.now");
+        expect(leafletRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(leafletRuntimeSource).not.toContain("scope.dateNow");
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
         expect(vendorMapEntry).not.toContain(
             "installLeafletPluginCompatibilityGlobal"

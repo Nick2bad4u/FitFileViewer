@@ -215,6 +215,9 @@ transform for Leaflet.draw has been removed. Leaflet.draw now loads through the
 `fitfileviewer:leaflet-draw-runtime` virtual side-effect module, which gives the package dist file a
 module-scoped Leaflet import without publishing a persistent `L` global. Leaflet runtime unit tests now reset only the typed module-local adapter instead of
 deleting retired `L` globals from `globalThis`.
+Leaflet runtime wait-loop timeout clocks and polling waits now route through `leafletRuntime.ts` environment
+providers instead of calling `Date.now` directly inside the runtime wait loop, with focused runtime and architecture
+coverage blocking direct loop clocks and direct scope properties from returning.
 Generated split renderer vendor assets now use `renderer-vendor*.js/css` filenames instead of the retired
 `vendor-globals*.js/css` compatibility wording, while preserving the typed loader entry semantics and runtime
 readiness event flow.
