@@ -18357,7 +18357,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input abort controllers behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -18390,6 +18390,12 @@ describe("architecture boundaries", () => {
             "defaultRendererFileInputStartupRuntimeScope"
         );
         expect(fileInputStartupRuntimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "getAbortController: getBrowserRendererAbortController"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(fileInputStartupRuntimeSource).not.toMatch(

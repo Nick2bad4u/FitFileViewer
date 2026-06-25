@@ -1,3 +1,5 @@
+import { getBrowserRendererAbortController } from "./rendererBrowserRuntime.js";
+
 export interface RendererFileInputStartupRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -10,7 +12,7 @@ export interface RendererFileInputStartupRuntime {
 
 const defaultRendererFileInputStartupRuntimeScope: RendererFileInputStartupRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserRendererAbortController,
     };
 
 export function getRendererFileInputStartupRuntime(

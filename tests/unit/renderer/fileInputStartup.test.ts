@@ -36,6 +36,14 @@ describe("renderer file input startup wiring", () => {
         vi.restoreAllMocks();
     });
 
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRendererFileInputStartupRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 
