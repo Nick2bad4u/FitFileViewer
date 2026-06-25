@@ -67,10 +67,11 @@ describe("getMapActionButtonsRuntime", () => {
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
-    it("uses browser runtime providers for production timer and clock defaults", () => {
-        expect.assertions(6);
+    it("uses browser runtime providers for production DOM, constructor, timer, and clock defaults", () => {
+        expect.assertions(13);
 
         const callback = vi.fn<() => void>();
+        const mutationCallback = vi.fn<MutationCallback>();
         const delayMs = Number("150");
         const timer = 8 as ReturnType<typeof globalThis.setTimeout>;
         const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
@@ -78,19 +79,42 @@ describe("getMapActionButtonsRuntime", () => {
         );
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
         const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(456);
+        const observer = {
+            disconnect: vi.fn(),
+            observe: vi.fn(),
+            takeRecords: vi.fn(() => []),
+        } satisfies MutationObserver;
+        const MutationObserverMock = vi.fn(function FakeMutationObserver(
+            this: unknown,
+            receivedCallback: MutationCallback
+        ) {
+            expect(receivedCallback).toBe(mutationCallback);
+            return observer;
+        });
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("MutationObserver", MutationObserverMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
         const runtime = getMapActionButtonsRuntime();
+        const element = document.createElement("button");
+        const keyboardEvent = new KeyboardEvent("keydown");
         const timerHandle = runtime.setTimeout(callback, delayMs);
         runtime.clearTimeout(timerHandle);
 
+        expect(runtime.getDocument()).toBe(document);
+        expect(runtime.isHTMLElement(element)).toBe(true);
+        expect(runtime.isHTMLElement({})).toBe(false);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.createMutationObserver(mutationCallback)).toBe(
+            observer
+        );
         expect(timerHandle).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
         expect(runtime.dateNow()).toBe(456);
-        expect(dateNowMock).toHaveBeenCalledOnce();
+        expect(dateNowMock).toHaveBeenCalled();
+        expect(MutationObserverMock).toHaveBeenCalledOnce();
         expect(callback).not.toHaveBeenCalled();
     });
 

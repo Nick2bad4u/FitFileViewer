@@ -1,6 +1,10 @@
 import {
     getBrowserClearTimeout,
     getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserKeyboardEvent,
+    getBrowserMutationObserver,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -39,10 +43,10 @@ export interface MapActionButtonsRuntime {
 const defaultMapActionButtonsRuntimeScope: MapActionButtonsRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
     getDateNow: getBrowserDateNow,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getKeyboardEvent: () => globalThis.KeyboardEvent,
-    getMutationObserver: () => globalThis.MutationObserver,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getKeyboardEvent: getBrowserKeyboardEvent,
+    getMutationObserver: getBrowserMutationObserver,
     getSetTimeout: getBrowserSetTimeout,
 };
 

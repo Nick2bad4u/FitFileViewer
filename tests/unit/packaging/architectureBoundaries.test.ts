@@ -14635,7 +14635,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(46);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -14693,6 +14693,12 @@ describe("architecture boundaries", () => {
             "readonly HTMLElement?:"
         );
         expect(mapActionButtonsRuntimeScopeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
+        expect(mapActionButtonsRuntimeScopeSource).not.toContain(
+            "readonly MutationObserver?:"
+        );
+        expect(mapActionButtonsRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(mapActionButtonsRuntimeSource).not.toContain(
@@ -14702,6 +14708,12 @@ describe("architecture boundaries", () => {
         expect(mapActionButtonsRuntimeSource).not.toContain("scope.document");
         expect(mapActionButtonsRuntimeSource).not.toContain(
             "scope.HTMLElement"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "scope.MutationObserver"
         );
         expect(mapActionButtonsRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapActionButtonsRuntimeSource).not.toContain(
@@ -14729,10 +14741,28 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "getMutationObserver: getBrowserMutationObserver"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "getMutationObserver: () => globalThis.MutationObserver"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"

@@ -54,6 +54,12 @@ export function getBrowserHTMLElement():
     return globalThis.HTMLElement;
 }
 
+export function getBrowserKeyboardEvent():
+    | typeof globalThis.KeyboardEvent
+    | undefined {
+    return globalThis.KeyboardEvent;
+}
+
 export function getBrowserLocalStorage(): Storage | undefined {
     return globalThis.localStorage;
 }
