@@ -115,6 +115,63 @@ describe("uiStateManagerRuntime", () => {
         expect(setBodyCursor).not.toHaveBeenCalledWith("default");
     });
 
+    it("derives default DOM lookups from a scoped document provider", () => {
+        expect.assertions(14);
+
+        const scopedDocument =
+            document.implementation.createHTMLDocument("Scoped Ride");
+        scopedDocument.body.innerHTML = `
+            <span id="active_file_name">ride.fit</span>
+            <div id="active_file_name_container"></div>
+            <iframe id="altfit_iframe"></iframe>
+            <button id="chart-controls-toggle"></button>
+            <section id="chartjs-settings-wrapper"></section>
+            <div id="drop_overlay"></div>
+            <progress id="file-loading-progress"></progress>
+            <div id="loading-indicator"></div>
+            <main id="main-content"></main>
+            <section id="map-container"></section>
+            <button id="measurement-mode-toggle"></button>
+            <aside id="sidebar"></aside>
+            <button data-tab="summary"></button>
+            <section class="tab-content"></section>
+            <button data-theme="dark"></button>
+            <button id="unload_file_btn"></button>
+            <iframe id="zwift_iframe"></iframe>
+        `;
+        const runtime = getUIStateManagerRuntime({
+            getDocument: () => scopedDocument,
+        });
+
+        expect(runtime.createSpanElement().ownerDocument).toBe(scopedDocument);
+        expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
+            "Scoped Ride"
+        );
+        runtime.setDocumentTitle("Race Recap");
+        runtime.setBodyCursor("wait");
+        runtime.setAppHasFileState(true);
+        expect(scopedDocument.title).toBe("Race Recap");
+        expect(scopedDocument.body.style.cursor).toBe("wait");
+        expect(scopedDocument.body.dataset["hasFitFile"]).toBe("true");
+        expect(runtime.getActiveFileNameElement()?.id).toBe("active_file_name");
+        expect(runtime.getChartControlsToggleElement()?.id).toBe(
+            "chart-controls-toggle"
+        );
+        expect(runtime.getChartSettingsWrapperElement()?.id).toBe(
+            "chartjs-settings-wrapper"
+        );
+        expect(runtime.getFileLoadingProgressElement()?.id).toBe(
+            "file-loading-progress"
+        );
+        expect(runtime.getLoadingIndicatorElement()?.id).toBe(
+            "loading-indicator"
+        );
+        expect(runtime.getMainContentElement()?.id).toBe("main-content");
+        expect(runtime.getTabButtonElements()).toHaveLength(1);
+        expect(runtime.getThemeToggleElements()).toHaveLength(1);
+        expect(runtime.getZwiftIframeElement()?.id).toBe("zwift_iframe");
+    });
+
     it("routes active file body state through scoped providers", () => {
         expect.assertions(4);
 
@@ -292,7 +349,7 @@ describe("uiStateManagerRuntime", () => {
             getUIStateManagerRuntime({}).getActiveFileNameElement()
         ).toBeNull();
         expect(() => getUIStateManagerRuntime({}).createSpanElement()).toThrow(
-            "UI state manager requires a span element factory runtime"
+            "UI state manager requires a document runtime"
         );
         expect(
             getUIStateManagerRuntime({}).getAltFitIframeElement()

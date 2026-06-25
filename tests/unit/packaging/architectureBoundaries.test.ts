@@ -8616,7 +8616,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(157);
+        expect.assertions(164);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -8772,7 +8772,13 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'createSpanElement: () => globalThis.document.createElement("span")'
+            "readonly getDocument?: (() => Document | undefined) | undefined;"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'return documentRef.createElement("span");'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getDateNow: () => Date.now"
@@ -8784,10 +8790,10 @@ describe("architecture boundaries", () => {
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getFileStateBody: () => globalThis.document.body"
+            "return getScopeDocument(scope)?.body;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getDocumentTitle: () => globalThis.document.title"
+            "const title = scope.getDocumentTitle?.() ?? getScopeDocument(scope)?.title;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'typeof globalThis.addEventListener === "function"'
@@ -8796,70 +8802,85 @@ describe("architecture boundaries", () => {
             "getMatchMedia: () => globalThis.matchMedia"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getChartControlsToggle(globalThis.document)"
+            "getChartControlsToggle(documentRef)"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getChartSettingsWrapper(globalThis.document)"
+            "getChartSettingsWrapper(documentRef)"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(\n            globalThis.document,\n            "active_file_name_container"'
+            'getElementByIdFlexible(documentRef, "active_file_name_container")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(globalThis.document, "active_file_name")'
+            'getElementByIdFlexible(documentRef, "active_file_name")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(globalThis.document, "altfit_iframe")'
+            'getElementByIdFlexible(documentRef, "altfit_iframe")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(globalThis.document, "drop_overlay")'
+            'getElementByIdFlexible(documentRef, "drop_overlay")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(globalThis.document, "zwift_iframe")'
+            'getElementByIdFlexible(documentRef, "zwift_iframe")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'getElementByIdFlexible(globalThis.document, "unload_file_btn")'
+            'getElementByIdFlexible(documentRef, "unload_file_btn")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#file-loading-progress"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelector<HTMLElement>("#loading-indicator")'
+            'getScopeDocument(scope)?.querySelector<HTMLElement>(\n            "#loading-indicator"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelector<HTMLElement>("#main-content")'
+            'getScopeDocument(scope)?.querySelector<HTMLElement>("#main-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelector<HTMLElement>("#map-container")'
+            'getScopeDocument(scope)?.querySelector<HTMLElement>("#map-container")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#measurement-mode-toggle"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelector<HTMLElement>("#sidebar")'
+            'getScopeDocument(scope)?.querySelector<HTMLElement>("#sidebar")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelectorAll("[data-tab]")'
+            'getScopeDocument(scope)?.querySelectorAll("[data-tab]")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelectorAll(".tab-content")'
+            'getScopeDocument(scope)?.querySelectorAll(".tab-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "globalThis.document.documentElement || globalThis.document.body"
+            "return documentRef?.documentElement ?? documentRef?.body ?? null;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            'globalThis.document.querySelectorAll("[data-theme]")'
+            'getScopeDocument(scope)?.querySelectorAll("[data-theme]")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "'button[data-theme], [role=\"button\"][data-theme]'"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getSetBodyCursor: () => (cursor) =>"
+            "documentRef.body.style.cursor = cursor;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "getSetDocumentTitle: () => (title) =>"
+            "documentRef.title = title;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getViewportState: () => globalThis"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "function getRequiredDocument(scope: UIStateManagerRuntimeScope): Document"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "UI state manager requires a document runtime"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "globalThis.document."
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "globalThis.document["
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "globalThis.document\n"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope: UIStateManagerRuntimeScope = globalThis"

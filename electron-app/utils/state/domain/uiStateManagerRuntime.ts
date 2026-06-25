@@ -43,6 +43,7 @@ export interface UIStateManagerRuntimeScope {
         | undefined;
     readonly createSpanElement?: (() => HTMLSpanElement) | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getFileStateBody?:
         | (() => UIStateManagerFileStateBody | undefined)
         | undefined;
@@ -149,75 +150,16 @@ export interface UIStateManagerRuntime {
 }
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
-    createSpanElement: () => globalThis.document.createElement("span"),
     getDateNow: () => Date.now,
     getAbortController: () => globalThis.AbortController,
-    getFileStateBody: () => globalThis.document.body,
-    getDocumentTitle: () => globalThis.document.title,
+    getDocument: () => globalThis.document,
     getEventTarget: () =>
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
     getHTMLElement: () => globalThis.HTMLElement,
-    getActiveFileNameContainerElement: () =>
-        getElementByIdFlexible(
-            globalThis.document,
-            "active_file_name_container"
-        ),
-    getActiveFileNameElement: () =>
-        getElementByIdFlexible(globalThis.document, "active_file_name"),
-    getAltFitIframeElement: () =>
-        getElementByIdFlexible(globalThis.document, "altfit_iframe"),
-    getChartControlsToggleElement: () =>
-        getChartControlsToggle(globalThis.document),
-    getChartSettingsWrapperElement: () =>
-        getChartSettingsWrapper(globalThis.document),
-    getDropOverlayElement: () =>
-        getElementByIdFlexible(globalThis.document, "drop_overlay"),
-    getFileLoadingProgressElement: () =>
-        globalThis.document.querySelector<HTMLElement>(
-            "#file-loading-progress"
-        ),
-    getLoadingIndicatorElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#loading-indicator"),
-    getMainContentElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#main-content"),
-    getMapContainerElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#map-container"),
-    getMeasurementModeToggleElement: () =>
-        globalThis.document.querySelector<HTMLElement>(
-            "#measurement-mode-toggle"
-        ),
-    getSidebarElement: () =>
-        globalThis.document.querySelector<HTMLElement>("#sidebar"),
-    getTabButtonElements: () => [
-        ...globalThis.document.querySelectorAll("[data-tab]"),
-    ],
-    getTabContentElements: () => [
-        ...globalThis.document.querySelectorAll(".tab-content"),
-    ],
-    getThemeRootElement: () =>
-        globalThis.document.documentElement || globalThis.document.body,
-    getThemeStateElements: () => [
-        ...globalThis.document.querySelectorAll("[data-theme]"),
-    ],
-    getThemeToggleElements: () => [
-        ...globalThis.document.querySelectorAll(
-            'button[data-theme], [role="button"][data-theme]'
-        ),
-    ],
-    getUnloadFileButtonElement: () =>
-        getElementByIdFlexible(globalThis.document, "unload_file_btn"),
-    getZwiftIframeElement: () =>
-        getElementByIdFlexible(globalThis.document, "zwift_iframe"),
     getMatchMedia: () => globalThis.matchMedia,
-    getSetBodyCursor: () => (cursor) => {
-        globalThis.document.body.style.cursor = cursor;
-    },
     getViewportState: () => globalThis,
-    getSetDocumentTitle: () => (title) => {
-        globalThis.document.title = title;
-    },
 };
 
 function getAbortControllerConstructor(
@@ -236,9 +178,8 @@ function getAbortControllerConstructor(
 function createSpanElement(scope: UIStateManagerRuntimeScope): HTMLSpanElement {
     const createSpan = scope.createSpanElement;
     if (typeof createSpan !== "function") {
-        throw new TypeError(
-            "UI state manager requires a span element factory runtime"
-        );
+        const documentRef = getRequiredDocument(scope);
+        return documentRef.createElement("span");
     }
 
     return createSpan();
@@ -269,6 +210,21 @@ function getHTMLElementConstructor(
         : undefined;
 }
 
+function getScopeDocument(
+    scope: UIStateManagerRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.();
+}
+
+function getRequiredDocument(scope: UIStateManagerRuntimeScope): Document {
+    const documentRef = getScopeDocument(scope);
+    if (documentRef === undefined) {
+        throw new TypeError("UI state manager requires a document runtime");
+    }
+
+    return documentRef;
+}
+
 function isHTMLElement(
     scope: UIStateManagerRuntimeScope,
     value: unknown
@@ -284,86 +240,196 @@ function isHTMLElement(
 function getActiveFileNameContainerElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getActiveFileNameContainerElement?.() ?? null;
+    const scopedElement = scope.getActiveFileNameContainerElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getElementByIdFlexible(documentRef, "active_file_name_container");
 }
 
 function getActiveFileNameElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getActiveFileNameElement?.() ?? null;
+    const scopedElement = scope.getActiveFileNameElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getElementByIdFlexible(documentRef, "active_file_name");
 }
 
 function getAltFitIframeElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getAltFitIframeElement?.() ?? null;
+    const scopedElement = scope.getAltFitIframeElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getElementByIdFlexible(documentRef, "altfit_iframe");
 }
 
 function getChartControlsToggleElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getChartControlsToggleElement?.() ?? null;
+    const scopedElement = scope.getChartControlsToggleElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getChartControlsToggle(documentRef);
 }
 
 function getChartSettingsWrapperElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getChartSettingsWrapperElement?.() ?? null;
+    const scopedElement = scope.getChartSettingsWrapperElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getChartSettingsWrapper(documentRef);
 }
 
 function getDropOverlayElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getDropOverlayElement?.() ?? null;
+    const scopedElement = scope.getDropOverlayElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getElementByIdFlexible(documentRef, "drop_overlay");
 }
 
 function getFileStateBody(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerFileStateBody | undefined {
-    return scope.getFileStateBody?.();
+    const scopedBody = scope.getFileStateBody?.();
+    if (scopedBody !== undefined) {
+        return scopedBody;
+    }
+
+    return getScopeDocument(scope)?.body;
 }
 
 function getFileLoadingProgressElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getFileLoadingProgressElement?.() ?? null;
+    const scopedElement = scope.getFileLoadingProgressElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    return (
+        getScopeDocument(scope)?.querySelector<HTMLElement>(
+            "#file-loading-progress"
+        ) ?? null
+    );
 }
 
 function getLoadingIndicatorElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getLoadingIndicatorElement?.() ?? null;
+    const scopedElement = scope.getLoadingIndicatorElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    return (
+        getScopeDocument(scope)?.querySelector<HTMLElement>(
+            "#loading-indicator"
+        ) ?? null
+    );
 }
 
 function getMainContentElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getMainContentElement?.() ?? null;
+    const scopedElement = scope.getMainContentElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    return (
+        getScopeDocument(scope)?.querySelector<HTMLElement>("#main-content") ??
+        null
+    );
 }
 
 function getMapContainerElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getMapContainerElement?.() ?? null;
+    const scopedElement = scope.getMapContainerElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    return (
+        getScopeDocument(scope)?.querySelector<HTMLElement>("#map-container") ??
+        null
+    );
 }
 
 function getMeasurementModeToggleElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getMeasurementModeToggleElement?.() ?? null;
+    const scopedElement = scope.getMeasurementModeToggleElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    return (
+        getScopeDocument(scope)?.querySelector<HTMLElement>(
+            "#measurement-mode-toggle"
+        ) ?? null
+    );
 }
 
 function getSidebarElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getSidebarElement?.() ?? null;
+    const scopedElement = scope.getSidebarElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    return (
+        getScopeDocument(scope)?.querySelector<HTMLElement>("#sidebar") ?? null
+    );
 }
 
 function getTabButtonElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        return scope.getTabButtonElements?.() ?? [];
+        const scopedElements = scope.getTabButtonElements?.();
+        if (scopedElements !== undefined) {
+            return scopedElements;
+        }
+
+        return [
+            ...(getScopeDocument(scope)?.querySelectorAll("[data-tab]") ?? []),
+        ];
     } catch {
         return [];
     }
@@ -373,7 +439,15 @@ function getTabContentElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        return scope.getTabContentElements?.() ?? [];
+        const scopedElements = scope.getTabContentElements?.();
+        if (scopedElements !== undefined) {
+            return scopedElements;
+        }
+
+        return [
+            ...(getScopeDocument(scope)?.querySelectorAll(".tab-content") ??
+                []),
+        ];
     } catch {
         return [];
     }
@@ -382,14 +456,28 @@ function getTabContentElements(
 function getThemeRootElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getThemeRootElement?.() ?? null;
+    const scopedElement = scope.getThemeRootElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef?.documentElement ?? documentRef?.body ?? null;
 }
 
 function getThemeStateElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        return scope.getThemeStateElements?.() ?? [];
+        const scopedElements = scope.getThemeStateElements?.();
+        if (scopedElements !== undefined) {
+            return scopedElements;
+        }
+
+        return [
+            ...(getScopeDocument(scope)?.querySelectorAll("[data-theme]") ??
+                []),
+        ];
     } catch {
         return [];
     }
@@ -399,7 +487,16 @@ function getThemeToggleElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        return scope.getThemeToggleElements?.() ?? [];
+        const scopedElements = scope.getThemeToggleElements?.();
+        if (scopedElements !== undefined) {
+            return scopedElements;
+        }
+
+        return [
+            ...(getScopeDocument(scope)?.querySelectorAll(
+                'button[data-theme], [role="button"][data-theme]'
+            ) ?? []),
+        ];
     } catch {
         return [];
     }
@@ -408,13 +505,29 @@ function getThemeToggleElements(
 function getUnloadFileButtonElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getUnloadFileButtonElement?.() ?? null;
+    const scopedElement = scope.getUnloadFileButtonElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getElementByIdFlexible(documentRef, "unload_file_btn");
 }
 
 function getZwiftIframeElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    return scope.getZwiftIframeElement?.() ?? null;
+    const scopedElement = scope.getZwiftIframeElement?.();
+    if (scopedElement !== undefined) {
+        return scopedElement;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? null
+        : getElementByIdFlexible(documentRef, "zwift_iframe");
 }
 
 function getMatchMedia(
@@ -428,7 +541,7 @@ function getMatchMedia(
 function getDocumentTitle(
     scope: UIStateManagerRuntimeScope
 ): string | undefined {
-    const title = scope.getDocumentTitle?.();
+    const title = scope.getDocumentTitle?.() ?? getScopeDocument(scope)?.title;
 
     return typeof title === "string" && title.length > 0 ? title : undefined;
 }
@@ -436,13 +549,33 @@ function getDocumentTitle(
 function getSetBodyCursor(
     scope: UIStateManagerRuntimeScope
 ): ((cursor: string) => void) | undefined {
-    return scope.getSetBodyCursor?.();
+    const scopedSetter = scope.getSetBodyCursor?.();
+    if (typeof scopedSetter === "function") {
+        return scopedSetter;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef?.body === undefined
+        ? undefined
+        : (cursor) => {
+              documentRef.body.style.cursor = cursor;
+          };
 }
 
 function getSetDocumentTitle(
     scope: UIStateManagerRuntimeScope
 ): ((title: string) => void) | undefined {
-    return scope.getSetDocumentTitle?.();
+    const scopedSetter = scope.getSetDocumentTitle?.();
+    if (typeof scopedSetter === "function") {
+        return scopedSetter;
+    }
+
+    const documentRef = getScopeDocument(scope);
+    return documentRef === undefined
+        ? undefined
+        : (title) => {
+              documentRef.title = title;
+          };
 }
 
 function getViewportState(
