@@ -1,3 +1,8 @@
+import {
+    getBrowserDateNow,
+    getBrowserPerformance,
+} from "../runtime/browserRuntime.js";
+
 export interface LastAnimLogRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getPerformance?:
@@ -23,8 +28,8 @@ function getScopedPerformanceNow(
 }
 
 const defaultLastAnimLogRuntimeScope: LastAnimLogRuntimeScope = {
-    getDateNow: () => Date.now,
-    getPerformance: () => globalThis.performance,
+    getDateNow: getBrowserDateNow,
+    getPerformance: getBrowserPerformance,
 };
 
 function getRequiredDateNow(scope: LastAnimLogRuntimeScope): () => number {

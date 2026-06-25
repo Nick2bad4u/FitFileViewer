@@ -7,6 +7,7 @@ import {
 
 describe("getLastAnimLogRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -51,16 +52,19 @@ describe("getLastAnimLogRuntime", () => {
         expect(performanceRef.now.mock.contexts[0]).toBe(performanceRef);
     });
 
-    it("binds default performance.now to globalThis.performance", () => {
-        expect.assertions(3);
+    it("uses browser runtime providers for production clock defaults", () => {
+        expect.assertions(5);
 
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(4321);
         const now = vi.fn(function defaultPerformanceNow(this: Performance) {
             return 12.34;
         });
         vi.stubGlobal("performance", { now });
         const utils = getLastAnimLogRuntime();
 
+        expect(utils.dateNow()).toBe(4321);
         expect(utils.performanceNow()).toBe(12.34);
+        expect(dateNow).toHaveBeenCalledOnce();
         expect(now).toHaveBeenCalledOnce();
         expect(now.mock.contexts[0]).toBe(globalThis.performance);
     });
