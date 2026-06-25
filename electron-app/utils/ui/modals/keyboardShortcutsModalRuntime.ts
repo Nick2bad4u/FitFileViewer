@@ -1,4 +1,13 @@
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+import {
+    getBrowserCancelAnimationFrame,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserKeyboardEvent,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type KeyboardShortcutsModalTimerHandle = ReturnType<
     typeof globalThis.setTimeout
@@ -58,13 +67,13 @@ export const KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE =
 
 const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeScope =
     {
-        getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getKeyboardEvent: () => globalThis.KeyboardEvent,
-        getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-        getSetTimeout: () => globalThis.setTimeout,
+        getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+        getClearTimeout: getBrowserClearTimeout,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
+        getKeyboardEvent: getBrowserKeyboardEvent,
+        getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 function getScopeCancelAnimationFrame(

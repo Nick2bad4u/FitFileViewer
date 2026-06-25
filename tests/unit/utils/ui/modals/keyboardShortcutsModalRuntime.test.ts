@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getKeyboardShortcutsModalRuntime,
@@ -6,6 +6,14 @@ import {
 } from "../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js";
 
 describe("getKeyboardShortcutsModalRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        document.body.replaceChildren();
+        document.head.replaceChildren();
+        document.body.style.overflow = "";
+    });
+
     it("schedules and clears timers through the injected runtime providers", () => {
         expect.assertions(4);
 
@@ -42,6 +50,59 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "keyboardShortcutsModalRuntime requires a clearTimeout runtime"
         );
+    });
+
+    it("uses shared browser providers for production defaults", () => {
+        expect.assertions(14);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const delayMs = Number("75");
+        const timeoutHandle = Number("53");
+        const frameHandle = Number("16");
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(
+            () => timeoutHandle
+        );
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            typeof globalThis.requestAnimationFrame
+        >(() => frameHandle);
+        const cancelAnimationFrame =
+            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        vi.stubGlobal("setTimeout", setTimeout);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+
+        const button = document.createElement("button");
+        const style = document.createElement("style");
+        document.body.append(button);
+        button.focus();
+
+        const runtime = getKeyboardShortcutsModalRuntime();
+        const modal = runtime.createElement("div");
+
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timeoutHandle);
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        runtime.clearTimeout(timeoutHandle);
+        expect(clearTimeout).toHaveBeenCalledWith(timeoutHandle);
+        expect(runtime.requestAnimationFrame(frameCallback)).toBe(frameHandle);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+        runtime.cancelAnimationFrame(frameHandle);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(frameHandle);
+        runtime.appendToBody(modal);
+        runtime.appendToHead(style);
+        runtime.setBodyOverflow("hidden");
+        expect(runtime.querySelector("div")).toBe(modal);
+        expect(document.body.contains(modal)).toBe(true);
+        expect(document.head.contains(style)).toBe(true);
+        expect(document.body.style.overflow).toBe("hidden");
+        expect(runtime.getActiveElement()).toBe(button);
+        expect(runtime.isHTMLElement(modal)).toBe(true);
+        expect(
+            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
     });
 
     it("schedules animation frames through the injected runtime provider", () => {

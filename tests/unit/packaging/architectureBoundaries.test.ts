@@ -7430,7 +7430,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(71);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -7574,18 +7574,33 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
@@ -7628,9 +7643,15 @@ describe("architecture boundaries", () => {
             'Pick<Document, "createElementNS">'
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
