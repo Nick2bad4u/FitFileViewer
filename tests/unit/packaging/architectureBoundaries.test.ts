@@ -17361,7 +17361,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color browser APIs behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(23);
 
         const violations = migratedAccentColorRuntimeFiles
             .filter((relativeFile) =>
@@ -17398,12 +17398,24 @@ describe("architecture boundaries", () => {
             "defaultAccentColorRuntimeScope"
         );
         expect(accentColorRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "getStorage: getBrowserLocalStorage"
+        );
+        expect(accentColorRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(accentColorRuntimeSource).toContain(
+        expect(accentColorRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
-        expect(accentColorRuntimeSource).toContain(
+        expect(accentColorRuntimeSource).not.toContain(
             "getStorage: () => globalThis.localStorage"
         );
         expect(accentColorRuntimeSource).not.toMatch(

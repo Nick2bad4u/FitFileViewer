@@ -23,6 +23,18 @@ describe("getAccentColorRuntime", () => {
         expect(utils.getStorage()).toBe(localStorage);
     });
 
+    it("resolves production accent color defaults through browser runtime providers", () => {
+        expect.assertions(2);
+
+        const utils = getAccentColorRuntime();
+
+        expect(utils.getAccentColorTargets()).toStrictEqual([
+            document.documentElement,
+            document.body,
+        ]);
+        expect(utils.getStorage()).toBe(localStorage);
+    });
+
     it("returns no targets when document or element constructor providers are unavailable", () => {
         expect.assertions(2);
 

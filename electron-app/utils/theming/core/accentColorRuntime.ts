@@ -1,3 +1,9 @@
+import {
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserLocalStorage,
+} from "../../runtime/browserRuntime.js";
+
 type AccentColorDocument = Pick<Document, "body" | "documentElement">;
 
 export interface AccentColorRuntimeScope {
@@ -14,9 +20,9 @@ export interface AccentColorRuntime {
 }
 
 const defaultAccentColorRuntimeScope: AccentColorRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getStorage: () => globalThis.localStorage,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getStorage: getBrowserLocalStorage,
 };
 
 function getDocument(
