@@ -1,3 +1,5 @@
+import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
+
 export interface StateManagerRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
 }
@@ -7,7 +9,7 @@ export interface StateManagerRuntime {
 }
 
 const defaultStateManagerRuntimeScope: StateManagerRuntimeScope = {
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
 };
 
 export function getStateManagerRuntime(

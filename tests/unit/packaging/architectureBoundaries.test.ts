@@ -4362,7 +4362,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core state manager history timestamps behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -4389,6 +4389,12 @@ describe("architecture boundaries", () => {
             "defaultStateManagerRuntimeScope"
         );
         expect(stateManagerRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(stateManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(stateManagerRuntimeSource).toContain(
@@ -9553,7 +9559,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified state facade snapshot timestamps behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const unifiedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9586,6 +9592,12 @@ describe("architecture boundaries", () => {
             "defaultUnifiedStateManagerRuntimeScope"
         );
         expect(unifiedStateManagerRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(unifiedStateManagerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(unifiedStateManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(unifiedStateManagerRuntimeSource).toContain(
