@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 type LoadVersionInfoDocument = Pick<Document, "querySelector">;
 
 export interface LoadVersionInfoRuntimeScope {
@@ -11,7 +13,7 @@ export interface LoadVersionInfoRuntime {
 }
 
 const defaultLoadVersionInfoRuntimeScope: LoadVersionInfoRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getRequiredDocument(

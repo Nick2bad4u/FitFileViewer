@@ -24,6 +24,24 @@ describe("getLoadVersionInfoRuntime", () => {
         expect(result?.id).toBe("version-number");
     });
 
+    it("uses the shared browser document provider for production defaults", () => {
+        expect.assertions(1);
+
+        const versionNumber = document.createElement("span");
+        versionNumber.id = "version-number";
+        document.body.append(versionNumber);
+
+        try {
+            const runtime = getLoadVersionInfoRuntime();
+
+            expect(runtime.queryVersionNumber("#version-number")).toBe(
+                versionNumber
+            );
+        } finally {
+            versionNumber.remove();
+        }
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 

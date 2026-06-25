@@ -16485,7 +16485,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -16531,6 +16531,12 @@ describe("architecture boundaries", () => {
             "defaultLoadVersionInfoRuntimeScope"
         );
         expect(loadVersionInfoRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(loadVersionInfoRuntimeScopeSource).not.toContain(
