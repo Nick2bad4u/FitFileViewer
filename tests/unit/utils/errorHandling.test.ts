@@ -244,6 +244,7 @@ describe("error handling utilities", () => {
                 getGlobalEventTarget: () => ({
                     addEventListener: listenerSpy,
                 }),
+                isoNow: () => "2026-01-02T03:04:05.006Z",
             };
 
             expect(initializeErrorHandling({ runtime })).toBeUndefined();
@@ -280,24 +281,38 @@ describe("error handling utilities", () => {
         });
 
         it("logs structured errors with operation context", () => {
-            expect.assertions(2);
+            expect.assertions(3);
 
             const error = new Error("Telemetry failure");
             const errorSpy = vi
                 .spyOn(console, "error")
                 .mockReturnValue(undefined);
 
-            expect(logError(error, { operation: "telemetry" })).toBeUndefined();
-            const [errorPrefix, errorPayload] = errorSpy.mock.calls[0] ?? [];
-            expect({
-                message: (errorPayload as Error | undefined)?.message,
-                name: (errorPayload as Error | undefined)?.name,
-                prefixMatches: /^\[.+\] Error:$/u.test(String(errorPrefix)),
-            }).toStrictEqual({
-                message: "Telemetry failure",
-                name: "Error",
-                prefixMatches: true,
-            });
+            vi.useFakeTimers();
+            try {
+                vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
+
+                expect(
+                    logError(error, { operation: "telemetry" })
+                ).toBeUndefined();
+                const [errorPrefix, errorPayload] =
+                    errorSpy.mock.calls[0] ?? [];
+
+                expect(errorPrefix).toBe("[2026-01-02T03:04:05.006Z] Error:");
+                expect({
+                    message: (errorPayload as Error | undefined)?.message,
+                    name: (errorPayload as Error | undefined)?.name,
+                    timestamp: (
+                        errorPayload as { timestamp?: unknown } | undefined
+                    )?.timestamp,
+                }).toStrictEqual({
+                    message: "Telemetry failure",
+                    name: "Error",
+                    timestamp: "2026-01-02T03:04:05.006Z",
+                });
+            } finally {
+                vi.useRealTimers();
+            }
         });
     });
 });

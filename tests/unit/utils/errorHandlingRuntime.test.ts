@@ -19,6 +19,33 @@ describe("getErrorHandlingRuntime", () => {
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
+    it("builds ISO timestamps through the injected date constructor", () => {
+        expect.assertions(3);
+
+        const dateValue = {
+            toISOString: vi.fn<() => string>(() => "2024-01-02T03:04:05.000Z"),
+        };
+        let constructedCount = 0;
+
+        class DateConstructor {
+            constructor() {
+                constructedCount += 1;
+            }
+
+            toISOString(): string {
+                return dateValue.toISOString();
+            }
+        }
+
+        const utils = getErrorHandlingRuntime({
+            getDateConstructor: () => DateConstructor,
+        });
+
+        expect(utils.isoNow()).toBe("2024-01-02T03:04:05.000Z");
+        expect(constructedCount).toBe(1);
+        expect(dateValue.toISOString).toHaveBeenCalledOnce();
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
@@ -53,6 +80,16 @@ describe("getErrorHandlingRuntime", () => {
         const utils = getErrorHandlingRuntime({});
 
         expect(() => utils.dateNow()).toThrow("errorHandling requires dateNow");
+    });
+
+    it("fails clearly when the date constructor runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getErrorHandlingRuntime({});
+
+        expect(() => utils.isoNow()).toThrow(
+            "errorHandling requires a date constructor"
+        );
     });
 
     it("resolves the default AbortController when controllers are created", () => {
@@ -120,7 +157,7 @@ describe("getErrorHandlingRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -130,9 +167,22 @@ describe("getErrorHandlingRuntime", () => {
         );
         const addEventListener = vi.fn();
         const dateNow = vi.fn<() => number>(() => 1234);
+        let constructedCount = 0;
+
+        class DateConstructor {
+            constructor() {
+                constructedCount += 1;
+            }
+
+            toISOString(): string {
+                return "2024-01-02T03:04:05.000Z";
+            }
+        }
+
         const runtime = getErrorHandlingRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
+            Date: DateConstructor,
             dateNow,
             eventTarget: { addEventListener },
         } as unknown as Parameters<typeof getErrorHandlingRuntime>[0]);
@@ -143,7 +193,11 @@ describe("getErrorHandlingRuntime", () => {
         expect(() => runtime.dateNow()).toThrow(
             "errorHandling requires dateNow"
         );
+        expect(() => runtime.isoNow()).toThrow(
+            "errorHandling requires a date constructor"
+        );
         expect(dateNow).not.toHaveBeenCalled();
+        expect(constructedCount).toBe(0);
         expect(runtime.getGlobalEventTarget()).toBeUndefined();
     });
 });

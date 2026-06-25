@@ -5,11 +5,16 @@ export interface ErrorHandlingRuntimeScope {
     readonly getAddEventListener?:
         | (() => Window["addEventListener"] | undefined)
         | undefined;
+    readonly getDateConstructor?:
+        | (() => ErrorHandlingDateConstructor | undefined)
+        | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getEventTarget?:
         | (() => ErrorHandlingEventTarget | undefined)
         | undefined;
 }
+
+type ErrorHandlingDateConstructor = new () => { toISOString: () => string };
 
 export interface ErrorHandlingEventTarget {
     readonly addEventListener: Window["addEventListener"];
@@ -19,11 +24,13 @@ export interface ErrorHandlingRuntime {
     createAbortController: () => AbortController;
     dateNow: () => number;
     getGlobalEventTarget: () => ErrorHandlingEventTarget | undefined;
+    isoNow: () => string;
 }
 
 const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
+    getDateConstructor: () => Date,
     getDateNow: () => Date.now,
     getEventTarget: getDefaultEventTarget,
 };
@@ -63,6 +70,17 @@ function getDateNow(scope: ErrorHandlingRuntimeScope): () => number {
     return dateNow;
 }
 
+function getDateConstructor(
+    scope: ErrorHandlingRuntimeScope
+): ErrorHandlingDateConstructor {
+    const DateConstructor = scope.getDateConstructor?.();
+    if (typeof DateConstructor !== "function") {
+        throw new TypeError("errorHandling requires a date constructor");
+    }
+
+    return DateConstructor;
+}
+
 function getEventTarget(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
@@ -81,6 +99,10 @@ export function getErrorHandlingRuntime(
         },
         getGlobalEventTarget(): ErrorHandlingEventTarget | undefined {
             return getEventTarget(scope);
+        },
+        isoNow(): string {
+            const DateConstructor = getDateConstructor(scope);
+            return new DateConstructor().toISOString();
         },
     };
 }

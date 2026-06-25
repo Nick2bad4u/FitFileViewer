@@ -465,7 +465,7 @@ export function logError(
     context: ErrorContext = {},
     level: LogLevel = "error"
 ): void {
-    const timestamp = new Date().toISOString();
+    const timestamp = errorHandlingRuntime().isoNow();
     const errorInfo = {
         context,
         message: error.message,

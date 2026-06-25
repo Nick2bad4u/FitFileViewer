@@ -2493,9 +2493,7 @@ describe("architecture boundaries", () => {
         expect(parserSource).not.toContain("new Date()");
         expect(parserRuntimeSource).toContain("defaultFitParserRuntimeScope");
         expect(parserRuntimeSource).toContain("getDateNow: () => Date.now");
-        expect(parserRuntimeSource).toContain(
-            "getDateConstructor: () => Date"
-        );
+        expect(parserRuntimeSource).toContain("getDateConstructor: () => Date");
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a date clock"
         );
@@ -4211,9 +4209,7 @@ describe("architecture boundaries", () => {
         expect(fitFileStateSource).toContain(
             "function fitFileStateRuntime(): FitFileStateRuntime"
         );
-        expect(fitFileStateSource).toContain(
-            "fitFileStateRuntime().dateNow()"
-        );
+        expect(fitFileStateSource).toContain("fitFileStateRuntime().dateNow()");
         expect(fitFileStateSource).toContain(
             "const now = fitFileStateRuntime().dateNow();"
         );
@@ -4380,7 +4376,9 @@ describe("architecture boundaries", () => {
         expect(stateMiddlewareSource).toContain(
             "function stateStorageRuntime(): StateStorageRuntime"
         );
-        expect(stateMiddlewareSource).toContain("stateStorageRuntime().setItem");
+        expect(stateMiddlewareSource).toContain(
+            "stateStorageRuntime().setItem"
+        );
         expect(stateMiddlewareSource).not.toContain(
             "const stateStorageRuntime = getStateStorageRuntime();"
         );
@@ -4429,9 +4427,7 @@ describe("architecture boundaries", () => {
         expect(stateMiddlewareSource).toContain(
             "const duration = runtime.performanceNow() - context._startTime;"
         );
-        expect(stateMiddlewareSource).toContain(
-            "timestamp: runtime.dateNow()"
-        );
+        expect(stateMiddlewareSource).toContain("timestamp: runtime.dateNow()");
         expect(stateMiddlewareSource).toContain(
             "context._startTime = stateMiddlewareRuntime().performanceNow();"
         );
@@ -4465,9 +4461,7 @@ describe("architecture boundaries", () => {
             "readonly performance?:"
         );
         expect(stateMiddlewareRuntimeSource).not.toContain("scope.dateNow");
-        expect(stateMiddlewareRuntimeSource).not.toContain(
-            "scope.performance"
-        );
+        expect(stateMiddlewareRuntimeSource).not.toContain("scope.performance");
     });
 
     it("keeps generic storage utilities on provider-based ambient storage lookup", () => {
@@ -4496,9 +4490,7 @@ describe("architecture boundaries", () => {
         expect(storageUtilsRuntimeSource).toContain(
             "defaultStorageUtilsRuntimeScope"
         );
-        expect(storageUtilsSource).toContain(
-            "runtime.getDefaultStorage()"
-        );
+        expect(storageUtilsSource).toContain("runtime.getDefaultStorage()");
         expect(storageUtilsSource).toContain(
             "getStorage: StorageProvider = createDefaultStorageProvider()"
         );
@@ -5810,7 +5802,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
         expect(browserTabSource).toContain("type FileBrowserTabRuntime");
-        expect(browserTabSource).toContain("return getFileBrowserTabRuntime();");
+        expect(browserTabSource).toContain(
+            "return getFileBrowserTabRuntime();"
+        );
         expect(browserTabSource).not.toContain(
             "const fileBrowserTabRuntime = getFileBrowserTabRuntime();"
         );
@@ -6801,9 +6795,7 @@ describe("architecture boundaries", () => {
 
         expect(chartUpdaterSource).toContain("chartUpdaterRuntime.js");
         expect(chartUpdaterSource).toContain("chartUpdaterRuntime().isoNow()");
-        expect(chartUpdaterSource).not.toContain(
-            "new Date().toISOString()"
-        );
+        expect(chartUpdaterSource).not.toContain("new Date().toISOString()");
         expect(chartUpdaterRuntimeSource).toContain(
             "defaultChartUpdaterRuntimeScope"
         );
@@ -6943,7 +6935,9 @@ describe("architecture boundaries", () => {
         expect(renderChartSource).toContain("renderChartStateAccess.js");
         expect(renderChartSource).toContain("renderChartJSRuntime.js");
         expect(renderChartSource).toContain("type RenderChartJSRuntime");
-        expect(renderChartSource).toContain("return getRenderChartJSRuntime();");
+        expect(renderChartSource).toContain(
+            "return getRenderChartJSRuntime();"
+        );
         expect(renderChartSource).not.toContain(
             "const renderChartRuntime = getRenderChartJSRuntime();"
         );
@@ -7420,9 +7414,7 @@ describe("architecture boundaries", () => {
         expect(browserViolations).toStrictEqual([]);
         expect(aboutModalSource).toContain("aboutModalRuntime.js");
         expect(aboutModalSource).toContain("type AboutModalRuntime");
-        expect(aboutModalSource).toContain(
-            "return getAboutModalRuntime();"
-        );
+        expect(aboutModalSource).toContain("return getAboutModalRuntime();");
         expect(aboutModalSource).not.toContain(
             "const aboutModalRuntime = getAboutModalRuntime();"
         );
@@ -7575,9 +7567,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(ensureAboutModalSource).toContain("aboutModalRuntime.js");
-        expect(ensureAboutModalSource).toContain(
-            "type AboutModalRuntime"
-        );
+        expect(ensureAboutModalSource).toContain("type AboutModalRuntime");
         expect(ensureAboutModalSource).toContain(
             "return getAboutModalRuntime();"
         );
@@ -7594,9 +7584,7 @@ describe("architecture boundaries", () => {
             "ensureAboutModal requires a document runtime"
         );
         expect(injectModalStylesSource).toContain("aboutModalRuntime.js");
-        expect(injectModalStylesSource).toContain(
-            "type AboutModalRuntime"
-        );
+        expect(injectModalStylesSource).toContain("type AboutModalRuntime");
         expect(injectModalStylesSource).toContain(
             "return getAboutModalRuntime();"
         );
@@ -7803,9 +7791,7 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).not.toContain(
             "const dragDropHandlerRuntime = getDragDropHandlerRuntime();"
         );
-        expect(dragDropHandlerSource).toContain(
-            "getDragDropHandlerRuntime()"
-        );
+        expect(dragDropHandlerSource).toContain("getDragDropHandlerRuntime()");
         expect(dragDropHandlerSource).not.toContain("globalThis");
         expect(dragDropHandlerSource).not.toContain("Date.now");
         expect(dragDropHandlerRuntimeSource).not.toMatch(
@@ -8451,9 +8437,7 @@ describe("architecture boundaries", () => {
             );
 
         expect(elementIdUtilsSource).toContain("elementIdUtilsRuntime.js");
-        expect(elementIdUtilsSource).toContain(
-            "type ElementIdUtilsRuntime"
-        );
+        expect(elementIdUtilsSource).toContain("type ElementIdUtilsRuntime");
         expect(elementIdUtilsSource).not.toContain(
             "const elementIdUtilsRuntime = getElementIdUtilsRuntime();"
         );
@@ -8628,7 +8612,9 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
         expect(uiStateManagerSource).toContain("dateNow");
-        expect(uiStateManagerSource).toContain("uiStateManagerRuntime().dateNow()");
+        expect(uiStateManagerSource).toContain(
+            "uiStateManagerRuntime().dateNow()"
+        );
         expect(uiStateManagerSource).toContain(
             "getActiveFileNameContainerElement"
         );
@@ -9367,9 +9353,7 @@ describe("architecture boundaries", () => {
         expect(unifiedStateManagerRuntimeSource).not.toContain(
             "readonly dateNow?:"
         );
-        expect(unifiedStateManagerRuntimeSource).not.toContain(
-            "scope.dateNow"
-        );
+        expect(unifiedStateManagerRuntimeSource).not.toContain("scope.dateNow");
         expect(unifiedStateManagerRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
         );
@@ -9510,7 +9494,7 @@ describe("architecture boundaries", () => {
         const smokeSource = readRepositoryFile(playwrightSmokeFiles[0]);
         const requiredSmokeTests = [
             'test("auto-renders the selected FIT file in the Raw Data tab"',
-            '#content_data table.dataTable',
+            "#content_data table.dataTable",
             "#content_data .dt-container",
             'test("loads the Zwift map iframe when the Zwift tab is selected"',
             'iframe#zwift_iframe[src="https://zwiftmap.com/"]',
@@ -9525,7 +9509,7 @@ describe("architecture boundaries", () => {
             "Loading folder",
             "No .fit files found in this folder.",
             "await expectAltFitIframeLoadedActivity();",
-            'await expectLoadedActivityStatePreserved(`switching to ${tabId}`);',
+            "await expectLoadedActivityStatePreserved(`switching to ${tabId}`);",
             'await expectLoadedActivityStatePreserved(\n            "returning to Raw Data after Summary"',
         ];
         const missingSmokeTests = requiredSmokeTests.filter(
@@ -9677,7 +9661,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(31);
+        expect.assertions(39);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -9710,13 +9694,20 @@ describe("architecture boundaries", () => {
         expect(errorHandlingSource).toContain(
             "return getErrorHandlingRuntime();"
         );
-        expect(errorHandlingSource).toContain("errorHandlingRuntime().dateNow()");
+        expect(errorHandlingSource).toContain(
+            "errorHandlingRuntime().dateNow()"
+        );
+        expect(errorHandlingSource).toContain(
+            "errorHandlingRuntime().isoNow()"
+        );
         expect(errorHandlingSource).not.toContain("Date.now");
+        expect(errorHandlingSource).not.toContain("new Date().toISOString()");
         expect(errorHandlingSource).not.toContain(
             "const errorHandlingRuntime = getErrorHandlingRuntime();"
         );
         expect(errorHandlingRuntimeSource).toContain("getGlobalEventTarget");
         expect(errorHandlingRuntimeSource).toContain("dateNow");
+        expect(errorHandlingRuntimeSource).toContain("isoNow");
         expect(errorHandlingRuntimeSource).not.toMatch(
             directErrorHandlingRuntimeAmbientGetterPattern
         );
@@ -9730,7 +9721,16 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(errorHandlingRuntimeSource).toContain(
+            "getDateConstructor: () => Date"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
             "errorHandling requires dateNow"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires a date constructor"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "new DateConstructor().toISOString()"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
             "const AbortControllerConstructor = globalThis.AbortController;"
@@ -9751,6 +9751,7 @@ describe("architecture boundaries", () => {
             "readonly addEventListener?:"
         );
         expect(errorHandlingRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(errorHandlingRuntimeSource).not.toContain("readonly Date?:");
         expect(errorHandlingRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
@@ -9761,6 +9762,7 @@ describe("architecture boundaries", () => {
             "scope.addEventListener"
         );
         expect(errorHandlingRuntimeSource).not.toContain("scope.dateNow");
+        expect(errorHandlingRuntimeSource).not.toContain("scope.Date");
         expect(errorHandlingRuntimeSource).not.toContain("scope.eventTarget");
         expect(errorHandlingRuntimeSource).toContain(
             "defaultErrorHandlingRuntimeScope"
@@ -10102,12 +10104,8 @@ describe("architecture boundaries", () => {
         expect(rendererLoggerSource).toContain(
             "loggingTimestampRuntime().isoNow()"
         );
-        expect(logWithLevelSource).not.toContain(
-            "new Date().toISOString()"
-        );
-        expect(rendererLoggerSource).not.toContain(
-            "new Date().toISOString()"
-        );
+        expect(logWithLevelSource).not.toContain("new Date().toISOString()");
+        expect(rendererLoggerSource).not.toContain("new Date().toISOString()");
         expect(loggingTimestampRuntimeSource).toContain(
             "defaultLoggingTimestampRuntimeScope"
         );
@@ -10553,7 +10551,9 @@ describe("architecture boundaries", () => {
             "return getStateDevToolsRuntime();"
         );
         expect(stateDevToolsSource).toContain("function dateNow(): number");
-        expect(stateDevToolsSource).toContain("function performanceNow(): number");
+        expect(stateDevToolsSource).toContain(
+            "function performanceNow(): number"
+        );
         expect(stateDevToolsSource).toContain(
             "stateDevToolsRuntime().getPerformanceMemory()"
         );
@@ -10898,9 +10898,7 @@ describe("architecture boundaries", () => {
             "AppActions requires performance.now"
         );
         expect(appActionsRuntimeSource).not.toContain("readonly dateNow?:");
-        expect(appActionsRuntimeSource).not.toContain(
-            "readonly performance?:"
-        );
+        expect(appActionsRuntimeSource).not.toContain("readonly performance?:");
         expect(appActionsRuntimeSource).not.toContain("scope.dateNow");
         expect(appActionsRuntimeSource).not.toContain("scope.performance");
     });
@@ -11471,7 +11469,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createTablesSource).toContain("createTablesRuntime.js");
         expect(createTablesSource).toContain("type CreateTablesRuntime");
-        expect(createTablesSource).toContain("return getCreateTablesRuntime();");
+        expect(createTablesSource).toContain(
+            "return getCreateTablesRuntime();"
+        );
         expect(createTablesSource).not.toContain(
             "const createTablesRuntime = getCreateTablesRuntime();"
         );
@@ -11938,9 +11938,7 @@ describe("architecture boundaries", () => {
             )
         ).toBe(false);
         expect(sanitizerSource).toContain("sanitizeHtmlAllowlistRuntime.js");
-        expect(sanitizerSource).toContain(
-            "type SanitizeHtmlAllowlistRuntime"
-        );
+        expect(sanitizerSource).toContain("type SanitizeHtmlAllowlistRuntime");
         expect(sanitizerSource).not.toContain(
             "const sanitizeHtmlAllowlistRuntime = getSanitizeHtmlAllowlistRuntime();"
         );
@@ -13424,9 +13422,7 @@ describe("architecture boundaries", () => {
         expect(iconFactorySource).toContain(
             "runtime: IconFactoryRuntime = getIconFactoryRuntime()"
         );
-        expect(iconFactorySource).toContain(
-            "runtime.createSvgElement("
-        );
+        expect(iconFactorySource).toContain("runtime.createSvgElement(");
         expect(iconFactoryRuntimeSource).toContain(
             "function getGlobalDocument(): Document"
         );
@@ -14134,7 +14130,7 @@ describe("architecture boundaries", () => {
             'runtime.createSvgElement("svg")'
         );
         expect(mapFullscreenControlSource).toContain(
-            "setFullscreenButtonIcon(button, \"enter\", runtime)"
+            'setFullscreenButtonIcon(button, "enter", runtime)'
         );
         expect(mapFullscreenControlSource).not.toContain(
             "document.querySelector"
@@ -14250,7 +14246,9 @@ describe("architecture boundaries", () => {
         expect(mapMeasureToolSource).toContain(
             "runtime: MapMeasureToolRuntime = getMapMeasureToolRuntime()"
         );
-        expect(mapMeasureToolSource).toContain('runtime.createElement("button")');
+        expect(mapMeasureToolSource).toContain(
+            'runtime.createElement("button")'
+        );
         expect(mapMeasureToolSource).toContain(
             "replaceMapMeasureEscapeHandler(escapeHandler, runtime)"
         );
@@ -14372,9 +14370,7 @@ describe("architecture boundaries", () => {
             "currentHandler.runtime.removeDocumentMouseupListener"
         );
         expect(mapLapSelectorSource).toContain("createAbortController");
-        expect(mapLapSelectorSource).toContain(
-            "runtime.createElement"
-        );
+        expect(mapLapSelectorSource).toContain("runtime.createElement");
         expect(mapLapSelectorSource).not.toContain("document.createElement");
         expect(mapLapSelectorRuntimeSource).toContain(
             "defaultMapLapSelectorRuntimeScope"
@@ -14672,7 +14668,9 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
-        expect(loadOverlayFilesSource).toContain("type LoadOverlayFilesRuntime");
+        expect(loadOverlayFilesSource).toContain(
+            "type LoadOverlayFilesRuntime"
+        );
         expect(loadOverlayFilesSource).toContain(
             "return getLoadOverlayFilesRuntime();"
         );
@@ -15982,7 +15980,9 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapThemeToggleStateSource).toContain("mapThemeToggleRuntime.js");
-        expect(mapThemeToggleStateSource).toContain("type MapThemeToggleRuntime");
+        expect(mapThemeToggleStateSource).toContain(
+            "type MapThemeToggleRuntime"
+        );
         expect(mapThemeToggleStateSource).not.toContain(
             "const mapThemeToggleRuntime = getMapThemeToggleRuntime();"
         );
@@ -16010,9 +16010,7 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleSource).toContain(
             'runtime.createSvgElement("svg")'
         );
-        expect(mapThemeToggleSource).toContain(
-            "runtime.isBodyThemeDark()"
-        );
+        expect(mapThemeToggleSource).toContain("runtime.isBodyThemeDark()");
         expect(mapThemeToggleSource).toContain(
             "registerMapThemeToggleUpdater(updateButtonState, runtime)"
         );
@@ -16705,9 +16703,7 @@ describe("architecture boundaries", () => {
         expect(renderChartDomHelpersSource).toContain(
             "runtime: RenderChartDomHelpersRuntime = getRenderChartDomHelpersRuntime()"
         );
-        expect(renderChartDomHelpersSource).toContain(
-            "runtime.createElement"
-        );
+        expect(renderChartDomHelpersSource).toContain("runtime.createElement");
         expect(renderChartDomHelpersSource).not.toContain(
             "document.createElement"
         );
@@ -16962,9 +16958,7 @@ describe("architecture boundaries", () => {
         expect(renderChartCachePrewarmSource).toContain(
             "timerRuntime: RenderChartTimerRuntime = getRenderChartTimerRuntime()"
         );
-        expect(renderChartCachePrewarmSource).toContain(
-            "timerRuntime,"
-        );
+        expect(renderChartCachePrewarmSource).toContain("timerRuntime,");
         expect(renderChartTimingSource).toContain(
             "const now = runtime.dateNow();"
         );
@@ -18280,7 +18274,9 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(performanceUtilsSource).toContain("performanceUtilsRuntime.js");
-        expect(performanceUtilsSource).toContain("type PerformanceUtilsRuntime");
+        expect(performanceUtilsSource).toContain(
+            "type PerformanceUtilsRuntime"
+        );
         expect(performanceUtilsSource).toContain(
             "return getPerformanceUtilsRuntime();"
         );
@@ -19285,7 +19281,9 @@ describe("architecture boundaries", () => {
         expect(vendorMapEntry).toContain(
             "options.runtime ?? getRendererVendorMapRuntime()"
         );
-        expect(vendorMapEntry).not.toContain("const rendererVendorMapRuntime =");
+        expect(vendorMapEntry).not.toContain(
+            "const rendererVendorMapRuntime ="
+        );
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
         expect(vendorMapEntry).toContain(
@@ -19322,9 +19320,7 @@ describe("architecture boundaries", () => {
         expect(leafletRuntimeSource).toContain(
             "defaultLeafletRuntimeEnvironmentScope"
         );
-        expect(leafletRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
-        );
+        expect(leafletRuntimeSource).toContain("getDateNow: () => Date.now");
         expect(leafletRuntimeSource).toContain(
             "waitForNextPoll: () => Promise<void>"
         );
@@ -19332,7 +19328,9 @@ describe("architecture boundaries", () => {
             "await environment.waitForNextPoll()"
         );
         expect(leafletRuntimeSource).not.toContain("Date.now() - startedAt");
-        expect(leafletRuntimeSource).not.toContain("const startedAt = Date.now");
+        expect(leafletRuntimeSource).not.toContain(
+            "const startedAt = Date.now"
+        );
         expect(leafletRuntimeSource).not.toContain("readonly dateNow?:");
         expect(leafletRuntimeSource).not.toContain("scope.dateNow");
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
@@ -20624,7 +20622,9 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreSource).not.toContain("Date.now");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime.js");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime");
-        expect(settingsStateHelpersSource).toContain("type StateStorageRuntime");
+        expect(settingsStateHelpersSource).toContain(
+            "type StateStorageRuntime"
+        );
         expect(settingsStateHelpersSource).toContain(
             "return getStateStorageRuntime();"
         );
