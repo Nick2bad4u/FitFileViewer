@@ -1,3 +1,8 @@
+import {
+    getBrowserRequestIdleCallback,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type LazyRenderingTimeoutHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -92,8 +97,8 @@ const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
     getInnerWidth: () => globalThis.innerWidth,
     getIntersectionObserver: () => globalThis.IntersectionObserver,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getRequestIdleCallback: () => globalThis.requestIdleCallback,
-    getSetTimeout: () => globalThis.setTimeout,
+    getRequestIdleCallback: getBrowserRequestIdleCallback,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function getLazyRenderingRuntime(
