@@ -165,6 +165,38 @@ describe("getLifecycleListenersRuntime", () => {
         append.mockRestore();
     });
 
+    it("uses browser runtime providers for production document and URL defaults", () => {
+        expect.assertions(7);
+
+        const blobUrl = "blob:lifecycle-listeners-production";
+        const createObjectURL = vi.fn<(blob: Blob) => string>(() => blobUrl);
+        const revokeObjectURL = vi.fn<(url: string) => void>();
+        vi.stubGlobal("URL", {
+            createObjectURL,
+            revokeObjectURL,
+        } as unknown as typeof URL);
+        const runtime = getLifecycleListenersRuntime();
+        const blob = new Blob(["production"]);
+        const anchor = runtime.createDownloadAnchor();
+
+        try {
+            expect(anchor).toBeInstanceOf(HTMLAnchorElement);
+            runtime.appendToBody(anchor);
+            expect(anchor.parentElement).toBe(document.body);
+            expect(runtime.createObjectURL(blob)).toBe(blobUrl);
+            runtime.revokeObjectURL(blobUrl);
+            runtime.replaceBodyClasses(["font-small"], "font-large");
+
+            expect(createObjectURL).toHaveBeenCalledWith(blob);
+            expect(revokeObjectURL).toHaveBeenCalledWith(blobUrl);
+            expect(document.body.classList.contains("font-large")).toBe(true);
+            expect(anchor.tagName).toBe("A");
+        } finally {
+            anchor.remove();
+            document.body.classList.remove("font-large");
+        }
+    });
+
     it("replaces document body classes through the injected runtime provider", () => {
         expect.assertions(1);
 
