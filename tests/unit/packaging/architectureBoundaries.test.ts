@@ -10477,7 +10477,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker browser access behind the runtime facade", () => {
-        expect.assertions(62);
+        expect.assertions(67);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -10560,9 +10560,15 @@ describe("architecture boundaries", () => {
             "defaultAccentColorPickerRuntimeScope"
         );
         expect(accentColorPickerRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(accentColorPickerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(accentColorPickerRuntimeSource).toContain(
@@ -10572,12 +10578,21 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(accentColorPickerRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(accentColorPickerRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "getHTMLInputElement: () => globalThis.HTMLInputElement"
         );
         expect(accentColorPickerRuntimeSource).toContain(
+            "getHTMLButtonElement: getBrowserHTMLButtonElement"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "getHTMLButtonElement: () => globalThis.HTMLButtonElement"
         );
         expect(accentColorPickerRuntimeSource).toContain(

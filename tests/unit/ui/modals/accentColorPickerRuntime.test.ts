@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getAccentColorPickerRuntime } from "../../../../electron-app/ui/modals/accentColorPickerRuntime.js";
 
 describe("getAccentColorPickerRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
@@ -20,6 +24,40 @@ describe("getAccentColorPickerRuntime", () => {
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("uses browser runtime providers for production document and constructor defaults", () => {
+        expect.assertions(8);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const documentRef = document.implementation.createHTMLDocument();
+        const modal = documentRef.createElement("div");
+        const style = documentRef.createElement("style");
+
+        vi.stubGlobal("AbortController", AbortControllerConstructor);
+        vi.stubGlobal("document", documentRef);
+
+        const runtime = getAccentColorPickerRuntime();
+        const input = runtime.createElement("input");
+        const button = runtime.createElement("button");
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(input.ownerDocument).toBe(documentRef);
+        expect(button.ownerDocument).toBe(documentRef);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLButtonElement(button)).toBe(true);
+
+        runtime.appendModal(modal);
+        runtime.appendStyle(style);
+
+        expect(documentRef.body.firstElementChild).toBe(modal);
+        expect(documentRef.head.firstElementChild).toBe(style);
     });
 
     it("routes runtime dependencies through provider functions", () => {

@@ -1,3 +1,11 @@
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserHTMLButtonElement,
+    getBrowserHTMLInputElement,
+} from "../../utils/runtime/browserRuntime.js";
+
 export interface AccentColorPickerRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -86,11 +94,11 @@ function getElementConstructor<TElement extends Element>(
 
 const defaultAccentColorPickerRuntimeScope: AccentColorPickerRuntimeScope =
     Object.freeze({
-        getAbortController: () => globalThis.AbortController,
-        getDocument: () => globalThis.document,
-        getHTMLButtonElement: () => globalThis.HTMLButtonElement,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getHTMLInputElement: () => globalThis.HTMLInputElement,
+        getAbortController: getBrowserAbortController,
+        getDocument: getBrowserDocument,
+        getHTMLButtonElement: getBrowserHTMLButtonElement,
+        getHTMLElement: getBrowserHTMLElement,
+        getHTMLInputElement: getBrowserHTMLInputElement,
     });
 
 export function getAccentColorPickerRuntime(
