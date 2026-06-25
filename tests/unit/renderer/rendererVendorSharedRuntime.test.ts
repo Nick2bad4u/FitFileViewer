@@ -3,6 +3,31 @@ import { describe, expect, it, vi } from "vitest";
 import { getRendererVendorSharedRuntime } from "../../../electron-app/renderer/rendererVendorSharedRuntime.js";
 
 describe("rendererVendorSharedRuntime", () => {
+    it("dispatches renderer vendor readiness events through the default browser scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const receivedDetails: unknown[] = [];
+        globalThis.addEventListener(
+            "vendor-ready",
+            (event) => {
+                if (event instanceof CustomEvent) {
+                    receivedDetails.push(event.detail);
+                }
+            },
+            { signal: controller.signal }
+        );
+        const { dispatchRendererVendorEntryLoadedEvent } =
+            getRendererVendorSharedRuntime();
+        const detail = { entryName: "core" };
+
+        expect(
+            dispatchRendererVendorEntryLoadedEvent("vendor-ready", detail)
+        ).toBe(true);
+        controller.abort();
+        expect(receivedDetails).toStrictEqual([detail]);
+    });
+
     it("dispatches renderer vendor readiness events through the injected target", () => {
         expect.assertions(2);
 
