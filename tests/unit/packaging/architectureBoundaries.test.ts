@@ -2741,7 +2741,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(28);
+        expect.assertions(36);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2804,7 +2804,31 @@ describe("architecture boundaries", () => {
             "mainProcessStateRuntime requires a date clock"
         );
         expect(mainProcessStateRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout.bind(globalThis)"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "getPerformance: () => globalThis.performance"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
         );
         expect(mainProcessStateRuntimeSource).toContain(
             "const dateNow = scope.getDateNow?.();"

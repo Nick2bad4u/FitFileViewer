@@ -1,3 +1,10 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserPerformance,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 type MainProcessPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
@@ -28,10 +35,10 @@ export interface MainProcessStateRuntime {
 }
 
 const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
-    getDateNow: () => Date.now,
-    getPerformance: () => globalThis.performance,
-    getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
+    getPerformance: getBrowserPerformance,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getRequiredDateNow(scope: MainProcessStateRuntimeScope): () => number {
