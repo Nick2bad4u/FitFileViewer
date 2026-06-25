@@ -1,6 +1,7 @@
 import {
     getBrowserAbortController,
     getBrowserDocument,
+    getBrowserRequestAnimationFrame,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -69,7 +70,7 @@ export const CHART_HOVER_EFFECTS_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getDocument: getBrowserDocument,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
     getSetTimeout: getBrowserSetTimeout,
 };
 

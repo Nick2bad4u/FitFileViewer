@@ -64,6 +64,29 @@ describe("getChartHoverEffectsRuntime", () => {
         expect(requestAnimationFrame.mock.contexts[0]).toBeUndefined();
     });
 
+    it("uses browser runtime providers for production animation frame defaults", () => {
+        expect.assertions(3);
+
+        let frameTime = Number("0");
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >((callback) => {
+            callback(Number("77"));
+            return 45;
+        });
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+
+        const frameHandle = getChartHoverEffectsRuntime().requestAnimationFrame(
+            (timestamp) => {
+                frameTime = timestamp;
+            }
+        );
+
+        expect(frameHandle).toBe(45);
+        expect(frameTime).toBe(77);
+        expect(requestAnimationFrame).toHaveBeenCalledOnce();
+    });
+
     it("runs animation frame callbacks immediately when frames are unavailable", () => {
         expect.assertions(2);
 
