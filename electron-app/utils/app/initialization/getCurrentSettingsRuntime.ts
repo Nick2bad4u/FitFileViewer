@@ -1,3 +1,8 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type GetCurrentSettingsTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface GetCurrentSettingsRuntimeScope {
@@ -30,10 +35,10 @@ export interface GetCurrentSettingsRuntime {
 }
 
 const defaultGetCurrentSettingsRuntimeScope: GetCurrentSettingsRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
+    getClearTimeout: getBrowserClearTimeout,
     getHTMLInputElement: () => globalThis.HTMLInputElement,
     getHTMLSelectElement: () => globalThis.HTMLSelectElement,
-    getSetTimeout: () => globalThis.setTimeout,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function getGetCurrentSettingsRuntime(
