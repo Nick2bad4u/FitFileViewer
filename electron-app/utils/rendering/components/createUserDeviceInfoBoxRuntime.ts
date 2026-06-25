@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface UserDeviceInfoBoxRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -13,7 +15,7 @@ export interface UserDeviceInfoBoxRuntime {
 }
 
 const defaultUserDeviceInfoBoxRuntimeScope: UserDeviceInfoBoxRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
 };
 

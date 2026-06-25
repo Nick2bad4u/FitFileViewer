@@ -1366,7 +1366,7 @@ const directSummaryColModalViewportGlobalPattern =
 const directRenderSummarySchedulingRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b|\bnew\s+AbortController\b/u;
 const directUserDeviceInfoBoxRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+    /\bglobalThis\.AbortController\b|\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\bdocument\b|\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directUpdateControlsStateRuntimeAmbientGetterPattern =
@@ -17501,7 +17501,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(22);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -17568,6 +17568,12 @@ describe("architecture boundaries", () => {
             "UserDeviceInfoBoxRuntimeScope =\n    globalThis"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
