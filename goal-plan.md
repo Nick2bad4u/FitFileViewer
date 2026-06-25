@@ -256,6 +256,9 @@ guardrails blocking direct timestamp construction and direct runtime scope prope
 Chart updater status timestamps now route through `chartUpdaterRuntime.ts` instead of constructing `new Date()`
 directly in `chartUpdater.ts`, with focused runtime coverage and architecture guardrails blocking direct timestamp
 construction and direct runtime scope properties from returning.
+Global chart status log timestamps now route through `globalChartStatusLogRuntime.ts` instead of constructing
+`new Date()` directly in `createGlobalChartStatusIndicator.ts`, with focused runtime coverage and architecture
+guardrails blocking direct timestamp construction and direct runtime scope properties from returning.
 
 Maintenance target: keep `main-ui.ts` as an entrypoint-only bridge through architecture coverage. The explicit
 module exports for the drag/drop handler, menu injection request, and development cleanup stay as the narrow

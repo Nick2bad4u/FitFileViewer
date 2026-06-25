@@ -16405,6 +16405,59 @@ describe("architecture boundaries", () => {
         expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
+    it("keeps global chart status log timestamps behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const globalChartStatusSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/createGlobalChartStatusIndicator.ts"
+            )
+        );
+        const globalChartStatusLogRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/globalChartStatusLogRuntime.ts"
+            )
+        );
+
+        expect(globalChartStatusSource).toContain(
+            "globalChartStatusLogRuntime.js"
+        );
+        expect(globalChartStatusSource).toContain(
+            "globalChartStatusLogRuntime().isoNow()"
+        );
+        expect(globalChartStatusSource).not.toContain(
+            "new Date().toISOString()"
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "defaultGlobalChartStatusLogRuntimeScope"
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "getDateConstructor: () => Date"
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "new DateConstructor().toISOString()"
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "globalChartStatusLogRuntime requires a date constructor"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "readonly Date?:"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain("scope.Date");
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "GlobalChartStatusLogRuntimeScope = globalThis"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "globalThis as Partial"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "Pick<typeof globalThis"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "const DateConstructor = Date"
+        );
+    });
+
     it("keeps global chart status updater DOM lookups behind the runtime facade", () => {
         expect.assertions(2);
 

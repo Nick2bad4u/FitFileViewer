@@ -5,6 +5,7 @@ import {
     type ChartStatusIndicatorRuntime,
     getChartStatusIndicatorRuntime,
 } from "./chartStatusIndicatorRuntime.js";
+import { globalChartStatusLogRuntime } from "./globalChartStatusLogRuntime.js";
 
 const GLOBAL_CHART_STATUS_ID = "global-chart-status";
 const LOG_PREFIX = "[GlobalChartStatus]";
@@ -24,7 +25,7 @@ function logWithContext(
     message: string,
     context: LogContext = {}
 ): void {
-    const timestamp = new Date().toISOString();
+    const timestamp = globalChartStatusLogRuntime().isoNow();
     const logMessage = `${timestamp} ${LOG_PREFIX} ${message}`;
     const hasContext = Object.keys(context).length > 0;
     const logArgs = hasContext ? [logMessage, context] : [logMessage];
