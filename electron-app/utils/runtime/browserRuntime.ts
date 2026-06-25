@@ -4,6 +4,14 @@ export function getBrowserAbortController():
     return globalThis.AbortController;
 }
 
+export function getBrowserAddEventListener():
+    | typeof globalThis.addEventListener
+    | undefined {
+    return typeof globalThis.addEventListener === "function"
+        ? globalThis.addEventListener.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserCancelIdleCallback():
     | typeof globalThis.cancelIdleCallback
     | undefined {

@@ -18469,7 +18469,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(51);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -18578,15 +18578,27 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "getAddEventListener: getBrowserAddEventListener"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).toContain(

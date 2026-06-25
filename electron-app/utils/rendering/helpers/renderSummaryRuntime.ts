@@ -1,4 +1,10 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserAddEventListener,
+    getBrowserCancelAnimationFrame,
+    getBrowserDocument,
+    getBrowserRequestAnimationFrame,
+} from "../../runtime/browserRuntime.js";
 
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
@@ -41,10 +47,10 @@ export interface RenderSummaryRuntime {
 
 const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getAddEventListener: () => globalThis.addEventListener,
-    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-    getDocument: () => globalThis.document,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getAddEventListener: getBrowserAddEventListener,
+    getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+    getDocument: getBrowserDocument,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
 };
 
 function getScopeAbortController(

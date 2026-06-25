@@ -1,8 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRenderSummaryRuntime } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryRuntime.js";
 
 describe("getRenderSummaryRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+        document.body.replaceChildren();
+    });
+
     it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 
@@ -33,6 +39,65 @@ describe("getRenderSummaryRuntime", () => {
         const utils = getRenderSummaryRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses shared browser providers for production defaults", () => {
+        expect.assertions(15);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function AbortControllerDouble() {
+                return controller;
+            }
+        );
+        const addEventListener =
+            vi.fn<typeof globalThis.addEventListener>();
+        const cancelAnimationFrame =
+            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const frameHandle = Number("45");
+        const requestAnimationFrame = vi.fn<
+            typeof globalThis.requestAnimationFrame
+        >(() => frameHandle);
+        vi.stubGlobal("AbortController", AbortControllerConstructor);
+        vi.stubGlobal("addEventListener", addEventListener);
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+
+        const summaryContainer = document.createElement("section");
+        summaryContainer.id = "content-summary";
+        document.body.append(summaryContainer);
+        const listener = vi.fn<EventListener>();
+        const options: AddEventListenerOptions = { once: true };
+        const utils = getRenderSummaryRuntime();
+
+        expect(utils.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(utils.createElement("button")).toBeInstanceOf(
+            HTMLButtonElement
+        );
+        expect(utils.createDocumentFragment()).toBeInstanceOf(
+            DocumentFragment
+        );
+        expect(utils.createSvgElement("path").namespaceURI).toBe(
+            "http://www.w3.org/2000/svg"
+        );
+        expect(utils.getSummaryContainer()).toBe(summaryContainer);
+        utils.addResizeListener(listener, options);
+        expect(addEventListener).toHaveBeenCalledWith(
+            "resize",
+            listener,
+            options
+        );
+        expect(addEventListener.mock.contexts[0]).toBe(globalThis);
+        expect(utils.requestAnimationFrame(frameCallback)).toBe(frameHandle);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(globalThis);
+        utils.cancelAnimationFrame(frameHandle);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(frameHandle);
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(globalThis);
+        expect(listener).not.toHaveBeenCalled();
+        expect(frameCallback).not.toHaveBeenCalled();
     });
 
     it("routes scheduling dependencies through provider functions", () => {
