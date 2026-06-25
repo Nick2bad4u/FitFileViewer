@@ -259,7 +259,6 @@ export type AppStateShape = {
     app: AppLifecycleState;
     browser: BrowserState;
     charts: ChartsState;
-    currentFile: unknown;
     fitFile: FitFileState;
     isLoading: boolean;
     map: MapState;
@@ -317,7 +316,6 @@ export function createDefaultAppState(): AppStateShape {
             selectedChart: "elevation",
             zoomLevel: 1,
         },
-        currentFile: null,
         fitFile: {
             currentFile: null,
             isLoading: false,

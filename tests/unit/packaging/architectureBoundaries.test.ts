@@ -9572,7 +9572,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the mutable state-manager root behind the store module", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const stateManagerDefaultsSource = stripComments(
             readRepositoryFile(
@@ -9601,6 +9601,12 @@ describe("architecture boundaries", () => {
         );
         expect(stateManagerDefaultsSource).toContain(
             "export function createResetAppState()"
+        );
+        expect(stateManagerDefaultsSource).not.toContain(
+            "currentFile: unknown;"
+        );
+        expect(stateManagerDefaultsSource).not.toMatch(
+            /\n\s{8}currentFile:\s+null,\s*\n\s{8}fitFile:/u
         );
         expect(stateManagerSource).toContain("stateManagerStore.js");
         expect(stateManagerSource).toContain("getRootState()");
