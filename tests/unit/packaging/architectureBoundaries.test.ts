@@ -11598,10 +11598,10 @@ describe("architecture boundaries", () => {
             "scope: CreateTablesRuntimeScope = globalThis"
         );
         expect(createTablesRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocument: () => globalThis.document"
         );
-        expect(createTablesRuntimeSource).toContain(
-            "getDocument: () => getGlobalDocument()"
+        expect(createTablesRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(createTablesRuntimeScopeSource).not.toContain(
             "readonly document?:"
@@ -13536,10 +13536,10 @@ describe("architecture boundaries", () => {
         );
         expect(iconFactorySource).toContain("runtime.createSvgElement(");
         expect(iconFactoryRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocument: () => globalThis.document"
         );
-        expect(iconFactoryRuntimeSource).toContain(
-            "getDocument: () => getGlobalDocument()"
+        expect(iconFactoryRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(iconFactoryRuntimeSource).toContain(
             "icon factory requires a document runtime"

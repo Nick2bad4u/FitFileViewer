@@ -9,12 +9,8 @@ export interface CreateTablesRuntime {
 }
 
 const defaultCreateTablesRuntimeScope: CreateTablesRuntimeScope = {
-    getDocument: () => getGlobalDocument(),
+    getDocument: () => globalThis.document,
 };
-
-function getGlobalDocument(): Document {
-    return globalThis.document;
-}
 
 function getScopeDocument(
     scope: CreateTablesRuntimeScope

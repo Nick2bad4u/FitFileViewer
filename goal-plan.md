@@ -391,8 +391,8 @@ quick color switcher icons, settings modal icons, about modal icons,
 map export/print controls, loading overlay, add-FIT-to-map control, marker-count selector, data-point filter icons, render-summary controls, map theme toggle,
 elevation-profile button, map fullscreen control, and map measurement toolbar instead of calling
 `document.createElementNS` directly, with architecture coverage blocking raw SVG DOM creation from returning to
-Electron app source. Icon factory default document access now centralizes through `getGlobalDocument()` instead
-of repeating `globalThis.document` in the default provider table.
+Electron app source. Icon factory default document access now lives on the named default provider instead of a
+private `getGlobalDocument()` helper.
 Elevation-profile popup and chart-overlay palette defaults now resolve through focused global-property helpers in
 `createElevationProfileButtonRuntime.ts` instead of casting `globalThis` to a feature-specific runtime scope or
 using generic `Reflect.get(globalThis, ...)` probes.
@@ -476,7 +476,7 @@ focused runtime/behavior coverage and architecture guardrails blocking those dir
 Data tab table container lookup now routes through `createTablesRuntime.ts` instead of querying `document` directly
 inside `createTables.ts`, with focused runtime/behavior coverage and architecture guardrails blocking direct
 container queries and legacy direct document runtime-scope properties from returning. Default document access now
-centralizes through `getGlobalDocument()` instead of repeating `globalThis.document`.
+lives on the named default provider instead of a private `getGlobalDocument()` helper.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now
