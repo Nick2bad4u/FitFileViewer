@@ -42,6 +42,38 @@ describe("getMapMeasureToolRuntime", () => {
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production DOM defaults", () => {
+        expect.assertions(7);
+
+        const utils = getMapMeasureToolRuntime();
+        const controller = new AbortController();
+        const button = utils.createElement("button");
+        const svg = utils.createSvgElement("svg");
+        const text = utils.createTextNode("distance");
+        let keydownCount = 0;
+
+        button.append(text);
+        utils.addDocumentKeydownListener(
+            () => {
+                keydownCount += 1;
+            },
+            { signal: controller.signal }
+        );
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "m" }));
+        controller.abort();
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "m" }));
+
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(button.ownerDocument).toBe(document);
+        expect(button.textContent).toBe("distance");
+        expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(utils.isHTMLElement(button)).toBe(true);
+        expect(utils.isHTMLElement({ classList: button.classList })).toBe(
+            false
+        );
+        expect(keydownCount).toBe(1);
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
