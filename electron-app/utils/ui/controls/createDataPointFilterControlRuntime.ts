@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserQueueMicrotask,
+} from "../../runtime/browserRuntime.js";
 
 export interface CreateDataPointFilterControlRuntimeScope {
     readonly getAbortController?:
@@ -19,8 +23,8 @@ export interface CreateDataPointFilterControlRuntime {
 const defaultCreateDataPointFilterControlRuntimeScope: CreateDataPointFilterControlRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
-        getQueueMicrotask: () => globalThis.queueMicrotask,
+        getDocument: getBrowserDocument,
+        getQueueMicrotask: getBrowserQueueMicrotask,
     };
 
 function getAbortControllerConstructor(

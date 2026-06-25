@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getCreateDataPointFilterControlRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/createDataPointFilterControlRuntime.js";
 
 describe("getCreateDataPointFilterControlRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates options and abort controllers through injected runtimes", () => {
         expect.assertions(4);
 
@@ -28,6 +32,28 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         const utils = getCreateDataPointFilterControlRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses browser runtime providers for production document and microtask defaults", () => {
+        expect.assertions(3);
+
+        const queueMicrotaskMock = vi.fn((callback: VoidFunction) => {
+            callback();
+        });
+
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("queueMicrotask", queueMicrotaskMock);
+
+        const runtime = getCreateDataPointFilterControlRuntime();
+        let scheduled = false;
+
+        runtime.scheduleMicrotask(() => {
+            scheduled = true;
+        });
+
+        expect(runtime.createOption()).toBeInstanceOf(HTMLOptionElement);
+        expect(scheduled).toBe(true);
+        expect(queueMicrotaskMock).toHaveBeenCalledOnce();
     });
 
     it("schedules microtasks through the injected scheduler", () => {
