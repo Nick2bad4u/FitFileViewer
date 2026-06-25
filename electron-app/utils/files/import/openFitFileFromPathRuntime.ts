@@ -1,3 +1,5 @@
+import { getBrowserHTMLElement } from "../../runtime/browserRuntime.js";
+
 export interface OpenFitFileFromPathRuntimeScope {
     readonly getHTMLElement?:
         | (() => typeof globalThis.HTMLElement | undefined)
@@ -10,7 +12,7 @@ export interface OpenFitFileFromPathRuntime {
 
 const defaultOpenFitFileFromPathRuntimeScope: OpenFitFileFromPathRuntimeScope =
     {
-        getHTMLElement: () => globalThis.HTMLElement,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getHTMLElementConstructor(
