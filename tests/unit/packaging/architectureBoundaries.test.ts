@@ -983,7 +983,7 @@ const directModalRuntimeAmbientTimerFallbackPattern =
 const directDragDropHandlerTimingRuntimeGlobalPattern =
     /\bnew\s+(?:AbortController|FileReader)\b|\bDate\.now\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
 const directDragDropHandlerRuntimeAmbientGetterPattern =
-    /\bget\s+(?:AbortController|cancelAnimationFrame|DateNow|FileReader|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
+    /\bget\s+(?:AbortController|cancelAnimationFrame|DateNow|FileReader|requestAnimationFrame)\s*\(\)\s*\{|\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|FileReader|requestAnimationFrame)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(|\binstanceof\s+(?:HTMLElement|KeyboardEvent)\b/u;
 const directKeyboardShortcutsModalSvgGlobalPattern =
@@ -1213,7 +1213,7 @@ const directFitBrowserFeatureGateRuntimeAmbientGetterPattern =
 const directFileBrowserTabRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\bdocument\.(?:querySelector|createElement|createTextNode)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|\bDate\.now\b/u;
 const directFileBrowserTabRuntimeAmbientGetterPattern =
-    /\breturn\s+globalThis\.(?:AbortController|document|HTMLElement|HTMLInputElement|HTMLSelectElement)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
+    /\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\breturn\s+globalThis\.(?:AbortController|document|HTMLElement|HTMLInputElement|HTMLSelectElement)\b|\bscope\.dateNow\b|\?\?\s*Date\.now\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeAmbientFallbackPattern =
@@ -1400,7 +1400,7 @@ const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUnifiedControlBarRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|clearTimeout|document|eventTarget|HTMLElement|MutationObserver|setTimeout)\b|\bscope:\s*UnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\bUnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b/u;
+    /\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\bscope\.(?:AbortController|clearTimeout|document|eventTarget|HTMLElement|MutationObserver|setTimeout)\b|\bscope:\s*UnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\bUnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|createElementNS|createTextNode|head|querySelector|setTimeout)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directQuickColorSwitcherRuntimeAmbientGetterPattern =
@@ -5854,7 +5854,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(57);
+        expect.assertions(59);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -5986,6 +5986,12 @@ describe("architecture boundaries", () => {
             "scope.HTMLSelectElement"
         );
         expect(browserTabRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(browserTabRuntimeSource).toContain("getDateNow: () => Date.now");
@@ -7866,7 +7872,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(35);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -7902,6 +7908,15 @@ describe("architecture boundaries", () => {
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "defaultDragDropHandlerRuntimeScope"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "../runtime/browserRuntime.js"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "readonly AbortController?:"
@@ -19173,7 +19188,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -19240,6 +19255,12 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
+            "../runtime/browserRuntime.js"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(unifiedControlBarRuntimeSource).toContain(

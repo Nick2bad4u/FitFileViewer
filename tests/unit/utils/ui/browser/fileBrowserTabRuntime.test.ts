@@ -22,6 +22,14 @@ describe("getFileBrowserTabRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getFileBrowserTabRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("routes DOM helpers through the injected document", () => {
         expect.assertions(14);
 

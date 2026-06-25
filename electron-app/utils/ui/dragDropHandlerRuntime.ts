@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+
 export interface DragDropHandlerRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
@@ -27,7 +29,7 @@ export interface DragDropHandlerRuntime {
 }
 
 const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
     getDateNow: () => Date.now,
     getDocument: () => globalThis.document,

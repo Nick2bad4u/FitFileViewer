@@ -26,6 +26,14 @@ describe("getDragDropHandlerRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getDragDropHandlerRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates file readers through the injected runtime provider", () => {
         expect.assertions(2);
 
