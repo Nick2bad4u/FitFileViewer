@@ -6,6 +6,7 @@ export interface OpenPowerEstimationSettingsModalRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
 }
 
@@ -31,16 +32,16 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getRuntimeDocument(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): Document {
-    const documentRef = getDocumentEventTarget(scope);
+    const documentRef = scope.getDocument?.();
     if (!documentRef) {
         throw new TypeError(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
     }
 
@@ -50,7 +51,7 @@ function getRuntimeDocument(
 const defaultOpenPowerEstimationSettingsModalRuntimeScope: OpenPowerEstimationSettingsModalRuntimeScope =
     {
         getAbortController: () => globalThis.AbortController,
-        getDocumentEventTarget: () => globalThis.document,
+        getDocument: () => globalThis.document,
     };
 
 export function getOpenPowerEstimationSettingsModalRuntime(

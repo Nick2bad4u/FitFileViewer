@@ -36,13 +36,13 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             "openPowerEstimationSettingsModal requires a document event-target runtime"
         );
         expect(() => runtime.appendToBody(element)).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
         expect(() => runtime.bodyContains(element)).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
         expect(() => runtime.createElement("div")).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
     });
 
@@ -76,8 +76,34 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("derives document keydown listeners from the scoped document provider", () => {
+        expect.assertions(3);
+
+        let keydownCount = 0;
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const controller = new AbortController();
+        const runtime = getOpenPowerEstimationSettingsModalRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(new KeyboardEvent("keydown"));
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(keydownCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("routes all defaults through provider functions", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         let keydownCount = 0;
         const documentEventTarget =
@@ -95,9 +121,11 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             () =>
                 AbortControllerConstructor as unknown as typeof AbortController
         );
+        const getDocument = vi.fn(() => documentEventTarget);
         const getDocumentEventTarget = vi.fn(() => documentEventTarget);
         const runtime = getOpenPowerEstimationSettingsModalRuntime({
             getAbortController,
+            getDocument,
             getDocumentEventTarget,
         });
 
@@ -113,7 +141,8 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         expect(runtime.bodyContains(overlay)).toBe(true);
         expect(documentEventTarget.body.firstElementChild).toBe(overlay);
         expect(overlay).toBeInstanceOf(HTMLDivElement);
-        expect(getDocumentEventTarget).toHaveBeenCalledTimes(4);
+        expect(getDocument).toHaveBeenCalledTimes(3);
+        expect(getDocumentEventTarget).toHaveBeenCalledOnce();
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(keydownCount).toBe(1);
@@ -148,13 +177,13 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             "openPowerEstimationSettingsModal requires a document event-target runtime"
         );
         expect(() => runtime.appendToBody(element)).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
         expect(() => runtime.bodyContains(element)).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
         expect(() => runtime.createElement("div")).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document runtime"
         );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
