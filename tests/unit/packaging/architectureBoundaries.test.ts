@@ -20414,7 +20414,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(40);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -20503,10 +20503,46 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(creditsMarqueeRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(creditsMarqueeRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getMutationObserver: getBrowserMutationObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "getMutationObserver: () => globalThis.MutationObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getResizeObserver: getBrowserResizeObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "getResizeObserver: () => globalThis.ResizeObserver"
         );
     });
 

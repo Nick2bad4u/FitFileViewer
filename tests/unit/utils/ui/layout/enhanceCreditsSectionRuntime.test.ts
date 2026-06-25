@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getCreditsMarqueeRuntime,
@@ -6,6 +6,12 @@ import {
 } from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
 
 describe("getCreditsMarqueeRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -32,6 +38,94 @@ describe("getCreditsMarqueeRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses browser runtime providers for production DOM, observer, listener, and animation defaults", () => {
+        expect.assertions(14);
+
+        const animationFrameHandle = Number("31");
+        const animationFrameCallback = vi.fn<FrameRequestCallback>();
+        const resizeListener = vi.fn<EventListener>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => animationFrameHandle);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const resizeObserverConstructor =
+            vi.fn<(callback: ResizeObserverCallback) => void>();
+        const mutationObserverConstructor =
+            vi.fn<(callback: MutationCallback) => void>();
+
+        class ResizeObserverMock implements ResizeObserver {
+            constructor(callback: ResizeObserverCallback) {
+                resizeObserverConstructor(callback);
+            }
+
+            disconnect(): void {}
+            observe(): void {}
+            unobserve(): void {}
+        }
+
+        class MutationObserverMock implements MutationObserver {
+            constructor(callback: MutationCallback) {
+                mutationObserverConstructor(callback);
+            }
+
+            disconnect(): void {}
+            observe(): void {}
+            takeRecords(): MutationRecord[] {
+                return [];
+            }
+        }
+
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+        vi.stubGlobal("MutationObserver", MutationObserverMock);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("ResizeObserver", ResizeObserverMock);
+
+        const section = document.createElement("div");
+        section.className = "credits-section";
+        document.body.append(section);
+
+        const resizeCallback = vi.fn<ResizeObserverCallback>();
+        const mutationCallback = vi.fn<MutationCallback>();
+        const runtime = getCreditsMarqueeRuntime();
+
+        runtime.addResizeListener(resizeListener, { passive: true });
+        globalThis.dispatchEvent(new Event("resize"));
+        runtime.removeResizeListener(resizeListener);
+        globalThis.dispatchEvent(new Event("resize"));
+        runtime.cancelAnimationFrame(animationFrameHandle);
+
+        expect(runtime.queryCreditsSections(".credits-section")).toStrictEqual(
+            [section]
+        );
+        expect(runtime.isHTMLElement(section)).toBe(true);
+        expect(resizeListener).toHaveBeenCalledOnce();
+        expect(runtime.requestAnimationFrame(animationFrameCallback)).toBe(
+            animationFrameHandle
+        );
+        expect(requestAnimationFrame).toHaveBeenCalledWith(
+            animationFrameCallback
+        );
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(
+            animationFrameHandle
+        );
+        expect(animationFrameCallback).not.toHaveBeenCalled();
+        expect(runtime.createResizeObserver(resizeCallback)).toBeInstanceOf(
+            ResizeObserverMock
+        );
+        expect(runtime.createMutationObserver(mutationCallback)).toBeInstanceOf(
+            MutationObserverMock
+        );
+        expect(resizeObserverConstructor).toHaveBeenCalledWith(
+            resizeCallback
+        );
+        expect(mutationObserverConstructor).toHaveBeenCalledWith(
+            mutationCallback
+        );
+        expect(requestAnimationFrame).toHaveBeenCalledOnce();
+        expect(cancelAnimationFrame).toHaveBeenCalledOnce();
+        expect(resizeObserverConstructor).toHaveBeenCalledOnce();
     });
 
     it("throws when abort controller creation is unavailable", () => {

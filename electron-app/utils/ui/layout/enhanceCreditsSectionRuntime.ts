@@ -1,4 +1,13 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserCancelAnimationFrame,
+    getBrowserDocument,
+    getBrowserEventTarget,
+    getBrowserHTMLElement,
+    getBrowserMutationObserver,
+    getBrowserRequestAnimationFrame,
+    getBrowserResizeObserver,
+} from "../../runtime/browserRuntime.js";
 
 export type CreditsMarqueeAnimationFrameHandle = number;
 
@@ -69,13 +78,13 @@ export interface CreditsMarqueeRuntime {
 
 const defaultCreditsMarqueeRuntimeScope: CreditsMarqueeRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-    getDocument: () => globalThis.document,
-    getEventTarget: () => globalThis,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getMutationObserver: () => globalThis.MutationObserver,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getResizeObserver: () => globalThis.ResizeObserver,
+    getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+    getDocument: getBrowserDocument,
+    getEventTarget: getBrowserEventTarget,
+    getHTMLElement: getBrowserHTMLElement,
+    getMutationObserver: getBrowserMutationObserver,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+    getResizeObserver: getBrowserResizeObserver,
 };
 
 function getDocument(scope: CreditsMarqueeRuntimeScope): Document {

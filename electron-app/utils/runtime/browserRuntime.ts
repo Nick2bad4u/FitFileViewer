@@ -12,6 +12,14 @@ export function getBrowserCancelIdleCallback():
         : undefined;
 }
 
+export function getBrowserCancelAnimationFrame():
+    | typeof globalThis.cancelAnimationFrame
+    | undefined {
+    return typeof globalThis.cancelAnimationFrame === "function"
+        ? globalThis.cancelAnimationFrame.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserClearInterval():
     | typeof globalThis.clearInterval
     | undefined {
@@ -78,6 +86,12 @@ export function getBrowserRequestAnimationFrame():
     return typeof globalThis.requestAnimationFrame === "function"
         ? globalThis.requestAnimationFrame.bind(globalThis)
         : undefined;
+}
+
+export function getBrowserResizeObserver():
+    | typeof globalThis.ResizeObserver
+    | undefined {
+    return globalThis.ResizeObserver;
 }
 
 export function getBrowserMutationObserver():
