@@ -1,10 +1,17 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { ChartStatusIndicatorRuntimeScope } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
+import type {
+    ChartStatusIndicatorRuntimeScope,
+    ChartStatusIndicatorTimerHandle,
+} from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 import { getChartStatusIndicatorRuntime } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 
 describe("getChartStatusIndicatorRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("registers field toggle listeners through an injected runtime scope", () => {
         expect.assertions(2);
 
@@ -77,6 +84,28 @@ describe("getChartStatusIndicatorRuntime", () => {
         const utils = getChartStatusIndicatorRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const timer = Symbol(
+            "chart-status-production-timer"
+        ) as unknown as ChartStatusIndicatorTimerHandle;
+        const handler = vi.fn<() => void>();
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const timeoutMs = Number("90");
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getChartStatusIndicatorRuntime();
+        const timerHandle = runtime.setTimeout(handler, timeoutMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
     it("creates and queries DOM nodes through the injected document and constructor", () => {
