@@ -10312,7 +10312,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(101);
+        expect.assertions(106);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10412,20 +10412,29 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocumentBody: () => globalThis.document.body"
+            "readonly getDocument?: (() => Document | undefined) | undefined;"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocumentElement: () => globalThis.document.documentElement"
+            "getDocument: () => globalThis.document"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocumentEventTarget: () => globalThis.document"
+            "return scope.getDocumentBody?.() ?? getScopeDocument(scope)?.body;"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocumentQueryScope: () => globalThis.document"
+            "scope.getDocumentElement?.() ?? getScopeDocument(scope)?.documentElement"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.() ?? getScopeDocument(scope);"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "return scope.getDocumentQueryScope?.() ?? getScopeDocument(scope);"
         );
         expect(masterStateRuntimeSource).not.toContain(
             "function getGlobalDocument"
         );
+        expect(masterStateRuntimeSource).not.toContain("globalThis.document.");
+        expect(masterStateRuntimeSource).not.toContain("globalThis.document[");
+        expect(masterStateRuntimeSource).not.toContain("globalThis.document\n");
         expect(masterStateRuntimeSource).toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );

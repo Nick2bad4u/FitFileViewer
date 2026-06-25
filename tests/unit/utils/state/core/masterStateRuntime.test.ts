@@ -237,6 +237,46 @@ describe("masterStateRuntime", () => {
         );
     });
 
+    it("derives default document operations from a scoped document provider", () => {
+        expect.assertions(7);
+
+        const scopedDocument =
+            document.implementation.createHTMLDocument("Scoped State");
+        scopedDocument.documentElement.dataset["devMode"] = "true";
+        scopedDocument.body.innerHTML = `
+            <button id="loading-button" class="loading-sensitive"></button>
+        `;
+        const addDocumentEventListener = vi.spyOn(
+            scopedDocument,
+            "addEventListener"
+        );
+        const runtime = getMasterStateRuntime({
+            getDocument: () => scopedDocument,
+        });
+        const listener = vi.fn();
+        const options = { once: true };
+
+        runtime.addDocumentEventListener("keydown", listener, options);
+        runtime.addBodyClass("drag-over");
+        expect(scopedDocument.body.classList.contains("drag-over")).toBe(true);
+        runtime.removeBodyClass("drag-over");
+
+        const loadingElements = Array.from(
+            runtime.getLoadingSensitiveElements()
+        );
+
+        expect(scopedDocument.body.classList.contains("drag-over")).toBe(false);
+        expect(runtime.hasDevelopmentModeAttribute()).toBe(true);
+        expect(loadingElements).toHaveLength(1);
+        expect(loadingElements[0]?.id).toBe("loading-button");
+        expect(addDocumentEventListener).toHaveBeenCalledWith(
+            "keydown",
+            listener,
+            options
+        );
+        expect(addDocumentEventListener.mock.contexts[0]).toBe(scopedDocument);
+    });
+
     it("routes body class and development attribute reads through scoped providers", () => {
         expect.assertions(6);
 

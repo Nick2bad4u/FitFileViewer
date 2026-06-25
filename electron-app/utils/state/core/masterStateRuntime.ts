@@ -42,6 +42,7 @@ export interface MasterStateRuntimeScope {
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?:
         | (() => MasterStateEventTarget | undefined)
         | undefined;
@@ -126,10 +127,7 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getClearInterval: () => globalThis.clearInterval,
     getCustomEvent: () => globalThis.CustomEvent,
     getDateNow: () => Date.now,
-    getDocumentBody: () => globalThis.document.body,
-    getDocumentElement: () => globalThis.document.documentElement,
-    getDocumentEventTarget: () => globalThis.document,
-    getDocumentQueryScope: () => globalThis.document,
+    getDocument: () => globalThis.document,
     getDispatchEvent: () => globalThis.dispatchEvent,
     getEventTarget: () => globalThis,
     getLocation: () => globalThis.location,
@@ -194,25 +192,33 @@ function getRequiredDateNow(scope: MasterStateRuntimeScope): () => number {
 function getScopeDocumentEventTarget(
     scope: MasterStateRuntimeScope
 ): MasterStateEventTarget | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? getScopeDocument(scope);
 }
 
 function getScopeDocumentBody(
     scope: MasterStateRuntimeScope
 ): MasterStateDocumentBody | undefined {
-    return scope.getDocumentBody?.();
+    return scope.getDocumentBody?.() ?? getScopeDocument(scope)?.body;
 }
 
 function getScopeDocumentElement(
     scope: MasterStateRuntimeScope
 ): MasterStateDocumentElement | undefined {
-    return scope.getDocumentElement?.();
+    return (
+        scope.getDocumentElement?.() ?? getScopeDocument(scope)?.documentElement
+    );
 }
 
 function getScopeDocumentQueryScope(
     scope: MasterStateRuntimeScope
 ): MasterStateQueryScope | undefined {
-    return scope.getDocumentQueryScope?.();
+    return scope.getDocumentQueryScope?.() ?? getScopeDocument(scope);
+}
+
+function getScopeDocument(
+    scope: MasterStateRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.();
 }
 
 function getRequiredDocumentBody(
