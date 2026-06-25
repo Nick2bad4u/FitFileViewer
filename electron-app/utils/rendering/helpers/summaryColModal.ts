@@ -502,7 +502,7 @@ export function showColModal({
 
     function createMouseDownHandler(idx: number, key: string): EventListener {
         return (event: Event): void => {
-            if (!(event instanceof MouseEvent)) {
+            if (!runtime.isMouseEvent(event)) {
                 return;
             }
             if (event.shiftKey && lastCheckedIndex !== null) {
@@ -542,7 +542,7 @@ export function showColModal({
     ): EventListener {
         return (event: Event): void => {
             if (
-                event instanceof MouseEvent &&
+                runtime.isMouseEvent(event) &&
                 event.shiftKey &&
                 lastCheckedIndex !== null
             ) {

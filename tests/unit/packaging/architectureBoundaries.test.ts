@@ -17128,7 +17128,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(44);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -17165,9 +17165,11 @@ describe("architecture boundaries", () => {
         expect(summaryColModalSource).toContain("runtime.appendToBody");
         expect(summaryColModalSource).toContain("runtime.getActiveElement");
         expect(summaryColModalSource).toContain("runtime.isKeyboardEvent");
+        expect(summaryColModalSource).toContain("runtime.isMouseEvent");
         expect(summaryColModalSource).not.toContain("document.");
         expect(summaryColModalSource).not.toContain("instanceof HTMLElement");
         expect(summaryColModalSource).not.toContain("instanceof KeyboardEvent");
+        expect(summaryColModalSource).not.toContain("instanceof MouseEvent");
         expect(summaryColModalRuntimeSource).toContain(
             "defaultSummaryColModalRuntimeScope"
         );
@@ -17190,6 +17192,9 @@ describe("architecture boundaries", () => {
             "readonly KeyboardEvent?:"
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly MouseEvent?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
             "readonly innerHeight?:"
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
@@ -17203,6 +17208,7 @@ describe("architecture boundaries", () => {
         expect(summaryColModalRuntimeSource).not.toContain(
             "scope.KeyboardEvent"
         );
+        expect(summaryColModalRuntimeSource).not.toContain("scope.MouseEvent");
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerHeight");
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerWidth");
         expect(summaryColModalRuntimeSource).toContain(
@@ -17218,6 +17224,9 @@ describe("architecture boundaries", () => {
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(summaryColModalRuntimeSource).toContain(
+            "getMouseEvent: () => globalThis.MouseEvent"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
             "height: globalThis.innerHeight"
         );
         expect(summaryColModalRuntimeSource).toContain(
@@ -17231,6 +17240,12 @@ describe("architecture boundaries", () => {
         );
         expect(summaryColModalRuntimeSource).toContain(
             "const KeyboardEventConstructor = scope.getKeyboardEvent?.();"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "const MouseEventConstructor = scope.getMouseEvent?.();"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "summaryColModal requires a MouseEvent runtime"
         );
         expect(summaryColModalRuntimeSource).toContain(
             "getRuntimeDocument(scope).body.append(node)"

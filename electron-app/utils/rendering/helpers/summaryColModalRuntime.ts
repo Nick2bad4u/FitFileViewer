@@ -9,6 +9,7 @@ export interface SummaryColModalRuntimeScope {
     readonly getKeyboardEvent?:
         | (() => typeof KeyboardEvent | undefined)
         | undefined;
+    readonly getMouseEvent?: (() => typeof MouseEvent | undefined) | undefined;
     readonly getViewport?:
         | (() => SummaryColModalViewport | undefined)
         | undefined;
@@ -29,6 +30,7 @@ export interface SummaryColModalRuntime {
     readonly getActiveElement: () => HTMLElement | null;
     readonly getViewport: () => SummaryColModalViewport;
     readonly isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
+    readonly isMouseEvent: (value: unknown) => value is MouseEvent;
 }
 
 const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope = {
@@ -36,6 +38,7 @@ const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope = {
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getKeyboardEvent: () => globalThis.KeyboardEvent,
+    getMouseEvent: () => globalThis.MouseEvent,
     getViewport: () => ({
         height: globalThis.innerHeight,
         width: globalThis.innerWidth,
@@ -83,6 +86,9 @@ export function getSummaryColModalRuntime(
         isKeyboardEvent(value): value is KeyboardEvent {
             return value instanceof getKeyboardEventConstructor(scope);
         },
+        isMouseEvent(value): value is MouseEvent {
+            return value instanceof getMouseEventConstructor(scope);
+        },
     };
 }
 
@@ -104,4 +110,15 @@ function getKeyboardEventConstructor(
     }
 
     return KeyboardEventConstructor;
+}
+
+function getMouseEventConstructor(
+    scope: SummaryColModalRuntimeScope
+): typeof MouseEvent {
+    const MouseEventConstructor = scope.getMouseEvent?.();
+    if (typeof MouseEventConstructor !== "function") {
+        throw new TypeError("summaryColModal requires a MouseEvent runtime");
+    }
+
+    return MouseEventConstructor;
 }

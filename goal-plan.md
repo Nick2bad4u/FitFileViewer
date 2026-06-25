@@ -617,6 +617,9 @@ globals from returning.
 Summary column modal active-element lookup, body append, DOM element creation, and text-node creation now also route
 through `summaryColModalRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
 `document` and `HTMLElement` access from returning to `summaryColModal.ts`.
+Summary column modal mouse-event type checks now also route through `summaryColModalRuntime.ts` instead of checking
+`MouseEvent` directly inside `summaryColModal.ts`, with focused runtime coverage and architecture guardrails blocking
+direct `MouseEvent` checks and legacy direct MouseEvent scope properties from returning.
 User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
 instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
 coverage and architecture guardrails blocking direct controller construction from returning. User/device info box

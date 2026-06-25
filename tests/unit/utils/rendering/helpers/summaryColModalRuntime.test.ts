@@ -111,8 +111,20 @@ describe("getSummaryColModalRuntime", () => {
         expect(runtime.isKeyboardEvent({ key: "Escape" })).toBe(false);
     });
 
+    it("checks mouse events through the injected constructor provider", () => {
+        expect.assertions(3);
+
+        const runtime = getSummaryColModalRuntime({
+            getMouseEvent: () => MouseEvent,
+        });
+
+        expect(runtime.isMouseEvent(new MouseEvent("mousedown"))).toBe(true);
+        expect(runtime.isMouseEvent(new Event("mousedown"))).toBe(false);
+        expect(runtime.isMouseEvent({ shiftKey: true })).toBe(false);
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const runtime = getSummaryColModalRuntime({});
 
@@ -131,6 +143,9 @@ describe("getSummaryColModalRuntime", () => {
         expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
             "summaryColModal requires a KeyboardEvent runtime"
         );
+        expect(() => runtime.isMouseEvent(new Event("mousedown"))).toThrow(
+            "summaryColModal requires a MouseEvent runtime"
+        );
     });
 
     it("uses zero dimensions when viewport values are unavailable", () => {
@@ -143,13 +158,14 @@ describe("getSummaryColModalRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const legacyScope = {
             AbortController,
             document,
             HTMLElement,
             KeyboardEvent,
+            MouseEvent,
             innerHeight: 900,
             innerWidth: 1440,
         } as unknown as SummaryColModalRuntimeScope;
@@ -176,6 +192,9 @@ describe("getSummaryColModalRuntime", () => {
         );
         expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
             "summaryColModal requires a KeyboardEvent runtime"
+        );
+        expect(() => runtime.isMouseEvent(new Event("mousedown"))).toThrow(
+            "summaryColModal requires a MouseEvent runtime"
         );
     });
 });
