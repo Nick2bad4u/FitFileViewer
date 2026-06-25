@@ -11635,7 +11635,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(52);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -11708,6 +11708,15 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
@@ -11720,10 +11729,22 @@ describe("architecture boundaries", () => {
             "function getGlobalDocument"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getElement: getBrowserElement"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "getElement: () => globalThis.Element"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a document runtime"

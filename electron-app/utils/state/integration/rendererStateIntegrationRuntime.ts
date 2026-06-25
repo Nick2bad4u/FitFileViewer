@@ -1,4 +1,11 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserElement,
+    getBrowserHTMLElement,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type RendererStateIntegrationTimer = ReturnType<
     typeof globalThis.setTimeout
@@ -47,11 +54,11 @@ export interface RendererStateIntegrationRuntime {
 const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getDocument: () => globalThis.document,
-        getElement: () => globalThis.Element,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getSetTimeout: () => globalThis.setTimeout,
+        getClearTimeout: getBrowserClearTimeout,
+        getDocument: getBrowserDocument,
+        getElement: getBrowserElement,
+        getHTMLElement: getBrowserHTMLElement,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 function getAbortControllerConstructor(
