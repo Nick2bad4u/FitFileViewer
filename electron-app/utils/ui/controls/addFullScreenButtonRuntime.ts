@@ -85,7 +85,7 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getDocument(scope: AddFullScreenButtonRuntimeScope): Document {
@@ -146,7 +146,6 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
         getAbortController: () => globalThis.AbortController,
         getDocument: () => globalThis.document,
-        getDocumentEventTarget: () => globalThis.document,
         getGlobalEventTarget: () =>
             isAddFullScreenButtonEventTarget(globalThis)
                 ? globalThis

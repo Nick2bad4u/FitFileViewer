@@ -136,6 +136,47 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(staleWindowAddEventListener).not.toHaveBeenCalled();
     });
 
+    it("derives document listeners from the scoped document provider", () => {
+        expect.assertions(4);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "fullscreen button listener runtime"
+        );
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const removeEventListener = vi.spyOn(
+            documentRef,
+            "removeEventListener"
+        );
+        const cleanupController = new AbortController();
+        const handledEventTypes: string[] = [];
+        const listener = (event: Event): void => {
+            handledEventTypes.push(event.type);
+        };
+        const runtime = getAddFullScreenButtonRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentEventListener("fullscreenchange", listener, {
+            signal: cleanupController.signal,
+        });
+        documentRef.dispatchEvent(new Event("fullscreenchange"));
+        runtime.removeDocumentEventListener("fullscreenchange", listener);
+        documentRef.dispatchEvent(new Event("fullscreenchange"));
+        cleanupController.abort();
+
+        expect(addEventListener).toHaveBeenCalledWith(
+            "fullscreenchange",
+            listener,
+            { signal: cleanupController.signal }
+        );
+        expect(removeEventListener).toHaveBeenCalledWith(
+            "fullscreenchange",
+            listener
+        );
+        expect(handledEventTypes).toStrictEqual(["fullscreenchange"]);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("reads fullscreen button state through the injected document runtime", () => {
         expect.assertions(8);
 
