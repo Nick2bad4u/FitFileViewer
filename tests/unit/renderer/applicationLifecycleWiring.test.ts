@@ -17,6 +17,14 @@ function createGlobalEventTarget(): EventTarget {
 }
 
 describe("renderer application lifecycle wiring", () => {
+    it("uses renderer browser runtime providers for production defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRendererApplicationLifecycleWiringRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 

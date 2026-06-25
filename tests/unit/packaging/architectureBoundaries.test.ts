@@ -18301,7 +18301,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const violations =
             migratedRendererApplicationLifecycleWiringRuntimeFiles
@@ -18337,6 +18337,12 @@ describe("architecture boundaries", () => {
             "defaultRendererApplicationLifecycleWiringRuntimeScope"
         );
         expect(lifecycleWiringRuntimeSource).toContain(
+            "rendererBrowserRuntime.js"
+        );
+        expect(lifecycleWiringRuntimeSource).toContain(
+            "getAbortController: getBrowserRendererAbortController"
+        );
+        expect(lifecycleWiringRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(lifecycleWiringRuntimeSource).not.toMatch(

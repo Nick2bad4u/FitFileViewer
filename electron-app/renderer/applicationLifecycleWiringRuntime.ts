@@ -1,3 +1,5 @@
+import { getBrowserRendererAbortController } from "./rendererBrowserRuntime.js";
+
 export interface RendererApplicationLifecycleWiringRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -10,7 +12,7 @@ export interface RendererApplicationLifecycleWiringRuntime {
 
 const defaultRendererApplicationLifecycleWiringRuntimeScope: RendererApplicationLifecycleWiringRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserRendererAbortController,
     };
 
 export function getRendererApplicationLifecycleWiringRuntime(
