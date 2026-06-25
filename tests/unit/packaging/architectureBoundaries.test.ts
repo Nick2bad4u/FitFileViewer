@@ -1182,7 +1182,7 @@ const directMapActionButtonsRuntimeAmbientFallbackPattern =
 const directMapDocumentListenersRuntimeGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b|\binstanceof\s+(?:HTMLElement|Node)\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|body|exitFullscreen|fullscreenElement|querySelector)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:AbortController|setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|body|exitFullscreen|fullscreenElement|querySelector)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapMeasureToolRuntimeGlobalPattern =
@@ -14376,7 +14376,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(42);
+        expect.assertions(44);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -14440,6 +14440,12 @@ describe("architecture boundaries", () => {
             "scope: MapFullscreenControlRuntimeScope = globalThis"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(

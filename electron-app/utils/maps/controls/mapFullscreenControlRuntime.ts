@@ -1,3 +1,4 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export type MapFullscreenControlTimer = ReturnType<
@@ -47,7 +48,7 @@ export interface MapFullscreenControlRuntime {
 
 const defaultMapFullscreenControlRuntimeScope: MapFullscreenControlRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,
         getSetTimeout: () => globalThis.setTimeout,
