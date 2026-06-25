@@ -106,6 +106,35 @@ describe("getAccentColorPickerRuntime", () => {
         expect(document.body.querySelector("#accent-color-modal")).toBeNull();
     });
 
+    it("derives document keydown listeners from the scoped document provider", () => {
+        expect.assertions(4);
+
+        const controller = new AbortController();
+        const documentRef = document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        let keydownCount = 0;
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const runtime = getAccentColorPickerRuntime({
+            getDocument: () => documentRef,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape" })
+        );
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(addEventListener.mock.contexts[0]).toBe(documentRef);
+        expect(keydownCount).toBe(1);
+        expect(document.body).not.toBe(documentRef.body);
+    });
+
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
         expect.assertions(10);
 

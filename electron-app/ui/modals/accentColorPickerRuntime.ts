@@ -58,7 +58,7 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: AccentColorPickerRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.();
+    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
 }
 
 function getRequiredDocument(scope: AccentColorPickerRuntimeScope): Document {
@@ -88,7 +88,6 @@ const defaultAccentColorPickerRuntimeScope: AccentColorPickerRuntimeScope =
     Object.freeze({
         getAbortController: () => globalThis.AbortController,
         getDocument: () => globalThis.document,
-        getDocumentEventTarget: () => globalThis.document,
         getHTMLButtonElement: () => globalThis.HTMLButtonElement,
         getHTMLElement: () => globalThis.HTMLElement,
         getHTMLInputElement: () => globalThis.HTMLInputElement,
@@ -131,7 +130,9 @@ export function getAccentColorPickerRuntime(
         },
         getActiveElement(): HTMLElement | undefined {
             const activeElement = getRequiredDocument(scope).activeElement;
-            return this.isHTMLElement(activeElement) ? activeElement : undefined;
+            return this.isHTMLElement(activeElement)
+                ? activeElement
+                : undefined;
         },
         getElement<TElement extends Element = Element>(
             selector: string
