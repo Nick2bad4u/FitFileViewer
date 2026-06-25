@@ -1,3 +1,5 @@
+import { getBrowserLocalStorage } from "../../runtime/browserRuntime.js";
+
 export interface StateStorageRuntimeScope {
     readonly getLocalStorage?: (() => Storage | undefined) | undefined;
 }
@@ -10,7 +12,7 @@ export interface StateStorageRuntime {
 }
 
 const defaultStateStorageRuntimeScope: StateStorageRuntimeScope = {
-    getLocalStorage: () => globalThis.localStorage,
+    getLocalStorage: getBrowserLocalStorage,
 };
 
 function getScopeLocalStorage(
