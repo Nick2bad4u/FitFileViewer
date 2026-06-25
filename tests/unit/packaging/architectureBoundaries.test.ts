@@ -13208,7 +13208,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -13265,9 +13265,18 @@ describe("architecture boundaries", () => {
         expect(copyTableAsCSVRuntimeSource).not.toContain("scope.document");
         expect(copyTableAsCSVRuntimeSource).not.toContain("scope.navigator");
         expect(copyTableAsCSVRuntimeSource).toContain(
-            "getClipboard: () => globalThis.navigator.clipboard"
+            "../../runtime/browserRuntime.js"
         );
         expect(copyTableAsCSVRuntimeSource).toContain(
+            "getClipboard: getBrowserClipboard"
+        );
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(copyTableAsCSVRuntimeSource).not.toContain(
+            "getClipboard: () => globalThis.navigator.clipboard"
+        );
+        expect(copyTableAsCSVRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(copyTableAsCSVRuntimeSource).toContain(

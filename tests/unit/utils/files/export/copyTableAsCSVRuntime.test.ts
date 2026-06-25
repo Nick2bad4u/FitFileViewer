@@ -9,6 +9,10 @@ const originalExecCommandDescriptor = Object.getOwnPropertyDescriptor(
     document,
     "execCommand"
 );
+const originalClipboardDescriptor = Object.getOwnPropertyDescriptor(
+    navigator,
+    "clipboard"
+);
 
 function installExecCommand(result: boolean): ReturnType<typeof vi.fn> {
     const execCommand = vi.fn<NonNullable<Document["execCommand"]>>(
@@ -34,9 +38,32 @@ function restoreExecCommand(): void {
     Reflect.deleteProperty(document, "execCommand");
 }
 
+function installClipboard(
+    clipboard: Readonly<{ writeText: (text: string) => Promise<void> | void }>
+): void {
+    Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: clipboard,
+    });
+}
+
+function restoreClipboard(): void {
+    if (originalClipboardDescriptor) {
+        Object.defineProperty(
+            navigator,
+            "clipboard",
+            originalClipboardDescriptor
+        );
+        return;
+    }
+
+    Reflect.deleteProperty(navigator, "clipboard");
+}
+
 describe("getCopyTableAsCSVRuntime", () => {
     afterEach(() => {
         document.body.replaceChildren();
+        restoreClipboard();
         restoreExecCommand();
         vi.restoreAllMocks();
     });
@@ -53,6 +80,24 @@ describe("getCopyTableAsCSVRuntime", () => {
             true
         );
         expect(writeText).toHaveBeenCalledWith("a,b");
+    });
+
+    it("uses browser runtime providers for production clipboard and document defaults", async () => {
+        expect.assertions(4);
+
+        const writeText = vi.fn<(text: string) => Promise<void>>();
+        const execCommand = installExecCommand(true);
+        installClipboard({ writeText });
+        const view = getCopyTableAsCSVRuntime();
+
+        await expect(view.copyTextUsingBrowserClipboard("a,b")).resolves.toBe(
+            true
+        );
+        view.copyTextUsingLegacyExecCommand("c,d", {});
+
+        expect(writeText).toHaveBeenCalledWith("a,b");
+        expect(execCommand).toHaveBeenCalledWith("copy");
+        expect(document.querySelector("textarea")).toBeNull();
     });
 
     it("returns false when browser clipboard writing is unavailable or denied", async () => {

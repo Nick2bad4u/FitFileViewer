@@ -40,6 +40,10 @@ export function getBrowserClearTimeout():
     return globalThis.clearTimeout;
 }
 
+export function getBrowserClipboard(): Clipboard | undefined {
+    return globalThis.navigator?.clipboard;
+}
+
 export function getBrowserComputedStyle():
     | typeof globalThis.getComputedStyle
     | undefined {

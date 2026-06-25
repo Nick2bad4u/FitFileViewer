@@ -1,3 +1,8 @@
+import {
+    getBrowserClipboard,
+    getBrowserDocument,
+} from "../../runtime/browserRuntime.js";
+
 type ClipboardTextWriter = {
     writeText?: (text: string) => Promise<void> | void;
 };
@@ -25,8 +30,8 @@ function getDocument(scope: CopyTableAsCSVRuntimeScope): Document {
 }
 
 const defaultCopyTableAsCSVRuntimeScope: CopyTableAsCSVRuntimeScope = {
-    getClipboard: () => globalThis.navigator.clipboard,
-    getDocument: () => globalThis.document,
+    getClipboard: getBrowserClipboard,
+    getDocument: getBrowserDocument,
 };
 
 export function getCopyTableAsCSVRuntime(
