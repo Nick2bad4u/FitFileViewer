@@ -1,4 +1,11 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserCancelAnimationFrame,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type TabStateManagerHandlersTimerHandle = ReturnType<
     typeof globalThis.setTimeout
@@ -42,12 +49,12 @@ export interface TabStateManagerHandlersRuntime {
 
 const defaultTabStateManagerHandlersRuntimeScope: TabStateManagerHandlersRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
-        getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getDocument: () => globalThis.document,
-        getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-        getSetTimeout: () => globalThis.setTimeout,
+        getAbortController: getBrowserAbortController,
+        getCancelAnimationFrame: getBrowserCancelAnimationFrame,
+        getClearTimeout: getBrowserClearTimeout,
+        getDocument: getBrowserDocument,
+        getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 function getRequiredDocument(

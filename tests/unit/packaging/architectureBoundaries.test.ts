@@ -20029,7 +20029,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(44);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -20138,18 +20138,33 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(

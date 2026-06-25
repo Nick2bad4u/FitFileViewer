@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getTabStateManagerHandlersRuntime,
@@ -7,6 +7,11 @@ import {
 } from "../../../../../electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.js";
 
 describe("getTabStateManagerHandlersRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -34,6 +39,50 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses shared browser providers for production defaults", () => {
+        expect.assertions(11);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function AbortControllerDouble() {
+                return controller;
+            }
+        );
+        const callback = vi.fn<FrameRequestCallback>();
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const delayMs = Number("80");
+        const frameHandle = Number("32");
+        const requestAnimationFrame = vi.fn<
+            typeof globalThis.requestAnimationFrame
+        >(() => frameHandle);
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 58);
+        const cancelAnimationFrame =
+            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        vi.stubGlobal("AbortController", AbortControllerConstructor);
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const runtime = getTabStateManagerHandlersRuntime();
+        const iframe = runtime.createElement("iframe");
+        const textNode = runtime.createTextNode("ZwiftMap did not load.");
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(runtime.requestAnimationFrame(callback)).toBe(frameHandle);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
+        runtime.cancelAnimationFrame(frameHandle);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(frameHandle);
+        expect(runtime.setTimeout(() => {}, delayMs)).toBe(58);
+        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), delayMs);
+        runtime.clearTimeout(58);
+        expect(clearTimeout).toHaveBeenCalledWith(58);
+        expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+        expect(textNode.textContent).toBe("ZwiftMap did not load.");
+        expect(textNode.nodeType).toBe(Node.TEXT_NODE);
     });
 
     it("schedules animation frames through the injected runtime scope", () => {
