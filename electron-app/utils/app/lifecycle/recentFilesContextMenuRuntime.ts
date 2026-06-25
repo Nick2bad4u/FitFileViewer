@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export interface RecentFilesContextMenuRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
@@ -73,7 +75,7 @@ function normalizeDimension(value: unknown): number {
 
 const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeScope =
     {
-        getAbortController: () => globalThis.AbortController,
+        getAbortController: getBrowserAbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getDateNow: () => Date.now,
         getDocument: () => globalThis.document,

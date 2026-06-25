@@ -11275,7 +11275,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(59);
+        expect.assertions(61);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -11355,6 +11355,12 @@ describe("architecture boundaries", () => {
             "defaultRecentFilesContextMenuRuntimeScope"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
@@ -11442,7 +11448,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(45);
+        expect.assertions(47);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -11545,6 +11551,12 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.URL");
         expect(lifecycleListenersRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
@@ -15810,7 +15822,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(47);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -15849,6 +15861,12 @@ describe("architecture boundaries", () => {
             "defaultListenersResizeRuntimeScope"
         );
         expect(listenersResizeRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(listenersResizeRuntimeSource).toContain(

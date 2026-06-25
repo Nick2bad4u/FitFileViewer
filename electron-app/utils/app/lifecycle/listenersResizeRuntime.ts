@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 export type ListenersResizeTimerHandle =
@@ -92,7 +94,7 @@ function getOptionalElementProperty(
 }
 
 const defaultListenersResizeRuntimeScope: ListenersResizeRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
