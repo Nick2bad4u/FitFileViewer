@@ -24,6 +24,10 @@ export function getBrowserDocument(): Document | undefined {
     return globalThis.document;
 }
 
+export function getBrowserFetch(): typeof globalThis.fetch | undefined {
+    return globalThis.fetch;
+}
+
 export function getBrowserLocalStorage(): Storage | undefined {
     return globalThis.localStorage;
 }

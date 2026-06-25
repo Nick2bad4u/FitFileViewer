@@ -1,14 +1,40 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getNetworkUtilsRuntime } from "../../../../electron-app/utils/net/networkUtilsRuntime.js";
 
 describe("getNetworkUtilsRuntime", () => {
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("uses browser runtime providers for production network defaults", async () => {
+        expect.assertions(7);
+
+        const response = new Response("ok");
+        const fetch = vi.fn<typeof globalThis.fetch>(async () => response);
+        const timer = 37 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+
+        vi.stubGlobal("fetch", fetch);
+        vi.stubGlobal("setTimeout", setTimeout);
+        vi.stubGlobal("clearTimeout", clearTimeout);
 
         const utils = getNetworkUtilsRuntime();
+        const callback = vi.fn<() => void>();
+        const timeoutMs = Number("100");
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+        await expect(utils.fetch("https://example.test")).resolves.toBe(
+            response
+        );
+        expect(utils.setTimeout(callback, timeoutMs)).toBe(timer);
+        utils.clearTimeout(timer);
+
+        expect(fetch).toHaveBeenCalledWith("https://example.test", undefined);
+        expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it("routes fetch through the injected runtime scope", async () => {

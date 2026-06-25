@@ -1,4 +1,9 @@
-import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserFetch,
+    getBrowserSetTimeout,
+} from "../runtime/browserRuntime.js";
 
 export type NetworkUtilsFetchInput = Readonly<
     Parameters<typeof globalThis.fetch>[0]
@@ -36,9 +41,9 @@ export interface NetworkUtilsRuntime {
 
 const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getFetch: () => globalThis.fetch,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getFetch: getBrowserFetch,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getScopeAbortController(
