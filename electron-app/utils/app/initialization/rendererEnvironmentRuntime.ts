@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserLocation,
+} from "../../runtime/browserRuntime.js";
+
 export interface RendererEnvironmentInput {
     readonly developmentFlag?: unknown;
     readonly document?: unknown;
@@ -24,9 +29,9 @@ interface RendererEnvironmentGlobalScope {
 const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
     {
         getDevelopmentFlag: getGlobalDevelopmentFlag,
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
         getElectronAPI: getGlobalElectronAPI,
-        getLocation: () => globalThis.location,
+        getLocation: getBrowserLocation,
     };
 
 function getGlobalDevelopmentFlag(): unknown {

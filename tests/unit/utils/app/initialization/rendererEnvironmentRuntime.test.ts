@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRendererEnvironmentRuntime } from "../../../../../electron-app/utils/app/initialization/rendererEnvironmentRuntime.js";
 
 describe("rendererEnvironmentRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("returns the injected focused environment input", () => {
         expect.assertions(1);
 
@@ -35,6 +39,28 @@ describe("rendererEnvironmentRuntime", () => {
             electronAPI: undefined,
             location: undefined,
         });
+    });
+
+    it("uses shared browser providers for production document and location defaults", () => {
+        expect.assertions(4);
+
+        const electronAPI = { __devMode: true };
+
+        vi.stubGlobal("__DEVELOPMENT__", true);
+        vi.stubGlobal("electronAPI", electronAPI);
+
+        const utils = getRendererEnvironmentRuntime();
+        const {
+            developmentFlag,
+            document: runtimeDocument,
+            electronAPI: runtimeElectronAPI,
+            location,
+        } = utils.getDefaultRendererEnvironmentInput();
+
+        expect(developmentFlag).toBe(true);
+        expect(runtimeDocument).toBe(document);
+        expect(runtimeElectronAPI).toBe(electronAPI);
+        expect(location).toBe(globalThis.location);
     });
 
     it("ignores legacy direct global scope properties", () => {

@@ -5680,7 +5680,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
@@ -5725,12 +5725,21 @@ describe("architecture boundaries", () => {
             "getDevelopmentFlag: getGlobalDevelopmentFlag"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "../../runtime/browserRuntime.js"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "getElectronAPI: getGlobalElectronAPI"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
+            "getLocation: getBrowserLocation"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getLocation: () => globalThis.location"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
