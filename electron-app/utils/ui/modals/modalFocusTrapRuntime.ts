@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserKeyboardEvent,
+} from "../../runtime/browserRuntime.js";
+
 export interface ModalFocusTrapRuntimeScope {
     readonly getDocument?:
         | (() => ModalFocusTrapDocument | undefined)
@@ -16,8 +21,8 @@ export interface ModalFocusTrapRuntime {
 type ModalFocusTrapDocument = Pick<Document, "activeElement"> & EventTarget;
 
 const defaultModalFocusTrapRuntimeScope: ModalFocusTrapRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getKeyboardEvent: () => globalThis.KeyboardEvent,
+    getDocument: getBrowserDocument,
+    getKeyboardEvent: getBrowserKeyboardEvent,
 };
 
 function getDocument(

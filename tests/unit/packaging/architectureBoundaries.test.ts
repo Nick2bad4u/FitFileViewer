@@ -24082,7 +24082,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps modal focus-trap browser APIs behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const modalFocusTrapSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/modals/modalFocusTrap.ts")
@@ -24113,9 +24113,18 @@ describe("architecture boundaries", () => {
             "defaultModalFocusTrapRuntimeScope"
         );
         expect(modalFocusTrapRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "../../runtime/browserRuntime.js"
         );
         expect(modalFocusTrapRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(modalFocusTrapRuntimeSource).toContain(
+            "getKeyboardEvent: getBrowserKeyboardEvent"
+        );
+        expect(modalFocusTrapRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(modalFocusTrapRuntimeSource).not.toContain(
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(modalFocusTrapRuntimeSource).not.toMatch(

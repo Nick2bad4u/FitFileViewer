@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
     getModalFocusTrapRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/ui/modals/modalFocusTrapRuntime.js";
 
 describe("getModalFocusTrapRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+    });
+
     it("resolves document target, active element, and keyboard events through providers", () => {
         expect.assertions(4);
 
@@ -16,6 +20,21 @@ describe("getModalFocusTrapRuntime", () => {
             getDocument: () => document,
             getKeyboardEvent: () => KeyboardEvent,
         });
+        const keyboardEvent = new KeyboardEvent("keydown", { key: "Tab" });
+
+        expect(runtime.getDocumentEventTarget()).toBe(document);
+        expect(runtime.getActiveElement()).toBe(button);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+    });
+
+    it("uses browser runtime providers for production document and keyboard-event defaults", () => {
+        expect.assertions(4);
+
+        const button = document.createElement("button");
+        document.body.append(button);
+        button.focus();
+        const runtime = getModalFocusTrapRuntime();
         const keyboardEvent = new KeyboardEvent("keydown", { key: "Tab" });
 
         expect(runtime.getDocumentEventTarget()).toBe(document);
