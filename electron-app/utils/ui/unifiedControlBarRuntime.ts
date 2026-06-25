@@ -1,4 +1,12 @@
-import { getBrowserAbortController } from "../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserDocument,
+    getBrowserEventTarget,
+    getBrowserHTMLElement,
+    getBrowserMutationObserver,
+    getBrowserSetTimeout,
+} from "../runtime/browserRuntime.js";
 
 export type UnifiedControlBarTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
@@ -69,12 +77,12 @@ export interface UnifiedControlBarRuntime {
 function getDefaultUnifiedControlBarRuntimeScope(): UnifiedControlBarRuntimeScope {
     return {
         getAbortController: getBrowserAbortController,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getDocument: () => globalThis.document,
-        getEventTarget: () => globalThis,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getMutationObserver: () => globalThis.MutationObserver,
-        getSetTimeout: () => globalThis.setTimeout,
+        getClearTimeout: getBrowserClearTimeout,
+        getDocument: getBrowserDocument,
+        getEventTarget: getBrowserEventTarget,
+        getHTMLElement: getBrowserHTMLElement,
+        getMutationObserver: getBrowserMutationObserver,
+        getSetTimeout: getBrowserSetTimeout,
     };
 }
 

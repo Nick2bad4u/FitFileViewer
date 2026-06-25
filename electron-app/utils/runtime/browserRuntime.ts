@@ -32,8 +32,18 @@ export function getBrowserDocument(): Document | undefined {
     return globalThis.document;
 }
 
+export function getBrowserEventTarget(): EventTarget | undefined {
+    return globalThis;
+}
+
 export function getBrowserFetch(): typeof globalThis.fetch | undefined {
     return globalThis.fetch;
+}
+
+export function getBrowserHTMLElement():
+    | typeof globalThis.HTMLElement
+    | undefined {
+    return globalThis.HTMLElement;
 }
 
 export function getBrowserLocalStorage(): Storage | undefined {
@@ -68,6 +78,12 @@ export function getBrowserRequestAnimationFrame():
     return typeof globalThis.requestAnimationFrame === "function"
         ? globalThis.requestAnimationFrame.bind(globalThis)
         : undefined;
+}
+
+export function getBrowserMutationObserver():
+    | typeof globalThis.MutationObserver
+    | undefined {
+    return globalThis.MutationObserver;
 }
 
 export function getBrowserSetInterval():

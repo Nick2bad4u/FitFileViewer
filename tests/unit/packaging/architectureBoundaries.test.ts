@@ -19994,7 +19994,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(34);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -20070,15 +20070,39 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getMutationObserver: getBrowserMutationObserver"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
             "getMutationObserver: () => globalThis.MutationObserver"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(unifiedControlBarRuntimeSource).toContain(

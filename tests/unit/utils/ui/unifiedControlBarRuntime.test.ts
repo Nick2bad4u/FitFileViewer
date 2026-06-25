@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getUnifiedControlBarRuntime,
@@ -6,6 +6,12 @@ import {
 } from "../../../../electron-app/utils/ui/unifiedControlBarRuntime.js";
 
 describe("getUnifiedControlBarRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -38,6 +44,62 @@ describe("getUnifiedControlBarRuntime", () => {
         const utils = getUnifiedControlBarRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses browser runtime providers for production DOM, observer, listener, and timer defaults", () => {
+        expect.assertions(12);
+
+        const callback = vi.fn<() => void>();
+        const resizeListener = vi.fn<EventListener>();
+        const timeoutMs = Number("250");
+        const timer = 29 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const mutationCallback = vi.fn<MutationCallback>();
+        const observer = {
+            disconnect: vi.fn<MutationObserver["disconnect"]>(),
+            observe: vi.fn<MutationObserver["observe"]>(),
+            takeRecords: vi.fn<MutationObserver["takeRecords"]>(() => []),
+        } satisfies MutationObserver;
+        const MutationObserverMock = vi.fn(
+            function MutationObserverMock(callback: MutationCallback) {
+                mutationCallback([], observer);
+                expect(callback).toBe(mutationCallback);
+                return observer;
+            }
+        );
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("MutationObserver", MutationObserverMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getUnifiedControlBarRuntime();
+        const element = runtime.createElement("section");
+        element.className = "target";
+        document.body.append(element);
+
+        const timerHandle = runtime.setTimeout(callback, timeoutMs);
+        runtime.clearTimeout(timerHandle);
+        runtime.addResizeListener(resizeListener, { passive: true });
+        globalThis.dispatchEvent(new Event("resize"));
+        runtime.removeResizeListener(resizeListener);
+        globalThis.dispatchEvent(new Event("resize"));
+
+        expect(runtime.getBody()).toBe(document.body);
+        expect(runtime.querySelector(".target")).toBe(element);
+        expect(runtime.isHTMLElement(element)).toBe(true);
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+        expect(runtime.createMutationObserver(mutationCallback)).toBe(
+            observer
+        );
+        expect(MutationObserverMock).toHaveBeenCalledWith(mutationCallback);
+        expect(resizeListener).toHaveBeenCalledOnce();
+        expect(setTimeoutMock).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
