@@ -18706,7 +18706,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps controls-state document and computed style reads behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const violations = migratedUpdateControlsStateRuntimeFiles
             .filter((relativeFile) =>
@@ -18742,9 +18742,15 @@ describe("architecture boundaries", () => {
             "defaultUpdateControlsStateRuntimeScope"
         );
         expect(updateControlsStateRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(updateControlsStateRuntimeSource).toContain(
+            "const getComputedStyle = getBrowserComputedStyle();"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
             "getComputedStyle: (element) => globalThis.getComputedStyle(element)"
         );
         expect(updateControlsStateRuntimeSource).toContain(

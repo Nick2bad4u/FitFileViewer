@@ -40,6 +40,14 @@ export function getBrowserClearTimeout():
     return globalThis.clearTimeout;
 }
 
+export function getBrowserComputedStyle():
+    | typeof globalThis.getComputedStyle
+    | undefined {
+    return typeof globalThis.getComputedStyle === "function"
+        ? globalThis.getComputedStyle.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserDateNow(): (() => number) | undefined {
     return Date.now;
 }

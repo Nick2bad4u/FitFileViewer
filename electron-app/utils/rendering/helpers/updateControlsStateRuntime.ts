@@ -1,9 +1,14 @@
+import {
+    getBrowserComputedStyle,
+    getBrowserDocument,
+} from "../../runtime/browserRuntime.js";
+
 export interface UpdateControlsStateRuntimeScope {
     readonly getComputedStyle?:
         | ((
               element: Element,
               pseudoElement?: null | string
-          ) => CSSStyleDeclaration)
+          ) => CSSStyleDeclaration | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -15,8 +20,13 @@ export interface UpdateControlsStateRuntime {
 
 const defaultUpdateControlsStateRuntimeScope: UpdateControlsStateRuntimeScope =
     {
-        getComputedStyle: (element) => globalThis.getComputedStyle(element),
-        getDocument: () => globalThis.document,
+        getComputedStyle: (element, pseudoElement) => {
+            const getComputedStyle = getBrowserComputedStyle();
+            return pseudoElement === undefined
+                ? getComputedStyle?.(element)
+                : getComputedStyle?.(element, pseudoElement);
+        },
+        getDocument: getBrowserDocument,
     };
 
 export function getUpdateControlsStateRuntime(
@@ -24,7 +34,7 @@ export function getUpdateControlsStateRuntime(
 ): UpdateControlsStateRuntime {
     return {
         getComputedDisplay(element: Element): string {
-            return scope.getComputedStyle?.(element).display ?? "";
+            return scope.getComputedStyle?.(element)?.display ?? "";
         },
         getDocument(): Document {
             const runtimeDocument = scope.getDocument?.();
