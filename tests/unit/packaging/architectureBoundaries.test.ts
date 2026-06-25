@@ -16819,7 +16819,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(41);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -16872,6 +16872,18 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(lazyRenderingRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "getIntersectionObserver: getBrowserIntersectionObserver"
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "getViewport: getBrowserViewport"
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
             "getRequestIdleCallback: getBrowserRequestIdleCallback"
         );
         expect(lazyRenderingRuntimeSource).toContain(
@@ -16888,6 +16900,21 @@ describe("architecture boundaries", () => {
         );
         expect(lazyRenderingRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "getInnerHeight: () => globalThis.innerHeight"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "getInnerWidth: () => globalThis.innerWidth"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "getIntersectionObserver: () => globalThis.IntersectionObserver"
         );
         expect(lazyRenderingRuntimeSource).toContain(
             "getBrowserRequestAnimationFrame"

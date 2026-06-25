@@ -69,7 +69,7 @@ describe("getLazyRenderingRuntime", () => {
         ).toBeUndefined();
     });
 
-    it("reads viewport dimensions from window values before document fallbacks", () => {
+    it("reads viewport dimensions from the viewport provider before document fallbacks", () => {
         expect.assertions(1);
 
         expect(
@@ -80,8 +80,7 @@ describe("getLazyRenderingRuntime", () => {
                         clientWidth: 960,
                     },
                 }),
-                getInnerHeight: () => 800,
-                getInnerWidth: () => 1200,
+                getViewport: () => ({ height: 800, width: 1200 }),
             }).getViewport()
         ).toStrictEqual({ height: 800, width: 1200 });
     });

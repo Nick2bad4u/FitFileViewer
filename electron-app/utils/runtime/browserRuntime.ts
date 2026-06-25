@@ -108,6 +108,12 @@ export function getBrowserHTMLElement():
     return globalThis.HTMLElement;
 }
 
+export function getBrowserIntersectionObserver():
+    | typeof globalThis.IntersectionObserver
+    | undefined {
+    return globalThis.IntersectionObserver;
+}
+
 export function getBrowserSVGElement():
     | typeof globalThis.SVGElement
     | undefined {

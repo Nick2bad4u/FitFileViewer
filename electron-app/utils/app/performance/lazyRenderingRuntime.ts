@@ -1,7 +1,11 @@
 import {
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserIntersectionObserver,
     getBrowserRequestAnimationFrame,
     getBrowserRequestIdleCallback,
     getBrowserSetTimeout,
+    getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
 
 export type LazyRenderingTimeoutHandle =
@@ -38,8 +42,6 @@ export interface LazyRenderingRuntimeScope {
     readonly getHTMLElement?:
         | (() => typeof HTMLElement | undefined)
         | undefined;
-    readonly getInnerHeight?: (() => number | undefined) | undefined;
-    readonly getInnerWidth?: (() => number | undefined) | undefined;
     readonly getIntersectionObserver?:
         | (() => typeof IntersectionObserver | undefined)
         | undefined;
@@ -52,6 +54,7 @@ export interface LazyRenderingRuntimeScope {
     readonly getSetTimeout?:
         | (() => LazyRenderingSetTimeout | undefined)
         | undefined;
+    readonly getViewport?: (() => LazyRenderingViewport | undefined) | undefined;
 }
 
 export interface LazyRenderingViewport {
@@ -92,14 +95,13 @@ function resolveViewportDimension(
 }
 
 const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getInnerHeight: () => globalThis.innerHeight,
-    getInnerWidth: () => globalThis.innerWidth,
-    getIntersectionObserver: () => globalThis.IntersectionObserver,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getIntersectionObserver: getBrowserIntersectionObserver,
     getRequestAnimationFrame: getBrowserRequestAnimationFrame,
     getRequestIdleCallback: getBrowserRequestIdleCallback,
     getSetTimeout: getBrowserSetTimeout,
+    getViewport: getBrowserViewport,
 };
 
 export function getLazyRenderingRuntime(
@@ -119,13 +121,14 @@ export function getLazyRenderingRuntime(
         },
         getViewport(): LazyRenderingViewport {
             const document = scope.getDocument?.();
+            const viewport = scope.getViewport?.();
             return {
                 height: resolveViewportDimension(
-                    scope.getInnerHeight?.(),
+                    viewport?.height,
                     document?.documentElement?.clientHeight
                 ),
                 width: resolveViewportDimension(
-                    scope.getInnerWidth?.(),
+                    viewport?.width,
                     document?.documentElement?.clientWidth
                 ),
             };
