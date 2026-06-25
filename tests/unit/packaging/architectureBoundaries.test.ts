@@ -18709,7 +18709,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(25);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -18748,6 +18748,9 @@ describe("architecture boundaries", () => {
         expect(updateTabVisibilityRuntimeSource).not.toContain(
             "const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope = globalThis"
         );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
         expect(updateTabVisibilityRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
         );
@@ -18773,16 +18776,28 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "getBrowserRequestAnimationFrame"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "updateTabVisibility requires a setTimeout runtime"

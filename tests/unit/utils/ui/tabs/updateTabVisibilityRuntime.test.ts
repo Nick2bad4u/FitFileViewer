@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { UpdateTabVisibilityRuntimeScope } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 import { getUpdateTabVisibilityRuntime } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 
 describe("getUpdateTabVisibilityRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("returns the injected document", () => {
         expect.assertions(1);
 
@@ -64,6 +69,40 @@ describe("getUpdateTabVisibilityRuntime", () => {
 
         expect(clearTimeout).toHaveBeenCalledWith(8);
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production scheduling defaults", () => {
+        expect.assertions(8);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const timeoutMs = Number.parseInt("180", 10);
+        const timer = 33 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrameMock =
+            vi.fn<typeof globalThis.requestAnimationFrame>(() => 12);
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrameMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getUpdateTabVisibilityRuntime();
+        const timerHandle = runtime.setTimeout(callback, timeoutMs);
+        runtime.clearTimeout(timerHandle);
+        const animationFrameHandle =
+            runtime.requestAnimationFrame(frameCallback);
+
+        expect(timerHandle).toBe(timer);
+        expect(animationFrameHandle).toBe(12);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(requestAnimationFrameMock).toHaveBeenCalledWith(frameCallback);
+        expect(requestAnimationFrameMock.mock.contexts[0]).toBe(globalThis);
+        expect(callback).not.toHaveBeenCalled();
+        expect(frameCallback).not.toHaveBeenCalled();
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {

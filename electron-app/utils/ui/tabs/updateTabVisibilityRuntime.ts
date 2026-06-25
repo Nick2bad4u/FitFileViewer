@@ -1,3 +1,9 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type UpdateTabVisibilityTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -39,10 +45,10 @@ export interface UpdateTabVisibilityRuntime {
 
 const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope =
     {
-        getClearTimeout: () => globalThis.clearTimeout,
+        getClearTimeout: getBrowserClearTimeout,
         getDocument: () => globalThis.document,
-        getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-        getSetTimeout: () => globalThis.setTimeout,
+        getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 export function getUpdateTabVisibilityRuntime(
