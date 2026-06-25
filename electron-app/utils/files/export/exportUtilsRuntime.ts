@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 type ConfirmDangerousActionFunction = (message?: string) => boolean;
 
 type OpenPrintWindowFunction = (
@@ -64,7 +66,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
             ? (message) => confirmDangerousAction.call(globalThis, message)
             : undefined;
     },
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getOpenPrintWindow: () => {

@@ -32,6 +32,16 @@ describe("getCreateExportGPXButtonRuntime", () => {
         expect(controllerCount).toBe(1);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateExportGPXButtonRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 

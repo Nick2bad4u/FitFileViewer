@@ -4843,7 +4843,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(74);
+        expect.assertions(77);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4897,6 +4897,15 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
         expect(exportUtilsRuntimeSource).toContain(
             "defaultExportUtilsRuntimeScope"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(exportUtilsRuntimeSource).toContain("getConfirmDangerousAction");
         expect(exportUtilsRuntimeSource).toContain("getOpenPrintWindow");
@@ -12400,7 +12409,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(22);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -12455,6 +12464,12 @@ describe("architecture boundaries", () => {
         expect(createPrintButtonRuntimeSource).not.toContain("scope.document");
         expect(createPrintButtonRuntimeSource).not.toContain("scope.print");
         expect(createPrintButtonRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createPrintButtonRuntimeSource).toContain(
@@ -12546,7 +12561,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(23);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -12612,6 +12627,12 @@ describe("architecture boundaries", () => {
         );
         expect(createExportGPXButtonRuntimeSource).not.toContain("scope.URL");
         expect(createExportGPXButtonRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(createExportGPXButtonRuntimeSource).toContain(
@@ -14898,7 +14919,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(27);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -14973,6 +14994,12 @@ describe("architecture boundaries", () => {
         );
         expect(openFileSelectorRuntimeSource).not.toContain("scope.setTimeout");
         expect(openFileSelectorRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(openFileSelectorRuntimeSource).toContain(
@@ -15074,7 +15101,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(28);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -15145,6 +15172,12 @@ describe("architecture boundaries", () => {
             "scope.Response"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(

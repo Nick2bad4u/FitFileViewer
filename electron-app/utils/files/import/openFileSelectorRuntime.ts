@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type OpenFileSelectorTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface OpenFileSelectorRuntimeScope {
@@ -89,7 +91,7 @@ function getRequiredSetTimeout(
 }
 
 const defaultOpenFileSelectorRuntimeScope: OpenFileSelectorRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getNavigator: () => globalThis.navigator,

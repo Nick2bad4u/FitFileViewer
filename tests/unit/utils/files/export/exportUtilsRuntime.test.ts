@@ -167,6 +167,16 @@ describe("exportUtilsRuntime", () => {
         expect(created).toBe(true);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getExportUtilsRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("registers document keydown listeners through the scoped event target", () => {
         expect.assertions(4);
 

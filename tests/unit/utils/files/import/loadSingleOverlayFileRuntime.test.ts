@@ -24,6 +24,16 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const runtime = getLoadSingleOverlayFileRuntime();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
     it("creates file readers through the injected runtime", () => {
         expect.assertions(2);
 
