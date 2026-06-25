@@ -1,3 +1,9 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type MapActionButtonTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface MapActionButtonsRuntimeScope {
@@ -31,13 +37,13 @@ export interface MapActionButtonsRuntime {
 }
 
 const defaultMapActionButtonsRuntimeScope: MapActionButtonsRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getDateNow: () => Date.now,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
     getDocument: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getKeyboardEvent: () => globalThis.KeyboardEvent,
     getMutationObserver: () => globalThis.MutationObserver,
-    getSetTimeout: () => globalThis.setTimeout,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getRequiredDateNow(scope: MapActionButtonsRuntimeScope): () => number {

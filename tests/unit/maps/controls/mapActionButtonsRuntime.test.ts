@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getMapActionButtonsRuntime,
@@ -6,6 +6,11 @@ import {
 } from "../../../../electron-app/utils/maps/controls/mapActionButtonsRuntime.js";
 
 describe("getMapActionButtonsRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("uses the injected timer scheduler", () => {
         expect.assertions(3);
 
@@ -60,6 +65,33 @@ describe("getMapActionButtonsRuntime", () => {
 
         expect(runtime.dateNow()).toBe(123);
         expect(dateNow).toHaveBeenCalledOnce();
+    });
+
+    it("uses browser runtime providers for production timer and clock defaults", () => {
+        expect.assertions(6);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("150");
+        const timer = 8 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(456);
+
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+
+        const runtime = getMapActionButtonsRuntime();
+        const timerHandle = runtime.setTimeout(callback, delayMs);
+        runtime.clearTimeout(timerHandle);
+
+        expect(timerHandle).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(runtime.dateNow()).toBe(456);
+        expect(dateNowMock).toHaveBeenCalledOnce();
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it("uses the injected document and HTMLElement providers", () => {

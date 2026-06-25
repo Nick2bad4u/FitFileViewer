@@ -14593,7 +14593,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(36);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -14672,9 +14672,18 @@ describe("architecture boundaries", () => {
             directMapActionButtonsRuntimeAmbientFallbackPattern
         );
         expect(mapActionButtonsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
@@ -14684,6 +14693,9 @@ describe("architecture boundaries", () => {
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
