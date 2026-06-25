@@ -166,6 +166,10 @@ export function getBrowserMutationObserver():
     return globalThis.MutationObserver;
 }
 
+export function getBrowserNode(): typeof globalThis.Node | undefined {
+    return globalThis.Node;
+}
+
 export function getBrowserOpen(): typeof globalThis.open | undefined {
     return typeof globalThis.open === "function"
         ? globalThis.open.bind(globalThis)
@@ -188,4 +192,13 @@ export function getBrowserSetTimeout():
     | typeof globalThis.setTimeout
     | undefined {
     return globalThis.setTimeout;
+}
+
+export function getBrowserViewport():
+    | Readonly<{ height?: number | undefined; width?: number | undefined }>
+    | undefined {
+    return {
+        height: globalThis.innerHeight,
+        width: globalThis.innerWidth,
+    };
 }

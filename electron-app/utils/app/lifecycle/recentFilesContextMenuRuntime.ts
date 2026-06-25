@@ -1,4 +1,12 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserNode,
+    getBrowserSetTimeout,
+    getBrowserViewport,
+} from "../../runtime/browserRuntime.js";
 
 export interface RecentFilesContextMenuRuntimeScope {
     readonly getAbortController?:
@@ -76,15 +84,12 @@ function normalizeDimension(value: unknown): number {
 const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getDateNow: () => Date.now,
-        getDocument: () => globalThis.document,
-        getNode: () => globalThis.Node,
-        getSetTimeout: () => globalThis.setTimeout,
-        getViewport: () => ({
-            height: globalThis.innerHeight,
-            width: globalThis.innerWidth,
-        }),
+        getClearTimeout: getBrowserClearTimeout,
+        getDateNow: getBrowserDateNow,
+        getDocument: getBrowserDocument,
+        getNode: getBrowserNode,
+        getSetTimeout: getBrowserSetTimeout,
+        getViewport: getBrowserViewport,
     };
 
 function getAbortController(

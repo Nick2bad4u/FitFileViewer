@@ -11796,7 +11796,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(61);
+        expect.assertions(67);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -11885,10 +11885,10 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
-            "getClearTimeout: () => globalThis.clearTimeout"
+            "getClearTimeout: getBrowserClearTimeout"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "getDateNow: getBrowserDateNow"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "dateNow: () => number;"
@@ -11897,7 +11897,7 @@ describe("architecture boundaries", () => {
             "const dateNow = scope.getDateNow?.();"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
@@ -11906,13 +11906,31 @@ describe("architecture boundaries", () => {
             "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getNode: getBrowserNode"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getViewport: getBrowserViewport"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "getNode: () => globalThis.Node"
         );
-        expect(recentFilesContextMenuRuntimeSource).toContain(
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
-        expect(recentFilesContextMenuRuntimeSource).toContain(
-            "getViewport: () => ({"
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "height: globalThis.innerHeight"
         );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope: RecentFilesContextMenuRuntimeScope = globalThis"
