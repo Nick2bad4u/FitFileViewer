@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { SettingsStateCoreRuntimeScope } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 import { getSettingsStateCoreRuntime } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 
 describe("getSettingsStateCoreRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("reads timestamps through the injected provider", () => {
         expect.assertions(2);
 
@@ -55,6 +60,30 @@ describe("getSettingsStateCoreRuntime", () => {
         controller.abort();
     });
 
+    it("uses browser runtime providers for production storage listeners", () => {
+        expect.assertions(2);
+
+        const target = new EventTarget();
+        const controller = new AbortController();
+        let storageEvents = 0;
+        const listener = (): void => {
+            storageEvents += 1;
+        };
+        vi.stubGlobal("addEventListener", target.addEventListener.bind(target));
+
+        expect(
+            getSettingsStateCoreRuntime().addStorageEventListener(
+                listener,
+                controller.signal
+            )
+        ).toBe(true);
+        target.dispatchEvent(new StorageEvent("storage"));
+
+        expect(storageEvents).toBe(1);
+
+        controller.abort();
+    });
+
     it("returns false when storage listener registration is unavailable", () => {
         expect.assertions(1);
 
@@ -95,6 +124,26 @@ describe("getSettingsStateCoreRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+    });
+
+    it("uses browser runtime providers for production date and storage defaults", () => {
+        expect.assertions(2);
+
+        const storage = {
+            clear: vi.fn(),
+            getItem: vi.fn(),
+            key: vi.fn(),
+            length: 0,
+            removeItem: vi.fn(),
+            setItem: vi.fn(),
+        } satisfies Storage;
+        vi.spyOn(Date, "now").mockReturnValue(5678);
+        vi.stubGlobal("localStorage", storage);
+
+        const runtime = getSettingsStateCoreRuntime();
+
+        expect(runtime.dateNow()).toBe(5678);
+        expect(runtime.getLocalStorage()).toBe(storage);
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {

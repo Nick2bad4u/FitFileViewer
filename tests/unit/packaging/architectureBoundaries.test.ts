@@ -22852,7 +22852,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(44);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -22964,12 +22964,24 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
+            "getAddEventListener: getBrowserAddEventListener"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
             "settingsStateCore requires dateNow"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
             "getLocalStorage: () => globalThis.localStorage"
         );
     });

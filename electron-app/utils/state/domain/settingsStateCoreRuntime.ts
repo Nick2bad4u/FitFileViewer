@@ -1,4 +1,9 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserAddEventListener,
+    getBrowserDateNow,
+    getBrowserLocalStorage,
+} from "../../runtime/browserRuntime.js";
 
 export interface SettingsStateCoreRuntimeScope {
     readonly getAbortController?:
@@ -36,9 +41,9 @@ function getAbortControllerConstructor(
 
 const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getAddEventListener: () => globalThis.addEventListener,
-    getDateNow: () => Date.now,
-    getLocalStorage: () => globalThis.localStorage,
+    getAddEventListener: getBrowserAddEventListener,
+    getDateNow: getBrowserDateNow,
+    getLocalStorage: getBrowserLocalStorage,
 };
 
 function getDateNow(scope: SettingsStateCoreRuntimeScope): () => number {
