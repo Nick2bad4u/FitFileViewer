@@ -212,6 +212,10 @@ export function getBrowserMutationObserver():
     return globalThis.MutationObserver;
 }
 
+export function getBrowserNavigator(): Navigator | undefined {
+    return globalThis.navigator;
+}
+
 export function getBrowserNode(): typeof globalThis.Node | undefined {
     return globalThis.Node;
 }

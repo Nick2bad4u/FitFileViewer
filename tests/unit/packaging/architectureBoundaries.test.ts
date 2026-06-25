@@ -16011,7 +16011,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(22);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -16060,6 +16060,9 @@ describe("architecture boundaries", () => {
         expect(loadOverlayFilesRuntimeSource).toContain(
             "defaultLoadOverlayFilesRuntimeScope"
         );
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
         expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
@@ -16075,9 +16078,15 @@ describe("architecture boundaries", () => {
             "LoadOverlayFilesRuntimeScope =\n    globalThis"
         );
         expect(loadOverlayFilesRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(loadOverlayFilesRuntimeSource).toContain(
+            "getNavigator: getBrowserNavigator"
+        );
+        expect(loadOverlayFilesRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(loadOverlayFilesRuntimeSource).not.toContain(
             "getNavigator: () => globalThis.navigator"
         );
         expect(loadOverlayFilesRuntimeSource).toContain(

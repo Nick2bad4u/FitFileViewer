@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserNavigator,
+} from "../../runtime/browserRuntime.js";
+
 export interface LoadOverlayFilesRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getNavigator?:
@@ -11,8 +16,8 @@ export interface LoadOverlayFilesRuntime {
 }
 
 const defaultLoadOverlayFilesRuntimeScope: LoadOverlayFilesRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getNavigator: () => globalThis.navigator,
+    getDocument: getBrowserDocument,
+    getNavigator: getBrowserNavigator,
 };
 
 export function getLoadOverlayFilesRuntime(

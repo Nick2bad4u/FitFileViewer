@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
     getLoadOverlayFilesRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/files/import/loadOverlayFilesRuntime.js";
 
 describe("getLoadOverlayFilesRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+    });
+
     it("reads hardware concurrency from the injected navigator", () => {
         expect.assertions(1);
 
@@ -14,6 +18,20 @@ describe("getLoadOverlayFilesRuntime", () => {
         });
 
         expect(view.getHardwareConcurrency()).toBe(8);
+    });
+
+    it("uses browser runtime providers for production document and navigator defaults", () => {
+        expect.assertions(2);
+
+        const button = document.createElement("button");
+        button.className = "tab-button active";
+        document.body.append(button);
+        const view = getLoadOverlayFilesRuntime();
+
+        expect(view.getActiveTabButton()).toBe(button);
+        expect(view.getHardwareConcurrency()).toBe(
+            navigator.hardwareConcurrency
+        );
     });
 
     it("returns undefined when navigator metadata is unavailable", () => {
