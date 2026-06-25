@@ -18463,7 +18463,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(23);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -18539,6 +18539,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(

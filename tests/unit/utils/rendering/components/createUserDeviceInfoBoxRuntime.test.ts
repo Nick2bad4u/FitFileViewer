@@ -70,6 +70,16 @@ describe("getUserDeviceInfoBoxRuntime", () => {
         expect(createElement).toHaveBeenCalledWith("section");
     });
 
+    it("creates elements through browser document providers", () => {
+        expect.assertions(2);
+
+        const runtime = getUserDeviceInfoBoxRuntime();
+        const element = runtime.createElement("section");
+
+        expect(element).toBeInstanceOf(HTMLElement);
+        expect(element.tagName).toBe("SECTION");
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
