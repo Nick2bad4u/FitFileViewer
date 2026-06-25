@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ChartHoverEffectsRuntimeScope } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
 import {
@@ -8,6 +8,10 @@ import {
 } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
 
 describe("getChartHoverEffectsRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -81,6 +85,23 @@ describe("getChartHoverEffectsRuntime", () => {
         });
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(23);
+        expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+        expect(setTimeout).toHaveBeenCalledOnce();
+    });
+
+    it("uses browser runtime providers for production timer defaults", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const timeoutMs = Number("600");
+        const timer = 43 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const runtime = getChartHoverEffectsRuntime();
+
+        expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
         expect(setTimeout).toHaveBeenCalledOnce();
     });
@@ -236,6 +257,38 @@ describe("getChartHoverEffectsRuntime", () => {
         runtime.setBodyClass("chart-overlay-fullscreen-active", true);
 
         expect(documentRef.body.contains(wrapper)).toBe(true);
+        expect(
+            documentRef.body.classList.contains(
+                "chart-overlay-fullscreen-active"
+            )
+        ).toBe(true);
+
+        runtime.setBodyClass("chart-overlay-fullscreen-active", false);
+        expect(
+            documentRef.body.classList.contains(
+                "chart-overlay-fullscreen-active"
+            )
+        ).toBe(false);
+    });
+
+    it("uses browser runtime providers for production document defaults", () => {
+        expect.assertions(5);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "chart hover production document"
+        );
+        vi.stubGlobal("document", documentRef);
+
+        const runtime = getChartHoverEffectsRuntime();
+        const wrapper = documentRef.createElement("div");
+        const svg = runtime.createSvgElement("svg");
+
+        runtime.appendToBody(wrapper);
+        runtime.setBodyClass("chart-overlay-fullscreen-active", true);
+
+        expect(documentRef.body.contains(wrapper)).toBe(true);
+        expect(svg.ownerDocument).toBe(documentRef);
+        expect(svg.namespaceURI).toBe(CHART_HOVER_EFFECTS_SVG_NAMESPACE);
         expect(
             documentRef.body.classList.contains(
                 "chart-overlay-fullscreen-active"

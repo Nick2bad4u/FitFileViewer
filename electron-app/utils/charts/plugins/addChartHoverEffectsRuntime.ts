@@ -1,4 +1,8 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
@@ -64,9 +68,9 @@ export const CHART_HOVER_EFFECTS_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getSetTimeout: () => globalThis.setTimeout,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getRequiredSetTimeout(

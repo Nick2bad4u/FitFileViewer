@@ -20190,7 +20190,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(54);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -20266,6 +20266,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(chartHoverEffectsRuntimeSource).not.toContain(
@@ -20294,6 +20297,9 @@ describe("architecture boundaries", () => {
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(chartHoverEffectsRuntimeSource).not.toContain(
