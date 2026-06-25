@@ -68,6 +68,27 @@ describe("getChartStateManagerRuntime", () => {
         expect(runtime.getControlsPanel()).toBeNull();
     });
 
+    it("resolves production DOM defaults through browser runtime providers", () => {
+        expect.assertions(2);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("chart state manager");
+        const container = documentRef.createElement("div");
+        container.id = "chartjs-chart-container";
+        documentRef.body.append(container);
+
+        const controlsPanel = documentRef.createElement("div");
+        controlsPanel.className = "chart-controls";
+        documentRef.body.append(controlsPanel);
+
+        vi.stubGlobal("document", documentRef);
+
+        const runtime = getChartStateManagerRuntime();
+
+        expect(runtime.getChartRenderContainer()).toBe(container);
+        expect(runtime.getControlsPanel()).toBe(controlsPanel);
+    });
+
     it("resolves production timer defaults through browser runtime providers", () => {
         expect.assertions(5);
 

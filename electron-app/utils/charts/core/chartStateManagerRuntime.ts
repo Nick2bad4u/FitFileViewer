@@ -2,6 +2,8 @@ import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import {
     getBrowserClearTimeout,
     getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserHTMLElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -35,8 +37,8 @@ export interface ChartStateManagerRuntime {
 const defaultChartStateManagerRuntimeScope: ChartStateManagerRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
     getDateNow: getBrowserDateNow,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
     getSetTimeout: getBrowserSetTimeout,
 };
 

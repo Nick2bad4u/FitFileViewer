@@ -7133,7 +7133,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(36);
 
         const violations = migratedChartStateManagerRuntimeFiles
             .filter((relativeFile) =>
@@ -7176,13 +7176,19 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain("getDateNow: getBrowserDateNow");
         expect(runtimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(runtimeSource).toContain(
-            "getHTMLElement: () => globalThis.HTMLElement"
+            "getHTMLElement: getBrowserHTMLElement"
         );
         expect(runtimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(runtimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(runtimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
