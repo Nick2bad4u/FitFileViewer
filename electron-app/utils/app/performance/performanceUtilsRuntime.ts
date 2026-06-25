@@ -49,32 +49,18 @@ export interface PerformanceUtilsRuntime {
     ) => PerformanceUtilsTimerHandle;
 }
 
-function getDefaultCancelIdleCallback():
-    | PerformanceUtilsCancelIdleCallback
-    | undefined {
-    if (typeof globalThis.cancelIdleCallback !== "function") {
-        return undefined;
-    }
-
-    return globalThis.cancelIdleCallback.bind(globalThis);
-}
-
-function getDefaultRequestIdleCallback():
-    | PerformanceUtilsRequestIdleCallback
-    | undefined {
-    if (typeof globalThis.requestIdleCallback !== "function") {
-        return undefined;
-    }
-
-    return globalThis.requestIdleCallback.bind(globalThis);
-}
-
 function getDefaultPerformanceUtilsRuntimeScope(): PerformanceUtilsRuntimeScope {
     return {
-        getCancelIdleCallback: getDefaultCancelIdleCallback,
+        getCancelIdleCallback: () =>
+            typeof globalThis.cancelIdleCallback === "function"
+                ? globalThis.cancelIdleCallback.bind(globalThis)
+                : undefined,
         getClearTimeout: () => globalThis.clearTimeout,
         getDateNow: () => Date.now,
-        getRequestIdleCallback: getDefaultRequestIdleCallback,
+        getRequestIdleCallback: () =>
+            typeof globalThis.requestIdleCallback === "function"
+                ? globalThis.requestIdleCallback.bind(globalThis)
+                : undefined,
         getSetTimeout: () => globalThis.setTimeout,
     };
 }

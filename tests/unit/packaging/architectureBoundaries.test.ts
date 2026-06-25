@@ -18495,7 +18495,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -18570,8 +18570,17 @@ describe("architecture boundaries", () => {
         expect(performanceUtilsRuntimeSource).toContain(
             "getDateNow: () => Date.now"
         );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "getDefaultCancelIdleCallback"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "getDefaultRequestIdleCallback"
+        );
         expect(performanceUtilsRuntimeSource).toContain(
-            "getRequestIdleCallback: getDefaultRequestIdleCallback"
+            "getCancelIdleCallback: () =>"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getRequestIdleCallback: () =>"
         );
         expect(performanceUtilsRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"

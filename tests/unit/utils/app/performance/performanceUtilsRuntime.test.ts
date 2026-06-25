@@ -90,6 +90,35 @@ describe("getPerformanceUtilsRuntime", () => {
         ]);
     });
 
+    it("uses default native idle callbacks from the runtime scope", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const timeoutMs = Number("125");
+        const requestIdleCallback = vi.fn<
+            (callback: () => void, options?: IdleRequestOptions) => number
+        >(() => 53);
+        const cancelIdleCallback = vi.fn<(handle: number) => void>();
+
+        vi.stubGlobal("requestIdleCallback", requestIdleCallback);
+        vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
+        try {
+            const runtime = getPerformanceUtilsRuntime();
+
+            expect(
+                runtime.requestIdleCallback(callback, { timeout: timeoutMs })
+            ).toBe(53);
+            runtime.cancelIdleCallback(53);
+
+            expect(requestIdleCallback).toHaveBeenCalledWith(callback, {
+                timeout: timeoutMs,
+            });
+            expect(cancelIdleCallback).toHaveBeenCalledWith(53);
+        } finally {
+            vi.unstubAllGlobals();
+        }
+    });
+
     it("falls back to a timeout when idle callbacks are unavailable", () => {
         expect.assertions(2);
 
