@@ -295,8 +295,8 @@ prompts now route through the same runtime instead of probing `globalThis.window
 `exportUtils.ts`; default export browser helpers now bind confirm/open calls to `globalThis` without a module-level
 `browserGlobal` alias, with focused runtime coverage and architecture guardrails blocking direct export utility
 browser-runtime access from returning. Default export browser helpers no longer use ad hoc optional browser-global
-fields, and export modal Escape-key document event targeting now uses `getGlobalDocument()` instead of repeating
-`globalThis.document` in the default provider table. The
+fields, and export modal Escape-key document event targeting now routes through the named document event-target
+provider, whose production default reads `globalThis.document` directly instead of bouncing through a helper. The
 export modal previous-focus lookup now also routes through `exportUtilsRuntime.ts` instead of checking
 `document.activeElement instanceof HTMLElement` directly inside `exportUtils.ts`, with focused runtime coverage and
 architecture guardrails blocking direct active-element and HTMLElement checks from returning.

@@ -64,7 +64,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
             : undefined;
     },
     getAbortController: () => globalThis.AbortController,
-    getDocumentEventTarget: () => getGlobalDocument(),
+    getDocumentEventTarget: () => globalThis.document,
     getHTMLElement: () => globalThis.HTMLElement,
     getOpenPrintWindow: () => {
         const openPrintWindow = globalThis.open;
@@ -76,10 +76,6 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     getSecureRandomCrypto: () => globalThis.crypto,
     getStorage: () => globalThis.localStorage ?? null,
 };
-
-function getGlobalDocument(): Document {
-    return globalThis.document;
-}
 
 function getScopeAbortController(
     scope: ExportUtilsRuntimeScope

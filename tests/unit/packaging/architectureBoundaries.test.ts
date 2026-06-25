@@ -4860,10 +4860,10 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain("getSecureRandomCrypto");
         expect(exportUtilsRuntimeSource).toContain("getStorage");
         expect(exportUtilsRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocumentEventTarget: () => globalThis.document"
         );
-        expect(exportUtilsRuntimeSource).toContain(
-            "getDocumentEventTarget: () => getGlobalDocument()"
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
