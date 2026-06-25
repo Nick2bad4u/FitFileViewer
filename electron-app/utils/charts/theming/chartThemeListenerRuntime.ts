@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 export type ChartThemeListenerTimerHandle = ReturnType<typeof setTimeout>;
 
 export interface ChartThemeListenerRuntimeScope {
@@ -31,7 +33,7 @@ export interface ChartThemeListenerRuntime {
 }
 
 const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getCustomEvent: () => globalThis.CustomEvent,
     getDocument: () => globalThis.document,

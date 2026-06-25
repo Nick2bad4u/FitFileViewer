@@ -16184,7 +16184,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(23);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -16215,6 +16215,12 @@ describe("architecture boundaries", () => {
             "defaultChartThemeListenerRuntimeScope"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartThemeListenerRuntimeSource).toContain(

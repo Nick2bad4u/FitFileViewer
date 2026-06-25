@@ -7,6 +7,14 @@ import {
 } from "../../../../../electron-app/utils/charts/theming/chartThemeListenerRuntime.js";
 
 describe("getChartThemeListenerRuntime", () => {
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getChartThemeListenerRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("adds abortable themechange listeners through the injected body", () => {
         expect.assertions(2);
 
