@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getRenderChartStartupRuntime as getChartStartupRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/charts/core/renderChartStartupRuntime.js";
 
 describe("getRenderChartStartupRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("registers DOMContentLoaded listeners through the injected event target", () => {
         expect.assertions(3);
 
@@ -36,6 +40,42 @@ describe("getRenderChartStartupRuntime", () => {
                 "DOMContentLoaded",
                 expect.any(Function),
                 { once: true, signal: abortController.signal }
+            );
+            expect(abortController.signal.aborted).toBe(false);
+        } finally {
+            abortController.abort();
+        }
+    });
+
+    it("uses browser runtime providers for production startup defaults", () => {
+        expect.assertions(3);
+
+        const abortController = new AbortController();
+        const addEventListener =
+            vi.fn<
+                (
+                    type: string,
+                    listener: EventListenerOrEventListenerObject,
+                    options?: AddEventListenerOptions | boolean
+                ) => void
+            >();
+        vi.stubGlobal("addEventListener", addEventListener);
+        vi.stubGlobal("document", {});
+
+        try {
+            const startupRuntime = getChartStartupRuntime();
+
+            expect(startupRuntime.canRegisterDOMContentLoadedListener()).toBe(
+                true
+            );
+            startupRuntime.addDOMContentLoadedListener(() => undefined, {
+                signal: abortController.signal,
+            });
+
+            expect(addEventListener).toHaveBeenCalledWith(
+                "DOMContentLoaded",
+                expect.any(Function),
+                { signal: abortController.signal }
             );
             expect(abortController.signal.aborted).toBe(false);
         } finally {

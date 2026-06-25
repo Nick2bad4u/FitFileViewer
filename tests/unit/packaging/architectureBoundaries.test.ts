@@ -18586,7 +18586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart startup browser APIs behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedRenderChartStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -18621,9 +18621,18 @@ describe("architecture boundaries", () => {
             "defaultRenderChartStartupRuntimeScope"
         );
         expect(runtimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(runtimeSource).toContain(
+            "getAddEventListener: getBrowserAddEventListener"
+        );
+        expect(runtimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(runtimeSource).toContain(
+            "isRendererScope: () => getBrowserDocument() !== undefined"
+        );
+        expect(runtimeSource).not.toContain(
             'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(runtimeSource).not.toContain(

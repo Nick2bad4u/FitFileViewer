@@ -1,3 +1,8 @@
+import {
+    getBrowserAddEventListener,
+    getBrowserDocument,
+} from "../../runtime/browserRuntime.js";
+
 type RenderChartStartupAddEventListener = (
     type: string,
     listener: RenderChartStartupListener,
@@ -26,8 +31,8 @@ export interface RenderChartStartupRuntime {
 }
 
 const defaultRenderChartStartupRuntimeScope: RenderChartStartupRuntimeScope = {
-    getAddEventListener: () => globalThis.addEventListener,
-    isRendererScope: () => Reflect.has(globalThis, "document"),
+    getAddEventListener: getBrowserAddEventListener,
+    isRendererScope: () => getBrowserDocument() !== undefined,
 };
 
 function getAddEventListener(
