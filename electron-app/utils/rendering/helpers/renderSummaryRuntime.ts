@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
@@ -38,7 +40,7 @@ export interface RenderSummaryRuntime {
 }
 
 const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getAddEventListener: () => globalThis.addEventListener,
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
     getDocument: () => globalThis.document,

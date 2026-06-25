@@ -1283,7 +1283,7 @@ const directCreateChartCanvasRuntimeAmbientFallbackPattern =
 const directChartStatusCountsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.(?:body|createElement|createTextNode|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartStatusIndicatorRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|HTMLElement|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\b/u;
+    /\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\bscope\.(?:AbortController|HTMLElement|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\b/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\bgetChartContentContainer\(\s*document\s*\)|\binstanceof\s+HTMLElement\b/u;
 const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
@@ -1359,7 +1359,7 @@ const directChartHoverEffectsRuntimeGlobalPattern =
 const directChartHoverEffectsSvgGlobalPattern =
     /\bdocument\.createElementNS\b/u;
 const directChartHoverEffectsRuntimeAmbientFallbackPattern =
-    /\bglobalThis\.setTimeout\s*\(|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
+    /\bgetAbortController:\s*\(\)\s*=>\s*globalThis\.AbortController\b|\bglobalThis\.setTimeout\s*\(|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|Date\.now)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -16632,7 +16632,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(43);
+        expect.assertions(45);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -16664,6 +16664,12 @@ describe("architecture boundaries", () => {
             "defaultChartStatusIndicatorRuntimeScope"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
@@ -17407,7 +17413,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(46);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -17491,6 +17497,12 @@ describe("architecture boundaries", () => {
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerHeight");
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerWidth");
         expect(summaryColModalRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(summaryColModalRuntimeSource).toContain(
@@ -17625,7 +17637,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(47);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -17725,6 +17737,12 @@ describe("architecture boundaries", () => {
             "scope.requestAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(renderSummaryRuntimeSource).toContain(
@@ -18907,7 +18925,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(52);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -18974,6 +18992,12 @@ describe("architecture boundaries", () => {
             "defaultChartHoverEffectsRuntimeScope"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getAbortController: getBrowserAbortController"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(

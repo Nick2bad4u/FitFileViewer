@@ -1,3 +1,5 @@
+import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export type ChartHoverEffectsTimerHandle =
@@ -61,7 +63,7 @@ export interface ChartHoverEffectsRuntime {
 export const CHART_HOVER_EFFECTS_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getBrowserAbortController,
     getDocument: () => globalThis.document,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,

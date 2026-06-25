@@ -71,6 +71,14 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getChartStatusIndicatorRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("creates and queries DOM nodes through the injected document and constructor", () => {
         expect.assertions(7);
 

@@ -27,6 +27,14 @@ describe("getRenderSummaryRuntime", () => {
         expect(controllerCount).toBe(1);
     });
 
+    it("uses browser runtime providers for production AbortController defaults", () => {
+        expect.assertions(1);
+
+        const utils = getRenderSummaryRuntime();
+
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("routes scheduling dependencies through provider functions", () => {
         expect.assertions(25);
 
