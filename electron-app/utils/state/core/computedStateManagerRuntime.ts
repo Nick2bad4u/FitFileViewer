@@ -1,3 +1,9 @@
+import {
+    getBrowserDateNow,
+    getBrowserMatchMedia,
+    getBrowserPerformance,
+} from "../../runtime/browserRuntime.js";
+
 export interface ComputedStateManagerRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getMatchMedia?:
@@ -16,9 +22,9 @@ export interface ComputedStateManagerRuntime {
 
 const defaultComputedStateManagerRuntimeScope: ComputedStateManagerRuntimeScope =
     {
-        getDateNow: () => Date.now,
-        getMatchMedia: () => globalThis.matchMedia,
-        getPerformance: () => globalThis.performance,
+        getDateNow: getBrowserDateNow,
+        getMatchMedia: getBrowserMatchMedia,
+        getPerformance: getBrowserPerformance,
     };
 
 export function getComputedStateManagerRuntime(

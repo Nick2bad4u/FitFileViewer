@@ -32,6 +32,12 @@ export function getBrowserLocation(): Location | undefined {
     return globalThis.location;
 }
 
+export function getBrowserMatchMedia():
+    | typeof globalThis.matchMedia
+    | undefined {
+    return globalThis.matchMedia;
+}
+
 export function getBrowserPerformance(): Performance | undefined {
     return globalThis.performance;
 }

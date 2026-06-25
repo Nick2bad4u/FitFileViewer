@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getComputedStateManagerRuntime } from "../../../../../electron-app/utils/state/core/computedStateManagerRuntime.js";
 
 describe("computedStateManagerRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("reads date timestamps through the injected provider", () => {
         expect.assertions(2);
 
@@ -81,6 +86,37 @@ describe("computedStateManagerRuntime", () => {
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(now).not.toHaveBeenCalled();
+    });
+
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(8);
+
+        const dateNow = vi.spyOn(Date, "now").mockReturnValue(4321);
+        const now = vi.fn(function defaultPerformanceNow(this: Performance) {
+            return 56.78;
+        });
+        const matchMedia = vi.fn(
+            (query: string) =>
+                ({
+                    matches: query === "(prefers-color-scheme: dark)",
+                }) as MediaQueryList
+        );
+
+        vi.stubGlobal("matchMedia", matchMedia);
+        vi.stubGlobal("performance", { now });
+
+        const utils = getComputedStateManagerRuntime();
+
+        expect(utils.dateNow()).toBe(4321);
+        expect(utils.nowPerformance()).toBe(56.78);
+        expect(utils.isDarkSchemePreferred()).toBe(true);
+        expect(dateNow).toHaveBeenCalledOnce();
+        expect(now).toHaveBeenCalledOnce();
+        expect(now.mock.contexts[0]).toBe(globalThis.performance);
+        expect(matchMedia).toHaveBeenCalledOnce();
+        expect(matchMedia).toHaveBeenCalledWith(
+            "(prefers-color-scheme: dark)"
+        );
     });
 
     it("fails clearly when explicit scopes omit timing providers", () => {

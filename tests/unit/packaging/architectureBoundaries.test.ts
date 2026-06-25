@@ -10812,7 +10812,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps computed state manager theme and timing reads behind the runtime adapter", () => {
-        expect.assertions(26);
+        expect.assertions(32);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10856,13 +10856,31 @@ describe("architecture boundaries", () => {
             "defaultComputedStateManagerRuntimeScope"
         );
         expect(computedStateManagerRuntimeSource).toContain(
+            '"../../runtime/browserRuntime.js"'
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "getMatchMedia: getBrowserMatchMedia"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(computedStateManagerRuntimeSource).not.toContain(
             "scope: ComputedStateManagerRuntimeScope = globalThis"
         );
         expect(computedStateManagerRuntimeSource).toContain("getMatchMedia");
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "getMatchMedia: () => globalThis.matchMedia"
+        );
         expect(computedStateManagerRuntimeSource).toContain(
+            "const matchMedia = scope.getMatchMedia?.();"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(computedStateManagerRuntimeSource).toContain(
