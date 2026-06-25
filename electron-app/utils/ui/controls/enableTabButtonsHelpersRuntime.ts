@@ -1,3 +1,9 @@
+import {
+    getBrowserComputedStyle,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
+
 export interface EnableTabButtonsHelpersRuntimeDocument {
     readonly getElementsByClassName?:
         | ((classNames: string) => HTMLCollectionOf<Element>)
@@ -34,10 +40,10 @@ export interface EnableTabButtonsHelpersRuntime {
 
 const defaultEnableTabButtonsHelpersRuntimeScope: EnableTabButtonsHelpersRuntimeScope =
     {
-        getComputedStyleFunction: () => globalThis.getComputedStyle,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
-        isRendererScope: () => Reflect.has(globalThis, "document"),
+        getComputedStyleFunction: getBrowserComputedStyle,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
+        isRendererScope: () => getBrowserDocument() !== undefined,
     };
 
 function getComputedStyleFunction(
