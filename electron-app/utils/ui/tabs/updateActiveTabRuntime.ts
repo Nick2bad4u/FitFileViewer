@@ -1,3 +1,8 @@
+import {
+    getBrowserDocument,
+    getBrowserKeyboardEvent,
+} from "../../runtime/browserRuntime.js";
+
 export interface UpdateActiveTabRuntimeScope {
     readonly getDocument?: (() => unknown) | undefined;
     readonly getKeyboardEvent?:
@@ -22,8 +27,8 @@ function isDocumentLike(candidate: unknown): candidate is Document {
 }
 
 const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope = {
-    getDocument: () => globalThis.document,
-    getKeyboardEvent: () => globalThis.KeyboardEvent,
+    getDocument: getBrowserDocument,
+    getKeyboardEvent: getBrowserKeyboardEvent,
 };
 
 function getProviderDocument(

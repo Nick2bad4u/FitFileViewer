@@ -33,6 +33,19 @@ describe("updateActiveTabRuntime", () => {
         expect(runtime.getDocument()).toBe(providerDocument);
     });
 
+    it("uses browser runtime providers for production document and keyboard-event defaults", () => {
+        expect.assertions(3);
+
+        const runtime = getUpdateActiveTabRuntime();
+        const keyboardEvent = new KeyboardEvent("keydown", {
+            key: "ArrowRight",
+        });
+
+        expect(runtime.getDocument()).toBe(document);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+    });
+
     it("checks keyboard events through the runtime provider", () => {
         expect.assertions(3);
 
