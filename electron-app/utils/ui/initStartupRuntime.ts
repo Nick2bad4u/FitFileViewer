@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../runtime/browserRuntime.js";
+
 export interface InitStartupRuntimeScope {
     readonly getDocumentTarget?: (() => EventTarget | undefined) | undefined;
 }
@@ -7,7 +9,7 @@ export interface InitStartupRuntime {
 }
 
 const defaultInitStartupRuntimeScope: InitStartupRuntimeScope = {
-    getDocumentTarget: () => globalThis.document,
+    getDocumentTarget: getBrowserDocument,
 };
 
 function getDocumentTarget(

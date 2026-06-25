@@ -14,6 +14,12 @@ describe("getInitStartupRuntime", () => {
         expect(runtime.getDocumentTarget()).toBe(target);
     });
 
+    it("returns the production document target through the browser runtime provider", () => {
+        expect.assertions(1);
+
+        expect(getInitStartupRuntime().getDocumentTarget()).toBe(document);
+    });
+
     it("returns undefined when the document target runtime is unavailable", () => {
         expect.assertions(1);
 

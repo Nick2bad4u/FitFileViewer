@@ -5641,7 +5641,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps startup initializer document access behind its runtime provider", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const initStartupSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/initStartup.ts")
@@ -5659,6 +5659,12 @@ describe("architecture boundaries", () => {
             "defaultInitStartupRuntimeScope"
         );
         expect(initStartupRuntimeSource).toContain(
+            "../runtime/browserRuntime.js"
+        );
+        expect(initStartupRuntimeSource).toContain(
+            "getDocumentTarget: getBrowserDocument"
+        );
+        expect(initStartupRuntimeSource).not.toContain(
             "getDocumentTarget: () => globalThis.document"
         );
         expect(initStartupRuntimeSource).not.toContain(
