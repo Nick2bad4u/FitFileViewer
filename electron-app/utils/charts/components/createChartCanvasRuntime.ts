@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+
 type ChartCanvasDocument = Pick<Document, "createElement">;
 
 export interface CreateChartCanvasRuntimeScope {
@@ -9,7 +11,7 @@ export interface CreateChartCanvasRuntime {
 }
 
 const defaultCreateChartCanvasRuntimeScope: CreateChartCanvasRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getRequiredDocument(

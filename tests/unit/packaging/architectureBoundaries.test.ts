@@ -17458,7 +17458,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart canvas creation behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const violations = migratedCreateChartCanvasRuntimeFiles
             .filter((relativeFile) =>
@@ -17501,6 +17501,9 @@ describe("architecture boundaries", () => {
         expect(canvasSource).toContain("runtime.createCanvas()");
         expect(runtimeSource).toContain("defaultCreateChartCanvasRuntimeScope");
         expect(runtimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(runtimeSource).toContain(

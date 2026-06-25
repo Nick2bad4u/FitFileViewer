@@ -21,6 +21,16 @@ describe("getCreateChartCanvasRuntime", () => {
         expect(createElement).toHaveBeenCalledExactlyOnceWith("canvas");
     });
 
+    it("creates canvases through default browser providers", () => {
+        expect.assertions(2);
+
+        const runtime = getCreateChartCanvasRuntime();
+        const canvas = runtime.createCanvas();
+
+        expect(canvas).toBeInstanceOf(HTMLCanvasElement);
+        expect(canvas.ownerDocument).toBe(document);
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
