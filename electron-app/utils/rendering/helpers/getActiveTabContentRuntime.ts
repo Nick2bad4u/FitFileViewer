@@ -1,4 +1,5 @@
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 
 export interface GetActiveTabContentRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
@@ -14,7 +15,7 @@ export interface GetActiveTabContentRuntime {
 
 const defaultGetActiveTabContentRuntimeScope: GetActiveTabContentRuntimeScope =
     {
-        getDocument: () => globalThis.document,
+        getDocument: getBrowserDocument,
     };
 
 function getRequiredDocument(scope: GetActiveTabContentRuntimeScope): Document {

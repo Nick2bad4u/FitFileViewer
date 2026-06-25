@@ -1112,6 +1112,8 @@ const directRenderTableRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directGetActiveTabContentRuntimeGlobalPattern =
     /\bdocument\.querySelector(?:All)?\b|\bgetElementByIdFlexible\(\s*document\b/u;
+const directGetActiveTabContentRuntimeAmbientGetterPattern =
+    /\bgetDocument:\s*\(\)\s*=>\s*globalThis\.document\b|\breturn\s+globalThis\.document\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
@@ -12567,7 +12569,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab content DOM lookups behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const violations = migratedGetActiveTabContentRuntimeFiles
             .filter((relativeFile) =>
@@ -12616,7 +12618,13 @@ describe("architecture boundaries", () => {
             "defaultGetActiveTabContentRuntimeScope"
         );
         expect(activeTabContentRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(activeTabContentRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(activeTabContentRuntimeSource).not.toMatch(
+            directGetActiveTabContentRuntimeAmbientGetterPattern
         );
         expect(activeTabContentRuntimeScopeSource).not.toContain(
             "readonly document?:"
