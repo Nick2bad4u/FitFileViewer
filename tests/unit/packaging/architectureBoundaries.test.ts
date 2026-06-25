@@ -7401,7 +7401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(24);
+        expect.assertions(28);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -7463,12 +7463,24 @@ describe("architecture boundaries", () => {
             "ChartSettingsRenderRuntimeScope =\n    globalThis"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
-        expect(chartSettingsRenderRuntimeSource).toContain(
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(chartSettingsRenderRuntimeSource).toContain(
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(

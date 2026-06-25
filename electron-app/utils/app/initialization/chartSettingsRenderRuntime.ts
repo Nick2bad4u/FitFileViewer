@@ -1,3 +1,9 @@
+import {
+    getBrowserCustomEvent,
+    getBrowserDocument,
+    getBrowserEventTarget,
+} from "../../runtime/browserRuntime.js";
+
 export interface ChartSettingsRenderRuntime {
     readonly createRenderRequestEvent: (
         reason: string
@@ -53,9 +59,9 @@ function getDocument(scope: ChartSettingsRenderRuntimeScope): Document {
 
 const defaultChartSettingsRenderRuntimeScope: ChartSettingsRenderRuntimeScope =
     {
-        getCustomEvent: () => globalThis.CustomEvent,
-        getDocument: () => globalThis.document,
-        getEventTarget: () => globalThis,
+        getCustomEvent: getBrowserCustomEvent,
+        getDocument: getBrowserDocument,
+        getEventTarget: getBrowserEventTarget,
     };
 
 export function getChartSettingsRenderRuntime(

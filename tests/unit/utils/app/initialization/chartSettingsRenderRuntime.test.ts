@@ -13,6 +13,21 @@ describe("chartSettingsRenderRuntime", () => {
         expect(getChartSettingsRenderRuntime().eventTarget).toBe(globalThis);
     });
 
+    it("resolves production document and render-request events through browser runtime providers", () => {
+        expect.assertions(4);
+
+        const chartSettingsApi = getChartSettingsRenderRuntime(),
+            requestMessage =
+                chartSettingsApi.createRenderRequestEvent("settings-reset");
+
+        expect(chartSettingsApi.documentRef).toBe(document);
+        expect(requestMessage).toBeInstanceOf(CustomEvent);
+        expect(requestMessage.type).toBe("ffv:request-render-charts");
+        expect(requestMessage.detail).toStrictEqual({
+            reason: "settings-reset",
+        });
+    });
+
     it("resolves documents through the scoped runtime", () => {
         expect.assertions(2);
 
