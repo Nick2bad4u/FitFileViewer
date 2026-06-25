@@ -31,6 +31,25 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         );
     });
 
+    it("uses browser runtime providers for production document defaults", () => {
+        expect.assertions(4);
+
+        const runtime = getOpenPowerEstimationSettingsModalRuntime();
+        const overlay = runtime.createElement("div");
+        overlay.className = "power-estimation-settings-overlay";
+
+        try {
+            runtime.appendToBody(overlay);
+
+            expect(overlay).toBeInstanceOf(HTMLDivElement);
+            expect(runtime.bodyContains(overlay)).toBe(true);
+            expect(overlay.parentElement).toBe(document.body);
+            expect(document.body.lastElementChild).toBe(overlay);
+        } finally {
+            overlay.remove();
+        }
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(5);
 

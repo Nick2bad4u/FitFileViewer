@@ -1,4 +1,7 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+} from "../../runtime/browserRuntime.js";
 
 type PowerEstimationSettingsModalKeydownListener = (
     event: Readonly<KeyboardEvent>
@@ -52,8 +55,8 @@ function getRuntimeDocument(
 
 const defaultOpenPowerEstimationSettingsModalRuntimeScope: OpenPowerEstimationSettingsModalRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
+        getAbortController: getBrowserAbortController,
+        getDocument: getBrowserDocument,
     };
 
 export function getOpenPowerEstimationSettingsModalRuntime(

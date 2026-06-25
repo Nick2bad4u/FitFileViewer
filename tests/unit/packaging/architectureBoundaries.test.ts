@@ -13719,7 +13719,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(26);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -13786,6 +13786,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
