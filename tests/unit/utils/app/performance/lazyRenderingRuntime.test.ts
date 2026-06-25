@@ -18,6 +18,7 @@ class FakeIntersectionObserver implements IntersectionObserver {
 
 describe("getLazyRenderingRuntime", () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -153,7 +154,7 @@ describe("getLazyRenderingRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const animationCallback = vi.fn<FrameRequestCallback>();
         const idleCallback = vi.fn<IdleRequestCallback>();
@@ -199,6 +200,7 @@ describe("getLazyRenderingRuntime", () => {
         );
         expect(utils.setTimeout(timeoutCallback)).toBe(9);
         expect(requestAnimationFrame).toHaveBeenCalledWith(animationCallback);
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(globalThis);
         expect(requestIdleCallback).toHaveBeenCalledWith(idleCallback, {
             timeout: 50,
         });

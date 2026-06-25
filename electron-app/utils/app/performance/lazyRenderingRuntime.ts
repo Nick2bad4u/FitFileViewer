@@ -1,4 +1,5 @@
 import {
+    getBrowserRequestAnimationFrame,
     getBrowserRequestIdleCallback,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
@@ -96,7 +97,7 @@ const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
     getInnerHeight: () => globalThis.innerHeight,
     getInnerWidth: () => globalThis.innerWidth,
     getIntersectionObserver: () => globalThis.IntersectionObserver,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
     getRequestIdleCallback: getBrowserRequestIdleCallback,
     getSetTimeout: getBrowserSetTimeout,
 };
