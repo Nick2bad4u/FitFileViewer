@@ -10888,13 +10888,13 @@ describe("architecture boundaries", () => {
             "defaultRendererStateIntegrationRuntimeScope"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
-            "function getGlobalDocument(): Document"
+            "getDocument: () => globalThis.document"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
-            "getDocument: () => getGlobalDocument()"
+            "getDocumentEventTarget: () => globalThis.document"
         );
-        expect(rendererStateIntegrationRuntimeSource).toContain(
-            "getDocumentEventTarget: () => getGlobalDocument()"
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "function getGlobalDocument"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "getElement: () => globalThis.Element"
