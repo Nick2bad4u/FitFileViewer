@@ -316,6 +316,10 @@ HTMLElement, and localStorage lookups, extending the existing AbortController pr
 the remaining local inline `globalThis` defaults from `exportUtilsRuntime.ts`; its AbortController and
 HTMLElement provider contracts also reuse shared browser-runtime constructor aliases instead of direct ambient
 constructor type spellings.
+Root and colocated export utility tests no longer install stale `globalThis.window` fixtures; chart-export DOM
+coverage now uses explicit JSDOM document/constructor fixtures, colocated export coverage relies on the
+runtime/document fixtures it actually exercises, and architecture coverage blocks those global-window fixtures
+from returning.
 Scoped export Electron API validation and Imgur upload response parsing now use explicit object/property guards
 instead of casting preload candidates or response payloads to generic records, with malformed-shape coverage and
 architecture guardrails.

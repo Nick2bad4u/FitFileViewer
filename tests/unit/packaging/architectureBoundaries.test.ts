@@ -111,6 +111,10 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/utils/theming/core/setupTheme.test.ts",
     "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
+const exportUtilityWindowFixtureTestFiles = [
+    "tests/unit/utils/exportUtils.chartExport.test.ts",
+    "electron-app/utils/files/export/exportUtils.test.ts",
+] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
 const sourceExtensions = new Set([
@@ -912,6 +916,8 @@ const processEnvironmentTestDirectProcessDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const exportUtilsOauthStateTestDirectCryptoDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']crypto["']\s*\)/u;
+const exportUtilsTestDirectWindowFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']window["']|\bglobalThis\.window\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']window["']\s*\)/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
     /\b(?:global|globalThis)\.URLSearchParams\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']URLSearchParams["']\s*\)/u;
 const directVitestTabButtonObserverCleanupPattern = /\btabButtonObserver\b/u;
@@ -5205,6 +5211,20 @@ describe("architecture boundaries", () => {
             "setExportUtilsTestModuleOverrides"
         );
         expect(exportUtilsSource).not.toContain("resolveManualMock");
+    });
+
+    it("keeps export utility tests off global window fixtures", () => {
+        expect.assertions(1);
+
+        const violations = exportUtilityWindowFixtureTestFiles
+            .filter((relativeFile) =>
+                exportUtilsTestDirectWindowFixturePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {

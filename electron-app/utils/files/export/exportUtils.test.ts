@@ -188,21 +188,6 @@ Object.defineProperty(globalThis, "navigator", {
     writable: true,
 });
 
-Object.defineProperty(globalThis, "window", {
-    value: {
-        print: vi.fn(),
-        open: vi.fn(() => ({
-            document: {
-                write: vi.fn(),
-                close: vi.fn(),
-            },
-            print: vi.fn(),
-            close: vi.fn(),
-        })),
-    },
-    writable: true,
-});
-
 function getLastCreatedAnchor(): HTMLAnchorElement {
     const anchor = createdAnchors.at(-1);
     expect(anchor).toBeInstanceOf(HTMLAnchorElement);
@@ -1061,9 +1046,9 @@ describe("exportUtils", () => {
                 text: () => Promise.resolve("ok"),
             } as any);
 
-            await expect(exportUtils.uploadToImgur(base64Image)).rejects.toThrow(
-                "Invalid response from Imgur"
-            );
+            await expect(
+                exportUtils.uploadToImgur(base64Image)
+            ).rejects.toThrow("Invalid response from Imgur");
         });
 
         it("should treat AbortError as a timeout", async () => {
