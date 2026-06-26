@@ -5,6 +5,8 @@ import { getCreateFieldTogglesSectionRuntime } from "../../../../../electron-app
 
 describe("getCreateFieldTogglesSectionRuntime", () => {
     afterEach(() => {
+        document.body.replaceChildren();
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -94,6 +96,36 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         expect(timerHandle).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+    });
+
+    it("uses browser runtime providers for production DOM, event, and input defaults", () => {
+        expect.assertions(8);
+
+        const dispatchEvent = vi.fn<typeof globalThis.dispatchEvent>(
+            () => true
+        );
+        vi.stubGlobal("dispatchEvent", dispatchEvent);
+        const runtime = getCreateFieldTogglesSectionRuntime();
+        const fieldToggle = runtime.createElement("div");
+        const checkbox = runtime.createElement("input");
+        checkbox.type = "checkbox";
+        fieldToggle.className = "field-toggle";
+        fieldToggle.append(checkbox);
+        document.body.append(fieldToggle);
+        const event = runtime.createCustomEvent("fieldToggleChanged", {
+            detail: { field: "speed" },
+        });
+
+        expect(runtime.queryFieldCheckboxToggles()).toHaveLength(1);
+        expect(runtime.queryFieldCheckboxToggles()[0]).toBe(checkbox);
+        expect(runtime.isHTMLInputElement(checkbox)).toBe(true);
+        expect(runtime.isHTMLInputElement(fieldToggle)).toBe(false);
+        expect(event.detail).toStrictEqual({ field: "speed" });
+        expect(runtime.dispatchEvent(event)).toBe(true);
+        expect(dispatchEvent).toHaveBeenCalledWith(event);
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
     });
 
     it("schedules and clears timers through injected timer functions", () => {

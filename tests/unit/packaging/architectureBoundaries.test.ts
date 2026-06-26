@@ -6429,7 +6429,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(36);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -6517,13 +6517,28 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(fieldTogglesRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(fieldTogglesRuntimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
         expect(fieldTogglesRuntimeSource).toContain(
+            "getDispatchEvent: getBrowserDispatchEvent"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis)"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
         );
         expect(fieldTogglesRuntimeSource).toContain(
             "createFieldTogglesSection requires a setTimeout runtime"

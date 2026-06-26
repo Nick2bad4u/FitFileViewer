@@ -1,6 +1,10 @@
 import {
     getBrowserAbortController,
     getBrowserClearTimeout,
+    getBrowserCustomEvent,
+    getBrowserDispatchEvent,
+    getBrowserDocument,
+    getBrowserHTMLInputElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -112,10 +116,10 @@ const defaultCreateFieldTogglesSectionRuntimeScope: CreateFieldTogglesSectionRun
     {
         getAbortController: getBrowserAbortController,
         getClearTimeout: getBrowserClearTimeout,
-        getCustomEvent: () => globalThis.CustomEvent,
-        getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),
-        getDocument: () => globalThis.document,
-        getHTMLInputElement: () => globalThis.HTMLInputElement,
+        getCustomEvent: getBrowserCustomEvent,
+        getDispatchEvent: getBrowserDispatchEvent,
+        getDocument: getBrowserDocument,
+        getHTMLInputElement: getBrowserHTMLInputElement,
         getSetTimeout: getBrowserSetTimeout,
     };
 
