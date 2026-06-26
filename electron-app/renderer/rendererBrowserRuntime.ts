@@ -34,6 +34,10 @@ export function getBrowserRendererClearTimeout():
     return globalThis.clearTimeout;
 }
 
+export function getBrowserRendererConsole(): Console | undefined {
+    return globalThis.console;
+}
+
 export function getBrowserRendererCustomEvent():
     | typeof globalThis.CustomEvent
     | undefined {
@@ -52,6 +56,10 @@ export function deleteBrowserRendererGlobalProperty(
 
 export function getBrowserRendererDocument(): Document | undefined {
     return globalThis.document;
+}
+
+export function getBrowserRendererElectronApiCandidate(): unknown {
+    return (globalThis as RendererRuntimeGlobalScope).electronAPI;
 }
 
 export function getBrowserRendererEventTarget(): EventTarget | undefined {
@@ -88,19 +96,29 @@ export function getBrowserRendererRemoveEventListener():
     return globalThis.removeEventListener.bind(globalThis);
 }
 
+export function getBrowserRendererBoundClearInterval():
+    | typeof globalThis.clearInterval
+    | undefined {
+    return globalThis.clearInterval.bind(globalThis);
+}
+
+export function getBrowserRendererBoundSetInterval():
+    | typeof globalThis.setInterval
+    | undefined {
+    return globalThis.setInterval.bind(globalThis);
+}
+
 export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvironmentScope {
     return {
-        getAddEventListener: () => globalThis.addEventListener.bind(globalThis),
-        getClearInterval: () => globalThis.clearInterval.bind(globalThis),
-        getConsole: () => globalThis.console,
-        getDocument: () => globalThis.document,
-        getElectronApiCandidate: () =>
-            (globalThis as RendererRuntimeGlobalScope).electronAPI,
-        getRemoveEventListener: () =>
-            globalThis.removeEventListener.bind(globalThis),
-        getRendererEventTarget: () => globalThis,
-        getSetInterval: () => globalThis.setInterval.bind(globalThis),
-        getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
+        getAddEventListener: getBrowserRendererAddEventListener,
+        getClearInterval: getBrowserRendererBoundClearInterval,
+        getConsole: getBrowserRendererConsole,
+        getDocument: getBrowserRendererDocument,
+        getElectronApiCandidate: getBrowserRendererElectronApiCandidate,
+        getRemoveEventListener: getBrowserRendererRemoveEventListener,
+        getRendererEventTarget: getBrowserRendererEventTarget,
+        getSetInterval: getBrowserRendererBoundSetInterval,
+        getSetTimeout: getBrowserRendererBoundSetTimeout,
     };
 }
 

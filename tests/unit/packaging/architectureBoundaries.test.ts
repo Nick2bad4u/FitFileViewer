@@ -5295,7 +5295,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(115);
+        expect.assertions(128);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5488,18 +5488,45 @@ describe("architecture boundaries", () => {
             "return rendererScope.electronAPI;"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getElectronApiCandidate: () =>"
+            "getElectronApiCandidate: getBrowserRendererElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getRendererEventTarget: () => globalThis"
+            "getRendererEventTarget: getBrowserRendererEventTarget"
         );
         expect(rendererBrowserRuntimeSource).toContain(
+            "getAddEventListener: getBrowserRendererAddEventListener"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "getDocument: getBrowserRendererDocument"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "getSetTimeout: getBrowserRendererBoundSetTimeout"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
         );
-        expect(rendererBrowserRuntimeSource).toContain(
+        expect(rendererBrowserRuntimeSource).not.toContain(
+            "getClearInterval: () => globalThis.clearInterval.bind(globalThis)"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
+            "getConsole: () => globalThis.console"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(rendererBrowserRuntimeSource).toContain(
+        expect(rendererBrowserRuntimeSource).not.toContain(
+            "getElectronApiCandidate: () =>"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
+            "getRemoveEventListener: () =>"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
+            "getRendererEventTarget: () => globalThis"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
+            "getSetInterval: () => globalThis.setInterval.bind(globalThis)"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
         );
         expect(applicationStartupSource).toContain("RendererAddEventListener");
@@ -5663,15 +5690,27 @@ describe("architecture boundaries", () => {
             "return mainUiScope.electronAPI;"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
+            "getElectronApiCandidate: getBrowserMainUiElectronApiCandidate"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "dateNow: getBrowserMainUiDateNow"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "getConsole: getBrowserMainUiConsole"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "getDocument: getBrowserMainUiDocument"
+        );
+        expect(mainUiBrowserRuntimeSource).not.toContain(
             "getElectronApiCandidate: () =>"
         );
-        expect(mainUiBrowserRuntimeSource).toContain(
+        expect(mainUiBrowserRuntimeSource).not.toContain(
             "dateNow: () => Date.now()"
         );
-        expect(mainUiBrowserRuntimeSource).toContain(
+        expect(mainUiBrowserRuntimeSource).not.toContain(
             "getConsole: () => globalThis.console"
         );
-        expect(mainUiBrowserRuntimeSource).toContain(
+        expect(mainUiBrowserRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
     });
