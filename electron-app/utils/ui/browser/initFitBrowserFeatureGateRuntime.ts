@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     getBrowserDocument,
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
@@ -21,7 +22,7 @@ export interface FitBrowserFeatureGateRuntimeScope {
         | (() => BrowserTabFeatureGateDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -42,7 +43,7 @@ const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScop
 function getHTMLElementConstructor(
     scope: FitBrowserFeatureGateRuntimeScope,
     runtimeDocument: BrowserTabFeatureGateDocument | undefined
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return (
         scope.getHTMLElement?.() ?? runtimeDocument?.defaultView?.HTMLElement
     );
