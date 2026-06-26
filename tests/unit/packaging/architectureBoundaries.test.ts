@@ -16367,7 +16367,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(53);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -16433,6 +16433,22 @@ describe("architecture boundaries", () => {
         expect(mapFullscreenControlRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "typeof globalThis."
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain("ReturnType<");
         expect(mapFullscreenControlRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );

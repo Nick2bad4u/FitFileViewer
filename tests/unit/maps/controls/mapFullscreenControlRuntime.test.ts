@@ -1,8 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getMapFullscreenControlRuntime,
     type MapFullscreenControlRuntimeScope,
+    type MapFullscreenControlTimer,
 } from "../../../../electron-app/utils/maps/controls/mapFullscreenControlRuntime.js";
 
 describe("getMapFullscreenControlRuntime", () => {
@@ -202,9 +207,9 @@ describe("getMapFullscreenControlRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 67 as MapFullscreenControlTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapFullscreenControlRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -222,9 +227,9 @@ describe("getMapFullscreenControlRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const timer = 68 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 68 as MapFullscreenControlTimer;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -247,7 +252,7 @@ describe("getMapFullscreenControlRuntime", () => {
             "mapFullscreenControl requires a setTimeout runtime"
         );
         expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+            runtime.clearTimeout(1 as MapFullscreenControlTimer)
         ).toThrow("mapFullscreenControl requires a clearTimeout runtime");
     });
 
@@ -289,7 +294,7 @@ describe("getMapFullscreenControlRuntime", () => {
             "mapFullscreenControl requires a setTimeout runtime"
         );
         expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+            runtime.clearTimeout(1 as MapFullscreenControlTimer)
         ).toThrow("mapFullscreenControl requires a clearTimeout runtime");
         expect(() => runtime.getMapContainer()).toThrow(
             "mapFullscreenControl requires a document runtime"
