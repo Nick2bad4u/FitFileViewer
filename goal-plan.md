@@ -775,7 +775,8 @@ performance-monitor global fixture; architecture coverage blocks the source fall
 construction, and test-global mutation pattern from returning. Error-handling runtime defaults now read
 `AbortController` and `addEventListener` explicitly through focused helpers instead of generic
 `Reflect.get(globalThis, ...)` probes, and the default date-clock now reuses the shared browser runtime provider
-instead of a local `Date.now` getter.
+instead of a local `Date.now` getter. Error-handling listener binding now stays in the shared browser runtime
+provider instead of rebinding the listener through `globalThis` inside `errorHandlingRuntime.ts`.
 `AppError` timestamp creation now also routes through `errorHandlingRuntime.ts` instead of calling `Date.now`
 directly inside `errorHandling.ts`, with focused runtime coverage and architecture guardrails blocking direct
 clock reads and legacy direct runtime scope properties from returning.

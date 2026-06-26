@@ -129,7 +129,7 @@ describe("getErrorHandlingRuntime", () => {
     });
 
     it("resolves the default event target when listeners are registered", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const addEventListener = vi.fn();
         const listener = vi.fn();
@@ -147,6 +147,7 @@ describe("getErrorHandlingRuntime", () => {
             listener,
             options
         );
+        expect(addEventListener.mock.contexts[0]).toBe(globalThis);
 
         controller.abort();
     });

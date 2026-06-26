@@ -50,7 +50,7 @@ function getDefaultEventTarget(
     }
 
     return {
-        addEventListener: addEventListener.bind(globalThis),
+        addEventListener,
     };
 }
 
