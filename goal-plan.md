@@ -1305,6 +1305,8 @@ Renderer test-only bootstrap DOMContentLoaded and window-load listener cleanup n
 `testOnlyBootstrapRuntime.ts` instead of constructing `AbortController` directly in `testOnlyBootstrap.ts`, with
 focused runtime coverage and architecture coverage blocking direct test-only bootstrap abort-controller construction
 from returning. The test-only bootstrap runtime contract now reuses the shared browser-runtime AbortController alias.
+Renderer test-only bootstrap window-load registration now receives the startup-provided `rendererEventTarget`
+directly instead of preserving the retired `globalEventTarget` test-only bootstrap option name.
 Network utility fetch, AbortController creation, and fetch-timeout scheduling now route through
 `networkUtilsRuntime.ts` instead of calling network or timer globals directly in `networkUtils.ts`, with adapter
 tests and architecture coverage blocking direct network utility globals from returning. Explicit network runtime

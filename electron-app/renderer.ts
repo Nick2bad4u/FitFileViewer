@@ -216,7 +216,7 @@ installRendererElectronApiWiring({
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
     documentTarget: runtimeEnvironment.documentTarget,
-    globalEventTarget: runtimeEnvironment.rendererEventTarget,
+    rendererEventTarget: runtimeEnvironment.rendererEventTarget,
     unloadTarget: runtimeEnvironment.rendererEventTarget,
 });
 

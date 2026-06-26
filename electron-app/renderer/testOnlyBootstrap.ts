@@ -183,7 +183,7 @@ export function registerTestDOMContentLoadedSetupListener(
 }
 
 export function registerTestWindowLoadThemeSetupListener(
-    globalEventTarget: RendererTestOnlyBootstrapEventTarget,
+    rendererEventTarget: RendererTestOnlyBootstrapEventTarget,
     unloadTarget: RendererTestOnlyBootstrapEventTarget,
     onTestWindowLoadSetupTheme: () => void,
     runtime: RendererTestOnlyBootstrapRuntime = getRendererTestOnlyBootstrapRuntime()
@@ -194,7 +194,7 @@ export function registerTestWindowLoadThemeSetupListener(
         abortController.abort();
     };
 
-    globalEventTarget.addEventListener("load", onTestWindowLoadSetupTheme, {
+    rendererEventTarget.addEventListener("load", onTestWindowLoadSetupTheme, {
         signal,
     });
     unloadTarget.addEventListener(
@@ -208,7 +208,7 @@ export function registerRendererTestOnlyBootstrap(
     options: RendererTestOnlyBootstrapOptions,
     targets: {
         readonly documentTarget: Document;
-        readonly globalEventTarget: RendererTestOnlyBootstrapEventTarget;
+        readonly rendererEventTarget: RendererTestOnlyBootstrapEventTarget;
         readonly unloadTarget: RendererTestOnlyBootstrapEventTarget;
     }
 ): void {
@@ -224,7 +224,7 @@ export function registerRendererTestOnlyBootstrap(
             onTestDOMContentLoadedSetupListeners
         );
         registerTestWindowLoadThemeSetupListener(
-            targets.globalEventTarget,
+            targets.rendererEventTarget,
             targets.unloadTarget,
             onTestWindowLoadSetupTheme
         );
