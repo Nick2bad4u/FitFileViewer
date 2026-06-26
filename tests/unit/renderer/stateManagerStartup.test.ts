@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createRendererStateStartup } from "../../../electron-app/renderer/stateManagerStartup.js";
+import {
+    createRendererFileOpeningStateRef,
+    createRendererStateStartup,
+    isRendererFileOpening,
+    setRendererFileOpeningState,
+} from "../../../electron-app/renderer/stateManagerStartup.js";
 
 describe("renderer state manager startup", () => {
     it("initializes the state manager and mirrors file-opening state", async () => {
@@ -73,5 +78,22 @@ describe("renderer state manager startup", () => {
         );
 
         expect(utils.isOpeningFileRef.value).toBe(false);
+    });
+
+    it("owns renderer file-opening state through named helpers", () => {
+        expect.assertions(4);
+
+        const utils = createRendererFileOpeningStateRef();
+
+        expect(utils).toStrictEqual({ value: false });
+        expect(isRendererFileOpening(utils)).toBe(false);
+
+        setRendererFileOpeningState(utils, true);
+
+        expect(isRendererFileOpening(utils)).toBe(true);
+
+        setRendererFileOpeningState(utils, false);
+
+        expect(isRendererFileOpening(utils)).toBe(false);
     });
 });

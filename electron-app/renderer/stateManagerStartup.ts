@@ -10,6 +10,10 @@ export type RendererStateStartupCoreModules = Readonly<{
     readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
 }>;
 
+export type RendererFileOpeningStateRef = {
+    value: boolean;
+};
+
 interface RendererStateStartupOptions {
     ensureCoreModules: () => Promise<RendererStateStartupCoreModules>;
     logRenderer: RendererStateStartupLogger;
@@ -21,7 +25,7 @@ type RendererStateManager = {
 
 interface RendererStateStartup {
     initializeStateManager: () => Promise<void>;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     resetStateInitializationForTests: () => void;
 }
 
@@ -32,7 +36,7 @@ interface RendererStateStartup {
 export function createRendererStateStartup(
     options: RendererStateStartupOptions
 ): RendererStateStartup {
-    const isOpeningFileRef = { value: false };
+    const isOpeningFileRef = createRendererFileOpeningStateRef();
     const stateInitTracker: {
         initialized: boolean;
         promise: null | Promise<void>;
@@ -72,7 +76,10 @@ export function createRendererStateStartup(
                 }
 
                 subscribeAppDomainPath("app.isOpeningFile", (isOpening) => {
-                    isOpeningFileRef.value = isOpening === true;
+                    setRendererFileOpeningState(
+                        isOpeningFileRef,
+                        isOpening === true
+                    );
                 });
 
                 stateInitTracker.initialized = true;
@@ -99,7 +106,7 @@ export function createRendererStateStartup(
     function resetStateInitializationForTests(): void {
         stateInitTracker.initialized = false;
         stateInitTracker.promise = null;
-        isOpeningFileRef.value = false;
+        setRendererFileOpeningState(isOpeningFileRef, false);
     }
 
     return {
@@ -107,6 +114,23 @@ export function createRendererStateStartup(
         isOpeningFileRef,
         resetStateInitializationForTests,
     };
+}
+
+export function createRendererFileOpeningStateRef(): RendererFileOpeningStateRef {
+    return { value: false };
+}
+
+export function isRendererFileOpening(
+    stateRef: RendererFileOpeningStateRef
+): boolean {
+    return stateRef.value;
+}
+
+export function setRendererFileOpeningState(
+    stateRef: RendererFileOpeningStateRef,
+    isOpeningFile: boolean
+): void {
+    stateRef.value = isOpeningFile;
 }
 
 function toRendererStateManager(

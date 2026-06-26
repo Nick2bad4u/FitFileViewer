@@ -4829,7 +4829,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(15);
+        expect.assertions(18);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4855,6 +4855,15 @@ describe("architecture boundaries", () => {
         );
         expect(stateStartupSource).toContain(
             "readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;"
+        );
+        expect(stateStartupSource).toContain(
+            "export type RendererFileOpeningStateRef ="
+        );
+        expect(stateStartupSource).toContain(
+            "createRendererFileOpeningStateRef()"
+        );
+        expect(stateStartupSource).not.toContain(
+            "const isOpeningFileRef = { value: false }"
         );
         expect(stateStartupSource).toContain("toRendererStateManager(");
         expect(stateStartupSource).not.toContain(
