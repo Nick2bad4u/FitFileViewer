@@ -13,6 +13,10 @@ import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
 import { getAppState } from "../state/appState.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
+import {
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "../../utils/runtime/processEnvironment.js";
 import { safeCreateAppMenu } from "./safeCreateAppMenu.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
@@ -167,11 +171,11 @@ function logUpdaterError(message: string, error: unknown): void {
 }
 
 function isAutoUpdaterInitialized(): boolean {
-    return getAppState("autoUpdaterInitialized") === true;
+    return getAppState("autoUpdaterInitialized");
 }
 
 function isUpdateDownloaded(): boolean {
-    return getAppState("autoUpdater.updateDownloaded") === true;
+    return getAppState("autoUpdater.updateDownloaded");
 }
 
 function notifyUpdaterUnavailable(event: IpcEventLike, message: string): void {
@@ -182,10 +186,7 @@ function notifyUpdaterUnavailable(event: IpcEventLike, message: string): void {
 }
 
 function isDevtoolsMenuInjectionAllowed(): boolean {
-    return (
-        process.env?.["NODE_ENV"] === "development" ||
-        process.env?.["NODE_ENV"] === "test"
-    );
+    return isDevelopmentEnvironment() || isTestEnvironment();
 }
 
 /**
