@@ -5383,7 +5383,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(97);
+        expect.assertions(101);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -5404,6 +5404,10 @@ describe("architecture boundaries", () => {
 
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
         expect(exportUtilsSource).toContain("type ExportUtilsRuntime");
+        expect(exportUtilsSource).toContain("ElectronClipboardApi");
+        expect(exportUtilsSource).toContain("ElectronGyazoExternalApi");
+        expect(exportUtilsSource).not.toContain("import type { ElectronAPI");
+        expect(exportUtilsSource).not.toContain("Pick<ElectronAPI");
         expect(exportUtilsSource).toContain("return getExportUtilsRuntime();");
         expect(exportUtilsSource).not.toContain("value as Readonly<Record");
         expect(exportUtilsSource).not.toContain(

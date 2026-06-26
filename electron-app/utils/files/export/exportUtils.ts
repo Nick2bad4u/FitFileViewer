@@ -32,19 +32,13 @@ import {
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type {
+    ElectronClipboardApi,
+    ElectronGyazoExternalApi,
+} from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
-type ElectronApiLike = Partial<
-    Pick<
-        ElectronAPI,
-        | "onGyazoOAuthCallback"
-        | "startGyazoServer"
-        | "stopGyazoServer"
-        | "writeClipboardPngDataUrl"
-        | "writeClipboardText"
-    >
->;
+type ElectronApiLike = Partial<ElectronClipboardApi & ElectronGyazoExternalApi>;
 type ChartDataPoint = {
     x?: LooseRecord;
     y?: LooseRecord;
@@ -1996,8 +1990,7 @@ export const exportUtils = {
             );
 
             // Generate and download ZIP
-            const exportDate =
-                    isoNow().split("T")[0] ?? "unknown-date",
+            const exportDate = isoNow().split("T")[0] ?? "unknown-date",
                 content = await zip.generateAsync({ type: "blob" }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(content);
