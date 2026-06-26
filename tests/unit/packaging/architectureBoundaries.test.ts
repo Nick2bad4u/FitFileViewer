@@ -19173,7 +19173,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(105);
+        expect.assertions(108);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -19204,7 +19204,7 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("getBodyElement");
         expect(themeCoreSource).toContain("getDocumentEventTarget");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
-        expect(themeCoreSource).toContain("getGlobalEventTarget");
+        expect(themeCoreSource).toContain("getBrowserEventTarget");
         expect(themeCoreSource).toContain("getStorageItem");
         expect(themeCoreSource).toContain("setStorageItem");
         expect(themeCoreSource).toContain("removeStorageItem");
@@ -19285,9 +19285,8 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
-        expect(themeRuntimeSource).toContain(
-            "getGlobalEventTarget: getBrowserEventTarget"
-        );
+        expect(themeRuntimeSource).toContain("getBrowserEventTarget,");
+        expect(themeRuntimeSource).not.toContain("getGlobalEventTarget");
         expect(themeRuntimeSource).toContain(
             "getLocalStorage: getBrowserLocalStorage"
         );
@@ -19299,6 +19298,9 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain("readonly computedStyle?:");
         expect(themeRuntimeSource).not.toContain(
             "readonly globalEventTarget?:"
+        );
+        expect(themeRuntimeSource).not.toContain(
+            "readonly getGlobalEventTarget?:"
         );
         expect(themeRuntimeSource).not.toContain("readonly CustomEvent?:");
         expect(themeRuntimeSource).not.toContain("readonly document?:");
@@ -19316,6 +19318,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain("scope.clearTimeout");
         expect(themeRuntimeSource).not.toContain("scope.CustomEvent");
         expect(themeRuntimeSource).not.toContain("scope.document");
+        expect(themeRuntimeSource).not.toContain("scope.getGlobalEventTarget");
         expect(themeRuntimeSource).not.toContain("scope.globalEventTarget");
         expect(themeRuntimeSource).not.toContain("scope.localStorage");
         expect(themeRuntimeSource).not.toContain("scope.matchMedia");

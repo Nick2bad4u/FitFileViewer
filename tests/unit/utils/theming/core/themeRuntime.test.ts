@@ -107,7 +107,7 @@ describe("getThemeRuntime", () => {
         const mediaQuery = { matches: true } as MediaQueryList;
         const documentRef =
             document.implementation.createHTMLDocument("theme runtime");
-        const globalEventTarget = {
+        const browserEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
@@ -127,7 +127,7 @@ describe("getThemeRuntime", () => {
         }
         const getCustomEvent = vi.fn(() => TestCustomEvent);
         const getDocument = vi.fn(() => documentRef);
-        const getGlobalEventTarget = vi.fn(() => globalEventTarget);
+        const getBrowserEventTarget = vi.fn(() => browserEventTarget);
         const getMatchMedia = vi.fn(() => matchMedia);
         const getSetTimeout = vi.fn(() => setTimeout);
         const runtime = getThemeRuntime({
@@ -135,7 +135,7 @@ describe("getThemeRuntime", () => {
             getClearTimeout,
             getCustomEvent,
             getDocument,
-            getGlobalEventTarget,
+            getBrowserEventTarget,
             getMatchMedia,
             getSetTimeout,
         });
@@ -144,7 +144,7 @@ describe("getThemeRuntime", () => {
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
         runtime.clearTimeout(timer);
         expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
-        expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
+        expect(runtime.getBrowserEventTarget()).toBe(browserEventTarget);
         runtime.addBodyClass("theme-transitioning");
         runtime.addBodyClass("theme-dark");
         runtime.setThemeDataAttributes("dark");
@@ -159,7 +159,7 @@ describe("getThemeRuntime", () => {
         expect(getCustomEvent).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledTimes(6);
         expect(getMatchMedia).toHaveBeenCalledOnce();
-        expect(getGlobalEventTarget).toHaveBeenCalledOnce();
+        expect(getBrowserEventTarget).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(event).toBeInstanceOf(TestCustomEvent);
         expect(event.type).toBe("test:themechange");
@@ -378,19 +378,19 @@ describe("getThemeRuntime", () => {
         }
     });
 
-    it("exposes the scoped theme global event target", () => {
+    it("exposes the scoped theme browser event target", () => {
         expect.assertions(1);
 
-        const globalEventTarget = {
+        const browserEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
         } as unknown as EventTarget;
         const runtime = getThemeRuntime({
-            getGlobalEventTarget: () => globalEventTarget,
+            getBrowserEventTarget: () => browserEventTarget,
         });
 
-        expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
+        expect(runtime.getBrowserEventTarget()).toBe(browserEventTarget);
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
@@ -411,7 +411,7 @@ describe("getThemeRuntime", () => {
         const mediaQuery = { matches: true } as MediaQueryList;
         const matchMedia = vi.fn<BrowserMatchMedia>(() => mediaQuery);
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
-        const globalEventTarget = {
+        const browserEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
@@ -423,7 +423,7 @@ describe("getThemeRuntime", () => {
                 CustomEventConstructor as unknown as BrowserCustomEventConstructor,
             clearTimeout,
             document,
-            globalEventTarget,
+            browserEventTarget,
             matchMedia,
             setTimeout,
         } as unknown as Parameters<typeof getThemeRuntime>[0]);
@@ -456,7 +456,7 @@ describe("getThemeRuntime", () => {
             "theme core requires a document runtime"
         );
         expect(runtime.getSystemThemeMediaQuery()).toBeNull();
-        expect(runtime.getGlobalEventTarget()).toBeNull();
+        expect(runtime.getBrowserEventTarget()).toBeNull();
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(CustomEventConstructor).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();

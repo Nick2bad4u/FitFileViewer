@@ -562,9 +562,9 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
         targets.push(bodyElement);
     }
 
-    const globalEventTarget = themeRuntime().getGlobalEventTarget();
-    if (globalEventTarget) {
-        targets.push(globalEventTarget);
+    const browserEventTarget = themeRuntime().getBrowserEventTarget();
+    if (browserEventTarget) {
+        targets.push(browserEventTarget);
     }
 
     for (const target of targets) {

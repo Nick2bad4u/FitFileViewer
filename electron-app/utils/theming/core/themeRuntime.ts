@@ -34,7 +34,9 @@ export interface ThemeRuntimeScope {
         | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
+    readonly getBrowserEventTarget?:
+        | (() => EventTarget | undefined)
+        | undefined;
     readonly getLocalStorage?:
         | (() => ThemeRuntimeStorage | undefined)
         | undefined;
@@ -51,7 +53,7 @@ export interface ThemeRuntime {
     readonly getBodyComputedStyleProperty: (name: string) => string;
     readonly getBodyElement: () => HTMLElement | null;
     readonly getDocumentEventTarget: () => EventTarget | null;
-    readonly getGlobalEventTarget: () => EventTarget | null;
+    readonly getBrowserEventTarget: () => EventTarget | null;
     readonly getStorageItem: (key: string) => string | null;
     readonly getSystemThemeMediaQuery: () => MediaQueryList | null;
     readonly setTimeout: (
@@ -71,7 +73,7 @@ const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getComputedStyle: getBrowserComputedStyle,
     getCustomEvent: getBrowserCustomEvent,
     getDocument: getBrowserDocument,
-    getGlobalEventTarget: getBrowserEventTarget,
+    getBrowserEventTarget,
     getLocalStorage: getBrowserLocalStorage,
     getMatchMedia: getBrowserBoundMatchMedia,
     getSetTimeout: getBrowserSetTimeout,
@@ -119,10 +121,10 @@ function getRequiredDocument(scope: ThemeRuntimeScope): Document {
     return documentRef;
 }
 
-function getScopeGlobalEventTarget(
+function getScopeBrowserEventTarget(
     scope: ThemeRuntimeScope
 ): EventTarget | undefined {
-    return scope.getGlobalEventTarget?.();
+    return scope.getBrowserEventTarget?.();
 }
 
 function getRequiredLocalStorage(
@@ -219,8 +221,8 @@ export function getThemeRuntime(
         getDocumentEventTarget(): EventTarget | null {
             return getScopeDocument(scope) ?? null;
         },
-        getGlobalEventTarget(): EventTarget | null {
-            return getScopeGlobalEventTarget(scope) ?? null;
+        getBrowserEventTarget(): EventTarget | null {
+            return getScopeBrowserEventTarget(scope) ?? null;
         },
         getStorageItem(key): string | null {
             return getRequiredLocalStorage(scope).getItem(key);

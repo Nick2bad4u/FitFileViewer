@@ -514,6 +514,9 @@ module-level `browserGlobal` alias.
 Core theme runtime production defaults now reuse shared browser runtime providers for timers, computed-style,
 CustomEvent, document, and matchMedia lookups instead of local inline `globalThis` getters, while preserving the
 bound default matchMedia call path.
+Core theme runtime theme-change browser event-target access now also uses the shared browser runtime provider
+through an explicit `getBrowserEventTarget` contract instead of preserving the retired `getGlobalEventTarget`
+theme provider name.
 Core theme transition-style injection and meta theme-color updates now also route through `themeRuntime.ts` instead
 of querying, creating, or appending through `document` directly inside `theme.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct theme DOM calls from returning.
