@@ -1322,7 +1322,9 @@ blocking direct render-notification clock globals from returning. Production dat
 browser runtime provider instead of a local `Date.now` getter.
 Modal focus-trap keydown listener target lookup, active-element lookup, and keyboard-event checks now route through
 `modalFocusTrapRuntime.ts` instead of reading `document` or `KeyboardEvent` directly inside `modalFocusTrap.ts`, with
-focused runtime/behavior coverage and architecture coverage blocking those direct browser calls from returning.
+focused runtime/behavior coverage and architecture coverage blocking those direct browser calls from returning. The runtime
+provider contract now reuses the shared browser-runtime KeyboardEvent constructor alias instead of spelling direct ambient
+constructor types in the focus-trap module.
 Update notification auto-hide timers, renderer-state synced notification hide timers, and synced-notification state
 timestamps now route through `notificationTimerRuntime.ts` instead of calling clock or timer globals directly in their
 notification modules, with adapter tests and architecture coverage blocking direct notification clock/timer globals from

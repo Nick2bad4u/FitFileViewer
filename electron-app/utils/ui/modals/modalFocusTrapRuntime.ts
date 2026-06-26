@@ -1,4 +1,5 @@
 import {
+    type BrowserKeyboardEventConstructor,
     getBrowserDocument,
     getBrowserKeyboardEvent,
 } from "../../runtime/browserRuntime.js";
@@ -8,7 +9,7 @@ export interface ModalFocusTrapRuntimeScope {
         | (() => ModalFocusTrapDocument | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
 }
 
@@ -33,7 +34,7 @@ function getDocument(
 
 function getKeyboardEvent(
     scope: ModalFocusTrapRuntimeScope
-): typeof KeyboardEvent | undefined {
+): BrowserKeyboardEventConstructor | undefined {
     return scope.getKeyboardEvent?.();
 }
 
