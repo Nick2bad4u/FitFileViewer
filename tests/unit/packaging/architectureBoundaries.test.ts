@@ -15123,7 +15123,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(26);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -15182,6 +15182,24 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "type BrowserEventConstructor"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "(() => typeof Event | undefined)"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "): typeof Event"
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

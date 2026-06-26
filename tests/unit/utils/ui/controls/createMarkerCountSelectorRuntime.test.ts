@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserEventConstructor,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getCreateMarkerCountSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.js";
 
 describe("getCreateMarkerCountSelectorRuntime", () => {
@@ -82,12 +86,12 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         const runtimeWithInvalidAbortController =
             getCreateMarkerCountSelectorRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
         const runtimeWithInvalidEvent = getCreateMarkerCountSelectorRuntime({
             getDocument: () => document,
-            getEvent: () => "Event" as unknown as typeof Event,
+            getEvent: () => "Event" as unknown as BrowserEventConstructor,
         });
 
         expect(() => runtime.createElement("div")).toThrow(
@@ -117,7 +121,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         };
         const runtime = getCreateMarkerCountSelectorRuntime({
             AbortController:
-                legacyAbortController as unknown as typeof AbortController,
+                legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
             Event,
         } as unknown as Parameters<

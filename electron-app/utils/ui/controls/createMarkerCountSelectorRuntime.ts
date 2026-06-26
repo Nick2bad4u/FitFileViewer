@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserEventConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserEvent,
@@ -8,10 +10,10 @@ import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateMarkerCountSelectorRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getEvent?: (() => typeof Event | undefined) | undefined;
+    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
 }
 
 export interface CreateMarkerCountSelectorRuntime {
@@ -40,7 +42,7 @@ function getScopeDocument(
 
 function getAbortControllerConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
         getScopeDocument(scope)?.defaultView?.AbortController;
@@ -66,7 +68,7 @@ function getDocument(scope: CreateMarkerCountSelectorRuntimeScope): Document {
 
 function getEventConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
-): typeof Event {
+): BrowserEventConstructor {
     const EventConstructor =
         scope.getEvent?.() ?? getScopeDocument(scope)?.defaultView?.Event;
     if (typeof EventConstructor !== "function") {
