@@ -2,6 +2,10 @@ import {
     isApprovedFilePath,
     isValidFitFilePathCandidate,
 } from "../security/fileAccessPolicy.js";
+import {
+    resolveFocusedMainWindowOrFallback,
+    type MainWindowBrowserWindowApi,
+} from "../window/mainWindowSelection.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
 type RecentFilesApprovalResponse =
@@ -13,9 +17,7 @@ type RecentFilesListResponse =
 type RecentFilesResponsePayload =
     import("../../shared/ipc").RecentFilesResponsePayload;
 
-interface BrowserWindowApi {
-    getFocusedWindow?: () => BrowserWindow | null;
-}
+type BrowserWindowApi = MainWindowBrowserWindowApi<BrowserWindow>;
 
 type RegisterRecentFileIpcHandler = (
     event: unknown,
@@ -139,7 +141,10 @@ export function registerRecentFileHandlers({
                 }
 
                 addRecentFile(filePath);
-                const win = resolveTargetWindow(browserWindowRef, mainWindow);
+                const win = resolveFocusedMainWindowOrFallback(
+                    browserWindowRef,
+                    mainWindow
+                );
                 if (!win) {
                     return sanitizeRecentFilesList(loadRecentFiles());
                 }
@@ -199,29 +204,6 @@ function sanitizeRecentFilesList(list: unknown): string[] {
     }
 
     return out;
-}
-
-/**
- * Resolves a BrowserWindow instance suitable for menu updates.
- */
-function resolveTargetWindow(
-    browserWindowRef: () => BrowserWindowApi | null | undefined,
-    fallback?: BrowserWindow | null
-): BrowserWindow | null {
-    try {
-        const api =
-            typeof browserWindowRef === "function" ? browserWindowRef() : null;
-        if (api && typeof api.getFocusedWindow === "function") {
-            const focused = api.getFocusedWindow();
-            if (focused) {
-                return focused;
-            }
-        }
-    } catch {
-        // Ignore lookup issues and use fallback.
-    }
-
-    return fallback || null;
 }
 
 export default { registerRecentFileHandlers };

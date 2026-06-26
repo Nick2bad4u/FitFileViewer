@@ -2,6 +2,10 @@ import {
     approveFilePath,
     approveFilePaths,
 } from "../security/fileAccessPolicy.js";
+import {
+    resolveFocusedMainWindowOrFallback,
+    type MainWindowBrowserWindowApi,
+} from "../window/mainWindowSelection.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
 type DialogInvokeChannel = import("../../shared/ipc").DialogInvokeChannel;
@@ -18,9 +22,7 @@ interface DialogApi {
     ) => Promise<OpenDialogReturnValue>;
 }
 
-interface BrowserWindowApi {
-    getFocusedWindow?: () => BrowserWindow | null;
-}
+type BrowserWindowApi = MainWindowBrowserWindowApi<BrowserWindow>;
 
 interface DialogConstants {
     DIALOG_FILTERS: {
@@ -128,7 +130,10 @@ export function registerDialogHandlers({
                     addRecentFile(firstPath);
                 }
 
-                const win = resolveTargetWindow(browserWindowRef, mainWindow);
+                const win = resolveFocusedMainWindowOrFallback(
+                    browserWindowRef,
+                    mainWindow
+                );
                 if (
                     win &&
                     typeof getThemeFromRenderer === "function" &&
@@ -214,29 +219,6 @@ export function registerDialogHandlers({
             }
         }
     );
-}
-
-/**
- * Resolves a sensible target window for menu updates.
- */
-function resolveTargetWindow(
-    browserWindowRef: () => BrowserWindowApi | null | undefined,
-    fallback?: BrowserWindow | null
-): BrowserWindow | null {
-    try {
-        const api =
-            typeof browserWindowRef === "function" ? browserWindowRef() : null;
-        if (api && typeof api.getFocusedWindow === "function") {
-            const focused = api.getFocusedWindow();
-            if (focused) {
-                return focused;
-            }
-        }
-    } catch {
-        // Ignore lookup issues and fall back to provided window.
-    }
-
-    return fallback || null;
 }
 
 export default { registerDialogHandlers };

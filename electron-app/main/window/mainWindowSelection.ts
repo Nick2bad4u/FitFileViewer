@@ -156,3 +156,22 @@ export function resolveFocusedMainWindow<
         return undefined;
     }
 }
+
+export function resolveFocusedMainWindowOrFallback<
+    TWindow extends MainWindowSelectionWindowLike,
+>(
+    browserWindowRef: () =>
+        | MainWindowBrowserWindowApi<TWindow>
+        | MainWindowBrowserWindowConstructor<TWindow>
+        | null
+        | undefined,
+    fallback?: null | TWindow
+): TWindow | null {
+    try {
+        const BrowserWindow =
+            typeof browserWindowRef === "function" ? browserWindowRef() : null;
+        return resolveFocusedMainWindow(BrowserWindow) ?? fallback ?? null;
+    } catch {
+        return fallback ?? null;
+    }
+}
