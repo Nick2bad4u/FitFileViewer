@@ -708,9 +708,9 @@ export interface PreloadApiAssemblyContextModules
         PreloadStateModules {}
 
 export interface PreloadApiAssemblyInputModules
-    extends PreloadApiAssemblyModules, PreloadApiAssemblyContextModules {}
+    extends PreloadApiAssemblyContextModules, PreloadApiAssemblyModules {}
 
-export interface PreloadModuleRegistry extends PreloadApiAssemblyInputModules {}
+export type PreloadModuleRegistry = PreloadApiAssemblyInputModules;
 
 export interface PreloadApiAssemblyContext {
     constants: PreloadConstants;

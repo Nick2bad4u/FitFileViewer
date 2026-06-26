@@ -9,7 +9,10 @@ import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { unwrapFitParseMessages } from "./fitParsePayload.js";
 import { getOpenFitFileFromPathRuntime } from "./openFitFileFromPathRuntime.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type {
+    ElectronFileApi,
+    ElectronPreloadEventApi,
+} from "../../../shared/preloadApi.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import {
     getRendererElectronApi,
@@ -32,8 +35,11 @@ type FitFileStateManagerLike = {
     ) => boolean;
 };
 
-type FitFileElectronAPI = Pick<ElectronAPI, "parseFitFile" | "readFile"> &
-    Partial<Pick<ElectronAPI, "notifyFitFileLoaded">>;
+interface FitFileElectronAPI {
+    notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+    parseFitFile: ElectronFileApi["parseFitFile"];
+    readFile: ElectronFileApi["readFile"];
+}
 
 type ShowNotification = (
     message: string,

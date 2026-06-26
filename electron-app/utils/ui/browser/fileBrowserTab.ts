@@ -10,7 +10,11 @@
  */
 
 import type { FitBrowserListFolderResult } from "../../../shared/ipc";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type {
+    ElectronDialogApi,
+    ElectronFileApi,
+    ElectronFitBrowserApi,
+} from "../../../shared/preloadApi.js";
 import pLimitCompat from "../../async/pLimitCompat.js";
 import {
     getFitMessageRows,
@@ -52,16 +56,13 @@ type CalendarState = {
 
 type DistanceUnit = "km" | "mi";
 
-type FitBrowserElectronAPI = Partial<
-    Pick<
-        ElectronAPI,
-        | "decodeFitFile"
-        | "getFitBrowserFolder"
-        | "listFitBrowserFolder"
-        | "openFolderDialog"
-        | "readFile"
-    >
->;
+interface FitBrowserElectronAPI {
+    decodeFitFile?: ElectronFileApi["decodeFitFile"];
+    getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];
+    listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];
+    openFolderDialog?: ElectronDialogApi["openFolderDialog"];
+    readFile?: ElectronFileApi["readFile"];
+}
 
 type FitBrowserDecodeApi = Required<
     Pick<FitBrowserElectronAPI, "decodeFitFile" | "readFile">

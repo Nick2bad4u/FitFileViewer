@@ -2620,7 +2620,7 @@ describe("architecture boundaries", () => {
 
         expect(broadRegistryDerivedLoaderFiles).toStrictEqual([]);
         expect(moduleTypesSource).toMatch(
-            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyInputModules/u
+            /type\s+PreloadModuleRegistry\s*=\s*PreloadApiAssemblyInputModules/u
         );
     });
 
@@ -2640,13 +2640,13 @@ describe("architecture boundaries", () => {
             "ipcBridgeCatalog: IpcBridgeCatalog"
         );
         expect(moduleTypesSource).toMatch(
-            /interface\s+PreloadApiAssemblyInputModules\s+extends\s+PreloadApiAssemblyModules,\s+PreloadApiAssemblyContextModules/u
+            /interface\s+PreloadApiAssemblyInputModules\s+extends\s+PreloadApiAssemblyContextModules,\s+PreloadApiAssemblyModules/u
         );
         expect(moduleTypesSource).toMatch(
             /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadApiAssemblyInputModules/u
         );
         expect(moduleTypesSource).toMatch(
-            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyInputModules/u
+            /type\s+PreloadModuleRegistry\s*=\s*PreloadApiAssemblyInputModules/u
         );
         expect(moduleTypesSource).not.toMatch(
             /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadModuleRegistry/u
@@ -16756,7 +16756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(11);
+        expect.assertions(20);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -16811,6 +16811,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts"
             )
         );
+        const openFitFileFromPathSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/openFitFileFromPath.ts"
+            )
+        );
+        const openFileSelectorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/openFileSelector.ts"
+            )
+        );
+        const fileBrowserTabSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/fileBrowserTab.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mainProcessStateClientSource).not.toContain(
@@ -16841,6 +16856,17 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).not.toContain(
             "value as Partial<RecentFilesElectronApi>"
         );
+        expect(openFitFileFromPathSource).toContain("ElectronFileApi");
+        expect(openFitFileFromPathSource).toContain("ElectronPreloadEventApi");
+        expect(openFitFileFromPathSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(openFitFileFromPathSource).not.toContain("Pick<ElectronAPI");
+        expect(openFileSelectorSource).toContain("ElectronDialogApi");
+        expect(openFileSelectorSource).toContain("ElectronFileApi");
+        expect(openFileSelectorSource).not.toContain("Pick<ElectronAPI");
+        expect(fileBrowserTabSource).toContain("ElectronFitBrowserApi");
+        expect(fileBrowserTabSource).not.toContain("Pick<ElectronAPI");
     });
 
     it("keeps renderer Electron API registration on explicit candidates only", () => {

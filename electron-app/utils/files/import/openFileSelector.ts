@@ -5,15 +5,19 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import { loadOverlayFiles, type OverlayInputFile } from "./loadOverlayFiles.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type {
+    ElectronDialogApi,
+    ElectronFileApi,
+} from "../../../shared/preloadApi.js";
 import {
     getOpenFileSelectorRuntime,
     type OpenFileSelectorTimer,
 } from "./openFileSelectorRuntime.js";
 
-type FileSelectorElectronAPI = Partial<
-    Pick<ElectronAPI, "openOverlayDialog" | "readFile">
->;
+interface FileSelectorElectronAPI {
+    openOverlayDialog?: ElectronDialogApi["openOverlayDialog"];
+    readFile?: ElectronFileApi["readFile"];
+}
 
 type NativeFileFacade = OverlayInputFile & {
     arrayBuffer: () => Promise<ArrayBuffer>;
