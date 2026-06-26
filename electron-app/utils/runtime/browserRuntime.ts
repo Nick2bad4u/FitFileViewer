@@ -6,6 +6,7 @@ export type BrowserCancelAnimationFrame =
 export type BrowserClearInterval = typeof globalThis.clearInterval;
 export type BrowserClearTimeout = typeof globalThis.clearTimeout;
 export type BrowserCustomEventConstructor = typeof globalThis.CustomEvent;
+export type BrowserDispatchEvent = typeof globalThis.dispatchEvent;
 export type BrowserDOMParserConstructor = typeof globalThis.DOMParser;
 export type BrowserElementConstructor = typeof globalThis.Element;
 export type BrowserEventConstructor = typeof globalThis.Event;

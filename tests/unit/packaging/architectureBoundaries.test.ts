@@ -10466,7 +10466,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(49);
+        expect.assertions(57);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -10519,6 +10519,14 @@ describe("architecture boundaries", () => {
         expect(showFitDataRuntimeSource).toContain(
             "defaultShowFitDataRuntimeScope"
         );
+        expect(showFitDataRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(showFitDataRuntimeSource).toContain("type BrowserDispatchEvent");
+        expect(showFitDataRuntimeSource).toContain("type BrowserMatchMedia");
+        expect(showFitDataRuntimeSource).toContain(
+            "type BrowserQueueMicrotask"
+        );
         expect(showFitDataRuntimeSource).not.toContain(
             "scope: ShowFitDataRuntimeScope = globalThis"
         );
@@ -10528,17 +10536,29 @@ describe("architecture boundaries", () => {
         expect(showFitDataRuntimeSource).toContain(
             "getCustomEvent: getBrowserCustomEvent"
         );
+        expect(showFitDataRuntimeSource).not.toContain(
+            "typeof globalThis.CustomEvent | undefined"
+        );
         expect(showFitDataRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
         expect(showFitDataRuntimeSource).toContain(
             "getDispatchEvent: getBrowserDispatchEvent"
         );
+        expect(showFitDataRuntimeSource).not.toContain(
+            "typeof globalThis.dispatchEvent | undefined"
+        );
         expect(showFitDataRuntimeSource).toContain(
             "getMatchMedia: getBrowserMatchMedia"
         );
+        expect(showFitDataRuntimeSource).not.toContain(
+            "typeof globalThis.matchMedia | undefined"
+        );
         expect(showFitDataRuntimeSource).toContain(
             "getQueueMicrotask: getBrowserQueueMicrotask"
+        );
+        expect(showFitDataRuntimeSource).not.toContain(
+            "typeof globalThis.queueMicrotask | undefined"
         );
         expect(showFitDataRuntimeSource).toContain(
             "getScrollTo: getBrowserScrollTo"

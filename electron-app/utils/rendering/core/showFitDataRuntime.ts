@@ -1,4 +1,8 @@
 import {
+    type BrowserCustomEventConstructor,
+    type BrowserDispatchEvent,
+    type BrowserMatchMedia,
+    type BrowserQueueMicrotask,
     getBrowserCustomEvent,
     getBrowserDispatchEvent,
     getBrowserDocument,
@@ -12,17 +16,15 @@ type ShowFitDataDocument = Pick<Document, "querySelector">;
 
 export interface ShowFitDataRuntimeScope {
     readonly getCustomEvent?:
-        | (() => typeof globalThis.CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => ShowFitDataDocument | undefined) | undefined;
     readonly getDispatchEvent?:
-        | (() => typeof globalThis.dispatchEvent | undefined)
+        | (() => BrowserDispatchEvent | undefined)
         | undefined;
-    readonly getMatchMedia?:
-        | (() => typeof globalThis.matchMedia | undefined)
-        | undefined;
+    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
     readonly getQueueMicrotask?:
-        | (() => typeof globalThis.queueMicrotask | undefined)
+        | (() => BrowserQueueMicrotask | undefined)
         | undefined;
     readonly getScrollTo?: (() => ShowFitDataScrollTo | undefined) | undefined;
 }
@@ -47,7 +49,7 @@ async function runAfterPromiseMicrotask(callback: () => void): Promise<void> {
 
 function getCustomEventConstructor(
     scope: ShowFitDataRuntimeScope
-): typeof CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("showFitData requires a CustomEvent runtime");
@@ -58,7 +60,7 @@ function getCustomEventConstructor(
 
 function getDispatchEvent(
     scope: ShowFitDataRuntimeScope
-): typeof globalThis.dispatchEvent {
+): BrowserDispatchEvent {
     const dispatchEvent = scope.getDispatchEvent?.();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError("showFitData requires a dispatchEvent runtime");
@@ -75,13 +77,13 @@ function getScopeDocument(
 
 function getScopeMatchMedia(
     scope: ShowFitDataRuntimeScope
-): typeof globalThis.matchMedia | undefined {
+): BrowserMatchMedia | undefined {
     return scope.getMatchMedia?.();
 }
 
 function getScopeQueueMicrotask(
     scope: ShowFitDataRuntimeScope
-): typeof globalThis.queueMicrotask | undefined {
+): BrowserQueueMicrotask | undefined {
     return scope.getQueueMicrotask?.();
 }
 

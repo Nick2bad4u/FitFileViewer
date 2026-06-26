@@ -509,6 +509,9 @@ Show FIT data post-load map-container detection, scroll availability checks, red
 microtask scheduling, and scroll calls now route through `showFitDataRuntime.ts` instead of probing `document`,
 `globalThis.scrollTo`, `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with
 focused runtime/behavior coverage and architecture guardrails blocking those direct browser APIs from returning.
+Show FIT data CustomEvent, dispatchEvent, matchMedia, and queueMicrotask provider contracts now reuse shared
+browser-runtime aliases instead of direct ambient type spellings, with architecture coverage blocking those
+direct provider type spellings from returning.
 Data tab table container lookup now routes through `createTablesRuntime.ts` instead of querying `document` directly
 inside `createTables.ts`, with focused runtime/behavior coverage and architecture guardrails blocking direct
 container queries and legacy direct document runtime-scope properties from returning. Default document access now
