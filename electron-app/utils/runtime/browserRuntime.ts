@@ -161,10 +161,6 @@ export function getBrowserElectronApiCandidate(): unknown {
     return getBrowserGlobalProperty("electronAPI");
 }
 
-export function getBrowserChartOverlayColorPalette(): unknown {
-    return getBrowserGlobalProperty("chartOverlayColorPalette");
-}
-
 export function getBrowserComputedStyle():
     | typeof globalThis.getComputedStyle
     | undefined {

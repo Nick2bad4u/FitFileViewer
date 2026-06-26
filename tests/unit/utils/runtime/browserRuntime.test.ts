@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-    getBrowserChartOverlayColorPalette,
     getBrowserClearTimeout,
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
@@ -16,19 +15,16 @@ describe("browserRuntime global property boundary", () => {
     });
 
     it("reads named global properties through the shared boundary", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const electronAPI = { openExternal: vi.fn() };
-        const palette = ["#ff0000", "#00ff00"];
 
         vi.stubGlobal("__DEVELOPMENT__", true);
-        vi.stubGlobal("chartOverlayColorPalette", palette);
         vi.stubGlobal("electronAPI", electronAPI);
 
         expect(getBrowserGlobalProperty("__DEVELOPMENT__")).toBe(true);
         expect(getBrowserDevelopmentFlag()).toBe(true);
         expect(getBrowserElectronApiCandidate()).toBe(electronAPI);
-        expect(getBrowserChartOverlayColorPalette()).toBe(palette);
     });
 
     it("returns undefined when a global property accessor throws", () => {
@@ -88,23 +84,29 @@ describe("browserRuntime global property boundary", () => {
         const originalClearTimeout = globalThis.clearTimeout;
         const timer = 42 as unknown as ReturnType<typeof setTimeout>;
 
-        vi.stubGlobal("setTimeout", function setTimeoutFixture(
-            this: typeof globalThis,
-            callback: () => void,
-            delay?: number
-        ) {
-            expect(this).toBe(globalThis);
-            expect(delay).toBe(25);
-            callback();
-            return timer;
-        });
-        vi.stubGlobal("clearTimeout", function clearTimeoutFixture(
-            this: typeof globalThis,
-            handle: ReturnType<typeof setTimeout>
-        ) {
-            expect(this).toBe(globalThis);
-            expect(handle).toBe(timer);
-        });
+        vi.stubGlobal(
+            "setTimeout",
+            function setTimeoutFixture(
+                this: typeof globalThis,
+                callback: () => void,
+                delay?: number
+            ) {
+                expect(this).toBe(globalThis);
+                expect(delay).toBe(25);
+                callback();
+                return timer;
+            }
+        );
+        vi.stubGlobal(
+            "clearTimeout",
+            function clearTimeoutFixture(
+                this: typeof globalThis,
+                handle: ReturnType<typeof setTimeout>
+            ) {
+                expect(this).toBe(globalThis);
+                expect(handle).toBe(timer);
+            }
+        );
 
         const setTimeoutRef = getBrowserSetTimeout();
         const clearTimeoutRef = getBrowserClearTimeout();

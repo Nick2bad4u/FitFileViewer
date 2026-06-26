@@ -1685,6 +1685,9 @@ unit coverage and architecture coverage blocking receiver-losing IPC helper patt
 Renderer Electron API lookup now falls back through the centralized `getBrowserElectronApiCandidate` provider when no
 explicit test scope is supplied, restoring production Open File access to the preload-exposed `electronAPI` without
 reintroducing direct `window.electronAPI`, ambient `globalThis` casts, or registered fallback candidates.
+Elevation profile overlay colors now resolve through the typed `chartOverlayColorPalette` module instead of the
+retired `chartOverlayColorPalette` browser-global compatibility property, with architecture coverage blocking that
+global palette read from returning.
 Tab-button helper element filtering now resolves the HTMLElement constructor through
 `enableTabButtonsHelpersRuntime.ts` instead of checking the ambient constructor directly, with focused runtime
 coverage and architecture coverage blocking direct helper constructor access from returning.

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+import { chartOverlayColorPalette } from "../../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js";
 import { getCreateElevationProfileButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButtonRuntime.js";
 
 describe("getCreateElevationProfileButtonRuntime", () => {
@@ -116,12 +117,10 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect.assertions(8);
 
         const utils = getCreateElevationProfileButtonRuntime();
-        const palette = ["#ff0000", "#00ff00"];
         const popup = {} as Window;
         const open = vi.fn(() => popup);
 
         vi.stubGlobal("AbortController", AbortController);
-        vi.stubGlobal("chartOverlayColorPalette", palette);
         vi.stubGlobal("document", document);
         vi.stubGlobal("open", open);
 
@@ -136,7 +135,9 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(utils.createElement("span")).toBeInstanceOf(HTMLSpanElement);
         expect(utils.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
-        expect(utils.getChartOverlayColorPalette()).toBe(palette);
+        expect(utils.getChartOverlayColorPalette()).toBe(
+            chartOverlayColorPalette
+        );
         expect(openedWindow).toBe(popup);
         expect(open).toHaveBeenCalledOnce();
         expect(open).toHaveBeenCalledWith(

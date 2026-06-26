@@ -1,10 +1,10 @@
 import {
     type BrowserAbortControllerConstructor,
     getBrowserAbortController,
-    getBrowserChartOverlayColorPalette,
     getBrowserDocument,
     getBrowserOpen,
 } from "../../runtime/browserRuntime.js";
+import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
@@ -48,7 +48,7 @@ export interface CreateElevationProfileButtonRuntime {
 const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getChartOverlayColorPalette: getBrowserChartOverlayColorPalette,
+        getChartOverlayColorPalette: () => chartOverlayColorPalette,
         getDocument: getBrowserDocument,
         getOpen: getBrowserOpen,
     };

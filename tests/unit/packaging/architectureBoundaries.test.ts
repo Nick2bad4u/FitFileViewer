@@ -18670,7 +18670,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(35);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -18743,7 +18743,13 @@ describe("architecture boundaries", () => {
             "globalThis as CreateElevationProfileButtonGlobalScope"
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
-            "getChartOverlayColorPalette: getBrowserChartOverlayColorPalette"
+            "../../charts/theming/chartOverlayColorPalette.js"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "getChartOverlayColorPalette: () => chartOverlayColorPalette"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "getBrowserChartOverlayColorPalette"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "return elevationProfileGlobal.chartOverlayColorPalette;"

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as getThemeColorsModule from "../../../../../electron-app/utils/charts/theming/getThemeColors.js";
 
+import { chartOverlayColorPalette } from "../../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js";
 import { createElevationProfileButton } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButton.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import {
@@ -410,7 +411,7 @@ describe(createElevationProfileButton, () => {
         expect(chartMock).not.toHaveBeenCalled();
     });
 
-    it("should use chartOverlayColorPalette from window.opener when available", async () => {
+    it("should use the typed chart overlay color palette", async () => {
         expect.assertions(2);
 
         setLoadedFitFiles(
@@ -427,14 +428,6 @@ describe(createElevationProfileButton, () => {
             "createElevationProfileButton.test"
         );
 
-        // Setup chartOverlayColorPalette in the current window.
-        // (The popup receives colors via the model, not by reading window.opener.)
-        (window as any).chartOverlayColorPalette = [
-            "#ff0000",
-            "#00ff00",
-            "#0000ff",
-        ];
-
         // Create the button and click it
         const button = createElevationProfileButton();
         await clickElevationButton(button);
@@ -446,11 +439,8 @@ describe(createElevationProfileButton, () => {
             "test-with-colors.fit",
         ]);
         expect(chartMock.mock.calls[0][1].data.datasets[0].borderColor).toBe(
-            "#ff0000"
+            chartOverlayColorPalette[0]
         );
-
-        // Clean up the mock
-        delete (window as any).chartOverlayColorPalette;
     });
 
     it("should handle a mix of files with and without altitude data", async () => {
