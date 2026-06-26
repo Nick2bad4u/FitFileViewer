@@ -7,7 +7,10 @@ import {
     getShortRecentName,
     loadRecentFiles,
 } from "../../files/recent/recentFiles.js";
-import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
+import {
+    getProcessEnvironmentValue,
+    getProcessStringValue,
+} from "../../runtime/processEnvironment.js";
 
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
@@ -352,10 +355,11 @@ export function createAppMenu(
                   clearRecentMenuItem,
               ]
             : [...recentMenuItems, clearRecentMenuItem];
+    const platform = getProcessStringValue("platform");
     const revealLabel =
-        process.platform === "darwin"
+        platform === "darwin"
             ? "Reveal in Finder"
-            : process.platform === "linux"
+            : platform === "linux"
               ? "Reveal in File Manager"
               : "Reveal in File Explorer";
     function createDecoderOptionMenuItems(
@@ -395,7 +399,7 @@ export function createAppMenu(
     // Default ON (user can disable). This feature is still marked experimental in the UI.
     const isFitBrowserEnabled =
         getConf().get(FIT_BROWSER_ENABLED_KEY, true) === true;
-    const isMac = process.platform === "darwin";
+    const isMac = platform === "darwin";
     const fileMenuItems: MenuItemLike[] = [
         {
             accelerator: "CmdOrCtrl+O",
@@ -542,7 +546,7 @@ export function createAppMenu(
         },
     ];
     if (!isMac) {
-        const quitLabel = process.platform === "win32" ? "❎ Exit" : "❎ Quit";
+        const quitLabel = platform === "win32" ? "❎ Exit" : "❎ Quit";
         fileMenuItems.push(
             { type: "separator" },
             { label: quitLabel, role: "quit" }
@@ -1031,7 +1035,7 @@ function getPlatformAppMenu(
     mainWindow: BrowserWindowLike | null | undefined
 ): MenuItemLike[] {
     const { app, BrowserWindow } = getElectron();
-    if (process.platform === "darwin") {
+    if (getProcessStringValue("platform") === "darwin") {
         return [
             {
                 label: (app && app.name) || "App",
