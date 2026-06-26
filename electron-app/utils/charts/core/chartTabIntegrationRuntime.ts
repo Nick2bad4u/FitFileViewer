@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     getBrowserDocument,
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
@@ -13,7 +14,7 @@ export interface ChartTabIntegrationRuntimeScope {
         | (() => ChartTabIntegrationDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -39,7 +40,7 @@ const defaultChartTabIntegrationRuntimeScope: ChartTabIntegrationRuntimeScope =
 
 function getHTMLElementConstructor(
     scope: ChartTabIntegrationRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return (
         scope.getHTMLElement?.() ??
         scope.getDocument?.()?.defaultView?.HTMLElement

@@ -1108,11 +1108,15 @@ Chart tab integration tests no longer delete the retired `chartTabIntegration` g
 now assert the typed singleton stays absent from `globalThis`, and architecture coverage blocks that mutation
 from returning. Chart tab integration DOM lookups now use named runtime provider functions for document and
 HTMLElement access instead of a broad `globalThis` default scope or legacy direct scope properties.
+The chart-tab HTMLElement provider contract now also reuses the shared browser-runtime constructor alias instead of
+a direct ambient constructor type spelling.
 Chart tab integration chart-state access now routes through `chartStateManagerBootstrap.ts` and
 `chartStateManagerRegistry.ts` instead of importing the concrete chart-state singleton directly inside the
 integration module.
 Direct chart rerender container lookups now use named runtime provider functions for document and HTMLElement
 access instead of a broad `globalThis` default scope or legacy direct scope properties.
+The direct-rerender HTMLElement provider contract now also reuses the shared browser-runtime constructor alias instead
+of a direct ambient constructor type spelling.
 Chart request listener registration, fallback containers, HTMLElement checks, and CustomEvent checks now use named
 runtime provider functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 The request-listener HTMLElement and CustomEvent provider contracts now also reuse shared browser-runtime constructor

@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     getBrowserDocument,
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
@@ -13,7 +14,7 @@ export interface RenderChartDirectRerenderRuntimeScope {
         | (() => RenderChartDirectRerenderDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -38,7 +39,7 @@ const defaultRenderChartDirectRerenderRuntimeScope: RenderChartDirectRerenderRun
 
 function getHTMLElementConstructor(
     scope: RenderChartDirectRerenderRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return (
         scope.getHTMLElement?.() ??
         scope.getDocument?.()?.defaultView?.HTMLElement

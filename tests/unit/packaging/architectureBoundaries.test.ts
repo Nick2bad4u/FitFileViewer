@@ -7463,7 +7463,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(29);
+        expect.assertions(32);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -7533,6 +7533,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(chartTabIntegrationRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
         expect(chartTabIntegrationRuntimeSource).toContain(
@@ -7555,6 +7558,12 @@ describe("architecture boundaries", () => {
         );
         expect(chartTabIntegrationRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "): typeof HTMLElement"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "| (() => typeof HTMLElement | undefined)"
         );
         expect(chartTabIntegrationRuntimeSource).not.toContain(
             "scope.document"
@@ -20351,7 +20360,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const violations = migratedRenderChartDirectRerenderRuntimeFiles
             .filter((relativeFile) =>
@@ -20389,6 +20398,7 @@ describe("architecture boundaries", () => {
             "defaultRenderChartDirectRerenderRuntimeScope"
         );
         expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
+        expect(runtimeSource).toContain("type BrowserHTMLElementConstructor");
         expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
@@ -20407,6 +20417,10 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeSource).not.toContain("): typeof HTMLElement");
+        expect(runtimeSource).not.toContain(
+            "| (() => typeof HTMLElement | undefined)"
+        );
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).toContain("scope.getHTMLElement?.()");
