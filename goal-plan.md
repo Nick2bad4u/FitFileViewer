@@ -204,6 +204,8 @@ The API assembly entrypoint now accepts `PreloadApiAssemblyInputModules`, and pr
 IPC bridge catalog directly, keeping the assembly boundary off the full composed module registry.
 Electron API leaf-domain modules now own explicit `ElectronApi*DomainOptions` interfaces instead of deriving
 their inputs from the broad final factory options bag.
+The app-info and theme preload factories now return `ElectronAppInfoApi` and `ElectronThemeApi` directly
+instead of local `Pick<ElectronAPI, ...>` aliases.
 
 Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
 and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling

@@ -2505,6 +2505,24 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload app and theme factories on shared API contracts", () => {
+        expect.assertions(6);
+
+        const appInfoApiSource = stripComments(
+            readRepositoryFile("electron-app/preload/appInfoApi.ts")
+        );
+        const themeApiSource = stripComments(
+            readRepositoryFile("electron-app/preload/themeApi.ts")
+        );
+
+        expect(appInfoApiSource).toContain("ElectronAppInfoApi");
+        expect(appInfoApiSource).not.toContain("ElectronAPI");
+        expect(appInfoApiSource).not.toContain("Pick<");
+        expect(themeApiSource).toContain("ElectronThemeApi");
+        expect(themeApiSource).not.toContain("ElectronAPI");
+        expect(themeApiSource).not.toContain("Pick<");
+    });
+
     it("keeps preload runtime loaders on named source exports", () => {
         const loaderExports = [
             [

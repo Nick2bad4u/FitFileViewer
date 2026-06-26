@@ -1,21 +1,11 @@
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
+type ElectronAppInfoApi = import("../shared/preloadApi").ElectronAppInfoApi;
 type CreateAppInfoApiOptions =
     import("./preloadModuleTypes").CreateAppInfoApiOptions;
-
-type AppInfoPreloadApi = Pick<
-    ElectronAPI,
-    | "getAppVersion"
-    | "getChromeVersion"
-    | "getElectronVersion"
-    | "getLicenseInfo"
-    | "getNodeVersion"
-    | "getPlatformInfo"
->;
 
 export function createAppInfoApi({
     channels,
     createSafeInvokeHandler,
-}: CreateAppInfoApiOptions): AppInfoPreloadApi {
+}: CreateAppInfoApiOptions): ElectronAppInfoApi {
     return {
         getAppVersion: createSafeInvokeHandler(
             channels.APP_VERSION,
