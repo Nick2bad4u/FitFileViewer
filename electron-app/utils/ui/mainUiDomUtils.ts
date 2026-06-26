@@ -11,9 +11,11 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../runtime/electronApiRuntime.js";
-import type { ElectronAPI } from "../../shared/preloadApi.js";
+import type { ElectronFileApi } from "../../shared/preloadApi.js";
 
-type ElectronApiCandidate = Partial<Pick<ElectronAPI, "decodeFitFile">>;
+interface ElectronApiCandidate {
+    decodeFitFile?: ElectronFileApi["decodeFitFile"];
+}
 
 type EventListenerEntry = {
     readonly abortController: AbortController;

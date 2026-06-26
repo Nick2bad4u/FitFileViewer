@@ -28,11 +28,13 @@ import {
     type DragDropHandlerRuntimeScope,
 } from "./dragDropHandlerRuntime.js";
 import { showNotification } from "./notifications/showNotification.js";
-import type { ElectronAPI } from "../../shared/preloadApi.js";
+import type { ElectronFileApi } from "../../shared/preloadApi.js";
 
 type DroppedFile = File & { path?: string };
 
-type ElectronApiLike = Required<Pick<ElectronAPI, "decodeFitFile">>;
+interface ElectronApiLike {
+    decodeFitFile: ElectronFileApi["decodeFitFile"];
+}
 
 type PerformanceMonitorLike = {
     endTimer?: (id: string) => void;

@@ -9,7 +9,7 @@ import {
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
 import type { FitMessageRow, FitMessages } from "../../../shared/fit";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronFileApi } from "../../../shared/preloadApi.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -39,7 +39,9 @@ export type OverlayLoadResult =
           success: false;
       };
 
-type OverlayElectronAPI = Required<Pick<ElectronAPI, "decodeFitFile">>;
+interface OverlayElectronAPI {
+    decodeFitFile: ElectronFileApi["decodeFitFile"];
+}
 
 type OverlayFileLike = {
     arrayBuffer?: () => Promise<ArrayBuffer>;

@@ -9389,7 +9389,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(48);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -9414,6 +9414,11 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).toContain("this.runtime.dateNow()");
         expect(dragDropHandlerSource).toContain("getDocument");
         expect(dragDropHandlerSource).toContain("getEventTarget");
+        expect(dragDropHandlerSource).toContain("ElectronFileApi");
+        expect(dragDropHandlerSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(dragDropHandlerSource).not.toContain("Pick<ElectronAPI");
         expect(dragDropHandlerSource).not.toContain(
             "const dragDropHandlerRuntime = getDragDropHandlerRuntime();"
         );
@@ -18445,7 +18450,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(42);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -18494,6 +18499,11 @@ describe("architecture boundaries", () => {
         expect(loadSingleOverlayFileSource).toContain(
             "readBlobArrayBufferWithResponse"
         );
+        expect(loadSingleOverlayFileSource).toContain("ElectronFileApi");
+        expect(loadSingleOverlayFileSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(loadSingleOverlayFileSource).not.toContain("Pick<ElectronAPI");
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "defaultLoadSingleOverlayFileRuntimeScope"
         );
@@ -27296,7 +27306,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -27309,6 +27319,9 @@ describe("architecture boundaries", () => {
             directMainUiDomUtilsRuntimeGlobalPattern.test(mainUiDomUtilsSource)
         ).toBe(false);
         expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
+        expect(mainUiDomUtilsSource).toContain("ElectronFileApi");
+        expect(mainUiDomUtilsSource).not.toContain("import type { ElectronAPI");
+        expect(mainUiDomUtilsSource).not.toContain("Pick<ElectronAPI");
         expect(mainUiDomUtilsRuntimeSource).toContain(
             "defaultMainUiDomUtilsRuntimeScope"
         );

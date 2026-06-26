@@ -205,7 +205,9 @@ IPC bridge catalog directly, keeping the assembly boundary off the full composed
 Electron API leaf-domain modules now own explicit `ElectronApi*DomainOptions` interfaces instead of deriving
 their inputs from the broad final factory options bag.
 The app-info and theme preload factories now return `ElectronAppInfoApi` and `ElectronThemeApi` directly
-instead of local `Pick<ElectronAPI, ...>` aliases.
+instead of local `Pick<ElectronAPI, ...>` aliases. Renderer FIT decode candidates in drag/drop,
+single-overlay loading, and main UI DOM validation now use the shared file API-domain contract instead of local
+`Pick<ElectronAPI, ...>` aliases.
 
 Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
 and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling
@@ -391,8 +393,9 @@ spellings, and visible loaded/scanned status timestamps render from the same run
 state/cache payloads.
 Scoped Browser-tab Electron API validation now checks optional IPC methods through explicit property guards instead
 of casting the candidate preload API to a generic record, with focused malformed-API coverage and architecture
-guardrails. Browser tab, path-based FIT opening, and overlay selector Electron API candidate typing now use explicit
-local interfaces backed by split shared preload API-domain contracts instead of `Pick<ElectronAPI, ...>` aliases.
+guardrails. Browser tab, path-based FIT opening, overlay selector, drag/drop, single-overlay loading, and main UI DOM
+Electron API candidate typing now use explicit local interfaces backed by split shared preload API-domain contracts
+instead of `Pick<ElectronAPI, ...>` aliases.
 Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
 from the monolithic `ElectronAPI` type.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
@@ -1412,6 +1415,8 @@ constructing controllers directly in `dragDropHandler.ts`, with runtime adapter 
 blocking direct drag/drop animation-frame globals and direct controller construction from returning. Dropped-file
 operation-id clock reads now also route through that runtime instead of calling `Date.now` directly in
 `dragDropHandler.ts`, with runtime and architecture coverage blocking direct drag/drop clock reads from returning.
+Drag/drop FIT decoder candidate typing now uses the shared file API-domain contract instead of deriving from the
+monolithic `ElectronAPI` type.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning. Leaflet runtime production clock and polling-timer defaults now reuse shared browser runtime
@@ -1582,6 +1587,8 @@ browser-candidate helper instead of each renderer browser-runtime file owning it
 scope type.
 Main UI Electron API candidate typing now uses an explicit `MainUiElectronApi` interface backed by split shared
 API-domain contracts instead of `Partial<Pick<ElectronAPI, ...>>`.
+Main UI DOM utility FIT decoder candidate typing now uses the shared file API-domain contract instead of deriving
+from the monolithic `ElectronAPI` type.
 Generic renderer helper runtimes now import shared `browserRuntime.ts` providers directly for document,
 constructor, timer, event-target, AbortController, location, navigator, and performance defaults; the
 renderer-specific browser runtime remains focused on composing the renderer entrypoint environment scope.
