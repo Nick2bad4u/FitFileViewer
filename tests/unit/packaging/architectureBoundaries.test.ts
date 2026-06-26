@@ -12306,7 +12306,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(60);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -12371,6 +12371,30 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "type BrowserElementConstructor"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "typeof globalThis."
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "ReturnType<"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

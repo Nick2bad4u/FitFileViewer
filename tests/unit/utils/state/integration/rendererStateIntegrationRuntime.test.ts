@@ -1,7 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRendererStateIntegrationRuntime } from "../../../../../electron-app/utils/state/integration/rendererStateIntegrationRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+import {
+    getRendererStateIntegrationRuntime,
+    type RendererStateIntegrationTimer,
+} from "../../../../../electron-app/utils/state/integration/rendererStateIntegrationRuntime.js";
 
 describe("getRendererStateIntegrationRuntime", () => {
     afterEach(() => {
@@ -13,9 +21,9 @@ describe("getRendererStateIntegrationRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("5000");
-        const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 79 as RendererStateIntegrationTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
@@ -40,7 +48,7 @@ describe("getRendererStateIntegrationRuntime", () => {
             "rendererStateIntegration requires a setTimeout runtime"
         );
         expect(() => {
-            utils.clearTimeout(79 as ReturnType<typeof globalThis.setTimeout>);
+            utils.clearTimeout(79 as RendererStateIntegrationTimer);
         }).toThrow("rendererStateIntegration requires a clearTimeout runtime");
         expect(() =>
             utils.addDocumentClickListener(() => undefined, {})
@@ -69,7 +77,7 @@ describe("getRendererStateIntegrationRuntime", () => {
         );
         const utils = getRendererStateIntegrationRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(utils.createAbortController()).toBe(controller);
@@ -182,24 +190,24 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect.assertions(13);
 
         const callback = vi.fn<() => void>();
-        const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 79 as RendererStateIntegrationTimer;
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
             function FakeAbortController() {
                 return controller;
             }
         );
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const documentEventTarget =
             document.implementation.createHTMLDocument();
         const addEventListener = vi.spyOn(
             documentEventTarget,
             "addEventListener"
         );
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const utils = getRendererStateIntegrationRuntime({
             AbortController:
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             clearTimeout,
             document: documentEventTarget,
             documentEventTarget,
@@ -270,15 +278,15 @@ describe("getRendererStateIntegrationRuntime", () => {
         const callback = vi.fn<() => void>();
         let clickCount = 0;
         const delayMs = Number("5000");
-        const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 79 as RendererStateIntegrationTimer;
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
             function FakeAbortController() {
                 return controller;
             }
         );
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const utils = getRendererStateIntegrationRuntime();
 
         vi.stubGlobal("AbortController", AbortControllerConstructor);

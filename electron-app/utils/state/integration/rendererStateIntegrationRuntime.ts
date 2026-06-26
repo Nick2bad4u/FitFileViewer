@@ -1,4 +1,10 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserElementConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -7,9 +13,7 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type RendererStateIntegrationTimer = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type RendererStateIntegrationTimer = BrowserTimerHandle;
 
 export type RendererStateIntegrationClickListener = (
     event: Readonly<MouseEvent>
@@ -17,22 +21,20 @@ export type RendererStateIntegrationClickListener = (
 
 export interface RendererStateIntegrationRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getElement?:
-        | (() => typeof globalThis.Element | undefined)
+        | (() => BrowserElementConstructor | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface RendererStateIntegrationRuntime {
@@ -63,7 +65,7 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
 
 function getAbortControllerConstructor(
     scope: RendererStateIntegrationRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -82,7 +84,7 @@ function getDocumentEventTarget(
 
 function getElementConstructor(
     scope: RendererStateIntegrationRuntimeScope
-): typeof globalThis.Element {
+): BrowserElementConstructor {
     const ElementConstructor = scope.getElement?.();
     if (typeof ElementConstructor !== "function") {
         throw new TypeError(
@@ -95,7 +97,7 @@ function getElementConstructor(
 
 function getHTMLElementConstructor(
     scope: RendererStateIntegrationRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
