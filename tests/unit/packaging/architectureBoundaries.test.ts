@@ -6720,7 +6720,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(55);
+        expect.assertions(56);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -6783,6 +6783,7 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderRuntimeSource).toContain(
             "defaultCreateSettingsHeaderRuntimeScope"
         );
+        expect(settingsHeaderRuntimeSource).not.toContain("globalThis.");
         expect(settingsHeaderRuntimeSource).not.toContain(
             "scope: CreateSettingsHeaderRuntimeScope = globalThis"
         );

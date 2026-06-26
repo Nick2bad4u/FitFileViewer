@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getCreateSettingsHeaderRuntime } from "../../../../../electron-app/utils/ui/components/createSettingsHeaderRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getCreateSettingsHeaderRuntime", () => {
     afterEach(() => {
@@ -12,9 +17,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const timer = 53 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 53 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getCreateSettingsHeaderRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -30,7 +35,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
     it("ignores missing timers when clearing optional slider state", () => {
         expect.assertions(2);
 
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getCreateSettingsHeaderRuntime({
             getClearTimeout: () => clearTimeout,
         });
@@ -93,9 +98,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "createSettingsHeader requires a setTimeout runtime"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("createSettingsHeader requires a clearTimeout runtime");
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "createSettingsHeader requires a clearTimeout runtime"
+        );
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow(
@@ -146,9 +151,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const timer = 59 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 59 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
@@ -276,11 +281,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
             }
         );
         const delayMs = Number("2");
-        const timer = 61 as ReturnType<typeof globalThis.setTimeout>;
-        const scheduleTimeout = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
-        const clearScheduledTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 61 as BrowserTimerHandle;
+        const scheduleTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearScheduledTimeout = vi.fn<BrowserClearTimeout>();
         const getAbortController = vi.fn(
             () =>
                 AbortControllerConstructor as unknown as typeof AbortController
@@ -338,9 +341,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect.assertions(17);
 
         const callback = vi.fn<() => void>();
-        const timer = 71 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 71 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const documentEventTarget =
             document.implementation.createHTMLDocument();
         const documentRef =

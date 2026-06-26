@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserEventConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -6,22 +11,20 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type CreateSettingsHeaderTimer = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type CreateSettingsHeaderTimer = BrowserTimerHandle;
 
 export interface CreateSettingsHeaderRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getEvent?: (() => typeof globalThis.Event | undefined) | undefined;
+    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
@@ -48,13 +51,13 @@ export interface CreateSettingsHeaderRuntime {
 
 function getAbortControllerConstructor(
     scope: CreateSettingsHeaderRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: CreateSettingsHeaderRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -75,7 +78,7 @@ function getDocumentEventTarget(
 
 function getEventConstructor(
     scope: CreateSettingsHeaderRuntimeScope
-): typeof globalThis.Event {
+): BrowserEventConstructor {
     const EventConstructor = scope.getEvent?.();
     if (typeof EventConstructor !== "function") {
         throw new TypeError("createSettingsHeader requires an Event runtime");
@@ -86,7 +89,7 @@ function getEventConstructor(
 
 function getSetTimeout(
     scope: CreateSettingsHeaderRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 
