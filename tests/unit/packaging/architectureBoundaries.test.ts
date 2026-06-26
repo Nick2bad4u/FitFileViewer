@@ -898,6 +898,10 @@ const directPreloadSourceExecutionGlobalDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
 const directPlaywrightWindowOpenMutationPattern =
     /\bwindow\.open\s*=|\bReflect\.deleteProperty\(\s*window\s*,\s*["']open["']\s*\)/u;
+const directPlaywrightOpenDialogGlobalFixturePattern =
+    /\b(?:globalThis|mainGlobal)\.__ffvPlaywright(?:OpenFileDialogCalls|OriginalShowOpenDialog)\b|\bglobalThis\s+as\s+typeof\s+globalThis\s+&\s*\{[\s\S]*?__ffvPlaywright(?:OpenFileDialogCalls|OriginalShowOpenDialog)/u;
+const detachedPreloadIpcRendererMethodPattern =
+    /\bconst\s+(?:invoke|on|send)\s*=\s*ipcRenderer\?\.(?:invoke|on|send)\b|\b(?:invoke|on):\s*ipcRenderer\.(?:invoke|on)(?!\.bind\()/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
     /\bglobalThis\.process\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const processEnvironmentTestDirectProcessDeletePattern =
@@ -4599,8 +4603,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(16);
+it("keeps the core state manager free of reactive global property bridges", () => {
+	expect.assertions(16);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -11326,6 +11330,42 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWindowOpenMutations).toStrictEqual([]);
+    });
+
+    it("keeps Playwright open-file dialog mock state off main-process globals", () => {
+        expect.assertions(2);
+
+        const smokeSource = stripComments(
+            readRepositoryFile(playwrightSmokeFiles[0])
+        );
+
+        expect(
+            directPlaywrightOpenDialogGlobalFixturePattern.test(smokeSource)
+        ).toBe(false);
+        expect(smokeSource).toContain(
+            "dialog.showOpenDialog as typeof dialog.showOpenDialog &"
+        );
+    });
+
+    it("keeps preload IPC renderer methods bound to ipcRenderer", () => {
+        expect.assertions(1);
+
+        const preloadIpcFiles = [
+            "electron-app/preload/clipboardBridge.ts",
+            "electron-app/preload/devtoolsMenuApi.ts",
+            "electron-app/preload/ipcHelpers.ts",
+            "electron-app/preload/mainStateBridge.ts",
+            "electron-app/preload/preloadEventApi.ts",
+        ];
+        const violations = preloadIpcFiles
+            .filter((relativeFile) =>
+                detachedPreloadIpcRendererMethodPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps direct raw FIT data selectors quarantined to the active raw-data domain helper", () => {
@@ -26719,8 +26759,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps Electron API global lookup centralized behind its runtime provider", () => {
-        expect.assertions(15);
+it("keeps Electron API global lookup centralized behind its runtime provider", () => {
+	expect.assertions(17);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -26757,6 +26797,12 @@ describe("architecture boundaries", () => {
         );
         expect(electronApiRuntimeSource).not.toContain(
             "getBrowserGlobalProperty"
+        );
+        expect(electronApiRuntimeSource).toContain(
+            "getBrowserElectronApiCandidate"
+        );
+        expect(electronApiRuntimeSource).toContain(
+            "getBrowserElectronApiCandidate()"
         );
         expect(browserRuntimeSource).toContain(
             "export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown"

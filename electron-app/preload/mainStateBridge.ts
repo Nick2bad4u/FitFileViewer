@@ -34,8 +34,8 @@ export function createMainStateBridge({
             typeof ipcRenderer.on === "function"
         ) {
             return {
-                invoke: ipcRenderer.invoke,
-                on: ipcRenderer.on,
+                invoke: ipcRenderer.invoke.bind(ipcRenderer),
+                on: ipcRenderer.on.bind(ipcRenderer),
             };
         }
 

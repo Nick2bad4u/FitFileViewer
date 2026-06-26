@@ -1,4 +1,5 @@
 import type { ElectronAPI } from "../../shared/preloadApi.js";
+import { getBrowserElectronApiCandidate } from "./browserRuntime.js";
 
 export type RendererElectronApiScope = {
     readonly getElectronAPI?: (() => unknown) | undefined;
@@ -27,5 +28,5 @@ export function getRendererElectronApi<
 function getScopeElectronApi(
     scope: RendererElectronApiScope | undefined
 ): unknown {
-    return scope?.getElectronAPI?.();
+    return scope?.getElectronAPI?.() ?? getBrowserElectronApiCandidate();
 }

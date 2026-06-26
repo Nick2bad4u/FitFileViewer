@@ -846,6 +846,27 @@ describe("uiStateManager - comprehensive coverage", () => {
     });
 
     describe("file display UI", () => {
+        it("resets the document title to the app title when no file is loaded", () => {
+            expect.assertions(2);
+
+            appendFixtureElement("div", { id: "activeFileNameContainer" });
+            appendFixtureElement("div", { id: "activeFileName" });
+            document.title = "Fit File Viewer - old-ride.fit";
+
+            const manager = new UIStateManager();
+
+            manager.updateFileDisplayUI({
+                displayName: "",
+                hasFile: false,
+                title: "",
+            });
+
+            expect(document.title).toBe("Fit File Viewer");
+            expect(document.body.classList.contains("app-has-file")).toBe(
+                false
+            );
+        });
+
         it("should render displayName as text (no HTML injection)", () => {
             expect.assertions(4);
 

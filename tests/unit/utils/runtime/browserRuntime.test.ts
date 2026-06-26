@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getBrowserChartOverlayColorPalette,
+    getBrowserClearTimeout,
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
     getBrowserGlobalProperty,
+    getBrowserSetTimeout,
     setBrowserGlobalProperty,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
@@ -77,5 +79,40 @@ describe("browserRuntime global property boundary", () => {
         expect(
             getBrowserGlobalProperty("ffvReadonlyRuntimeShim")
         ).toBeUndefined();
+    });
+
+    it("returns timer providers bound to the browser global", () => {
+        expect.assertions(4);
+
+        const originalSetTimeout = globalThis.setTimeout;
+        const originalClearTimeout = globalThis.clearTimeout;
+        const timer = 42 as unknown as ReturnType<typeof setTimeout>;
+
+        vi.stubGlobal("setTimeout", function setTimeoutFixture(
+            this: typeof globalThis,
+            callback: () => void,
+            delay?: number
+        ) {
+            expect(this).toBe(globalThis);
+            expect(delay).toBe(25);
+            callback();
+            return timer;
+        });
+        vi.stubGlobal("clearTimeout", function clearTimeoutFixture(
+            this: typeof globalThis,
+            handle: ReturnType<typeof setTimeout>
+        ) {
+            expect(this).toBe(globalThis);
+            expect(handle).toBe(timer);
+        });
+
+        const setTimeoutRef = getBrowserSetTimeout();
+        const clearTimeoutRef = getBrowserClearTimeout();
+
+        setTimeoutRef?.call({ notGlobalThis: true }, () => undefined, 25);
+        clearTimeoutRef?.call({ notGlobalThis: true }, timer);
+
+        vi.stubGlobal("setTimeout", originalSetTimeout);
+        vi.stubGlobal("clearTimeout", originalClearTimeout);
     });
 });

@@ -31,11 +31,10 @@ export function createDevtoolsMenuApi({
         }
 
         try {
-            const invoke = ipcRenderer?.invoke;
-            if (typeof invoke !== "function") {
+            if (typeof ipcRenderer?.invoke !== "function") {
                 throw new TypeError("ipcRenderer.invoke unavailable");
             }
-            return (await invoke(
+            return (await ipcRenderer.invoke(
                 devtoolsInjectMenuChannel,
                 payload.theme,
                 payload.fitFilePath

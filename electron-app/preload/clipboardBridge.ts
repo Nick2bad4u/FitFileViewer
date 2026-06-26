@@ -15,11 +15,10 @@ export function createClipboardBridge({
         channel: ClipboardInvokeChannel,
         payload: ClipboardRequestPayload
     ): Promise<unknown> {
-        const invoke = ipcRenderer?.invoke;
-        if (typeof invoke !== "function") {
+        if (typeof ipcRenderer?.invoke !== "function") {
             throw new TypeError("ipcRenderer.invoke unavailable");
         }
-        return invoke(channel, payload);
+        return ipcRenderer.invoke(channel, payload);
     }
 
     async function writeClipboardPngDataUrl(

@@ -1543,6 +1543,15 @@ with architecture coverage blocking those direct setup mutations.
 The Playwright map elevation popup smoke path now installs and restores its temporary `window.open` override
 through the original property descriptor instead of assigning or deleting `window.open` directly, with
 architecture coverage blocking that popup-fixture mutation.
+The Playwright Open File dialog mock now stores call counts and original-dialog restore handles on the installed
+mock function instead of writing `__ffvPlaywright*` state to the main-process global object, with architecture coverage
+blocking that test-global fixture from returning.
+Browser runtime timer providers now return browser-global-bound timer functions, and preload IPC helpers call or bind
+`ipcRenderer` methods with their owning renderer object instead of detaching `on`, `send`, or `invoke`, with focused
+unit coverage and architecture coverage blocking receiver-losing IPC helper patterns from returning.
+Renderer Electron API lookup now falls back through the centralized `getBrowserElectronApiCandidate` provider when no
+explicit test scope is supplied, restoring production Open File access to the preload-exposed `electronAPI` without
+reintroducing direct `window.electronAPI`, ambient `globalThis` casts, or registered fallback candidates.
 Tab-button helper element filtering now resolves the HTMLElement constructor through
 `enableTabButtonsHelpersRuntime.ts` instead of checking the ambient constructor directly, with focused runtime
 coverage and architecture coverage blocking direct helper constructor access from returning.

@@ -36,6 +36,8 @@ type LoadingIndicatorState = {
     progress?: number;
 };
 
+const DEFAULT_DOCUMENT_TITLE = "Fit File Viewer";
+
 type ClickableElement = {
     addEventListener?: (
         type: string,
@@ -55,7 +57,9 @@ function uiStateManagerRuntime(): UIStateManagerRuntime {
 }
 
 function getDefaultDocumentTitle(): string {
-    return uiStateManagerRuntime().getDefaultDocumentTitle("Fit File Viewer");
+    return uiStateManagerRuntime().getDefaultDocumentTitle(
+        DEFAULT_DOCUMENT_TITLE
+    );
 }
 
 /**
@@ -522,10 +526,11 @@ export class UIStateManager {
             requestedHasFile = Boolean(info.hasFile),
             displayName =
                 typeof info.displayName === "string" ? info.displayName : "",
-            title =
-                typeof info.title === "string" && info.title.trim().length > 0
+            title = requestedHasFile
+                ? typeof info.title === "string" && info.title.trim().length > 0
                     ? info.title
-                    : getDefaultDocumentTitle(),
+                    : getDefaultDocumentTitle()
+                : DEFAULT_DOCUMENT_TITLE,
             activeFitRawData = getActiveFitRawData(),
             hasRenderableFile = Boolean(
                 requestedHasFile && displayName && activeFitRawData

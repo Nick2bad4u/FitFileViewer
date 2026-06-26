@@ -34,11 +34,10 @@ export function createPreloadEventApi({
                 : null;
 
         try {
-            const send = ipcRenderer?.send;
-            if (typeof send !== "function") {
+            if (typeof ipcRenderer?.send !== "function") {
                 throw new TypeError("ipcRenderer.send unavailable");
             }
-            send(fitFileLoadedChannel, normalizedPath);
+            ipcRenderer.send(fitFileLoadedChannel, normalizedPath);
         } catch (error) {
             preloadLog(
                 "error",
@@ -72,8 +71,7 @@ export function createPreloadEventApi({
         }
 
         try {
-            const on = ipcRenderer?.on;
-            if (typeof on !== "function") {
+            if (typeof ipcRenderer?.on !== "function") {
                 throw new TypeError("ipcRenderer.on unavailable");
             }
             const handler: IpcEventListener = (_event, ...args) => {
@@ -89,7 +87,7 @@ export function createPreloadEventApi({
                 }
             };
 
-            on(eventName, handler);
+            ipcRenderer.on(eventName, handler);
 
             return () => {
                 try {

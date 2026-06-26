@@ -91,7 +91,9 @@ export function getBrowserCancelAnimationFrame():
 export function getBrowserClearInterval():
     | typeof globalThis.clearInterval
     | undefined {
-    return globalThis.clearInterval;
+    return typeof globalThis.clearInterval === "function"
+        ? globalThis.clearInterval.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserBoundClearInterval():
@@ -105,7 +107,9 @@ export function getBrowserBoundClearInterval():
 export function getBrowserClearTimeout():
     | typeof globalThis.clearTimeout
     | undefined {
-    return globalThis.clearTimeout;
+    return typeof globalThis.clearTimeout === "function"
+        ? globalThis.clearTimeout.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserBoundClearTimeout():
@@ -421,7 +425,9 @@ export function getBrowserNodeFilter():
 export function getBrowserSetInterval():
     | typeof globalThis.setInterval
     | undefined {
-    return globalThis.setInterval;
+    return typeof globalThis.setInterval === "function"
+        ? globalThis.setInterval.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserBoundSetInterval():
@@ -435,7 +441,9 @@ export function getBrowserBoundSetInterval():
 export function getBrowserSetTimeout():
     | typeof globalThis.setTimeout
     | undefined {
-    return globalThis.setTimeout;
+    return typeof globalThis.setTimeout === "function"
+        ? globalThis.setTimeout.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserBoundSetTimeout():

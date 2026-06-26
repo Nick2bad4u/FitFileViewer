@@ -196,19 +196,26 @@ async function mockOpenFileDialogForApp(
 ): Promise<void> {
     await evaluateElectronAppWithRetry(() =>
         electronApp.evaluate(({ dialog }, result) => {
-            const mainGlobal = globalThis as typeof globalThis & {
+            type OpenFileDialogMock = typeof dialog.showOpenDialog & {
                 __ffvPlaywrightOpenFileDialogCalls?: number;
                 __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
             };
-
-            mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
+            const currentShowOpenDialog =
+                dialog.showOpenDialog as OpenFileDialogMock;
+            const originalShowOpenDialog =
+                currentShowOpenDialog.__ffvPlaywrightOriginalShowOpenDialog ??
                 dialog.showOpenDialog;
-            mainGlobal.__ffvPlaywrightOpenFileDialogCalls = 0;
-            dialog.showOpenDialog = async () => {
-                mainGlobal.__ffvPlaywrightOpenFileDialogCalls =
-                    (mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0) + 1;
+            const mockedShowOpenDialog = (async () => {
+                mockedShowOpenDialog.__ffvPlaywrightOpenFileDialogCalls =
+                    (mockedShowOpenDialog.__ffvPlaywrightOpenFileDialogCalls ??
+                        0) + 1;
                 return result;
-            };
+            }) as OpenFileDialogMock;
+
+            mockedShowOpenDialog.__ffvPlaywrightOriginalShowOpenDialog =
+                originalShowOpenDialog;
+            mockedShowOpenDialog.__ffvPlaywrightOpenFileDialogCalls = 0;
+            dialog.showOpenDialog = mockedShowOpenDialog;
         }, dialogResult)
     );
 }
@@ -218,17 +225,15 @@ async function restoreOpenFileDialogForApp(
 ): Promise<void> {
     await evaluateElectronAppWithRetry(() =>
         electronApp.evaluate(({ dialog }) => {
-            const mainGlobal = globalThis as typeof globalThis & {
-                __ffvPlaywrightOpenFileDialogCalls?: number;
-                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-            };
+            const currentShowOpenDialog =
+                dialog.showOpenDialog as typeof dialog.showOpenDialog & {
+                    __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+                };
 
-            if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
+            if (currentShowOpenDialog.__ffvPlaywrightOriginalShowOpenDialog) {
                 dialog.showOpenDialog =
-                    mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-                delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+                    currentShowOpenDialog.__ffvPlaywrightOriginalShowOpenDialog;
             }
-            delete mainGlobal.__ffvPlaywrightOpenFileDialogCalls;
         })
     );
 }
@@ -236,12 +241,13 @@ async function restoreOpenFileDialogForApp(
 async function getOpenFileDialogCallCountForApp(
     electronApp: ElectronApplication
 ): Promise<number> {
-    return electronApp.evaluate(() => {
-        const mainGlobal = globalThis as typeof globalThis & {
-            __ffvPlaywrightOpenFileDialogCalls?: number;
-        };
+    return electronApp.evaluate(({ dialog }) => {
+        const currentShowOpenDialog =
+            dialog.showOpenDialog as typeof dialog.showOpenDialog & {
+                __ffvPlaywrightOpenFileDialogCalls?: number;
+            };
 
-        return mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0;
+        return currentShowOpenDialog.__ffvPlaywrightOpenFileDialogCalls ?? 0;
     });
 }
 

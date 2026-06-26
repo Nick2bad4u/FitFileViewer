@@ -376,8 +376,7 @@ export function createPreloadIpcHelpers({
             }
 
             try {
-                const on = ipcRenderer?.on;
-                if (typeof on !== "function") {
+                if (typeof ipcRenderer?.on !== "function") {
                     throw new TypeError("ipcRenderer.on unavailable");
                 }
                 const handler: IpcEventListener = (_event, ...args) => {
@@ -399,7 +398,7 @@ export function createPreloadIpcHelpers({
                     }
                 };
 
-                on(channel, handler);
+                ipcRenderer.on(channel, handler);
 
                 return () => {
                     try {
@@ -430,11 +429,10 @@ export function createPreloadIpcHelpers({
         return async (...args) => {
             try {
                 validateInvokeArgs(channel, args, validationPolicy);
-                const invoke = ipcRenderer?.invoke;
-                if (typeof invoke !== "function") {
+                if (typeof ipcRenderer?.invoke !== "function") {
                     throw new TypeError("ipcRenderer.invoke unavailable");
                 }
-                return (await invoke(
+                return (await ipcRenderer.invoke(
                     channel,
                     ...args
                 )) as InvokeResponsePayloadForChannel<Channel>;
@@ -457,11 +455,10 @@ export function createPreloadIpcHelpers({
     ): (...args: IpcRequestPayload[]) => void {
         return (...args) => {
             try {
-                const send = ipcRenderer?.send;
-                if (typeof send !== "function") {
+                if (typeof ipcRenderer?.send !== "function") {
                     throw new TypeError("ipcRenderer.send unavailable");
                 }
-                send(channel, ...args);
+                ipcRenderer.send(channel, ...args);
             } catch (error) {
                 preloadLog(
                     "error",

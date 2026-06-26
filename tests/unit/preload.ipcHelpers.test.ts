@@ -124,6 +124,45 @@ describe("preload IPC helpers", () => {
         ).toStrictEqual([]);
     });
 
+    it("calls IPC renderer methods with the IPC renderer receiver", async () => {
+        expect.assertions(7);
+
+        const context = createHelpers();
+        context.ipcRenderer.invoke.mockImplementation(function invokeFixture(
+            this: unknown,
+            channel: string
+        ) {
+            expect(this).toBe(context.ipcRenderer);
+            expect(channel).toBe("clipboard:writeText");
+            return Promise.resolve(true);
+        });
+        context.ipcRenderer.on.mockImplementation(function onFixture(
+            this: unknown,
+            channel: string
+        ) {
+            expect(this).toBe(context.ipcRenderer);
+            expect(channel).toBe("app:event");
+        });
+        context.ipcRenderer.send.mockImplementation(function sendFixture(
+            this: unknown,
+            channel: string
+        ) {
+            expect(this).toBe(context.ipcRenderer);
+            expect(channel).toBe("theme:set");
+        });
+
+        await expect(
+            context.helpers.createSafeInvokeHandler(
+                "clipboard:writeText",
+                "writeClipboardText"
+            )("payload")
+        ).resolves.toBe(true);
+        context.helpers.createSafeEventHandler("app:event", "onEvent")(
+            () => undefined
+        );
+        context.helpers.createSafeSendHandler("theme:set", "setTheme")("dark");
+    });
+
     it("rethrows readFile ENOENT failures without logging preload noise", async () => {
         expect.assertions(4);
 

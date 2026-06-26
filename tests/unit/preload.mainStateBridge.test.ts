@@ -69,6 +69,33 @@ function getMainStateDispatcher(ipcRenderer: IpcRendererMock) {
 }
 
 describe("preload main-state bridge", () => {
+    it("calls IPC renderer methods with the IPC renderer receiver", async () => {
+        expect.assertions(5);
+
+        const { bridge, ipcRenderer } = createBridge();
+        const callback = vi.fn<(change: MainStateChange) => void>();
+
+        ipcRenderer.invoke.mockImplementation(function invokeFixture(
+            this: unknown,
+            channel: string
+        ) {
+            expect(this).toBe(ipcRenderer);
+            expect(channel).toBe("main-state:listen");
+            return Promise.resolve(true);
+        });
+        ipcRenderer.on.mockImplementation(function onFixture(
+            this: unknown,
+            channel: string
+        ) {
+            expect(this).toBe(ipcRenderer);
+            expect(channel).toBe("main-state-change");
+        });
+
+        await expect(
+            bridge.listenToMainState("loadedFitFilePath", callback)
+        ).resolves.toBe(true);
+    });
+
     it("dispatches accepted main-state subscriptions", async () => {
         expect.assertions(4);
 
