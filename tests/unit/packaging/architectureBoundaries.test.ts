@@ -7956,7 +7956,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(51);
+        expect.assertions(54);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -8031,6 +8031,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(renderChartRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(renderChartRuntimeSource).toContain(
             "getDateNow: getBrowserDateNow"
         );
         expect(renderChartRuntimeSource).toContain(
@@ -8075,6 +8078,10 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeSource).not.toContain(
             "scope.CustomEventConstructor"
+        );
+        expect(renderChartRuntimeSource).not.toContain("): typeof CustomEvent");
+        expect(renderChartRuntimeSource).not.toContain(
+            "| (() => typeof CustomEvent | undefined)"
         );
         expect(renderChartRuntimeSource).not.toContain("scope.dateNow");
         expect(renderChartRuntimeSource).not.toContain("scope.document");

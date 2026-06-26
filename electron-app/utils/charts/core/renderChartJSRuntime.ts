@@ -1,4 +1,5 @@
 import {
+    type BrowserCustomEventConstructor,
     getBrowserCustomEvent,
     getBrowserDateNow,
     getBrowserDocument,
@@ -7,7 +8,7 @@ import {
 
 export interface RenderChartJSRuntimeScope {
     readonly getCustomEventConstructor?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
@@ -21,7 +22,7 @@ export interface RenderChartJSRuntime {
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
-    getCustomEventConstructor: () => typeof CustomEvent | undefined;
+    getCustomEventConstructor: () => BrowserCustomEventConstructor | undefined;
     isWindowAvailable: () => boolean;
     now: () => number;
     nowPerformance: () => number;
@@ -58,7 +59,7 @@ function getRequiredPerformanceNow(
 
 function getScopeCustomEventConstructor(
     scope: RenderChartJSRuntimeScope
-): typeof CustomEvent | undefined {
+): BrowserCustomEventConstructor | undefined {
     return scope.getCustomEventConstructor?.();
 }
 
@@ -89,7 +90,7 @@ export function getRenderChartJSRuntime(
             return getRequiredDocument(scope).createElement(tagName);
         },
 
-        getCustomEventConstructor(): typeof CustomEvent | undefined {
+        getCustomEventConstructor(): BrowserCustomEventConstructor | undefined {
             return getScopeCustomEventConstructor(scope);
         },
 

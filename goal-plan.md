@@ -1035,6 +1035,8 @@ devtools window availability now route through `renderChartJSRuntime.ts` instead
 architecture guardrails blocking those direct chart-render runtime probes from returning. Production CustomEvent and
 renderer-scope defaults now reuse shared browser runtime providers instead of local ambient constructor or
 `globalThis` document checks.
+RenderChartJS CustomEvent constructor contracts now reuse the shared browser-runtime constructor alias instead of a
+direct ambient constructor type, with architecture coverage blocking that type spelling from returning.
 Chart action successful-render timestamps now receive the render clock explicitly from `renderChartJSRuntime.ts`
 instead of calling `Date.now` directly inside `renderChartActions.ts`; the runtime date clock is now supplied through
 `getDateNow` provider scopes instead of direct `dateNow` scope properties, with focused action/runtime coverage and
