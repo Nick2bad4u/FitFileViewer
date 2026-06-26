@@ -4,11 +4,6 @@ import { isChartDebugLoggingEnabled } from "./chartDebugState.js";
 import { getRegisteredChartActions } from "./chartActionsRegistry.js";
 import { getRegisteredChartStateManager } from "./chartStateManagerRegistry.js";
 import {
-    isDevelopmentEnvironment as isDevelopmentRuntimeEnvironment,
-    isNodeEnvironment,
-    isTestEnvironment as isTestRuntimeEnvironment,
-} from "../../runtime/processEnvironment.js";
-import {
     getRenderChartRuntimeHelpersRuntime,
     type ProcessShim,
     type RenderChartRuntimeHelpersRuntime,
@@ -84,22 +79,29 @@ export function ensureProcessNextTick(
 /**
  * Reads NODE_ENV defensively for browser-like renderer test environments.
  */
-export function isNodeEnv(expected: string): boolean {
-    return isNodeEnvironment(expected);
+export function isNodeEnv(
+    expected: string,
+    runtime: RenderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime()
+): boolean {
+    return runtime.getProcessEnvironmentValue("NODE_ENV") === expected;
 }
 
 /**
  * Returns true when development-only chart diagnostics should run.
  */
-export function isDevelopmentEnvironment(): boolean {
-    return isDevelopmentRuntimeEnvironment();
+export function isDevelopmentEnvironment(
+    runtime: RenderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime()
+): boolean {
+    return isNodeEnv("development", runtime);
 }
 
 /**
  * Returns true when the current runtime is the test harness.
  */
-export function isTestEnvironment(): boolean {
-    return isTestRuntimeEnvironment();
+export function isTestEnvironment(
+    runtime: RenderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime()
+): boolean {
+    return isNodeEnv("test", runtime);
 }
 
 /**

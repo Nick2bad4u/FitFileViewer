@@ -29,69 +29,56 @@ import type {
     RenderChartRuntimeHelpersRuntime,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.js";
 
-const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis,
-    "process"
-);
-if (!originalProcessDescriptor) {
-    throw new Error("Expected globalThis.process descriptor to exist");
+function createRuntime(
+    processShim: ProcessShim | null
+): RenderChartRuntimeHelpersRuntime {
+    return {
+        ensureProcessShim: vi.fn(() => processShim ?? {}),
+        getProcessEnvironmentValue: vi.fn((name: string) => {
+            const environment = processShim?.env;
+            if (typeof environment !== "object" || environment === null) {
+                return undefined;
+            }
+
+            const value = environment[name];
+            return typeof value === "string" ? value : undefined;
+        }),
+        getProcessShim: vi.fn(() => processShim),
+    };
 }
 
-function setGlobalProcess(value: unknown): void {
-    Object.defineProperty(globalThis, "process", {
-        configurable: true,
-        value,
-        writable: true,
-    });
-}
-
-function restoreGlobalProcess(): void {
-    Object.defineProperty(globalThis, "process", originalProcessDescriptor);
-}
-
-function getEnvironmentSnapshot(): {
+function getEnvironmentSnapshot(runtime: RenderChartRuntimeHelpersRuntime): {
     isDevelopment: boolean;
     isNodeDevelopment: boolean;
     isNodeTest: boolean;
     isTest: boolean;
 } {
     return {
-        isDevelopment: isDevelopmentEnvironment(),
-        isNodeDevelopment: isNodeEnv("development"),
-        isNodeTest: isNodeEnv("test"),
-        isTest: isTestEnvironment(),
+        isDevelopment: isDevelopmentEnvironment(runtime),
+        isNodeDevelopment: isNodeEnv("development", runtime),
+        isNodeTest: isNodeEnv("test", runtime),
+        isTest: isTestEnvironment(runtime),
     };
 }
 
 describe("render chart runtime helpers", () => {
-    const originalWindowDescriptor = Object.getOwnPropertyDescriptor(
-        globalThis,
-        "window"
-    );
-    if (!originalWindowDescriptor) {
-        throw new Error("Expected globalThis.window descriptor to exist");
-    }
-
     afterEach(() => {
         setLoadingStateSuppressed(false);
         resetChartActionsRegistryForTests();
         resetChartStateManagerRegistryForTests();
-        restoreGlobalProcess();
         clearChartInstanceRegistryForTests();
-        Object.defineProperty(globalThis, "window", originalWindowDescriptor);
     });
 
     it("handles missing process globals without touching process.env directly", () => {
         expect.assertions(1);
 
         const snapshots = [
-            undefined,
+            null,
             {},
             { env: undefined },
             { env: { NODE_ENV: 1 } },
         ].map((processValue) => {
-            setGlobalProcess(processValue);
-            return getEnvironmentSnapshot();
+            return getEnvironmentSnapshot(createRuntime(processValue));
         });
 
         expect(snapshots).toStrictEqual([
@@ -125,18 +112,20 @@ describe("render chart runtime helpers", () => {
     it("reads chart runtime environment state through the shared runtime boundary", () => {
         expect.assertions(2);
 
-        setGlobalProcess({ env: { NODE_ENV: "development" } });
-
-        expect(getEnvironmentSnapshot()).toStrictEqual({
+        expect(
+            getEnvironmentSnapshot(
+                createRuntime({ env: { NODE_ENV: "development" } })
+            )
+        ).toStrictEqual({
             isDevelopment: true,
             isNodeDevelopment: true,
             isNodeTest: false,
             isTest: false,
         });
 
-        setGlobalProcess({ env: { NODE_ENV: "test" } });
-
-        expect(getEnvironmentSnapshot()).toStrictEqual({
+        expect(
+            getEnvironmentSnapshot(createRuntime({ env: { NODE_ENV: "test" } }))
+        ).toStrictEqual({
             isDevelopment: false,
             isNodeDevelopment: false,
             isNodeTest: true,
@@ -147,11 +136,11 @@ describe("render chart runtime helpers", () => {
     it("adds a nextTick shim without replacing an existing process object", async () => {
         expect.assertions(3);
 
-        setGlobalProcess({ env: { NODE_ENV: "test" } });
+        const processValue: ProcessShim = { env: { NODE_ENV: "test" } },
+            runtime = createRuntime(processValue);
 
-        ensureProcessNextTick();
+        ensureProcessNextTick(runtime);
 
-        const processValue = globalThis.process as typeof process;
         const calls: unknown[] = [];
         processValue.nextTick((value: unknown) => {
             calls.push(value);
@@ -169,6 +158,7 @@ describe("render chart runtime helpers", () => {
         const processShim: ProcessShim = {},
             runtime: RenderChartRuntimeHelpersRuntime = {
                 ensureProcessShim: vi.fn(() => processShim),
+                getProcessEnvironmentValue: vi.fn(() => undefined),
                 getProcessShim: vi.fn(() => processShim),
             };
 
@@ -182,7 +172,9 @@ describe("render chart runtime helpers", () => {
         expect(typeof nextTick).toBe("function");
 
         if (typeof nextTick !== "function") {
-            throw new TypeError("Expected injected process shim to receive nextTick");
+            throw new TypeError(
+                "Expected injected process shim to receive nextTick"
+            );
         }
 
         nextTick((value: unknown) => {

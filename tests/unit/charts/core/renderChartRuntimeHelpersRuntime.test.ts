@@ -8,7 +8,7 @@ import {
 
 describe("render chart runtime helpers runtime", () => {
     it("returns an injected process shim", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const processShim: ProcessShim = { env: { NODE_ENV: "test" } },
             utils = getRenderChartRuntimeHelpersRuntime({
@@ -16,6 +16,19 @@ describe("render chart runtime helpers runtime", () => {
             });
 
         expect(utils.getProcessShim()).toBe(processShim);
+        expect(utils.getProcessEnvironmentValue("NODE_ENV")).toBe("test");
+    });
+
+    it("prefers the injected process environment provider", () => {
+        expect.assertions(1);
+
+        const utils = getRenderChartRuntimeHelpersRuntime({
+            getProcess: () => ({ env: { NODE_ENV: "development" } }),
+            getProcessEnvironmentValue: (name) =>
+                name === "NODE_ENV" ? "test" : undefined,
+        });
+
+        expect(utils.getProcessEnvironmentValue("NODE_ENV")).toBe("test");
     });
 
     it("creates a process shim when the scoped provider has no process object", () => {

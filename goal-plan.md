@@ -976,9 +976,10 @@ Chart performance-monitor start/end timestamps now route through `renderChartPer
 calling `performance.now` or `Date.now` directly inside `renderChartPerformanceMonitor.ts`, with focused runtime
 coverage and architecture coverage blocking direct clock reads and legacy direct runtime scope properties from returning.
 Render chart runtime helper bootstrap now registers plugins without passing a mutable global-like chart
-environment, and `process.nextTick` shimming goes through focused process providers instead of returning
-`globalThis` from `renderChartRuntimeHelpersRuntime.ts`. The default process shim provider now uses explicit
-named get/set helpers instead of generic `Reflect.get`/`Reflect.set` process probes.
+environment, and `NODE_ENV` reads plus `process.nextTick` shimming go through focused process providers instead of
+returning `globalThis` from `renderChartRuntimeHelpersRuntime.ts`. The default process shim provider now uses
+explicit named get/set helpers instead of generic `Reflect.get`/`Reflect.set` process probes, and helper tests inject
+process state without redefining `globalThis.process` or `globalThis.window`.
 Chart zoom reset plugin tests now use Vitest-scoped `CanvasRenderingContext2D` stubs when exercising the
 roundRect polyfill instead of defining or deleting `globalThis.CanvasRenderingContext2D` directly, with
 architecture coverage blocking that fixture mutation.

@@ -965,7 +965,7 @@ const chartTabIntegrationTestRetiredGlobalMutationPattern =
 const renderChartRuntimeHelpersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']|(?:globalThis|chartGlobal|runtimeGlobal)\.(?:chartActions|chartStateManager)\s*=/u;
 const renderChartRuntimeHelpersTestDirectProcessWindowDeletePattern =
-    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:process|window)["']\s*\)/u;
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:process|window)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:process|window)["']/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
 const mainProcessDevHelpersTestRetiredGlobalMutationPattern =
@@ -12888,7 +12888,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(25);
+        expect.assertions(31);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -12928,6 +12928,9 @@ describe("architecture boundaries", () => {
             "type RenderChartRuntimeHelpersRuntime"
         );
         expect(renderChartRuntimeHelpersSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(renderChartRuntimeHelpersSource).not.toContain(
             "const renderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime();"
         );
         expect(renderChartRuntimeHelpersSource).toContain(
@@ -12941,6 +12944,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeHelpersRuntimeSource).toContain(
             "getProcess: getRuntimeProcess"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
         );
         expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "getProcess: getGlobalProcessShim"
@@ -12968,6 +12974,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             'Reflect.set(globalThis, "process", processShim)'
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "getScopeProcessEnvironmentValue"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "scope.getProcessEnvironmentValue?.(name)"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
+            "isNodeEnvironment"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
+            "isDevelopmentEnvironment"
         );
         expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "getChartRuntimeEnvironment"
