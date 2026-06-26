@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     FULLSCREEN_BUTTON_SVG_NAMESPACE,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/addFullScreenButtonRuntime.js";
 
 describe("getAddFullScreenButtonRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+    });
+
     it("routes window and document listeners through injected providers", () => {
         expect.assertions(2);
 
@@ -226,14 +230,26 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production browser defaults", () => {
+        expect.assertions(6);
 
         const runtime = getAddFullScreenButtonRuntime();
+        const button = runtime.createElement("button");
+        const observer = runtime.createMutationObserver(vi.fn());
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+        expect(runtime.getDocument()).toBe(document);
+        expect(runtime.isHTMLElement(button)).toBe(true);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
+        expect(observer).toBeInstanceOf(MutationObserver);
+
+        runtime.appendToBody(button);
+
+        expect(document.body.contains(button)).toBe(true);
     });
 
     it("creates mutation observers and checks keyboard events through injected constructors", () => {

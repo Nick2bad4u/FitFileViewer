@@ -1,4 +1,10 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserKeyboardEvent,
+    getBrowserMutationObserver,
+} from "../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export { SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE } from "../icons/iconFactoryRuntime.js";
@@ -145,15 +151,15 @@ function isAddFullScreenButtonEventTarget(
 
 const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
+        getAbortController: getBrowserAbortController,
+        getDocument: getBrowserDocument,
         getGlobalEventTarget: () =>
             isAddFullScreenButtonEventTarget(globalThis)
                 ? globalThis
                 : undefined,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getKeyboardEvent: () => globalThis.KeyboardEvent,
-        getMutationObserver: () => globalThis.MutationObserver,
+        getHTMLElement: getBrowserHTMLElement,
+        getKeyboardEvent: getBrowserKeyboardEvent,
+        getMutationObserver: getBrowserMutationObserver,
     };
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(

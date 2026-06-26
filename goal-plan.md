@@ -309,6 +309,9 @@ use `setupFullscreenListeners`, and fullscreen button listener abort-controller 
 `addFullScreenButton.ts`. Fullscreen button loaded-file state now also resolves the button and body class through
 `addFullScreenButtonRuntime.ts` instead of reading `document.getElementById` and `document.body.classList` in that
 state update path. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
+Fullscreen button runtime production defaults now reuse shared browser runtime providers for document,
+HTMLElement, KeyboardEvent, and MutationObserver lookups instead of local inline `globalThis` getters,
+extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails.
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge
