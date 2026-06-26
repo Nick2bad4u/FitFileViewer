@@ -1417,7 +1417,9 @@ Main UI DOM utility tests now use registered Electron API candidates for validat
 that direct fixture mutation.
 Main UI DOM utility listener cleanup now creates abort controllers through `mainUiDomUtilsRuntime.ts` instead of
 constructing `AbortController` directly in `mainUiDomUtils.ts`, with focused runtime coverage and architecture
-coverage blocking direct main UI DOM utility abort-controller construction from returning.
+coverage blocking direct main UI DOM utility abort-controller construction from returning. Main UI DOM utility runtime
+provider contracts now reuse the shared browser-runtime AbortController constructor alias instead of spelling direct ambient
+constructor types in the runtime.
 Shared event listener manager drag/drop default target resolution and tracked listener cleanup now route through
 `eventListenerManagerRuntime.ts` instead of probing `globalThis.window` or constructing `AbortController`
 directly in `eventListenerManager.ts`, with focused runtime coverage and architecture coverage blocking direct

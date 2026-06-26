@@ -25607,7 +25607,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -25639,10 +25639,16 @@ describe("architecture boundaries", () => {
             "../runtime/browserRuntime.js"
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(mainUiDomUtilsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toContain(
+            "typeof AbortController | undefined"
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(
             "scope.getAbortController?.()"
