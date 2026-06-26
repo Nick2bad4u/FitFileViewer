@@ -138,6 +138,37 @@ function getElectron(): ElectronLike {
     return {};
 }
 
+function getFocusedBrowserWindow(
+    browserWindow: ElectronBrowserWindowLike | null | undefined = getElectron()
+        .BrowserWindow
+): BrowserWindowLike | null {
+    if (
+        !browserWindow ||
+        typeof browserWindow.getFocusedWindow !== "function"
+    ) {
+        return null;
+    }
+
+    const focused = browserWindow.getFocusedWindow();
+    return isUsableWindow(focused) ? focused : null;
+}
+
+function resolveBrowserWindow(
+    preferredWindow: BrowserWindowLike | null | undefined,
+    browserWindow?: ElectronBrowserWindowLike | null,
+    options: { readonly preferFocused?: boolean } = {}
+): BrowserWindowLike | null {
+    const focused = getFocusedBrowserWindow(browserWindow);
+    if (options.preferFocused) {
+        return (
+            focused ??
+            (isUsableWindow(preferredWindow) ? preferredWindow : null)
+        );
+    }
+
+    return isUsableWindow(preferredWindow) ? preferredWindow : focused;
+}
+
 // Lazily initialize configuration to avoid import-time side effects in tests
 let __confInstance: ConfLike | null = null;
 function getConf(): ConfLike {
@@ -264,21 +295,8 @@ export function createAppMenu(
         /* Ignore errors */
     }
     const { app, BrowserWindow, Menu, shell, clipboard } = el;
-    const resolveTargetWindow = (): BrowserWindowLike | null => {
-        if (isUsableWindow(mainWindow)) {
-            return mainWindow;
-        }
-        if (
-            BrowserWindow &&
-            typeof BrowserWindow.getFocusedWindow === "function"
-        ) {
-            const focused = BrowserWindow.getFocusedWindow();
-            if (isUsableWindow(focused)) {
-                return focused;
-            }
-        }
-        return null;
-    };
+    const resolveTargetWindow = (): BrowserWindowLike | null =>
+        resolveBrowserWindow(mainWindow, BrowserWindow);
     const sendToRenderer = (
         channel: RendererIpcEventChannel,
         ...args: unknown[]
@@ -371,12 +389,7 @@ export function createAppMenu(
             checked: Boolean(_decoderOptions[key]),
             click: (menuItem: MenuItemLike) => {
                 const newOptions = setDecoderOption(key, menuItem["checked"]),
-                    win =
-                        _mainWindow ||
-                        (BrowserWindow &&
-                        typeof BrowserWindow.getFocusedWindow === "function"
-                            ? BrowserWindow.getFocusedWindow()
-                            : null);
+                    win = resolveBrowserWindow(_mainWindow, BrowserWindow);
                 sendToWindow(win, "decoder-options-changed", newOptions);
             },
             label: `${_decoderOptionEmojis[key] || ""} ${key}`.trim(),
@@ -533,11 +546,7 @@ export function createAppMenu(
         {
             accelerator: "CmdOrCtrl+W",
             click: () => {
-                const { BrowserWindow: BW } = getElectron();
-                const win =
-                    BW && typeof BW.getFocusedWindow === "function"
-                        ? BW.getFocusedWindow()
-                        : null;
+                const win = getFocusedBrowserWindow();
                 if (win && typeof win.close === "function") {
                     win.close();
                 }
@@ -587,13 +596,10 @@ export function createAppMenu(
                                         "xsmall",
                                     click: () => {
                                         getConf().set("fontSize", "xsmall");
-                                        const win =
-                                            mainWindow ||
-                                            (BrowserWindow &&
-                                            typeof BrowserWindow.getFocusedWindow ===
-                                                "function"
-                                                ? BrowserWindow.getFocusedWindow()
-                                                : null);
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-font-size",
@@ -609,13 +615,10 @@ export function createAppMenu(
                                         "small",
                                     click: () => {
                                         getConf().set("fontSize", "small");
-                                        const win =
-                                            mainWindow ||
-                                            (BrowserWindow &&
-                                            typeof BrowserWindow.getFocusedWindow ===
-                                                "function"
-                                                ? BrowserWindow.getFocusedWindow()
-                                                : null);
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-font-size",
@@ -631,13 +634,10 @@ export function createAppMenu(
                                         "medium",
                                     click: () => {
                                         getConf().set("fontSize", "medium");
-                                        const win =
-                                            mainWindow ||
-                                            (BrowserWindow &&
-                                            typeof BrowserWindow.getFocusedWindow ===
-                                                "function"
-                                                ? BrowserWindow.getFocusedWindow()
-                                                : null);
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-font-size",
@@ -653,13 +653,10 @@ export function createAppMenu(
                                         "large",
                                     click: () => {
                                         getConf().set("fontSize", "large");
-                                        const win =
-                                            mainWindow ||
-                                            (BrowserWindow &&
-                                            typeof BrowserWindow.getFocusedWindow ===
-                                                "function"
-                                                ? BrowserWindow.getFocusedWindow()
-                                                : null);
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-font-size",
@@ -675,13 +672,10 @@ export function createAppMenu(
                                         "xlarge",
                                     click: () => {
                                         getConf().set("fontSize", "xlarge");
-                                        const win =
-                                            mainWindow ||
-                                            (BrowserWindow &&
-                                            typeof BrowserWindow.getFocusedWindow ===
-                                                "function"
-                                                ? BrowserWindow.getFocusedWindow()
-                                                : null);
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-font-size",
@@ -704,13 +698,10 @@ export function createAppMenu(
                                         ) === "black",
                                     click: () => {
                                         getConf().set("highContrast", "black");
-                                        const win =
-                                            mainWindow ||
-                                            (BrowserWindow &&
-                                            typeof BrowserWindow.getFocusedWindow ===
-                                                "function"
-                                                ? BrowserWindow.getFocusedWindow()
-                                                : null);
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-high-contrast",
@@ -728,14 +719,11 @@ export function createAppMenu(
                                         ) === "white",
                                     click: () => {
                                         getConf().set("highContrast", "white");
-                                        const { BrowserWindow: BW } =
-                                            getElectron();
-                                        const win =
-                                            (BW &&
-                                            typeof BW.getFocusedWindow ===
-                                                "function"
-                                                ? BW.getFocusedWindow()
-                                                : null) || mainWindow;
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow,
+                                            { preferFocused: true }
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-high-contrast",
@@ -753,14 +741,11 @@ export function createAppMenu(
                                         ) === "yellow",
                                     click: () => {
                                         getConf().set("highContrast", "yellow");
-                                        const { BrowserWindow: BW } =
-                                            getElectron();
-                                        const win =
-                                            (BW &&
-                                            typeof BW.getFocusedWindow ===
-                                                "function"
-                                                ? BW.getFocusedWindow()
-                                                : null) || mainWindow;
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow,
+                                            { preferFocused: true }
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-high-contrast",
@@ -776,14 +761,11 @@ export function createAppMenu(
                                         "off",
                                     click: () => {
                                         getConf().set("highContrast", "off");
-                                        const { BrowserWindow: BW } =
-                                            getElectron();
-                                        const win =
-                                            (BW &&
-                                            typeof BW.getFocusedWindow ===
-                                                "function"
-                                                ? BW.getFocusedWindow()
-                                                : null) || mainWindow;
+                                        const win = resolveBrowserWindow(
+                                            mainWindow,
+                                            BrowserWindow,
+                                            { preferFocused: true }
+                                        );
                                         sendToWindow(
                                             win,
                                             "set-high-contrast",
@@ -810,13 +792,10 @@ export function createAppMenu(
                             checked: usingPassedTheme ? theme === "dark" : true,
                             click: () => {
                                 setTheme("dark");
-                                const win =
-                                    mainWindow ||
-                                    (BrowserWindow &&
-                                    typeof BrowserWindow.getFocusedWindow ===
-                                        "function"
-                                        ? BrowserWindow.getFocusedWindow()
-                                        : null);
+                                const win = resolveBrowserWindow(
+                                    mainWindow,
+                                    BrowserWindow
+                                );
                                 sendToWindow(win, "set-theme", "dark");
                             },
                             label: "🌑 Dark",
@@ -828,13 +807,10 @@ export function createAppMenu(
                                 : false,
                             click: () => {
                                 setTheme("light");
-                                const win =
-                                    mainWindow ||
-                                    (BrowserWindow &&
-                                    typeof BrowserWindow.getFocusedWindow ===
-                                        "function"
-                                        ? BrowserWindow.getFocusedWindow()
-                                        : null);
+                                const win = resolveBrowserWindow(
+                                    mainWindow,
+                                    BrowserWindow
+                                );
                                 sendToWindow(win, "set-theme", "light");
                             },
                             label: "🌕 Light",
@@ -844,24 +820,20 @@ export function createAppMenu(
                 },
                 {
                     click: () => {
-                        const win =
-                            mainWindow ||
-                            (BrowserWindow &&
-                            typeof BrowserWindow.getFocusedWindow === "function"
-                                ? BrowserWindow.getFocusedWindow()
-                                : null);
+                        const win = resolveBrowserWindow(
+                            mainWindow,
+                            BrowserWindow
+                        );
                         sendToWindow(win, "open-accent-color-picker");
                     },
                     label: "🎨 Accent Color...",
                 },
                 {
                     click: () => {
-                        const win =
-                            mainWindow ||
-                            (BrowserWindow &&
-                            typeof BrowserWindow.getFocusedWindow === "function"
-                                ? BrowserWindow.getFocusedWindow()
-                                : null);
+                        const win = resolveBrowserWindow(
+                            mainWindow,
+                            BrowserWindow
+                        );
                         sendToWindow(win, "open-summary-column-selector");
                     },
                     enabled: Boolean(loadedFitFilePath),
@@ -901,12 +873,10 @@ export function createAppMenu(
 
                 {
                     click: () => {
-                        const win =
-                            mainWindow ||
-                            (BrowserWindow &&
-                            typeof BrowserWindow.getFocusedWindow === "function"
-                                ? BrowserWindow.getFocusedWindow()
-                                : null);
+                        const win = resolveBrowserWindow(
+                            mainWindow,
+                            BrowserWindow
+                        );
                         sendToWindow(win, "menu-check-for-updates");
                     },
                     label: "🔄 Check for Updates...",
@@ -918,11 +888,11 @@ export function createAppMenu(
             submenu: [
                 {
                     click: () => {
-                        const { BrowserWindow: BW } = getElectron();
-                        const win =
-                            (BW && typeof BW.getFocusedWindow === "function"
-                                ? BW.getFocusedWindow()
-                                : null) || mainWindow;
+                        const win = resolveBrowserWindow(
+                            mainWindow,
+                            BrowserWindow,
+                            { preferFocused: true }
+                        );
                         sendToWindow(win, "menu-about");
                     },
                     label: "ℹ️ About",
@@ -955,22 +925,22 @@ export function createAppMenu(
                 { type: "separator" },
                 {
                     click: () => {
-                        const { BrowserWindow: BW } = getElectron();
-                        const win =
-                            (BW && typeof BW.getFocusedWindow === "function"
-                                ? BW.getFocusedWindow()
-                                : null) || mainWindow;
+                        const win = resolveBrowserWindow(
+                            mainWindow,
+                            BrowserWindow,
+                            { preferFocused: true }
+                        );
                         sendToWindow(win, "menu-keyboard-shortcuts");
                     },
                     label: "⌨️ Keyboard Shortcuts",
                 },
                 {
                     click: () => {
-                        const { BrowserWindow: BW } = getElectron();
-                        const win =
-                            (BW && typeof BW.getFocusedWindow === "function"
-                                ? BW.getFocusedWindow()
-                                : null) || mainWindow;
+                        const win = resolveBrowserWindow(
+                            mainWindow,
+                            BrowserWindow,
+                            { preferFocused: true }
+                        );
                         sendToWindow(win, "menu-restart-update");
                     },
                     enabled: false, // Will be enabled via IPC when update is downloaded
@@ -1042,13 +1012,10 @@ function getPlatformAppMenu(
                 submenu: [
                     {
                         click: () => {
-                            const win =
-                                mainWindow ||
-                                (BrowserWindow &&
-                                typeof BrowserWindow.getFocusedWindow ===
-                                    "function"
-                                    ? BrowserWindow.getFocusedWindow()
-                                    : null);
+                            const win = resolveBrowserWindow(
+                                mainWindow,
+                                BrowserWindow
+                            );
                             sendToWindow(win, "menu-about");
                         },
                         label: "About",

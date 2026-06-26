@@ -2520,12 +2520,8 @@ describe("architecture boundaries", () => {
         expect(parserRuntimeSource).toContain(
             "./utils/runtime/browserRuntime.js"
         );
-        expect(parserRuntimeSource).toContain(
-            "getDateNow: getBrowserDateNow"
-        );
-        expect(parserRuntimeSource).not.toContain(
-            "getDateNow: () => Date.now"
-        );
+        expect(parserRuntimeSource).toContain("getDateNow: getBrowserDateNow");
+        expect(parserRuntimeSource).not.toContain("getDateNow: () => Date.now");
         expect(parserRuntimeSource).toContain("getDateConstructor: () => Date");
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a date clock"
@@ -5098,7 +5094,9 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain(
             "../../logging/loggingTimestampRuntime.js"
         );
-        expect(exportUtilsSource).toContain("loggingTimestampRuntime().isoNow()");
+        expect(exportUtilsSource).toContain(
+            "loggingTimestampRuntime().isoNow()"
+        );
         expect(exportUtilsSource).not.toContain("new Date().toISOString()");
         expect(exportUtilsSource).not.toContain("document.activeElement");
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
@@ -5313,6 +5311,25 @@ describe("architecture boundaries", () => {
         );
         expect(createAppMenuTestSource).not.toMatch(
             directAppMenuExportsGlobalPattern
+        );
+    });
+
+    it("keeps createAppMenu focused-window resolution centralized", () => {
+        expect.assertions(4);
+
+        const createAppMenuSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/menu/createAppMenu.ts")
+        );
+        const directFocusedWindowCalls =
+            createAppMenuSource.match(/\.getFocusedWindow\b/gu) ?? [];
+
+        expect(createAppMenuSource).toContain(
+            "function getFocusedBrowserWindow"
+        );
+        expect(createAppMenuSource).toContain("function resolveBrowserWindow");
+        expect(directFocusedWindowCalls).toHaveLength(2);
+        expect(createAppMenuSource).not.toContain(
+            "typeof BrowserWindow.getFocusedWindow"
         );
     });
 
@@ -6121,18 +6138,12 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).not.toContain("scope.setTimeout");
-        expect(runtimeSource).toContain(
-            "../utils/runtime/browserRuntime.js"
-        );
-        expect(runtimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(runtimeSource).toContain("../utils/runtime/browserRuntime.js");
+        expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
-        expect(runtimeSource).toContain(
-            "getSetTimeout: getBrowserSetTimeout"
-        );
+        expect(runtimeSource).toContain("getSetTimeout: getBrowserSetTimeout");
         expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -6585,9 +6596,7 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderSource).toContain(
             "loggingTimestampRuntime().isoNow()"
         );
-        expect(settingsHeaderSource).not.toContain(
-            "new Date().toISOString()"
-        );
+        expect(settingsHeaderSource).not.toContain("new Date().toISOString()");
         expect(settingsHeaderSource).not.toContain("document.addEventListener");
         expect(settingsHeaderSource).not.toContain("document.createElement");
         expect(settingsHeaderSource).not.toContain("document.body");
@@ -7526,22 +7535,16 @@ describe("architecture boundaries", () => {
         );
         expect(chartStateManagerSource).not.toContain("Date.now");
         expect(runtimeSource).toContain("defaultChartStateManagerRuntimeScope");
-        expect(runtimeSource).toContain(
-            "../../runtime/browserRuntime.js"
-        );
+        expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
         expect(runtimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
         expect(runtimeSource).toContain("getDateNow: getBrowserDateNow");
-        expect(runtimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
-        expect(runtimeSource).toContain(
-            "getSetTimeout: getBrowserSetTimeout"
-        );
+        expect(runtimeSource).toContain("getSetTimeout: getBrowserSetTimeout");
         expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -10194,9 +10197,7 @@ describe("architecture boundaries", () => {
         expect(renderMapRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
-        expect(renderMapRuntimeSource).toContain(
-            "getEvent: getBrowserEvent"
-        );
+        expect(renderMapRuntimeSource).toContain("getEvent: getBrowserEvent");
         expect(renderMapRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -11979,7 +11980,9 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
         );
-        expect(stateIntegrationRuntimeSource).not.toContain("dateNow: Date.now");
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "dateNow: Date.now"
+        );
         expect(stateIntegrationRuntimeSource).not.toContain(
             "getClearInterval: () => globalThis.clearInterval"
         );
@@ -12004,7 +12007,9 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).toContain(
             "const dateNowRef = scope.getDateNow?.();"
         );
-        expect(stateIntegrationRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
         expect(stateIntegrationRuntimeSource).not.toContain(
             "readonly clearInterval?:"
         );
@@ -12343,12 +12348,8 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).toContain(
             "getBrowserClearTimeout"
         );
-        expect(resourceManagerRuntimeSource).toContain(
-            "getBrowserDateNow"
-        );
-        expect(resourceManagerRuntimeSource).toContain(
-            "getBrowserEventTarget"
-        );
+        expect(resourceManagerRuntimeSource).toContain("getBrowserDateNow");
+        expect(resourceManagerRuntimeSource).toContain("getBrowserEventTarget");
         expect(resourceManagerRuntimeSource).toContain(
             "const dateNow = scope.getDateNow?.();"
         );
@@ -12744,9 +12745,7 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).toContain(
             "getBrowserClearTimeout"
         );
-        expect(lifecycleListenersRuntimeSource).toContain(
-            "getBrowserDocument"
-        );
+        expect(lifecycleListenersRuntimeSource).toContain("getBrowserDocument");
         expect(lifecycleListenersRuntimeSource).toContain("getBrowserPrint");
         expect(lifecycleListenersRuntimeSource).toContain("getBrowserURL");
         expect(lifecycleListenersRuntimeSource).toContain(
@@ -16651,9 +16650,7 @@ describe("architecture boundaries", () => {
         expect(openFileSelectorRuntimeSource).toContain(
             "getBrowserClearTimeout"
         );
-        expect(openFileSelectorRuntimeSource).toContain(
-            "getBrowserSetTimeout"
-        );
+        expect(openFileSelectorRuntimeSource).toContain("getBrowserSetTimeout");
         expect(openFileSelectorRuntimeSource).toContain(
             "getBrowserQueueMicrotask"
         );
@@ -17891,9 +17888,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain(
             "const defaultThemeRuntimeScope: ThemeRuntimeScope = globalThis"
         );
-        expect(themeRuntimeSource).toContain(
-            "../../runtime/browserRuntime.js"
-        );
+        expect(themeRuntimeSource).toContain("../../runtime/browserRuntime.js");
         expect(themeRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
@@ -17918,9 +17913,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
-        expect(themeRuntimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(themeRuntimeSource).toContain("getDocument: getBrowserDocument");
         expect(themeRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -18146,12 +18139,8 @@ describe("architecture boundaries", () => {
         expect(setupThemeRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
-        expect(setupThemeRuntimeSource).toContain(
-            "getBrowserClearTimeout"
-        );
-        expect(setupThemeRuntimeSource).toContain(
-            "getBrowserSetTimeout"
-        );
+        expect(setupThemeRuntimeSource).toContain("getBrowserClearTimeout");
+        expect(setupThemeRuntimeSource).toContain("getBrowserSetTimeout");
         expect(setupThemeRuntimeSource).not.toMatch(
             directSetupThemeRuntimeAmbientFallbackPattern
         );
@@ -18552,9 +18541,7 @@ describe("architecture boundaries", () => {
         );
         expect(canvasSource).toContain("runtime.createCanvas()");
         expect(runtimeSource).toContain("defaultCreateChartCanvasRuntimeScope");
-        expect(runtimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -18991,12 +18978,8 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultRenderChartDirectRerenderRuntimeScope"
         );
-        expect(runtimeSource).toContain(
-            "../../runtime/browserRuntime.js"
-        );
-        expect(runtimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
+        expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
@@ -19108,9 +19091,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultRenderChartDomHelpersRuntimeScope"
         );
-        expect(runtimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
@@ -19184,9 +19165,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "getCustomEvent: getBrowserCustomEvent"
         );
-        expect(runtimeSource).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
@@ -19261,9 +19240,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultRenderChartStartupRuntimeScope"
         );
-        expect(runtimeSource).toContain(
-            "../../runtime/browserRuntime.js"
-        );
+        expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
         expect(runtimeSource).toContain(
             "getAddEventListener: getBrowserAddEventListener"
         );
@@ -19397,16 +19374,12 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain("render chart timers require dateNow");
         expect(runtimeSource).toContain("dateNow: () => number;");
-        expect(runtimeSource).toContain(
-            "../../runtime/browserRuntime.js"
-        );
+        expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
         expect(runtimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
         expect(runtimeSource).toContain("getDateNow: getBrowserDateNow");
-        expect(runtimeSource).toContain(
-            "getSetTimeout: getBrowserSetTimeout"
-        );
+        expect(runtimeSource).toContain("getSetTimeout: getBrowserSetTimeout");
         expect(runtimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
@@ -20514,18 +20487,14 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultRendererApplicationStartupRuntimeScope"
         );
-        expect(runtimeSource).toContain(
-            "../utils/runtime/browserRuntime.js"
-        );
+        expect(runtimeSource).toContain("../utils/runtime/browserRuntime.js");
         expect(runtimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(runtimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
-        expect(runtimeSource).toContain(
-            "getSetTimeout: getBrowserSetTimeout"
-        );
+        expect(runtimeSource).toContain("getSetTimeout: getBrowserSetTimeout");
         expect(runtimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
@@ -24832,7 +24801,7 @@ describe("architecture boundaries", () => {
             "return (globalThis as BrowserElectronApiGlobalScope).electronAPI;"
         );
         expect(electronApiRuntimeSource).toContain(
-            "return getBrowserGlobalProperty(\"electronAPI\");"
+            'return getBrowserGlobalProperty("electronAPI");'
         );
         expect(browserRuntimeSource).toContain(
             "export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown"
