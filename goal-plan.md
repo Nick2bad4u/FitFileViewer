@@ -327,8 +327,8 @@ Startup initializer document targeting now keeps its default `document` lookup o
 `initStartupRuntime.ts` instead of a private `getGlobalDocument()` helper.
 Chart no-data message element creation now routes through `renderChartDomHelpersRuntime.ts` instead of calling
 `document.createElement` directly inside `renderChartDomHelpers.ts`, with focused runtime/behavior coverage and
-architecture guardrails blocking direct chart DOM-helper document access and legacy direct runtime scope properties
-from returning.
+architecture guardrails blocking direct chart DOM-helper document access, direct ambient HTMLElement constructor types,
+and legacy direct runtime scope properties from returning.
 Overlay file load concurrency and active-tab preservation now resolve browser metadata and active-tab DOM state
 through `loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` or querying `document` directly
 inside `loadOverlayFiles.ts`; production defaults and explicit runtime scopes stay behind named provider functions

@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     getBrowserDocument,
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
@@ -10,7 +11,7 @@ export interface RenderChartDomHelpersRuntimeScope {
         | (() => RenderChartDomHelpersDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -55,7 +56,7 @@ export function getRenderChartDomHelpersRuntime(
 
 function getHTMLElementConstructor(
     scope: RenderChartDomHelpersRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
