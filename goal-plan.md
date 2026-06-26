@@ -300,7 +300,7 @@ provider, whose production default reads `globalThis.document` directly instead 
 export modal previous-focus lookup now also routes through `exportUtilsRuntime.ts` instead of checking
 `document.activeElement instanceof HTMLElement` directly inside `exportUtils.ts`, with focused runtime coverage and
 architecture guardrails blocking direct active-element and HTMLElement checks from returning.
-Export utility runtime production defaults now reuse shared browser runtime providers for document,
+Export utility runtime production defaults now reuse shared browser runtime providers for crypto, document,
 HTMLElement, and localStorage lookups, extending the existing AbortController provider migration and removing
 the remaining local inline `globalThis` defaults from `exportUtilsRuntime.ts`.
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
@@ -1021,8 +1021,9 @@ Lifecycle listener strict tests no longer delete or define retired helper global
 those names stay absent, and architecture coverage blocks those mutations from returning.
 Alt FIT iframe lookup, logging, location reads, and load-listener abort-controller creation now route through
 `altFitSenderRuntime.ts` instead of probing global defaults or constructing controllers directly inside
-`sendFitFileToAltFitReader.ts`, with focused runtime coverage and architecture coverage blocking those direct
-Alt FIT sender runtime primitives from returning.
+`sendFitFileToAltFitReader.ts`; production console lookup now reuses the shared browser runtime provider, with
+focused runtime coverage and architecture coverage blocking those direct Alt FIT sender runtime primitives from
+returning.
 Lifecycle listener strict tests now mock `window.print` through a Vitest spy instead of assigning
 `window.print` directly, with architecture coverage blocking that direct print fixture.
 Tab-button behavior tests no longer delete retired enabled-state, observer, or diagnostic helper globals such

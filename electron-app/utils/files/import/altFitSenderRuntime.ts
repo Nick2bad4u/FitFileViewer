@@ -1,5 +1,6 @@
 import {
     getBrowserAbortController,
+    getBrowserConsole,
     getBrowserDocument,
     getBrowserLocation,
 } from "../../runtime/browserRuntime.js";
@@ -28,7 +29,7 @@ interface AltFitSenderRuntimeScope {
 
 const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getConsole: () => globalThis.console,
+    getConsole: getBrowserConsole,
     getDocument: getBrowserDocument,
     getLocation: getBrowserLocation,
 };

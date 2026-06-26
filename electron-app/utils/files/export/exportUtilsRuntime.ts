@@ -1,5 +1,6 @@
 import {
     getBrowserAbortController,
+    getBrowserCrypto,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserLocalStorage,
@@ -81,7 +82,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
                   openPrintWindow.call(globalThis, url, target, features)
             : undefined;
     },
-    getSecureRandomCrypto: () => globalThis.crypto,
+    getSecureRandomCrypto: getBrowserCrypto,
     getStorage: () => getBrowserLocalStorage() ?? null,
 };
 

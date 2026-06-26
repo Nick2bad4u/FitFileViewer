@@ -169,7 +169,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("uses browser runtime providers for production browser defaults", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtime = getExportUtilsRuntime();
         const link = document.createElement("a");
@@ -185,6 +185,9 @@ describe("exportUtilsRuntime", () => {
 
         expect(document.body.contains(link)).toBe(true);
         expect(runtime.getActiveElement()).toBe(button);
+        expect(runtime.getSecureRandomScope()).toStrictEqual({
+            crypto: globalThis.crypto,
+        });
         expect(runtime.getStorage()).toBe(localStorage);
     });
 

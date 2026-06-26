@@ -40,6 +40,10 @@ export function getBrowserClearTimeout():
     return globalThis.clearTimeout;
 }
 
+export function getBrowserConsole(): Console | undefined {
+    return globalThis.console;
+}
+
 export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
 }
@@ -56,6 +60,10 @@ export function getBrowserCustomEvent():
     | typeof globalThis.CustomEvent
     | undefined {
     return globalThis.CustomEvent;
+}
+
+export function getBrowserCrypto(): Crypto | undefined {
+    return globalThis.crypto;
 }
 
 export function getBrowserDateNow(): (() => number) | undefined {

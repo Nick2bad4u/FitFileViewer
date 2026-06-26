@@ -26,11 +26,12 @@ describe("altFitSenderRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(2);
 
         const environment = getAltFitSenderRuntimeEnvironment();
 
+        expect(environment.console).toBe(globalThis.console);
         expect(environment.createAbortController()).toBeInstanceOf(
             AbortController
         );

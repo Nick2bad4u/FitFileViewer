@@ -4911,7 +4911,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(81);
+        expect.assertions(83);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4978,6 +4978,12 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain("getConfirmDangerousAction");
         expect(exportUtilsRuntimeSource).toContain("getOpenPrintWindow");
         expect(exportUtilsRuntimeSource).toContain("getSecureRandomCrypto");
+        expect(exportUtilsRuntimeSource).toContain(
+            "getSecureRandomCrypto: getBrowserCrypto"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "getSecureRandomCrypto: () => globalThis.crypto"
+        );
         expect(exportUtilsRuntimeSource).toContain("getStorage");
         expect(exportUtilsRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
@@ -16716,7 +16722,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(24);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -16764,6 +16770,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(altFitSenderRuntimeSource).toContain(
+            "getConsole: getBrowserConsole"
+        );
+        expect(altFitSenderRuntimeSource).not.toContain(
             "getConsole: () => globalThis.console"
         );
         expect(altFitSenderRuntimeSource).toContain(
