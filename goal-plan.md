@@ -1291,6 +1291,8 @@ through `applicationLifecycleWiringRuntime.ts` instead of constructing `AbortCon
 `applicationLifecycleWiring.ts`, with focused runtime coverage and architecture coverage blocking direct lifecycle
 abort-controller construction from returning. The lifecycle runtime contract now reuses the shared browser-runtime
 AbortController alias instead of a direct ambient constructor type.
+Renderer application lifecycle beforeunload registration now receives the startup-provided `rendererEventTarget`
+directly instead of preserving the retired `globalEventTarget` lifecycle option/type name.
 Renderer file-input delegated and import-time listener cleanup now creates abort controllers through
 `fileInputStartupRuntime.ts` instead of constructing `AbortController` directly in `fileInputStartup.ts`, with
 focused runtime coverage and architecture coverage blocking direct file-input abort-controller construction from

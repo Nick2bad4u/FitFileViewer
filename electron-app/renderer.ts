@@ -182,8 +182,8 @@ const cleanup = createRendererLifecycleCleanup({
 registerRendererApplicationLifecycle({
     cleanup,
     documentTarget: runtimeEnvironment.documentTarget,
-    globalEventTarget: runtimeEnvironment.rendererEventTarget,
     initializeApplication,
+    rendererEventTarget: runtimeEnvironment.rendererEventTarget,
     setTimeout: runtimeEnvironment.setTimeout,
 });
 
