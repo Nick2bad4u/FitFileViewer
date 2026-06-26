@@ -391,6 +391,8 @@ Scoped Browser-tab Electron API validation now checks optional IPC methods throu
 of casting the candidate preload API to a generic record, with focused malformed-API coverage and architecture
 guardrails. Browser tab, path-based FIT opening, and overlay selector Electron API candidate typing now use explicit
 local interfaces backed by split shared preload API-domain contracts instead of `Pick<ElectronAPI, ...>` aliases.
+Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
+from the monolithic `ElectronAPI` type.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document

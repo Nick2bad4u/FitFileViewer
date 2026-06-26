@@ -3,13 +3,13 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronFitBrowserApi } from "../../../shared/preloadApi.js";
 import { getFitBrowserFeatureGateRuntime } from "./initFitBrowserFeatureGateRuntime.js";
 
-type FitBrowserFeatureGateApi = Required<
-    Pick<ElectronAPI, "isFitBrowserEnabled">
-> &
-    Partial<Pick<ElectronAPI, "onFitBrowserEnabledChanged">>;
+interface FitBrowserFeatureGateApi {
+    isFitBrowserEnabled: ElectronFitBrowserApi["isFitBrowserEnabled"];
+    onFitBrowserEnabledChanged?: ElectronFitBrowserApi["onFitBrowserEnabledChanged"];
+}
 type InitFitBrowserFeatureGateOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };

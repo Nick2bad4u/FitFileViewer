@@ -6629,7 +6629,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -6661,6 +6661,9 @@ describe("architecture boundaries", () => {
         expect(featureGateSource).toContain(
             "initFitBrowserFeatureGateRuntime.js"
         );
+        expect(featureGateSource).toContain("ElectronFitBrowserApi");
+        expect(featureGateSource).not.toContain("import type { ElectronAPI");
+        expect(featureGateSource).not.toContain("Pick<ElectronAPI");
         expect(featureGateRuntimeSource).toContain(
             "defaultFitBrowserFeatureGateRuntimeScope"
         );
