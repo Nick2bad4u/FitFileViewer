@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -9,11 +11,11 @@ import {
 
 export interface SummaryColModalRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
         | (() => typeof KeyboardEvent | undefined)

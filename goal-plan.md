@@ -702,12 +702,16 @@ through `summaryColModalRuntime.ts`, with focused runtime coverage and architect
 Summary column modal mouse-event type checks now also route through `summaryColModalRuntime.ts` instead of checking
 `MouseEvent` directly inside `summaryColModal.ts`, with focused runtime coverage and architecture guardrails blocking
 direct `MouseEvent` checks and legacy direct MouseEvent scope properties from returning.
+Summary column modal AbortController and HTMLElement provider contracts now also reuse shared browser-runtime
+constructor aliases instead of direct ambient constructor type spellings.
 User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
 instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
 coverage and architecture guardrails blocking direct controller construction from returning. User/device info box
 top-level DOM element creation now also routes through `createUserDeviceInfoBoxRuntime.ts` instead of calling
 `document.createElement` directly inside `createUserDeviceInfoBox.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct creation APIs from returning.
+User/device info box AbortController provider contracts now also reuse the shared browser-runtime constructor alias
+instead of a direct ambient constructor type spelling.
 Map print button listener cleanup, DOM creation, and print dispatch now route through
 `createPrintButtonRuntime.ts` instead of constructing `AbortController` directly inside `createPrintButton.ts`
 or reading document/print globals in the feature module. Production defaults and explicit runtime scopes now use

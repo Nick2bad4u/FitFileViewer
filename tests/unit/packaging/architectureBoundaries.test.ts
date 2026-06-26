@@ -20890,7 +20890,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(58);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -20978,6 +20978,12 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(summaryColModalRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(summaryColModalRuntimeSource).not.toContain(
@@ -21016,6 +21022,18 @@ describe("architecture boundaries", () => {
         expect(summaryColModalRuntimeSource).not.toContain(
             "width: globalThis.innerWidth"
         );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "): typeof HTMLElement"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "| (() => typeof HTMLElement | undefined)"
+        );
         expect(summaryColModalRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
         );
@@ -21040,7 +21058,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -21110,6 +21128,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
@@ -21120,6 +21141,12 @@ describe("architecture boundaries", () => {
         );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
