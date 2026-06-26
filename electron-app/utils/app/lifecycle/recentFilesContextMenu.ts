@@ -58,14 +58,15 @@ function isRecentFilesElectronApi(
         return false;
     }
 
-    const api = value as Partial<RecentFilesElectronApi>;
-
     return (
-        typeof api.recentFiles === "function" &&
-        typeof api.readFile === "function" &&
-        typeof api.parseFitFile === "function" &&
-        (api.addRecentFile === undefined ||
-            typeof api.addRecentFile === "function")
+        "recentFiles" in value &&
+        typeof value.recentFiles === "function" &&
+        "readFile" in value &&
+        typeof value.readFile === "function" &&
+        "parseFitFile" in value &&
+        typeof value.parseFitFile === "function" &&
+        (!("addRecentFile" in value) ||
+            typeof value.addRecentFile === "function")
     );
 }
 

@@ -96,6 +96,48 @@ async function withRecentFilesHarness(
 }
 
 describe(attachRecentFilesContextMenu, () => {
+    it("rejects malformed recent-file APIs without rendering a menu", async () => {
+        expect.assertions(4);
+
+        const openFileBtn = document.createElement("button");
+        document.body.append(openFileBtn);
+        const getElectronAPI = vi.fn<() => unknown>(() => ({
+            parseFitFile: vi.fn<ParseFitFile>(),
+            readFile: "read-file",
+            recentFiles: vi.fn<RecentFiles>().mockResolvedValue([
+                "C:\\activities\\activity.fit",
+            ]),
+        }));
+        const setLoading = vi.fn<SetLoading>();
+        const cleanup = attachRecentFilesContextMenu({
+            electronApiScope: { getElectronAPI },
+            openFileBtn,
+            setLoading,
+            showNotification: vi.fn<ShowNotification>(),
+        });
+
+        try {
+            openFileBtn.dispatchEvent(
+                new MouseEvent("contextmenu", {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: 20,
+                    clientY: 20,
+                })
+            );
+            await flushAsyncEvents();
+
+            expect(getElectronAPI).toHaveBeenCalledOnce();
+            expect(document.querySelector("#recent-files-menu")).toBeNull();
+            expect(openFileBtn.disabled).toBe(false);
+            expect(setLoading).not.toHaveBeenCalled();
+        } finally {
+            cleanup();
+            openFileBtn.remove();
+            vi.restoreAllMocks();
+        }
+    });
+
     it("reports wrapped parser error payloads without displaying them", async () => {
         expect.assertions(6);
 
