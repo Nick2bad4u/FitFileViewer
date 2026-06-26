@@ -55,7 +55,7 @@ function getPanelVisibilityManager(
 /**
  * Creates chart action handlers backed by the centralized state store.
  *
- * @param dependencies - Runtime state, rendering, and global bridge
+ * @param dependencies - Runtime state, rendering, and notification
  *   dependencies.
  *
  * @returns Mutable chart action handlers for the renderer public API.

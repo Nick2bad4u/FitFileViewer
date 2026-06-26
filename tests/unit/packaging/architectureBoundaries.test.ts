@@ -7707,7 +7707,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(48);
+        expect.assertions(49);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -7756,6 +7756,7 @@ describe("architecture boundaries", () => {
             "lastRenderTime: dependencies.dateNow()"
         );
         expect(renderChartActionsSource).not.toContain("Date.now");
+        expect(renderChartActionsSource).not.toContain("global bridge");
         expect(renderChartRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
         );
