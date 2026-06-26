@@ -3,6 +3,7 @@ import {
     browserWindowRef as electronBrowserWindowRef,
 } from "../runtime/electronAccess.js";
 import { createWindow } from "../../windowStateUtils.js";
+import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
 import type { MainAppStateWindowLike } from "../state/appState.js";
 
 type RendererIpcEventChannel =
@@ -89,7 +90,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function callElectronWhenReadyForTests(): void {
-    if (process.env["NODE_ENV"] !== "test") {
+    if (!isTestEnvironment()) {
         return;
     }
 
@@ -181,7 +182,7 @@ export function initializeMainWindow({
     const isConstructor = typeof BrowserWindow === "function";
 
     let mainWindow: MainWindowLike | undefined;
-    if (process.env["NODE_ENV"] === "test" || !isConstructor) {
+    if (isTestEnvironment() || !isConstructor) {
         try {
             let list = getElectronWindowsForTests();
             if (!list || list.length === 0) {

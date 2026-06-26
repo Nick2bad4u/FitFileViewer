@@ -2896,7 +2896,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(218);
+        expect.assertions(222);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3061,6 +3061,10 @@ describe("architecture boundaries", () => {
         expect(logWithContextSource).toContain("getProcessEnvironmentValue");
         expect(safeCreateAppMenuSource).toContain("getProcessEnvironmentValue");
         expect(windowStateUtilsSource).toContain("getProcessEnvironmentValue");
+        expect(bootstrapMainWindowSource).not.toContain("process.env");
+        expect(initializeMainWindowSource).not.toContain("process.env");
+        expect(bootstrapMainWindowSource).toContain("isTestEnvironment");
+        expect(initializeMainWindowSource).toContain("isTestEnvironment");
         expect(logWithContextSource).toContain(
             "../../utils/runtime/processEnvironment.js"
         );
