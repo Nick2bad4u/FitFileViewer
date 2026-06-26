@@ -1318,7 +1318,9 @@ helper coverage and architecture coverage blocking those direct document calls f
 About modal presenter browser access now routes content element creation, modal/system-info lookup, active-element
 lookup, document event-target lookup, injected-body parsing, sanitizer tree walking, and browser constructor checks
 through `aboutModalRuntime.ts`, with runtime adapter tests and architecture coverage blocking direct document,
-parser, node-filter, and constructor access from returning to `aboutModal.ts`.
+parser, node-filter, and constructor access from returning to `aboutModal.ts`. About modal runtime provider contracts now
+reuse shared browser-runtime timer, animation-frame, DOMParser, Element, HTMLElement, keyboard-event, and NodeFilter
+aliases instead of spelling direct ambient constructor/timer/frame types in the modal runtime.
 Renderer notification queue timing now routes state timestamps, animation-frame scheduling/cancellation, auto-hide timers,
 and serialized display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in
 `showNotification.ts`, with adapter tests and architecture coverage blocking direct notification timing globals from

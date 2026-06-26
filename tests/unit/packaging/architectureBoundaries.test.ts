@@ -8439,7 +8439,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal browser APIs behind the runtime facade", () => {
-        expect.assertions(72);
+        expect.assertions(92);
 
         const timingViolations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -8510,6 +8510,58 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).toContain(
             "defaultAboutModalRuntimeScope"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "type BrowserCancelAnimationFrame"
+        );
+        expect(aboutModalRuntimeSource).toContain("type BrowserClearTimeout");
+        expect(aboutModalRuntimeSource).toContain(
+            "type BrowserDOMParserConstructor"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "type BrowserElementConstructor"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "type BrowserKeyboardEventConstructor"
+        );
+        expect(aboutModalRuntimeSource).toContain("type BrowserNodeFilter");
+        expect(aboutModalRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(aboutModalRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(aboutModalRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(aboutModalRuntimeSource).not.toMatch(
+            /ReturnType<\s*typeof globalThis\.setTimeout\s*>/u
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.cancelAnimationFrame | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.DOMParser | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.Element | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.KeyboardEvent | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.NodeFilter | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame | undefined"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout | undefined"
         );
         expect(aboutModalRuntimeSource).toContain("iconFactoryRuntime.js");
         expect(aboutModalRuntimeSource).toContain(
