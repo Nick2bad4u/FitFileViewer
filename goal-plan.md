@@ -396,6 +396,8 @@ of casting the candidate preload API to a generic record, with focused malformed
 guardrails. Browser tab, path-based FIT opening, overlay selector, drag/drop, single-overlay loading, and main UI DOM
 Electron API candidate typing now use explicit local interfaces backed by split shared preload API-domain contracts
 instead of `Pick<ElectronAPI, ...>` aliases.
+Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
+deriving from the monolithic `ElectronAPI` type.
 Show FIT data file-loaded notification candidate typing now uses the shared preload-event API-domain contract instead
 of deriving from the monolithic `ElectronAPI` type.
 Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
@@ -1413,6 +1415,8 @@ active-element lookup, document keydown listener target lookup, and browser even
 constructor access from returning to `settingsModal.ts`. Settings modal runtime provider contracts now reuse shared
 browser-runtime timer, animation-frame, HTMLElement, HTML input/select, and keyboard-event aliases instead of spelling
 direct ambient constructor/timer/frame types in the settings modal runtime.
+Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of deriving
+from the monolithic `ElectronAPI` type.
 Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,
 cancellation, and abort-controller creation through `dragDropHandlerRuntime.ts` instead of calling those globals or
 constructing controllers directly in `dragDropHandler.ts`, with runtime adapter tests and architecture coverage

@@ -18,7 +18,7 @@ import {
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
 import { createModalFocusTrap } from "./modals/modalFocusTrap.js";
-import type { ElectronAPI } from "../../shared/preloadApi.js";
+import type { ElectronMenuEventApi } from "../../shared/preloadApi.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -33,7 +33,9 @@ const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-type SettingsModalElectronApi = Partial<Pick<ElectronAPI, "sendThemeChanged">>;
+interface SettingsModalElectronApi {
+    sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
+}
 type SettingsModalOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };

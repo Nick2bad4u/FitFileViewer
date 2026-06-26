@@ -8560,13 +8560,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings modal theme writes on the renderer theme state facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const settingsModalSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
         );
 
         expect(settingsModalSource).toContain("rendererThemeState.js");
+        expect(settingsModalSource).toContain("ElectronMenuEventApi");
+        expect(settingsModalSource).not.toContain("import type { ElectronAPI");
+        expect(settingsModalSource).not.toContain("Pick<ElectronAPI");
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
     });
 
