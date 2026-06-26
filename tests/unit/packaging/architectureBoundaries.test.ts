@@ -5334,7 +5334,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-window list resolution centralized", () => {
-        expect.assertions(7);
+        expect.assertions(13);
 
         const bootstrapMainWindowSource = stripComments(
             readRepositoryFile(
@@ -5351,22 +5351,41 @@ describe("architecture boundaries", () => {
                 "electron-app/main/window/mainWindowSelection.ts"
             )
         );
+        const setupApplicationEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/setupApplicationEventHandlers.ts"
+            )
+        );
         const directGetAllWindowsCalls =
             mainWindowSelectionSource.match(/\.getAllWindows\b/gu) ?? [];
+        const directGetFocusedWindowCalls =
+            mainWindowSelectionSource.match(/\.getFocusedWindow\b/gu) ?? [];
 
         expect(bootstrapMainWindowSource).toContain("./mainWindowSelection.js");
         expect(initializeMainWindowSource).toContain(
             "./mainWindowSelection.js"
         );
+        expect(setupApplicationEventHandlersSource).toContain(
+            "../window/mainWindowSelection.js"
+        );
         expect(bootstrapMainWindowSource).not.toContain("getAllWindows");
         expect(initializeMainWindowSource).not.toContain("getAllWindows");
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            "getAllWindows"
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            "getFocusedWindow"
+        );
         expect(mainWindowSelectionSource).toContain(
             "../runtime/electronAccess.js"
         );
         expect(mainWindowSelectionSource).toContain(
             "resolveExistingMainWindow"
         );
+        expect(mainWindowSelectionSource).toContain("resolveKnownMainWindows");
+        expect(mainWindowSelectionSource).toContain("resolveFocusedMainWindow");
         expect(directGetAllWindowsCalls).toHaveLength(4);
+        expect(directGetFocusedWindowCalls).toHaveLength(2);
     });
 
     it("keeps IPC sender-policy tests on native module imports", () => {

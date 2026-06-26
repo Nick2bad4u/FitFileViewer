@@ -12,6 +12,7 @@ export interface MainWindowBrowserWindowApi<
     TWindow extends MainWindowSelectionWindowLike,
 > {
     getAllWindows?: () => TWindow[];
+    getFocusedWindow?: () => null | TWindow | undefined;
 }
 
 export type MainWindowBrowserWindowConstructor<
@@ -96,6 +97,23 @@ function getWindowsFromBrowserWindowRef<
     return undefined;
 }
 
+export function resolveKnownMainWindows<
+    TWindow extends MainWindowSelectionWindowLike,
+>(
+    BrowserWindow:
+        | MainWindowBrowserWindowApi<TWindow>
+        | MainWindowBrowserWindowConstructor<TWindow>
+        | null
+        | undefined
+): TWindow[] {
+    const runtimeWindows = getElectronWindowsForTests<TWindow>();
+    if (runtimeWindows && runtimeWindows.length > 0) {
+        return runtimeWindows;
+    }
+
+    return getWindowsFromBrowserWindowRef(BrowserWindow) ?? [];
+}
+
 export function resolveExistingMainWindow<
     TWindow extends MainWindowSelectionWindowLike,
 >(
@@ -105,12 +123,36 @@ export function resolveExistingMainWindow<
         | null
         | undefined
 ): TWindow | undefined {
-    let windows = getElectronWindowsForTests<TWindow>();
-    if (!windows || windows.length === 0) {
-        windows = getWindowsFromBrowserWindowRef(BrowserWindow);
-    }
-
+    const windows = resolveKnownMainWindows(BrowserWindow);
     return Array.isArray(windows) && windows.length > 0
         ? windows[0]
         : undefined;
+}
+
+export function resolveFocusedMainWindow<
+    TWindow extends MainWindowSelectionWindowLike,
+>(
+    BrowserWindow:
+        | MainWindowBrowserWindowApi<TWindow>
+        | MainWindowBrowserWindowConstructor<TWindow>
+        | null
+        | undefined
+): TWindow | undefined {
+    if (
+        !BrowserWindow ||
+        typeof (BrowserWindow as MainWindowBrowserWindowApi<TWindow>)
+            .getFocusedWindow !== "function"
+    ) {
+        return undefined;
+    }
+
+    try {
+        return (
+            (
+                BrowserWindow as MainWindowBrowserWindowApi<TWindow>
+            ).getFocusedWindow?.() ?? undefined
+        );
+    } catch {
+        return undefined;
+    }
 }

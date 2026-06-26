@@ -17,6 +17,11 @@ import {
 import { httpRef, path } from "../runtime/nodeModules.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import {
+    resolveFocusedMainWindow,
+    resolveKnownMainWindows,
+    type MainWindowBrowserWindowApi,
+} from "../window/mainWindowSelection.js";
 import { validateWindow } from "../window/windowValidation.js";
 import {
     getProcessArgumentValues,
@@ -30,6 +35,7 @@ import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
 type ThemeWindow = Parameters<typeof getThemeFromRenderer>[0];
 type WindowValidationCandidate = Parameters<typeof validateWindow>[0];
+type AppActivationWindow = NonNullable<WindowValidationCandidate>;
 
 let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
@@ -67,8 +73,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         fromWebContents?: (
             webContents: ElectronWebContents
         ) => ElectronBrowserWindow | null;
-        getAllWindows?: () => unknown[];
-        getFocusedWindow?: () => unknown;
     }
 
     interface DownloadItemLike {
@@ -138,7 +142,8 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
     const appRef = electronAppRef as () => AppLike | undefined;
     const browserWindowRef = electronBrowserWindowRef as () =>
-        | BrowserWindowStaticLike
+        | (BrowserWindowStaticLike &
+              MainWindowBrowserWindowApi<AppActivationWindow>)
         | undefined;
     const dialogRef = electronDialogRef as () => DialogLike | undefined;
     const shellRef = electronShellRef as () => ShellLike | undefined;
@@ -498,7 +503,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
     function hasGyazoOAuthCredentials(): boolean {
         return Boolean(
             getProcessEnvironmentValue("GYAZO_CLIENT_ID") &&
-                getProcessEnvironmentValue("GYAZO_CLIENT_SECRET")
+            getProcessEnvironmentValue("GYAZO_CLIENT_SECRET")
         );
     }
 
@@ -557,17 +562,8 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         registerAppListener("activate", () => {
             try {
                 const BrowserWindow = browserWindowRef();
-                if (
-                    BrowserWindow &&
-                    typeof BrowserWindow.getAllWindows === "function"
-                ) {
-                    const windows = (() => {
-                        try {
-                            return BrowserWindow.getAllWindows?.() ?? [];
-                        } catch {
-                            return [];
-                        }
-                    })();
+                if (BrowserWindow) {
+                    const windows = resolveKnownMainWindows(BrowserWindow);
                     if (Array.isArray(windows) && windows.length === 0) {
                         const win = createWindow() as AppMenuWindow;
                         safeCreateAppMenu(
@@ -577,10 +573,8 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                         );
                     } else {
                         const windowCandidate =
-                            (typeof BrowserWindow.getFocusedWindow ===
-                            "function"
-                                ? BrowserWindow.getFocusedWindow()
-                                : null) ?? getAppState("mainWindow");
+                            resolveFocusedMainWindow(BrowserWindow) ??
+                            getAppState("mainWindow");
                         const win =
                             windowCandidate as WindowValidationCandidate;
                         if (validateWindow(win, "app activate event")) {
@@ -633,8 +627,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         registerAppListener("window-all-closed", () => {
             setAppState("appIsQuitting", true);
             if (
-                getProcessStringValue("platform") !==
-                CONSTANTS.PLATFORMS.DARWIN
+                getProcessStringValue("platform") !== CONSTANTS.PLATFORMS.DARWIN
             ) {
                 const app = appRef();
                 if (app && app.quit) app.quit();
