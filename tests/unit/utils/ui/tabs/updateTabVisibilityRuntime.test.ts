@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import type { UpdateTabVisibilityRuntimeScope } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 import { getUpdateTabVisibilityRuntime } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 
@@ -77,12 +83,12 @@ describe("getUpdateTabVisibilityRuntime", () => {
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
         const timeoutMs = Number.parseInt("180", 10);
-        const timer = 33 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrameMock = vi.fn<
-            typeof globalThis.requestAnimationFrame
-        >(() => 12);
+        const timer = 33 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrameMock = vi.fn<BrowserRequestAnimationFrame>(
+            () => 12
+        );
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrameMock);

@@ -1,23 +1,23 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDocument,
     getBrowserRequestAnimationFrame,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type UpdateTabVisibilityTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type UpdateTabVisibilityTimerHandle = BrowserTimerHandle | number;
 type UpdateTabVisibilityClearTimeout = (
     handle: UpdateTabVisibilityTimerHandle
-) => void;
-type UpdateTabVisibilityRequestAnimationFrame = (
-    callback: FrameRequestCallback
-) => number;
+) => ReturnType<BrowserClearTimeout>;
+type UpdateTabVisibilityRequestAnimationFrame = BrowserRequestAnimationFrame;
 type UpdateTabVisibilitySetTimeout = (
     callback: () => void,
     timeout?: number
-) => UpdateTabVisibilityTimerHandle;
+) => ReturnType<BrowserSetTimeout> | number;
 
 export interface UpdateTabVisibilityRuntimeScope {
     readonly getClearTimeout?:
