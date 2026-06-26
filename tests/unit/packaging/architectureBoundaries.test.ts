@@ -1071,6 +1071,8 @@ const tabStateManagerTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|log|warn)\s*=/u;
 const enableTabButtonsTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:log|warn)\s*=/u;
+const enableTabButtonsTestDirectWindowFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\.window\b|\bsetTestGlobal\(\s*["']window["']|\bglobalThis\.window\b|\bglobal\.window\b/u;
 const chartStatusIndicatorTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.error\s*=/u;
 const directChartConstructorGlobalPattern =
@@ -25543,6 +25545,20 @@ describe("architecture boundaries", () => {
 
         expect(
             enableTabButtonsTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/enableTabButtons.behavior.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-button behavior tests off direct window fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            enableTabButtonsTestDirectWindowFixturePattern.test(
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/enableTabButtons.behavior.test.ts"
