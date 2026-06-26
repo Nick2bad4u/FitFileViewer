@@ -5,6 +5,7 @@ import {
     type BrowserMutationObserverConstructor,
     getBrowserAbortController,
     getBrowserDocument,
+    getBrowserEventTarget,
     getBrowserHTMLElement,
     getBrowserKeyboardEvent,
     getBrowserMutationObserver,
@@ -139,28 +140,11 @@ function getMutationObserverConstructor(
     return MutationObserverConstructor;
 }
 
-function isAddFullScreenButtonEventTarget(
-    value: unknown
-): value is AddFullScreenButtonEventTarget {
-    if (value === null || typeof value !== "object") {
-        return false;
-    }
-
-    const candidate = value as Partial<AddFullScreenButtonEventTarget>;
-    return (
-        typeof candidate.addEventListener === "function" &&
-        typeof candidate.removeEventListener === "function"
-    );
-}
-
 const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
         getDocument: getBrowserDocument,
-        getGlobalEventTarget: () =>
-            isAddFullScreenButtonEventTarget(globalThis)
-                ? globalThis
-                : undefined,
+        getGlobalEventTarget: getBrowserEventTarget,
         getHTMLElement: getBrowserHTMLElement,
         getKeyboardEvent: getBrowserKeyboardEvent,
         getMutationObserver: getBrowserMutationObserver,

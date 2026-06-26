@@ -11,6 +11,7 @@ import type {
 
 describe("getAddFullScreenButtonRuntime", () => {
     afterEach(() => {
+        document.body.classList.remove("app-has-file");
         document.body.replaceChildren();
     });
 
@@ -188,6 +189,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     it("reads fullscreen button state through the injected document runtime", () => {
         expect.assertions(8);
 
+        document.body.classList.remove("app-has-file");
         document.body.replaceChildren();
         const documentRef = document;
         const runtime = getAddFullScreenButtonRuntime({
@@ -235,12 +237,17 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("uses browser runtime providers for production browser defaults", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const runtime = getAddFullScreenButtonRuntime();
         const button = runtime.createElement("button");
         const observer = runtime.createMutationObserver(vi.fn());
+        const listener = vi.fn();
 
+        runtime.addWindowEventListener("fullscreenchange", listener);
+        globalThis.dispatchEvent(new Event("fullscreenchange"));
+        runtime.removeWindowEventListener("fullscreenchange", listener);
+        globalThis.dispatchEvent(new Event("fullscreenchange"));
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
         expect(runtime.getDocument()).toBe(document);
         expect(runtime.isHTMLElement(button)).toBe(true);
@@ -252,6 +259,7 @@ describe("getAddFullScreenButtonRuntime", () => {
         runtime.appendToBody(button);
 
         expect(document.body.contains(button)).toBe(true);
+        expect(listener).toHaveBeenCalledOnce();
     });
 
     it("creates mutation observers and checks keyboard events through injected constructors", () => {
