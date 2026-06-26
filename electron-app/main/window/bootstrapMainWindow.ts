@@ -12,7 +12,6 @@ type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
 
 interface WebContentsLike {
-    executeJavaScript?: (script: string) => Promise<unknown>;
     isDestroyed?: () => boolean;
     on: (
         event: "did-finish-load",
@@ -56,7 +55,7 @@ interface BootstrapMainWindowOptions {
         | undefined;
     CONSTANTS: { DEFAULT_THEME: string };
     getAppState: BootstrapMainWindowGetAppState;
-    getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
+    getPersistedThemePreference: () => Promise<string>;
     logWithContext: LogWithContext;
     resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike | null>;
     safeCreateAppMenu: (
@@ -80,11 +79,10 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
-function createFallbackWindow(defaultTheme: string): MainWindowLike {
+function createFallbackWindow(): MainWindowLike {
     return {
         isDestroyed: () => false,
         webContents: {
-            executeJavaScript: () => Promise.resolve(defaultTheme),
             isDestroyed: () => false,
             on: () => {},
             send: () => {},
@@ -101,7 +99,7 @@ export function bootstrapMainWindow({
     setAppState,
     safeCreateAppMenu,
     CONSTANTS,
-    getThemeFromRenderer,
+    getPersistedThemePreference,
     sendToRenderer,
     resolveAutoUpdaterAsync,
     setupAutoUpdater,
@@ -120,7 +118,7 @@ export function bootstrapMainWindow({
             /* Ignore errors */
         }
 
-        mainWindow ??= createFallbackWindow(CONSTANTS.DEFAULT_THEME);
+        mainWindow ??= createFallbackWindow();
     } else {
         mainWindow = createWindow();
     }
@@ -158,8 +156,8 @@ export function bootstrapMainWindow({
         }
 
         try {
-            const theme = await getThemeFromRenderer(mainWindow);
-            logWithContext("info", "Retrieved theme from renderer", {
+            const theme = await getPersistedThemePreference();
+            logWithContext("info", "Retrieved persisted theme preference", {
                 theme,
             });
             safeCreateAppMenu(
@@ -171,7 +169,7 @@ export function bootstrapMainWindow({
         } catch (error) {
             logWithContext(
                 "warn",
-                "Failed to get theme from renderer, using fallback",
+                "Failed to get persisted theme preference, using fallback",
                 {
                     error: getErrorMessage(error),
                 }

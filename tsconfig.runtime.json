@@ -136,7 +136,7 @@
         "electron-app/main/security/ipcSenderPolicy.ts",
         "electron-app/main/security/setupBlockedRequests.ts",
         "electron-app/main/state/appState.ts",
-        "electron-app/main/theme/getThemeFromRenderer.ts",
+        "electron-app/main/theme/getPersistedThemePreference.ts",
         "electron-app/main/window/windowValidation.ts",
         "electron-app/main/window/bootstrapMainWindow.ts",
         "electron-app/main/window/initializeMainWindow.ts",

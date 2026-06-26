@@ -339,7 +339,7 @@ const expectedMainExportKeys = [
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
     "getAppState",
-    "getThemeFromRenderer",
+    "getPersistedThemePreference",
     "initializeApplication",
     "isWindowUsable",
     "logWithContext",

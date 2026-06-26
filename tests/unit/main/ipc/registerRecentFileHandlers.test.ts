@@ -54,7 +54,7 @@ describe("registerRecentFileHandlers", () => {
             loadRecentFiles: () => ["C:/a.fit"],
             browserWindowRef: () => null,
             mainWindow: null,
-            getThemeFromRenderer: async () => "dark",
+            getPersistedThemePreference: async () => "dark",
             safeCreateAppMenu: () => void 0,
             getAppState: () => null,
             logWithContext: (level, message, context) => {
@@ -106,7 +106,7 @@ describe("registerRecentFileHandlers", () => {
             loadRecentFiles: () => ["C:/a.fit"],
             browserWindowRef: () => null,
             mainWindow: null,
-            getThemeFromRenderer: async () => "dark",
+            getPersistedThemePreference: async () => "dark",
             safeCreateAppMenu: () => void 0,
             getAppState: () => null,
             logWithContext: () => void 0,
@@ -209,7 +209,7 @@ describe("registerRecentFileHandlers", () => {
                 getFocusedWindow: () => focusedWindow as never,
             }),
             getAppState: () => "C:/loaded.fit",
-            getThemeFromRenderer: async () => "auto",
+            getPersistedThemePreference: async () => "auto",
             loadRecentFiles: () => [...recentFiles],
             safeCreateAppMenu: (...args) => {
                 menuCalls.push(args);

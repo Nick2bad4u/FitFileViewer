@@ -17,13 +17,8 @@ function normalizeThemePreference(theme: unknown): string {
 
 /**
  * Fetches the persisted theme from the main-process settings store.
- *
- * The helper keeps its historical name while callers migrate, but it no longer
- * executes renderer JavaScript or reads renderer localStorage.
  */
-export async function getThemeFromRenderer(
-    _win?: null | unknown
-): Promise<string> {
+export async function getPersistedThemePreference(): Promise<string> {
     try {
         const conf = createElectronConf<ThemePreferenceStore>({
             name: CONSTANTS.SETTINGS_CONFIG_NAME,
@@ -41,4 +36,4 @@ export async function getThemeFromRenderer(
     }
 }
 
-export default { getThemeFromRenderer };
+export default { getPersistedThemePreference };

@@ -51,7 +51,7 @@ interface RegisterDialogHandlersOptions {
     browserWindowRef: () => BrowserWindowApi | null | undefined;
     CONSTANTS: DialogConstants;
     dialogRef: () => DialogApi | null | undefined;
-    getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
+    getPersistedThemePreference: () => Promise<string>;
     logWithContext?: LogWithContext;
     mainWindow?: BrowserWindow | null | undefined;
     registerIpcHandle: RegisterDialogIpcHandle;
@@ -74,7 +74,7 @@ export function registerDialogHandlers({
     CONSTANTS,
     addRecentFile,
     browserWindowRef,
-    getThemeFromRenderer,
+    getPersistedThemePreference,
     safeCreateAppMenu,
     logWithContext,
     mainWindow,
@@ -136,11 +136,11 @@ export function registerDialogHandlers({
                 );
                 if (
                     win &&
-                    typeof getThemeFromRenderer === "function" &&
+                    typeof getPersistedThemePreference === "function" &&
                     typeof safeCreateAppMenu === "function"
                 ) {
                     try {
-                        const theme = await getThemeFromRenderer(win);
+                        const theme = await getPersistedThemePreference();
                         // Do NOT treat a dialog selection as a "loaded" file.
                         // We only set loadedFitFilePath when the renderer confirms
                         // a successful load via the "fit-file-loaded" IPC event.

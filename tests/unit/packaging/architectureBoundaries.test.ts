@@ -2929,7 +2929,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(250);
+        expect.assertions(252);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -2960,9 +2960,9 @@ describe("architecture boundaries", () => {
         const exposeDevHelpersSource = stripComments(
             readRepositoryFile("electron-app/main/dev/exposeDevHelpers.ts")
         );
-        const getThemeFromRendererSource = stripComments(
+        const getPersistedThemePreferenceSource = stripComments(
             readRepositoryFile(
-                "electron-app/main/theme/getThemeFromRenderer.ts"
+                "electron-app/main/theme/getPersistedThemePreference.ts"
             )
         );
         const setupAutoUpdaterSource = stripComments(
@@ -3151,7 +3151,9 @@ describe("architecture boundaries", () => {
         expect(electronAccessSource).not.toContain("export default");
         expect(sendToRendererSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain("module.exports");
-        expect(getThemeFromRendererSource).not.toContain("module.exports");
+        expect(getPersistedThemePreferenceSource).not.toContain(
+            "module.exports"
+        );
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
         expect(autoUpdaterAccessSource).not.toContain("module.exports");
         expect(autoUpdaterAccessSource).not.toContain("export default");
@@ -3253,7 +3255,7 @@ describe("architecture boundaries", () => {
         expect(exposeDevHelpersSource).not.toContain(
             'require("../state/appState")'
         );
-        expect(getThemeFromRendererSource).not.toContain(
+        expect(getPersistedThemePreferenceSource).not.toContain(
             'require("../window/windowValidation")'
         );
         expect(setupAutoUpdaterSource).not.toContain(
@@ -3371,7 +3373,7 @@ describe("architecture boundaries", () => {
             'require("../ipc/sendToRenderer")'
         );
         expect(initializeApplicationSource).not.toContain(
-            'require("../theme/getThemeFromRenderer")'
+            'require("../theme/getPersistedThemePreference")'
         );
         expect(initializeApplicationSource).not.toContain(
             'require("../updater/setupAutoUpdater")'
@@ -3457,7 +3459,7 @@ describe("architecture boundaries", () => {
             'require("../state/appState")'
         );
         expect(setupIpcHandlersSource).not.toContain(
-            'require("../theme/getThemeFromRenderer")'
+            'require("../theme/getPersistedThemePreference")'
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("../runtime/nodeModules")'
@@ -3487,7 +3489,7 @@ describe("architecture boundaries", () => {
             'require("../oauth/gyazoOAuthServer")'
         );
         expect(setupApplicationEventHandlersSource).not.toContain(
-            'require("../theme/getThemeFromRenderer")'
+            'require("../theme/getPersistedThemePreference")'
         );
         expect(setupApplicationEventHandlersSource).not.toContain(
             'require("../window/windowValidation")'
@@ -3544,17 +3546,19 @@ describe("architecture boundaries", () => {
         expect(windowValidationSource).toContain(
             "export function validateWindow"
         );
-        expect(getThemeFromRendererSource).toContain(
-            "export async function getThemeFromRenderer"
+        expect(getPersistedThemePreferenceSource).toContain(
+            "export async function getPersistedThemePreference"
         );
-        expect(getThemeFromRendererSource).toContain(
+        expect(getPersistedThemePreferenceSource).toContain(
             "../runtime/electronConfAccess.js"
         );
-        expect(getThemeFromRendererSource).not.toContain(
+        expect(getPersistedThemePreferenceSource).not.toContain(
             "../window/windowValidation.js"
         );
-        expect(getThemeFromRendererSource).not.toContain("executeJavaScript");
-        expect(getThemeFromRendererSource).not.toContain("localStorage");
+        expect(getPersistedThemePreferenceSource).not.toContain(
+            "executeJavaScript"
+        );
+        expect(getPersistedThemePreferenceSource).not.toContain("localStorage");
         expect(setupAutoUpdaterSource).toContain(
             "export function setupAutoUpdater"
         );
@@ -3584,6 +3588,8 @@ describe("architecture boundaries", () => {
         expect(initializeMainWindowSource).toContain(
             "export function initializeMainWindow"
         );
+        expect(bootstrapMainWindowSource).not.toContain("executeJavaScript");
+        expect(initializeMainWindowSource).not.toContain("executeJavaScript");
         expect(windowStateUtilsSource).toContain(
             "export function createWindow"
         );

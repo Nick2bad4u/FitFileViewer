@@ -16,7 +16,7 @@ import {
 } from "../runtime/electronAccess.js";
 import { httpRef, path } from "../runtime/nodeModules.js";
 import { getAppState, setAppState } from "../state/appState.js";
-import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import {
     resolveFocusedMainWindow,
     resolveKnownMainWindows,
@@ -33,7 +33,6 @@ import {
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 
 type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
-type ThemeWindow = Parameters<typeof getThemeFromRenderer>[0];
 type WindowValidationCandidate = Parameters<typeof validateWindow>[0];
 type AppActivationWindow = NonNullable<WindowValidationCandidate>;
 
@@ -603,9 +602,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                     CONSTANTS.PLATFORMS.LINUX
                 ) {
                     try {
-                        const theme = await getThemeFromRenderer(
-                            win as ThemeWindow
-                        );
+                        const theme = await getPersistedThemePreference();
                         safeCreateAppMenu(
                             win as AppMenuWindow,
                             theme,

@@ -17,7 +17,7 @@ import { ensureFitParserStateIntegration } from "../runtime/fitParserIntegration
 import { fs, path } from "../runtime/nodeModules.js";
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
 import { getAppState, setAppState } from "../state/appState.js";
-import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import { registerBrowserHandlers } from "./registerBrowserHandlers.js";
 import { registerClipboardHandlers } from "./registerClipboardHandlers.js";
 import { registerDialogHandlers } from "./registerDialogHandlers.js";
@@ -117,7 +117,7 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
         browserWindowRef,
         CONSTANTS,
         dialogRef,
-        getThemeFromRenderer,
+        getPersistedThemePreference,
         logWithContext,
         mainWindow,
         registerIpcHandle,
@@ -128,7 +128,7 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
         addRecentFile,
         browserWindowRef,
         getAppState: getLoadedFitFilePath,
-        getThemeFromRenderer,
+        getPersistedThemePreference,
         loadRecentFiles,
         logWithContext,
         mainWindow,
@@ -206,7 +206,7 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
         );
         if (win) {
             try {
-                const theme = await getThemeFromRenderer(win);
+                const theme = await getPersistedThemePreference();
                 safeCreateAppMenu(win, theme, getLoadedFitFilePath());
             } catch (error) {
                 logWithContext(

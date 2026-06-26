@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CONSTANTS } from "../../../../electron-app/main/constants.js";
 import { createElectronConf } from "../../../../electron-app/main/runtime/electronConfAccess.js";
-import { getThemeFromRenderer } from "../../../../electron-app/main/theme/getThemeFromRenderer.js";
+import { getPersistedThemePreference } from "../../../../electron-app/main/theme/getPersistedThemePreference.js";
 
 vi.mock("../../../../electron-app/main/runtime/electronConfAccess.js", () => ({
     createElectronConf: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock("../../../../electron-app/main/runtime/electronConfAccess.js", () => ({
 
 const createElectronConfMock = vi.mocked(createElectronConf);
 
-describe("getThemeFromRenderer", () => {
+describe("getPersistedThemePreference", () => {
     let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
@@ -28,21 +28,18 @@ describe("getThemeFromRenderer", () => {
     it("reads the persisted theme from main-process settings without renderer JavaScript", async () => {
         expect.assertions(4);
 
-        const executeJavaScript = vi.fn();
         const get = vi.fn<(key: string, fallback: unknown) => unknown>(
             () => " LIGHT "
         );
         createElectronConfMock.mockReturnValue({ get });
 
-        await expect(
-            getThemeFromRenderer({ webContents: { executeJavaScript } })
-        ).resolves.toBe("light");
+        await expect(getPersistedThemePreference()).resolves.toBe("light");
 
         expect(createElectronConfMock).toHaveBeenCalledWith({
             name: CONSTANTS.SETTINGS_CONFIG_NAME,
         });
         expect(get).toHaveBeenCalledWith("theme", CONSTANTS.DEFAULT_THEME);
-        expect(executeJavaScript).not.toHaveBeenCalled();
+        expect(getPersistedThemePreference).toHaveLength(0);
     });
 
     it("normalizes the legacy system theme value to auto", async () => {
@@ -52,7 +49,7 @@ describe("getThemeFromRenderer", () => {
             get: () => "system",
         });
 
-        await expect(getThemeFromRenderer()).resolves.toBe("auto");
+        await expect(getPersistedThemePreference()).resolves.toBe("auto");
     });
 
     it("falls back to the default theme for invalid persisted values", async () => {
@@ -62,7 +59,7 @@ describe("getThemeFromRenderer", () => {
             get: () => "neon",
         });
 
-        await expect(getThemeFromRenderer()).resolves.toBe(
+        await expect(getPersistedThemePreference()).resolves.toBe(
             CONSTANTS.DEFAULT_THEME
         );
     });
@@ -76,7 +73,7 @@ describe("getThemeFromRenderer", () => {
             },
         });
 
-        await expect(getThemeFromRenderer()).resolves.toBe(
+        await expect(getPersistedThemePreference()).resolves.toBe(
             CONSTANTS.DEFAULT_THEME
         );
         expect(consoleErrorSpy).toHaveBeenCalledWith(

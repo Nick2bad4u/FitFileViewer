@@ -29,7 +29,7 @@ export { ensureFitParserStateIntegration } from "./main/runtime/fitParserIntegra
 export { initializeApplication } from "./main/runtime/initializeApplication.js";
 export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 export { getAppState, setAppState } from "./main/state/appState.js";
-export { getThemeFromRenderer } from "./main/theme/getThemeFromRenderer.js";
+export { getPersistedThemePreference } from "./main/theme/getPersistedThemePreference.js";
 export { resolveAutoUpdaterAsync } from "./main/updater/autoUpdaterAccess.js";
 export { setupAutoUpdater } from "./main/updater/setupAutoUpdater.js";
 export {

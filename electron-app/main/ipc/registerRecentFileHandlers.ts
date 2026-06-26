@@ -39,7 +39,7 @@ interface RegisterRecentFileHandlersOptions {
     addRecentFile: (filePath: string) => void;
     browserWindowRef: () => BrowserWindowApi | null | undefined;
     getAppState: (key: "loadedFitFilePath") => string | null | undefined;
-    getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
+    getPersistedThemePreference: () => Promise<string>;
     loadRecentFiles: () => string[];
     logWithContext?: LogWithContext;
     mainWindow?: BrowserWindow | null | undefined;
@@ -63,7 +63,7 @@ export function registerRecentFileHandlers({
     loadRecentFiles,
     browserWindowRef,
     mainWindow,
-    getThemeFromRenderer,
+    getPersistedThemePreference,
     safeCreateAppMenu,
     getAppState,
     logWithContext,
@@ -150,7 +150,7 @@ export function registerRecentFileHandlers({
                 }
 
                 try {
-                    const theme = await getThemeFromRenderer(win);
+                    const theme = await getPersistedThemePreference();
                     safeCreateAppMenu(
                         win,
                         theme,
