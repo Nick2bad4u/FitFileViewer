@@ -1,4 +1,12 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserCancelAnimationFrame,
+    type BrowserClearTimeout,
+    type BrowserElementConstructor,
+    type BrowserHTMLCanvasElementConstructor,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserCancelAnimationFrame,
     getBrowserClearTimeout,
@@ -12,9 +20,7 @@ import {
 
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
-export type ListenersResizeTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type ListenersResizeTimerHandle = BrowserTimerHandle | number;
 
 export interface ListenersResizeRuntimeDocument extends Document {
     readonly mozFullScreenElement?: Element | null | undefined;
@@ -32,41 +38,34 @@ export interface ListenersResizeRuntimeWindow {
         | undefined;
 }
 
-type ListenersResizeElementConstructor = abstract new (
-    ...args: never[]
-) => Element;
+type ListenersResizeElementConstructor = BrowserElementConstructor;
 
 export interface ListenersResizeRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getCancelAnimationFrame?:
-        | (() => ((handle: number) => void) | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => ((handle: ListenersResizeTimerHandle) => void) | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?:
         | (() => ListenersResizeRuntimeDocument | undefined)
         | undefined;
-    readonly getElement?: (() => typeof Element | undefined) | undefined;
+    readonly getElement?:
+        | (() => BrowserElementConstructor | undefined)
+        | undefined;
     readonly getHTMLCanvasElement?:
-        | (() => typeof HTMLCanvasElement | undefined)
+        | (() => BrowserHTMLCanvasElementConstructor | undefined)
         | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => ((callback: FrameRequestCallback) => number) | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
     readonly getResizeTarget?:
         | (() => ListenersResizeRuntimeWindow | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() =>
-              | ((
-                    callback: () => void,
-                    timeout?: number
-                ) => ListenersResizeTimerHandle)
-              | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface ListenersResizeRuntime {
@@ -117,19 +116,19 @@ const defaultListenersResizeRuntimeScope: ListenersResizeRuntimeScope = {
 
 function getAbortController(
     scope: ListenersResizeRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getCancelAnimationFrame(
     scope: ListenersResizeRuntimeScope
-): ((handle: number) => void) | undefined {
+): BrowserCancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
 }
 
 function getClearTimeout(
     scope: ListenersResizeRuntimeScope
-): ((handle: ListenersResizeTimerHandle) => void) | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -141,19 +140,19 @@ function getDocument(
 
 function getElement(
     scope: ListenersResizeRuntimeScope
-): typeof Element | undefined {
+): BrowserElementConstructor | undefined {
     return scope.getElement?.();
 }
 
 function getHTMLCanvasElement(
     scope: ListenersResizeRuntimeScope
-): typeof HTMLCanvasElement | undefined {
+): BrowserHTMLCanvasElementConstructor | undefined {
     return scope.getHTMLCanvasElement?.();
 }
 
 function getRequestAnimationFrame(
     scope: ListenersResizeRuntimeScope
-): ((callback: FrameRequestCallback) => number) | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
@@ -165,9 +164,7 @@ function getResizeTarget(
 
 function getSetTimeout(
     scope: ListenersResizeRuntimeScope
-):
-    | ((callback: () => void, timeout?: number) => ListenersResizeTimerHandle)
-    | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 

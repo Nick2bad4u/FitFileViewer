@@ -17,6 +17,8 @@ export type BrowserHTMLAnchorElementConstructor =
     typeof globalThis.HTMLAnchorElement;
 export type BrowserHTMLButtonElementConstructor =
     typeof globalThis.HTMLButtonElement;
+export type BrowserHTMLCanvasElementConstructor =
+    typeof globalThis.HTMLCanvasElement;
 export type BrowserHTMLInputElementConstructor =
     typeof globalThis.HTMLInputElement;
 export type BrowserHTMLSelectElementConstructor =

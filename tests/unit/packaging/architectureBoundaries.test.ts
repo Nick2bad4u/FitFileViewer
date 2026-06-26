@@ -18451,7 +18451,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(55);
+        expect.assertions(71);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -18485,6 +18485,54 @@ describe("architecture boundaries", () => {
         expect(listenersResizeSource).toContain("createAbortController");
         expect(listenersResizeRuntimeSource).not.toMatch(
             directListenersResizeRuntimeAmbientTimerFallbackPattern
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "ReturnType<typeof globalThis.setTimeout>"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof AbortController | undefined"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof Element | undefined"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof HTMLCanvasElement | undefined"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof globalThis.cancelAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserCancelAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserElementConstructor"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserHTMLCanvasElementConstructor"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "type BrowserTimerHandle"
         );
         expect(listenersResizeRuntimeSource).toContain(
             "defaultListenersResizeRuntimeScope"

@@ -2,8 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     getListenersResizeRuntime,
+    type ListenersResizeTimerHandle,
     type ListenersResizeRuntimeScope,
 } from "../../../../../electron-app/utils/app/lifecycle/listenersResizeRuntime.js";
+import type {
+    BrowserCancelAnimationFrame,
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -59,17 +66,16 @@ describe("getListenersResizeRuntime", () => {
             );
             const addEventListener = vi.fn();
             const animationCallback = vi.fn<FrameRequestCallback>();
-            const cancelAnimationFrame =
-                vi.fn<typeof globalThis.cancelAnimationFrame>();
-            const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+            const cancelAnimationFrame = vi.fn<BrowserCancelAnimationFrame>();
+            const clearTimeout = vi.fn<BrowserClearTimeout>();
             const frameHandle = Number.parseInt("23", 10);
             const timeoutHandle = Number.parseInt("31", 10);
             const timeoutMs = Number.parseInt("80", 10);
-            const requestAnimationFrame = vi.fn<
-                typeof globalThis.requestAnimationFrame
-            >(() => frameHandle);
-            const setTimeout = vi.fn<typeof globalThis.setTimeout>(
-                () => timeoutHandle
+            const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+                () => frameHandle
+            );
+            const setTimeout = vi.fn<BrowserSetTimeout>(
+                () => timeoutHandle as ListenersResizeTimerHandle
             );
             vi.stubGlobal("AbortController", AbortControllerConstructor);
             vi.stubGlobal("addEventListener", addEventListener);

@@ -1001,8 +1001,10 @@ fullscreen resize uses registered chart instances, with architecture coverage pr
 resize listener cleanup now creates abort controllers through `listenersResizeRuntime.ts` instead of
 constructing `AbortController` directly in `listenersResize.ts`, with focused runtime coverage and architecture
 coverage blocking direct resize-listener abort-controller construction from returning. Explicit resize-listener
-runtime scopes must now provide timer primitives instead of falling back to `globalThis`, with focused runtime
-coverage and architecture coverage blocking those fallbacks from returning.
+runtime scopes must now provide timer primitives instead of falling back to `globalThis`, and resize-listener
+controller, element, canvas, timer, and animation-frame contracts reuse shared browser-runtime aliases instead of
+direct ambient type spellings, with focused runtime coverage and architecture coverage blocking those fallbacks from
+returning.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
