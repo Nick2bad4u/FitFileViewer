@@ -4911,7 +4911,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(77);
+        expect.assertions(81);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4980,10 +4980,13 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain("getSecureRandomCrypto");
         expect(exportUtilsRuntimeSource).toContain("getStorage");
         expect(exportUtilsRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "getDocument: getBrowserDocument"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
@@ -4992,7 +4995,16 @@ describe("architecture boundaries", () => {
             "function getGlobalDocument"
         );
         expect(exportUtilsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getStorage: () => getBrowserLocalStorage() ?? null"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "getStorage: () => globalThis.localStorage"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "exportUtils requires a document event-target runtime"

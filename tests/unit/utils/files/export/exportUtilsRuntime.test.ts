@@ -8,6 +8,7 @@ import {
 
 describe("exportUtilsRuntime", () => {
     afterEach(() => {
+        document.body.replaceChildren();
         vi.unstubAllGlobals();
     });
 
@@ -167,14 +168,24 @@ describe("exportUtilsRuntime", () => {
         expect(created).toBe(true);
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production browser defaults", () => {
+        expect.assertions(4);
 
         const runtime = getExportUtilsRuntime();
+        const link = document.createElement("a");
+        const button = document.createElement("button");
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+
+        runtime.appendToBody(link);
+        runtime.appendToBody(button);
+        button.focus();
+
+        expect(document.body.contains(link)).toBe(true);
+        expect(runtime.getActiveElement()).toBe(button);
+        expect(runtime.getStorage()).toBe(localStorage);
     });
 
     it("registers document keydown listeners through the scoped event target", () => {

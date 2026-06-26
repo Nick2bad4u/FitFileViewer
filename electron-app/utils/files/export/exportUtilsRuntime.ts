@@ -1,4 +1,9 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserLocalStorage,
+} from "../../runtime/browserRuntime.js";
 
 type ConfirmDangerousActionFunction = (message?: string) => boolean;
 
@@ -67,8 +72,8 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
             : undefined;
     },
     getAbortController: getBrowserAbortController,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
     getOpenPrintWindow: () => {
         const openPrintWindow = globalThis.open;
         return typeof openPrintWindow === "function"
@@ -77,7 +82,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
             : undefined;
     },
     getSecureRandomCrypto: () => globalThis.crypto,
-    getStorage: () => globalThis.localStorage ?? null,
+    getStorage: () => getBrowserLocalStorage() ?? null,
 };
 
 function getScopeAbortController(
