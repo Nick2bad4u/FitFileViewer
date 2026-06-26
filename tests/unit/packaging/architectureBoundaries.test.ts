@@ -15286,7 +15286,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(27);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -15338,6 +15338,24 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(hrZoneControlsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "(() => typeof HTMLElement | undefined)"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "): typeof HTMLElement"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(hrZoneControlsRuntimeSource).not.toContain(
@@ -15364,7 +15382,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(27);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -15418,6 +15436,24 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "(() => typeof HTMLElement | undefined)"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "): typeof HTMLElement"
         );
         expect(powerZoneControlsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
