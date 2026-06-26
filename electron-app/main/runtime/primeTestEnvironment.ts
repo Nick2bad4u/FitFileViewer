@@ -5,6 +5,7 @@ import {
     getElectronOverride,
     setElectronOverride,
 } from "./electronAccess.js";
+import { isTestEnvironment as isRuntimeTestEnvironment } from "../../utils/runtime/processEnvironment.js";
 import { getAppState, setAppState } from "../state/appState.js";
 
 let clearPrimeTestEnvironmentTimersImpl: (() => void) | undefined;
@@ -86,10 +87,7 @@ type PrimeTestMainWindowLike = {
 
     function isTestEnvironment(): boolean {
         return Boolean(
-            (typeof process !== "undefined" &&
-                process.env &&
-                process.env["NODE_ENV"] === "test") ||
-            hasElectronApis(getElectronOverride())
+            isRuntimeTestEnvironment() || hasElectronApis(getElectronOverride())
         );
     }
 

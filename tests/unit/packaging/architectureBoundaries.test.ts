@@ -2538,7 +2538,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(18);
+        expect.assertions(20);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2579,6 +2579,10 @@ describe("architecture boundaries", () => {
         expect(constantsSource).not.toContain("module.exports");
         expect(gyazoStartupTimerSource).not.toContain("module.exports");
         expect(primeTestEnvironmentSource).not.toContain("module.exports");
+        expect(primeTestEnvironmentSource).not.toContain("process.env");
+        expect(primeTestEnvironmentSource).toContain(
+            "isRuntimeTestEnvironment"
+        );
         expect(primeTestEnvironmentSource).not.toContain(
             'require("../state/appState")'
         );
