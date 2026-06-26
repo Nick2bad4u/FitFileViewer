@@ -170,8 +170,8 @@ describe("getThemeRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
-    it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(3);
+    it("does not borrow ambient timers or storage for explicit scopes", () => {
+        expect.assertions(4);
 
         const utils = getThemeRuntime({});
 
@@ -184,6 +184,32 @@ describe("getThemeRuntime", () => {
         expect(() => utils.createThemeChangeEvent({})).toThrow(
             "theme core requires a CustomEvent runtime"
         );
+        expect(() => utils.getStorageItem("ffv-theme")).toThrow(
+            "theme core requires a localStorage runtime"
+        );
+    });
+
+    it("routes storage through the injected runtime scope", () => {
+        expect.assertions(5);
+
+        const storage = {
+            getItem: vi.fn(() => "dark"),
+            removeItem: vi.fn(),
+            setItem: vi.fn(),
+        };
+        const getLocalStorage = vi.fn(() => storage);
+        const runtime = getThemeRuntime({
+            getLocalStorage,
+        });
+
+        expect(runtime.getStorageItem("ffv-theme")).toBe("dark");
+        runtime.setStorageItem("ffv-theme", "light");
+        runtime.removeStorageItem("fitFileViewer_theme");
+
+        expect(getLocalStorage).toHaveBeenCalledTimes(3);
+        expect(storage.getItem).toHaveBeenCalledWith("ffv-theme");
+        expect(storage.setItem).toHaveBeenCalledWith("ffv-theme", "light");
+        expect(storage.removeItem).toHaveBeenCalledWith("fitFileViewer_theme");
     });
 
     it("creates theme-change events through the injected CustomEvent runtime", () => {

@@ -1259,7 +1259,7 @@ const directListenersResizeRuntimeAmbientTimerFallbackPattern =
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+(?:AbortController|CustomEvent)\b/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|localStorage|matchMedia|setTimeout|window)\b|\blocalStorage\.(?:getItem|removeItem|setItem)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+(?:AbortController|CustomEvent)\b/u;
 const directAccentColorRuntimeGlobalPattern =
     /\bdocument\.(?:body|documentElement)\b|\blocalStorage\.(?:getItem|removeItem|setItem)\b|\binstanceof\s+HTMLElement\b|\btypeof\s+document\b/u;
 const directAccentColorRuntimeAmbientGetterPattern =
@@ -18039,7 +18039,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(87);
+        expect.assertions(96);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -18071,6 +18071,9 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("getDocumentEventTarget");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
         expect(themeCoreSource).toContain("getGlobalEventTarget");
+        expect(themeCoreSource).toContain("getStorageItem");
+        expect(themeCoreSource).toContain("setStorageItem");
+        expect(themeCoreSource).toContain("removeStorageItem");
         expect(themeCoreSource).toContain("addBodyClass");
         expect(themeCoreSource).toContain("removeBodyClasses");
         expect(themeCoreSource).toContain("setThemeDataAttributes");
@@ -18082,6 +18085,7 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).not.toContain("document.querySelector");
         expect(themeCoreSource).not.toContain("document.createElement");
         expect(themeCoreSource).not.toContain("document.head.append");
+        expect(themeCoreSource).not.toContain("localStorage.");
         expect(themeCoreSource).not.toContain("new CustomEvent");
         expect(themeRuntimeSource).toContain("defaultThemeRuntimeScope");
         expect(themeRuntimeSource).not.toContain(
@@ -18137,6 +18141,12 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).toContain(
             "getGlobalEventTarget: getBrowserEventTarget"
         );
+        expect(themeRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(themeRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
+        );
         expect(themeRuntimeSource).not.toContain("readonly AbortController?:");
         expect(themeRuntimeSource).not.toContain("readonly clearTimeout?:");
         expect(themeRuntimeSource).not.toContain("readonly computedStyle?:");
@@ -18145,6 +18155,7 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).not.toContain("readonly CustomEvent?:");
         expect(themeRuntimeSource).not.toContain("readonly document?:");
+        expect(themeRuntimeSource).not.toContain("readonly localStorage?:");
         expect(themeRuntimeSource).not.toMatch(
             /export interface ThemeRuntimeScope \{(?:(?!\n\})[\s\S])*readonly matchMedia\?:/
         );
@@ -18159,6 +18170,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain("scope.CustomEvent");
         expect(themeRuntimeSource).not.toContain("scope.document");
         expect(themeRuntimeSource).not.toContain("scope.globalEventTarget");
+        expect(themeRuntimeSource).not.toContain("scope.localStorage");
         expect(themeRuntimeSource).not.toContain("scope.matchMedia");
         expect(themeRuntimeSource).not.toContain("scope.setTimeout");
         expect(themeRuntimeSource).not.toContain(
@@ -18183,6 +18195,9 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).toContain(
             "theme core requires a document runtime"
+        );
+        expect(themeRuntimeSource).toContain(
+            "theme core requires a localStorage runtime"
         );
         expect(themeRuntimeSource).toContain(
             "const CustomEventConstructor = scope.getCustomEvent?.();"

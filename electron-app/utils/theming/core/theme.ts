@@ -138,13 +138,13 @@ export function applyTheme(theme: string, withTransition = true): void {
 
     // Persist theme preference
     try {
-        localStorage.setItem(THEME_STORAGE_KEY, themePreference);
+        themeRuntime().setStorageItem(THEME_STORAGE_KEY, themePreference);
 
         // If legacy keys exist, migrate them away to avoid future mismatches.
         for (const legacyKey of LEGACY_THEME_STORAGE_KEYS) {
             try {
-                if (localStorage.getItem(legacyKey) !== null) {
-                    localStorage.removeItem(legacyKey);
+                if (themeRuntime().getStorageItem(legacyKey) !== null) {
+                    themeRuntime().removeStorageItem(legacyKey);
                 }
             } catch {
                 // Ignore legacy cleanup failures
@@ -505,19 +505,19 @@ function isRendererThemeApi(value: unknown): value is RendererThemeApi {
  */
 export function loadTheme(): ThemePreference {
     try {
-        const current = localStorage.getItem(THEME_STORAGE_KEY);
+        const current = themeRuntime().getStorageItem(THEME_STORAGE_KEY);
         if (current) {
             return normalizeThemePreference(current);
         }
 
         // Legacy migration: if an older key exists, migrate it into the canonical key.
         for (const legacyKey of LEGACY_THEME_STORAGE_KEYS) {
-            const legacyValue = localStorage.getItem(legacyKey);
+            const legacyValue = themeRuntime().getStorageItem(legacyKey);
             if (legacyValue) {
                 const normalized = normalizeThemePreference(legacyValue);
-                localStorage.setItem(THEME_STORAGE_KEY, normalized);
+                themeRuntime().setStorageItem(THEME_STORAGE_KEY, normalized);
                 try {
-                    localStorage.removeItem(legacyKey);
+                    themeRuntime().removeStorageItem(legacyKey);
                 } catch {
                     /* ignore */
                 }

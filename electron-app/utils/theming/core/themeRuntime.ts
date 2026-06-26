@@ -6,10 +6,12 @@ import {
     getBrowserCustomEvent,
     getBrowserDocument,
     getBrowserEventTarget,
+    getBrowserLocalStorage,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
 export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
+type ThemeRuntimeStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 
 export interface ThemeRuntimeScope {
     readonly getAbortController?:
@@ -26,6 +28,9 @@ export interface ThemeRuntimeScope {
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
+    readonly getLocalStorage?:
+        | (() => ThemeRuntimeStorage | undefined)
+        | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
@@ -44,12 +49,15 @@ export interface ThemeRuntime {
     readonly getBodyElement: () => HTMLElement | null;
     readonly getDocumentEventTarget: () => EventTarget | null;
     readonly getGlobalEventTarget: () => EventTarget | null;
+    readonly getStorageItem: (key: string) => string | null;
     readonly getSystemThemeMediaQuery: () => MediaQueryList | null;
     readonly setTimeout: (
         callback: () => void,
         delayMs: number
     ) => ThemeRuntimeTimer;
     readonly removeBodyClasses: (...classNames: string[]) => void;
+    readonly removeStorageItem: (key: string) => void;
+    readonly setStorageItem: (key: string, value: string) => void;
     readonly setThemeDataAttributes: (theme: string) => void;
     readonly updateMetaThemeColor: (themeColor: string) => void;
 }
@@ -61,6 +69,7 @@ const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getCustomEvent: getBrowserCustomEvent,
     getDocument: getBrowserDocument,
     getGlobalEventTarget: getBrowserEventTarget,
+    getLocalStorage: getBrowserLocalStorage,
     getMatchMedia: getBrowserBoundMatchMedia,
     getSetTimeout: getBrowserSetTimeout,
 };
@@ -111,6 +120,17 @@ function getScopeGlobalEventTarget(
     scope: ThemeRuntimeScope
 ): EventTarget | undefined {
     return scope.getGlobalEventTarget?.();
+}
+
+function getRequiredLocalStorage(
+    scope: ThemeRuntimeScope
+): ThemeRuntimeStorage {
+    const storage = scope.getLocalStorage?.();
+    if (!storage) {
+        throw new TypeError("theme core requires a localStorage runtime");
+    }
+
+    return storage;
 }
 
 function getScopeMatchMedia(
@@ -199,6 +219,9 @@ export function getThemeRuntime(
         getGlobalEventTarget(): EventTarget | null {
             return getScopeGlobalEventTarget(scope) ?? null;
         },
+        getStorageItem(key): string | null {
+            return getRequiredLocalStorage(scope).getItem(key);
+        },
         getSystemThemeMediaQuery(): MediaQueryList | null {
             const matchMedia = getScopeMatchMedia(scope);
             if (typeof matchMedia === "function") {
@@ -217,6 +240,12 @@ export function getThemeRuntime(
         },
         removeBodyClasses(...classNames): void {
             getRequiredDocument(scope).body.classList.remove(...classNames);
+        },
+        removeStorageItem(key): void {
+            getRequiredLocalStorage(scope).removeItem(key);
+        },
+        setStorageItem(key, value): void {
+            getRequiredLocalStorage(scope).setItem(key, value);
         },
         setThemeDataAttributes(theme): void {
             const documentRef = getRequiredDocument(scope);
