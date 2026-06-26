@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserQueueMicrotask,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -7,24 +12,24 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type OpenFileSelectorTimer = ReturnType<typeof globalThis.setTimeout>;
+export type OpenFileSelectorTimer = BrowserTimerHandle;
 
 export interface OpenFileSelectorRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getNavigator?:
         | (() => Pick<Navigator, "userAgent"> | undefined)
         | undefined;
     readonly getQueueMicrotask?:
-        | (() => typeof globalThis.queueMicrotask | undefined)
+        | (() => BrowserQueueMicrotask | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
@@ -52,13 +57,13 @@ function getDocument(scope: OpenFileSelectorRuntimeScope): Document {
 
 function getAbortController(
     scope: OpenFileSelectorRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getRequiredClearTimeout(
     scope: OpenFileSelectorRuntimeScope
-): typeof globalThis.clearTimeout {
+): BrowserClearTimeout {
     const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("openFileSelector requires a clearTimeout runtime");
@@ -75,7 +80,7 @@ function getNavigator(
 
 function getRequiredQueueMicrotask(
     scope: OpenFileSelectorRuntimeScope
-): typeof globalThis.queueMicrotask {
+): BrowserQueueMicrotask {
     const queueMicrotaskRef = scope.getQueueMicrotask?.();
     if (typeof queueMicrotaskRef !== "function") {
         throw new TypeError(
@@ -88,7 +93,7 @@ function getRequiredQueueMicrotask(
 
 function getRequiredSetTimeout(
     scope: OpenFileSelectorRuntimeScope
-): typeof globalThis.setTimeout {
+): BrowserSetTimeout {
     const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("openFileSelector requires a setTimeout runtime");

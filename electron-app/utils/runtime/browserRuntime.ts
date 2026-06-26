@@ -14,6 +14,7 @@ export type BrowserMutationObserverConstructor =
     typeof globalThis.MutationObserver;
 export type BrowserNodeFilter = typeof globalThis.NodeFilter;
 export type BrowserNodeConstructor = typeof globalThis.Node;
+export type BrowserQueueMicrotask = typeof globalThis.queueMicrotask;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;

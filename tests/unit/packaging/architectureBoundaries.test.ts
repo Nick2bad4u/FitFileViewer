@@ -16767,7 +16767,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(41);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -16804,6 +16804,24 @@ describe("architecture boundaries", () => {
         );
         expect(openFileSelectorRuntimeSource).toContain(
             "defaultOpenFileSelectorRuntimeScope"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "type BrowserQueueMicrotask"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(openFileSelectorRuntimeSource).not.toContain(
             "scope: OpenFileSelectorRuntimeScope = globalThis"
