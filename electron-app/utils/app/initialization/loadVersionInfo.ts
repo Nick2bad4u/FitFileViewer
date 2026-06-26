@@ -12,21 +12,11 @@ import {
     type LoadVersionInfoRuntime,
 } from "./loadVersionInfoRuntime.js";
 import { type SystemInfoField, updateSystemInfo } from "./updateSystemInfo.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronAppInfoApi } from "../../../shared/preloadApi.js";
 
 type VersionSystemInfo = Record<SystemInfoField, string>;
 
-type VersionInfoElectronAPI = Partial<
-    Pick<
-        ElectronAPI,
-        | "getAppVersion"
-        | "getChromeVersion"
-        | "getElectronVersion"
-        | "getLicenseInfo"
-        | "getNodeVersion"
-        | "getPlatformInfo"
-    >
->;
+type VersionInfoElectronAPI = Partial<ElectronAppInfoApi>;
 
 type VersionInfoSource = "electronAPI" | "fallback";
 
@@ -109,8 +99,7 @@ function getFallbackSystemInfo(): VersionSystemInfo {
     const architecture = getProcessStringValue("arch");
 
     if (electronVersion || nodeVersion || chromeVersion) {
-        systemInfo.electron =
-            electronVersion ?? DEFAULT_VALUES.electron;
+        systemInfo.electron = electronVersion ?? DEFAULT_VALUES.electron;
         systemInfo.node = nodeVersion ?? DEFAULT_VALUES.node;
         systemInfo.chrome = chromeVersion ?? DEFAULT_VALUES.chrome;
 

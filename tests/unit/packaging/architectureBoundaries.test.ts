@@ -16800,7 +16800,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(20);
+        expect.assertions(23);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -16897,6 +16897,11 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoSource).not.toContain(
             "value as Record<string, unknown>"
         );
+        expect(loadVersionInfoSource).toContain("ElectronAppInfoApi");
+        expect(loadVersionInfoSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(loadVersionInfoSource).not.toContain("Pick<ElectronAPI");
         expect(recentFilesContextMenuSource).not.toContain(
             "value as Partial<RecentFilesElectronApi>"
         );
@@ -19013,7 +19018,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(27);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -19045,6 +19050,11 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(loadVersionInfoSource).toContain("loadVersionInfoRuntime.js");
         expect(loadVersionInfoSource).toContain("processEnvironment.js");
+        expect(loadVersionInfoSource).toContain("ElectronAppInfoApi");
+        expect(loadVersionInfoSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(loadVersionInfoSource).not.toContain("Pick<ElectronAPI");
         expect(loadVersionInfoSource).not.toContain("process.arch");
         expect(loadVersionInfoSource).not.toContain("process.platform");
         expect(loadVersionInfoSource).not.toContain("process.versions");
