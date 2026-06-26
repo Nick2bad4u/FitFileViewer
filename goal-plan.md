@@ -402,6 +402,8 @@ Setup theme fetch IPC candidate typing now uses the shared theme API-domain cont
 monolithic `ElectronAPI` type.
 Core theme live theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
 deriving from the monolithic `ElectronAPI` type.
+Menu IPC listener candidate typing now uses the shared menu-event API-domain contract instead of deriving from the
+monolithic `ElectronAPI` type.
 Show FIT data file-loaded notification candidate typing now uses the shared preload-event API-domain contract instead
 of deriving from the monolithic `ElectronAPI` type.
 Renderer state integration file-opened IPC candidate typing now uses the shared preload-event API-domain contract

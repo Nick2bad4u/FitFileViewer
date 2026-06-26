@@ -3,7 +3,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronMenuEventApi } from "../../../shared/preloadApi.js";
 
 type MenuSendChannel = "menu-export" | "menu-save-as";
 
@@ -18,7 +18,7 @@ type MenuEventMethodName =
 
 type MenuElectronAPI = Partial<
     Pick<
-        ElectronAPI,
+        ElectronMenuEventApi,
         | "installUpdate"
         | MenuEventMethodName
         | "requestExport"
