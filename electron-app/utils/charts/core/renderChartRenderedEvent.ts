@@ -13,7 +13,7 @@ interface RenderedEventSummary {
     visibleFieldCount: number;
 }
 
-function hasRenderableGlobalData(): boolean {
+function hasRenderableActiveFitChartData(): boolean {
     return hasActiveFitChartData();
 }
 
@@ -32,7 +32,7 @@ export function emitChartsRenderedEvent(
     try {
         const chartsRenderedEvent = new EventConstructor("chartsRendered", {
             detail: {
-                hasData: hasRenderableGlobalData(),
+                hasData: hasRenderableActiveFitChartData(),
                 renderTime: summary.renderTime,
                 settings: dependencies.getState("charts.chartOptions"),
                 timestamp: dependencies.now(),

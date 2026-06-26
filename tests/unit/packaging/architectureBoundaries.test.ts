@@ -685,7 +685,7 @@ const directGlobalDataStateReadPattern =
     /\b(?:getState|getStateMgr\(\)\.getState|stateManager\.getState)\(\s*["']globalData["']\s*\)/u;
 const directGlobalDataStateWritePattern =
     /\b(?:setState|getStateMgr\(\)\.setState|stateManager\.setState)\(\s*["']globalData["']\s*,/u;
-const runtimeGlobalDataMentionPattern = /\bglobalData\b/u;
+const runtimeGlobalDataMentionPattern = /\b(?:globalData|GlobalData)\b/u;
 const legacyStateHistoryStatePathPattern = /["']__stateHistory["']/u;
 const directFitFileRawDataSelectorPattern =
     /\bFitFileSelectors\.getRawData\(\)/u;
