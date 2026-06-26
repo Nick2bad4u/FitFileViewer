@@ -500,6 +500,8 @@ focused runtime coverage and architecture coverage blocking that direct controll
 Map theme toggle runtime provider types now use shared browser-runtime constructor and timer aliases instead of
 direct ambient browser constructor/timer types, with architecture coverage blocking those direct type surfaces from
 returning.
+Update-map-theme AbortController and HTMLElement provider contracts now also reuse shared browser-runtime constructor
+aliases instead of direct ambient constructor type spellings.
 Core theme transition-class removal scheduling, system-theme media-query lookup, theme-change window target access,
 and system-theme listener abort-controller creation now route through `themeRuntime.ts` instead of probing
 `globalThis.window`, probing `globalThis.matchMedia`, calling timer globals, or constructing `AbortController`
@@ -521,6 +523,8 @@ theme CustomEvent construction and legacy direct CustomEvent scope properties fr
 Accent color target lookup and persisted color storage access now route through `accentColorRuntime.ts` instead of
 probing `document`, `HTMLElement`, or `localStorage` directly inside `accentColor.ts`, with focused runtime/behavior
 coverage and architecture coverage blocking those direct browser/storage calls from returning.
+Accent color runtime HTMLElement provider contracts now also reuse the shared browser-runtime constructor alias instead
+of a direct ambient constructor type spelling.
 Show FIT data post-load map-container detection, scroll availability checks, reduced-motion media queries,
 microtask scheduling, and scroll calls now route through `showFitDataRuntime.ts` instead of probing `document`,
 `globalThis.scrollTo`, `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with

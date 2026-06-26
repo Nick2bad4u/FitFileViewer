@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserLocalStorage,
@@ -9,7 +10,7 @@ type AccentColorDocument = Pick<Document, "body" | "documentElement">;
 export interface AccentColorRuntimeScope {
     readonly getDocument?: (() => AccentColorDocument | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getStorage?: (() => Storage | undefined) | undefined;
 }
@@ -33,7 +34,7 @@ function getDocument(
 
 function getHTMLElement(
     scope: AccentColorRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 

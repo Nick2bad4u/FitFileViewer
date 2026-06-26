@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserEventTarget,
@@ -9,14 +11,14 @@ type UpdateMapThemeEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface UpdateMapThemeRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getBeforeUnloadTarget?:
         | (() => UpdateMapThemeEventTarget | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -55,7 +57,7 @@ const defaultUpdateMapThemeRuntimeScope: UpdateMapThemeRuntimeScope = {
 
 function getAbortController(
     scope: UpdateMapThemeRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
@@ -71,7 +73,7 @@ function getDocument(scope: UpdateMapThemeRuntimeScope): Document | undefined {
 
 function getHTMLElement(
     scope: UpdateMapThemeRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 

@@ -19343,7 +19343,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const violations = migratedAccentColorRuntimeFiles
             .filter((relativeFile) =>
@@ -19383,6 +19383,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(accentColorRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(accentColorRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
         expect(accentColorRuntimeSource).toContain(
@@ -19411,6 +19414,10 @@ describe("architecture boundaries", () => {
         );
         expect(accentColorRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
+        );
+        expect(accentColorRuntimeSource).not.toContain("): typeof HTMLElement");
+        expect(accentColorRuntimeSource).not.toContain(
+            "| (() => typeof HTMLElement | undefined)"
         );
         expect(accentColorRuntimeScopeSource).not.toContain(
             "readonly localStorage?:"
@@ -19824,7 +19831,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(30);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -19852,6 +19859,12 @@ describe("architecture boundaries", () => {
         );
         expect(updateMapThemeRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
         );
         expect(updateMapThemeRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
@@ -19894,6 +19907,18 @@ describe("architecture boundaries", () => {
         );
         expect(updateMapThemeRuntimeSource).not.toContain(
             "readonly HTMLElement?:"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "): typeof HTMLElement"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "| (() => typeof HTMLElement | undefined)"
         );
         expect(updateMapThemeRuntimeSource).not.toContain(
             "scope.AbortController"
