@@ -14105,7 +14105,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(21);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -14162,10 +14162,28 @@ describe("architecture boundaries", () => {
         expect(hrZoneControlsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
+        );
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(21);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -14226,10 +14244,28 @@ describe("architecture boundaries", () => {
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
+        );
     });
 
     it("keeps simple power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(21);
 
         const violations = migratedCreatePowerZoneControlsSimpleRuntimeFiles
             .filter((relativeFile) =>
@@ -14289,6 +14325,24 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
         );
     });
 

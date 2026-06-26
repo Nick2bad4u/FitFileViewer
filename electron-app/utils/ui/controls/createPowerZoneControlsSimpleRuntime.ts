@@ -1,4 +1,9 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserLocalStorage,
+} from "../../runtime/browserRuntime.js";
 
 type PowerZoneControlsSimpleStorage = Pick<Storage, "getItem" | "setItem">;
 
@@ -29,9 +34,9 @@ export interface PowerZoneControlsSimpleRuntime {
 const defaultPowerZoneControlsSimpleRuntimeScope: PowerZoneControlsSimpleRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getLocalStorage: () => globalThis.localStorage,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
+        getLocalStorage: getBrowserLocalStorage,
     };
 
 function getScopeDocument(

@@ -4,6 +4,7 @@ import { getHRZoneControlsRuntime } from "../../../../../electron-app/utils/ui/c
 
 describe("getHRZoneControlsRuntime", () => {
     afterEach(() => {
+        document.body.replaceChildren();
         vi.unstubAllGlobals();
     });
 

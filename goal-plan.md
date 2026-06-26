@@ -403,6 +403,10 @@ document-window fallbacks, with focused runtime coverage and architecture guardr
 fallbacks from returning. Production defaults now reuse shared browser runtime providers for AbortController,
 timers, CustomEvent, dispatch, document, and input constructor lookups instead of local inline `globalThis`
 getters.
+HR, detailed power, and simple power zone control DOM creation, element checks, storage access, and listener
+abort-controller creation now route through their focused zone-control runtime facades; production defaults reuse
+shared browser runtime providers for AbortController, document, HTMLElement, and localStorage lookups instead of
+local inline `globalThis` getters, with focused runtime coverage and architecture guardrails blocking regression.
 Field-toggle individual and bulk chart re-render requests now resolve the chart state manager through
 `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with fallback requests still
 going through the chart-actions registry and render-request event path.

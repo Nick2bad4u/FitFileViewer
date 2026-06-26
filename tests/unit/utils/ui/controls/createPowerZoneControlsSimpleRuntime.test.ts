@@ -4,6 +4,7 @@ import { getPowerZoneControlsSimpleRuntime } from "../../../../../electron-app/u
 
 describe("getPowerZoneControlsSimpleRuntime", () => {
     afterEach(() => {
+        document.body.replaceChildren();
         vi.unstubAllGlobals();
     });
 
