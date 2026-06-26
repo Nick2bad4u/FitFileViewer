@@ -892,6 +892,8 @@ const directVitestHTMLElementGlobalBridgePattern =
 const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
 const directVitestWindowConsoleAssignmentPattern = /\bwindow\.console\s*=/u;
+const directVitestGlobalSetupWindowConsolePattern =
+    /\bglobalThis\.window\b|\bObject\.defineProperty\(\s*globalThis\.window\s*,\s*["']console["']/u;
 const directVitestEnvConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|warn)\s*=/u;
 const directVitestProcessNextTickSetupAssignmentPattern =
@@ -26663,6 +26665,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWindowConsoleAssignments).toStrictEqual([]);
+    });
+
+    it("keeps Vitest global setup off window console patching", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/globalSetup.mjs"];
+        const directGlobalSetupWindowConsolePatches = scannedFiles
+            .filter((relativeFile) =>
+                directVitestGlobalSetupWindowConsolePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directGlobalSetupWindowConsolePatches).toStrictEqual([]);
     });
 
     it("keeps Vitest env setup console filters descriptor-scoped", () => {

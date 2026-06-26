@@ -1495,6 +1495,8 @@ App-domain renderer facade subscription event timestamps now route through `appD
 clock reads and legacy direct runtime scope properties from returning.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
+Vitest global setup now only installs the early `globalThis.console` fallback and leaves browser `window.console`
+alignment to per-worker setup, with architecture coverage blocking setup-level `globalThis.window` console patching.
 Vitest setup now aligns `window.console` through the descriptor-scoped `setConsoleObject()` helper instead of
 assigning `window.console` directly, with architecture coverage blocking that setup-level console assignment.
 Vitest env setup now installs jsdom warning filters through a descriptor-scoped helper instead of assigning

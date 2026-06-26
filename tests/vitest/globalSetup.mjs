@@ -45,17 +45,6 @@ export default async function globalSetup() {
                 value: baseConsole,
             });
         }
-        if (
-            typeof globalThis.window !== "undefined" &&
-            !globalThis.window.console
-        ) {
-            Object.defineProperty(globalThis.window, "console", {
-                configurable: true,
-                enumerable: true,
-                writable: true,
-                value: globalThis.console || baseConsole,
-            });
-        }
     } catch {
         // ignore
     }
