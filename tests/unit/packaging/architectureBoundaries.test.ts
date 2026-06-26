@@ -2749,7 +2749,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(36);
+        expect.assertions(39);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2785,6 +2785,15 @@ describe("architecture boundaries", () => {
         );
         expect(mainProcessStateManagerSource).not.toContain("performance.now");
         expect(mainProcessStateManagerSource).not.toContain("Date.now");
+        expect(mainProcessStateManagerSource).toContain(
+            "../../logging/loggingTimestampRuntime.js"
+        );
+        expect(mainProcessStateManagerSource).toContain(
+            "loggingTimestampRuntime().isoNow()"
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            "new Date().toISOString()"
+        );
         expect(mainProcessStateManagerSource).toContain("dateNowMs");
         expect(mainProcessStateManagerSource).toContain(
             "return mainProcessStateRuntime().dateNow();"

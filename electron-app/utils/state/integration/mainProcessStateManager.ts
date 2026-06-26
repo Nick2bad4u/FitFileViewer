@@ -20,6 +20,7 @@ import {
 } from "../../../shared/mainStatePathPolicy.js";
 import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
 import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
+import { loggingTimestampRuntime } from "../../logging/loggingTimestampRuntime.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import {
     getMainProcessStateRuntime,
@@ -1403,7 +1404,7 @@ function logWithContext(
 ): void {
     const contextStr =
             Object.keys(context).length > 0 ? JSON.stringify(context) : "",
-        timestamp = new Date().toISOString();
+        timestamp = loggingTimestampRuntime().isoNow();
     // Narrowed level union keeps TS happy accessing console methods
     console[level](
         `[${timestamp}] [mainProcessStateManager] ${message}`,
