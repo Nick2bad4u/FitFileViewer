@@ -40,6 +40,55 @@ describe("preload environment helpers", () => {
         }).toStrictEqual({ electron: false });
     });
 
+    it("ignores malformed preload process environment shapes", () => {
+        expect.assertions(4);
+
+        expect(
+            preloadEnvironment.isPreloadDevelopmentMode({
+                env: null,
+            })
+        ).toBe(false);
+        expect(
+            preloadEnvironment.isPreloadDevelopmentMode({
+                env: "development",
+            })
+        ).toBe(false);
+        expect(
+            preloadEnvironment.isPreloadElectronRuntime({
+                versions: null,
+            })
+        ).toBe(false);
+        expect(
+            preloadEnvironment.isPreloadElectronRuntime({
+                versions: "31.0.0",
+            })
+        ).toBe(false);
+    });
+
+    it("fails closed when preload process accessors throw", () => {
+        expect.assertions(2);
+
+        const throwingEnvironmentProcess = {
+            get env() {
+                throw new Error("env unavailable");
+            },
+        };
+        const throwingVersionsProcess = {
+            get versions() {
+                throw new Error("versions unavailable");
+            },
+        };
+
+        expect(
+            preloadEnvironment.isPreloadDevelopmentMode(
+                throwingEnvironmentProcess
+            )
+        ).toBe(false);
+        expect(
+            preloadEnvironment.isPreloadElectronRuntime(throwingVersionsProcess)
+        ).toBe(false);
+    });
+
     it("enforces generic IPC allowlist in Electron regardless of environment bypasses", () => {
         expect.assertions(3);
 

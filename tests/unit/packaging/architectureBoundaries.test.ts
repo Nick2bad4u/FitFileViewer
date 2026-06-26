@@ -2318,6 +2318,26 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload environment policy on focused process fields", () => {
+        expect.assertions(5);
+
+        const preloadEnvironmentSource = stripComments(
+            readRepositoryFile("electron-app/preload/environment.ts")
+        );
+
+        expect(preloadEnvironmentSource).toContain(
+            "interface PreloadProcessEnvironment"
+        );
+        expect(preloadEnvironmentSource).toContain(
+            "interface PreloadProcessVersions"
+        );
+        expect(preloadEnvironmentSource).toContain("getProcessNodeEnvironment");
+        expect(preloadEnvironmentSource).not.toContain("Reflect.get(");
+        expect(preloadEnvironmentSource).not.toContain(
+            "Record<string, unknown>"
+        );
+    });
+
     it("keeps preload event API factories on named source exports", () => {
         const eventApiFactoryExports = [
             [

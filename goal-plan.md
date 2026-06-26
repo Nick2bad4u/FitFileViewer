@@ -1712,6 +1712,9 @@ of a direct ambient constructor type, with architecture coverage blocking that t
 Renderer runtime environment listener and timer contracts now reuse shared `browserRuntime.ts` listener/timer aliases
 instead of spelling direct `Window[...]` method types, with architecture coverage blocking those direct type spellings
 from returning.
+Preload environment policy checks now read `NODE_ENV` and Electron runtime markers through focused process-shape
+contracts instead of generic `Reflect.get` probes, and malformed preload process shapes fail closed for development-mode
+and generic IPC allowlist checks.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
