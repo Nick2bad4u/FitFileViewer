@@ -1,3 +1,8 @@
+import {
+    getBrowserGlobalProperty,
+    setBrowserGlobalProperty,
+} from "./browserRuntime.js";
+
 /**
  * Reads process environment values through a defensive runtime boundary.
  *
@@ -80,11 +85,11 @@ export function getProcessCurrentWorkingDirectory(): string | undefined {
 }
 
 export function getRuntimeProcess(): unknown {
-    return getRuntimeProperty(globalThis, "process");
+    return getBrowserGlobalProperty("process");
 }
 
 export function setRuntimeProcess(processValue: unknown): void {
-    setRuntimeProperty(globalThis, "process", processValue);
+    setBrowserGlobalProperty("process", processValue);
 }
 
 function getRuntimeProperty(target: object, propertyKey: string): unknown {
@@ -92,28 +97,6 @@ function getRuntimeProperty(target: object, propertyKey: string): unknown {
         return Reflect.get(target, propertyKey);
     } catch {
         return undefined;
-    }
-}
-
-function setRuntimeProperty(
-    target: object,
-    propertyKey: string,
-    value: unknown
-): void {
-    try {
-        if (Reflect.set(target, propertyKey, value)) {
-            const currentValue = Reflect.get(target, propertyKey);
-            if (Object.is(currentValue, value)) {
-                return;
-            }
-        }
-        Object.defineProperty(target, propertyKey, {
-            configurable: true,
-            value,
-            writable: true,
-        });
-    } catch {
-        // Browser-like sandboxes may expose read-only runtime globals.
     }
 }
 

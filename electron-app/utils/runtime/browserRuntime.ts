@@ -132,6 +132,27 @@ export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown {
     }
 }
 
+export function setBrowserGlobalProperty(
+    propertyKey: PropertyKey,
+    value: unknown
+): void {
+    try {
+        if (Reflect.set(globalThis, propertyKey, value)) {
+            const currentValue = Reflect.get(globalThis, propertyKey);
+            if (Object.is(currentValue, value)) {
+                return;
+            }
+        }
+        Object.defineProperty(globalThis, propertyKey, {
+            configurable: true,
+            value,
+            writable: true,
+        });
+    } catch {
+        // Browser-like sandboxes may expose read-only runtime globals.
+    }
+}
+
 export function getBrowserElectronApiCandidate(): unknown {
     return getBrowserGlobalProperty("electronAPI");
 }

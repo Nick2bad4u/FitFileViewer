@@ -1455,6 +1455,9 @@ global probe from returning.
 That updater-access runtime now reuses the shared `getBrowserGlobalProperty` boundary instead of carrying a local
 `Reflect.get(globalThis, "vi")` helper, with focused coverage and architecture coverage blocking the local helper from
 returning.
+Process environment runtime access now reuses the shared `getBrowserGlobalProperty` and `setBrowserGlobalProperty`
+boundary for runtime `process` reads and test/install writes instead of owning direct `globalThis` process access or a
+local global-property setter helper, with focused runtime coverage and architecture coverage blocking that drift.
 Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Preload source execution tests now install and restore their temporary development-log console through

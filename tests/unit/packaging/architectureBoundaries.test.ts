@@ -1855,6 +1855,36 @@ describe("architecture boundaries", () => {
         ).toStrictEqual([]);
     });
 
+    it("keeps process runtime get and set behind the browser-global boundary", () => {
+        expect.assertions(6);
+
+        const browserRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
+        );
+        const processEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/runtime/processEnvironment.ts"
+            )
+        );
+
+        expect(browserRuntimeSource).toContain(
+            "export function setBrowserGlobalProperty("
+        );
+        expect(processEnvironmentSource).toContain(
+            "getBrowserGlobalProperty"
+        );
+        expect(processEnvironmentSource).toContain(
+            "setBrowserGlobalProperty"
+        );
+        expect(processEnvironmentSource).toContain(
+            'return getBrowserGlobalProperty("process");'
+        );
+        expect(processEnvironmentSource).toContain(
+            'setBrowserGlobalProperty("process", processValue);'
+        );
+        expect(processEnvironmentSource).not.toContain("globalThis");
+    });
+
     it("keeps preload before-exit tracking off global registries", () => {
         expect.assertions(3);
 

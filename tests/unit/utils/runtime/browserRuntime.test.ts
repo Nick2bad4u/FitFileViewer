@@ -5,6 +5,7 @@ import {
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
     getBrowserGlobalProperty,
+    setBrowserGlobalProperty,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("browserRuntime global property boundary", () => {
@@ -40,5 +41,41 @@ describe("browserRuntime global property boundary", () => {
         });
 
         expect(getBrowserGlobalProperty("ffvThrowingGlobal")).toBeUndefined();
+    });
+
+    it("sets named global properties through the shared boundary", () => {
+        expect.assertions(2);
+
+        const value = { enabled: true };
+
+        vi.stubGlobal("ffvRuntimeShim", undefined);
+        setBrowserGlobalProperty("ffvRuntimeShim", value);
+
+        expect(getBrowserGlobalProperty("ffvRuntimeShim")).toBe(value);
+        expect(globalThis).toHaveProperty("ffvRuntimeShim", value);
+    });
+
+    it("ignores writes when a global property setter throws", () => {
+        expect.assertions(2);
+
+        vi.stubGlobal("ffvReadonlyRuntimeShim", undefined);
+        Object.defineProperty(globalThis, "ffvReadonlyRuntimeShim", {
+            configurable: true,
+            get() {
+                return undefined;
+            },
+            set() {
+                throw new Error("runtime shim is read-only");
+            },
+        });
+
+        expect(() => {
+            setBrowserGlobalProperty("ffvReadonlyRuntimeShim", {
+                enabled: true,
+            });
+        }).not.toThrow();
+        expect(
+            getBrowserGlobalProperty("ffvReadonlyRuntimeShim")
+        ).toBeUndefined();
     });
 });
