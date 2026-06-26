@@ -9394,7 +9394,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(170);
+        expect.assertions(172);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9588,7 +9588,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).toContain(
             "const title = scope.getDocumentTitle?.() ?? getScopeDocument(scope)?.title;"
         );
-        expect(uiStateManagerRuntimeSource).toContain(
+        expect(uiStateManagerRuntimeSource).not.toContain(
             'typeof globalThis.addEventListener === "function"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -9661,6 +9661,12 @@ describe("architecture boundaries", () => {
             "documentRef.title = title;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "getEventTarget: getBrowserViewportEventTarget"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getViewportState: getBrowserViewportState"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "getViewportState: () => globalThis"
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -14609,7 +14615,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(32);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -14706,6 +14712,9 @@ describe("architecture boundaries", () => {
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(panelControllerRuntimeSource).toContain(
+            "getViewport: getBrowserViewportEventTarget"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
             "getViewport: () => globalThis"
         );
     });
@@ -18423,7 +18432,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(51);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -18494,12 +18503,15 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
+            "getViewport: getBrowserViewport"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "getViewport: getGlobalViewport"
         );
-        expect(chartStatusIndicatorRuntimeSource).toContain(
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "height: getViewportNumber(globalThis.innerHeight)"
         );
-        expect(chartStatusIndicatorRuntimeSource).toContain(
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "width: getViewportNumber(globalThis.innerWidth)"
         );
         expect(chartStatusIndicatorRuntimeSource).not.toContain(

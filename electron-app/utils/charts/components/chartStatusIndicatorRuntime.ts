@@ -5,6 +5,7 @@ import {
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserSetTimeout,
+    getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
 
 export type ChartStatusIndicatorTimerHandle = ReturnType<
@@ -85,19 +86,8 @@ const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope 
         getDocument: getBrowserDocument,
         getHTMLElement: getBrowserHTMLElement,
         getSetTimeout: getBrowserSetTimeout,
-        getViewport: getGlobalViewport,
+        getViewport: getBrowserViewport,
     };
-
-function getGlobalViewport(): ChartStatusIndicatorViewport {
-    return {
-        height: getViewportNumber(globalThis.innerHeight),
-        width: getViewportNumber(globalThis.innerWidth),
-    };
-}
-
-function getViewportNumber(value: unknown): number {
-    return typeof value === "number" ? value : 0;
-}
 
 function getAbortControllerConstructor(
     scope: ChartStatusIndicatorRuntimeScope

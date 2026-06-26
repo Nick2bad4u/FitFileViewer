@@ -139,6 +139,14 @@ export function getBrowserEventTarget(): EventTarget | undefined {
     return globalThis;
 }
 
+export function getBrowserViewportEventTarget():
+    | (Pick<Window, "addEventListener" | "innerHeight" | "innerWidth">)
+    | undefined {
+    return typeof globalThis.addEventListener === "function"
+        ? globalThis
+        : undefined;
+}
+
 export function getBrowserEvent(): typeof globalThis.Event | undefined {
     return globalThis.Event;
 }
@@ -362,4 +370,22 @@ export function getBrowserViewport():
         height: globalThis.innerHeight,
         width: globalThis.innerWidth,
     };
+}
+
+export function getBrowserViewportState():
+    | (Partial<
+          Pick<
+              Window,
+              | "innerHeight"
+              | "innerWidth"
+              | "outerHeight"
+              | "outerWidth"
+              | "screenX"
+              | "screenY"
+          >
+      > & {
+          readonly screen?: Pick<Screen, "availHeight" | "availWidth">;
+      })
+    | undefined {
+    return globalThis;
 }

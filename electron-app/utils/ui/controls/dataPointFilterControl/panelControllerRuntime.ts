@@ -4,6 +4,7 @@ import {
     getBrowserDocument,
     getBrowserNode,
     getBrowserRequestAnimationFrame,
+    getBrowserViewportEventTarget,
 } from "../../../runtime/browserRuntime.js";
 
 export type DataPointFilterPanelAnimationFrameHandle = number;
@@ -160,7 +161,7 @@ const defaultDataPointFilterPanelControllerRuntimeScope: DataPointFilterPanelCon
         getDocument: getBrowserDocument,
         getNode: getBrowserNode,
         getRequestAnimationFrame: getBrowserRequestAnimationFrame,
-        getViewport: () => globalThis,
+        getViewport: getBrowserViewportEventTarget,
     };
 
 export function getDataPointFilterPanelControllerRuntime(

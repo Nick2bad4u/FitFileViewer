@@ -8,6 +8,8 @@ import {
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserMatchMedia,
+    getBrowserViewportEventTarget,
+    getBrowserViewportState,
 } from "../../runtime/browserRuntime.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
@@ -160,13 +162,10 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getDateNow: getBrowserDateNow,
     getAbortController: getBrowserAbortController,
     getDocument: getBrowserDocument,
-    getEventTarget: () =>
-        typeof globalThis.addEventListener === "function"
-            ? globalThis
-            : undefined,
+    getEventTarget: getBrowserViewportEventTarget,
     getHTMLElement: getBrowserHTMLElement,
     getMatchMedia: getBrowserMatchMedia,
-    getViewportState: () => globalThis,
+    getViewportState: getBrowserViewportState,
 };
 
 function getAbortControllerConstructor(
