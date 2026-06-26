@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserCustomEventConstructor,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserCustomEvent,
@@ -8,9 +12,7 @@ import {
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
-export type MapThemeToggleTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type MapThemeToggleTimerHandle = BrowserTimerHandle | number;
 
 type MapThemeToggleSetTimeout = (
     callback: () => void,
@@ -19,13 +21,13 @@ type MapThemeToggleSetTimeout = (
 
 export interface MapThemeToggleRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getSetTimeout?:
@@ -62,7 +64,7 @@ export interface MapThemeToggleRuntime {
 
 function getCustomEventConstructor(
     scope: MapThemeToggleRuntimeScope
-): typeof CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("mapThemeToggle requires a CustomEvent runtime");

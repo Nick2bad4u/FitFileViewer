@@ -471,6 +471,9 @@ instead of reading `document.body.classList` inside `createMapThemeToggle.ts`, w
 and architecture coverage blocking that direct body read from returning. Map theme update listener cleanup now creates its abort controller through
 `updateMapThemeRuntime.ts` instead of constructing `AbortController` directly inside `updateMapTheme.ts`, with
 focused runtime coverage and architecture coverage blocking that direct controller construction from returning.
+Map theme toggle runtime provider types now use shared browser-runtime constructor and timer aliases instead of
+direct ambient browser constructor/timer types, with architecture coverage blocking those direct type surfaces from
+returning.
 Core theme transition-class removal scheduling, system-theme media-query lookup, theme-change window target access,
 and system-theme listener abort-controller creation now route through `themeRuntime.ts` instead of probing
 `globalThis.window`, probing `globalThis.matchMedia`, calling timer globals, or constructing `AbortController`

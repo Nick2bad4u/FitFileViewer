@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getMapThemeToggleRuntime } from "../../../../../electron-app/utils/theming/specific/mapThemeToggleRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getMapThemeToggleRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -223,9 +228,9 @@ describe("getMapThemeToggleRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("50");
-        const timer = 19 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 19 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapThemeToggleRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -243,9 +248,9 @@ describe("getMapThemeToggleRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("50");
-        const timer = 20 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 20 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         vi.stubGlobal("setTimeout", setTimeout);
         vi.stubGlobal("clearTimeout", clearTimeout);
         const runtime = getMapThemeToggleRuntime();
@@ -265,9 +270,9 @@ describe("getMapThemeToggleRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapThemeToggle requires a setTimeout runtime"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapThemeToggle requires a clearTimeout runtime");
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "mapThemeToggle requires a clearTimeout runtime"
+        );
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
@@ -285,8 +290,8 @@ describe("getMapThemeToggleRuntime", () => {
         const button = documentRef.createElement("button");
         button.className = "map-theme-toggle";
         documentRef.body.append(button);
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapThemeToggleRuntime({
             AbortController: TestAbortController,
             clearTimeout,
@@ -325,9 +330,9 @@ describe("getMapThemeToggleRuntime", () => {
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "mapThemeToggle requires a setTimeout runtime"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapThemeToggle requires a clearTimeout runtime");
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "mapThemeToggle requires a clearTimeout runtime"
+        );
         expect(controllerCount).toBe(0);
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
