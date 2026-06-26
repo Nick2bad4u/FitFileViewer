@@ -1,10 +1,11 @@
 import {
     getBrowserAbortController,
+    getBrowserBoundMatchMedia,
     getBrowserClearTimeout,
     getBrowserComputedStyle,
     getBrowserCustomEvent,
     getBrowserDocument,
-    getBrowserMatchMedia,
+    getBrowserEventTarget,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
@@ -53,29 +54,14 @@ export interface ThemeRuntime {
     readonly updateMetaThemeColor: (themeColor: string) => void;
 }
 
-function isEventTarget(candidate: unknown): candidate is EventTarget {
-    return (
-        candidate !== null &&
-        typeof candidate === "object" &&
-        "addEventListener" in candidate &&
-        typeof candidate.addEventListener === "function" &&
-        "removeEventListener" in candidate &&
-        typeof candidate.removeEventListener === "function"
-    );
-}
-
-function getDefaultEventTarget(): EventTarget | undefined {
-    return isEventTarget(globalThis) ? globalThis : undefined;
-}
-
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
     getComputedStyle: getBrowserComputedStyle,
     getCustomEvent: getBrowserCustomEvent,
     getDocument: getBrowserDocument,
-    getGlobalEventTarget: getDefaultEventTarget,
-    getMatchMedia: () => getBrowserMatchMedia()?.bind(globalThis),
+    getGlobalEventTarget: getBrowserEventTarget,
+    getMatchMedia: getBrowserBoundMatchMedia,
     getSetTimeout: getBrowserSetTimeout,
 };
 

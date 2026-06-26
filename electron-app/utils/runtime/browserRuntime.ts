@@ -141,9 +141,7 @@ export function getBrowserDocument(): Document | undefined {
     return globalThis.document;
 }
 
-export function getBrowserDOMParser():
-    | typeof globalThis.DOMParser
-    | undefined {
+export function getBrowserDOMParser(): typeof globalThis.DOMParser | undefined {
     return globalThis.DOMParser;
 }
 
@@ -156,7 +154,7 @@ export function getBrowserEventTarget(): EventTarget | undefined {
 }
 
 export function getBrowserViewportEventTarget():
-    | (Pick<Window, "addEventListener" | "innerHeight" | "innerWidth">)
+    | Pick<Window, "addEventListener" | "innerHeight" | "innerWidth">
     | undefined {
     return typeof globalThis.addEventListener === "function"
         ? globalThis
@@ -267,6 +265,14 @@ export function getBrowserMatchMedia():
     | typeof globalThis.matchMedia
     | undefined {
     return globalThis.matchMedia;
+}
+
+export function getBrowserBoundMatchMedia():
+    | typeof globalThis.matchMedia
+    | undefined {
+    return typeof globalThis.matchMedia === "function"
+        ? globalThis.matchMedia.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserPerformance(): Performance | undefined {
