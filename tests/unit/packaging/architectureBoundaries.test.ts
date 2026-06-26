@@ -1267,7 +1267,7 @@ const directAccentColorRuntimeAmbientGetterPattern =
 const directThemeCoreRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directSetupThemeRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|localStorage|setTimeout)\b|\blocalStorage\.(?:getItem|removeItem|setItem)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directSetupThemeRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
@@ -18310,7 +18310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(30);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -18332,6 +18332,10 @@ describe("architecture boundaries", () => {
         expect(setupThemeSource).toContain("setupThemeRuntime.js");
         expect(setupThemeSource).toContain("type SetupThemeRuntime");
         expect(setupThemeSource).toContain("return getSetupThemeRuntime();");
+        expect(setupThemeSource).toContain("getStorageItem");
+        expect(setupThemeSource).toContain("setStorageItem");
+        expect(setupThemeSource).toContain("removeStorageItem");
+        expect(setupThemeSource).not.toContain("localStorage.");
         expect(setupThemeSource).not.toContain(
             "const setupThemeRuntime = getSetupThemeRuntime();"
         );
@@ -18350,8 +18354,14 @@ describe("architecture boundaries", () => {
         expect(setupThemeRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
+        expect(setupThemeRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
         expect(setupThemeRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(setupThemeRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
         );
         expect(setupThemeRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
@@ -18367,11 +18377,18 @@ describe("architecture boundaries", () => {
         expect(setupThemeRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
         );
+        expect(setupThemeRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
         expect(setupThemeRuntimeSource).not.toContain("readonly setTimeout?:");
         expect(setupThemeRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(setupThemeRuntimeSource).not.toContain("scope.localStorage");
         expect(setupThemeRuntimeSource).not.toContain("scope.setTimeout");
         expect(setupThemeRuntimeSource).toContain(
             "const setTimeoutRef = getScopeSetTimeout(scope);"
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "setupThemeRuntime requires localStorage"
         );
     });
 

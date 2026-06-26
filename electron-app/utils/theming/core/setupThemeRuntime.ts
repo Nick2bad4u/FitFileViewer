@@ -1,13 +1,18 @@
 import {
     getBrowserClearTimeout,
+    getBrowserLocalStorage,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
 export type SetupThemeTimer = ReturnType<typeof globalThis.setTimeout>;
+type SetupThemeStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 
 export interface SetupThemeRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getLocalStorage?:
+        | (() => SetupThemeStorage | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
@@ -16,11 +21,15 @@ export interface SetupThemeRuntimeScope {
 
 export interface SetupThemeRuntime {
     clearTimeout: (timer: SetupThemeTimer) => void;
+    getStorageItem: (key: string) => string | null;
+    removeStorageItem: (key: string) => void;
     setTimeout: (callback: () => void, delayMs: number) => SetupThemeTimer;
+    setStorageItem: (key: string, value: string) => void;
 }
 
 const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
+    getLocalStorage: getBrowserLocalStorage,
     getSetTimeout: getBrowserSetTimeout,
 };
 
@@ -28,6 +37,17 @@ function getScopeClearTimeout(
     scope: SetupThemeRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getRequiredLocalStorage(
+    scope: SetupThemeRuntimeScope
+): SetupThemeStorage {
+    const storage = scope.getLocalStorage?.();
+    if (!storage) {
+        throw new TypeError("setupThemeRuntime requires localStorage");
+    }
+
+    return storage;
 }
 
 function getScopeSetTimeout(
@@ -48,6 +68,12 @@ export function getSetupThemeRuntime(
 
             clearTimeoutRef(timer);
         },
+        getStorageItem(key): string | null {
+            return getRequiredLocalStorage(scope).getItem(key);
+        },
+        removeStorageItem(key): void {
+            getRequiredLocalStorage(scope).removeItem(key);
+        },
         setTimeout(callback, delayMs): SetupThemeTimer {
             const setTimeoutRef = getScopeSetTimeout(scope);
             if (typeof setTimeoutRef !== "function") {
@@ -55,6 +81,9 @@ export function getSetupThemeRuntime(
             }
 
             return setTimeoutRef(callback, delayMs);
+        },
+        setStorageItem(key, value): void {
+            getRequiredLocalStorage(scope).setItem(key, value);
         },
     };
 }

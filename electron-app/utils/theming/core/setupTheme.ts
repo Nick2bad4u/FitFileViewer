@@ -103,7 +103,7 @@ export async function setupTheme(
         // Fallback to localStorage if main process fails
         if (theme === THEME_CONSTANTS.DEFAULT_THEME && config.useLocalStorage) {
             try {
-                const storedTheme = localStorage.getItem(
+                const storedTheme = setupThemeRuntime().getStorageItem(
                     THEME_CONSTANTS.STORAGE_KEY
                 );
                 const normalizedStored = normalizeThemeValue(storedTheme);
@@ -112,18 +112,18 @@ export async function setupTheme(
                     logWithContext(`Using stored theme: ${theme}`);
                 } else {
                     // Legacy migration: fitFileViewer_theme -> ffv-theme
-                    const legacyTheme = localStorage.getItem(
+                    const legacyTheme = setupThemeRuntime().getStorageItem(
                         THEME_CONSTANTS.LEGACY_STORAGE_KEY
                     );
                     const normalizedLegacy = normalizeThemeValue(legacyTheme);
                     if (normalizedLegacy) {
                         theme = normalizedLegacy;
                         try {
-                            localStorage.setItem(
+                            setupThemeRuntime().setStorageItem(
                                 THEME_CONSTANTS.STORAGE_KEY,
                                 normalizedLegacy
                             );
-                            localStorage.removeItem(
+                            setupThemeRuntime().removeStorageItem(
                                 THEME_CONSTANTS.LEGACY_STORAGE_KEY
                             );
                         } catch {
@@ -218,13 +218,19 @@ function applyAndTrackTheme(
 
         // Store in localStorage for persistence
         try {
-            localStorage.setItem(THEME_CONSTANTS.STORAGE_KEY, resolvedTheme);
+            setupThemeRuntime().setStorageItem(
+                THEME_CONSTANTS.STORAGE_KEY,
+                resolvedTheme
+            );
             // Clean up legacy key if present (best effort)
             if (
-                localStorage.getItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY) !==
-                null
+                setupThemeRuntime().getStorageItem(
+                    THEME_CONSTANTS.LEGACY_STORAGE_KEY
+                ) !== null
             ) {
-                localStorage.removeItem(THEME_CONSTANTS.LEGACY_STORAGE_KEY);
+                setupThemeRuntime().removeStorageItem(
+                    THEME_CONSTANTS.LEGACY_STORAGE_KEY
+                );
             }
         } catch (storageError) {
             logWithContext(
