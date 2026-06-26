@@ -22141,7 +22141,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(55);
+        expect.assertions(64);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -22209,6 +22209,33 @@ describe("architecture boundaries", () => {
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "ReturnType<typeof globalThis.setTimeout>"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController | undefined"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame | undefined"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "ChartHoverEffectsSetTimeout"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

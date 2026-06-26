@@ -6,6 +6,12 @@ import {
     CHART_HOVER_EFFECTS_SVG_NAMESPACE,
     getChartHoverEffectsRuntime,
 } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getChartHoverEffectsRuntime", () => {
     afterEach(() => {
@@ -23,7 +29,7 @@ describe("getChartHoverEffectsRuntime", () => {
         );
         const runtime = getChartHoverEffectsRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -102,7 +108,7 @@ describe("getChartHoverEffectsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("600");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 23);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 23);
         const runtime = getChartHoverEffectsRuntime({
             getSetTimeout: () => setTimeout,
         });
@@ -117,8 +123,8 @@ describe("getChartHoverEffectsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("600");
-        const timer = 43 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const timer = 43 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
 
         vi.stubGlobal("setTimeout", setTimeout);
 
@@ -361,7 +367,7 @@ describe("getChartHoverEffectsRuntime", () => {
             callback(Number("125"));
             return 29;
         });
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>();
         const runtime = getChartHoverEffectsRuntime({
             getRequestAnimationFrame: () => requestAnimationFrame,
             getSetTimeout: () => setTimeout,
@@ -379,7 +385,7 @@ describe("getChartHoverEffectsRuntime", () => {
     it("falls back to the timer runtime when waiting without animation frames", async () => {
         expect.assertions(3);
 
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>((callback) => {
+        const setTimeout = vi.fn<BrowserSetTimeout>((callback) => {
             callback();
             return 31;
         });
@@ -413,10 +419,10 @@ describe("getChartHoverEffectsRuntime", () => {
             AbortController,
             document: documentEventTarget,
             documentEventTarget,
-            requestAnimationFrame: vi.fn<
-                (callback: FrameRequestCallback) => number
-            >(() => 37),
-            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => 41),
+            requestAnimationFrame: vi.fn<BrowserRequestAnimationFrame>(
+                () => 37
+            ),
+            setTimeout: vi.fn<BrowserSetTimeout>(() => 41),
         } as unknown as ChartHoverEffectsRuntimeScope;
         const runtime = getChartHoverEffectsRuntime(legacyScope);
 

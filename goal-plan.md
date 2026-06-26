@@ -395,6 +395,9 @@ fullscreen cleanup abort-controller creation through `addChartHoverEffectsRuntim
 animation-frame/timer globals or constructing `AbortController` directly inside `addChartHoverEffects.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct scheduling/controller globals from
 returning.
+Chart hover timer, AbortController, and animation-frame provider contracts now reuse shared browser-runtime aliases
+instead of direct ambient type spellings, with architecture coverage blocking those direct provider type spellings
+from returning.
 Chart listener lifecycle abort-controller creation now routes through `chartListenerStateRuntime.ts`, and explicit
 runtime scopes must provide their controller instead of falling back to `globalThis.AbortController`, with focused
 runtime coverage and architecture guardrails blocking the ambient controller fallback from returning.

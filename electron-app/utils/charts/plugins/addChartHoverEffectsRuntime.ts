@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserRequestAnimationFrame,
@@ -7,14 +11,8 @@ import {
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
-export type ChartHoverEffectsTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type ChartHoverEffectsTimerHandle = BrowserTimerHandle | number;
 
-type ChartHoverEffectsSetTimeout = (
-    callback: () => void,
-    timeout: number
-) => ChartHoverEffectsTimerHandle;
 type ChartHoverEffectsDocumentListener =
     | EventListener
     | Readonly<EventListenerObject>;
@@ -24,16 +22,14 @@ type ChartHoverEffectsKeydownListener = (
 
 export interface ChartHoverEffectsRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => ChartHoverEffectsSetTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface ChartHoverEffectsRuntime {
@@ -76,7 +72,7 @@ const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
 
 function getRequiredSetTimeout(
     scope: ChartHoverEffectsRuntimeScope
-): ChartHoverEffectsSetTimeout {
+): BrowserSetTimeout {
     const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("chart hover effects require a setTimeout runtime");
