@@ -1911,13 +1911,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload before-exit tracking off global registries", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const source = stripComments(
             readRepositoryFile("electron-app/preload/beforeExitHandler.ts")
         );
 
         expect(source).toContain("new WeakMap<");
+        expect(source).toContain("new WeakSet<BeforeExitCallback>");
+        expect(source).not.toContain("Reflect.set(");
         expect(source).not.toContain("Symbol.for");
         expect(source).not.toContain("__ffv_preload_beforeExitRegistry__");
     });

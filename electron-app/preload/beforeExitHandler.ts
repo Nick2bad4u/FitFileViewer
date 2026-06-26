@@ -8,11 +8,10 @@ type BeforeExitCallback = (
 
 type BeforeExitListener = BeforeExitCallback & {
     listener?: unknown;
-    readonly [key: symbol]: unknown;
 };
 
-const BEFORE_EXIT_LISTENER_SYMBOL = Symbol("ffv.preload.beforeExitListener");
 const beforeExitRegistry = new WeakMap<NodeJS.Process, BeforeExitCallback>();
+const trackedBeforeExitWrappers = new WeakSet<BeforeExitCallback>();
 
 function getRegisteredBeforeExitWrapper(
     processRef: NodeJS.Process,
@@ -49,16 +48,12 @@ function isTrackedBeforeExitListener(
     return (
         listener === handleBeforeExit ||
         listenerRecord.listener === handleBeforeExit ||
-        listenerRecord[BEFORE_EXIT_LISTENER_SYMBOL] === true
+        trackedBeforeExitWrappers.has(listenerRecord)
     );
 }
 
 function markBeforeExitWrapper(storedWrapper: BeforeExitCallback): void {
-    try {
-        Reflect.set(storedWrapper, BEFORE_EXIT_LISTENER_SYMBOL, true);
-    } catch {
-        // Ignore if wrapper is not extensible.
-    }
+    trackedBeforeExitWrappers.add(storedWrapper);
 }
 
 function pruneTrackedBeforeExitListeners(

@@ -57,6 +57,8 @@ The preload catalog and API assembly context helpers (`ipcBridgeCatalog.ts` and 
 use named source exports too.
 The preload before-exit, development-tools, and Electron API exposure helpers (`beforeExitHandler.ts`,
 `developmentToolsGlobal.ts`, and `electronApiExposure.ts`) now use named source exports too.
+Preload before-exit listener tracking now stays in module-local `WeakMap`/`WeakSet` state instead of mutating Node
+listener wrappers with symbol marker properties.
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.
