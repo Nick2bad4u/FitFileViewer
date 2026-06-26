@@ -18,8 +18,7 @@ describe("rendererVendorMapRuntime", () => {
 
         expect(utils.hasDocumentElement()).toBe(true);
         utils.setDocumentElementStyleProperty("--ffv-runtime-test", "1");
-        utils.deleteTemporaryLeafletGlobal("L");
-        utils.deleteTemporaryLeafletGlobal("Leaflet");
+        utils.removeTemporaryLeafletGlobals();
 
         expect(
             document.documentElement.style.getPropertyValue(
@@ -63,8 +62,7 @@ describe("rendererVendorMapRuntime", () => {
                 deleteGlobalProperty,
             });
 
-        utils.deleteTemporaryLeafletGlobal("L");
-        utils.deleteTemporaryLeafletGlobal("Leaflet");
+        utils.removeTemporaryLeafletGlobals();
 
         expect(deleteGlobalProperty).toHaveBeenNthCalledWith(1, "L");
         expect(deleteGlobalProperty).toHaveBeenNthCalledWith(2, "Leaflet");
@@ -79,7 +77,7 @@ describe("rendererVendorMapRuntime", () => {
 
         expect(utils.hasDocumentElement()).toBe(false);
         utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
-        utils.deleteTemporaryLeafletGlobal("L");
+        utils.removeTemporaryLeafletGlobals();
     });
 
     it("ignores legacy direct document and global scope properties", () => {
@@ -101,7 +99,7 @@ describe("rendererVendorMapRuntime", () => {
 
         expect(utils.hasDocumentElement()).toBe(false);
         utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
-        utils.deleteTemporaryLeafletGlobal("L");
+        utils.removeTemporaryLeafletGlobals();
 
         expect(setProperty).not.toHaveBeenCalled();
         expect(Reflect.has(globalScope, "L")).toBe(true);

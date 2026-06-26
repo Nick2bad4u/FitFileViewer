@@ -71,13 +71,6 @@ function installMinimapToggleIcon(runtime: RendererVendorMapRuntime): void {
     );
 }
 
-function removeTemporaryLeafletGlobals(
-    runtime: RendererVendorMapRuntime
-): void {
-    runtime.deleteTemporaryLeafletGlobal("L");
-    runtime.deleteTemporaryLeafletGlobal("Leaflet");
-}
-
 /** Installs the Leaflet runtime and map plugins used by the Map tab. */
 export async function installRendererMapVendorEntry(
     options: RendererVendorMapOptions = {}
@@ -100,7 +93,7 @@ export async function installRendererMapVendorEntry(
     await import("fitfileviewer:leaflet-draw-runtime");
     await import("@maplibre/maplibre-gl-leaflet");
     installLeafletMeasureLite(Leaflet);
-    removeTemporaryLeafletGlobals(runtime);
+    runtime.removeTemporaryLeafletGlobals();
 
     markRendererVendorEntryLoaded("map", {
         map: { leafletRuntime: Leaflet },

@@ -13,8 +13,8 @@ export interface RendererVendorMapRuntimeScope {
 }
 
 export interface RendererVendorMapRuntime {
-    deleteTemporaryLeafletGlobal: (property: "L" | "Leaflet") => void;
     hasDocumentElement: () => boolean;
+    removeTemporaryLeafletGlobals: () => void;
     setDocumentElementStyleProperty: (property: string, value: string) => void;
 }
 
@@ -33,12 +33,13 @@ export function getRendererVendorMapRuntime(
     scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
     return {
-        deleteTemporaryLeafletGlobal(property: "L" | "Leaflet"): void {
-            scope.deleteGlobalProperty?.(property);
-        },
-
         hasDocumentElement(): boolean {
             return getDocument(scope)?.documentElement !== undefined;
+        },
+
+        removeTemporaryLeafletGlobals(): void {
+            scope.deleteGlobalProperty?.("L");
+            scope.deleteGlobalProperty?.("Leaflet");
         },
 
         setDocumentElementStyleProperty(property: string, value: string): void {

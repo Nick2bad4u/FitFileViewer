@@ -23938,7 +23938,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(82);
+        expect.assertions(83);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -24107,7 +24107,8 @@ describe("architecture boundaries", () => {
             "installLeafletPluginCompatibilityGlobal"
         );
         expect(vendorMapEntry).not.toContain('defineMissingGlobal("L"');
-        expect(vendorMapEntry).toContain("deleteTemporaryLeafletGlobal");
+        expect(vendorMapEntry).toContain("removeTemporaryLeafletGlobals");
+        expect(vendorMapEntry).not.toContain("deleteTemporaryLeafletGlobal");
         expect(vendorMapEntry).not.toContain("Reflect.deleteProperty");
         expect(globalDefinitionViolations).toStrictEqual([]);
         expect(viteRendererConfig).toContain(
