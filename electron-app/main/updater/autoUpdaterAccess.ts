@@ -1,3 +1,5 @@
+import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
+
 interface AutoUpdaterLike {
     autoDownload?: boolean;
     checkForUpdatesAndNotify?: () => unknown;
@@ -34,10 +36,7 @@ async function tryResolveVitestMock(): Promise<AutoUpdaterLike | null> {
     if (cachedMockedAutoUpdater) {
         return cachedMockedAutoUpdater;
     }
-    if (
-        typeof process === "undefined" ||
-        process.env["NODE_ENV"] !== "test"
-    ) {
+    if (!isTestEnvironment()) {
         return null;
     }
 
