@@ -20533,7 +20533,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(60);
+        expect.assertions(68);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -20650,7 +20650,22 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "type BrowserAddEventListener"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "type BrowserCancelAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "typeof AbortController | undefined"
         );
         expect(renderSummaryRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -20659,10 +20674,16 @@ describe("architecture boundaries", () => {
             "getAddEventListener: getBrowserAddEventListener"
         );
         expect(renderSummaryRuntimeSource).not.toContain(
+            "typeof globalThis.addEventListener | undefined"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "typeof globalThis.cancelAnimationFrame | undefined"
         );
         expect(renderSummaryRuntimeSource).not.toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
@@ -20681,6 +20702,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame | undefined"
         );
         expect(renderSummaryRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"

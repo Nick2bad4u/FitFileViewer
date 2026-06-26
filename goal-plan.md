@@ -1206,6 +1206,9 @@ returning.
 Render summary filter/table/virtual-row DOM creation and document-fragment creation now also route through
 `renderSummaryRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
 `document.createElement` and `document.createDocumentFragment` calls from returning to `renderSummaryHelpers.ts`.
+Render-summary AbortController, resize listener, and animation-frame provider contracts now reuse shared
+browser-runtime aliases instead of direct ambient constructor/listener/frame type spellings, with architecture
+coverage blocking those direct provider type spellings from returning.
 Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, timer
 clearing, Zwift iframe/status DOM construction, and Zwift iframe load-listener cleanup through
 `tabStateManagerHandlersRuntime.ts` instead of calling those globals, constructing `AbortController`, or creating

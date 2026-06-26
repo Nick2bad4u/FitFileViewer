@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRenderSummaryRuntime } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryRuntime.js";
+import type {
+    BrowserAddEventListener,
+    BrowserCancelAnimationFrame,
+    BrowserRequestAnimationFrame,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getRenderSummaryRuntime", () => {
     afterEach(() => {
@@ -50,14 +55,13 @@ describe("getRenderSummaryRuntime", () => {
                 return controller;
             }
         );
-        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
-        const cancelAnimationFrame =
-            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        const addEventListener = vi.fn<BrowserAddEventListener>();
+        const cancelAnimationFrame = vi.fn<BrowserCancelAnimationFrame>();
         const frameCallback = vi.fn<FrameRequestCallback>();
         const frameHandle = Number("45");
-        const requestAnimationFrame = vi.fn<
-            typeof globalThis.requestAnimationFrame
-        >(() => frameHandle);
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+            () => frameHandle
+        );
         vi.stubGlobal("AbortController", AbortControllerConstructor);
         vi.stubGlobal("addEventListener", addEventListener);
         vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
@@ -350,7 +354,7 @@ describe("getRenderSummaryRuntime", () => {
         }
         const listener = vi.fn<EventListener>();
         const frameCallback = vi.fn<FrameRequestCallback>();
-        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
+        const addEventListener = vi.fn<BrowserAddEventListener>();
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number

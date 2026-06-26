@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserAddEventListener,
+    type BrowserCancelAnimationFrame,
+    type BrowserRequestAnimationFrame,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserCancelAnimationFrame,
@@ -10,27 +14,24 @@ import {
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
-type RenderSummaryStorage = Pick<
-    Storage,
-    "getItem" | "removeItem" | "setItem"
->;
+type RenderSummaryStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 
 export interface RenderSummaryRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
-        | (() => typeof globalThis.addEventListener | undefined)
+        | (() => BrowserAddEventListener | undefined)
         | undefined;
     readonly getCancelAnimationFrame?:
-        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getLocalStorage?:
         | (() => RenderSummaryStorage | undefined)
         | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
 }
 
@@ -68,19 +69,19 @@ const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
 
 function getScopeAbortController(
     scope: RenderSummaryRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getScopeAddEventListener(
     scope: RenderSummaryRuntimeScope
-): typeof globalThis.addEventListener | undefined {
+): BrowserAddEventListener | undefined {
     return scope.getAddEventListener?.();
 }
 
 function getScopeCancelAnimationFrame(
     scope: RenderSummaryRuntimeScope
-): typeof globalThis.cancelAnimationFrame | undefined {
+): BrowserCancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
 }
 
@@ -106,7 +107,7 @@ function getRequiredLocalStorage(
 
 function getScopeRequestAnimationFrame(
     scope: RenderSummaryRuntimeScope
-): typeof globalThis.requestAnimationFrame | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
