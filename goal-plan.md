@@ -686,7 +686,9 @@ scheduling now uses that same runtime instead of falling back to `globalThis`; e
 provide timer primitives, with focused runtime coverage and architecture guardrails blocking direct controller
 construction and ambient timer fallbacks from returning. Map GPX export runtime defaults now live in an explicit
 provider object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of
-direct controller/document/timer/URL properties.
+direct controller/document/timer/URL properties. GPX export runtime provider contracts now reuse shared browser-runtime
+AbortController, setTimeout, timer-handle, and URL constructor aliases instead of spelling direct ambient constructor/timer
+types in the GPX export runtime.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime

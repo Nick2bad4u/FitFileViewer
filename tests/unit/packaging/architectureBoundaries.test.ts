@@ -14247,7 +14247,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(35);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -14316,10 +14316,34 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(createExportGPXButtonRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "type BrowserURLConstructor"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(createExportGPXButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController | undefined"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toMatch(
+            /ReturnType<\s*typeof globalThis\.setTimeout\s*>/u
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout | undefined"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "Pick<\n    typeof URL"
         );
         expect(createExportGPXButtonRuntimeSource).toContain(
             "getDocument: getBrowserDocument"

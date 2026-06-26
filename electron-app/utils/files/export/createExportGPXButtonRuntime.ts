@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
+    type BrowserURLConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserSetTimeout,
@@ -7,22 +11,18 @@ import {
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
-export type CreateExportGPXButtonTimer = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type CreateExportGPXButtonTimer = BrowserTimerHandle;
 type CreateExportGPXButtonURLRuntime = Pick<
-    typeof URL,
+    BrowserURLConstructor,
     "createObjectURL" | "revokeObjectURL"
 >;
 
 export interface CreateExportGPXButtonRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
     readonly getURL?:
         | (() => CreateExportGPXButtonURLRuntime | undefined)
         | undefined;

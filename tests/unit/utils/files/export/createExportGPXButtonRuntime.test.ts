@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+    BrowserURLConstructor,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getCreateExportGPXButtonRuntime,
     type CreateExportGPXButtonRuntimeScope,
@@ -107,10 +112,10 @@ describe("getCreateExportGPXButtonRuntime", () => {
         const runtime = getCreateExportGPXButtonRuntime({
             getSetTimeout:
                 () =>
-                (callback, timeout): ReturnType<typeof setTimeout> => {
+                (callback, timeout): BrowserTimerHandle => {
                     scheduledTimeout = timeout;
                     callback();
-                    return 42 as ReturnType<typeof setTimeout>;
+                    return 42 as BrowserTimerHandle;
                 },
         });
         const cleanupDelayMs = Number.parseInt("100", 10);
@@ -129,8 +134,8 @@ describe("getCreateExportGPXButtonRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const cleanupDelayMs = Number.parseInt("100", 10);
-        const timer = 17 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const timer = 17 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
 
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
@@ -154,7 +159,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
             createObjectURL,
             revokeObjectURL,
         } satisfies Pick<
-            typeof globalThis.URL,
+            BrowserURLConstructor,
             "createObjectURL" | "revokeObjectURL"
         >;
         const blob = new Blob(["track"]);

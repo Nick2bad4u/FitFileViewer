@@ -37,6 +37,7 @@ export type BrowserIntervalHandle = ReturnType<BrowserSetInterval>;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;
 export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
+export type BrowserURLConstructor = typeof globalThis.URL;
 
 export function getBrowserAbortController():
     | typeof globalThis.AbortController
