@@ -1,5 +1,14 @@
 import { getIconFactoryRuntime } from "./icons/iconFactoryRuntime.js";
 import {
+    type BrowserCancelAnimationFrame,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserHTMLInputElementConstructor,
+    type BrowserHTMLSelectElementConstructor,
+    type BrowserKeyboardEventConstructor,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserCancelAnimationFrame,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -11,34 +20,32 @@ import {
     getBrowserSetTimeout,
 } from "../runtime/browserRuntime.js";
 
-export type SettingsModalTimerHandle = ReturnType<typeof globalThis.setTimeout>;
+export type SettingsModalTimerHandle = BrowserTimerHandle;
 
 export interface SettingsModalRuntimeScope {
     readonly getCancelAnimationFrame?:
-        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
     readonly getHTMLSelectElement?:
-        | (() => typeof globalThis.HTMLSelectElement | undefined)
+        | (() => BrowserHTMLSelectElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface SettingsModalRuntime {
@@ -85,13 +92,13 @@ const defaultSettingsModalRuntimeScope: SettingsModalRuntimeScope = {
 
 function getScopeCancelAnimationFrame(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.cancelAnimationFrame | undefined {
+): BrowserCancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
 }
 
 function getScopeClearTimeout(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -105,37 +112,37 @@ function getScopeDocument(scope: SettingsModalRuntimeScope): Document {
 
 function getScopeHTMLElement(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 
 function getScopeHTMLInputElement(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.HTMLInputElement | undefined {
+): BrowserHTMLInputElementConstructor | undefined {
     return scope.getHTMLInputElement?.();
 }
 
 function getScopeHTMLSelectElement(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.HTMLSelectElement | undefined {
+): BrowserHTMLSelectElementConstructor | undefined {
     return scope.getHTMLSelectElement?.();
 }
 
 function getScopeKeyboardEvent(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.KeyboardEvent | undefined {
+): BrowserKeyboardEventConstructor | undefined {
     return scope.getKeyboardEvent?.();
 }
 
 function getScopeRequestAnimationFrame(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.requestAnimationFrame | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
 function getScopeSetTimeout(
     scope: SettingsModalRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 

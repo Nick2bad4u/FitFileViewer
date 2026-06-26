@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserCancelAnimationFrame,
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getSettingsModalRuntime } from "../../../../electron-app/utils/ui/settingsModalRuntime.js";
 
 describe("getSettingsModalRuntime", () => {
@@ -15,8 +21,8 @@ describe("getSettingsModalRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 17);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 17);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const scope = {
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -41,8 +47,8 @@ describe("getSettingsModalRuntime", () => {
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
         const delayMs = Number("150");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 42);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 42);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 12);
@@ -95,15 +101,12 @@ describe("getSettingsModalRuntime", () => {
         const frameCallback = vi.fn<FrameRequestCallback>();
         const delayMs = Number("70");
         const timeoutHandle = Number("52");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(
-            () => timeoutHandle
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timeoutHandle);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+            () => 15
         );
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrame = vi.fn<
-            typeof globalThis.requestAnimationFrame
-        >(() => 15);
-        const cancelAnimationFrame =
-            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        const cancelAnimationFrame = vi.fn<BrowserCancelAnimationFrame>();
         vi.stubGlobal("setTimeout", setTimeout);
         vi.stubGlobal("clearTimeout", clearTimeout);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
@@ -291,8 +294,8 @@ describe("getSettingsModalRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 21);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 21);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 34);
