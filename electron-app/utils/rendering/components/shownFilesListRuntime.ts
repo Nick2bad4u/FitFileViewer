@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -8,9 +13,7 @@ import {
     getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
 
-export type ShownFilesListTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type ShownFilesListTimerHandle = BrowserTimerHandle | number;
 
 export interface ShownFilesListViewport {
     readonly height: number;
@@ -21,14 +24,9 @@ export type ShownFilesListMouseMoveListener = (
     event: Readonly<MouseEvent>
 ) => void;
 
-type ShownFilesListClearTimeout = typeof globalThis.clearTimeout;
 type ShownFilesListListenerOptions = Readonly<
     AddEventListenerOptions & { readonly signal: AbortSignal }
 >;
-type ShownFilesListSetTimeout = (
-    callback: () => void,
-    timeout: number
-) => ShownFilesListTimerHandle;
 
 interface ShownFilesListMouseMoveEventTarget {
     readonly addEventListener: (
@@ -40,21 +38,19 @@ interface ShownFilesListMouseMoveEventTarget {
 
 export interface ShownFilesListRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => ShownFilesListClearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?:
         | (() => ShownFilesListMouseMoveEventTarget | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => ShownFilesListSetTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
     readonly getViewport?:
         | (() => ShownFilesListViewport | undefined)
         | undefined;
@@ -96,7 +92,11 @@ function getShownFilesListEventTarget():
     return {
         addEventListener(type, listener, options): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The runtime call site requires and forwards the caller-owned AbortSignal.
-            eventTarget.addEventListener(type, listener as EventListener, options);
+            eventTarget.addEventListener(
+                type,
+                listener as EventListener,
+                options
+            );
         },
     };
 }
@@ -122,7 +122,7 @@ function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     scope: ShownFilesListRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor =
         scope.getHTMLElement?.() ??
         scope.getDocument?.()?.defaultView?.HTMLElement;

@@ -22756,7 +22756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(69);
+        expect.assertions(79);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -22853,6 +22853,34 @@ describe("architecture boundaries", () => {
         expect(shownFilesListRuntimeSource).not.toContain("scope.setTimeout");
         expect(shownFilesListRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(shownFilesListRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(shownFilesListRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "ReturnType<typeof globalThis.setTimeout>"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "typeof AbortController | undefined"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

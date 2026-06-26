@@ -556,6 +556,9 @@ list runtime scopes must now provide document body, mousemove event-target, view
 of falling back to `globalThis`; production defaults now live in an explicit provider object instead of a broad
 `globalThis` default scope, with focused runtime coverage and architecture coverage blocking those fallbacks
 from returning.
+Shown-files list timer, AbortController, and HTMLElement provider contracts now also reuse shared browser-runtime
+aliases instead of direct ambient type spellings, with architecture coverage blocking those direct provider type
+spellings from returning.
 Shown-files overlay tooltip element creation, body append, and existing-tooltip queries now also route through
 `shownFilesListRuntime.ts` instead of touching `document` directly inside `shownFilesListItemHandlers.ts`, with
 runtime coverage and architecture guardrails blocking those direct tooltip DOM calls from returning.

@@ -4,6 +4,12 @@ import {
     getShownFilesListRuntime,
     type ShownFilesListRuntimeScope,
 } from "../../../../electron-app/utils/rendering/components/shownFilesListRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getShownFilesListRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -255,9 +261,9 @@ describe("getShownFilesListRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("350");
-        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 23 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getShownFilesListRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -290,11 +296,11 @@ describe("getShownFilesListRuntime", () => {
             return new AbortController();
         });
         const addEventListener = vi.fn();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>();
         const legacyScope = {
             AbortController:
-                TestAbortController as unknown as typeof AbortController,
+                TestAbortController as unknown as BrowserAbortControllerConstructor,
             addEventListener,
             clearTimeout,
             document,
