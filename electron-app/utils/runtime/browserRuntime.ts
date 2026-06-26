@@ -1,3 +1,6 @@
+export type BrowserAbortControllerConstructor =
+    typeof globalThis.AbortController;
+export type BrowserClearTimeout = typeof globalThis.clearTimeout;
 export type BrowserHTMLElementConstructor = typeof globalThis.HTMLElement;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;

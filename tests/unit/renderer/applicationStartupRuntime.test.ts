@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getRendererApplicationStartupRuntime } from "../../../electron-app/renderer/applicationStartupRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getRendererApplicationStartupRuntime", () => {
     it("uses renderer browser runtime providers for production defaults", () => {
@@ -47,7 +51,7 @@ describe("getRendererApplicationStartupRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const updateCheckDelayMs = Number("5000");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 25);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 25);
         const utils = getRendererApplicationStartupRuntime({
             getSetTimeout: () => setTimeout,
         });
@@ -60,7 +64,7 @@ describe("getRendererApplicationStartupRuntime", () => {
     it("clears timers through the injected runtime scope", () => {
         expect.assertions(2);
 
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const utils = getRendererApplicationStartupRuntime({
             getClearTimeout: () => clearTimeout,
         });
@@ -99,8 +103,8 @@ describe("getRendererApplicationStartupRuntime", () => {
                 /* Test double */
             }
         }
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 25);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 25);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const utils = getRendererApplicationStartupRuntime({
             AbortController: LegacyAbortController,
             clearTimeout,

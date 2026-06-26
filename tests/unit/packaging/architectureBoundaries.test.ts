@@ -20745,7 +20745,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -20779,6 +20779,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultRendererApplicationStartupRuntimeScope"
         );
+        expect(runtimeSource).not.toContain("globalThis.");
         expect(runtimeSource).toContain("../utils/runtime/browserRuntime.js");
         expect(runtimeSource).toContain(
             "getAbortController: getBrowserAbortController"

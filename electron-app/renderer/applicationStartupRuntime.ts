@@ -1,22 +1,24 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserSetTimeout,
 } from "../utils/runtime/browserRuntime.js";
 
-export type RendererApplicationStartupTimerHandle = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type RendererApplicationStartupTimerHandle = BrowserTimerHandle;
 
 export interface RendererApplicationStartupRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
