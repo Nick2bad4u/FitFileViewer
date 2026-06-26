@@ -9,6 +9,11 @@ const dependencyValidationWorkflowPath = path.join(
     "workflows",
     "dependency-validation.yml"
 );
+const developmentGuidePath = path.join(
+    process.cwd(),
+    "docs",
+    "DEVELOPMENT_GUIDE.md"
+);
 
 function readDependencyValidationWorkflow(): string {
     return readFileSync(dependencyValidationWorkflowPath, "utf8");
@@ -16,12 +21,26 @@ function readDependencyValidationWorkflow(): string {
 
 describe("dependency validation workflow", () => {
     it("uploads release gate diagnostics when dependency validation fails", () => {
-        expect.assertions(39);
+        expect.assertions(54);
 
         const workflow = readDependencyValidationWorkflow();
+        const developmentGuide = readFileSync(developmentGuidePath, "utf8");
 
         expect(workflow).toContain("schedule:");
+        expect(workflow).toContain('- cron: "23 9 * * 1"');
+        expect(workflow).toContain("pull_request:");
+        expect(workflow).toContain("merge_group:");
         expect(workflow).toContain("workflow_dispatch:");
+        expect(workflow).toContain('"package.json"');
+        expect(workflow).toContain('"package-lock.json"');
+        expect(workflow).toContain('"docusaurus/package.json"');
+        expect(workflow).toContain('"docusaurus/package-lock.json"');
+        expect(workflow).toContain('".github/dependabot.yml"');
+        expect(workflow).toContain(
+            '".github/workflows/dependency-validation.yml"'
+        );
+        expect(workflow).toContain("timeout-minutes: 60");
+        expect(workflow).toContain("node-version: 24");
         expect(workflow).toContain(
             "tee artifacts/dependency-validation/npm-ci-app.log"
         );
@@ -93,5 +112,14 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain("### Root artifact inventory");
         expect(workflow).toContain("if: failure()");
         expect(workflow).toContain("name: dependency-validation-diagnostics");
+
+        expect(developmentGuide).toContain("### Dependency Validation");
+        expect(developmentGuide).toContain("runs `npm run release:verify`");
+        expect(developmentGuide).toContain(
+            "Dependency pull requests that change root or Docusaurus manifests"
+        );
+        expect(developmentGuide).toContain(
+            "release gate and package smoke coverage"
+        );
     });
 });
