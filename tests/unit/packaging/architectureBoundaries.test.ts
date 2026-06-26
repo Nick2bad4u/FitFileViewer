@@ -6531,7 +6531,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(39);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6620,15 +6620,45 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getDispatchEvent: getBrowserDispatchEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis)"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getHTMLSelectElement: getBrowserHTMLSelectElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(

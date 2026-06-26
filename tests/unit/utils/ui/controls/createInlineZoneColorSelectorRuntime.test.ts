@@ -1,9 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CreateInlineZoneColorSelectorRuntimeScope } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
 import { getCreateInlineZoneColorSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
 
 describe("getCreateInlineZoneColorSelectorRuntime", () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
     it("creates elements and exposes document body through the injected document", () => {
         expect.assertions(3);
 
@@ -75,6 +80,42 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
 
         const runtime = getCreateInlineZoneColorSelectorRuntime();
 
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            AbortController
+        );
+    });
+
+    it("uses browser runtime providers for production DOM, event, and timer defaults", () => {
+        expect.assertions(11);
+
+        const timer = Symbol("inline-zone-default-timer") as ReturnType<
+            typeof setTimeout
+        >;
+        const timeoutMs = Number("35");
+        const handler = vi.fn<() => void>();
+        const dispatchEvent = vi.fn<typeof globalThis.dispatchEvent>(
+            () => true
+        );
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        vi.stubGlobal("dispatchEvent", dispatchEvent);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+        const runtime = getCreateInlineZoneColorSelectorRuntime();
+        const event = runtime.createCustomEvent("fieldToggleChanged", {
+            detail: { field: "power_zone" },
+        });
+        const input = runtime.createElement("input");
+        const select = runtime.createElement("select");
+
+        expect(runtime.getBody()).toBe(document.body);
+        expect(runtime.isHTMLElement(input)).toBe(true);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLSelectElement(select)).toBe(true);
+        expect(event.detail).toStrictEqual({ field: "power_zone" });
+        expect(runtime.dispatchEvent(event)).toBe(true);
+        expect(dispatchEvent).toHaveBeenCalledWith(event);
+        expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(handler).not.toHaveBeenCalled();
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );

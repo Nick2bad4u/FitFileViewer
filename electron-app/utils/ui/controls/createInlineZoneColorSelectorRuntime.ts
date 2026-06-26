@@ -1,4 +1,13 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserCustomEvent,
+    getBrowserDispatchEvent,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserHTMLInputElement,
+    getBrowserHTMLSelectElement,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export interface CreateInlineZoneColorSelectorRuntimeScope {
     readonly getAbortController?:
@@ -47,14 +56,14 @@ export interface CreateInlineZoneColorSelectorRuntime {
 
 const defaultCreateInlineZoneColorSelectorRuntimeScope: CreateInlineZoneColorSelectorRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
-        getCustomEvent: () => globalThis.CustomEvent,
-        getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),
-        getDocument: () => globalThis.document,
-        getHTMLElement: () => globalThis.HTMLElement,
-        getHTMLInputElement: () => globalThis.HTMLInputElement,
-        getHTMLSelectElement: () => globalThis.HTMLSelectElement,
-        getSetTimeout: () => globalThis.setTimeout,
+        getAbortController: getBrowserAbortController,
+        getCustomEvent: getBrowserCustomEvent,
+        getDispatchEvent: getBrowserDispatchEvent,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
+        getHTMLInputElement: getBrowserHTMLInputElement,
+        getHTMLSelectElement: getBrowserHTMLSelectElement,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 function getAbortControllerConstructor(
