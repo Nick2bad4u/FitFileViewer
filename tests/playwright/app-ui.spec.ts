@@ -46,6 +46,7 @@ const sampleFitPath = path.join(
 );
 const sampleFitFileName = sampleFitFixture.fileName;
 const fitBrowserStatusRecorderId = "ffv-playwright-fit-browser-status-recorder";
+const mapThemeEventRecorderId = "ffv-playwright-map-theme-event-recorder";
 const missingFitPath = path.join(
     repositoryRoot,
     "fit-test-files",
@@ -724,33 +725,67 @@ test.describe("FitFileViewer Electron UI", () => {
     }
 
     async function armMapThemeEventRecorder(): Promise<void> {
-        await page.evaluate(() => {
-            const globalWindow = window as Window & {
-                __ffvPlaywrightMapThemeEvents?: unknown[];
-            };
-            const controller = new AbortController();
+        await page.evaluate((recorderId) => {
+            const previousRecorder = document.getElementById(recorderId);
+            previousRecorder?.dispatchEvent(
+                new Event("ffv-playwright-stop-map-theme-recorder")
+            );
+            previousRecorder?.remove();
 
-            globalWindow.__ffvPlaywrightMapThemeEvents = [];
+            const recorder = document.createElement("div");
+            recorder.hidden = true;
+            recorder.id = recorderId;
+            recorder.dataset["events"] = "[]";
+            document.body.append(recorder);
+
+            const cleanupController = new AbortController();
+            const readEvents = (): unknown[] => {
+                try {
+                    const parsed = JSON.parse(
+                        recorder.dataset["events"] ?? "[]"
+                    ) as unknown;
+
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                    return [];
+                }
+            };
             document.addEventListener(
                 "mapThemeChanged",
                 (event) => {
-                    globalWindow.__ffvPlaywrightMapThemeEvents?.push(
-                        (event as CustomEvent).detail
-                    );
+                    recorder.dataset["events"] = JSON.stringify([
+                        ...readEvents(),
+                        (event as CustomEvent).detail,
+                    ]);
+                    cleanupController.abort();
                 },
-                { once: true, signal: controller.signal }
+                { once: true, signal: cleanupController.signal }
             );
-        });
+            recorder.addEventListener(
+                "ffv-playwright-stop-map-theme-recorder",
+                () => cleanupController.abort(),
+                { once: true, signal: cleanupController.signal }
+            );
+        }, mapThemeEventRecorderId);
     }
 
     async function getMapThemeEvents(): Promise<unknown[]> {
-        return page.evaluate(() => {
-            const globalWindow = window as Window & {
-                __ffvPlaywrightMapThemeEvents?: unknown[];
-            };
+        return page.evaluate((recorderId) => {
+            const recorder = document.getElementById(recorderId);
+            if (!recorder) {
+                return [];
+            }
 
-            return globalWindow.__ffvPlaywrightMapThemeEvents ?? [];
-        });
+            try {
+                const parsed = JSON.parse(
+                    recorder.dataset["events"] ?? "[]"
+                ) as unknown;
+
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }, mapThemeEventRecorderId);
     }
 
     async function getMapThemeToggleState(): Promise<MapThemeToggleState> {

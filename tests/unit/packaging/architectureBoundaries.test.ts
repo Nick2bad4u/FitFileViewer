@@ -902,6 +902,8 @@ const directPlaywrightOpenDialogGlobalFixturePattern =
     /\b(?:globalThis|mainGlobal)\.__ffvPlaywright(?:OpenFileDialogCalls|OriginalShowOpenDialog)\b|\bglobalThis\s+as\s+typeof\s+globalThis\s+&\s*\{[\s\S]*?__ffvPlaywright(?:OpenFileDialogCalls|OriginalShowOpenDialog)/u;
 const directPlaywrightFitBrowserStatusGlobalFixturePattern =
     /\b(?:window|globalThis)\.__ffvPlaywrightFitBrowserStatus(?:Cleanup|Snapshots)\b|\b__ffvPlaywrightFitBrowserStatus(?:Cleanup|Snapshots)\b/u;
+const directPlaywrightMapThemeEventGlobalFixturePattern =
+    /\b(?:window|globalThis)\.__ffvPlaywrightMapThemeEvents\b|\b__ffvPlaywrightMapThemeEvents\b/u;
 const detachedPreloadIpcRendererMethodPattern =
     /\bconst\s+(?:invoke|on|send)\s*=\s*ipcRenderer\?\.(?:invoke|on|send)\b|\b(?:invoke|on):\s*ipcRenderer\.(?:invoke|on)(?!\.bind\()/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
@@ -11391,6 +11393,21 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(smokeSource).toContain(
             "ffv-playwright-fit-browser-status-recorder"
+        );
+    });
+
+    it("keeps Playwright map-theme event recorder state off window globals", () => {
+        expect.assertions(2);
+
+        const smokeSource = stripComments(
+            readRepositoryFile(playwrightSmokeFiles[0])
+        );
+
+        expect(
+            directPlaywrightMapThemeEventGlobalFixturePattern.test(smokeSource)
+        ).toBe(false);
+        expect(smokeSource).toContain(
+            "ffv-playwright-map-theme-event-recorder"
         );
     });
 

@@ -1593,6 +1593,9 @@ blocking that test-global fixture from returning.
 The Playwright Browser loading-state recorder now stores transient snapshots on a hidden DOM marker with event-based
 cleanup instead of writing `__ffvPlaywrightFitBrowserStatus*` state to the renderer window, with architecture coverage
 blocking that test-global fixture from returning.
+The Playwright map-theme event recorder now stores transient `mapThemeChanged` payloads on a hidden DOM marker
+instead of writing `__ffvPlaywrightMapThemeEvents` state to the renderer window, with architecture coverage blocking
+that test-global fixture from returning.
 Browser runtime timer providers now return browser-global-bound timer functions, and preload IPC helpers call or bind
 `ipcRenderer` methods with their owning renderer object instead of detaching `on`, `send`, or `invoke`, with focused
 unit coverage and architecture coverage blocking receiver-losing IPC helper patterns from returning.
