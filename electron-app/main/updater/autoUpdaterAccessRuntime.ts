@@ -1,3 +1,5 @@
+import { getBrowserGlobalProperty } from "../../utils/runtime/browserRuntime.js";
+
 export interface AutoUpdaterAccessRuntimeScope {
     readonly getVitestImportMockCandidate?: (() => unknown) | undefined;
 }
@@ -7,7 +9,7 @@ export interface AutoUpdaterAccessRuntime {
 }
 
 const defaultAutoUpdaterAccessRuntimeScope: AutoUpdaterAccessRuntimeScope = {
-    getVitestImportMockCandidate: () => getRuntimeProperty(globalThis, "vi"),
+    getVitestImportMockCandidate: () => getBrowserGlobalProperty("vi"),
 };
 
 export function getAutoUpdaterAccessRuntime(
@@ -18,12 +20,4 @@ export function getAutoUpdaterAccessRuntime(
             return scope.getVitestImportMockCandidate?.();
         },
     };
-}
-
-function getRuntimeProperty(target: object, propertyKey: string): unknown {
-    try {
-        return Reflect.get(target, propertyKey);
-    } catch {
-        return undefined;
-    }
 }
