@@ -1205,7 +1205,8 @@ constructors, abort-controller creation, and delayed updates through named provi
 `globalThis` default scope, direct scope properties, or document-window fallbacks, with focused coverage and
 architecture coverage blocking those legacy runtime shapes from returning. Production defaults now reuse shared
 browser runtime providers for AbortController, CustomEvent, dispatch, document, element constructors, and timers
-instead of local inline `globalThis` getters.
+instead of local inline `globalThis` getters, and inline selector controller/event/dispatch/element/timer contracts
+now reuse shared browser-runtime aliases instead of direct ambient type spellings.
 Inline zone color selector scheme changes, resets, and color changes now also resolve the chart state manager
 through `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with focused selector
 coverage and architecture guardrails blocking that direct dependency from returning.

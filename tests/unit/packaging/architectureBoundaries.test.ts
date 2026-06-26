@@ -7051,7 +7051,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(56);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -7089,6 +7089,57 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorRuntimeSource).not.toMatch(
             directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "ReturnType<typeof globalThis.setTimeout>"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.CustomEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.dispatchEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLInputElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLSelectElement"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserDispatchEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserHTMLInputElementConstructor"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserHTMLSelectElementConstructor"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "CreateInlineZoneColorSelectorTimerHandle = BrowserTimerHandle"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
             "defaultCreateInlineZoneColorSelectorRuntimeScope"

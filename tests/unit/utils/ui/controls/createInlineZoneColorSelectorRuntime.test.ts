@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { CreateInlineZoneColorSelectorRuntimeScope } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
+import type {
+    CreateInlineZoneColorSelectorRuntimeScope,
+    CreateInlineZoneColorSelectorTimerHandle,
+} from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
 import { getCreateInlineZoneColorSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserCustomEventConstructor,
+    BrowserDispatchEvent,
+    BrowserHTMLElementConstructor,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getCreateInlineZoneColorSelectorRuntime", () => {
     afterEach(() => {
@@ -26,7 +36,7 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("creates custom events and dispatches through the injected target", () => {
         expect.assertions(3);
 
-        const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
+        const dispatchEvent = vi.fn<BrowserDispatchEvent>(() => true);
         const runtime = getCreateInlineZoneColorSelectorRuntime({
             getCustomEvent: () => CustomEvent,
             getDispatchEvent: () => dispatchEvent,
@@ -86,15 +96,13 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("uses browser runtime providers for production DOM, event, and timer defaults", () => {
         expect.assertions(11);
 
-        const timer = Symbol("inline-zone-default-timer") as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol(
+            "inline-zone-default-timer"
+        ) as CreateInlineZoneColorSelectorTimerHandle;
         const timeoutMs = Number("35");
         const handler = vi.fn<() => void>();
-        const dispatchEvent = vi.fn<typeof globalThis.dispatchEvent>(
-            () => true
-        );
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const dispatchEvent = vi.fn<BrowserDispatchEvent>(() => true);
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
         vi.stubGlobal("dispatchEvent", dispatchEvent);
         vi.stubGlobal("setTimeout", setTimeoutMock);
         const runtime = getCreateInlineZoneColorSelectorRuntime();
@@ -120,12 +128,12 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("schedules timers through the injected timer function", () => {
         expect.assertions(2);
 
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol(
+            "timer"
+        ) as unknown as CreateInlineZoneColorSelectorTimerHandle;
         const timeoutMs = Number("25");
         const handler = vi.fn<() => void>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
         const runtime = getCreateInlineZoneColorSelectorRuntime({
             getSetTimeout: () => setTimeoutMock,
         });
@@ -151,17 +159,17 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         const runtimeWithInvalidAbortController =
             getCreateInlineZoneColorSelectorRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
             });
         const runtimeWithInvalidCustomEvent =
             getCreateInlineZoneColorSelectorRuntime({
                 getCustomEvent: () =>
-                    "CustomEvent" as unknown as typeof CustomEvent,
+                    "CustomEvent" as unknown as BrowserCustomEventConstructor,
             });
         const runtimeWithInvalidElement =
             getCreateInlineZoneColorSelectorRuntime({
                 getHTMLElement: () =>
-                    "HTMLElement" as unknown as typeof HTMLElement,
+                    "HTMLElement" as unknown as BrowserHTMLElementConstructor,
             });
 
         expect(() => runtime.createElement("div")).toThrow(
@@ -200,9 +208,9 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(8);
 
-        const timer = Symbol("inline-zone-timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol(
+            "inline-zone-timer"
+        ) as unknown as CreateInlineZoneColorSelectorTimerHandle;
         const legacyScope = {
             AbortController,
             CustomEvent,
@@ -211,7 +219,7 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
             HTMLElement,
             HTMLInputElement,
             HTMLSelectElement,
-            setTimeout: vi.fn<typeof setTimeout>(() => timer),
+            setTimeout: vi.fn<BrowserSetTimeout>(() => timer),
         } as unknown as CreateInlineZoneColorSelectorRuntimeScope;
         const runtime = getCreateInlineZoneColorSelectorRuntime(legacyScope);
 
