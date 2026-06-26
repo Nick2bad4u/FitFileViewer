@@ -12,6 +12,10 @@ export function getBrowserAddEventListener():
         : undefined;
 }
 
+export function deleteBrowserGlobalProperty(property: PropertyKey): boolean {
+    return Reflect.deleteProperty(globalThis, property);
+}
+
 export function getBrowserRemoveEventListener():
     | typeof globalThis.removeEventListener
     | undefined {

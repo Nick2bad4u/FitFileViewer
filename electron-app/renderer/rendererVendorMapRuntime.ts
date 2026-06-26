@@ -1,7 +1,7 @@
 import {
-    deleteBrowserRendererGlobalProperty,
-    getBrowserRendererDocument,
-} from "./rendererBrowserRuntime.js";
+    deleteBrowserGlobalProperty,
+    getBrowserDocument,
+} from "../utils/runtime/browserRuntime.js";
 
 export interface RendererVendorMapRuntimeScope {
     readonly deleteGlobalProperty?:
@@ -19,8 +19,8 @@ export interface RendererVendorMapRuntime {
 }
 
 const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
-    deleteGlobalProperty: deleteBrowserRendererGlobalProperty,
-    getDocument: getBrowserRendererDocument,
+    deleteGlobalProperty: deleteBrowserGlobalProperty,
+    getDocument: getBrowserDocument,
 };
 
 function getDocument(

@@ -34,12 +34,6 @@ import {
     getBrowserRemoveEventListener,
 } from "../utils/runtime/browserRuntime.js";
 
-export function deleteBrowserRendererGlobalProperty(
-    property: PropertyKey
-): boolean {
-    return Reflect.deleteProperty(globalThis, property);
-}
-
 export function getBrowserRendererElectronApiCandidate(): unknown {
     return getBrowserElectronApiCandidate();
 }
