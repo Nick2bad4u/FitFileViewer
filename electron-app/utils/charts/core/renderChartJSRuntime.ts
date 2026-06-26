@@ -1,4 +1,5 @@
 import {
+    getBrowserCustomEvent,
     getBrowserDateNow,
     getBrowserDocument,
     getBrowserPerformance,
@@ -27,11 +28,10 @@ export interface RenderChartJSRuntime {
 }
 
 const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
-    getCustomEventConstructor: () =>
-        typeof CustomEvent === "function" ? CustomEvent : undefined,
+    getCustomEventConstructor: getBrowserCustomEvent,
     getDateNow: getBrowserDateNow,
     getDocument: getBrowserDocument,
-    getIsRendererScope: () => Reflect.has(globalThis, "document"),
+    getIsRendererScope: () => getBrowserDocument() !== undefined,
     getPerformance: getBrowserPerformance,
 };
 

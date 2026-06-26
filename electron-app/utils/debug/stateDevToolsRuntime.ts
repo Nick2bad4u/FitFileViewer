@@ -1,6 +1,7 @@
 import {
     getBrowserClearInterval,
     getBrowserDateNow,
+    getBrowserDocument,
     getBrowserLocation,
     getBrowserPerformance,
     getBrowserSetInterval,
@@ -52,7 +53,7 @@ export interface StateDevToolsRuntime {
 const defaultStateDevToolsRuntimeScope: StateDevToolsRuntimeScope = {
     getClearInterval: getBrowserClearInterval,
     getDateNow: getBrowserDateNow,
-    getIsRendererScope: () => Reflect.has(globalThis, "document"),
+    getIsRendererScope: () => getBrowserDocument() !== undefined,
     getLocation: getBrowserLocation,
     getPerformance: getBrowserPerformance,
     getSetInterval: getBrowserSetInterval,

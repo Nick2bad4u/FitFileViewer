@@ -728,7 +728,8 @@ debug logging state controls animation logs, and architecture coverage keeps tha
 Chart background, zoom-reset, and animation debug logging callers now check renderer availability through
 `rendererDebugRuntime.ts` instead of probing `globalThis.window` directly, while still taking the debug-enabled
 state from `rendererDebugLoggingState.ts`; focused runtime coverage and architecture guardrails block the direct
-renderer-window checks from returning.
+renderer-window checks from returning. The production renderer-scope default now reuses the shared browser
+document provider instead of probing `globalThis` directly.
 Animation debug logging clock reads now route through `lastAnimLogRuntime.ts` instead of calling `Date.now` or
 `performance.now` directly in `lastAnimLog.ts`, with focused runtime coverage and architecture coverage blocking
 direct animation debug logging clock globals from returning. Production defaults now live behind named provider
@@ -767,7 +768,8 @@ document open/style/focus/preview/construction access or constructing `AbortCont
 open/style/focus/preview/construction/controller access from returning.
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
-blocking those runtime-global lookups from returning.
+blocking those runtime-global lookups from returning. The production renderer-scope default now reuses the
+shared browser document provider instead of probing `globalThis` directly.
 Settings state-core storage synchronization listener abort-controller creation now routes through
 `settingsStateCoreRuntime.ts` instead of constructing `AbortController` directly inside `settingsStateCore.ts`,
 with focused runtime coverage and architecture guardrails blocking direct settings state-core controller
@@ -939,7 +941,9 @@ blocks those mutations from returning.
 RenderChartJS render session timing, prepared-render timing, chart-data render timing, completion timestamps, and
 devtools window availability now route through `renderChartJSRuntime.ts` instead of probing `performance.now`,
 `Date.now`, or `globalThis.window` directly inside `renderChartJS.ts`, with focused runtime coverage and
-architecture guardrails blocking those direct chart-render runtime probes from returning.
+architecture guardrails blocking those direct chart-render runtime probes from returning. Production CustomEvent and
+renderer-scope defaults now reuse shared browser runtime providers instead of local ambient constructor or
+`globalThis` document checks.
 Chart action successful-render timestamps now receive the render clock explicitly from `renderChartJSRuntime.ts`
 instead of calling `Date.now` directly inside `renderChartActions.ts`; the runtime date clock is now supplied through
 `getDateNow` provider scopes instead of direct `dateNow` scope properties, with focused action/runtime coverage and

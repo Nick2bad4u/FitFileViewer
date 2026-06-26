@@ -1,3 +1,5 @@
+import { getBrowserDocument } from "../runtime/browserRuntime.js";
+
 export interface RendererDebugRuntimeScope {
     readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
 }
@@ -7,7 +9,7 @@ export interface RendererDebugRuntime {
 }
 
 const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = {
-    getIsRendererScope: () => Reflect.has(globalThis, "document"),
+    getIsRendererScope: () => getBrowserDocument() !== undefined,
 };
 
 function getIsRendererScope(scope: RendererDebugRuntimeScope): boolean {

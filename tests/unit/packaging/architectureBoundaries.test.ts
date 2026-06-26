@@ -7284,7 +7284,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(45);
+        expect.assertions(48);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -7355,7 +7355,13 @@ describe("architecture boundaries", () => {
             "getDateNow: getBrowserDateNow"
         );
         expect(renderChartRuntimeSource).toContain(
+            "getCustomEventConstructor: getBrowserCustomEvent"
+        );
+        expect(renderChartRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
+            "typeof CustomEvent ==="
         );
         expect(renderChartRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
@@ -7376,6 +7382,9 @@ describe("architecture boundaries", () => {
             "getRequiredDocument(scope).createElement"
         );
         expect(renderChartRuntimeSource).toContain(
+            "getIsRendererScope: () => getBrowserDocument() !== undefined"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
             'getIsRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(renderChartRuntimeSource).not.toContain(
@@ -10734,7 +10743,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
             expect(stripComments(readRepositoryFile(relativeFile))).toContain(
@@ -10771,6 +10780,9 @@ describe("architecture boundaries", () => {
             "const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = globalThis"
         );
         expect(rendererDebugRuntimeSource).toContain(
+            "getIsRendererScope: () => getBrowserDocument() !== undefined"
+        );
+        expect(rendererDebugRuntimeSource).not.toContain(
             'Reflect.has(globalThis, "document")'
         );
         expect(rendererDebugRuntimeSource).not.toContain(
@@ -11402,7 +11414,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(48);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -11462,6 +11474,9 @@ describe("architecture boundaries", () => {
             "getDateNow: getBrowserDateNow"
         );
         expect(stateDevToolsRuntimeSource).toContain(
+            "getIsRendererScope: () => getBrowserDocument() !== undefined"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
             'getIsRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(stateDevToolsRuntimeSource).toContain(
