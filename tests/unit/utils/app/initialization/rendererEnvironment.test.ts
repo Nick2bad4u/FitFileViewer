@@ -5,7 +5,9 @@ import {
     isDevelopmentMode,
 } from "../../../../../electron-app/utils/app/initialization/rendererEnvironment.js";
 
-function createScope(overrides: Record<string, unknown> = {}): object {
+function createEnvironmentInput(
+    overrides: Record<string, unknown> = {}
+): object {
     return {
         location: {
             hostname: "app.example.com",
@@ -21,13 +23,13 @@ describe("rendererEnvironment", () => {
     it("classifies a remote app URL without flags as production", () => {
         expect.assertions(2);
 
-        const scope = createScope();
+        const environmentInput = createEnvironmentInput();
 
-        expect({ development: isDevelopmentMode(scope) }).toStrictEqual({
-            development: false,
-        });
+        expect({
+            development: isDevelopmentMode(environmentInput),
+        }).toStrictEqual({ development: false });
 
-        expect(getEnvironment(scope)).toBe("production");
+        expect(getEnvironment(environmentInput)).toBe("production");
     });
 
     it.each([
@@ -37,7 +39,7 @@ describe("rendererEnvironment", () => {
     ])("treats %s as a development host", (hostname) => {
         expect.assertions(2);
 
-        const scope = createScope({
+        const environmentInput = createEnvironmentInput({
             location: {
                 hostname,
                 href: `https://${hostname}/`,
@@ -46,11 +48,11 @@ describe("rendererEnvironment", () => {
             },
         });
 
-        expect({ development: isDevelopmentMode(scope) }).toStrictEqual({
-            development: true,
-        });
+        expect({
+            development: isDevelopmentMode(environmentInput),
+        }).toStrictEqual({ development: true });
 
-        expect(getEnvironment(scope)).toBe("development");
+        expect(getEnvironment(environmentInput)).toBe("development");
     });
 
     it.each([
@@ -69,7 +71,7 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createScope({
+                createEnvironmentInput({
                     location: {
                         ...baseLocation,
                         ...locationPatch,
@@ -81,12 +83,12 @@ describe("rendererEnvironment", () => {
         });
     });
 
-    it("requires the global development flag to be exactly true", () => {
+    it("requires the focused development flag to be exactly true", () => {
         expect.assertions(2);
 
         expect({
             development: isDevelopmentMode(
-                createScope({ __DEVELOPMENT__: true })
+                createEnvironmentInput({ __DEVELOPMENT__: true })
             ),
         }).toStrictEqual({
             development: true,
@@ -94,7 +96,7 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createScope({ __DEVELOPMENT__: false })
+                createEnvironmentInput({ __DEVELOPMENT__: false })
             ),
         }).toStrictEqual({
             development: false,
@@ -104,7 +106,7 @@ describe("rendererEnvironment", () => {
     it("preserves the document dataset devMode ownership check", () => {
         expect.assertions(1);
 
-        const scope = createScope({
+        const environmentInput = createEnvironmentInput({
             document: {
                 documentElement: {
                     dataset: {
@@ -114,9 +116,9 @@ describe("rendererEnvironment", () => {
             },
         });
 
-        expect({ development: isDevelopmentMode(scope) }).toStrictEqual({
-            development: true,
-        });
+        expect({
+            development: isDevelopmentMode(environmentInput),
+        }).toStrictEqual({ development: true });
     });
 
     it("treats any defined electron __devMode value as development", () => {
@@ -124,7 +126,7 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createScope({ electronAPI: { __devMode: false } })
+                createEnvironmentInput({ electronAPI: { __devMode: false } })
             ),
         }).toStrictEqual({
             development: true,
@@ -132,7 +134,7 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createScope({ electronAPI: { __devMode: null } })
+                createEnvironmentInput({ electronAPI: { __devMode: null } })
             ),
         }).toStrictEqual({
             development: true,
@@ -140,26 +142,28 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createScope({ electronAPI: { __devMode: undefined } })
+                createEnvironmentInput({
+                    electronAPI: { __devMode: undefined },
+                })
             ),
         }).toStrictEqual({
             development: false,
         });
     });
 
-    it("defaults to production when global inspection throws", () => {
+    it("defaults to production when environment input inspection throws", () => {
         expect.assertions(2);
 
-        const scope = {
+        const environmentInput = {
             get location() {
                 throw new Error("location unavailable");
             },
         };
 
-        expect({ development: isDevelopmentMode(scope) }).toStrictEqual({
-            development: false,
-        });
+        expect({
+            development: isDevelopmentMode(environmentInput),
+        }).toStrictEqual({ development: false });
 
-        expect(getEnvironment(scope)).toBe("production");
+        expect(getEnvironment(environmentInput)).toBe("production");
     });
 });

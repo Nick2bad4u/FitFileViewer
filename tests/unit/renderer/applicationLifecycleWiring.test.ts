@@ -10,7 +10,7 @@ function createDocumentTarget(readyState: DocumentReadyState): Document {
     } as unknown as Document;
 }
 
-function createRendererEventTarget(): EventTarget {
+function createEventListenerTarget(): EventTarget {
     return {
         addEventListener: vi.fn(),
     } as unknown as EventTarget;
@@ -91,17 +91,17 @@ describe("renderer application lifecycle wiring", () => {
             lifecycleState.initialized = true;
         });
         const setTimeoutSpy = vi.fn<typeof globalThis.setTimeout>();
-        const rendererEventTarget = createRendererEventTarget();
+        const eventTarget = createEventListenerTarget();
 
         registerRendererApplicationLifecycle({
             cleanup,
             documentTarget,
             initializeApplication,
-            rendererEventTarget,
+            rendererEventTarget: eventTarget,
             setTimeout: setTimeoutSpy,
         });
 
-        expect(rendererEventTarget.addEventListener).toHaveBeenCalledWith(
+        expect(eventTarget.addEventListener).toHaveBeenCalledWith(
             "beforeunload",
             expect.any(Function),
             expect.objectContaining({ signal: expect.any(AbortSignal) })
@@ -121,7 +121,7 @@ describe("renderer application lifecycle wiring", () => {
         expect(lifecycleState.initialized).toBe(true);
         expect(cleanup).not.toHaveBeenCalled();
 
-        const onBeforeUnload = vi.mocked(rendererEventTarget.addEventListener)
+        const onBeforeUnload = vi.mocked(eventTarget.addEventListener)
             .mock.calls[0]?.[1] as () => void;
         onBeforeUnload();
 
@@ -151,7 +151,7 @@ describe("renderer application lifecycle wiring", () => {
             cleanup: vi.fn(),
             documentTarget,
             initializeApplication,
-            rendererEventTarget: createRendererEventTarget(),
+            rendererEventTarget: createEventListenerTarget(),
             setTimeout: setTimeoutSpy,
         });
 
@@ -182,17 +182,17 @@ describe("renderer application lifecycle wiring", () => {
         };
         const cleanup = vi.fn();
         const documentTarget = createDocumentTarget("loading");
-        const rendererEventTarget = createRendererEventTarget();
+        const eventTarget = createEventListenerTarget();
 
         registerRendererApplicationLifecycle({
             cleanup,
             documentTarget,
             initializeApplication: async () => {},
-            rendererEventTarget,
+            rendererEventTarget: eventTarget,
             runtime: lifecycleWiringAdapter,
             setTimeout: vi.fn<typeof globalThis.setTimeout>(),
         });
-        const onBeforeUnload = vi.mocked(rendererEventTarget.addEventListener)
+        const onBeforeUnload = vi.mocked(eventTarget.addEventListener)
             .mock.calls[0]?.[1] as () => void;
         onBeforeUnload();
 

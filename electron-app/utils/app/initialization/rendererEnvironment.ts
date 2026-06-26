@@ -105,10 +105,10 @@ function toRendererEnvironmentInput(
 }
 
 /**
- * Gets the renderer environment name from the current global runtime markers.
+ * Gets the renderer environment name from focused renderer runtime markers.
  *
- * @param globalScope - Global-like object to inspect. Defaults to the current
- *   renderer global scope.
+ * @param environmentInput - Focused renderer environment input. Defaults to
+ *   the current renderer runtime values.
  *
  * @returns The detected renderer environment name.
  */
@@ -123,8 +123,8 @@ export function getEnvironment(
 /**
  * Detects whether the renderer is running with development-mode markers.
  *
- * @param globalScope - Global-like object to inspect. Defaults to the current
- *   renderer global scope.
+ * @param environmentInput - Focused renderer environment input. Defaults to
+ *   the current renderer runtime values.
  *
  * @returns Whether the renderer should use development-mode behavior.
  */

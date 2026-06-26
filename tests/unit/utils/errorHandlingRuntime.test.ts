@@ -182,17 +182,26 @@ describe("getErrorHandlingRuntime", () => {
 
         const addEventListener = vi.fn();
         const fallbackAddEventListener = vi.fn();
+        const controller = new AbortController();
+        const listener = vi.fn();
+        const options = { signal: controller.signal };
         const runtime = getErrorHandlingRuntime({
             getAddEventListener: () => fallbackAddEventListener,
             getErrorListenerTarget: () => ({ addEventListener }),
         });
 
         const target = runtime.getErrorListenerTarget();
-        target?.addEventListener("error", vi.fn());
+        target?.addEventListener("error", listener, options);
 
         expect(target).toBeDefined();
-        expect(addEventListener).toHaveBeenCalledOnce();
+        expect(addEventListener).toHaveBeenCalledWith(
+            "error",
+            listener,
+            options
+        );
         expect(fallbackAddEventListener).not.toHaveBeenCalled();
+
+        controller.abort();
     });
 
     it("ignores legacy direct runtime scope properties", () => {
