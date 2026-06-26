@@ -1,4 +1,7 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserFileReaderConstructor,
+    type BrowserResponseConstructor,
     getBrowserAbortController,
     getBrowserFileReader,
     getBrowserResponse,
@@ -6,10 +9,14 @@ import {
 
 export interface LoadSingleOverlayFileRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getFileReader?: (() => typeof FileReader | undefined) | undefined;
-    readonly getResponse?: (() => typeof Response | undefined) | undefined;
+    readonly getFileReader?:
+        | (() => BrowserFileReaderConstructor | undefined)
+        | undefined;
+    readonly getResponse?:
+        | (() => BrowserResponseConstructor | undefined)
+        | undefined;
 }
 
 export interface LoadSingleOverlayFileRuntime {
@@ -22,7 +29,7 @@ export interface LoadSingleOverlayFileRuntime {
 
 function getAbortControllerConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -35,7 +42,7 @@ function getAbortControllerConstructor(
 
 function getFileReaderConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
-): typeof FileReader {
+): BrowserFileReaderConstructor {
     const FileReaderConstructor = scope.getFileReader?.();
     if (typeof FileReaderConstructor !== "function") {
         throw new TypeError(
@@ -48,7 +55,7 @@ function getFileReaderConstructor(
 
 function getResponseConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
-): typeof Response | undefined {
+): BrowserResponseConstructor | undefined {
     return scope.getResponse?.();
 }
 

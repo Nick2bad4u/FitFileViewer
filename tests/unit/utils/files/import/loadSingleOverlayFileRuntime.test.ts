@@ -4,6 +4,11 @@ import {
     getLoadSingleOverlayFileRuntime,
     type LoadSingleOverlayFileRuntimeScope,
 } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFileRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserFileReaderConstructor,
+    BrowserResponseConstructor,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getLoadSingleOverlayFileRuntime", () => {
     afterEach(() => {
@@ -21,7 +26,7 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         );
         const runtime = getLoadSingleOverlayFileRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -45,7 +50,7 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         });
         const runtime = getLoadSingleOverlayFileRuntime({
             getFileReader: () =>
-                FileReaderConstructor as unknown as typeof FileReader,
+                FileReaderConstructor as unknown as BrowserFileReaderConstructor,
         });
 
         expect(runtime.createFileReader()).toBe(reader);
@@ -93,7 +98,7 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         });
         const runtime = getLoadSingleOverlayFileRuntime({
             getResponse: () =>
-                ResponseConstructor as unknown as typeof Response,
+                ResponseConstructor as unknown as BrowserResponseConstructor,
         });
 
         await expect(

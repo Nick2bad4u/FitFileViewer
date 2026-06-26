@@ -17883,7 +17883,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(39);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -17957,6 +17957,15 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "type BrowserFileReaderConstructor"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "type BrowserResponseConstructor"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
@@ -17977,11 +17986,29 @@ describe("architecture boundaries", () => {
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
         );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "const FileReaderConstructor = scope.getFileReader?.();"
         );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "): typeof FileReader"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "| (() => typeof FileReader | undefined)"
+        );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "return new ResponseConstructor(file).arrayBuffer();"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "): typeof Response"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "| (() => typeof Response | undefined)"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "loadSingleOverlayFile requires an AbortController runtime"
