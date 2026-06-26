@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserConfirm,
     getBrowserCrypto,
@@ -30,7 +32,7 @@ export type SecureRandomScope = {
 
 export interface ExportUtilsRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getConfirmDangerousAction?:
         | (() => ConfirmDangerousActionFunction | undefined)
@@ -38,7 +40,7 @@ export interface ExportUtilsRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getOpenPrintWindow?:
         | (() => OpenPrintWindowFunction | undefined)
@@ -79,7 +81,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
 
 function getScopeAbortController(
     scope: ExportUtilsRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
@@ -103,7 +105,7 @@ function getScopeDocument(
 
 function getScopeHTMLElement(
     scope: ExportUtilsRuntimeScope
-): typeof globalThis.HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 

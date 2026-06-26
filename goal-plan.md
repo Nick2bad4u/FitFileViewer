@@ -304,7 +304,9 @@ export modal previous-focus lookup now also routes through `exportUtilsRuntime.t
 architecture guardrails blocking direct active-element and HTMLElement checks from returning.
 Export utility runtime production defaults now reuse shared browser runtime providers for crypto, document,
 HTMLElement, and localStorage lookups, extending the existing AbortController provider migration and removing
-the remaining local inline `globalThis` defaults from `exportUtilsRuntime.ts`.
+the remaining local inline `globalThis` defaults from `exportUtilsRuntime.ts`; its AbortController and
+HTMLElement provider contracts also reuse shared browser-runtime constructor aliases instead of direct ambient
+constructor type spellings.
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside

@@ -5,6 +5,7 @@ import {
     getExportUtilsRuntime,
     type ExportUtilsRuntimeScope,
 } from "../../../../../electron-app/utils/files/export/exportUtilsRuntime.js";
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("exportUtilsRuntime", () => {
     afterEach(() => {
@@ -159,7 +160,7 @@ describe("exportUtilsRuntime", () => {
 
         const runtime = getExportUtilsRuntime({
             getAbortController: () =>
-                TestAbortController as unknown as typeof AbortController,
+                TestAbortController as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(

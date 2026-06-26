@@ -5142,7 +5142,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(91);
+        expect.assertions(95);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -5208,7 +5208,16 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(exportUtilsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController | undefined"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -5255,6 +5264,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement | undefined"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
