@@ -1277,7 +1277,8 @@ Tab-button behavior tests now install and restore temporary `window`, `getComput
 Tab-button state runtime no longer carries a secondary compatibility MutationObserver provider or creates a
 throwaway compatibility observer for test callback capture; tab-button observer creation now uses the single typed
 MutationObserver provider path, with focused runtime coverage and architecture coverage blocking the retired hook
-from returning.
+from returning. Tab-button state/debug runtime provider contracts now reuse shared browser-runtime timer and
+AbortController aliases instead of direct ambient timer/controller type spellings.
 Settings modal show/close animation timing now routes close timers, timer clearing, frame scheduling, and frame
 cancellation through `settingsModalRuntime.ts` instead of calling those globals directly in `settingsModal.ts`,
 with explicit runtime scopes now required to provide close-timer primitives instead of falling back to

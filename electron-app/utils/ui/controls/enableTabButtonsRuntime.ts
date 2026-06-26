@@ -1,4 +1,7 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDocument,
     getBrowserMutationObserver,
@@ -18,17 +21,17 @@ export type MutationObserverConstructorLike = new (
 
 export interface EnableTabButtonsRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getMutationObserver?:
         | (() => MutationObserverConstructorLike | undefined)
         | undefined;
-    readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
     readonly isRendererScope?: (() => boolean) | undefined;
 }
 
 export interface EnableTabButtonsRuntime {
-    readonly clearTimeout: (handle: ReturnType<typeof setTimeout>) => void;
+    readonly clearTimeout: (handle: BrowserTimerHandle) => void;
     readonly createMutationObserver: (
         callback: MutationCallback
     ) => TabButtonObserver | undefined;
@@ -36,7 +39,7 @@ export interface EnableTabButtonsRuntime {
     readonly setTimeout: (
         handler: () => void,
         timeout: number
-    ) => ReturnType<typeof setTimeout>;
+    ) => BrowserTimerHandle;
 }
 
 const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope = {
@@ -62,7 +65,7 @@ function isMutationObserverConstructorLike(
 
 function getRequiredClearTimeout(
     scope: EnableTabButtonsRuntimeScope
-): typeof clearTimeout {
+): BrowserClearTimeout {
     const clearTimer = scope.getClearTimeout?.();
     if (typeof clearTimer !== "function") {
         throw new TypeError("enableTabButtons requires a clearTimeout runtime");
@@ -73,7 +76,7 @@ function getRequiredClearTimeout(
 
 function getRequiredSetTimeout(
     scope: EnableTabButtonsRuntimeScope
-): typeof setTimeout {
+): BrowserSetTimeout {
     const scheduleTimer = scope.getSetTimeout?.();
     if (typeof scheduleTimer !== "function") {
         throw new TypeError("enableTabButtons requires a setTimeout runtime");
@@ -90,7 +93,7 @@ export function getEnableTabButtonsRuntime(
     scope: EnableTabButtonsRuntimeScope = defaultEnableTabButtonsRuntimeScope
 ): EnableTabButtonsRuntime {
     return {
-        clearTimeout(handle: ReturnType<typeof setTimeout>): void {
+        clearTimeout(handle: BrowserTimerHandle): void {
             const clearTimer = getRequiredClearTimeout(scope);
             clearTimer(handle);
         },
@@ -106,10 +109,7 @@ export function getEnableTabButtonsRuntime(
         isWindowAvailable(): boolean {
             return isRendererScope(scope);
         },
-        setTimeout(
-            handler: () => void,
-            timeout: number
-        ): ReturnType<typeof setTimeout> {
+        setTimeout(handler: () => void, timeout: number): BrowserTimerHandle {
             const scheduleTimer = getRequiredSetTimeout(scope);
             return scheduleTimer(handler, timeout);
         },

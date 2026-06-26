@@ -21182,7 +21182,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(39);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -21223,6 +21223,18 @@ describe("architecture boundaries", () => {
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "type BrowserTimerHandle"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
@@ -21303,10 +21315,19 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "enableTabButtonsDebug requires a setTimeout runtime"
         );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "): typeof clearTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "): typeof setTimeout"
+        );
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(39);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -21345,6 +21366,15 @@ describe("architecture boundaries", () => {
         );
         expect(enableTabButtonsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            "type BrowserTimerHandle"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
@@ -21423,6 +21453,15 @@ describe("architecture boundaries", () => {
         );
         expect(enableTabButtonsRuntimeSource).toContain(
             "enableTabButtons requires a setTimeout runtime"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "): typeof clearTimeout"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "): typeof setTimeout"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
         );
     });
 

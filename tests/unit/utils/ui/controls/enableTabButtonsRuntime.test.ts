@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getEnableTabButtonsRuntime,
     type EnableTabButtonsRuntimeScope,
@@ -56,13 +61,11 @@ describe("getEnableTabButtonsRuntime", () => {
     it("resolves runtime dependencies through injected provider functions", () => {
         expect.assertions(6);
 
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol("timer") as unknown as BrowserTimerHandle;
         const timeoutMs = Number("50");
         const handler = vi.fn<() => void>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const observe = vi.fn();
         const primaryConstructor = vi.fn(function MutationObserverMock(
             callback: MutationCallback
@@ -91,13 +94,11 @@ describe("getEnableTabButtonsRuntime", () => {
     it("uses browser runtime providers for production timer, observer, and renderer defaults", () => {
         expect.assertions(7);
 
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol("timer") as unknown as BrowserTimerHandle;
         const timeoutMs = Number("50");
         const handler = vi.fn<() => void>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const observe = vi.fn();
         const ObserverConstructor = vi.fn(function MutationObserverMock(
             callback: MutationCallback
@@ -129,7 +130,7 @@ describe("getEnableTabButtonsRuntime", () => {
 
         expect(() =>
             runtime.clearTimeout(
-                Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+                Symbol("timer") as unknown as BrowserTimerHandle
             )
         ).toThrow("enableTabButtons requires a clearTimeout runtime");
     });
@@ -147,11 +148,9 @@ describe("getEnableTabButtonsRuntime", () => {
     it("ignores retired compatibility and legacy direct runtime properties", () => {
         expect.assertions(9);
 
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const timer = Symbol("timer") as unknown as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const observe = vi.fn();
         const primaryConstructor = vi.fn(function MutationObserverMock(
             callback: MutationCallback

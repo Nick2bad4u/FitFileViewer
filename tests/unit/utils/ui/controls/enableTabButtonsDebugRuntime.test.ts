@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getEnableTabButtonsDebugRuntime,
     type EnableTabButtonsDebugRuntimeScope,
@@ -59,13 +65,11 @@ describe("getEnableTabButtonsDebugRuntime", () => {
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol("timer") as unknown as BrowserTimerHandle;
         const timeoutMs = Number("30000");
         const handler = vi.fn<() => void>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const runtime = getEnableTabButtonsDebugRuntime({
             getClearTimeout: () => clearTimeoutMock,
             getSetTimeout: () => setTimeoutMock,
@@ -83,16 +87,14 @@ describe("getEnableTabButtonsDebugRuntime", () => {
 
         const element = document.createElement("button");
         const style = { display: "grid" } as CSSStyleDeclaration;
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol("timer") as unknown as BrowserTimerHandle;
         const timeoutMs = Number("45");
         const handler = vi.fn<() => void>();
         const getComputedStyle = vi.fn<
             (element: Element) => CSSStyleDeclaration
         >(() => style);
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         let controllerCount = 0;
         class TestAbortController extends AbortController {
             public constructor() {
@@ -129,17 +131,15 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(6);
 
         const element = document.createElement("button");
-        const timer = Symbol("timer") as unknown as ReturnType<
-            typeof setTimeout
-        >;
+        const timer = Symbol("timer") as unknown as BrowserTimerHandle;
         const timeoutMs = Number("45");
         const handler = vi.fn<() => void>();
         const style = { display: "contents" } as CSSStyleDeclaration;
         const getComputedStyle = vi.fn<typeof globalThis.getComputedStyle>(
             () => style
         );
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("getComputedStyle", getComputedStyle);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -162,7 +162,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
 
         expect(() =>
             runtime.clearTimeout(
-                Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+                Symbol("timer") as unknown as BrowserTimerHandle
             )
         ).toThrow("enableTabButtonsDebug requires a clearTimeout runtime");
     });
@@ -211,7 +211,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
 
         const runtime = getEnableTabButtonsDebugRuntime({
             getAbortController: () =>
-                "AbortController" as unknown as typeof AbortController,
+                "AbortController" as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -226,10 +226,10 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         const getComputedStyle = vi.fn<
             (element: Element) => CSSStyleDeclaration
         >(() => ({ display: "flex" }) as CSSStyleDeclaration);
-        const setTimeoutMock = vi.fn<typeof setTimeout>(
-            () => Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(
+            () => Symbol("timer") as unknown as BrowserTimerHandle
         );
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const runtime = getEnableTabButtonsDebugRuntime({
             AbortController,
             clearTimeout: clearTimeoutMock,
@@ -243,7 +243,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         );
         expect(() =>
             runtime.clearTimeout(
-                Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+                Symbol("timer") as unknown as BrowserTimerHandle
             )
         ).toThrow("enableTabButtonsDebug requires a clearTimeout runtime");
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
