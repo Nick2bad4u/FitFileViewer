@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserComputedStyle,
@@ -33,7 +34,7 @@ export interface RenderTableRuntimeScope {
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getHTMLTableCellElement?:
         | (() => typeof HTMLTableCellElement | undefined)
@@ -98,7 +99,7 @@ function getScopeGetComputedStyle(
 
 function getScopeHTMLElement(
     scope: RenderTableRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 

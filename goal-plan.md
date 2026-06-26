@@ -537,6 +537,8 @@ scheduling/cleanup now route through `renderTableRuntime.ts`; production default
 providers for document, computed-style, element constructors, animation frames, and timers instead of local inline
 `globalThis` getters, render-table timer contracts reuse shared browser-runtime timer aliases instead of direct
 ambient timer-handle type spellings, with runtime and architecture coverage blocking those defaults from regressing.
+The render-table HTMLElement provider contract now also reuses the shared browser-runtime constructor alias instead
+of a direct ambient constructor type spelling.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now
