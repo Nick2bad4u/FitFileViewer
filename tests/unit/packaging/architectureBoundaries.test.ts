@@ -900,6 +900,8 @@ const directPlaywrightWindowOpenMutationPattern =
     /\bwindow\.open\s*=|\bReflect\.deleteProperty\(\s*window\s*,\s*["']open["']\s*\)/u;
 const directPlaywrightOpenDialogGlobalFixturePattern =
     /\b(?:globalThis|mainGlobal)\.__ffvPlaywright(?:OpenFileDialogCalls|OriginalShowOpenDialog)\b|\bglobalThis\s+as\s+typeof\s+globalThis\s+&\s*\{[\s\S]*?__ffvPlaywright(?:OpenFileDialogCalls|OriginalShowOpenDialog)/u;
+const directPlaywrightFitBrowserStatusGlobalFixturePattern =
+    /\b(?:window|globalThis)\.__ffvPlaywrightFitBrowserStatus(?:Cleanup|Snapshots)\b|\b__ffvPlaywrightFitBrowserStatus(?:Cleanup|Snapshots)\b/u;
 const detachedPreloadIpcRendererMethodPattern =
     /\bconst\s+(?:invoke|on|send)\s*=\s*ipcRenderer\?\.(?:invoke|on|send)\b|\b(?:invoke|on):\s*ipcRenderer\.(?:invoke|on)(?!\.bind\()/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
@@ -1874,12 +1876,8 @@ describe("architecture boundaries", () => {
         expect(browserRuntimeSource).toContain(
             "export function setBrowserGlobalProperty("
         );
-        expect(processEnvironmentSource).toContain(
-            "getBrowserGlobalProperty"
-        );
-        expect(processEnvironmentSource).toContain(
-            "setBrowserGlobalProperty"
-        );
+        expect(processEnvironmentSource).toContain("getBrowserGlobalProperty");
+        expect(processEnvironmentSource).toContain("setBrowserGlobalProperty");
         expect(processEnvironmentSource).toContain(
             'return getBrowserGlobalProperty("process");'
         );
@@ -3216,7 +3214,9 @@ describe("architecture boundaries", () => {
         expect(autoUpdaterAccessSource).not.toContain("export default");
         expect(autoUpdaterAccessSource).not.toContain("process.env");
         expect(autoUpdaterAccessSource).not.toContain("globalThis");
-        expect(autoUpdaterAccessSource).toContain("autoUpdaterAccessRuntime.js");
+        expect(autoUpdaterAccessSource).toContain(
+            "autoUpdaterAccessRuntime.js"
+        );
         expect(autoUpdaterAccessRuntimeSource).toContain(
             "getVitestImportMockCandidate"
         );
@@ -4613,8 +4613,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-it("keeps the core state manager free of reactive global property bridges", () => {
-	expect.assertions(16);
+    it("keeps the core state manager free of reactive global property bridges", () => {
+        expect.assertions(16);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -11374,6 +11374,23 @@ it("keeps the core state manager free of reactive global property bridges", () =
         ).toBe(false);
         expect(smokeSource).toContain(
             "dialog.showOpenDialog as typeof dialog.showOpenDialog &"
+        );
+    });
+
+    it("keeps Playwright Browser status recorder state off window globals", () => {
+        expect.assertions(2);
+
+        const smokeSource = stripComments(
+            readRepositoryFile(playwrightSmokeFiles[0])
+        );
+
+        expect(
+            directPlaywrightFitBrowserStatusGlobalFixturePattern.test(
+                smokeSource
+            )
+        ).toBe(false);
+        expect(smokeSource).toContain(
+            "ffv-playwright-fit-browser-status-recorder"
         );
     });
 
@@ -26870,8 +26887,8 @@ it("keeps the core state manager free of reactive global property bridges", () =
         );
     });
 
-it("keeps Electron API global lookup centralized behind its runtime provider", () => {
-	expect.assertions(17);
+    it("keeps Electron API global lookup centralized behind its runtime provider", () => {
+        expect.assertions(17);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(

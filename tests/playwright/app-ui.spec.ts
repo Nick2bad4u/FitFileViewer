@@ -45,6 +45,7 @@ const sampleFitPath = path.join(
     sampleFitFixture.fileName
 );
 const sampleFitFileName = sampleFitFixture.fileName;
+const fitBrowserStatusRecorderId = "ffv-playwright-fit-browser-status-recorder";
 const missingFitPath = path.join(
     repositoryRoot,
     "fit-test-files",
@@ -800,18 +801,45 @@ test.describe("FitFileViewer Electron UI", () => {
     }
 
     async function armFitBrowserStatusRecorder(): Promise<void> {
-        await page.evaluate(() => {
-            const globalWindow = window as Window & {
-                __ffvPlaywrightFitBrowserStatusCleanup?: () => void;
-                __ffvPlaywrightFitBrowserStatusSnapshots?: string[];
-            };
-            globalWindow.__ffvPlaywrightFitBrowserStatusCleanup?.();
-            globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots = [];
+        await page.evaluate((recorderId) => {
+            const previousRecorder = document.getElementById(recorderId);
+            previousRecorder?.dispatchEvent(
+                new Event("ffv-playwright-stop-recorder")
+            );
+            previousRecorder?.remove();
+
+            const recorder = document.createElement("div");
+            recorder.hidden = true;
+            recorder.id = recorderId;
+            recorder.dataset["snapshots"] = "[]";
+            document.body.append(recorder);
 
             let statusObserver: MutationObserver | undefined;
+            const readSnapshots = (): string[] => {
+                try {
+                    const parsed = JSON.parse(
+                        recorder.dataset["snapshots"] ?? "[]"
+                    ) as unknown;
+
+                    return Array.isArray(parsed)
+                        ? parsed.filter(
+                              (snapshot): snapshot is string =>
+                                  typeof snapshot === "string"
+                          )
+                        : [];
+                } catch {
+                    return [];
+                }
+            };
+            const appendSnapshot = (snapshot: string) => {
+                recorder.dataset["snapshots"] = JSON.stringify([
+                    ...readSnapshots(),
+                    snapshot,
+                ]);
+            };
             const recordStatus = () => {
                 const status = document.querySelector("#fit-browser-status");
-                globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots?.push(
+                appendSnapshot(
                     status instanceof HTMLElement
                         ? `${status.textContent ?? ""}|${status.className}`
                         : ""
@@ -838,33 +866,50 @@ test.describe("FitFileViewer Electron UI", () => {
             });
             attachStatusObserver();
 
-            globalWindow.__ffvPlaywrightFitBrowserStatusCleanup = () => {
+            const cleanupController = new AbortController();
+            const stopRecorder = () => {
                 bodyObserver.disconnect();
                 statusObserver?.disconnect();
+                cleanupController.abort();
             };
-        });
+            recorder.addEventListener(
+                "ffv-playwright-stop-recorder",
+                stopRecorder,
+                { once: true, signal: cleanupController.signal }
+            );
+        }, fitBrowserStatusRecorderId);
     }
 
     async function getFitBrowserStatusSnapshots(): Promise<string[]> {
-        return page.evaluate(() => {
-            const globalWindow = window as Window & {
-                __ffvPlaywrightFitBrowserStatusSnapshots?: string[];
-            };
+        return page.evaluate((recorderId) => {
+            const recorder = document.getElementById(recorderId);
+            if (!recorder) {
+                return [];
+            }
 
-            return globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots ?? [];
-        });
+            try {
+                const parsed = JSON.parse(
+                    recorder.dataset["snapshots"] ?? "[]"
+                ) as unknown;
+
+                return Array.isArray(parsed)
+                    ? parsed.filter(
+                          (snapshot): snapshot is string =>
+                              typeof snapshot === "string"
+                      )
+                    : [];
+            } catch {
+                return [];
+            }
+        }, fitBrowserStatusRecorderId);
     }
 
     async function stopFitBrowserStatusRecorder(): Promise<void> {
-        await page.evaluate(() => {
-            const globalWindow = window as Window & {
-                __ffvPlaywrightFitBrowserStatusCleanup?: () => void;
-                __ffvPlaywrightFitBrowserStatusSnapshots?: string[];
-            };
-            globalWindow.__ffvPlaywrightFitBrowserStatusCleanup?.();
-            delete globalWindow.__ffvPlaywrightFitBrowserStatusCleanup;
-            delete globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots;
-        });
+        await page.evaluate((recorderId) => {
+            const recorder = document.getElementById(recorderId);
+            recorder?.dispatchEvent(new Event("ffv-playwright-stop-recorder"));
+            recorder?.remove();
+        }, fitBrowserStatusRecorderId);
     }
 
     async function openSampleFitThroughDialog(): Promise<ActivityUiState> {
