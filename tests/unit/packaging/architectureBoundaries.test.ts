@@ -16808,7 +16808,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(29);
+        expect.assertions(34);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -16862,6 +16862,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts"
             )
+        );
+        const lifecycleListenersSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
         );
         const openFitFileFromPathSource = stripComments(
             readRepositoryFile(
@@ -16923,6 +16926,13 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).not.toContain(
             "value as Partial<RecentFilesElectronApi>"
         );
+        expect(lifecycleListenersSource).toContain("ElectronFileApi");
+        expect(lifecycleListenersSource).toContain("ElectronMenuEventApi");
+        expect(lifecycleListenersSource).toContain("ElectronPreloadEventApi");
+        expect(lifecycleListenersSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(lifecycleListenersSource).not.toContain("Pick<ElectronAPI");
         expect(openFitFileFromPathSource).toContain("ElectronFileApi");
         expect(openFitFileFromPathSource).toContain("ElectronPreloadEventApi");
         expect(openFitFileFromPathSource).not.toContain(

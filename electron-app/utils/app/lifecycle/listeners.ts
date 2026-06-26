@@ -27,7 +27,11 @@ import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type {
+    ElectronFileApi,
+    ElectronMenuEventApi,
+    ElectronPreloadEventApi,
+} from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import {
     clearLifecycleListenerCleanup,
@@ -100,25 +104,8 @@ type FitData = {
 type TrackUnsubscribe = (maybeUnsubscribe: unknown) => void;
 
 type LifecycleElectronAPI = Partial<
-    Pick<
-        ElectronAPI,
-        | "addRecentFile"
-        | "checkForUpdates"
-        | "onDecoderOptionsChanged"
-        | "onExportFile"
-        | "onMenuCheckForUpdates"
-        | "onMenuOpenFile"
-        | "onMenuPrint"
-        | "onOpenRecentFile"
-        | "onUpdateEvent"
-        | "onSetFontSize"
-        | "onSetHighContrast"
-        | "onShowNotification"
-        | "readFile"
-    >
-> & {
-    parseFitFile?: ElectronAPI["parseFitFile"];
-};
+    ElectronFileApi & ElectronMenuEventApi & ElectronPreloadEventApi
+>;
 
 /** Mutable flag shared with the file-opening workflow. */
 export type FileOpeningStateRef = {
