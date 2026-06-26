@@ -84,6 +84,12 @@ export function getBrowserComputedStyle():
         : undefined;
 }
 
+export function getBrowserConfirm(): typeof globalThis.confirm | undefined {
+    return typeof globalThis.confirm === "function"
+        ? globalThis.confirm.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserCustomEvent():
     | typeof globalThis.CustomEvent
     | undefined {

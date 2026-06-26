@@ -1,9 +1,11 @@
 import {
     getBrowserAbortController,
+    getBrowserConfirm,
     getBrowserCrypto,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserLocalStorage,
+    getBrowserOpen,
 } from "../../runtime/browserRuntime.js";
 
 type ConfirmDangerousActionFunction = (message?: string) => boolean;
@@ -66,22 +68,11 @@ export interface ExportUtilsRuntime {
 }
 
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
-    getConfirmDangerousAction: () => {
-        const confirmDangerousAction = globalThis.confirm;
-        return typeof confirmDangerousAction === "function"
-            ? (message) => confirmDangerousAction.call(globalThis, message)
-            : undefined;
-    },
+    getConfirmDangerousAction: getBrowserConfirm,
     getAbortController: getBrowserAbortController,
     getDocument: getBrowserDocument,
     getHTMLElement: getBrowserHTMLElement,
-    getOpenPrintWindow: () => {
-        const openPrintWindow = globalThis.open;
-        return typeof openPrintWindow === "function"
-            ? (url, target, features) =>
-                  openPrintWindow.call(globalThis, url, target, features)
-            : undefined;
-    },
+    getOpenPrintWindow: getBrowserOpen,
     getSecureRandomCrypto: getBrowserCrypto,
     getStorage: () => getBrowserLocalStorage() ?? null,
 };
