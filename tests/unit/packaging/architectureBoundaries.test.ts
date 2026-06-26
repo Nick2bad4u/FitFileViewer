@@ -26757,7 +26757,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -26778,7 +26778,12 @@ describe("architecture boundaries", () => {
         expect(eventListenerManagerSource).toContain(
             "eventListenerManagerRuntime.js"
         );
-        expect(eventListenerManagerSource).toContain("getDefaultEventTarget");
+        expect(eventListenerManagerSource).toContain(
+            "getDefaultDragDropTarget"
+        );
+        expect(eventListenerManagerSource).not.toContain(
+            "getDefaultEventTarget"
+        );
         expect(eventListenerManagerRuntimeSource).toContain(
             "defaultEventListenerManagerRuntimeScope"
         );

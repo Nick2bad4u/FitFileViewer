@@ -22,9 +22,9 @@ describe("getEventListenerManagerRuntime", () => {
         const addEventListener = vi.fn();
         vi.stubGlobal("addEventListener", addEventListener);
 
-        expect(getEventListenerManagerRuntime().getDefaultEventTarget()).toBe(
-            globalThis
-        );
+        expect(
+            getEventListenerManagerRuntime().getDefaultDragDropTarget()
+        ).toBe(globalThis);
     });
 
     it("resolves the default event target through the injected event-target scope", () => {
@@ -35,14 +35,14 @@ describe("getEventListenerManagerRuntime", () => {
                 getEventTarget: () => target,
             });
 
-        expect(runtime.getDefaultEventTarget()).toBe(target);
+        expect(runtime.getDefaultDragDropTarget()).toBe(target);
     });
 
     it("returns undefined when no default event target is available", () => {
         expect.assertions(1);
 
         expect(
-            getEventListenerManagerRuntime({}).getDefaultEventTarget()
+            getEventListenerManagerRuntime({}).getDefaultDragDropTarget()
         ).toBeUndefined();
     });
 
@@ -92,13 +92,13 @@ describe("getEventListenerManagerRuntime", () => {
             getEventTarget,
         });
 
-        expect(runtime.getDefaultEventTarget()).toBe(target);
+        expect(runtime.getDefaultDragDropTarget()).toBe(target);
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
         );
         expect(controllerCount).toBe(1);
         expect(
-            getEventListenerManagerRuntime({}).getDefaultEventTarget()
+            getEventListenerManagerRuntime({}).getDefaultDragDropTarget()
         ).toBeUndefined();
     });
 
@@ -131,7 +131,7 @@ describe("getEventListenerManagerRuntime", () => {
             eventTarget: target,
         } as unknown as Parameters<typeof getEventListenerManagerRuntime>[0]);
 
-        expect(runtime.getDefaultEventTarget()).toBeUndefined();
+        expect(runtime.getDefaultDragDropTarget()).toBeUndefined();
         expect(() => {
             runtime.createAbortController();
         }).toThrow(

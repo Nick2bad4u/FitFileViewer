@@ -28,7 +28,7 @@ const registeredListeners = new Set<CleanupFunction>();
  * Adds event listeners for common drag and drop operations
  *
  * @param handlers - Object containing drag and drop event handlers.
- * @param target - The target element; defaults to window.
+ * @param target - The target element; defaults to the runtime drag/drop target.
  *
  * @returns Cleanup function to remove all drag and drop listeners.
  */
@@ -38,7 +38,7 @@ export function addDragDropListeners(
     runtime: EventListenerManagerRuntime = getEventListenerManagerRuntime()
 ): CleanupFunction {
     const cleanupFunctions: CleanupFunction[] = [],
-        listenerTarget = target ?? runtime.getDefaultEventTarget();
+        listenerTarget = target ?? runtime.getDefaultDragDropTarget();
 
     if (handlers.onDragEnter) {
         cleanupFunctions.push(

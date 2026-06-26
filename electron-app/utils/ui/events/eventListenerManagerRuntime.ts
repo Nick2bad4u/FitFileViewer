@@ -13,7 +13,7 @@ export interface EventListenerManagerRuntimeScope {
 
 export interface EventListenerManagerRuntime {
     createAbortController: () => AbortController;
-    getDefaultEventTarget: () => EventTarget | undefined;
+    getDefaultDragDropTarget: () => EventTarget | undefined;
 }
 
 const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope =
@@ -48,7 +48,7 @@ export function getEventListenerManagerRuntime(
 
             return new AbortControllerConstructor();
         },
-        getDefaultEventTarget(): EventTarget | undefined {
+        getDefaultDragDropTarget(): EventTarget | undefined {
             return getEventTarget(scope);
         },
     };

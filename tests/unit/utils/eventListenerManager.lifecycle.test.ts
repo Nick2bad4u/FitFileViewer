@@ -112,7 +112,7 @@ describe("eventListenerManager listener lifecycle", () => {
                 abort,
                 signal: abortController.signal,
             })),
-            getDefaultEventTarget: vi.fn(() => window),
+            getDefaultDragDropTarget: vi.fn(() => window),
         };
 
         addEventListenerWithCleanup(window, "click", handler, false, runtime);
@@ -163,7 +163,7 @@ describe("eventListenerManager listener lifecycle", () => {
             abortController = new AbortController(),
             runtime = {
                 createAbortController: vi.fn(() => abortController),
-                getDefaultEventTarget: vi.fn(() => target),
+                getDefaultDragDropTarget: vi.fn(() => target),
             };
 
         const cleanup = addDragDropListeners({ onDrop }, undefined, runtime);
@@ -174,7 +174,7 @@ describe("eventListenerManager listener lifecycle", () => {
         const afterCleanupEvent = new Event("drop");
         target.dispatchEvent(afterCleanupEvent);
 
-        expect(runtime.getDefaultEventTarget).toHaveBeenCalledOnce();
+        expect(runtime.getDefaultDragDropTarget).toHaveBeenCalledOnce();
         expect(runtime.createAbortController).toHaveBeenCalledOnce();
         expect(onDrop).toHaveBeenCalledWith(beforeCleanupEvent);
         expect(onDrop).toHaveBeenCalledTimes(1);
