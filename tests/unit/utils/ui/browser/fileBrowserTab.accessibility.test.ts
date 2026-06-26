@@ -104,13 +104,22 @@ describe("fileBrowserTab accessibility", () => {
 
         await renderFileBrowserTab({ electronApiScope });
 
+        const listingState = getBrowserListingState();
+        const loadedAtText = new Date(
+            listingState.loadedAt ?? Number.NaN
+        ).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
+
         expect(
             document.querySelector("#fit-browser-current-path")?.textContent
         ).toBe("C:\\rides");
-        expect(
-            document.querySelector("#fit-browser-status")?.textContent
-        ).toMatch(/^Loaded 2 items from root .* \(1 file, 1 folder\)\.$/u);
-        expect(getBrowserListingState()).toStrictEqual({
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            `Loaded 2 items from root at ${loadedAtText} (1 file, 1 folder).`
+        );
+        expect(listingState).toStrictEqual({
             error: null,
             fileCount: 1,
             folderCount: 1,

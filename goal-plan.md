@@ -353,7 +353,10 @@ button lookup, Browser tab scaffold/row/card/control element and text-node creat
 managed listener abort-controller creation, and Browser listing/library scan timestamp reads now route through
 `fileBrowserTabRuntime.ts` instead of reading those Browser tab DOM primitives, constructing `AbortController`, or
 calling `Date.now` directly inside `fileBrowserTab.ts`, with focused runtime coverage and architecture guardrails
-blocking those direct Browser tab DOM primitives and clock reads from returning.
+blocking those direct Browser tab DOM primitives and clock reads from returning. Browser tab runtime controller and
+element-constructor contracts now reuse shared browser-runtime aliases instead of direct ambient constructor type
+spellings, and visible loaded/scanned status timestamps render from the same runtime timestamps recorded in Browser
+state/cache payloads.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document

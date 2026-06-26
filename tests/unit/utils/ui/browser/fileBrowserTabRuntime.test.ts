@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getFileBrowserTabRuntime } from "../../../../../electron-app/utils/ui/browser/fileBrowserTabRuntime.js";
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getFileBrowserTabRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
@@ -15,7 +16,7 @@ describe("getFileBrowserTabRuntime", () => {
         );
         const runtime = getFileBrowserTabRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -127,7 +128,7 @@ describe("getFileBrowserTabRuntime", () => {
         const dateNow = vi.fn(() => 123_456);
         const runtime = getFileBrowserTabRuntime({
             AbortController:
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             dateNow,
             document,
             HTMLElement,

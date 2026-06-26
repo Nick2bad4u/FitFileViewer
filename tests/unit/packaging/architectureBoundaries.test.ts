@@ -6423,7 +6423,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(71);
+        expect.assertions(85);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -6478,6 +6478,8 @@ describe("architecture boundaries", () => {
             "fileBrowserTabRuntime().createTextNode"
         );
         expect(browserTabSource).toContain("fileBrowserTabRuntime().dateNow()");
+        expect(browserTabSource).toContain("formatLoadedAt(loadedAt)");
+        expect(browserTabSource).toContain("formatLoadedAt(scannedAt)");
         expect(browserTabSource).toContain(
             "fileBrowserTabRuntime().getStorageItem"
         );
@@ -6535,6 +6537,40 @@ describe("architecture boundaries", () => {
         expect(browserItemButtonSource).not.toContain("document.querySelector");
         expect(browserTabRuntimeSource).toContain(
             "defaultFileBrowserTabRuntimeScope"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "type BrowserHTMLInputElementConstructor"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "type BrowserHTMLSelectElementConstructor"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "(() => typeof HTMLElement | undefined)"
+        );
+        expect(browserTabRuntimeSource).not.toContain("): typeof HTMLElement");
+        expect(browserTabRuntimeSource).not.toContain(
+            "(() => typeof HTMLInputElement | undefined)"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "): typeof HTMLInputElement"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "(() => typeof HTMLSelectElement | undefined)"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "): typeof HTMLSelectElement"
         );
         expect(browserTabRuntimeSource).not.toMatch(
             directFileBrowserTabRuntimeAmbientGetterPattern

@@ -383,8 +383,8 @@ function createEmptyMessage(
     return empty;
 }
 
-function formatLoadedAt(): string {
-    return new Date().toLocaleTimeString(undefined, {
+function formatLoadedAt(timestampMs: number): string {
+    return new Date(timestampMs).toLocaleTimeString(undefined, {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
@@ -1171,7 +1171,7 @@ async function refreshListing(): Promise<void> {
     const locationLabel = relPath ? relPath.replaceAll("/", " / ") : "root";
     const loadedAt = fileBrowserTabRuntime().dateNow();
     setBrowserStatus(
-        `Loaded ${entries.length} item${entries.length === 1 ? "" : "s"} from ${locationLabel} at ${formatLoadedAt()} (${fileCount} file${fileCount === 1 ? "" : "s"}, ${folderCount} folder${folderCount === 1 ? "" : "s"}).`
+        `Loaded ${entries.length} item${entries.length === 1 ? "" : "s"} from ${locationLabel} at ${formatLoadedAt(loadedAt)} (${fileCount} file${fileCount === 1 ? "" : "s"}, ${folderCount} folder${folderCount === 1 ? "" : "s"}).`
     );
     setBrowserListingState({
         fileCount,
@@ -1649,10 +1649,11 @@ async function renderCalendarView(): Promise<void> {
 
     const cached =
         loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+    const loadedAt = fileBrowserTabRuntime().dateNow();
     setBrowserStatus(
         cached
-            ? `Loaded calendar with ${cached.items.length} decoded activit${cached.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt()}.`
-            : `Loaded folder at ${formatLoadedAt()}. Scan folder to populate the calendar.`
+            ? `Loaded calendar with ${cached.items.length} decoded activit${cached.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt(loadedAt)}.`
+            : `Loaded folder at ${formatLoadedAt(loadedAt)}. Scan folder to populate the calendar.`
     );
 
     if (!calendarEl.dataset["ffvCalendarInitialized"]) {
@@ -2117,16 +2118,17 @@ async function renderLibraryView(): Promise<void> {
     // If we have cached results for this root (session + persisted), show them.
     const cachedForRoot =
         loadPersistedLibraryCache(root) ?? loadSessionLibraryCache(root);
+    const loadedAt = fileBrowserTabRuntime().dateNow();
     if (cachedForRoot) {
         setBrowserStatus(
-            `Loaded folder summary with ${cachedForRoot.items.length} decoded activit${cachedForRoot.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt()}.`
+            `Loaded folder summary with ${cachedForRoot.items.length} decoded activit${cachedForRoot.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt(loadedAt)}.`
         );
         renderLibraryResults(root, cachedForRoot);
         return;
     }
 
     setBrowserStatus(
-        `Loaded folder at ${formatLoadedAt()}. Scan folder to compute totals.`
+        `Loaded folder at ${formatLoadedAt(loadedAt)}. Scan folder to compute totals.`
     );
     const statusEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-library-status"
@@ -2237,7 +2239,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
         writeSessionLibraryCache(root, payload);
         persistLibraryCache(root, payload);
         setBrowserStatus(
-            `Decoded ${payload.items.length} activit${payload.items.length === 1 ? "y" : "ies"} from this folder at ${formatLoadedAt()}.`
+            `Decoded ${payload.items.length} activit${payload.items.length === 1 ? "y" : "ies"} from this folder at ${formatLoadedAt(scannedAt)}.`
         );
         setBrowserScanState({
             decodedActivityCount: payload.items.length,
