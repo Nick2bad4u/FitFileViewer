@@ -17217,7 +17217,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(24);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -17248,6 +17248,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadVersionInfoSource).toContain("loadVersionInfoRuntime.js");
+        expect(loadVersionInfoSource).toContain("processEnvironment.js");
+        expect(loadVersionInfoSource).not.toContain("process.arch");
+        expect(loadVersionInfoSource).not.toContain("process.platform");
+        expect(loadVersionInfoSource).not.toContain("process.versions");
+        expect(loadVersionInfoSource).toContain("getProcessStringValue");
+        expect(loadVersionInfoSource).toContain("getProcessVersionValue");
         expect(loadVersionInfoSource).toContain("type LoadVersionInfoRuntime");
         expect(loadVersionInfoSource).toContain(
             "return getLoadVersionInfoRuntime();"

@@ -1,4 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { setRuntimeProcess } from "../../../../../electron-app/utils/runtime/processEnvironment.js";
 
 type VersionInfoElectronAPI = {
     getAppVersion?: () => Promise<string>;
@@ -11,6 +13,8 @@ type VersionInfoElectronAPI = {
 
 type LoadVersionInfoModule =
     typeof import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js");
+
+const originalProcess = globalThis.process;
 
 const h = vi.hoisted(() => ({
     getErrorInfo: vi.fn<
@@ -78,6 +82,10 @@ function resetTestState(): void {
 }
 
 describe("loadVersionInfo", () => {
+    afterEach(() => {
+        setRuntimeProcess(originalProcess);
+    });
+
     it("uses electronAPI when available and updates DOM", async () => {
         expect.assertions(2);
 
@@ -127,6 +135,15 @@ describe("loadVersionInfo", () => {
         expect.assertions(2);
 
         resetTestState();
+        setRuntimeProcess({
+            arch: "arm64",
+            platform: "test-platform",
+            versions: {
+                chrome: "120.1.2",
+                electron: "30.0.1",
+                node: "22.3.4",
+            },
+        });
 
         const { loadVersionInfo } = await importLoadVersionInfoModule();
 
@@ -136,7 +153,11 @@ describe("loadVersionInfo", () => {
         expect(h.updateSystemInfo).toHaveBeenCalledWith(
             expect.objectContaining({
                 author: "Nick2bad4u",
+                chrome: "120.1.2",
+                electron: "30.0.1",
                 license: "Unlicense",
+                node: "22.3.4",
+                platform: "test-platform (arm64)",
             })
         );
     });
