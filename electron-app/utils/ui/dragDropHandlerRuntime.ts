@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserCancelAnimationFrame,
+    type BrowserFileReaderConstructor,
+    type BrowserRequestAnimationFrame,
     getBrowserAbortController,
     getBrowserCancelAnimationFrame,
     getBrowserDateNow,
@@ -10,17 +14,19 @@ import {
 
 export interface DragDropHandlerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getCancelAnimationFrame?:
-        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
-    readonly getFileReader?: (() => typeof FileReader | undefined) | undefined;
+    readonly getFileReader?:
+        | (() => BrowserFileReaderConstructor | undefined)
+        | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
 }
 
@@ -48,13 +54,13 @@ const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
 
 function getAbortControllerConstructor(
     scope: DragDropHandlerRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getCancelAnimationFrame(
     scope: DragDropHandlerRuntimeScope
-): typeof globalThis.cancelAnimationFrame | undefined {
+): BrowserCancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
 }
 
@@ -79,13 +85,13 @@ function getEventTarget(
 
 function getFileReaderConstructor(
     scope: DragDropHandlerRuntimeScope
-): typeof FileReader | undefined {
+): BrowserFileReaderConstructor | undefined {
     return scope.getFileReader?.();
 }
 
 function getRequestAnimationFrame(
     scope: DragDropHandlerRuntimeScope
-): typeof globalThis.requestAnimationFrame | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
