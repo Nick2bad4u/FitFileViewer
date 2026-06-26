@@ -21878,7 +21878,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher browser APIs behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(45);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -21973,6 +21973,7 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(quickColorSwitcherRuntimeSource).not.toContain("globalThis.");
         expect(quickColorSwitcherRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );

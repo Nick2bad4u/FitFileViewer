@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserNodeConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -8,13 +13,8 @@ import {
 import { getIconFactoryRuntime } from "./icons/iconFactoryRuntime.js";
 
 export type QuickColorSwitcherTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
+    | BrowserTimerHandle
     | number;
-
-type QuickColorSwitcherSetTimeout = (
-    callback: () => void,
-    timeout: number
-) => QuickColorSwitcherTimerHandle;
 
 type QuickColorSwitcherClickListener = (event: Readonly<MouseEvent>) => void;
 
@@ -24,15 +24,15 @@ type QuickColorSwitcherListenerOptions = Readonly<
 
 export interface QuickColorSwitcherRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
+    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
     readonly getSetTimeout?:
-        | (() => QuickColorSwitcherSetTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
@@ -72,13 +72,13 @@ const defaultQuickColorSwitcherRuntimeScope: QuickColorSwitcherRuntimeScope = {
 
 function getAbortControllerConstructor(
     scope: QuickColorSwitcherRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: QuickColorSwitcherRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -99,13 +99,13 @@ function getRequiredDocument(scope: QuickColorSwitcherRuntimeScope): Document {
 
 function getNodeConstructor(
     scope: QuickColorSwitcherRuntimeScope
-): typeof globalThis.Node | undefined {
+): BrowserNodeConstructor | undefined {
     return scope.getNode?.();
 }
 
 function getSetTimeout(
     scope: QuickColorSwitcherRuntimeScope
-): QuickColorSwitcherSetTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 
