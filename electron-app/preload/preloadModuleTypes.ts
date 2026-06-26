@@ -641,15 +641,7 @@ export interface ExposeElectronApiOptions {
     preloadLog: PreloadLog;
 }
 
-export interface PreloadModuleRegistry {
-    createApiDiagnostics: CreateApiDiagnostics;
-    createAppInfoApi: CreateAppInfoApi;
-    createClipboardBridge: CreateClipboardBridge;
-    createDevtoolsMenuApi: CreateDevtoolsMenuApi;
-    createFileApi: CreateFileApi;
-    createFitBrowserApi: CreateFitBrowserApi;
-    createGyazoExternalApi: CreateGyazoExternalApi;
-    createPreloadEventApi: CreatePreloadEventApi;
+export interface PreloadApiAssemblyModules {
     createPreloadApiAssemblyContext: CreatePreloadApiAssemblyContext;
     createPreloadClipboardApiDomain: CreatePreloadClipboardApiDomain;
     createPreloadDeveloperApiDomain: CreatePreloadDeveloperApiDomain;
@@ -660,21 +652,39 @@ export interface PreloadModuleRegistry {
     createPreloadIpcEventApiDomain: CreatePreloadIpcEventApiDomain;
     createPreloadStateApiDomain: CreatePreloadStateApiDomain;
     createPreloadSystemApiDomain: CreatePreloadSystemApiDomain;
-    createMainStateApi: CreateMainStateApi;
-    createMainStateBridge: CreateMainStateBridge;
-    createMenuEventApi: CreateMenuEventApi;
-    createPreloadIpcHelpers: CreatePreloadIpcHelpers;
-    createPreloadLogger: CreatePreloadLogger;
-    createPreloadValidators: CreatePreloadValidators;
+}
+
+export interface PreloadAppModules {
+    createApiDiagnostics: CreateApiDiagnostics;
+    createAppInfoApi: CreateAppInfoApi;
+    createClipboardBridge: CreateClipboardBridge;
+    createDevtoolsMenuApi: CreateDevtoolsMenuApi;
+    createGyazoExternalApi: CreateGyazoExternalApi;
     createShellExternalApi: CreateShellExternalApi;
     createThemeApi: CreateThemeApi;
     exposeDevelopmentToolsGlobal: ExposeDevelopmentToolsGlobal;
-    exposeElectronApi: ExposeElectronApi;
-    ipcBridgeCatalog: IpcBridgeCatalog;
     isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
     registerPreloadBeforeExitHandler: RegisterPreloadBeforeExitHandler;
+}
+
+export interface PreloadFileModules {
+    createFileApi: CreateFileApi;
+    createFitBrowserApi: CreateFitBrowserApi;
+}
+
+export interface PreloadIpcModules {
+    createMenuEventApi: CreateMenuEventApi;
+    createPreloadEventApi: CreatePreloadEventApi;
+    createPreloadIpcHelpers: CreatePreloadIpcHelpers;
+    createPreloadLogger: CreatePreloadLogger;
+    createPreloadValidators: CreatePreloadValidators;
+    exposeElectronApi: ExposeElectronApi;
+    ipcBridgeCatalog: IpcBridgeCatalog;
     resolvePreloadElectronBridge: ResolvePreloadElectronBridge;
     shouldEnforceGenericIpcAllowlist: ShouldEnforceGenericIpcAllowlist;
+}
+
+export interface PreloadPolicyModules {
     validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
     validateExternalUrl: ValidateExternalUrl;
     validateFitBrowserRelativePath: ValidateFitBrowserRelativePath;
@@ -683,6 +693,20 @@ export interface PreloadModuleRegistry {
     validateMainStateOperationIdInput: ValidateMainStateOperationIdInput;
     validateMainStatePathInput: ValidateMainStatePathInput;
 }
+
+export interface PreloadStateModules {
+    createMainStateApi: CreateMainStateApi;
+    createMainStateBridge: CreateMainStateBridge;
+}
+
+export interface PreloadModuleRegistry
+    extends
+        PreloadApiAssemblyModules,
+        PreloadAppModules,
+        PreloadFileModules,
+        PreloadIpcModules,
+        PreloadPolicyModules,
+        PreloadStateModules {}
 
 export interface PreloadApiAssemblyContext {
     constants: PreloadConstants;

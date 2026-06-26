@@ -1,12 +1,7 @@
 import { createMainStateApi } from "./mainStateApi.js";
 import { createMainStateBridge } from "./mainStateBridge.js";
 
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadStateModules = Pick<
-    PreloadModuleRegistry,
-    "createMainStateApi" | "createMainStateBridge"
->;
+type PreloadStateModules = import("./preloadModuleTypes").PreloadStateModules;
 
 export function loadPreloadStateModules(): PreloadStateModules {
     return {

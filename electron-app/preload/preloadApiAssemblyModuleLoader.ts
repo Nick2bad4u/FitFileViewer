@@ -9,29 +9,15 @@ import { createPreloadIpcEventApiDomain } from "./ipcEventApiDomain.js";
 import { createPreloadStateApiDomain } from "./stateApiDomain.js";
 import { createPreloadSystemApiDomain } from "./systemApiDomain.js";
 
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadApiAssemblyModules = Pick<
-    PreloadModuleRegistry,
-    | "createPreloadApiAssemblyContext"
-    | "createPreloadClipboardApiDomain"
-    | "createPreloadDeveloperApiDomain"
-    | "createPreloadDiagnosticsApiDomain"
-    | "createPreloadDialogApiDomain"
-    | "createPreloadExternalApiDomain"
-    | "createPreloadFileApiDomain"
-    | "createPreloadIpcEventApiDomain"
-    | "createPreloadStateApiDomain"
-    | "createPreloadSystemApiDomain"
->;
+type PreloadApiAssemblyModules =
+    import("./preloadModuleTypes").PreloadApiAssemblyModules;
 
 export function loadPreloadApiAssemblyModules(): PreloadApiAssemblyModules {
     return {
         createPreloadApiAssemblyContext,
         createPreloadClipboardApiDomain,
         createPreloadDeveloperApiDomain,
-        createPreloadDiagnosticsApiDomain:
-            createPreloadDiagnosticsApiDomain,
+        createPreloadDiagnosticsApiDomain: createPreloadDiagnosticsApiDomain,
         createPreloadDialogApiDomain,
         createPreloadExternalApiDomain,
         createPreloadFileApiDomain,

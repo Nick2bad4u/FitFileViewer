@@ -8,20 +8,7 @@ import { createMenuEventApi } from "./menuEventApi.js";
 import { createPreloadEventApi } from "./preloadEventApi.js";
 import { createPreloadValidators } from "./validators.js";
 
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadIpcModules = Pick<
-    PreloadModuleRegistry,
-    | "createMenuEventApi"
-    | "createPreloadEventApi"
-    | "createPreloadIpcHelpers"
-    | "createPreloadLogger"
-    | "createPreloadValidators"
-    | "exposeElectronApi"
-    | "ipcBridgeCatalog"
-    | "resolvePreloadElectronBridge"
-    | "shouldEnforceGenericIpcAllowlist"
->;
+type PreloadIpcModules = import("./preloadModuleTypes").PreloadIpcModules;
 
 export function loadPreloadIpcModules(): PreloadIpcModules {
     return {

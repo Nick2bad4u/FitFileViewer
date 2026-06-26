@@ -2527,6 +2527,34 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload domain loaders on named module contracts", () => {
+        expect.assertions(2);
+
+        const domainLoaderFiles = [
+            "electron-app/preload/preloadApiAssemblyModuleLoader.ts",
+            "electron-app/preload/preloadAppModuleLoader.ts",
+            "electron-app/preload/preloadFileModuleLoader.ts",
+            "electron-app/preload/preloadIpcModuleLoader.ts",
+            "electron-app/preload/preloadPolicyModuleLoader.ts",
+            "electron-app/preload/preloadStateModuleLoader.ts",
+        ];
+        const broadRegistryDerivedLoaderFiles = domainLoaderFiles
+            .filter((relativeFile) =>
+                /\b(?:PreloadModuleRegistry|Pick<)\b/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+
+        expect(broadRegistryDerivedLoaderFiles).toStrictEqual([]);
+        expect(moduleTypesSource).toMatch(
+            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyModules,\s+PreloadAppModules,\s+PreloadFileModules,\s+PreloadIpcModules,\s+PreloadPolicyModules,\s+PreloadStateModules/u
+        );
+    });
+
     it("keeps preload TypeScript source free of source-level CommonJS exports", () => {
         expect.assertions(1);
 

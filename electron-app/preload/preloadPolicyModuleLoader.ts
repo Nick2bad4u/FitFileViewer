@@ -10,18 +10,7 @@ import {
     validateMainStatePathInput,
 } from "../shared/mainStatePathPolicy.js";
 
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadPolicyModules = Pick<
-    PreloadModuleRegistry,
-    | "validateDevtoolsInjectMenuPayload"
-    | "validateExternalUrl"
-    | "validateFitBrowserRelativePath"
-    | "validateFitBrowserRootFolderPath"
-    | "validateFitFilePathInput"
-    | "validateMainStateOperationIdInput"
-    | "validateMainStatePathInput"
->;
+type PreloadPolicyModules = import("./preloadModuleTypes").PreloadPolicyModules;
 
 export function loadPreloadPolicyModules(): PreloadPolicyModules {
     return {

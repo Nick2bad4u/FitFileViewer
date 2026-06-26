@@ -9,21 +9,7 @@ import { createGyazoExternalApi } from "./gyazoExternalApi.js";
 import { createShellExternalApi } from "./shellExternalApi.js";
 import { createThemeApi } from "./themeApi.js";
 
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadAppModules = Pick<
-    PreloadModuleRegistry,
-    | "createApiDiagnostics"
-    | "createAppInfoApi"
-    | "createClipboardBridge"
-    | "createDevtoolsMenuApi"
-    | "createGyazoExternalApi"
-    | "createShellExternalApi"
-    | "createThemeApi"
-    | "exposeDevelopmentToolsGlobal"
-    | "isPreloadDevelopmentMode"
-    | "registerPreloadBeforeExitHandler"
->;
+type PreloadAppModules = import("./preloadModuleTypes").PreloadAppModules;
 
 export function loadPreloadAppModules(): PreloadAppModules {
     return {

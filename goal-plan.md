@@ -195,6 +195,9 @@ The dist-preload test helper now recognizes the current bundled preload entrypoi
 build is reused instead of each worker attempting a redundant `dist/` rebuild.
 FIT parser and preload IPC documentation now show ESM-style app-code imports instead of `require(...)` examples,
 with docs-alignment coverage preventing those stale CommonJS examples from returning.
+Preload domain module loaders now return named contracts from `preloadModuleTypes.ts` instead of local
+`Pick<PreloadModuleRegistry>` aliases, keeping file, app, IPC, policy, state, and API-assembly loader surfaces
+explicit while the top-level registry remains a composition aggregate.
 
 Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
 and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling
