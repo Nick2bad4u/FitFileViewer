@@ -900,8 +900,8 @@ document-element checks now also route through that runtime instead of reading `
 properties from returning. The default master-state runtime no longer reads ambient `globalThis.__DEVELOPMENT__`;
 development flag checks now require an explicit runtime provider or the existing location/DOM/options signals.
 Default document, listener, dispatch, event-target, location, date-clock, interval, and performance-memory access
-inside the master-state runtime now lives on named providers backed by the shared browser runtime instead of local
-inline `globalThis` or `Date.now` closures.
+inside the master-state runtime now lives on named providers backed by the shared browser runtime providers and aliases
+instead of local inline `globalThis` or `Date.now` closures or direct ambient browser type contracts.
 Master state manager component initialization timestamps, startup-time state writes, global-error timestamps,
 promise-rejection timestamps, and performance-monitor timestamps now also route through `masterStateRuntime.ts`
 instead of calling `Date.now` directly inside `masterStateManager.ts`, with focused runtime coverage and architecture

@@ -1,4 +1,11 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserAddEventListener,
+    type BrowserClearInterval,
+    type BrowserCustomEventConstructor,
+    type BrowserDispatchEvent,
+    type BrowserIntervalHandle,
+    type BrowserSetInterval,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserClearInterval,
@@ -29,9 +36,7 @@ type MasterStateDocumentElement = {
     readonly hasAttribute?: Element["hasAttribute"] | undefined;
 };
 type MasterStateEventTarget = Pick<EventTarget, "addEventListener">;
-export type MasterStateIntervalHandle = ReturnType<
-    typeof globalThis.setInterval
->;
+export type MasterStateIntervalHandle = BrowserIntervalHandle;
 type MasterStatePerformanceMemory = {
     readonly totalJSHeapSize: number;
     readonly usedJSHeapSize: number;
@@ -43,16 +48,16 @@ type MasterStateQueryScope = Pick<Document, "querySelectorAll">;
 
 export interface MasterStateRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
-        | (() => typeof globalThis.addEventListener | undefined)
+        | (() => BrowserAddEventListener | undefined)
         | undefined;
     readonly getClearInterval?:
-        | (() => typeof globalThis.clearInterval | undefined)
+        | (() => BrowserClearInterval | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof globalThis.CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
@@ -70,7 +75,7 @@ export interface MasterStateRuntimeScope {
         | (() => MasterStateQueryScope | undefined)
         | undefined;
     readonly getDispatchEvent?:
-        | (() => typeof globalThis.dispatchEvent | undefined)
+        | (() => BrowserDispatchEvent | undefined)
         | undefined;
     readonly getEventTarget?:
         | (() => MasterStateEventTarget | undefined)
@@ -80,7 +85,7 @@ export interface MasterStateRuntimeScope {
         | (() => MasterStatePerformanceMemory | undefined)
         | undefined;
     readonly getSetInterval?:
-        | (() => typeof globalThis.setInterval | undefined)
+        | (() => BrowserSetInterval | undefined)
         | undefined;
 }
 
@@ -158,19 +163,19 @@ function getBrowserMasterStatePerformanceMemory():
 
 function getScopeAbortController(
     scope: MasterStateRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getScopeAddEventListener(
     scope: MasterStateRuntimeScope
-): typeof globalThis.addEventListener | undefined {
+): BrowserAddEventListener | undefined {
     return scope.getAddEventListener?.();
 }
 
 function getRequiredClearInterval(
     scope: MasterStateRuntimeScope
-): typeof globalThis.clearInterval {
+): BrowserClearInterval {
     const clearIntervalRef = scope.getClearInterval?.();
     if (typeof clearIntervalRef !== "function") {
         throw new TypeError(
@@ -183,7 +188,7 @@ function getRequiredClearInterval(
 
 function getRequiredCustomEvent(
     scope: MasterStateRuntimeScope
-): typeof globalThis.CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
@@ -269,7 +274,7 @@ function getRequiredDocumentEventTarget(
 
 function getScopeDispatchEvent(
     scope: MasterStateRuntimeScope
-): typeof globalThis.dispatchEvent | undefined {
+): BrowserDispatchEvent | undefined {
     return scope.getDispatchEvent?.();
 }
 
@@ -287,7 +292,7 @@ function getScopeLocation(
 
 function getRequiredSetInterval(
     scope: MasterStateRuntimeScope
-): typeof globalThis.setInterval {
+): BrowserSetInterval {
     const setIntervalRef = scope.getSetInterval?.();
     if (typeof setIntervalRef !== "function") {
         throw new TypeError(

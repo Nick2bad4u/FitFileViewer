@@ -11962,7 +11962,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(118);
+        expect.assertions(131);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -12060,6 +12060,39 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "type BrowserAddEventListener"
+        );
+        expect(masterStateRuntimeSource).toContain("type BrowserClearInterval");
+        expect(masterStateRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(masterStateRuntimeSource).toContain("type BrowserDispatchEvent");
+        expect(masterStateRuntimeSource).toContain(
+            "type BrowserIntervalHandle"
+        );
+        expect(masterStateRuntimeSource).toContain("type BrowserSetInterval");
+        expect(masterStateRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "typeof globalThis.addEventListener"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "typeof globalThis.clearInterval"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "typeof globalThis.CustomEvent"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "typeof globalThis.dispatchEvent"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "typeof globalThis.setInterval"
         );
         expect(masterStateRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

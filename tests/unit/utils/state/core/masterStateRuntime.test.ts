@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getMasterStateRuntime } from "../../../../../electron-app/utils/state/core/masterStateRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearInterval,
+    BrowserCustomEventConstructor,
+    BrowserSetInterval,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("masterStateRuntime", () => {
     it("reads timestamps through the injected provider", () => {
@@ -28,11 +34,11 @@ describe("masterStateRuntime", () => {
             usedJSHeapSize: 1024,
         };
         const getClearInterval = vi.fn(
-            () => clearInterval as unknown as typeof globalThis.clearInterval
+            () => clearInterval as unknown as BrowserClearInterval
         );
         const getPerformanceMemory = vi.fn(() => performanceMemory);
         const getSetInterval = vi.fn(
-            () => setInterval as unknown as typeof globalThis.setInterval
+            () => setInterval as unknown as BrowserSetInterval
         );
         const callback = vi.fn();
         const runtime = getMasterStateRuntime({
@@ -334,7 +340,8 @@ describe("masterStateRuntime", () => {
         };
         const eventTarget = { addEventListener: addWindowEventListener };
         const getAbortController = vi.fn(
-            () => TestAbortController as unknown as typeof AbortController
+            () =>
+                TestAbortController as unknown as BrowserAbortControllerConstructor
         );
         const getAddEventListener = vi.fn(() => addGlobalEventListener);
         class TestCustomEvent<T = unknown> extends CustomEvent<T> {
@@ -463,7 +470,7 @@ describe("masterStateRuntime", () => {
         }
         const runtime = getMasterStateRuntime({
             getAbortController: () =>
-                TestAbortController as unknown as typeof AbortController,
+                TestAbortController as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -555,9 +562,9 @@ describe("masterStateRuntime", () => {
         const runtime = getMasterStateRuntime({
             __DEVELOPMENT__: true,
             AbortController:
-                TestAbortController as unknown as typeof AbortController,
+                TestAbortController as unknown as BrowserAbortControllerConstructor,
             CustomEvent:
-                CustomEventConstructor as unknown as typeof CustomEvent,
+                CustomEventConstructor as unknown as BrowserCustomEventConstructor,
             addEventListener: addGlobalEventListener,
             documentBody: {
                 classList: {
