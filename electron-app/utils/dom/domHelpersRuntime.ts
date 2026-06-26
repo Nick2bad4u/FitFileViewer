@@ -1,11 +1,12 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserDocument,
 } from "../runtime/browserRuntime.js";
 
 export interface DomHelpersRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -22,7 +23,7 @@ const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = {
 
 function getScopeAbortController(
     scope: DomHelpersRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 

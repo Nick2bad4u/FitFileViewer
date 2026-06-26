@@ -1426,7 +1426,9 @@ shared browser-runtime AbortController constructor alias instead of spelling dir
 runtime.
 Shared DOM helper listener cleanup now creates abort controllers through `domHelpersRuntime.ts` instead of
 constructing `AbortController` directly in `domHelpers.ts`, with focused runtime coverage and architecture
-coverage blocking direct DOM helper abort-controller construction from returning.
+coverage blocking direct DOM helper abort-controller construction from returning. DOM helper runtime provider contracts now
+reuse the shared browser-runtime AbortController constructor alias instead of spelling direct ambient constructor types in
+the helper runtime.
 Sanitize HTML allowlist fallback fragment creation, DOMParser construction, element tree walking, text-node
 creation, and Element checks now route through `sanitizeHtmlAllowlistRuntime.ts` instead of using direct
 document, DOMParser, NodeFilter, or Element globals inside `sanitizeHtmlAllowlist.ts`, with focused runtime
