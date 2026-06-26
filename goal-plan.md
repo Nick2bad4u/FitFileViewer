@@ -832,7 +832,7 @@ guardrails blocking direct timestamp reads and legacy direct runtime scope prope
 Computed state manager auto-theme dark-scheme checks now resolve through the scoped
 `computedStateManagerRuntime.ts` adapter instead of probing `globalThis.matchMedia` directly inside
 `computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking that direct
-media-query lookup from returning.
+media-query lookup and direct ambient media-query provider types from returning.
 Computed state manager computation duration timing, `lastComputed` timestamps, and uptime calculations now also route
 through `computedStateManagerRuntime.ts` instead of calling `performance.now` or `Date.now` directly inside
 `computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking direct timing reads and

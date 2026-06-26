@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserMatchMedia } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getComputedStateManagerRuntime } from "../../../../../electron-app/utils/state/core/computedStateManagerRuntime.js";
 
 describe("computedStateManagerRuntime", () => {
@@ -35,7 +36,9 @@ describe("computedStateManagerRuntime", () => {
     it("reads dark system preference through the scoped media query runtime", () => {
         expect.assertions(2);
 
-        const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList),
+        const matchMedia = vi.fn<BrowserMatchMedia>(
+                () => ({ matches: true }) as MediaQueryList
+            ),
             runtime = getComputedStateManagerRuntime({
                 getMatchMedia: () => matchMedia,
             });
@@ -48,7 +51,11 @@ describe("computedStateManagerRuntime", () => {
         expect.assertions(1);
 
         const runtime = getComputedStateManagerRuntime({
-            getMatchMedia: () => () => ({ matches: false }) as MediaQueryList,
+            getMatchMedia: () =>
+                (() =>
+                    ({
+                        matches: false,
+                    }) as MediaQueryList) as BrowserMatchMedia,
         });
 
         expect(runtime.isDarkSchemePreferred()).toBe(false);
@@ -57,7 +64,9 @@ describe("computedStateManagerRuntime", () => {
     it("ignores legacy direct matchMedia runtime properties", () => {
         expect.assertions(2);
 
-        const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList),
+        const matchMedia = vi.fn<BrowserMatchMedia>(
+                () => ({ matches: true }) as MediaQueryList
+            ),
             runtime = getComputedStateManagerRuntime({
                 matchMedia,
             } as unknown as Parameters<
@@ -95,7 +104,7 @@ describe("computedStateManagerRuntime", () => {
         const now = vi.fn(function defaultPerformanceNow(this: Performance) {
             return 56.78;
         });
-        const matchMedia = vi.fn(
+        const matchMedia = vi.fn<BrowserMatchMedia>(
             (query: string) =>
                 ({
                     matches: query === "(prefers-color-scheme: dark)",

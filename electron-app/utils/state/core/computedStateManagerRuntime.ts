@@ -1,4 +1,5 @@
 import {
+    type BrowserMatchMedia,
     getBrowserDateNow,
     getBrowserMatchMedia,
     getBrowserPerformance,
@@ -6,9 +7,7 @@ import {
 
 export interface ComputedStateManagerRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getMatchMedia?:
-        | (() => typeof globalThis.matchMedia | undefined)
-        | undefined;
+    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
     readonly getPerformance?:
         | (() => Pick<Performance, "now"> | undefined)
         | undefined;
