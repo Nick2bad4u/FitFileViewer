@@ -1,23 +1,19 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type CancellationTokenTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type CancellationTokenTimerHandle = BrowserTimerHandle | number;
 
 export interface CancellationTokenRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() =>
-              | ((
-                    callback: () => void,
-                    timeout: number
-                ) => CancellationTokenTimerHandle)
-              | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
