@@ -5,6 +5,12 @@ import {
     type RenderTableTimerHandle,
     type RenderTableRuntimeScope,
 } from "../../../../../electron-app/utils/rendering/core/renderTableRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserGetComputedStyle,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -102,14 +108,14 @@ describe("getRenderTableRuntime", () => {
             const style = { display: "table" } as CSSStyleDeclaration;
             const timer = Symbol("timer") as RenderTableTimerHandle;
             const timeoutMs = Number.parseInt("35", 10);
-            const getComputedStyle = vi.fn<typeof globalThis.getComputedStyle>(
+            const getComputedStyle = vi.fn<BrowserGetComputedStyle>(
                 () => style
             );
-            const requestAnimationFrame = vi.fn<
-                typeof globalThis.requestAnimationFrame
-            >(() => 17);
-            const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-            const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+            const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+                () => 17
+            );
+            const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+            const clearTimeout = vi.fn<BrowserClearTimeout>();
             vi.stubGlobal("clearTimeout", clearTimeout);
             vi.stubGlobal("getComputedStyle", getComputedStyle);
             vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);

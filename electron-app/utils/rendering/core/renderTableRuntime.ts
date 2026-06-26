@@ -1,4 +1,5 @@
 import {
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserComputedStyle,
     getBrowserDocument,
@@ -8,9 +9,7 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type RenderTableTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type RenderTableTimerHandle = BrowserTimerHandle | number;
 
 type RenderTableClearTimeout = (handle: RenderTableTimerHandle) => void;
 type RenderTableGetComputedStyle = (

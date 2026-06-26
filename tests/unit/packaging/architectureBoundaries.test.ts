@@ -13680,7 +13680,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(43);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -13713,6 +13713,10 @@ describe("architecture boundaries", () => {
         expect(renderTableRuntimeSource).not.toMatch(
             directRenderTableRuntimeAmbientTimerFallbackPattern
         );
+        expect(renderTableRuntimeSource).not.toContain(
+            "ReturnType<typeof globalThis.setTimeout>"
+        );
+        expect(renderTableRuntimeSource).toContain("type BrowserTimerHandle");
         expect(renderTableRuntimeSource).toContain(
             "defaultRenderTableRuntimeScope"
         );
