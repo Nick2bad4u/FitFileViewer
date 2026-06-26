@@ -22,7 +22,7 @@ export interface AddFullScreenButtonRuntimeScope {
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getGlobalEventTarget?:
+    readonly getWindowEventTarget?:
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
     readonly getHTMLElement?:
@@ -109,10 +109,10 @@ function getDocument(scope: AddFullScreenButtonRuntimeScope): Document {
     return runtimeDocument;
 }
 
-function getGlobalEventTarget(
+function getWindowEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
-    return scope.getGlobalEventTarget?.();
+    return scope.getWindowEventTarget?.();
 }
 
 function getHTMLElementConstructor(
@@ -144,7 +144,7 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
         getDocument: getBrowserDocument,
-        getGlobalEventTarget: getBrowserEventTarget,
+        getWindowEventTarget: getBrowserEventTarget,
         getHTMLElement: getBrowserHTMLElement,
         getKeyboardEvent: getBrowserKeyboardEvent,
         getMutationObserver: getBrowserMutationObserver,
@@ -171,10 +171,10 @@ export function getAddFullScreenButtonRuntime(
             documentEventTarget?.addEventListener(type, listener, options);
         },
         addWindowEventListener(type, listener, options): void {
-            const globalEventTarget = getGlobalEventTarget(scope);
+            const windowEventTarget = getWindowEventTarget(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned AbortSignal cleanup and matching remove methods.
-            globalEventTarget?.addEventListener(type, listener, options);
+            windowEventTarget?.addEventListener(type, listener, options);
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
@@ -229,9 +229,9 @@ export function getAddFullScreenButtonRuntime(
             documentEventTarget?.removeEventListener(type, listener);
         },
         removeWindowEventListener(type, listener): void {
-            const globalEventTarget = getGlobalEventTarget(scope);
+            const windowEventTarget = getWindowEventTarget(scope);
 
-            globalEventTarget?.removeEventListener(type, listener);
+            windowEventTarget?.removeEventListener(type, listener);
         },
     };
 }

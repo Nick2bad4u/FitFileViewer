@@ -315,7 +315,7 @@ use `setupFullscreenListeners`, and fullscreen button listener abort-controller 
 `addFullScreenButtonRuntime.ts` instead of reading `document.getElementById` and `document.body.classList` in that
 state update path. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
 Fullscreen button runtime production defaults now reuse shared browser runtime providers for document,
-global event-target, HTMLElement, KeyboardEvent, and MutationObserver lookups instead of local inline `globalThis` getters,
+window event-target, HTMLElement, KeyboardEvent, and MutationObserver lookups instead of local inline `globalThis` getters,
 extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails;
 its AbortController, HTMLElement, KeyboardEvent, and MutationObserver provider contracts now also reuse shared
 browser-runtime constructor aliases instead of direct ambient constructor type spellings.

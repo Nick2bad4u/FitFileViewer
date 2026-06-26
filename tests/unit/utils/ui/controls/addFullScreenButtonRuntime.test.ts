@@ -19,10 +19,10 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect.assertions(2);
 
         const documentEventTarget = new EventTarget();
-        const globalEventTarget = new EventTarget();
+        const windowEventTarget = new EventTarget();
         const runtime = getAddFullScreenButtonRuntime({
             getDocumentEventTarget: () => documentEventTarget,
-            getGlobalEventTarget: () => globalEventTarget,
+            getWindowEventTarget: () => windowEventTarget,
         });
         const handledEventTypes: string[] = [];
         const listener = (event: Event): void => {
@@ -34,7 +34,7 @@ describe("getAddFullScreenButtonRuntime", () => {
         runtime.addWindowEventListener("keydown", listener, options);
         runtime.addDocumentEventListener("fullscreenchange", listener, options);
 
-        globalEventTarget.dispatchEvent(new Event("keydown"));
+        windowEventTarget.dispatchEvent(new Event("keydown"));
         documentEventTarget.dispatchEvent(new Event("fullscreenchange"));
 
         expect(handledEventTypes).toStrictEqual([
@@ -44,7 +44,7 @@ describe("getAddFullScreenButtonRuntime", () => {
 
         runtime.removeWindowEventListener("keydown", listener);
         runtime.removeDocumentEventListener("fullscreenchange", listener);
-        globalEventTarget.dispatchEvent(new Event("keydown"));
+        windowEventTarget.dispatchEvent(new Event("keydown"));
         documentEventTarget.dispatchEvent(new Event("fullscreenchange"));
         cleanupController.abort();
 
@@ -92,7 +92,7 @@ describe("getAddFullScreenButtonRuntime", () => {
                 removeEventListener: vi.fn(),
             },
             document: staleDocument,
-            globalEventTarget: {
+            windowEventTarget: {
                 addEventListener(type, listener, options) {
                     staleWindowAddEventListener(type, listener, options);
                     staleWindowEventTarget.addEventListener(type, listener, {
