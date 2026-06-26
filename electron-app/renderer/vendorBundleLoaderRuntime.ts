@@ -1,4 +1,12 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserAddEventListener,
+    type BrowserClearTimeout,
+    type BrowserCustomEventConstructor,
+    type BrowserHTMLScriptElementConstructor,
+    type BrowserRemoveEventListener,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserBoundClearTimeout,
@@ -10,34 +18,30 @@ import {
     getBrowserRemoveEventListener,
 } from "../utils/runtime/browserRuntime.js";
 
-export type RendererVendorBundleLoaderTimerHandle = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type RendererVendorBundleLoaderTimerHandle = BrowserTimerHandle;
 
 export interface RendererVendorBundleLoaderRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
-        | (() => typeof globalThis.addEventListener | undefined)
+        | (() => BrowserAddEventListener | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLScriptElement?:
-        | (() => typeof HTMLScriptElement | undefined)
+        | (() => BrowserHTMLScriptElementConstructor | undefined)
         | undefined;
     readonly getNow?: (() => (() => number) | undefined) | undefined;
     readonly getRemoveEventListener?:
-        | (() => typeof globalThis.removeEventListener | undefined)
+        | (() => BrowserRemoveEventListener | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface RendererVendorBundleLoaderRuntime {
@@ -102,7 +106,7 @@ function getDocument(scope: RendererVendorBundleLoaderRuntimeScope): Document {
 
 function getScriptConstructor(
     scope: RendererVendorBundleLoaderRuntimeScope
-): typeof HTMLScriptElement | undefined {
+): BrowserHTMLScriptElementConstructor | undefined {
     return (
         scope.getHTMLScriptElement?.() ??
         getScopeDocument(scope)?.defaultView?.HTMLScriptElement
@@ -111,7 +115,7 @@ function getScriptConstructor(
 
 function getScopeAbortController(
     scope: RendererVendorBundleLoaderRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
@@ -134,7 +138,7 @@ function isScriptElement(
 
 function getRequiredClearTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
-): typeof globalThis.clearTimeout {
+): BrowserClearTimeout {
     const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
@@ -147,7 +151,7 @@ function getRequiredClearTimeout(
 
 function getScopeCustomEvent(
     scope: RendererVendorBundleLoaderRuntimeScope
-): typeof CustomEvent | undefined {
+): BrowserCustomEventConstructor | undefined {
     return scope.getCustomEvent?.();
 }
 
@@ -164,7 +168,7 @@ function getRequiredNow(
 
 function getRequiredSetTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
-): typeof globalThis.setTimeout {
+): BrowserSetTimeout {
     const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(

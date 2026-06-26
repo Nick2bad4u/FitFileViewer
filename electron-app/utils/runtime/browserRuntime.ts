@@ -33,9 +33,12 @@ export type BrowserNodeConstructor = typeof globalThis.Node;
 export type BrowserQueueMicrotask = typeof globalThis.queueMicrotask;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;
+export type BrowserRemoveEventListener = typeof globalThis.removeEventListener;
 export type BrowserSetInterval = typeof globalThis.setInterval;
 export type BrowserIntervalHandle = ReturnType<BrowserSetInterval>;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;
+export type BrowserHTMLScriptElementConstructor =
+    typeof globalThis.HTMLScriptElement;
 export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
 export type BrowserURLConstructor = typeof globalThis.URL;

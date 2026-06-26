@@ -224,7 +224,8 @@ readiness event flow.
 Renderer vendor loader readiness polling, readiness-event listener registration, clock reads, AbortController
 creation, and vendor script lookup/injection now route through `vendorBundleLoaderRuntime.ts` instead of calling
 browser globals directly in `vendorBundleLoader.ts`, with adapter tests and architecture coverage blocking direct
-vendor-loader browser globals from returning.
+vendor-loader browser globals from returning. Vendor-loader listener, controller, script-constructor, and timer
+contracts now reuse shared browser-runtime aliases instead of direct ambient type spellings.
 Renderer vendor map minimap toggle icon document-element style writes now route through
 `rendererVendorMapRuntime.ts` instead of probing `globalThis.document` directly inside `rendererVendorMap.ts`,
 with focused runtime coverage and architecture guardrails blocking direct document probes from returning.

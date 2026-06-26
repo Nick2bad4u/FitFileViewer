@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRendererVendorBundleLoaderRuntime } from "../../../electron-app/renderer/vendorBundleLoaderRuntime.js";
+import {
+    getRendererVendorBundleLoaderRuntime,
+    type RendererVendorBundleLoaderTimerHandle,
+} from "../../../electron-app/renderer/vendorBundleLoaderRuntime.js";
+import type {
+    BrowserAddEventListener,
+    BrowserClearTimeout,
+    BrowserRemoveEventListener,
+    BrowserSetTimeout,
+} from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getRendererVendorBundleLoaderRuntime", () => {
     afterEach(() => {
@@ -11,9 +20,8 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("registers and removes event listeners through the injected runtime scope", () => {
         expect.assertions(4);
 
-        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
-        const removeEventListener =
-            vi.fn<typeof globalThis.removeEventListener>();
+        const addEventListener = vi.fn<BrowserAddEventListener>();
+        const removeEventListener = vi.fn<BrowserRemoveEventListener>();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
         const utils = getRendererVendorBundleLoaderRuntime({
@@ -67,14 +75,15 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("resolves default browser primitives when runtime operations run", () => {
         expect.assertions(15);
 
-        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const addEventListener = vi.fn<BrowserAddEventListener>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
         const pollDelayMs = Number("20");
-        const removeEventListener =
-            vi.fn<typeof globalThis.removeEventListener>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 29);
+        const removeEventListener = vi.fn<BrowserRemoveEventListener>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(
+            () => 29 as RendererVendorBundleLoaderTimerHandle
+        );
         const utils = getRendererVendorBundleLoaderRuntime();
         vi.spyOn(Date, "now").mockReturnValue(2468);
 
@@ -96,7 +105,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         utils.addEventListener("ready", listener, options);
         utils.appendVendorScript(script);
         utils.removeEventListener("ready", listener);
-        utils.clearTimeout(29 as ReturnType<typeof globalThis.setTimeout>);
+        utils.clearTimeout(29 as RendererVendorBundleLoaderTimerHandle);
 
         expect(controller).toBeInstanceOf(AbortController);
         expect(
@@ -133,8 +142,10 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const pollDelayMs = Number("20");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 29);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(
+            () => 29 as RendererVendorBundleLoaderTimerHandle
+        );
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const utils = getRendererVendorBundleLoaderRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -155,7 +166,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         const utils = getRendererVendorBundleLoaderRuntime({});
 
         expect(() =>
-            utils.clearTimeout(29 as ReturnType<typeof globalThis.setTimeout>)
+            utils.clearTimeout(29 as RendererVendorBundleLoaderTimerHandle)
         ).toThrow("renderer vendor loader requires a clearTimeout runtime");
     });
 
@@ -284,11 +295,12 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("ignores legacy direct runtime primitive properties", () => {
         expect.assertions(10);
 
-        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const removeEventListener =
-            vi.fn<typeof globalThis.removeEventListener>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 29);
+        const addEventListener = vi.fn<BrowserAddEventListener>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const removeEventListener = vi.fn<BrowserRemoveEventListener>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(
+            () => 29 as RendererVendorBundleLoaderTimerHandle
+        );
         const listener = vi.fn<EventListener>();
         const utils = getRendererVendorBundleLoaderRuntime({
             AbortController,
@@ -310,7 +322,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect(addEventListener).not.toHaveBeenCalled();
         expect(removeEventListener).not.toHaveBeenCalled();
         expect(() =>
-            utils.clearTimeout(29 as ReturnType<typeof globalThis.setTimeout>)
+            utils.clearTimeout(29 as RendererVendorBundleLoaderTimerHandle)
         ).toThrow("renderer vendor loader requires a clearTimeout runtime");
         expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
             "renderer vendor loader requires a setTimeout runtime"

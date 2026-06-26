@@ -21716,7 +21716,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(63);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -21749,6 +21749,54 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderSource).not.toContain(
             "const vendorBundleLoaderRuntime ="
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "ReturnType<typeof globalThis.setTimeout>"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "typeof globalThis.addEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "typeof globalThis.removeEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "(() => typeof CustomEvent | undefined)"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "(() => typeof HTMLScriptElement | undefined)"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserAddEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserHTMLScriptElementConstructor"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserRemoveEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type BrowserTimerHandle"
         );
         expect(vendorBundleLoaderRuntimeSource).not.toMatch(
             directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern
