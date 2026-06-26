@@ -1,32 +1,33 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserHTMLInputElementConstructor,
+    type BrowserHTMLSelectElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserHTMLInputElement,
     getBrowserHTMLSelectElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type GetCurrentSettingsTimer = ReturnType<typeof globalThis.setTimeout>;
+export type GetCurrentSettingsTimer = BrowserTimerHandle;
 
 export interface GetCurrentSettingsRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
     readonly getHTMLSelectElement?:
-        | (() => typeof globalThis.HTMLSelectElement | undefined)
+        | (() => BrowserHTMLSelectElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface GetCurrentSettingsRuntime {
     readonly clearTimeout: (timer: GetCurrentSettingsTimer) => void;
-    readonly isHTMLInputElement: (
-        value: unknown
-    ) => value is HTMLInputElement;
+    readonly isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
     readonly isHTMLSelectElement: (
         value: unknown
     ) => value is HTMLSelectElement;
@@ -78,7 +79,7 @@ export function getGetCurrentSettingsRuntime(
 
 function getHTMLInputElementConstructor(
     scope: GetCurrentSettingsRuntimeScope
-): typeof globalThis.HTMLInputElement {
+): BrowserHTMLInputElementConstructor {
     const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
@@ -91,7 +92,7 @@ function getHTMLInputElementConstructor(
 
 function getHTMLSelectElementConstructor(
     scope: GetCurrentSettingsRuntimeScope
-): typeof globalThis.HTMLSelectElement {
+): BrowserHTMLSelectElementConstructor {
     const HTMLSelectElementConstructor = scope.getHTMLSelectElement?.();
     if (typeof HTMLSelectElementConstructor !== "function") {
         throw new TypeError(

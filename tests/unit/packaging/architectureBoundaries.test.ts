@@ -17760,7 +17760,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(42);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -17859,6 +17859,25 @@ describe("architecture boundaries", () => {
         expect(getCurrentSettingsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "type BrowserHTMLInputElementConstructor"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "type BrowserHTMLSelectElementConstructor"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "typeof globalThis."
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain("ReturnType<");
         expect(getCurrentSettingsRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );

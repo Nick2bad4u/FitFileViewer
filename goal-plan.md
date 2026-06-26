@@ -588,8 +588,9 @@ and architecture guardrails blocking direct Event construction and legacy direct
 Current chart settings reset UI timer scheduling and cleanup now route through `getCurrentSettingsRuntime.ts`
 instead of calling timer globals directly inside `getCurrentSettings.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct timer globals from returning. Explicit current-settings runtime scopes
-must now provide timer primitives instead of falling back to `globalThis`, with focused coverage blocking those
-ambient fallbacks from returning.
+must now provide timer and form-control primitives through shared browser-runtime aliases instead of falling back to
+`globalThis` or direct ambient timer/input/select API types, with focused coverage blocking those ambient fallbacks
+from returning.
 Controls-state chart settings DOM lookups and computed-style reads now route through
 `updateControlsStateRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
 `document` and computed-style globals from returning to `updateControlsState.ts`.

@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getGetCurrentSettingsRuntime,
+    type GetCurrentSettingsTimer,
     type GetCurrentSettingsRuntimeScope,
 } from "../../../../../electron-app/utils/app/initialization/getCurrentSettingsRuntime.js";
 
@@ -15,9 +20,9 @@ describe("getGetCurrentSettingsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("150");
-        const timer = 83 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 83 as GetCurrentSettingsTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
@@ -38,9 +43,9 @@ describe("getGetCurrentSettingsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("150");
-        const timer = 89 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 89 as GetCurrentSettingsTimer;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -92,7 +97,7 @@ describe("getGetCurrentSettingsRuntime", () => {
             "getCurrentSettingsRuntime requires setTimeout"
         );
         expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+            runtime.clearTimeout(1 as GetCurrentSettingsTimer)
         ).toThrow("getCurrentSettingsRuntime requires clearTimeout");
         expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
             "getCurrentSettingsRuntime requires HTMLInputElement"
@@ -120,7 +125,7 @@ describe("getGetCurrentSettingsRuntime", () => {
             "getCurrentSettingsRuntime requires setTimeout"
         );
         expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+            runtime.clearTimeout(1 as GetCurrentSettingsTimer)
         ).toThrow("getCurrentSettingsRuntime requires clearTimeout");
         expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
             "getCurrentSettingsRuntime requires HTMLInputElement"
