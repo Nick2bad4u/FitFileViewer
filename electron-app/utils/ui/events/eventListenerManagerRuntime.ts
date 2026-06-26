@@ -1,11 +1,12 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserEventTarget,
 } from "../../runtime/browserRuntime.js";
 
 export interface EventListenerManagerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
 }
@@ -23,7 +24,7 @@ const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope 
 
 function getAbortController(
     scope: EventListenerManagerRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 

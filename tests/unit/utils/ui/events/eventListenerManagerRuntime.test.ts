@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getEventListenerManagerRuntime } from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
 
 describe("getEventListenerManagerRuntime", () => {
@@ -83,7 +84,7 @@ describe("getEventListenerManagerRuntime", () => {
         }
         const target = new EventTarget();
         const getAbortController = () =>
-            TestAbortController as unknown as typeof AbortController;
+            TestAbortController as unknown as BrowserAbortControllerConstructor;
         const getEventTarget = () => target;
 
         const runtime = getEventListenerManagerRuntime({

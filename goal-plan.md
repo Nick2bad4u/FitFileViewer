@@ -1421,7 +1421,9 @@ coverage blocking direct main UI DOM utility abort-controller construction from 
 Shared event listener manager drag/drop default target resolution and tracked listener cleanup now route through
 `eventListenerManagerRuntime.ts` instead of probing `globalThis.window` or constructing `AbortController`
 directly in `eventListenerManager.ts`, with focused runtime coverage and architecture coverage blocking direct
-manager window and abort-controller access from returning.
+manager window and abort-controller access from returning. Event listener manager runtime provider contracts now reuse the
+shared browser-runtime AbortController constructor alias instead of spelling direct ambient constructor types in the manager
+runtime.
 Shared DOM helper listener cleanup now creates abort controllers through `domHelpersRuntime.ts` instead of
 constructing `AbortController` directly in `domHelpers.ts`, with focused runtime coverage and architecture
 coverage blocking direct DOM helper abort-controller construction from returning.
