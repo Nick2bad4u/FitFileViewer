@@ -1,8 +1,6 @@
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
-type BrowserElectronApiGlobalScope = typeof globalThis & {
-    readonly electronAPI?: unknown;
-};
+import { getBrowserGlobalProperty } from "./browserRuntime.js";
 
 export type RendererElectronApiScope = {
     readonly getElectronAPI?: (() => unknown) | undefined;
@@ -29,7 +27,7 @@ export function getRendererElectronApi<
 }
 
 export function getBrowserElectronApiCandidate(): unknown {
-    return (globalThis as BrowserElectronApiGlobalScope).electronAPI;
+    return getBrowserGlobalProperty("electronAPI");
 }
 
 function getScopeElectronApi(

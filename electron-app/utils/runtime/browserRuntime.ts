@@ -76,8 +76,12 @@ export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
 }
 
+export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown {
+    return Reflect.get(globalThis, propertyKey);
+}
+
 export function getBrowserChartOverlayColorPalette(): unknown {
-    return Reflect.get(globalThis, "chartOverlayColorPalette");
+    return getBrowserGlobalProperty("chartOverlayColorPalette");
 }
 
 export function getBrowserComputedStyle():
@@ -109,7 +113,7 @@ export function getBrowserDateNow(): (() => number) | undefined {
 }
 
 export function getBrowserDevelopmentFlag(): unknown {
-    return Reflect.get(globalThis, "__DEVELOPMENT__");
+    return getBrowserGlobalProperty("__DEVELOPMENT__");
 }
 
 export function getBrowserCurrentTimestamp(): number {
