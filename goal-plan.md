@@ -898,6 +898,9 @@ Recent-files context-menu viewport clamping, focus-delay scheduling/cleanup, lis
 viewport, clock, timer, controller, document, and constructor globals from returning. Explicit recent-files context-menu runtime scopes must now
 provide clock, timer, document, and Node primitives instead of falling back to `globalThis`, with focused runtime coverage
 and architecture coverage blocking those fallbacks from returning.
+Recent-files context-menu runtime controller, timer, and Node provider types now use shared browser-runtime aliases
+instead of direct ambient browser constructor/timer types, with architecture coverage blocking those direct type
+surfaces from returning.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.

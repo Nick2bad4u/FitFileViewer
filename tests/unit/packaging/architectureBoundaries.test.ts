@@ -12708,7 +12708,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(67);
+        expect.assertions(73);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -12789,6 +12789,24 @@ describe("architecture boundaries", () => {
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "BrowserAbortControllerConstructor"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "BrowserClearTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "BrowserNodeConstructor"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "BrowserSetTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "BrowserTimerHandle"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

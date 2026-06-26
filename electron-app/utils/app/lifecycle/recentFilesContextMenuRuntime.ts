@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserNodeConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDateNow,
@@ -10,26 +15,22 @@ import {
 
 export interface RecentFilesContextMenuRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
     readonly getViewport?:
         | (() => RecentFilesContextMenuViewportSource | undefined)
         | undefined;
 }
 
-export type RecentFilesContextMenuTimer = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type RecentFilesContextMenuTimer = BrowserTimerHandle;
 
 export interface RecentFilesContextMenuViewport {
     readonly height: number;
@@ -94,13 +95,13 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
 
 function getAbortController(
     scope: RecentFilesContextMenuRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: RecentFilesContextMenuRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -125,7 +126,7 @@ function getDocumentEventTarget(
 
 function getNodeConstructor(
     scope: RecentFilesContextMenuRuntimeScope
-): typeof globalThis.Node {
+): BrowserNodeConstructor {
     const NodeConstructor = scope.getNode?.();
     if (typeof NodeConstructor !== "function") {
         throw new TypeError(
@@ -151,7 +152,7 @@ function getRuntimeDocument(
 
 function getSetTimeout(
     scope: RecentFilesContextMenuRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 
