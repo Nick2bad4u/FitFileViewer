@@ -12448,7 +12448,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(55);
+        expect.assertions(59);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -12465,7 +12465,7 @@ describe("architecture boundaries", () => {
         const directLifecycleListenersAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
         const directLifecycleListenersAmbientScopePattern =
-            /\bscope\.(?:AbortController|clearTimeout|document|print|process|setTimeout|URL)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
+            /\bscope\.(?:AbortController|clearTimeout|document|print|process|processEnvironmentValue|setTimeout|URL)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
@@ -12531,6 +12531,9 @@ describe("architecture boundaries", () => {
             "readonly process?:"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly processEnvironmentValue?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain("readonly URL?:");
@@ -12546,6 +12549,9 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.document");
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.print");
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.process");
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope.processEnvironmentValue"
+        );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "scope.setTimeout"
         );
@@ -12575,16 +12581,19 @@ describe("architecture boundaries", () => {
             "classList.remove(...classesToRemove)"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
-            "getPrint: getGlobalPrint"
+            "getPrint: getBrowserPrint"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
-            "getProcess: getGlobalProcess"
+            "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
         );
-        expect(lifecycleListenersRuntimeSource).toContain(
+        expect(lifecycleListenersRuntimeSource).not.toContain(
             "const processRef: unknown = globalThis.process;"
         );
-        expect(lifecycleListenersRuntimeSource).toContain(
+        expect(lifecycleListenersRuntimeSource).not.toContain(
             "const printRef = globalThis.print;"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            'scope.getProcessEnvironmentValue?.("NODE_ENV") === "test"'
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "process")'
@@ -12607,6 +12616,7 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).toContain(
             "getBrowserDocument"
         );
+        expect(lifecycleListenersRuntimeSource).toContain("getBrowserPrint");
         expect(lifecycleListenersRuntimeSource).toContain("getBrowserURL");
         expect(lifecycleListenersRuntimeSource).toContain(
             "getURL: getBrowserURL"

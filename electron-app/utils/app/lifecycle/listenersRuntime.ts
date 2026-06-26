@@ -2,9 +2,11 @@ import {
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
+    getBrowserPrint,
     getBrowserSetTimeout,
     getBrowserURL,
 } from "../../runtime/browserRuntime.js";
+import { getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 
 export type LifecycleListenersTimer = ReturnType<typeof globalThis.setTimeout>;
 
@@ -14,10 +16,6 @@ type LifecycleListenersURL = Pick<
     typeof URL,
     "createObjectURL" | "revokeObjectURL"
 >;
-
-interface LifecycleListenersProcess {
-    readonly env?: Readonly<Record<string, string | undefined>>;
-}
 
 export interface LifecycleListenersRuntimeScope {
     readonly getAbortController?:
@@ -30,8 +28,8 @@ export interface LifecycleListenersRuntimeScope {
         | (() => LifecycleListenersDocument | undefined)
         | undefined;
     readonly getPrint?: (() => LifecycleListenersPrint | undefined) | undefined;
-    readonly getProcess?:
-        | (() => LifecycleListenersProcess | undefined)
+    readonly getProcessEnvironmentValue?:
+        | ((name: string) => string | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
@@ -58,28 +56,12 @@ export interface LifecycleListenersRuntime {
     ) => LifecycleListenersTimer;
 }
 
-function getGlobalProcess(): LifecycleListenersProcess | undefined {
-    const processRef: unknown = globalThis.process;
-    return typeof processRef === "object" && processRef !== null
-        ? processRef
-        : undefined;
-}
-
-function getGlobalPrint(): LifecycleListenersPrint | undefined {
-    const printRef = globalThis.print;
-    return typeof printRef === "function"
-        ? () => {
-              printRef.call(globalThis);
-          }
-        : undefined;
-}
-
 const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
     getDocument: getBrowserDocument,
-    getPrint: getGlobalPrint,
-    getProcess: getGlobalProcess,
+    getPrint: getBrowserPrint,
+    getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue,
     getSetTimeout: getBrowserSetTimeout,
     getURL: getBrowserURL,
 };
@@ -143,7 +125,7 @@ export function getLifecycleListenersRuntime(
             return getRequiredURL(scope).createObjectURL(blob);
         },
         isTestEnvironment(): boolean {
-            return scope.getProcess?.()?.env?.["NODE_ENV"] === "test";
+            return scope.getProcessEnvironmentValue?.("NODE_ENV") === "test";
         },
         print(): void {
             const printRef = scope.getPrint?.();

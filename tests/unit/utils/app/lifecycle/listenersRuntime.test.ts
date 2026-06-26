@@ -113,11 +113,8 @@ describe("getLifecycleListenersRuntime", () => {
         const print = vi.fn<() => void>();
         const runtime = getLifecycleListenersRuntime({
             getPrint: () => print,
-            getProcess: () => ({
-                env: {
-                    NODE_ENV: "test",
-                },
-            }),
+            getProcessEnvironmentValue: (name) =>
+                name === "NODE_ENV" ? "test" : undefined,
         });
 
         runtime.print();
@@ -273,11 +270,8 @@ describe("getLifecycleListenersRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController,
             clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
             print,
-            process: {
-                env: {
-                    NODE_ENV: "test",
-                },
-            },
+            processEnvironmentValue: (name: string) =>
+                name === "NODE_ENV" ? "test" : undefined,
             setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timer),
             URL: {
                 createObjectURL: vi.fn<(blob: Blob) => string>(
