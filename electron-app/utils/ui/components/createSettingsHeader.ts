@@ -7,6 +7,7 @@ import { getRegisteredChartInstances } from "../../charts/core/chartInstanceRegi
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
+import { loggingTimestampRuntime } from "../../logging/loggingTimestampRuntime.js";
 import {
     getChartSetting,
     setChartSetting,
@@ -20,6 +21,10 @@ import {
 
 function createSettingsHeaderRuntime(): CreateSettingsHeaderRuntime {
     return getCreateSettingsHeaderRuntime();
+}
+
+function isoNow(): string {
+    return loggingTimestampRuntime().isoNow();
 }
 
 type ChartDataPoint = Record<string, unknown> & {
@@ -316,7 +321,7 @@ export function createExportSection(wrapper: HTMLElement): void {
                                         type: chart.config?.type,
                                     };
                                 }),
-                                exportedAt: new Date().toISOString(),
+                                exportedAt: isoNow(),
                             },
                             blob = new Blob(
                                 [JSON.stringify(allChartsData, null, 2)],

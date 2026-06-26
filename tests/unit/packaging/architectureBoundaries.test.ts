@@ -4955,7 +4955,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(83);
+        expect.assertions(86);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -4988,6 +4988,11 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("openPrintWindow");
         expect(exportUtilsSource).toContain("addDocumentKeydownListener");
         expect(exportUtilsSource).toContain("appendToBody");
+        expect(exportUtilsSource).toContain(
+            "../../logging/loggingTimestampRuntime.js"
+        );
+        expect(exportUtilsSource).toContain("loggingTimestampRuntime().isoNow()");
+        expect(exportUtilsSource).not.toContain("new Date().toISOString()");
         expect(exportUtilsSource).not.toContain("document.activeElement");
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
         expect(exportUtilsSource).not.toContain("document.body.append(link)");
@@ -6395,7 +6400,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(55);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -6439,6 +6444,15 @@ describe("architecture boundaries", () => {
         );
         expect(settingsHeaderSource).toContain(
             "createSettingsHeaderRuntime().appendToHead"
+        );
+        expect(settingsHeaderSource).toContain(
+            "../../logging/loggingTimestampRuntime.js"
+        );
+        expect(settingsHeaderSource).toContain(
+            "loggingTimestampRuntime().isoNow()"
+        );
+        expect(settingsHeaderSource).not.toContain(
+            "new Date().toISOString()"
         );
         expect(settingsHeaderSource).not.toContain("document.addEventListener");
         expect(settingsHeaderSource).not.toContain("document.createElement");

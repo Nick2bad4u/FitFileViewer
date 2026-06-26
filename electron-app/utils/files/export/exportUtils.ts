@@ -9,6 +9,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
+import { loggingTimestampRuntime } from "../../logging/loggingTimestampRuntime.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
@@ -65,6 +66,10 @@ function getDefaultExportStorage(): ExportStorageLike | null {
 
 function getSecureRandomScope(): SecureRandomScope {
     return exportUtilsRuntime().getSecureRandomScope();
+}
+
+function isoNow(): string {
+    return loggingTimestampRuntime().isoNow();
 }
 
 /**
@@ -884,7 +889,7 @@ function addSingleChartToZip(
     const jsonData = {
         chartType: chart.config.type,
         data: dataset.data,
-        exportedAt: new Date().toISOString(),
+        exportedAt: isoNow(),
         field: fieldName,
         totalPoints: dataset.data.length,
     };
@@ -1983,7 +1988,7 @@ export const exportUtils = {
                         type: chart.config?.type,
                     };
                 }),
-                exportedAt: new Date().toISOString(),
+                exportedAt: isoNow(),
                 totalCharts: charts.length,
             };
             zip.file(
@@ -1993,7 +1998,7 @@ export const exportUtils = {
 
             // Generate and download ZIP
             const exportDate =
-                    new Date().toISOString().split("T")[0] ?? "unknown-date",
+                    isoNow().split("T")[0] ?? "unknown-date",
                 content = await zip.generateAsync({ type: "blob" }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(content);
@@ -2064,7 +2069,7 @@ export const exportUtils = {
         try {
             const jsonData = {
                     data: chartData,
-                    exportedAt: new Date().toISOString(),
+                    exportedAt: isoNow(),
                     field: fieldName,
                     totalPoints: chartData.length,
                 },
