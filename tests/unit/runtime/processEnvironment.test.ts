@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     getProcessArgumentValues,
     getProcessEnvironmentValue,
+    getProcessStringValue,
     getRuntimeProcess,
     isDevelopmentEnvironment,
     isNodeEnvironment,
@@ -204,6 +205,22 @@ describe("process environment runtime boundary", () => {
         );
 
         expect(getProcessArgumentValues()).toStrictEqual([]);
+    });
+
+    it("reads string process properties only", () => {
+        expect.assertions(3);
+
+        setGlobalProcess({
+            arch: 123,
+            platform: "win32",
+            resourcesPath: "C:/mock/resources",
+        });
+
+        expect(getProcessStringValue("platform")).toBe("win32");
+        expect(getProcessStringValue("resourcesPath")).toBe(
+            "C:/mock/resources"
+        );
+        expect(getProcessStringValue("arch")).toBeUndefined();
     });
 
     it("gets and sets the runtime process through the shared boundary", () => {

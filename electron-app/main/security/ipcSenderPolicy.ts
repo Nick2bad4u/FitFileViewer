@@ -1,4 +1,8 @@
 import { fileURLToPath } from "node:url";
+import {
+    getProcessStringValue,
+    isTestEnvironment,
+} from "../../utils/runtime/processEnvironment.js";
 import { appRef as electronAppRef } from "../runtime/electronAccess.js";
 import { path } from "../runtime/nodeModules.js";
 
@@ -93,12 +97,9 @@ function getAllowedAppRoots(): string[] {
         /* ignore */
     }
 
-    if (
-        typeof process !== "undefined" &&
-        typeof process.resourcesPath === "string" &&
-        process.resourcesPath.trim().length > 0
-    ) {
-        roots.push(process.resourcesPath);
+    const resourcesPath = getProcessStringValue("resourcesPath");
+    if (resourcesPath && resourcesPath.trim().length > 0) {
+        roots.push(resourcesPath);
     }
 
     roots.push(path.resolve(__dirname, "..", ".."));
@@ -119,13 +120,13 @@ function isPathWithinRoot(candidatePath: string, rootPath: string): boolean {
 
 function normalizePath(filePath: string): string {
     const resolved = path.resolve(filePath);
-    return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+    return getProcessStringValue("platform") === "win32"
+        ? resolved.toLowerCase()
+        : resolved;
 }
 
 function isTestMode(): boolean {
-    return (
-        typeof process !== "undefined" && process.env?.["NODE_ENV"] === "test"
-    );
+    return isTestEnvironment();
 }
 
 export default {

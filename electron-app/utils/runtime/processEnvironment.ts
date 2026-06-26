@@ -35,6 +35,16 @@ export function getProcessArgumentValues(): readonly string[] {
     return argv.filter((value): value is string => typeof value === "string");
 }
 
+export function getProcessStringValue(name: string): string | undefined {
+    const processValue = getRuntimeProcess();
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const value = getRuntimeProperty(processValue, name);
+    return typeof value === "string" ? value : undefined;
+}
+
 export function getRuntimeProcess(): unknown {
     return getRuntimeProperty(globalThis, "process");
 }

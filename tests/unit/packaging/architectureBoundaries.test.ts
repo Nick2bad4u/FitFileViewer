@@ -2598,7 +2598,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(51);
+        expect.assertions(56);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -2713,6 +2713,11 @@ describe("architecture boundaries", () => {
         expect(registerInfoHandlersSource).not.toContain("module.exports");
         expect(ipcRegistrySource).not.toContain("module.exports");
         expect(ipcSenderPolicySource).not.toContain("module.exports");
+        expect(ipcSenderPolicySource).not.toContain("process.env");
+        expect(ipcSenderPolicySource).not.toContain("process.resourcesPath");
+        expect(ipcSenderPolicySource).not.toContain("process.platform");
+        expect(ipcSenderPolicySource).toContain("getProcessStringValue");
+        expect(ipcSenderPolicySource).toContain("isTestEnvironment");
         expect(ipcRegistrySource).not.toContain(
             'require("../security/ipcSenderPolicy")'
         );
