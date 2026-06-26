@@ -1,24 +1,24 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserSVGElementConstructor,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDocument,
     getBrowserSetTimeout,
     getBrowserSVGElement,
 } from "../../runtime/browserRuntime.js";
 
-export type MapDrawLapsTimer = ReturnType<typeof globalThis.setTimeout>;
+export type MapDrawLapsTimer = BrowserTimerHandle;
 
 type MapDrawLapsDocument = Pick<Document, "createElement" | "createTextNode">;
 
 export interface MapDrawLapsRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout?: (() => BrowserClearTimeout | undefined) | undefined;
     readonly getDocument?: (() => MapDrawLapsDocument | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
     readonly getSVGElement?:
-        | (() => typeof globalThis.SVGElement | undefined)
+        | (() => BrowserSVGElementConstructor | undefined)
         | undefined;
 }
 
@@ -41,7 +41,7 @@ const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = {
 
 function getScopeClearTimeout(
     scope: MapDrawLapsRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -53,13 +53,13 @@ function getScopeDocument(
 
 function getScopeSetTimeout(
     scope: MapDrawLapsRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 
 function getRequiredSVGElement(
     scope: MapDrawLapsRuntimeScope
-): typeof globalThis.SVGElement {
+): BrowserSVGElementConstructor {
     const SVGElementConstructor = scope.getSVGElement?.();
     if (typeof SVGElementConstructor !== "function") {
         throw new TypeError("mapDrawLapsRuntime requires SVGElement");

@@ -29,6 +29,7 @@ export type BrowserQueueMicrotask = typeof globalThis.queueMicrotask;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;
+export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
 
 export function getBrowserAbortController():

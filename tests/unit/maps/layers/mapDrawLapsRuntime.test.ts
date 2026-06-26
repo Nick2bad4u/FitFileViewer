@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getMapDrawLapsRuntime } from "../../../../electron-app/utils/maps/layers/mapDrawLapsRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
+import {
+    getMapDrawLapsRuntime,
+    type MapDrawLapsTimer,
+} from "../../../../electron-app/utils/maps/layers/mapDrawLapsRuntime.js";
 
 describe("getMapDrawLapsRuntime", () => {
     afterEach(() => {
@@ -12,9 +20,9 @@ describe("getMapDrawLapsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("50");
-        const timer = 73 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 73 as MapDrawLapsTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapDrawLapsRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -32,9 +40,9 @@ describe("getMapDrawLapsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("75");
-        const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 79 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const getSetTimeout = vi.fn(() => setTimeout);
         const getClearTimeout = vi.fn(() => clearTimeout);
         const runtime = getMapDrawLapsRuntime({
@@ -57,9 +65,9 @@ describe("getMapDrawLapsRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("50");
-        const timer = 74 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 74 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -99,9 +107,9 @@ describe("getMapDrawLapsRuntime", () => {
 
         const getDocument = vi.fn(() => document);
         const runtime = getMapDrawLapsRuntime({
-            getClearTimeout: () => vi.fn<typeof globalThis.clearTimeout>(),
+            getClearTimeout: () => vi.fn<BrowserClearTimeout>(),
             getDocument,
-            getSetTimeout: () => vi.fn<typeof globalThis.setTimeout>(),
+            getSetTimeout: () => vi.fn<BrowserSetTimeout>(),
             getSVGElement: () => SVGElement,
         });
 
@@ -132,9 +140,9 @@ describe("getMapDrawLapsRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapDrawLapsRuntime requires setTimeout"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapDrawLapsRuntime requires clearTimeout");
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "mapDrawLapsRuntime requires clearTimeout"
+        );
         expect(() => runtime.createElement("p")).toThrow(
             "mapDrawLapsRuntime requires document"
         );
@@ -150,9 +158,9 @@ describe("getMapDrawLapsRuntime", () => {
         expect.assertions(7);
 
         const callback = vi.fn<() => void>();
-        const timer = 83 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 83 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapDrawLapsRuntime({
             clearTimeout,
             document,

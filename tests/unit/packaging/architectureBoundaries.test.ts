@@ -16678,7 +16678,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(30);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -16717,6 +16717,13 @@ describe("architecture boundaries", () => {
         expect(mapDrawLapsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(mapDrawLapsRuntimeSource).toContain("type BrowserClearTimeout");
+        expect(mapDrawLapsRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "type BrowserSVGElementConstructor"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(mapDrawLapsRuntimeSource).not.toContain("typeof globalThis.");
         expect(mapDrawLapsRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
