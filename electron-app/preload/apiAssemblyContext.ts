@@ -4,14 +4,14 @@ type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
 type PreloadContextBridge = import("./preloadModuleTypes").PreloadContextBridge;
 type PreloadIpcRenderer = import("./preloadModuleTypes").PreloadIpcRenderer;
 type PreloadLog = import("./preloadModuleTypes").PreloadLog;
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
+type PreloadApiAssemblyContextModules =
+    import("./preloadModuleTypes").PreloadApiAssemblyContextModules;
 
 interface CreatePreloadApiAssemblyContextOptions {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
     ipcRenderer: null | PreloadIpcRenderer | undefined;
-    modules: PreloadModuleRegistry;
+    modules: PreloadApiAssemblyContextModules;
     preloadLog: PreloadLog;
     processRef?: NodeJS.Process;
 }

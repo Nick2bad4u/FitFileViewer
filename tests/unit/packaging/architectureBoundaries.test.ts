@@ -2551,7 +2551,32 @@ describe("architecture boundaries", () => {
 
         expect(broadRegistryDerivedLoaderFiles).toStrictEqual([]);
         expect(moduleTypesSource).toMatch(
-            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyModules,\s+PreloadAppModules,\s+PreloadFileModules,\s+PreloadIpcModules,\s+PreloadPolicyModules,\s+PreloadStateModules/u
+            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyModules,\s+PreloadApiAssemblyContextModules/u
+        );
+    });
+
+    it("keeps preload API assembly context on its narrow module contract", () => {
+        expect.assertions(5);
+
+        const apiAssemblyContextSource = stripComments(
+            readRepositoryFile("electron-app/preload/apiAssemblyContext.ts")
+        );
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+
+        expect(apiAssemblyContextSource).toContain(
+            "PreloadApiAssemblyContextModules"
+        );
+        expect(apiAssemblyContextSource).not.toContain("PreloadModuleRegistry");
+        expect(moduleTypesSource).toMatch(
+            /interface\s+PreloadApiAssemblyContextModules\s+extends\s+PreloadAppModules,\s+PreloadFileModules,\s+PreloadIpcModules,\s+PreloadPolicyModules,\s+PreloadStateModules/u
+        );
+        expect(moduleTypesSource).toMatch(
+            /type\s+CreatePreloadApiAssemblyContext[\s\S]*modules:\s+PreloadApiAssemblyContextModules/u
+        );
+        expect(moduleTypesSource).toMatch(
+            /interface\s+PreloadApiAssemblyContext[\s\S]*modules:\s+PreloadApiAssemblyContextModules/u
         );
     });
 

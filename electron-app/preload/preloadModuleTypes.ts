@@ -115,7 +115,7 @@ export type CreatePreloadApiAssemblyContext = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
     ipcRenderer: null | PreloadIpcRenderer | undefined;
-    modules: PreloadModuleRegistry;
+    modules: PreloadApiAssemblyContextModules;
     preloadLog: PreloadLog;
     processRef?: NodeJS.Process;
 }) => PreloadApiAssemblyContext;
@@ -699,14 +699,16 @@ export interface PreloadStateModules {
     createMainStateBridge: CreateMainStateBridge;
 }
 
-export interface PreloadModuleRegistry
+export interface PreloadApiAssemblyContextModules
     extends
-        PreloadApiAssemblyModules,
         PreloadAppModules,
         PreloadFileModules,
         PreloadIpcModules,
         PreloadPolicyModules,
         PreloadStateModules {}
+
+export interface PreloadModuleRegistry
+    extends PreloadApiAssemblyModules, PreloadApiAssemblyContextModules {}
 
 export interface PreloadApiAssemblyContext {
     constants: PreloadConstants;
@@ -715,7 +717,7 @@ export interface PreloadApiAssemblyContext {
     createSafeInvokeHandler: PreloadIpcHelpers["createSafeInvokeHandler"];
     createSafeSendHandler: PreloadIpcHelpers["createSafeSendHandler"];
     ipcRenderer: null | PreloadIpcRenderer | undefined;
-    modules: PreloadModuleRegistry;
+    modules: PreloadApiAssemblyContextModules;
     preloadLog: PreloadLog;
     processRef?: NodeJS.Process;
     removeIpcListener: PreloadIpcHelpers["removeIpcListener"];
