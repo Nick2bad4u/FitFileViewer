@@ -2551,7 +2551,36 @@ describe("architecture boundaries", () => {
 
         expect(broadRegistryDerivedLoaderFiles).toStrictEqual([]);
         expect(moduleTypesSource).toMatch(
-            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyModules,\s+PreloadApiAssemblyContextModules/u
+            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyInputModules/u
+        );
+    });
+
+    it("keeps preload API assembly on its narrow module contract", () => {
+        expect.assertions(7);
+
+        const apiAssemblySource = stripComments(
+            readRepositoryFile("electron-app/preload/apiAssembly.ts")
+        );
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+
+        expect(apiAssemblySource).toContain("IpcBridgeCatalog");
+        expect(apiAssemblySource).not.toContain("PreloadModuleRegistry");
+        expect(apiAssemblySource).toContain(
+            "ipcBridgeCatalog: IpcBridgeCatalog"
+        );
+        expect(moduleTypesSource).toMatch(
+            /interface\s+PreloadApiAssemblyInputModules\s+extends\s+PreloadApiAssemblyModules,\s+PreloadApiAssemblyContextModules/u
+        );
+        expect(moduleTypesSource).toMatch(
+            /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadApiAssemblyInputModules/u
+        );
+        expect(moduleTypesSource).toMatch(
+            /interface\s+PreloadModuleRegistry\s+extends\s+PreloadApiAssemblyInputModules/u
+        );
+        expect(moduleTypesSource).not.toMatch(
+            /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadModuleRegistry/u
         );
     });
 

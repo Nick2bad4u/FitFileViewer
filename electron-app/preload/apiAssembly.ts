@@ -1,11 +1,10 @@
 type AssemblePreloadApi = import("./preloadModuleTypes").AssemblePreloadApi;
 type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
+type IpcBridgeCatalog = import("./preloadModuleTypes").IpcBridgeCatalog;
 type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
-type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
 
 export function createPreloadConstants(
-    ipcBridgeCatalog: PreloadModuleRegistry["ipcBridgeCatalog"]
+    ipcBridgeCatalog: IpcBridgeCatalog
 ): PreloadConstants {
     return {
         CHANNELS: ipcBridgeCatalog.PRELOAD_CHANNELS,

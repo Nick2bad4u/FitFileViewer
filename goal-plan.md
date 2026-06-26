@@ -200,6 +200,8 @@ Preload domain module loaders now return named contracts from `preloadModuleType
 explicit while the top-level registry remains a composition aggregate.
 The API assembly context now receives `PreloadApiAssemblyContextModules` instead of the broad registry, so
 domain factories cannot accidentally depend on assembly-domain factory exports.
+The API assembly entrypoint now accepts `PreloadApiAssemblyInputModules`, and preload constants accept the
+IPC bridge catalog directly, keeping the assembly boundary off the full composed module registry.
 
 Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
 and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling

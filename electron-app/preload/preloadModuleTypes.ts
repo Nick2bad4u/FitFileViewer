@@ -208,7 +208,7 @@ export type AssemblePreloadApi = (options: {
     contextBridge: null | PreloadContextBridge | undefined;
     createElectronApi: CreateElectronApi;
     ipcRenderer: null | PreloadIpcRenderer | undefined;
-    modules: PreloadModuleRegistry;
+    modules: PreloadApiAssemblyInputModules;
     preloadLog: PreloadLog;
     processRef?: NodeJS.Process;
 }) => ElectronAPI;
@@ -707,8 +707,10 @@ export interface PreloadApiAssemblyContextModules
         PreloadPolicyModules,
         PreloadStateModules {}
 
-export interface PreloadModuleRegistry
+export interface PreloadApiAssemblyInputModules
     extends PreloadApiAssemblyModules, PreloadApiAssemblyContextModules {}
+
+export interface PreloadModuleRegistry extends PreloadApiAssemblyInputModules {}
 
 export interface PreloadApiAssemblyContext {
     constants: PreloadConstants;
