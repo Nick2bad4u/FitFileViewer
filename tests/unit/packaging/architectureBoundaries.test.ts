@@ -16813,12 +16813,12 @@ describe("architecture boundaries", () => {
             "createElementNS"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
-            "globalThis as ElevationProfileButtonGlobalScope"
+            "globalThis as CreateElevationProfileButtonGlobalScope"
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
-            "getChartOverlayColorPalette: getGlobalChartOverlayColorPalette"
+            "getChartOverlayColorPalette: getBrowserChartOverlayColorPalette"
         );
-        expect(createElevationProfileButtonRuntimeSource).toContain(
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "return elevationProfileGlobal.chartOverlayColorPalette;"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(

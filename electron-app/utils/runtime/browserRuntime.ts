@@ -76,6 +76,10 @@ export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
 }
 
+export function getBrowserChartOverlayColorPalette(): unknown {
+    return Reflect.get(globalThis, "chartOverlayColorPalette");
+}
+
 export function getBrowserComputedStyle():
     | typeof globalThis.getComputedStyle
     | undefined {

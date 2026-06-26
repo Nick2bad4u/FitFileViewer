@@ -1,5 +1,6 @@
 import {
     getBrowserAbortController,
+    getBrowserChartOverlayColorPalette,
     getBrowserDocument,
     getBrowserOpen,
 } from "../../runtime/browserRuntime.js";
@@ -15,10 +16,6 @@ type CreateElevationProfileOpen =
           features?: string
       ) => ElevationProfilePopupWindow)
     | undefined;
-
-interface CreateElevationProfileButtonGlobalScope {
-    readonly chartOverlayColorPalette?: unknown;
-}
 
 export interface CreateElevationProfileButtonRuntimeScope {
     readonly getAbortController?:
@@ -50,16 +47,10 @@ export interface CreateElevationProfileButtonRuntime {
 const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
-        getChartOverlayColorPalette: getGlobalChartOverlayColorPalette,
+        getChartOverlayColorPalette: getBrowserChartOverlayColorPalette,
         getDocument: getBrowserDocument,
         getOpen: getBrowserOpen,
     };
-
-function getGlobalChartOverlayColorPalette(): unknown {
-    const elevationProfileGlobal =
-        globalThis as CreateElevationProfileButtonGlobalScope;
-    return elevationProfileGlobal.chartOverlayColorPalette;
-}
 
 function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
