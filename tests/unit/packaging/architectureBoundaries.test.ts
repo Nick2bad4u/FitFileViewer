@@ -6760,7 +6760,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(86);
+        expect.assertions(87);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -6796,6 +6796,9 @@ describe("architecture boundaries", () => {
         expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
         expect(browserTabSource).not.toContain(
             "const api = value as Record<string, unknown>"
+        );
+        expect(browserTabSource).not.toContain(
+            "Reflect.get(value, methodName)"
         );
         expect(browserTabSource).toContain("type FileBrowserTabRuntime");
         expect(browserTabSource).toContain(

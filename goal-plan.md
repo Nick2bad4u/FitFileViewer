@@ -1719,6 +1719,9 @@ contracts instead of generic `Reflect.get` probes, and malformed preload process
 and generic IPC allowlist checks.
 Preload logger dispatch now resolves `info`, `warn`, and `error` through explicit console method reads instead of generic
 `Reflect.get` probing, and malformed or throwing console method access fails closed.
+Browser tab preload API candidate validation now checks the explicit optional method properties directly instead of
+iterating method-name strings through `Reflect.get`, with architecture coverage blocking that generic probe from
+returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

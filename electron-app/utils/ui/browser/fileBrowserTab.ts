@@ -64,6 +64,14 @@ interface FitBrowserElectronAPI {
     readFile?: ElectronFileApi["readFile"];
 }
 
+type FitBrowserElectronApiCandidate = {
+    readonly decodeFitFile?: unknown;
+    readonly getFitBrowserFolder?: unknown;
+    readonly listFitBrowserFolder?: unknown;
+    readonly openFolderDialog?: unknown;
+    readonly readFile?: unknown;
+};
+
 type FitBrowserDecodeApi = Required<
     Pick<FitBrowserElectronAPI, "decodeFitFile" | "readFile">
 >;
@@ -575,16 +583,18 @@ function isFitBrowserElectronApi(
         return false;
     }
 
-    return [
-        "decodeFitFile",
-        "getFitBrowserFolder",
-        "listFitBrowserFolder",
-        "openFolderDialog",
-        "readFile",
-    ].every((methodName) => {
-        const method = Reflect.get(value, methodName);
-        return method === undefined || typeof method === "function";
-    });
+    const api = value as FitBrowserElectronApiCandidate;
+    return (
+        hasOptionalFunction(api.decodeFitFile) &&
+        hasOptionalFunction(api.getFitBrowserFolder) &&
+        hasOptionalFunction(api.listFitBrowserFolder) &&
+        hasOptionalFunction(api.openFolderDialog) &&
+        hasOptionalFunction(api.readFile)
+    );
+}
+
+function hasOptionalFunction(value: unknown): boolean {
+    return value === undefined || typeof value === "function";
 }
 
 function getLibraryPrefs(): FitLibraryPrefs {
