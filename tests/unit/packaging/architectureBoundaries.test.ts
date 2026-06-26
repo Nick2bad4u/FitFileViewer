@@ -4829,7 +4829,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4837,6 +4837,24 @@ describe("architecture boundaries", () => {
         const stateStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/stateManagerStartup.ts")
         );
+        const rendererFileOpeningStateConsumers = [
+            "electron-app/renderer/applicationStartup.ts",
+            "electron-app/renderer/developmentDebugTools.ts",
+            "electron-app/renderer/importTimeBootstrap.ts",
+            "electron-app/renderer/lifecycleCleanup.ts",
+            "electron-app/renderer/rendererDiagnosticsWiring.ts",
+            "electron-app/renderer/testOnlyBootstrap.ts",
+        ];
+        const anonymousOpeningStateRefPattern =
+            /isOpeningFileRef:\s*\{\s*value:\s*boolean\s*\}/u;
+        const anonymousOpeningStateRefConsumers =
+            rendererFileOpeningStateConsumers
+                .filter((relativeFile) =>
+                    anonymousOpeningStateRefPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+                )
+                .sort();
 
         expect(stateStartupSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
@@ -4865,6 +4883,7 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).not.toContain(
             "const isOpeningFileRef = { value: false }"
         );
+        expect(anonymousOpeningStateRefConsumers).toStrictEqual([]);
         expect(stateStartupSource).toContain("toRendererStateManager(");
         expect(stateStartupSource).not.toContain(
             "ensureCoreModules: () => Promise<\n        Pick<"

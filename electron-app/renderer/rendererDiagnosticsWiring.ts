@@ -9,6 +9,7 @@ import {
 } from "./developmentDebugTools.js";
 import { logRendererStartupInfo } from "./rendererStartupInfo.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
+import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 type RendererDiagnosticsLogLevel = "group" | "groupEnd" | "log" | "warn";
 
@@ -21,7 +22,7 @@ type RendererDiagnosticsOptions = {
     readonly cleanup: () => void;
     readonly ensureCoreModules: () => Promise<RendererDevelopmentDebugCoreModules>;
     readonly initializeApplication: () => Promise<void>;
-    readonly isOpeningFileRef: { value: boolean };
+    readonly isOpeningFileRef: RendererFileOpeningStateRef;
     readonly logRenderer: RendererDiagnosticsLogger;
     readonly performanceMonitor: RendererPerformanceMonitor;
     readonly validateDOMElements: () => boolean;

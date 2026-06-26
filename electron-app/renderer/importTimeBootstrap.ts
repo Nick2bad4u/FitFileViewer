@@ -12,6 +12,7 @@ import type {
     AppDomainStateGetter,
     AppDomainStateSubscriber,
 } from "../utils/state/domain/appDomainState.js";
+import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 export type RendererImportTimeCoreModules = Readonly<{
     readonly applyTheme:
@@ -33,7 +34,7 @@ interface RendererImportTimeBootstrapOptions {
     getElectronApiScope: () => RendererElectronApiScope;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     resolveExactRendererCoreTestOverride: (testId: string) => null | unknown;
     resolveRendererCoreTestOverride: (pathSuffix: string) => null | unknown;
     setLoading: (loading: boolean) => void;
@@ -182,7 +183,7 @@ function createSetupListenersOptions(dependencies: {
     readonly handleOpenFile:
         | SetupListenersOptions["handleOpenFile"]
         | undefined;
-    readonly isOpeningFileRef: { value: boolean };
+    readonly isOpeningFileRef: RendererFileOpeningStateRef;
     readonly openFileBtn: HTMLElement | null;
     readonly setLoading: (loading: boolean) => void;
     readonly showAboutModal:

@@ -24,6 +24,7 @@ import type {
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type { AppDomainStateGetter } from "../utils/state/domain/appDomainState.js";
+import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 type RendererStartupLogLevel = "error" | "log" | "warn";
 type RendererStartupLogger = (
@@ -34,7 +35,7 @@ type RendererStartupLogger = (
 export interface RendererDependencies {
     applyTheme: ApplyTheme | undefined;
     handleOpenFile: RendererHandleOpenFile | undefined;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     listenForThemeChange: ListenForThemeChange | undefined;
     openFileBtn: HTMLElement | null;
     setLoading: (loading: boolean) => void;
@@ -64,7 +65,7 @@ interface RendererApplicationStartupOptions {
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isDevelopmentMode: () => boolean;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     logRenderer: RendererStartupLogger;
     performanceMonitor: RendererPerformanceMonitor;
     runtime?: RendererApplicationStartupRuntime | undefined;

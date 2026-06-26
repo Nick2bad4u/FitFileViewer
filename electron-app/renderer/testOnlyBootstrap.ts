@@ -2,6 +2,7 @@ import {
     getRendererTestOnlyBootstrapRuntime,
     type RendererTestOnlyBootstrapRuntime,
 } from "./testOnlyBootstrapRuntime.js";
+import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 type RendererTestOverrideResolver = (specifier: string) => null | unknown;
 type RendererTestSetupListeners = (
@@ -15,7 +16,7 @@ type RendererTestSetupTheme = (
 interface RendererTestSetupListenersDependencies {
     readonly applyTheme: () => void;
     readonly handleOpenFile: () => void;
-    readonly isOpeningFileRef: { value: boolean };
+    readonly isOpeningFileRef: RendererFileOpeningStateRef;
     readonly listenForThemeChange: () => void;
     readonly openFileBtn: HTMLElement | null;
     readonly setLoading: (loading: boolean) => void;
@@ -26,7 +27,7 @@ interface RendererTestSetupListenersDependencies {
 
 interface RendererTestOnlyBootstrapOptions {
     getOpenFileButton: () => HTMLElement | null;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     resolveExactRendererCoreTestOverride: RendererTestOverrideResolver;
     resolveRendererCoreTestOverride: RendererTestOverrideResolver;
     scheduleImportTimeThemeSetup: () => void;

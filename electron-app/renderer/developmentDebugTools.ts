@@ -15,6 +15,7 @@ import {
     getRendererDevelopmentDebugToolsRuntime,
     type RendererDevelopmentDebugToolsRuntime,
 } from "./developmentDebugToolsRuntime.js";
+import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 type DevelopmentDebugLogLevel = "log" | "warn";
 type DevelopmentDebugLogger = (
@@ -70,7 +71,7 @@ type RendererDevToolsView = {
     getPerformanceMetrics: () => Record<string, number>;
     getState: () => Promise<unknown>;
     getStateHistory: () => Promise<unknown>;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     PerformanceMonitor: RendererPerformanceMonitor;
     reinitialize: () => Promise<void>;
     sensorDebug?: RendererDebugUtilityGroup;
@@ -88,7 +89,7 @@ interface RendererDevelopmentDebugToolsOptions {
     ensureCoreModules: DevelopmentCoreModuleResolver;
     initializeApplication: () => Promise<void>;
     isDevelopmentMode: () => boolean;
-    isOpeningFileRef: { value: boolean };
+    isOpeningFileRef: RendererFileOpeningStateRef;
     logRenderer: DevelopmentDebugLogger;
     performanceMonitor: RendererPerformanceMonitor;
     validateDOMElements: () => boolean;
