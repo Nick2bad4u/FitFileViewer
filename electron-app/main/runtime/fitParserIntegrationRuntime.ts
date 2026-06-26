@@ -1,3 +1,8 @@
+import {
+    getBrowserDateNow,
+    getBrowserPerformance,
+} from "../../utils/runtime/browserRuntime.js";
+
 type FitParserIntegrationPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
@@ -16,8 +21,8 @@ export interface FitParserIntegrationRuntime {
 
 const defaultFitParserIntegrationRuntimeScope: FitParserIntegrationRuntimeScope =
     {
-        getDateNow: () => Date.now,
-        getPerformance: () => globalThis.performance,
+        getDateNow: getBrowserDateNow,
+        getPerformance: getBrowserPerformance,
     };
 
 function getRequiredDateNow(

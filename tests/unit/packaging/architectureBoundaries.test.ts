@@ -2474,7 +2474,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         const parserSource = stripComments(
             readRepositoryFile("electron-app/fitParser.ts")
@@ -2495,7 +2495,15 @@ describe("architecture boundaries", () => {
         expect(parserSource).not.toContain("Date.now");
         expect(parserSource).not.toContain("new Date()");
         expect(parserRuntimeSource).toContain("defaultFitParserRuntimeScope");
-        expect(parserRuntimeSource).toContain("getDateNow: () => Date.now");
+        expect(parserRuntimeSource).toContain(
+            "./utils/runtime/browserRuntime.js"
+        );
+        expect(parserRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(parserRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
         expect(parserRuntimeSource).toContain("getDateConstructor: () => Date");
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a date clock"
@@ -2857,7 +2865,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(212);
+        expect.assertions(215);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3199,9 +3207,18 @@ describe("architecture boundaries", () => {
             "defaultFitParserIntegrationRuntimeScope"
         );
         expect(fitParserIntegrationRuntimeSource).toContain(
-            "getDateNow: () => Date.now"
+            "../../utils/runtime/browserRuntime.js"
         );
         expect(fitParserIntegrationRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "getPerformance: getBrowserPerformance"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(fitParserIntegrationRuntimeSource).toContain(

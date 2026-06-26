@@ -1,3 +1,5 @@
+import { getBrowserDateNow } from "./utils/runtime/browserRuntime.js";
+
 type FitParserDateConstructor = new () => { toISOString: () => string };
 
 export interface FitParserRuntimeScope {
@@ -14,7 +16,7 @@ export interface FitParserRuntime {
 
 const defaultFitParserRuntimeScope: FitParserRuntimeScope = {
     getDateConstructor: () => Date,
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
 };
 
 function getRequiredDateConstructor(
