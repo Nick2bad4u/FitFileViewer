@@ -971,6 +971,9 @@ from returning.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.
+Chart theme listener AbortController, timer, and CustomEvent contracts now reuse shared browser-runtime aliases
+instead of direct ambient constructor and timer type spellings, with architecture coverage blocking those direct type
+surfaces from returning.
 Strict chart settings dropdown tests no longer seed the mocked state manager through the retired `globalData`
 path; they use the current `fitFile.rawData` fixture path that `FitFileSelectors` reads, with architecture
 coverage blocking the stale fixture from returning.

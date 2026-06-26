@@ -19467,7 +19467,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(40);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -19499,6 +19499,24 @@ describe("architecture boundaries", () => {
         );
         expect(chartThemeListenerRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "ChartThemeListenerTimerHandle = BrowserTimerHandle"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
@@ -19563,6 +19581,27 @@ describe("architecture boundaries", () => {
         );
         expect(chartThemeListenerRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "): typeof CustomEvent"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "| (() => typeof CustomEvent | undefined)"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "| (() => typeof clearTimeout | undefined)"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "| (() => typeof setTimeout | undefined)"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
         );
     });
 

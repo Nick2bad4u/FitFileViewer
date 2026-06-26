@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserCustomEventConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserCustomEvent,
@@ -6,22 +11,22 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type ChartThemeListenerTimerHandle = ReturnType<typeof setTimeout>;
+export type ChartThemeListenerTimerHandle = BrowserTimerHandle;
 
 export interface ChartThemeListenerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?:
         | (() => Pick<Document, "body"> | undefined)
         | undefined;
-    readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface ChartThemeListenerRuntime {
@@ -57,7 +62,7 @@ function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
 
 function getAbortControllerConstructor(
     scope: ChartThemeListenerRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartThemeListener requires an AbortController");
@@ -68,7 +73,7 @@ function getAbortControllerConstructor(
 
 function getCustomEventConstructor(
     scope: ChartThemeListenerRuntimeScope
-): typeof CustomEvent | undefined {
+): BrowserCustomEventConstructor | undefined {
     return scope.getCustomEvent?.();
 }
 

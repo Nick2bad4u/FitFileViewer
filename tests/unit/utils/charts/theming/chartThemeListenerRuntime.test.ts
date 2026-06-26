@@ -5,6 +5,13 @@ import {
     getChartThemeListenerRuntime,
     type ChartThemeListenerTimerHandle,
 } from "../../../../../electron-app/utils/charts/theming/chartThemeListenerRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserCustomEventConstructor,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getChartThemeListenerRuntime", () => {
     afterEach(() => {
@@ -24,11 +31,11 @@ describe("getChartThemeListenerRuntime", () => {
 
         const timer = Symbol(
             "theme-listener-production-timer"
-        ) as unknown as ChartThemeListenerTimerHandle;
+        ) as unknown as BrowserTimerHandle;
         const handler = vi.fn<() => void>();
         const timeoutMs = Number("125");
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
@@ -105,7 +112,7 @@ describe("getChartThemeListenerRuntime", () => {
         expect(
             getChartThemeListenerRuntime({
                 getCustomEvent: () =>
-                    "CustomEvent" as unknown as typeof CustomEvent,
+                    "CustomEvent" as unknown as BrowserCustomEventConstructor,
                 getDocument: () => document,
             }).isCustomEvent(new CustomEvent("themechange"))
         ).toBe(false);
@@ -116,11 +123,11 @@ describe("getChartThemeListenerRuntime", () => {
 
         const timer = Symbol(
             "theme-listener-timer"
-        ) as unknown as ChartThemeListenerTimerHandle;
+        ) as unknown as BrowserTimerHandle;
         const handler = vi.fn<() => void>();
         const timeoutMs = Number("150");
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
         const runtime = getChartThemeListenerRuntime({
             getClearTimeout: () => clearTimeoutMock,
             getDocument: () => document,
@@ -177,7 +184,7 @@ describe("getChartThemeListenerRuntime", () => {
         const runtime = getChartThemeListenerRuntime({});
         const runtimeWithInvalidAbortController = getChartThemeListenerRuntime({
             getAbortController: () =>
-                "AbortController" as unknown as typeof AbortController,
+                "AbortController" as unknown as BrowserAbortControllerConstructor,
             getDocument: () => document,
         });
         const listenerController = new AbortController();
@@ -206,8 +213,8 @@ describe("getChartThemeListenerRuntime", () => {
         const timer = Symbol(
             "theme-listener-timer"
         ) as unknown as ChartThemeListenerTimerHandle;
-        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
-        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
         const body = {
             addEventListener: vi.fn(),
             ownerDocument: {
