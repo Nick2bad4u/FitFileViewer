@@ -15845,7 +15845,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(31);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -15893,6 +15893,18 @@ describe("architecture boundaries", () => {
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "defaultExternalLinkHandlersRuntimeScope"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "type BrowserElementConstructor"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "type BrowserHTMLAnchorElementConstructor"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "type BrowserKeyboardEventConstructor"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"

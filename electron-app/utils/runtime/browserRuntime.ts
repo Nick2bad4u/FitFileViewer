@@ -8,6 +8,8 @@ export type BrowserElementConstructor = typeof globalThis.Element;
 export type BrowserEventConstructor = typeof globalThis.Event;
 export type BrowserFetch = typeof globalThis.fetch;
 export type BrowserFileReaderConstructor = typeof globalThis.FileReader;
+export type BrowserHTMLAnchorElementConstructor =
+    typeof globalThis.HTMLAnchorElement;
 export type BrowserHTMLButtonElementConstructor =
     typeof globalThis.HTMLButtonElement;
 export type BrowserHTMLInputElementConstructor =

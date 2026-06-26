@@ -1,4 +1,7 @@
 import {
+    type BrowserElementConstructor,
+    type BrowserHTMLAnchorElementConstructor,
+    type BrowserKeyboardEventConstructor,
     getBrowserElement,
     getBrowserHTMLAnchorElement,
     getBrowserKeyboardEvent,
@@ -13,13 +16,13 @@ type BrowserWindowOpen = (
 
 export interface ExternalLinkHandlersRuntimeScope {
     readonly getElement?:
-        | (() => typeof globalThis.Element | undefined)
+        | (() => BrowserElementConstructor | undefined)
         | undefined;
     readonly getHTMLAnchorElement?:
-        | (() => typeof globalThis.HTMLAnchorElement | undefined)
+        | (() => BrowserHTMLAnchorElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
     readonly getOpen?: (() => BrowserWindowOpen | undefined) | undefined;
 }
@@ -46,7 +49,7 @@ const defaultExternalLinkHandlersRuntimeScope: ExternalLinkHandlersRuntimeScope 
 
 function getElementConstructor(
     scope: ExternalLinkHandlersRuntimeScope
-): typeof globalThis.Element {
+): BrowserElementConstructor {
     const ElementConstructor = scope.getElement?.();
     if (typeof ElementConstructor !== "function") {
         throw new TypeError("externalLinkHandlers requires an Element runtime");
@@ -57,7 +60,7 @@ function getElementConstructor(
 
 function getHTMLAnchorElementConstructor(
     scope: ExternalLinkHandlersRuntimeScope
-): typeof globalThis.HTMLAnchorElement {
+): BrowserHTMLAnchorElementConstructor {
     const HTMLAnchorElementConstructor = scope.getHTMLAnchorElement?.();
     if (typeof HTMLAnchorElementConstructor !== "function") {
         throw new TypeError(
@@ -70,7 +73,7 @@ function getHTMLAnchorElementConstructor(
 
 function getKeyboardEventConstructor(
     scope: ExternalLinkHandlersRuntimeScope
-): typeof globalThis.KeyboardEvent {
+): BrowserKeyboardEventConstructor {
     const KeyboardEventConstructor = scope.getKeyboardEvent?.();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError(
