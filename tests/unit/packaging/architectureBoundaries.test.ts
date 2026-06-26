@@ -125,6 +125,9 @@ const allowedGlobalDataWriterFiles = new Set<string>();
 const allowedRuntimeGlobalDataMentionFiles = new Set<string>([
     "electron-app/utils/state/core/unifiedStateManager.ts",
 ]);
+const allowedBrowserRuntimeGlobalBridgeFiles = new Set<string>([
+    "electron-app/utils/runtime/browserRuntime.ts",
+]);
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
@@ -1156,6 +1159,8 @@ const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI|\b(?:Reflect\.deleteProperty|Object\.defineProperty)\(\s*(?:globalThis|window)\s*,\s*["']electronAPI["']/u;
+const retiredRendererBridgeGlobalReadPattern =
+    /\b(?:window|globalThis)\.(?:\$|Chart|DataTable|globalData|isChartRendered|isMapRendered|jQuery|loadedFitFiles|rendererUtils|showFitData|tabStateManager)\b|\bReflect\.get\(\s*globalThis\s*,\s*["'](?:__appState|electronAPI|globalData|loadedFitFiles|showFitData)["']\s*\)|\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["'](?:__appState|electronAPI|globalData|loadedFitFiles|showFitData)["']/u;
 const electronApiRuntimeTestDirectGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*\)/u;
 const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
@@ -4390,6 +4395,27 @@ describe("architecture boundaries", () => {
                     globalDataStoreWriterPattern.test(
                         stripComments(readRepositoryFile(relativeFile))
                     )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps retired renderer bridge globals out of product source", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !relativeFile.endsWith(".test.ts") &&
+                    !relativeFile.endsWith(".test.js") &&
+                    !allowedBrowserRuntimeGlobalBridgeFiles.has(relativeFile)
+            )
+            .filter((relativeFile) =>
+                retiredRendererBridgeGlobalReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
             )
             .sort();
 
