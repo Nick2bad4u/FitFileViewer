@@ -14074,7 +14074,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -14132,10 +14132,16 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(createPrintButtonRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(createPrintButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(runtimeScopeSource).not.toContain(
+            "typeof AbortController | undefined"
         );
         expect(createPrintButtonRuntimeSource).toContain(
             "getDocument: getBrowserDocument"

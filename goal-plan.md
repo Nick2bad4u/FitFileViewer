@@ -678,7 +678,8 @@ Map print button listener cleanup, DOM creation, and print dispatch now route th
 or reading document/print globals in the feature module. Production defaults and explicit runtime scopes now use
 named provider functions instead of a broad `globalThis` default scope or direct controller/document/print
 properties, with focused runtime coverage and architecture guardrails blocking those direct properties from
-returning.
+returning. Print button runtime provider contracts now reuse the shared browser-runtime AbortController constructor alias
+instead of spelling direct ambient constructor types in the print-button runtime.
 Map GPX export button listener cleanup now creates abort controllers through `createExportGPXButtonRuntime.ts`
 instead of constructing `AbortController` directly inside `createExportGPXButton.ts`, and object-URL cleanup
 scheduling now uses that same runtime instead of falling back to `globalThis`; explicit runtime scopes must now

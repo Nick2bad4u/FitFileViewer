@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserPrint,
@@ -8,7 +9,7 @@ import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export interface CreatePrintButtonRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getPrint?: (() => (() => void) | undefined) | undefined;
