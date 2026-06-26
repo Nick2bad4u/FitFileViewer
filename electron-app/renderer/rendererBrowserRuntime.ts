@@ -5,10 +5,10 @@ import {
     getBrowserBoundSetTimeout,
     getBrowserConsole,
     getBrowserDocument,
+    getBrowserElectronApiCandidate,
     getBrowserEventTarget,
     getBrowserRemoveEventListener,
 } from "../utils/runtime/browserRuntime.js";
-import { getBrowserElectronApiCandidate } from "../utils/runtime/electronApiRuntime.js";
 import type { RendererRuntimeEnvironmentScope } from "./runtimeEnvironment.js";
 
 export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvironmentScope {

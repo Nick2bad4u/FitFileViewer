@@ -3,8 +3,8 @@ import {
     getBrowserConsole,
     getBrowserCurrentTimestamp,
     getBrowserDocument,
+    getBrowserElectronApiCandidate,
 } from "../utils/runtime/browserRuntime.js";
-import { getBrowserElectronApiCandidate } from "../utils/runtime/electronApiRuntime.js";
 
 export function getBrowserMainUiRuntimeEnvironmentScope(): MainUiRuntimeEnvironmentScope {
     return {

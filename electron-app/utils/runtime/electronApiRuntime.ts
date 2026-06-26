@@ -1,7 +1,5 @@
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
-import { getBrowserGlobalProperty } from "./browserRuntime.js";
-
 export type RendererElectronApiScope = {
     readonly getElectronAPI?: (() => unknown) | undefined;
 };
@@ -24,10 +22,6 @@ export function getRendererElectronApi<
     }
 
     return isExpectedApi(api) ? api : null;
-}
-
-export function getBrowserElectronApiCandidate(): unknown {
-    return getBrowserGlobalProperty("electronAPI");
 }
 
 function getScopeElectronApi(

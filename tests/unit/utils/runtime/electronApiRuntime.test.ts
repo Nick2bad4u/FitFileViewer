@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-    getBrowserElectronApiCandidate,
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
@@ -98,17 +97,6 @@ describe("electronApiRuntime", () => {
         vi.stubGlobal("electronAPI", api);
 
         expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
-    });
-
-    it("resolves browser Electron API candidates through the browser runtime", () => {
-        expect.assertions(1);
-
-        const api = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
-        vi.stubGlobal("electronAPI", api);
-
-        expect(getBrowserElectronApiCandidate()).toBe(api);
     });
 
     it("returns null when no explicit provider scope is supplied", () => {

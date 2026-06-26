@@ -84,6 +84,10 @@ export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown {
     }
 }
 
+export function getBrowserElectronApiCandidate(): unknown {
+    return getBrowserGlobalProperty("electronAPI");
+}
+
 export function getBrowserChartOverlayColorPalette(): unknown {
     return getBrowserGlobalProperty("chartOverlayColorPalette");
 }

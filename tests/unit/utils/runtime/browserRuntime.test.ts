@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     getBrowserChartOverlayColorPalette,
     getBrowserDevelopmentFlag,
+    getBrowserElectronApiCandidate,
     getBrowserGlobalProperty,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
@@ -12,15 +13,18 @@ describe("browserRuntime global property boundary", () => {
     });
 
     it("reads named global properties through the shared boundary", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
+        const electronAPI = { openExternal: vi.fn() };
         const palette = ["#ff0000", "#00ff00"];
 
         vi.stubGlobal("__DEVELOPMENT__", true);
         vi.stubGlobal("chartOverlayColorPalette", palette);
+        vi.stubGlobal("electronAPI", electronAPI);
 
         expect(getBrowserGlobalProperty("__DEVELOPMENT__")).toBe(true);
         expect(getBrowserDevelopmentFlag()).toBe(true);
+        expect(getBrowserElectronApiCandidate()).toBe(electronAPI);
         expect(getBrowserChartOverlayColorPalette()).toBe(palette);
     });
 

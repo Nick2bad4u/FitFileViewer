@@ -6178,7 +6178,7 @@ describe("architecture boundaries", () => {
         expect(rendererEnvironmentRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
-        expect(rendererEnvironmentRuntimeSource).toContain(
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "../../runtime/electronApiRuntime.js"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
@@ -25075,7 +25075,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Electron API global lookup centralized behind its runtime provider", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -25110,11 +25110,17 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).not.toContain(
             "return (globalThis as BrowserElectronApiGlobalScope).electronAPI;"
         );
-        expect(electronApiRuntimeSource).toContain(
-            'return getBrowserGlobalProperty("electronAPI");'
+        expect(electronApiRuntimeSource).not.toContain(
+            "getBrowserGlobalProperty"
         );
         expect(browserRuntimeSource).toContain(
             "export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown"
+        );
+        expect(browserRuntimeSource).toContain(
+            "export function getBrowserElectronApiCandidate(): unknown"
+        );
+        expect(browserRuntimeSource).toContain(
+            'return getBrowserGlobalProperty("electronAPI");'
         );
         expect(electronApiRuntimeSource).not.toContain("scope.electronAPI");
         expect(electronApiRuntimeSource).not.toContain(

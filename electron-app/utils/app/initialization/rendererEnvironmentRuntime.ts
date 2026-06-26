@@ -1,9 +1,9 @@
 import {
     getBrowserDevelopmentFlag,
     getBrowserDocument,
+    getBrowserElectronApiCandidate,
     getBrowserLocation,
 } from "../../runtime/browserRuntime.js";
-import { getBrowserElectronApiCandidate } from "../../runtime/electronApiRuntime.js";
 
 export interface RendererEnvironmentInput {
     readonly developmentFlag?: unknown;
