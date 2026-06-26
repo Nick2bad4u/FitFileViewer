@@ -60,6 +60,8 @@ The preload before-exit, development-tools, and Electron API exposure helpers (`
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.
+Preload Electron API exposure diagnostics now classify API methods/properties with `Object.entries(api)` instead
+of casting the public API through `unknown` to a generic record.
 The remaining preload API assembly, runtime, bootstrap, and module-loader files now use named source exports;
 `electron-app/preload/*.ts` no longer contains source-level `module.exports` wrappers.
 The preload runtime environment, bootstrap, entrypoint, and preload source tests no longer carry a generic

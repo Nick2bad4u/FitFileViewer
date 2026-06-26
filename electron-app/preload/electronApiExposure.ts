@@ -7,17 +7,18 @@ export function getApiStructure(api: ElectronAPI): {
     properties: string[];
     total: number;
 } {
-    const apiKeys = Object.keys(api),
-        apiRecord = api as unknown as Record<string, unknown>,
-        methods = apiKeys.filter((key) => typeof apiRecord[key] === "function"),
-        properties = apiKeys.filter(
-            (key) => typeof apiRecord[key] !== "function"
-        );
+    const apiEntries = Object.entries(api),
+        methods = apiEntries
+            .filter(([, value]) => typeof value === "function")
+            .map(([key]) => key),
+        properties = apiEntries
+            .filter(([, value]) => typeof value !== "function")
+            .map(([key]) => key);
 
     return {
         methods,
         properties,
-        total: apiKeys.length,
+        total: apiEntries.length,
     };
 }
 

@@ -19,6 +19,21 @@ function createApi(validateAPI: () => boolean = () => true): ElectronAPI {
 }
 
 describe("preload electron API exposure", () => {
+    it("classifies API methods and properties without mutating the API", () => {
+        expect.assertions(2);
+
+        const api = Object.assign(createApi(), {
+            apiVersion: "test",
+        });
+
+        expect(getApiStructure(api)).toStrictEqual({
+            methods: ["getChannelInfo", "validateAPI"],
+            properties: ["apiVersion"],
+            total: 3,
+        });
+        expect(api.apiVersion).toBe("test");
+    });
+
     it("exposes a validated electronAPI object to the main world", () => {
         expect.assertions(3);
 
