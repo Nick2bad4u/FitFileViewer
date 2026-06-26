@@ -34,7 +34,7 @@ function invalidateChartsSummary(
     try {
         getComputedStateManager().invalidateComputed?.("charts.summary");
     } catch {
-        // Ignore computed-state compatibility failures.
+        // Ignore computed-state failures in injected test environments.
     }
 }
 

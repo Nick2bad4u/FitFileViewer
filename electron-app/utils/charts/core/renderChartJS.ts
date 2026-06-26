@@ -72,9 +72,9 @@ import {
 } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import {
-    resetChartNotificationState as resetChartNotificationStateCompat,
-    updatePreviousChartState as updatePreviousChartStateCompat,
-} from "./renderChartNotificationStateCompat.js";
+    resetChartNotificationState as resetChartNotificationStateAccess,
+    updatePreviousChartState as updatePreviousChartStateAccess,
+} from "./renderChartNotificationStateAccess.js";
 import {
     addInvalidateChartRenderCacheListener as addCacheInvalidationListener,
     notifyInvalidateChartRenderCacheListeners,
@@ -230,20 +230,18 @@ export async function prewarmChartRenderCaches(
 const ensureDataSettingsSignature = (settings: unknown): string =>
     chartRenderCacheApi.ensureDataSettingsSignature(settings);
 
-/** Last chart notification state retained for compatibility callers. */
-
 /** Resets notification tracking for the next chart render. */
 export function resetChartNotificationState() {
-    return resetChartNotificationStateCompat();
+    return resetChartNotificationStateAccess();
 }
 
-/** Updates compatibility tracking for the previous chart render. */
+/** Updates notification tracking for the previous chart render. */
 export function updatePreviousChartState(
     chartCount: number,
     visibleFields: number,
     timestamp: number
 ) {
-    return updatePreviousChartStateCompat(chartCount, visibleFields, timestamp);
+    return updatePreviousChartStateAccess(chartCount, visibleFields, timestamp);
 }
 
 initializeChartRuntimeBootstrap({
@@ -673,4 +671,4 @@ exposeChartDevTools({
     subscribe: callSubscribe,
 });
 
-export { previousChartState } from "./renderChartNotificationStateCompat.js";
+export { previousChartState } from "./renderChartNotificationStateAccess.js";

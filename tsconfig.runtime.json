@@ -339,7 +339,7 @@
         "electron-app/utils/charts/core/renderChartModuleHelpers.ts",
         "electron-app/utils/charts/core/renderChartNotificationFlow.ts",
         "electron-app/utils/charts/core/renderChartNotificationHelpers.ts",
-        "electron-app/utils/charts/core/renderChartNotificationStateCompat.ts",
+        "electron-app/utils/charts/core/renderChartNotificationStateAccess.ts",
         "electron-app/utils/charts/core/renderChartPointUtils.ts",
         "electron-app/utils/charts/core/renderChartPerformanceMonitor.ts",
         "electron-app/utils/charts/core/renderChartPerformanceSettings.ts",

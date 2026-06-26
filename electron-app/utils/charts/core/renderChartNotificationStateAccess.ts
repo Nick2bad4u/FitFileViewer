@@ -12,7 +12,7 @@ const fallbackPreviousChartState: PreviousChartState = {
 const notificationState = chartNotificationState as NotificationStateModule;
 
 /**
- * Previous chart state exported through renderChartJS for compatibility.
+ * Previous chart state exported through renderChartJS.
  */
 export const previousChartState =
     notificationState.previousChartState ?? fallbackPreviousChartState;
@@ -24,7 +24,7 @@ export function resetChartNotificationState(): void {
     try {
         notificationState.resetChartNotificationState?.();
     } catch {
-        // Ignore notification-state compatibility failures.
+        // Ignore injected notification-state test module failures.
     }
 }
 
@@ -43,6 +43,6 @@ export function updatePreviousChartState(
             timestamp
         );
     } catch {
-        // Ignore notification-state compatibility failures.
+        // Ignore injected notification-state test module failures.
     }
 }

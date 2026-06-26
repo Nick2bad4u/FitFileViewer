@@ -20,7 +20,7 @@ type UpdateStateFunction = (
 export type ChartStateListener = StateListener;
 export type ChartStateUpdateOptions = StateUpdateOptions;
 
-/** State manager functions used by chart rendering compatibility paths. */
+/** State manager functions used by chart rendering modules. */
 export type ChartStateManagerAccess = {
     readonly getState: GetStateFunction;
     readonly setState: SetStateFunction;
@@ -65,7 +65,7 @@ export function callSetState(
     try {
         setState(path, value, options);
     } catch {
-        // Ignore state-manager compatibility failures.
+        // Ignore state-manager failures in injected test environments.
     }
 }
 
@@ -78,7 +78,7 @@ export function callSubscribe(
         return subscribe(path, callback);
     } catch {
         return () => {
-            // Ignore state-manager compatibility failures.
+            // Ignore state-manager failures in injected test environments.
         };
     }
 }
@@ -92,6 +92,6 @@ export function callUpdateState(
     try {
         updateState(path, value, options);
     } catch {
-        // Ignore state-manager compatibility failures.
+        // Ignore state-manager failures in injected test environments.
     }
 }

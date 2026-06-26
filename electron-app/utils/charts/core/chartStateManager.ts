@@ -214,7 +214,7 @@ export class ChartStateManager {
     /**
      * Handles theme changes with proper chart re-rendering.
      *
-     * @param newTheme - Optional new theme name for legacy callers.
+     * @param newTheme - Optional new theme name for render reasons.
      */
     handleThemeChange(newTheme?: string): void {
         const chartState = getChartState();
@@ -507,7 +507,7 @@ function assignStringProperty(
 }
 
 /**
- * Singleton chart state manager instance used by legacy chart modules.
+ * Singleton chart state manager instance used by chart modules.
  */
 export const chartStateManager = new ChartStateManager();
 registerChartStateManager(chartStateManager);
