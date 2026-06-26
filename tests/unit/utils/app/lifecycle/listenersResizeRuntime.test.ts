@@ -43,9 +43,7 @@ describe("getListenersResizeRuntime", () => {
 
         const runtime = getListenersResizeRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses shared browser providers for production defaults", () => {
@@ -108,9 +106,7 @@ describe("getListenersResizeRuntime", () => {
             );
             runtime.cancelAnimationFrame(frameHandle);
             expect(cancelAnimationFrame).toHaveBeenCalledWith(frameHandle);
-            expect(runtime.setTimeout(() => {}, timeoutMs)).toBe(
-                timeoutHandle
-            );
+            expect(runtime.setTimeout(() => {}, timeoutMs)).toBe(timeoutHandle);
             expect(setTimeout).toHaveBeenCalledWith(
                 expect.any(Function),
                 timeoutMs

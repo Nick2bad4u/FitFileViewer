@@ -34,9 +34,8 @@ vi.mock(
     })
 );
 
-const { prewarmChartRenderCaches } = await import(
-    "../../../../electron-app/utils/charts/core/renderChartCachePrewarm.js"
-);
+const { prewarmChartRenderCaches } =
+    await import("../../../../electron-app/utils/charts/core/renderChartCachePrewarm.js");
 
 describe("prewarmChartRenderCaches", () => {
     beforeEach(() => {

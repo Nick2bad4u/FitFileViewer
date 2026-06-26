@@ -32,10 +32,7 @@ describe("chartListenerState", () => {
     it("creates listener controllers through an injected runtime", () => {
         expect.assertions(5);
 
-        const controllers = [
-            new AbortController(),
-            new AbortController(),
-        ];
+        const controllers = [new AbortController(), new AbortController()];
         const runtime: ChartListenerStateRuntime = {
             createAbortController: vi.fn(() => controllers.shift()!),
         };

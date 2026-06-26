@@ -85,9 +85,7 @@ describe("getRenderChartDirectRerenderRuntime", () => {
             const utils = getRenderChartDirectRerenderRuntime();
 
             expect(utils.queryChartContainer()).toBe(chartContainer);
-            expect(utils.querySelector("#content_chart")).toBe(
-                chartContainer
-            );
+            expect(utils.querySelector("#content_chart")).toBe(chartContainer);
         } finally {
             cleanupFixture();
         }

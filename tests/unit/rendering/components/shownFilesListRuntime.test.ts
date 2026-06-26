@@ -37,9 +37,7 @@ describe("getShownFilesListRuntime", () => {
 
         const runtime = getShownFilesListRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
@@ -146,9 +144,7 @@ describe("getShownFilesListRuntime", () => {
             getDocument: () => document,
         });
 
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
-            true
-        );
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
     });
 
     it("does not borrow ambient documents for explicit DOM scopes", () => {
@@ -168,9 +164,9 @@ describe("getShownFilesListRuntime", () => {
         expect(() => runtime.isDarkTheme()).toThrow(
             "shownFilesList requires a document runtime"
         );
-        expect(() => runtime.isHTMLElement(document.createElement("div"))).toThrow(
-            "shownFilesList requires an HTMLElement runtime"
-        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("shownFilesList requires an HTMLElement runtime");
     });
 
     it("registers mousemove listeners through the injected runtime scope", () => {
@@ -330,9 +326,9 @@ describe("getShownFilesListRuntime", () => {
         expect(() => runtime.isDarkTheme()).toThrow(
             "shownFilesList requires a document runtime"
         );
-        expect(() => runtime.isHTMLElement(document.createElement("div"))).toThrow(
-            "shownFilesList requires an HTMLElement runtime"
-        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("shownFilesList requires an HTMLElement runtime");
         expect(() =>
             runtime.addMouseMoveListener(() => undefined, {
                 signal: controller.signal,

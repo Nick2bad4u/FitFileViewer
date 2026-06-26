@@ -42,9 +42,8 @@ describe("tabReadinessState", () => {
     it("writes explicit tab readiness entries to renderer state", async () => {
         expect.assertions(2);
 
-        const { setTabReadiness } = await import(
-            "../../../../../electron-app/utils/ui/tabs/tabReadinessState.js"
-        );
+        const { setTabReadiness } =
+            await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
 
         setTabReadiness("data", "loading", "test.source");
 
@@ -67,9 +66,8 @@ describe("tabReadinessState", () => {
     it("normalizes Error details on failed readiness entries", async () => {
         expect.assertions(2);
 
-        const { setTabReadiness } = await import(
-            "../../../../../electron-app/utils/ui/tabs/tabReadinessState.js"
-        );
+        const { setTabReadiness } =
+            await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
 
         setTabReadiness("zwift", "error", "test.error", new Error("blocked"));
 
@@ -92,9 +90,8 @@ describe("tabReadinessState", () => {
     it("normalizes non-Error details on blocked readiness entries", async () => {
         expect.assertions(2);
 
-        const { setTabReadiness } = await import(
-            "../../../../../electron-app/utils/ui/tabs/tabReadinessState.js"
-        );
+        const { setTabReadiness } =
+            await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
 
         setTabReadiness("map", "blocked", "test.blocked", {
             reason: "missing FIT data",

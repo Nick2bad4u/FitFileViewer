@@ -53,9 +53,7 @@ describe("getUnifiedControlBarRuntime", () => {
         const resizeListener = vi.fn<EventListener>();
         const timeoutMs = Number("250");
         const timer = 29 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
         const mutationCallback = vi.fn<MutationCallback>();
         const observer = {
@@ -63,13 +61,13 @@ describe("getUnifiedControlBarRuntime", () => {
             observe: vi.fn<MutationObserver["observe"]>(),
             takeRecords: vi.fn<MutationObserver["takeRecords"]>(() => []),
         } satisfies MutationObserver;
-        const MutationObserverMock = vi.fn(
-            function MutationObserverMock(callback: MutationCallback) {
-                mutationCallback([], observer);
-                expect(callback).toBe(mutationCallback);
-                return observer;
-            }
-        );
+        const MutationObserverMock = vi.fn(function MutationObserverMock(
+            callback: MutationCallback
+        ) {
+            mutationCallback([], observer);
+            expect(callback).toBe(mutationCallback);
+            return observer;
+        });
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("MutationObserver", MutationObserverMock);
@@ -94,9 +92,7 @@ describe("getUnifiedControlBarRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, timeoutMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
         expect(callback).not.toHaveBeenCalled();
-        expect(runtime.createMutationObserver(mutationCallback)).toBe(
-            observer
-        );
+        expect(runtime.createMutationObserver(mutationCallback)).toBe(observer);
         expect(MutationObserverMock).toHaveBeenCalledWith(mutationCallback);
         expect(resizeListener).toHaveBeenCalledOnce();
         expect(setTimeoutMock).toHaveBeenCalledOnce();

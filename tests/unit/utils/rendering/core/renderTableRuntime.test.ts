@@ -108,9 +108,7 @@ describe("getRenderTableRuntime", () => {
             const requestAnimationFrame = vi.fn<
                 typeof globalThis.requestAnimationFrame
             >(() => 17);
-            const setTimeout = vi.fn<typeof globalThis.setTimeout>(
-                () => timer
-            );
+            const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
             const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
             vi.stubGlobal("clearTimeout", clearTimeout);
             vi.stubGlobal("getComputedStyle", getComputedStyle);

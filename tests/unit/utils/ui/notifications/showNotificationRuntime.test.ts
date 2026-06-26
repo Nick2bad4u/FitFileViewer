@@ -141,9 +141,7 @@ describe("getShowNotificationRuntime", () => {
             getKeyboardEvent: () => KeyboardEvent,
         });
 
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
-            true
-        );
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
         expect(runtime.isHTMLElement({ closest: () => null })).toBe(false);
         expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
             true

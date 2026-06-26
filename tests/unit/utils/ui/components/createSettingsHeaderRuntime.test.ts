@@ -138,9 +138,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
 
         const runtime = getCreateSettingsHeaderRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production timer defaults", () => {
@@ -149,9 +147,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
         const timer = 59 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);

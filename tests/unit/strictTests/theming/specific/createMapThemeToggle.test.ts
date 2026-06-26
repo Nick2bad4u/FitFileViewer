@@ -146,10 +146,7 @@ describe("createMapThemeToggle", () => {
             createElement: vi.fn((tagName) => document.createElement(tagName)),
             createMapThemeChangedEvent: vi.fn(() => event),
             createSvgElement: vi.fn((tagName) =>
-                document.createElementNS(
-                    "http://www.w3.org/2000/svg",
-                    tagName
-                )
+                document.createElementNS("http://www.w3.org/2000/svg", tagName)
             ),
             dispatchDocumentEvent: vi.fn(() => true),
             findExistingToggle: vi.fn(() => null),

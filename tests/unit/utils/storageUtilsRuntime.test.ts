@@ -18,9 +18,7 @@ describe("storage utilities runtime", () => {
         };
         vi.stubGlobal("localStorage", localStorage);
 
-        expect(getStorageUtilsRuntime().getDefaultStorage()).toBe(
-            localStorage
-        );
+        expect(getStorageUtilsRuntime().getDefaultStorage()).toBe(localStorage);
     });
 
     it("returns an injected localStorage reference", () => {

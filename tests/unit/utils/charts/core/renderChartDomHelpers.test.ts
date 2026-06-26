@@ -49,8 +49,8 @@ describe("renderChartDomHelpers", () => {
         const messageElement = document.createElement("div");
         const runtime: RenderChartDomHelpersRuntime = {
             createElement: vi.fn(() => messageElement),
-            isHTMLElement: vi.fn((value): value is HTMLElement =>
-                value instanceof HTMLElement
+            isHTMLElement: vi.fn(
+                (value): value is HTMLElement => value instanceof HTMLElement
             ),
         };
 
@@ -99,9 +99,9 @@ describe("renderChartDomHelpers", () => {
         expect(() => utils.createElement("div")).toThrow(
             "renderChartDomHelpers requires a document runtime"
         );
-        expect(() => utils.isHTMLElement(document.createElement("div"))).toThrow(
-            "renderChartDomHelpers requires an HTMLElement runtime"
-        );
+        expect(() =>
+            utils.isHTMLElement(document.createElement("div"))
+        ).toThrow("renderChartDomHelpers requires an HTMLElement runtime");
     });
 
     it("ignores legacy direct document scope properties", () => {
@@ -118,9 +118,9 @@ describe("renderChartDomHelpers", () => {
         expect(() => utils.createElement("div")).toThrow(
             "renderChartDomHelpers requires a document runtime"
         );
-        expect(() => utils.isHTMLElement(document.createElement("div"))).toThrow(
-            "renderChartDomHelpers requires an HTMLElement runtime"
-        );
+        expect(() =>
+            utils.isHTMLElement(document.createElement("div"))
+        ).toThrow("renderChartDomHelpers requires an HTMLElement runtime");
         expect(createElement).not.toHaveBeenCalled();
     });
 

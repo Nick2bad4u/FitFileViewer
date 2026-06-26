@@ -71,9 +71,7 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
 
         const runtime = getCreateFieldTogglesSectionRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production timer defaults", () => {
@@ -123,9 +121,7 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         expect(event.detail).toStrictEqual({ field: "speed" });
         expect(runtime.dispatchEvent(event)).toBe(true);
         expect(dispatchEvent).toHaveBeenCalledWith(event);
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("schedules and clears timers through injected timer functions", () => {

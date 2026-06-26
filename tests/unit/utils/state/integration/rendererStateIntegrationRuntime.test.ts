@@ -81,9 +81,7 @@ describe("getRendererStateIntegrationRuntime", () => {
 
         const utils = getRendererStateIntegrationRuntime();
 
-        expect(utils.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {

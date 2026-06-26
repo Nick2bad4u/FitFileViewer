@@ -71,8 +71,9 @@ describe("getChartStateManagerRuntime", () => {
     it("resolves production DOM defaults through browser runtime providers", () => {
         expect.assertions(2);
 
-        const documentRef =
-            document.implementation.createHTMLDocument("chart state manager");
+        const documentRef = document.implementation.createHTMLDocument(
+            "chart state manager"
+        );
         const container = documentRef.createElement("div");
         container.id = "chartjs-chart-container";
         documentRef.body.append(container);

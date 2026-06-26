@@ -37,9 +37,7 @@ describe("getAppActionsRuntime", () => {
 
         const runtime = getAppActionsRuntime({});
 
-        expect(() => runtime.dateNow()).toThrow(
-            "AppActions requires dateNow"
-        );
+        expect(() => runtime.dateNow()).toThrow("AppActions requires dateNow");
         expect(() => runtime.performanceNow()).toThrow(
             "AppActions requires performance.now"
         );
@@ -56,9 +54,7 @@ describe("getAppActionsRuntime", () => {
         } as unknown as AppActionsRuntimeScope;
         const runtime = getAppActionsRuntime(legacyScope);
 
-        expect(() => runtime.dateNow()).toThrow(
-            "AppActions requires dateNow"
-        );
+        expect(() => runtime.dateNow()).toThrow("AppActions requires dateNow");
         expect(() => runtime.performanceNow()).toThrow(
             "AppActions requires performance.now"
         );

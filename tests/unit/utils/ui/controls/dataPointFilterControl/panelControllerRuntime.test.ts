@@ -122,9 +122,7 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
 
         const runtime = getDataPointFilterPanelControllerRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production panel defaults", () => {

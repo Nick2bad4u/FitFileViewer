@@ -99,9 +99,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(document.body.style.overflow).toBe("hidden");
         expect(runtime.getActiveElement()).toBe(button);
         expect(runtime.isHTMLElement(modal)).toBe(true);
-        expect(
-            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
-        ).toBe(true);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
         expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
     });
 

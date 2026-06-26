@@ -52,8 +52,6 @@ describe(createChartCanvas, () => {
         expect(runtime.createCanvas).toHaveBeenCalledOnce();
         expect(result).toBe(canvas);
         expect(result.id).toBe("chart-heart-rate-3");
-        expect(result.getAttribute("aria-label")).toBe(
-            "Chart for heart-rate"
-        );
+        expect(result.getAttribute("aria-label")).toBe("Chart for heart-rate");
     });
 });

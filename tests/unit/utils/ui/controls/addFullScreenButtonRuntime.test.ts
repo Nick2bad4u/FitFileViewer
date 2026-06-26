@@ -237,9 +237,7 @@ describe("getAddFullScreenButtonRuntime", () => {
         const button = runtime.createElement("button");
         const observer = runtime.createMutationObserver(vi.fn());
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
         expect(runtime.getDocument()).toBe(document);
         expect(runtime.isHTMLElement(button)).toBe(true);
         expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(

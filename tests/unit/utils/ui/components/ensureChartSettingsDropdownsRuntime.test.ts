@@ -88,20 +88,16 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
 
         const runtime = getEnsureChartSettingsDropdownsRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production timer defaults", () => {
         expect.assertions(3);
 
-        const setTimeoutMock = vi.fn(
-            (callback: () => void, delay: number) => {
-                callback();
-                return 11 as ReturnType<typeof setTimeout>;
-            }
-        );
+        const setTimeoutMock = vi.fn((callback: () => void, delay: number) => {
+            callback();
+            return 11 as ReturnType<typeof setTimeout>;
+        });
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
         const runtime = getEnsureChartSettingsDropdownsRuntime();

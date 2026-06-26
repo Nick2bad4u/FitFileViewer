@@ -184,7 +184,13 @@ describe("process environment runtime boundary", () => {
         expect.assertions(3);
 
         setGlobalProcess({
-            argv: ["node", "app.js", "--dev", 42, null],
+            argv: [
+                "node",
+                "app.js",
+                "--dev",
+                42,
+                null,
+            ],
         });
 
         expect(getProcessArgumentValues()).toStrictEqual([

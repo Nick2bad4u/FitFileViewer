@@ -121,9 +121,7 @@ describe("getSettingsStateCoreRuntime", () => {
 
         const runtime = getSettingsStateCoreRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production date and storage defaults", () => {

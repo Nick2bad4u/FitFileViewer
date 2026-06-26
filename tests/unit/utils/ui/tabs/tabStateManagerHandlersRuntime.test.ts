@@ -36,9 +36,7 @@ describe("getTabStateManagerHandlersRuntime", () => {
 
         const runtime = getTabStateManagerHandlersRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses shared browser providers for production defaults", () => {

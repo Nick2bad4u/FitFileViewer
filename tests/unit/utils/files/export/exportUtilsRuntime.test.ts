@@ -175,9 +175,7 @@ describe("exportUtilsRuntime", () => {
         const link = document.createElement("a");
         const button = document.createElement("button");
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
 
         runtime.appendToBody(link);
         runtime.appendToBody(button);

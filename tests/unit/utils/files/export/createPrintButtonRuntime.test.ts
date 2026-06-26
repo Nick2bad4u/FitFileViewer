@@ -41,9 +41,7 @@ describe("getCreatePrintButtonRuntime", () => {
 
         const runtime = getCreatePrintButtonRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production document and print defaults", () => {

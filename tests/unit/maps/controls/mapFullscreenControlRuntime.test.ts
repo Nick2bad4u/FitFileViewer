@@ -223,9 +223,7 @@ describe("getMapFullscreenControlRuntime", () => {
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
         const timer = 68 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);

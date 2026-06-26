@@ -50,8 +50,7 @@ describe("getRenderSummaryRuntime", () => {
                 return controller;
             }
         );
-        const addEventListener =
-            vi.fn<typeof globalThis.addEventListener>();
+        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const cancelAnimationFrame =
             vi.fn<typeof globalThis.cancelAnimationFrame>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -73,12 +72,8 @@ describe("getRenderSummaryRuntime", () => {
 
         expect(utils.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
-        expect(utils.createElement("button")).toBeInstanceOf(
-            HTMLButtonElement
-        );
-        expect(utils.createDocumentFragment()).toBeInstanceOf(
-            DocumentFragment
-        );
+        expect(utils.createElement("button")).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.createDocumentFragment()).toBeInstanceOf(DocumentFragment);
         expect(utils.createSvgElement("path").namespaceURI).toBe(
             "http://www.w3.org/2000/svg"
         );

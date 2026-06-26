@@ -80,9 +80,7 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
 
         const runtime = getCreateInlineZoneColorSelectorRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production DOM, event, and timer defaults", () => {
@@ -116,9 +114,7 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
         expect(handler).not.toHaveBeenCalled();
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("schedules timers through the injected timer function", () => {

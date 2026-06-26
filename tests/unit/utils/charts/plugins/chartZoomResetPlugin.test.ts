@@ -168,14 +168,16 @@ function createClickEvent(bounds: ZoomResetButtonBounds): {
 
 async function loadPlugin(): Promise<{
     chartZoomResetPlugin: ZoomResetPlugin;
-    createChartZoomResetPlugin: (
-        options?: {
-            readonly getRendererDebugRuntime?: (() => {
-                isRendererDebugLoggingAvailable: (enabled: boolean) => boolean;
-            }) | undefined;
-            readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
-        }
-    ) => ZoomResetPlugin;
+    createChartZoomResetPlugin: (options?: {
+        readonly getRendererDebugRuntime?:
+            | (() => {
+                  isRendererDebugLoggingAvailable: (
+                      enabled: boolean
+                  ) => boolean;
+              })
+            | undefined;
+        readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
+    }) => ZoomResetPlugin;
     installRoundRectPolyfill: () => void;
     showNotification: Mock<typeof showNotificationFn>;
 }> {

@@ -165,9 +165,9 @@ describe("showUpdateNotification", () => {
             timerRuntime,
         });
 
-        expect(notificationRuntime.queryNotificationElement).toHaveBeenCalledWith(
-            "#notification"
-        );
+        expect(
+            notificationRuntime.queryNotificationElement
+        ).toHaveBeenCalledWith("#notification");
         expect(notificationRuntime.createElement).toHaveBeenCalledWith("span");
         expect(host.textContent).toBe("Injected update");
         expect(host.style.display).toBe("block");

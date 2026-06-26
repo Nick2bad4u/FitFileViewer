@@ -6,7 +6,8 @@ describe("renderer startup performance monitor", () => {
     it("records completed operation metrics", () => {
         expect.assertions(3);
 
-        const nowPerformance = vi.fn<() => number>()
+        const nowPerformance = vi
+            .fn<() => number>()
             .mockReturnValueOnce(10)
             .mockReturnValueOnce(34);
         const logRenderer =
@@ -27,7 +28,8 @@ describe("renderer startup performance monitor", () => {
     it("logs timing details in development mode", () => {
         expect.assertions(2);
 
-        const nowPerformance = vi.fn<() => number>()
+        const nowPerformance = vi
+            .fn<() => number>()
             .mockReturnValueOnce(100)
             .mockReturnValueOnce(125.5);
         const logRenderer =

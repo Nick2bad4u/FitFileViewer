@@ -114,9 +114,7 @@ describe("computedStateManagerRuntime", () => {
         expect(now).toHaveBeenCalledOnce();
         expect(now.mock.contexts[0]).toBe(globalThis.performance);
         expect(matchMedia).toHaveBeenCalledOnce();
-        expect(matchMedia).toHaveBeenCalledWith(
-            "(prefers-color-scheme: dark)"
-        );
+        expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
     });
 
     it("fails clearly when explicit scopes omit timing providers", () => {

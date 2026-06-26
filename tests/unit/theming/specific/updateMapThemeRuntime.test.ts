@@ -38,9 +38,7 @@ describe("getUpdateMapThemeRuntime", () => {
 
         const runtime = getUpdateMapThemeRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production document and HTMLElement defaults", () => {

@@ -302,9 +302,7 @@ describe("showNotification.js - branches (strict)", () => {
 
         vi.advanceTimersByTime(250);
 
-        expect(runtime.clearTimeout).toHaveBeenCalledWith(
-            expect.any(Object)
-        );
+        expect(runtime.clearTimeout).toHaveBeenCalledWith(expect.any(Object));
     });
 
     it("logs errors and resolves when display pipeline throws (build fails)", async () => {

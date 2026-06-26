@@ -33,9 +33,7 @@ describe("getLoadSingleOverlayFileRuntime", () => {
 
         const runtime = getLoadSingleOverlayFileRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("creates file readers through the injected runtime", () => {

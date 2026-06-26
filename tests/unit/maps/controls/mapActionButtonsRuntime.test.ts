@@ -74,9 +74,7 @@ describe("getMapActionButtonsRuntime", () => {
         const mutationCallback = vi.fn<MutationCallback>();
         const delayMs = Number("150");
         const timer = 8 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
         const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(456);
         const observer = {
@@ -106,9 +104,7 @@ describe("getMapActionButtonsRuntime", () => {
         expect(runtime.isHTMLElement(element)).toBe(true);
         expect(runtime.isHTMLElement({})).toBe(false);
         expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
-        expect(runtime.createMutationObserver(mutationCallback)).toBe(
-            observer
-        );
+        expect(runtime.createMutationObserver(mutationCallback)).toBe(observer);
         expect(timerHandle).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);

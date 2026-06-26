@@ -76,13 +76,9 @@ describe(sanitizeHtmlAllowlist, () => {
             getNodeFilter: () => NodeFilter,
         });
         const runtime = {
-            createDocumentFragment: vi.fn(
-                baseRuntime.createDocumentFragment
-            ),
+            createDocumentFragment: vi.fn(baseRuntime.createDocumentFragment),
             createDomParser: vi.fn(baseRuntime.createDomParser),
-            createElementTreeWalker: vi.fn(
-                baseRuntime.createElementTreeWalker
-            ),
+            createElementTreeWalker: vi.fn(baseRuntime.createElementTreeWalker),
             createTextNode: vi.fn(baseRuntime.createTextNode),
             isElement: vi.fn(baseRuntime.isElement),
         };

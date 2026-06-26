@@ -72,9 +72,16 @@ describe("animation debug logging", () => {
             logger.perfAnimLog("frame", 1),
         ];
 
-        expect(results).toStrictEqual([undefined, undefined, undefined]);
+        expect(results).toStrictEqual([
+            undefined,
+            undefined,
+            undefined,
+        ]);
         expect(consoleLog).toHaveBeenCalledTimes(3);
-        expect(consoleLog).toHaveBeenNthCalledWith(1, "[AnimCritical] critical");
+        expect(consoleLog).toHaveBeenNthCalledWith(
+            1,
+            "[AnimCritical] critical"
+        );
         expect(consoleLog).toHaveBeenNthCalledWith(2, "[AnimDebug] progress");
         expect(consoleLog).toHaveBeenNthCalledWith(
             3,

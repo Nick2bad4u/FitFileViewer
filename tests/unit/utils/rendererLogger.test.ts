@@ -28,7 +28,9 @@ describe("rendererLogger", () => {
     it("logs renderer messages with timestamped prefixes", () => {
         expect.assertions(2);
 
-        expect(logWithRendererContext("log", "Loaded renderer")).toBeUndefined();
+        expect(
+            logWithRendererContext("log", "Loaded renderer")
+        ).toBeUndefined();
 
         expect(logSpy).toHaveBeenCalledWith(
             `${expectedPrefix} Loaded renderer`

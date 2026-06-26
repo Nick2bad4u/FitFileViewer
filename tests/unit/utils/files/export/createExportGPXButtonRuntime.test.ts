@@ -42,9 +42,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
 
         const runtime = getCreateExportGPXButtonRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("creates HTML and SVG elements through the injected document", () => {
@@ -132,9 +130,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
         const callback = vi.fn<() => void>();
         const cleanupDelayMs = Number.parseInt("100", 10);
         const timer = 17 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
 
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
@@ -142,10 +138,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
         const timerHandle = runtime.setTimeout(callback, cleanupDelayMs);
 
         expect(timerHandle).toBe(timer);
-        expect(setTimeoutMock).toHaveBeenCalledWith(
-            callback,
-            cleanupDelayMs
-        );
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, cleanupDelayMs);
         expect(callback).not.toHaveBeenCalled();
         expect(setTimeoutMock).toHaveBeenCalledOnce();
     });
@@ -160,7 +153,10 @@ describe("getCreateExportGPXButtonRuntime", () => {
         const urlRuntime = {
             createObjectURL,
             revokeObjectURL,
-        } satisfies Pick<typeof globalThis.URL, "createObjectURL" | "revokeObjectURL">;
+        } satisfies Pick<
+            typeof globalThis.URL,
+            "createObjectURL" | "revokeObjectURL"
+        >;
         const blob = new Blob(["track"]);
 
         vi.stubGlobal("document", document);

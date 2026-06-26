@@ -135,12 +135,11 @@ describe("getRenderMapRuntime", () => {
         const frameCallback = vi.fn<FrameRequestCallback>();
         const delayMs = Number("125");
         const timer = 22 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrameMock =
-            vi.fn<typeof globalThis.requestAnimationFrame>(() => 5);
+        const requestAnimationFrameMock = vi.fn<
+            typeof globalThis.requestAnimationFrame
+        >(() => 5);
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrameMock);

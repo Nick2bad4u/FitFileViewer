@@ -149,9 +149,9 @@ describe("getAboutModalRuntime", () => {
         expect(runtime.getActiveHTMLElement()).toBe(button);
         expect(runtime.isElement(wrapper)).toBe(true);
         expect(runtime.isHTMLElement(wrapper)).toBe(true);
-        expect(
-            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
-        ).toBe(true);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            true
+        );
         expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
     });
 

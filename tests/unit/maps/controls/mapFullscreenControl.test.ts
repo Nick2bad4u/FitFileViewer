@@ -129,10 +129,7 @@ describe("mapFullscreenControl.js", () => {
             createAbortController: vi.fn(() => new AbortController()),
             createElement: vi.fn((tagName) => document.createElement(tagName)),
             createSvgElement: vi.fn((tagName) =>
-                document.createElementNS(
-                    "http://www.w3.org/2000/svg",
-                    tagName
-                )
+                document.createElementNS("http://www.w3.org/2000/svg", tagName)
             ),
             documentBodyContains: vi.fn(() => true),
             exitFullscreen: vi.fn(),

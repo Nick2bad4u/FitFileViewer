@@ -27,9 +27,7 @@ type FitParserIntegrationModule = {
 };
 
 type FitParserIntegrationRuntimeModule = {
-    getFitParserIntegrationRuntime: (
-        scope?: Record<string, unknown>
-    ) => {
+    getFitParserIntegrationRuntime: (scope?: Record<string, unknown>) => {
         dateNow: () => number;
         monotonicNowMs: () => number;
     };

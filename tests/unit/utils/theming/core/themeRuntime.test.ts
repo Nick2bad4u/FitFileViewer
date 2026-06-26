@@ -35,12 +35,10 @@ describe("getThemeRuntime", () => {
         vi.stubGlobal("matchMedia", matchMedia);
         const runtime = getThemeRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
-        expect(runtime.createThemeChangeEvent({ theme: "dark" })).toBeInstanceOf(
-            CustomEvent
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
+        expect(
+            runtime.createThemeChangeEvent({ theme: "dark" })
+        ).toBeInstanceOf(CustomEvent);
         runtime.addBodyClass("theme-dark");
         expect(document.body.classList.contains("theme-dark")).toBe(true);
         expect(runtime.getDocumentEventTarget()).toBe(document);

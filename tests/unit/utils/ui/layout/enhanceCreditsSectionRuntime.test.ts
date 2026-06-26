@@ -35,9 +35,7 @@ describe("getCreditsMarqueeRuntime", () => {
 
         const runtime = getCreditsMarqueeRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("uses browser runtime providers for production DOM, observer, listener, and animation defaults", () => {
@@ -96,9 +94,9 @@ describe("getCreditsMarqueeRuntime", () => {
         globalThis.dispatchEvent(new Event("resize"));
         runtime.cancelAnimationFrame(animationFrameHandle);
 
-        expect(runtime.queryCreditsSections(".credits-section")).toStrictEqual(
-            [section]
-        );
+        expect(runtime.queryCreditsSections(".credits-section")).toStrictEqual([
+            section,
+        ]);
         expect(runtime.isHTMLElement(section)).toBe(true);
         expect(resizeListener).toHaveBeenCalledOnce();
         expect(runtime.requestAnimationFrame(animationFrameCallback)).toBe(
@@ -107,9 +105,7 @@ describe("getCreditsMarqueeRuntime", () => {
         expect(requestAnimationFrame).toHaveBeenCalledWith(
             animationFrameCallback
         );
-        expect(cancelAnimationFrame).toHaveBeenCalledWith(
-            animationFrameHandle
-        );
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(animationFrameHandle);
         expect(animationFrameCallback).not.toHaveBeenCalled();
         expect(runtime.createResizeObserver(resizeCallback)).toBeInstanceOf(
             ResizeObserverMock
@@ -117,9 +113,7 @@ describe("getCreditsMarqueeRuntime", () => {
         expect(runtime.createMutationObserver(mutationCallback)).toBeInstanceOf(
             MutationObserverMock
         );
-        expect(resizeObserverConstructor).toHaveBeenCalledWith(
-            resizeCallback
-        );
+        expect(resizeObserverConstructor).toHaveBeenCalledWith(resizeCallback);
         expect(mutationObserverConstructor).toHaveBeenCalledWith(
             mutationCallback
         );

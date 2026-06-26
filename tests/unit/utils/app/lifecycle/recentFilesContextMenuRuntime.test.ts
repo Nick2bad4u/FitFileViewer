@@ -26,9 +26,7 @@ describe("recentFilesContextMenuRuntime", () => {
 
         const runtime = getRecentFilesContextMenuRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("throws when abort controller creation is unavailable", () => {

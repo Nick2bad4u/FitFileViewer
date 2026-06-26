@@ -25,9 +25,8 @@ vi.mock(
     }
 );
 
-const { tabRenderingManager } = await import(
-    "../../../../../electron-app/utils/ui/tabs/tabRenderingManager.js"
-);
+const { tabRenderingManager } =
+    await import("../../../../../electron-app/utils/ui/tabs/tabRenderingManager.js");
 
 function resetTrackedTabTimes(): void {
     tabRenderingManager.resetRenderTime("data");

@@ -98,14 +98,16 @@ describe("leafletRuntime", () => {
         ) as unknown as ReturnType<typeof setTimeout>;
         let scheduledCallback: (() => void) | null = null;
         const setTimeoutProvider = vi.fn<
-            (callback: () => void, delay: number) => ReturnType<typeof setTimeout>
+            (
+                callback: () => void,
+                delay: number
+            ) => ReturnType<typeof setTimeout>
         >((callback) => {
             scheduledCallback = callback;
             return timeoutHandle;
         });
-        const clearTimeoutProvider = vi.fn<
-            (handle: ReturnType<typeof setTimeout>) => void
-        >();
+        const clearTimeoutProvider =
+            vi.fn<(handle: ReturnType<typeof setTimeout>) => void>();
         const dateNow = vi.fn<() => number>(() => 1234);
         const runtime = getLeafletRuntimeEnvironment({
             getClearTimeout: () => clearTimeoutProvider,

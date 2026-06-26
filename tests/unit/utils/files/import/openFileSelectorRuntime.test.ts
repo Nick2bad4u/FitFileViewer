@@ -34,9 +34,7 @@ describe("getOpenFileSelectorRuntime", () => {
 
         const runtime = getOpenFileSelectorRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("throws when abort controller creation is unavailable", () => {
@@ -182,9 +180,7 @@ describe("getOpenFileSelectorRuntime", () => {
         const callback = vi.fn<() => void>();
         const delayMs = Number.parseInt("0", 10);
         const timer = 41 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);

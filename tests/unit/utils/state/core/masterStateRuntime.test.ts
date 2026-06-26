@@ -505,9 +505,7 @@ describe("masterStateRuntime", () => {
 
             expect(document.body.classList.contains("drag-over")).toBe(true);
             expect(runtime.hasDevelopmentModeAttribute()).toBe(false);
-            expect(runtime.dispatchGlobalEvent(new Event("resize"))).toBe(
-                true
-            );
+            expect(runtime.dispatchGlobalEvent(new Event("resize"))).toBe(true);
             globalThis.dispatchEvent(new Event("focus"));
             expect(globalListener).toHaveBeenCalledOnce();
             expect(windowListener).toHaveBeenCalledOnce();

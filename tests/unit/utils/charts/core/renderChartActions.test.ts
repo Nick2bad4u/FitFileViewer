@@ -81,11 +81,10 @@ describe("createChartActions", () => {
             },
             { silent: false, source: "chartActions.completeRendering" }
         );
-        expect(dependencies.setState).toHaveBeenCalledWith(
-            "isLoading",
-            false,
-            { silent: false, source: "chartActions.completeRendering" }
-        );
+        expect(dependencies.setState).toHaveBeenCalledWith("isLoading", false, {
+            silent: false,
+            source: "chartActions.completeRendering",
+        });
         expect(dependencies.updateState).toHaveBeenNthCalledWith(
             2,
             "performance.renderTimes",

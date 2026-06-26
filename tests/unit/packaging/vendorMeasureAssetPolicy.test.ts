@@ -246,9 +246,7 @@ describe("renderer vendor asset policy", () => {
         expect(measureLiteRuntime).toContain(
             "../utils/runtime/browserRuntime.js"
         );
-        expect(measureLiteRuntime).toContain(
-            "getDocument: getBrowserDocument"
-        );
+        expect(measureLiteRuntime).toContain("getDocument: getBrowserDocument");
         expect(measureLiteRuntime).not.toContain(
             "getDocument: () => globalThis.document"
         );

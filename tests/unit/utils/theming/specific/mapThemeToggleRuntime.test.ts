@@ -34,9 +34,7 @@ describe("getMapThemeToggleRuntime", () => {
 
         const runtime = getMapThemeToggleRuntime();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {

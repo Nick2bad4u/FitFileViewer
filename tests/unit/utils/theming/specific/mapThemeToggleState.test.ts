@@ -79,7 +79,8 @@ describe("mapThemeToggleState", () => {
         const timer = 7 as MapThemeToggleTimerHandle;
         let scheduledCallback: (() => void) | undefined;
         const abortController = new AbortController();
-        const clearTimeout = vi.fn<(handle: MapThemeToggleTimerHandle) => void>();
+        const clearTimeout =
+            vi.fn<(handle: MapThemeToggleTimerHandle) => void>();
         const runtime: MapThemeToggleRuntime = {
             addDocumentListener: vi.fn((eventName, listener) => {
                 listeners.set(eventName, listener);
@@ -94,10 +95,7 @@ describe("mapThemeToggleState", () => {
                     })
             ),
             createSvgElement: vi.fn((tagName) =>
-                document.createElementNS(
-                    "http://www.w3.org/2000/svg",
-                    tagName
-                )
+                document.createElementNS("http://www.w3.org/2000/svg", tagName)
             ),
             dispatchDocumentEvent: vi.fn((event) =>
                 document.dispatchEvent(event)

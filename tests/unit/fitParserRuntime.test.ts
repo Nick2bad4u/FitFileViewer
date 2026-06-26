@@ -19,9 +19,7 @@ describe("getFitParserRuntime", () => {
         expect.assertions(3);
 
         const dateValue = {
-            toISOString: vi.fn<() => string>(
-                () => "2024-01-02T03:04:05.000Z"
-            ),
+            toISOString: vi.fn<() => string>(() => "2024-01-02T03:04:05.000Z"),
         };
         let constructedCount = 0;
 
@@ -62,9 +60,7 @@ describe("getFitParserRuntime", () => {
 
         const dateNow = vi.fn<() => number>(() => 1234);
         const dateValue = {
-            toISOString: vi.fn<() => string>(
-                () => "2024-01-02T03:04:05.000Z"
-            ),
+            toISOString: vi.fn<() => string>(() => "2024-01-02T03:04:05.000Z"),
         };
         let constructedCount = 0;
 

@@ -39,7 +39,8 @@ describe(PerformanceMonitor, () => {
     it("records and ends timers while monitoring is enabled", () => {
         expect.assertions(5);
 
-        const now = vi.fn<() => number>()
+        const now = vi
+            .fn<() => number>()
             .mockReturnValueOnce(100)
             .mockReturnValueOnce(142.5);
         const monitor = new PerformanceMonitor({

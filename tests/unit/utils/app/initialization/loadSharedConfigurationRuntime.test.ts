@@ -67,9 +67,7 @@ describe("getLoadSharedConfigurationRuntime", () => {
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("100");
         const timer = 29 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);

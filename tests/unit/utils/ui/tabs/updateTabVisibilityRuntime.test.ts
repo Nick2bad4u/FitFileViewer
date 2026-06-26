@@ -78,12 +78,11 @@ describe("getUpdateTabVisibilityRuntime", () => {
         const frameCallback = vi.fn<FrameRequestCallback>();
         const timeoutMs = Number.parseInt("180", 10);
         const timer = 33 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
+        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrameMock =
-            vi.fn<typeof globalThis.requestAnimationFrame>(() => 12);
+        const requestAnimationFrameMock = vi.fn<
+            typeof globalThis.requestAnimationFrame
+        >(() => 12);
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrameMock);
