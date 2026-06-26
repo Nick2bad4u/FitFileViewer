@@ -1833,6 +1833,23 @@ describe("architecture boundaries", () => {
         ).toStrictEqual([]);
     });
 
+    it("documents the centralized dynamic browser-global property boundary", () => {
+        expect.assertions(1);
+
+        const ledger = readRepositoryFile("docs/DEPRECATION_LEDGER.md");
+        const requiredLedgerText = [
+            "Any remaining dynamic browser-global property lookup",
+            "goes through `getBrowserGlobalProperty`",
+            "returns `undefined` when hostile or test-installed accessors throw",
+        ];
+
+        expect(
+            requiredLedgerText.filter(
+                (requiredText) => !ledger.includes(requiredText)
+            )
+        ).toStrictEqual([]);
+    });
+
     it("keeps preload before-exit tracking off global registries", () => {
         expect.assertions(3);
 
