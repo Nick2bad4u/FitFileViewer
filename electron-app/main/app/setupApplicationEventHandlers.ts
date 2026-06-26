@@ -21,6 +21,7 @@ import { validateWindow } from "../window/windowValidation.js";
 import {
     getProcessArgumentValues,
     getProcessEnvironmentValue,
+    getProcessStringValue,
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../utils/runtime/processEnvironment.js";
@@ -442,16 +443,14 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
             /* ignore */
         }
 
-        if (
-            typeof process !== "undefined" &&
-            typeof process.resourcesPath === "string"
-        ) {
-            allowedRoots.push(process.resourcesPath);
+        const resourcesPath = getProcessStringValue("resourcesPath");
+        if (typeof resourcesPath === "string") {
+            allowedRoots.push(resourcesPath);
         }
 
         const normalize = (value: string): string => {
             const resolved = path.resolve(value);
-            return process.platform === "win32"
+            return getProcessStringValue("platform") === "win32"
                 ? resolved.toLowerCase()
                 : resolved;
         };
@@ -605,7 +604,10 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
         registerAppListener("browser-window-focus", (_event, win) => {
             void (async (): Promise<void> => {
-                if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
+                if (
+                    getProcessStringValue("platform") ===
+                    CONSTANTS.PLATFORMS.LINUX
+                ) {
                     try {
                         const theme = await getThemeFromRenderer(
                             win as ThemeWindow
@@ -630,7 +632,10 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
         registerAppListener("window-all-closed", () => {
             setAppState("appIsQuitting", true);
-            if (process.platform !== CONSTANTS.PLATFORMS.DARWIN) {
+            if (
+                getProcessStringValue("platform") !==
+                CONSTANTS.PLATFORMS.DARWIN
+            ) {
                 const app = appRef();
                 if (app && app.quit) app.quit();
             }
