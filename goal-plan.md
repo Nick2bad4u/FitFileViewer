@@ -424,7 +424,9 @@ Field-toggle individual and bulk chart re-render requests now resolve the chart 
 going through the chart-actions registry and render-request event path.
 Chart state manager successful-render timestamps now route through `chartStateManagerRuntime.ts` instead of calling
 `Date.now` directly inside `chartStateManager.ts`, with focused runtime and architecture coverage blocking that direct
-clock read from returning.
+clock read from returning. Chart state manager timer handles, timer provider types, and HTMLElement provider types now
+reuse shared browser-runtime aliases instead of direct ambient browser API types, with architecture coverage blocking
+those direct runtime type surfaces from returning.
 Zone color picker render-request event construction/dispatch, modal element creation, active-element reads, body
 attachment/containment, document lookup for chart settings, body access for inline selector refreshes, Escape-key
 document listener registration, and element/keyboard-event type checks now route through

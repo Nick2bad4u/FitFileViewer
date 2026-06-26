@@ -1,5 +1,9 @@
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import {
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserDocument,
@@ -7,20 +11,18 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type ChartStateManagerTimeout = ReturnType<typeof globalThis.setTimeout>;
+export type ChartStateManagerTimeout = BrowserTimerHandle;
 
 export interface ChartStateManagerRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface ChartStateManagerRuntime {

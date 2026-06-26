@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { ChartStateManagerRuntimeScope } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
+import type {
+    ChartStateManagerRuntimeScope,
+    ChartStateManagerTimeout,
+} from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 import { getChartStateManagerRuntime } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 
 describe("getChartStateManagerRuntime", () => {
@@ -12,15 +19,9 @@ describe("getChartStateManagerRuntime", () => {
     it("routes timers through the injected runtime scope", () => {
         expect.assertions(5);
 
-        const timer = 42 as ReturnType<typeof setTimeout>;
-        const setTimeoutMock = vi.fn<
-            (
-                callback: () => void,
-                delay: number
-            ) => ReturnType<typeof setTimeout>
-        >(() => timer);
-        const clearTimeoutMock =
-            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const timer = 42 as ChartStateManagerTimeout;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.fn<() => number>(() => 123_456);
         const {
             clearRenderTimeout: clearChartTimeout,
@@ -94,15 +95,9 @@ describe("getChartStateManagerRuntime", () => {
         expect.assertions(5);
 
         const callback = vi.fn<() => void>();
-        const timer = 44 as ReturnType<typeof setTimeout>;
-        const setTimeoutMock = vi.fn<
-            (
-                callback: () => void,
-                delay: number
-            ) => ReturnType<typeof setTimeout>
-        >(() => timer);
-        const clearTimeoutMock =
-            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const timer = 44 as ChartStateManagerTimeout;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.spyOn(Date, "now").mockReturnValue(654_321);
         const scheduleDelay = 125;
 
@@ -126,7 +121,7 @@ describe("getChartStateManagerRuntime", () => {
     it("fails clearly when timer functions are unavailable", () => {
         expect.assertions(3);
 
-        const timeout = 1 as ReturnType<typeof setTimeout>;
+        const timeout = 1 as ChartStateManagerTimeout;
 
         expect(() =>
             getChartStateManagerRuntime({}).setRenderTimeout(() => undefined, 0)
@@ -145,13 +140,13 @@ describe("getChartStateManagerRuntime", () => {
         const container = document.createElement("div");
         container.id = "chartjs-chart-container";
         document.body.appendChild(container);
-        const timeout = 1 as ReturnType<typeof setTimeout>;
+        const timeout = 1 as ChartStateManagerTimeout;
         const legacyScope = {
-            clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+            clearTimeout: vi.fn<BrowserClearTimeout>(),
             dateNow: vi.fn<() => number>(() => 1),
             document,
             HTMLElement,
-            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timeout),
+            setTimeout: vi.fn<BrowserSetTimeout>(() => timeout),
         } as unknown as ChartStateManagerRuntimeScope;
         const runtime = getChartStateManagerRuntime(legacyScope);
 
