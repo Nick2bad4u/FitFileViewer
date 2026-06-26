@@ -1,8 +1,8 @@
 import {
-    getBrowserRendererLocation,
-    getBrowserRendererNavigator,
-    getBrowserRendererPerformance,
-} from "./rendererBrowserRuntime.js";
+    getBrowserLocation,
+    getBrowserNavigator,
+    getBrowserPerformance,
+} from "../utils/runtime/browserRuntime.js";
 
 export interface RendererDevelopmentDebugToolsRuntimeScope {
     readonly getLocation?: (() => unknown) | undefined;
@@ -32,9 +32,9 @@ function toRuntimeRecord(value: unknown): Record<string, unknown> {
 
 const defaultRendererDevelopmentDebugToolsRuntimeScope: RendererDevelopmentDebugToolsRuntimeScope =
     {
-        getLocation: getBrowserRendererLocation,
-        getNavigator: getBrowserRendererNavigator,
-        getPerformance: getBrowserRendererPerformance,
+        getLocation: getBrowserLocation,
+        getNavigator: getBrowserNavigator,
+        getPerformance: getBrowserPerformance,
     };
 
 export function getRendererDevelopmentDebugToolsRuntime(

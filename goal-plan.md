@@ -1369,6 +1369,9 @@ candidate, or `Date.now()` closures, with architecture coverage blocking those i
 Their production Electron API candidate provider now routes through the centralized `electronApiRuntime`
 browser-candidate helper instead of each renderer browser-runtime file owning its own `globalThis.electronAPI`
 scope type.
+Generic renderer helper runtimes now import shared `browserRuntime.ts` providers directly for document,
+constructor, timer, event-target, AbortController, location, navigator, and performance defaults; the
+renderer-specific browser runtime remains focused on composing the renderer entrypoint environment scope.
 The runtime-environment scope contract no longer exposes `getRendererScope` or `RendererRuntimeScope`; default
 ambient lookup stays private to `runtimeEnvironment.ts`, and callers can provide only focused providers such as
 `getElectronApiCandidate` and `getRendererEventTarget`.

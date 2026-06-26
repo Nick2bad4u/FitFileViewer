@@ -1,14 +1,14 @@
 import {
-    getBrowserRendererAbortController,
-    getBrowserRendererAddEventListener,
-    getBrowserRendererBoundClearTimeout,
-    getBrowserRendererBoundSetTimeout,
-    getBrowserRendererCustomEvent,
-    getBrowserRendererDateNow,
-    getBrowserRendererDocument,
-    getBrowserRendererHTMLScriptElement,
-    getBrowserRendererRemoveEventListener,
-} from "./rendererBrowserRuntime.js";
+    getBrowserAbortController,
+    getBrowserAddEventListener,
+    getBrowserBoundClearTimeout,
+    getBrowserBoundSetTimeout,
+    getBrowserCustomEvent,
+    getBrowserDateNow,
+    getBrowserDocument,
+    getBrowserHTMLScriptElement,
+    getBrowserRemoveEventListener,
+} from "../utils/runtime/browserRuntime.js";
 
 export type RendererVendorBundleLoaderTimerHandle = ReturnType<
     typeof globalThis.setTimeout
@@ -68,15 +68,15 @@ export interface RendererVendorBundleLoaderRuntime {
 
 const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderRuntimeScope =
     {
-        getAbortController: getBrowserRendererAbortController,
-        getAddEventListener: getBrowserRendererAddEventListener,
-        getClearTimeout: getBrowserRendererBoundClearTimeout,
-        getCustomEvent: getBrowserRendererCustomEvent,
-        getDocument: getBrowserRendererDocument,
-        getHTMLScriptElement: getBrowserRendererHTMLScriptElement,
-        getNow: getBrowserRendererDateNow,
-        getRemoveEventListener: getBrowserRendererRemoveEventListener,
-        getSetTimeout: getBrowserRendererBoundSetTimeout,
+        getAbortController: getBrowserAbortController,
+        getAddEventListener: getBrowserAddEventListener,
+        getClearTimeout: getBrowserBoundClearTimeout,
+        getCustomEvent: getBrowserCustomEvent,
+        getDocument: getBrowserDocument,
+        getHTMLScriptElement: getBrowserHTMLScriptElement,
+        getNow: getBrowserDateNow,
+        getRemoveEventListener: getBrowserRemoveEventListener,
+        getSetTimeout: getBrowserBoundSetTimeout,
     };
 
 function addEventListenerForScope(

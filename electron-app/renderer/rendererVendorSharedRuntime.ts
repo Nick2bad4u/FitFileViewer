@@ -1,7 +1,7 @@
 import {
-    getBrowserRendererCustomEvent,
-    getBrowserRendererEventTarget,
-} from "./rendererBrowserRuntime.js";
+    getBrowserCustomEvent,
+    getBrowserEventTarget,
+} from "../utils/runtime/browserRuntime.js";
 
 type RendererVendorEventTarget = Pick<EventTarget, "dispatchEvent">;
 
@@ -23,8 +23,8 @@ export interface RendererVendorSharedRuntime {
 
 function getDefaultRendererVendorSharedRuntimeScope(): RendererVendorSharedRuntimeScope {
     return {
-        getCustomEvent: getBrowserRendererCustomEvent,
-        getEventTarget: getBrowserRendererEventTarget,
+        getCustomEvent: getBrowserCustomEvent,
+        getEventTarget: getBrowserEventTarget,
     };
 }
 

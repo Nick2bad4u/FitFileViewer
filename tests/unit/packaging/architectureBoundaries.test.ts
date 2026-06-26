@@ -5250,10 +5250,10 @@ describe("architecture boundaries", () => {
             "defaultStartupPerformanceMonitorRuntimeScope"
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
-            "getPerformance: getBrowserRendererPerformance"
+            "getPerformance: getBrowserPerformance"
         );
         expect(startupPerformanceMonitorRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
@@ -5929,16 +5929,16 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).not.toContain("scope.setTimeout");
         expect(runtimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(runtimeSource).toContain(
-            "getDocument: getBrowserRendererDocument"
+            "getDocument: getBrowserDocument"
         );
         expect(runtimeSource).toContain(
-            "getHTMLElement: getBrowserRendererHTMLElement"
+            "getHTMLElement: getBrowserHTMLElement"
         );
         expect(runtimeSource).toContain(
-            "getSetTimeout: getBrowserRendererSetTimeout"
+            "getSetTimeout: getBrowserSetTimeout"
         );
         expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
@@ -12811,16 +12811,16 @@ describe("architecture boundaries", () => {
             "scope.performance"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
-            "getLocation: getBrowserRendererLocation"
+            "getLocation: getBrowserLocation"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
-            "getNavigator: getBrowserRendererNavigator"
+            "getNavigator: getBrowserNavigator"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
-            "getPerformance: getBrowserRendererPerformance"
+            "getPerformance: getBrowserPerformance"
         );
         expect(developmentDebugToolsRuntimeSource).not.toContain(
             "getLocation: () => globalThis.location"
@@ -13160,13 +13160,13 @@ describe("architecture boundaries", () => {
             "scope: RendererVendorSharedRuntimeScope = getDefaultRendererVendorSharedRuntimeScope()"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "getCustomEvent: getBrowserRendererCustomEvent"
+            "getCustomEvent: getBrowserCustomEvent"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "getEventTarget: getBrowserRendererEventTarget"
+            "getEventTarget: getBrowserEventTarget"
         );
         expect(rendererVendorSharedRuntimeSource).not.toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
@@ -20258,16 +20258,16 @@ describe("architecture boundaries", () => {
             "defaultRendererApplicationStartupRuntimeScope"
         );
         expect(runtimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(runtimeSource).toContain(
-            "getAbortController: getBrowserRendererAbortController"
+            "getAbortController: getBrowserAbortController"
         );
         expect(runtimeSource).toContain(
-            "getClearTimeout: getBrowserRendererClearTimeout"
+            "getClearTimeout: getBrowserClearTimeout"
         );
         expect(runtimeSource).toContain(
-            "getSetTimeout: getBrowserRendererSetTimeout"
+            "getSetTimeout: getBrowserSetTimeout"
         );
         expect(runtimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -20323,10 +20323,10 @@ describe("architecture boundaries", () => {
             "defaultRendererApplicationLifecycleWiringRuntimeScope"
         );
         expect(lifecycleWiringRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(lifecycleWiringRuntimeSource).toContain(
-            "getAbortController: getBrowserRendererAbortController"
+            "getAbortController: getBrowserAbortController"
         );
         expect(lifecycleWiringRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -20376,10 +20376,10 @@ describe("architecture boundaries", () => {
             "defaultRendererFileInputStartupRuntimeScope"
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "getAbortController: getBrowserRendererAbortController"
+            "getAbortController: getBrowserAbortController"
         );
         expect(fileInputStartupRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -20424,10 +20424,10 @@ describe("architecture boundaries", () => {
             "defaultRendererTestOnlyBootstrapRuntimeScope"
         );
         expect(testOnlyBootstrapRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(testOnlyBootstrapRuntimeSource).toContain(
-            "getAbortController: getBrowserRendererAbortController"
+            "getAbortController: getBrowserAbortController"
         );
         expect(testOnlyBootstrapRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -20485,34 +20485,34 @@ describe("architecture boundaries", () => {
             directRendererVendorBundleLoaderRuntimeAmbientGetterPattern
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "rendererBrowserRuntime.js"
+            "../utils/runtime/browserRuntime.js"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getAbortController: getBrowserRendererAbortController"
+            "getAbortController: getBrowserAbortController"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getAddEventListener: getBrowserRendererAddEventListener"
+            "getAddEventListener: getBrowserAddEventListener"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getClearTimeout: getBrowserRendererBoundClearTimeout"
+            "getClearTimeout: getBrowserBoundClearTimeout"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getCustomEvent: getBrowserRendererCustomEvent"
+            "getCustomEvent: getBrowserCustomEvent"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getDocument: getBrowserRendererDocument"
+            "getDocument: getBrowserDocument"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getHTMLScriptElement: getBrowserRendererHTMLScriptElement"
+            "getHTMLScriptElement: getBrowserHTMLScriptElement"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getNow: getBrowserRendererDateNow"
+            "getNow: getBrowserDateNow"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getRemoveEventListener: getBrowserRendererRemoveEventListener"
+            "getRemoveEventListener: getBrowserRemoveEventListener"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
-            "getSetTimeout: getBrowserRendererBoundSetTimeout"
+            "getSetTimeout: getBrowserBoundSetTimeout"
         );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"

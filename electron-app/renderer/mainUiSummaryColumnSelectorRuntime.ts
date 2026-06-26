@@ -1,9 +1,9 @@
 import { getElementByIdFlexible } from "../utils/ui/dom/elementIdUtils.js";
 import {
-    getBrowserRendererDocument,
-    getBrowserRendererHTMLElement,
-    getBrowserRendererSetTimeout,
-} from "./rendererBrowserRuntime.js";
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserSetTimeout,
+} from "../utils/runtime/browserRuntime.js";
 
 export type MainUiSummaryColumnSelectorTimer = ReturnType<
     typeof globalThis.setTimeout
@@ -30,9 +30,9 @@ export interface MainUiSummaryColumnSelectorRuntime {
 
 const defaultMainUiSummaryColumnSelectorRuntimeScope: MainUiSummaryColumnSelectorRuntimeScope =
     {
-        getDocument: getBrowserRendererDocument,
-        getHTMLElement: getBrowserRendererHTMLElement,
-        getSetTimeout: getBrowserRendererSetTimeout,
+        getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
+        getSetTimeout: getBrowserSetTimeout,
     };
 
 function isHTMLElement(

@@ -1,4 +1,4 @@
-import { getBrowserRendererAbortController } from "./rendererBrowserRuntime.js";
+import { getBrowserAbortController } from "../utils/runtime/browserRuntime.js";
 
 export interface RendererTestOnlyBootstrapRuntimeScope {
     readonly getAbortController?:
@@ -12,7 +12,7 @@ export interface RendererTestOnlyBootstrapRuntime {
 
 const defaultRendererTestOnlyBootstrapRuntimeScope: RendererTestOnlyBootstrapRuntimeScope =
     {
-        getAbortController: getBrowserRendererAbortController,
+        getAbortController: getBrowserAbortController,
     };
 
 export function getRendererTestOnlyBootstrapRuntime(
