@@ -11141,7 +11141,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(110);
+        expect.assertions(118);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11280,16 +11280,33 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain("globalThis.document[");
         expect(masterStateRuntimeSource).not.toContain("globalThis.document\n");
         expect(masterStateRuntimeSource).toContain(
+            "getAddEventListener: getBrowserAddEventListener"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getClearInterval: getBrowserClearInterval"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getPerformanceMemory: getBrowserMasterStatePerformanceMemory"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getSetInterval: getBrowserSetInterval"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener"
         );
-        expect(masterStateRuntimeSource).toContain(
+        expect(masterStateRuntimeSource).not.toContain(
             "getClearInterval: () => globalThis.clearInterval"
         );
-        expect(masterStateRuntimeSource).toContain(
+        expect(masterStateRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
-        expect(masterStateRuntimeSource).toContain("getPerformanceMemory: ()");
-        expect(masterStateRuntimeSource).toContain(
+        expect(masterStateRuntimeSource).not.toContain(
+            "globalThis.performance"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
             "getSetInterval: () => globalThis.setInterval"
         );
         expect(masterStateRuntimeSource).toContain("getRequiredClearInterval");
@@ -11312,12 +11329,21 @@ describe("architecture boundaries", () => {
             'Reflect.get(globalThis, "__DEVELOPMENT__")'
         );
         expect(masterStateRuntimeSource).toContain(
+            "getDispatchEvent: getBrowserDispatchEvent"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getLocation: getBrowserLocation"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent"
         );
-        expect(masterStateRuntimeSource).toContain(
+        expect(masterStateRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
         );
-        expect(masterStateRuntimeSource).toContain(
+        expect(masterStateRuntimeSource).not.toContain(
             "getLocation: () => globalThis.location"
         );
         expect(masterStateRuntimeSource).not.toContain("globalThis.window");

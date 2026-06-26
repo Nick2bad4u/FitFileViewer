@@ -1,7 +1,15 @@
 import {
     getBrowserAbortController,
+    getBrowserAddEventListener,
+    getBrowserClearInterval,
     getBrowserCustomEvent,
+    getBrowserDateNow,
     getBrowserDocument,
+    getBrowserDispatchEvent,
+    getBrowserEventTarget,
+    getBrowserLocation,
+    getBrowserPerformance,
+    getBrowserSetInterval,
 } from "../../runtime/browserRuntime.js";
 
 type LocationLike = Partial<
@@ -129,18 +137,24 @@ function getLocationText(
 
 const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getAddEventListener: () => globalThis.addEventListener,
-    getClearInterval: () => globalThis.clearInterval,
+    getAddEventListener: getBrowserAddEventListener,
+    getClearInterval: getBrowserClearInterval,
     getCustomEvent: getBrowserCustomEvent,
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
     getDocument: getBrowserDocument,
-    getDispatchEvent: () => globalThis.dispatchEvent,
-    getEventTarget: () => globalThis,
-    getLocation: () => globalThis.location,
-    getPerformanceMemory: () =>
-        (globalThis.performance as MasterStatePerformance | undefined)?.memory,
-    getSetInterval: () => globalThis.setInterval,
+    getDispatchEvent: getBrowserDispatchEvent,
+    getEventTarget: getBrowserEventTarget,
+    getLocation: getBrowserLocation,
+    getPerformanceMemory: getBrowserMasterStatePerformanceMemory,
+    getSetInterval: getBrowserSetInterval,
 };
+
+function getBrowserMasterStatePerformanceMemory():
+    | MasterStatePerformanceMemory
+    | undefined {
+    return (getBrowserPerformance() as MasterStatePerformance | undefined)
+        ?.memory;
+}
 
 function getScopeAbortController(
     scope: MasterStateRuntimeScope

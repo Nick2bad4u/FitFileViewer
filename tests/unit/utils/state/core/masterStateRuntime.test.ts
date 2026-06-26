@@ -473,25 +473,57 @@ describe("masterStateRuntime", () => {
     });
 
     it("uses browser runtime providers for production browser defaults", () => {
-        expect.assertions(5);
+        expect.assertions(13);
 
-        const runtime = getMasterStateRuntime();
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-25T20:00:00.000Z"));
+        try {
+            const runtime = getMasterStateRuntime();
+            const globalListener = vi.fn();
+            const windowListener = vi.fn();
+            const intervalCallback = vi.fn();
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
-        expect(runtime.createThemeChangedEvent("dark")).toBeInstanceOf(
-            CustomEvent
-        );
+            expect(runtime.createAbortController()).toBeInstanceOf(
+                AbortController
+            );
+            expect(runtime.createThemeChangedEvent("dark")).toBeInstanceOf(
+                CustomEvent
+            );
+            expect(runtime.dateNow()).toBe(
+                new Date("2026-06-25T20:00:00.000Z").getTime()
+            );
+            expect(runtime.location.href).toBe(globalThis.location.href);
 
-        runtime.addBodyClass("drag-over");
+            runtime.addGlobalEventListener("resize", globalListener, {
+                once: true,
+            });
+            runtime.addWindowEventListener("focus", windowListener, {
+                once: true,
+            });
+            runtime.addBodyClass("drag-over");
+            const intervalHandle = runtime.setInterval(intervalCallback, 100);
 
-        expect(document.body.classList.contains("drag-over")).toBe(true);
-        expect(runtime.hasDevelopmentModeAttribute()).toBe(false);
+            expect(document.body.classList.contains("drag-over")).toBe(true);
+            expect(runtime.hasDevelopmentModeAttribute()).toBe(false);
+            expect(runtime.dispatchGlobalEvent(new Event("resize"))).toBe(
+                true
+            );
+            globalThis.dispatchEvent(new Event("focus"));
+            expect(globalListener).toHaveBeenCalledOnce();
+            expect(windowListener).toHaveBeenCalledOnce();
+            expect(intervalCallback).not.toHaveBeenCalled();
+            vi.advanceTimersByTime(100);
+            expect(intervalCallback).toHaveBeenCalledOnce();
+            runtime.clearInterval(intervalHandle);
+            vi.advanceTimersByTime(100);
+            expect(intervalCallback).toHaveBeenCalledOnce();
 
-        runtime.removeBodyClass("drag-over");
+            runtime.removeBodyClass("drag-over");
 
-        expect(document.body.classList.contains("drag-over")).toBe(false);
+            expect(document.body.classList.contains("drag-over")).toBe(false);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("ignores legacy direct browser, clock, and development runtime properties", () => {

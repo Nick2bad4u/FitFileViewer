@@ -413,9 +413,10 @@ HR, detailed power, and simple power zone control DOM creation, element checks, 
 abort-controller creation now route through their focused zone-control runtime facades; production defaults reuse
 shared browser runtime providers for AbortController, document, HTMLElement, and localStorage lookups instead of
 local inline `globalThis` getters, with focused runtime coverage and architecture guardrails blocking regression.
-Master state runtime production defaults now reuse shared browser runtime providers for CustomEvent and document
-lookups instead of local inline `globalThis` getters, extending the existing AbortController provider migration
-with focused runtime coverage and architecture guardrails.
+Master state runtime production defaults now reuse shared browser runtime providers for listener, interval,
+CustomEvent, date-clock, dispatch, document, event-target, location, and performance lookups instead of local inline
+`globalThis` or `Date.now` getters, extending the existing AbortController provider migration with focused runtime
+coverage and architecture guardrails.
 Field-toggle individual and bulk chart re-render requests now resolve the chart state manager through
 `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with fallback requests still
 going through the chart-actions registry and render-request event path.
@@ -859,8 +860,9 @@ document-element checks now also route through that runtime instead of reading `
 `document.querySelectorAll`, `document.body`, and `document.documentElement` access plus legacy direct scope
 properties from returning. The default master-state runtime no longer reads ambient `globalThis.__DEVELOPMENT__`;
 development flag checks now require an explicit runtime provider or the existing location/DOM/options signals.
-Default document access inside the master-state runtime now lives on named providers that read `globalThis.document`
-directly instead of bouncing through a private helper.
+Default document, listener, dispatch, event-target, location, date-clock, interval, and performance-memory access
+inside the master-state runtime now lives on named providers backed by the shared browser runtime instead of local
+inline `globalThis` or `Date.now` closures.
 Master state manager component initialization timestamps, startup-time state writes, global-error timestamps,
 promise-rejection timestamps, and performance-monitor timestamps now also route through `masterStateRuntime.ts`
 instead of calling `Date.now` directly inside `masterStateManager.ts`, with focused runtime coverage and architecture
