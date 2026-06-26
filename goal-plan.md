@@ -279,10 +279,10 @@ typed state APIs.
 
 5. Keep Moving Renderer Utility Compatibility Toward Typed Services (Fully finish)
 
-The “Renderer Utility Globals” section is close to retired, but it still says remaining focused compatibility
-shims live in feature modules while migration continues: /C:/Repos/FitFileViewer/docs/
-DEPRECATION_LEDGER.md:40. The next step is explicit: keep shrinking legacy renderer compatibility adapters
-toward typed services/scoped adapters: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:116.
+The “Renderer Utility Globals” section now treats the broad renderer utility global bridge as retired rather
+than merely shrinking. The remaining work is narrower: keep moving feature-scoped runtime and vendor adapters
+toward typed services/scoped adapters while guarding the deleted `rendererUtils`, `FitFileViewerUtils`,
+`mainUiGlobals`, and `utils/legacy` surfaces from returning.
 
 Long-term target: feature modules should import concrete services, runtime adapters, state selectors, or
 event APIs directly. Avoid generic “helper bags,” registry-like modules, broad resolver functions, or test-

@@ -24250,9 +24250,12 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(93);
+        expect.assertions(96);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
+        const deprecationLedgerSource = readRepositoryFile(
+            "docs/DEPRECATION_LEDGER.md"
+        );
         const directRuntimeGlobalDataMentions = scannedFiles
             .filter(
                 (relativeFile) =>
@@ -25020,6 +25023,15 @@ describe("architecture boundaries", () => {
         expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
+        expect(deprecationLedgerSource).toContain(
+            "Current status: retired for broad renderer utility globals"
+        );
+        expect(deprecationLedgerSource).toContain(
+            "remaining migration work is feature-scoped runtime/vendor adapter cleanup"
+        );
+        expect(deprecationLedgerSource).not.toContain(
+            "remaining focused compatibility shims live in their feature modules"
+        );
     });
 
     it("does not recreate the retired showFitData global bridge in tests", () => {
