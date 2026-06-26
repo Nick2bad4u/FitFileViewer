@@ -6651,7 +6651,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(30);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -6705,6 +6705,23 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRuntimeSource).not.toContain("scope.setTimeout");
         expect(chartSettingsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(chartSettingsRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(chartSettingsRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController | undefined"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement | undefined"
+        );
+        expect(chartSettingsRuntimeSource).not.toMatch(
+            /ReturnType<\s*typeof globalThis\.setTimeout\s*>/u
         );
         expect(chartSettingsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

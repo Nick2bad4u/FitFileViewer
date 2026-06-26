@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserHTMLElementConstructor,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getEnsureChartSettingsDropdownsRuntime,
     type EnsureChartSettingsDropdownsRuntimeScope,
@@ -43,7 +49,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
 
         const setTimeoutMock = vi.fn((callback: () => void, delay: number) => {
             callback();
-            return 7 as ReturnType<typeof setTimeout>;
+            return 7 as BrowserTimerHandle;
         });
         const runtime = getEnsureChartSettingsDropdownsRuntime({
             getDocument: () => document,
@@ -96,7 +102,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
 
         const setTimeoutMock = vi.fn((callback: () => void, delay: number) => {
             callback();
-            return 11 as ReturnType<typeof setTimeout>;
+            return 11 as BrowserTimerHandle;
         });
         vi.stubGlobal("setTimeout", setTimeoutMock);
 
@@ -133,7 +139,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
                     body: document.body,
                 }) as Document,
             getHTMLElement: () =>
-                "HTMLElement" as unknown as typeof HTMLElement,
+                "HTMLElement" as unknown as BrowserHTMLElementConstructor,
         });
         const runtimeWithoutAbortController =
             getEnsureChartSettingsDropdownsRuntime({
@@ -146,7 +152,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         const runtimeWithInvalidAbortController =
             getEnsureChartSettingsDropdownsRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
 
@@ -170,7 +176,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             getEnsureChartSettingsDropdownsRuntime({
                 getDocument: () => document,
                 getSetTimeout: () =>
-                    "setTimeout" as unknown as typeof setTimeout,
+                    "setTimeout" as unknown as BrowserSetTimeout,
             }).setTimeout(() => {}, 0)
         ).toThrow("ensureChartSettingsDropdowns requires a setTimeout runtime");
     });

@@ -945,7 +945,9 @@ Chart settings dropdown deferred setup scheduling and listener abort-controller 
 providers instead of falling back to `globalThis`, with focused coverage and architecture coverage blocking those
 ambient fallbacks from returning. Chart settings dropdown production defaults now live in an explicit provider object
 instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of direct
-controller/document/element/timer properties.
+controller/document/element/timer properties. Chart settings dropdown runtime provider contracts now reuse the shared
+browser-runtime AbortController, HTMLElement, setTimeout, and timer-handle aliases instead of spelling direct ambient
+constructor/timer types in the dropdown runtime.
 Strict render-map tests no longer type or assign retired FIT data globals on `window`; they seed loaded-file
 fixtures through `loadedFitFilesState`, and architecture coverage blocks the stale window fixture from returning.
 Render-map cleanup timers, layer-control hover timers, zoom-slider debounce timers, layout animation-frame

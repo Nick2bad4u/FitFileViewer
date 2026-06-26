@@ -1,13 +1,15 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type EnsureChartSettingsDropdownsTimerHandle = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type EnsureChartSettingsDropdownsTimerHandle = BrowserTimerHandle;
 
 type DeferredCallback = () => void;
 type EnsureChartSettingsDropdownsTimeoutScheduler = (
@@ -17,15 +19,13 @@ type EnsureChartSettingsDropdownsTimeoutScheduler = (
 
 export interface EnsureChartSettingsDropdownsRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => EnsureChartSettingsDropdownsTimeoutScheduler | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface EnsureChartSettingsDropdownsRuntime {
@@ -44,7 +44,7 @@ export interface EnsureChartSettingsDropdownsRuntime {
 
 function getAbortControllerConstructor(
     scope: EnsureChartSettingsDropdownsRuntimeScope
-): typeof globalThis.AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -70,7 +70,7 @@ function getDocument(
 
 function getHTMLElementConstructor(
     scope: EnsureChartSettingsDropdownsRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
