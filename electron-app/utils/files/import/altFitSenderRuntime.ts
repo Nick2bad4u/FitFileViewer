@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserConsole,
     getBrowserDocument,
@@ -16,7 +17,7 @@ export interface AltFitSenderRuntimeEnvironment {
 
 interface AltFitSenderRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getConsole?: (() => AltFitSenderLogger | undefined) | undefined;
     readonly getDocument?:
@@ -36,7 +37,7 @@ const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = {
 
 function getScopeAbortController(
     scope: AltFitSenderRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 

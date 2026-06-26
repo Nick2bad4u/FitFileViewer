@@ -17194,7 +17194,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(25);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -17241,6 +17241,7 @@ describe("architecture boundaries", () => {
         expect(altFitSenderRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(altFitSenderRuntimeSource).not.toContain("globalThis.");
         expect(altFitSenderRuntimeSource).toContain(
             "getConsole: getBrowserConsole"
         );
