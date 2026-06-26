@@ -9254,7 +9254,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(166);
+        expect.assertions(169);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9419,6 +9419,9 @@ describe("architecture boundaries", () => {
             "readonly getDocument?: (() => Document | undefined) | undefined;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -9431,6 +9434,9 @@ describe("architecture boundaries", () => {
             "UI state manager requires dateNow"
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -9443,6 +9449,9 @@ describe("architecture boundaries", () => {
             'typeof globalThis.addEventListener === "function"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "getMatchMedia: getBrowserMatchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "getMatchMedia: () => globalThis.matchMedia"
         );
         expect(uiStateManagerRuntimeSource).toContain(

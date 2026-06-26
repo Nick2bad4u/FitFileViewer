@@ -1079,6 +1079,9 @@ lives on named providers that read `globalThis.document` directly instead of bou
 UI state manager last-notification timestamps now also route through `uiStateManagerRuntime.ts` instead of calling
 `Date.now` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails blocking
 direct clock reads and legacy direct runtime scope properties from returning.
+UI state manager runtime production defaults now reuse shared browser runtime providers for document,
+HTMLElement, and matchMedia lookups instead of local inline `globalThis` getters, extending the existing
+AbortController provider migration with focused runtime coverage and architecture guardrails.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.

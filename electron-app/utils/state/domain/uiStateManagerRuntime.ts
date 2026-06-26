@@ -2,7 +2,12 @@ import {
     getChartControlsToggle,
     getChartSettingsWrapper,
 } from "../../charts/dom/chartDomUtils.js";
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserMatchMedia,
+} from "../../runtime/browserRuntime.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
@@ -153,13 +158,13 @@ export interface UIStateManagerRuntime {
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getDateNow: () => Date.now,
     getAbortController: getBrowserAbortController,
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
     getEventTarget: () =>
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getMatchMedia: () => globalThis.matchMedia,
+    getHTMLElement: getBrowserHTMLElement,
+    getMatchMedia: getBrowserMatchMedia,
     getViewportState: () => globalThis,
 };
 

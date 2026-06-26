@@ -1,8 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getUIStateManagerRuntime } from "../../../../../electron-app/utils/state/domain/uiStateManagerRuntime.js";
 
 describe("uiStateManagerRuntime", () => {
+    afterEach(() => {
+        document.body.replaceChildren();
+        vi.unstubAllGlobals();
+    });
+
     it("reads timestamps through the scoped runtime", () => {
         expect.assertions(2);
 
@@ -37,14 +42,22 @@ describe("uiStateManagerRuntime", () => {
         expect(created).toBe(true);
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production browser defaults", () => {
+        expect.assertions(5);
 
+        const mediaQuery = { matches: true } as MediaQueryList;
+        const matchMedia = vi.fn(() => mediaQuery);
+        vi.stubGlobal("matchMedia", matchMedia);
         const runtime = getUIStateManagerRuntime();
+        const button = document.createElement("button");
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+        expect(runtime.createSpanElement().ownerDocument).toBe(document);
+        expect(runtime.isHTMLElement(button)).toBe(true);
+        expect(runtime.getThemeRootElement()).toBe(document.documentElement);
+        expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
     });
 
     it("throws when abort controllers are unavailable", () => {
