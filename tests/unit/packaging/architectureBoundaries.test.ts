@@ -1080,7 +1080,7 @@ const listenersResizeChartGlobalMutationPattern =
 const renderChartJSComprehensiveTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']|\bglobalThis\.(?:Chart|ChartZoom|chartjsPluginZoom)\s*=/u;
 const renderChartJSComprehensiveTestDirectBrowserFixtureAssignmentPattern =
-    /\b(?:global|globalThis|utils)\.(?:document|window|performance|Node|requestAnimationFrame|cancelAnimationFrame|matchMedia|setTimeout|clearTimeout|addEventListener)\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:addEventListener|cancelAnimationFrame|clearTimeout|document|matchMedia|Node|performance|requestAnimationFrame|setTimeout|window)["']\s*\)/u;
+    /\b(?:global|globalThis|utils)\.(?:document|window|performance|Node|requestAnimationFrame|cancelAnimationFrame|matchMedia|setTimeout|clearTimeout|addEventListener)\s*=|\bglobal\.window\.performance\b|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:addEventListener|cancelAnimationFrame|clearTimeout|document|matchMedia|Node|performance|requestAnimationFrame|setTimeout|window)["']\s*\)/u;
 const chartZoomResetPluginTestDirectCanvasConstructorFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']CanvasRenderingContext2D["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']CanvasRenderingContext2D["']\s*\)/u;
 const renderChartJSStateApiTestRetiredGlobalMutationPattern =

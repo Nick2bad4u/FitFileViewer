@@ -134,6 +134,7 @@ const chartJsModuleMocks = vi.hoisted(() => ({
     },
     zoomPlugin: { id: "zoom" },
 }));
+const mockRenderChartPerformanceNow = vi.fn<MockFn>().mockReturnValue(1000);
 
 async function clearChartRuntime(): Promise<void> {
     const { clearChartRuntimeForTests } =
@@ -623,7 +624,7 @@ function setupDOMEnvironment() {
     const mockWindow = {
         addEventListener: vi.fn<MockFn>(),
         performance: {
-            now: vi.fn<MockFn>().mockReturnValue(1000),
+            now: mockRenderChartPerformanceNow,
         },
         localStorage: {
             getItem: vi.fn<MockFn>().mockReturnValue("visible"),
@@ -691,6 +692,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
     beforeEach(async () => {
         vi.resetModules();
         vi.clearAllMocks();
+        mockRenderChartPerformanceNow.mockReturnValue(1000);
         chartJsModuleMocks.Chart.registry.plugins.get.mockReturnValue(false);
         mocks = injectChartJSMocks();
         await registerChartRuntime(
@@ -1498,7 +1500,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
     describe("performance and Monitoring", () => {
         it("should track performance timing", async () => {
             expect.assertions(2);
-            global.window.performance.now
+            mockRenderChartPerformanceNow
                 .mockReturnValueOnce(1000)
                 .mockReturnValueOnce(1500);
 
@@ -1507,7 +1509,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
 
             const view = await renderChartJS();
 
-            expect(global.window.performance.now).toHaveBeenCalledWith();
+            expect(mockRenderChartPerformanceNow).toHaveBeenCalledWith();
             expect({ rendered: view }).toStrictEqual({ rendered: true });
         });
 

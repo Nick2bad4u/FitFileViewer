@@ -775,6 +775,8 @@ Renderer loading sync DOM and disableable form-control access now uses named run
 a broad `globalThis` default scope, legacy direct scope properties, or `document.defaultView` constructor fallbacks.
 The renderChartJS comprehensive test now uses ESM mocks without the old `utils.require` module-cache bridge,
 and architecture coverage keeps that require-hook pattern from returning.
+Its performance timing coverage now asserts against the named render-chart runtime clock mock instead of reading
+`global.window.performance.now`, with architecture coverage blocking that direct global-window timing read.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 
