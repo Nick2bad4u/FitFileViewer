@@ -21,7 +21,7 @@ function rendererEnvironmentRuntime(): RendererEnvironmentRuntime {
 function getRendererLocationParts(
     environmentInput: RendererEnvironmentInput
 ): RendererLocationParts {
-    const locationRecord = toRecord(environmentInput.location);
+    const locationRecord = toObject(environmentInput.location);
 
     return {
         hostname: getStringProperty(locationRecord, "hostname"),
@@ -32,10 +32,10 @@ function getRendererLocationParts(
 }
 
 function getStringProperty(
-    record: Record<string, unknown>,
+    record: object,
     propertyName: string
 ): string {
-    const value = record[propertyName];
+    const value = Reflect.get(record, propertyName);
 
     return typeof value === "string" ? value : "";
 }
@@ -43,9 +43,11 @@ function getStringProperty(
 function hasDocumentDevModeFlag(
     environmentInput: RendererEnvironmentInput
 ): boolean {
-    const documentRecord = toRecord(environmentInput.document);
-    const documentElement = toRecord(documentRecord["documentElement"]);
-    const dataset = toRecord(documentElement["dataset"]);
+    const documentRecord = toObject(environmentInput.document);
+    const documentElement = toObject(
+        Reflect.get(documentRecord, "documentElement")
+    );
+    const dataset = toObject(Reflect.get(documentElement, "dataset"));
 
     return Object.hasOwn(dataset, "devMode");
 }
@@ -53,9 +55,7 @@ function hasDocumentDevModeFlag(
 function hasElectronDevModeFlag(
     environmentInput: RendererEnvironmentInput
 ): boolean {
-    const environmentInputRecord = toRecord(environmentInput);
-
-    return isElectronDevModeApi(environmentInputRecord["electronAPI"]);
+    return isElectronDevModeApi(environmentInput.electronAPI);
 }
 
 function isDebugRendererLocation(
@@ -76,31 +76,29 @@ function isLocalDevelopmentHost(hostname: string): boolean {
     );
 }
 
-function toRecord(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
-        : {};
+function toObject(value: unknown): object {
+    return typeof value === "object" && value !== null ? value : {};
 }
 
 function isElectronDevModeApi(value: unknown): value is {
     readonly __devMode: unknown;
 } {
-    return Reflect.get(toRecord(value), "__devMode") !== undefined;
+    return Reflect.get(toObject(value), "__devMode") !== undefined;
 }
 
 function toRendererEnvironmentInput(
     input: RendererEnvironmentInput | object
 ): RendererEnvironmentInput {
-    const inputRecord = toRecord(input);
+    const inputRecord = toObject(input);
 
     return {
         developmentFlag:
             "developmentFlag" in inputRecord
-                ? inputRecord["developmentFlag"]
-                : inputRecord["__DEVELOPMENT__"],
-        document: inputRecord["document"],
-        electronAPI: inputRecord["electronAPI"],
-        location: inputRecord["location"],
+                ? Reflect.get(inputRecord, "developmentFlag")
+                : Reflect.get(inputRecord, "__DEVELOPMENT__"),
+        document: Reflect.get(inputRecord, "document"),
+        electronAPI: Reflect.get(inputRecord, "electronAPI"),
+        location: Reflect.get(inputRecord, "location"),
     };
 }
 

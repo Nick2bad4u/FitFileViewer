@@ -6221,7 +6221,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(31);
+        expect.assertions(32);
 
         const rendererEnvironmentRawSource = readRepositoryFile(
             "electron-app/utils/app/initialization/rendererEnvironment.ts"
@@ -6265,6 +6265,9 @@ it("keeps the core state manager free of reactive global property bridges", () =
         );
         expect(rendererEnvironmentRawSource).not.toContain(
             "Global-like object to inspect"
+        );
+        expect(rendererEnvironmentSource).not.toContain(
+            "value as Record<string, unknown>"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "defaultRendererEnvironmentRuntimeScope"

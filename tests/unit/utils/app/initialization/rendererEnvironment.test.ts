@@ -151,6 +151,43 @@ describe("rendererEnvironment", () => {
         });
     });
 
+    it("preserves inherited electron __devMode detection", () => {
+        expect.assertions(1);
+
+        const inheritedElectronApi = Object.create({ __devMode: true });
+
+        expect({
+            development: isDevelopmentMode(
+                createEnvironmentInput({ electronAPI: inheritedElectronApi })
+            ),
+        }).toStrictEqual({ development: true });
+    });
+
+    it("ignores malformed nested environment values", () => {
+        expect.assertions(2);
+
+        const environmentInput = createEnvironmentInput({
+            document: {
+                documentElement: {
+                    dataset: "not a dataset",
+                },
+            },
+            electronAPI: "not an api",
+            location: {
+                hostname: null,
+                href: undefined,
+                protocol: 42,
+                search: false,
+            },
+        });
+
+        expect({
+            development: isDevelopmentMode(environmentInput),
+        }).toStrictEqual({ development: false });
+
+        expect(getEnvironment(environmentInput)).toBe("production");
+    });
+
     it("defaults to production when environment input inspection throws", () => {
         expect.assertions(2);
 
