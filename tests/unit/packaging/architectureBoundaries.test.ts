@@ -6381,7 +6381,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(71);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -6436,6 +6436,13 @@ describe("architecture boundaries", () => {
             "fileBrowserTabRuntime().createTextNode"
         );
         expect(browserTabSource).toContain("fileBrowserTabRuntime().dateNow()");
+        expect(browserTabSource).toContain(
+            "fileBrowserTabRuntime().getStorageItem"
+        );
+        expect(browserTabSource).toContain(
+            "fileBrowserTabRuntime().setStorageItem"
+        );
+        expect(browserTabSource).not.toContain("localStorage.");
         expect(browserTabSource).toContain(
             "fileBrowserTabRuntime().isHTMLElement"
         );
@@ -6503,6 +6510,9 @@ describe("architecture boundaries", () => {
             "readonly HTMLSelectElement?:"
         );
         expect(browserTabRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
             "FileBrowserTabRuntimeScope = globalThis"
         );
         expect(browserTabRuntimeSource).not.toContain("scope.AbortController");
@@ -6512,6 +6522,7 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).not.toContain(
             "scope.HTMLSelectElement"
         );
+        expect(browserTabRuntimeSource).not.toContain("scope.localStorage");
         expect(browserTabRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
@@ -6535,6 +6546,12 @@ describe("architecture boundaries", () => {
         );
         expect(browserTabRuntimeSource).toContain(
             "getHTMLSelectElement: getBrowserHTMLSelectElement"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
         );
         expect(browserTabRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"

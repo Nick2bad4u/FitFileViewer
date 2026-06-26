@@ -31,16 +31,24 @@ describe("getFileBrowserTabRuntime", () => {
     });
 
     it("routes DOM helpers through the injected document", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const documentRef = document.implementation.createHTMLDocument();
         const dateNow = vi.fn(() => 123_456);
+        const storageItems = new Map<string, string>();
+        const storage = {
+            getItem: vi.fn((key: string) => storageItems.get(key) ?? null),
+            setItem: vi.fn((key: string, value: string) => {
+                storageItems.set(key, value);
+            }),
+        } as unknown as Storage;
         const runtime = getFileBrowserTabRuntime({
             getDateNow: () => dateNow,
             getDocument: () => documentRef,
             getHTMLElement: () => HTMLElement,
             getHTMLInputElement: () => HTMLInputElement,
             getHTMLSelectElement: () => HTMLSelectElement,
+            getLocalStorage: () => storage,
         });
         const container = runtime.createElement("div");
         container.id = "content_browser";
@@ -65,11 +73,18 @@ describe("getFileBrowserTabRuntime", () => {
         expect(runtime.getElement("#missing")).toBeNull();
         expect(runtime.dateNow()).toBe(123_456);
         expect(dateNow).toHaveBeenCalledOnce();
+        runtime.setStorageItem("fit-browser-test", "value");
+        expect(runtime.getStorageItem("fit-browser-test")).toBe("value");
+        expect(storage.setItem).toHaveBeenCalledWith(
+            "fit-browser-test",
+            "value"
+        );
+        expect(storage.getItem).toHaveBeenCalledWith("fit-browser-test");
         expect(document.getElementById("content_browser")).toBeNull();
     });
 
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const runtime = getFileBrowserTabRuntime({});
 
@@ -97,10 +112,16 @@ describe("getFileBrowserTabRuntime", () => {
         expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
             "fileBrowserTab requires an HTMLSelectElement runtime"
         );
+        expect(() => runtime.getStorageItem("fit-browser-test")).toThrow(
+            "fileBrowserTab requires a localStorage runtime"
+        );
+        expect(() =>
+            runtime.setStorageItem("fit-browser-test", "value")
+        ).toThrow("fileBrowserTab requires a localStorage runtime");
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const AbortControllerConstructor = vi.fn();
         const dateNow = vi.fn(() => 123_456);
@@ -112,6 +133,7 @@ describe("getFileBrowserTabRuntime", () => {
             HTMLElement,
             HTMLInputElement,
             HTMLSelectElement,
+            localStorage,
         } as unknown as Parameters<typeof getFileBrowserTabRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -138,6 +160,12 @@ describe("getFileBrowserTabRuntime", () => {
         expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
             "fileBrowserTab requires an HTMLSelectElement runtime"
         );
+        expect(() => runtime.getStorageItem("fit-browser-test")).toThrow(
+            "fileBrowserTab requires a localStorage runtime"
+        );
+        expect(() =>
+            runtime.setStorageItem("fit-browser-test", "value")
+        ).toThrow("fileBrowserTab requires a localStorage runtime");
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(dateNow).not.toHaveBeenCalled();
     });

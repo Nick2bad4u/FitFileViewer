@@ -5,6 +5,7 @@ import {
     getBrowserHTMLElement,
     getBrowserHTMLInputElement,
     getBrowserHTMLSelectElement,
+    getBrowserLocalStorage,
 } from "../../runtime/browserRuntime.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 
@@ -23,6 +24,7 @@ export interface FileBrowserTabRuntimeScope {
     readonly getHTMLSelectElement?:
         | (() => typeof HTMLSelectElement | undefined)
         | undefined;
+    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
 }
 
 export interface FileBrowserTabRuntime {
@@ -36,9 +38,11 @@ export interface FileBrowserTabRuntime {
         selector: string
     ) => TElement | null;
     getElementById: (id: string) => HTMLElement | null;
+    getStorageItem: (key: string) => string | null;
     isHTMLElement: (value: unknown) => value is HTMLElement;
     isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
     isHTMLSelectElement: (value: unknown) => value is HTMLSelectElement;
+    setStorageItem: (key: string, value: string) => void;
 }
 
 const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
@@ -48,6 +52,7 @@ const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
     getHTMLElement: getBrowserHTMLElement,
     getHTMLInputElement: getBrowserHTMLInputElement,
     getHTMLSelectElement: getBrowserHTMLSelectElement,
+    getLocalStorage: getBrowserLocalStorage,
 };
 
 function getAbortControllerConstructor(
@@ -118,6 +123,15 @@ function getHTMLSelectElementConstructor(
     return HTMLSelectElementConstructor;
 }
 
+function getRequiredLocalStorage(scope: FileBrowserTabRuntimeScope): Storage {
+    const storage = scope.getLocalStorage?.();
+    if (!storage) {
+        throw new TypeError("fileBrowserTab requires a localStorage runtime");
+    }
+
+    return storage;
+}
+
 export function getFileBrowserTabRuntime(
     scope: FileBrowserTabRuntimeScope = defaultFileBrowserTabRuntimeScope
 ): FileBrowserTabRuntime {
@@ -144,6 +158,9 @@ export function getFileBrowserTabRuntime(
         getElementById(id): HTMLElement | null {
             return getElementByIdFlexible(getRequiredDocument(scope), id);
         },
+        getStorageItem(key): string | null {
+            return getRequiredLocalStorage(scope).getItem(key);
+        },
         isHTMLElement(value): value is HTMLElement {
             return value instanceof getHTMLElementConstructor(scope);
         },
@@ -152,6 +169,9 @@ export function getFileBrowserTabRuntime(
         },
         isHTMLSelectElement(value): value is HTMLSelectElement {
             return value instanceof getHTMLSelectElementConstructor(scope);
+        },
+        setStorageItem(key, value): void {
+            getRequiredLocalStorage(scope).setItem(key, value);
         },
     };
 }

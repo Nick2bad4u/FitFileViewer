@@ -541,8 +541,9 @@ function getCalendarState(): CalendarState {
     const defaultSelected = formatLocalDayKey(now);
 
     try {
-        const monthRaw = localStorage.getItem(CAL_PREFS_MONTH_KEY);
-        const selectedRaw = localStorage.getItem(CAL_PREFS_SELECTED_DAY_KEY);
+        const runtime = fileBrowserTabRuntime();
+        const monthRaw = runtime.getStorageItem(CAL_PREFS_MONTH_KEY);
+        const selectedRaw = runtime.getStorageItem(CAL_PREFS_SELECTED_DAY_KEY);
 
         const monthStart = parseMonthKey(monthRaw) ?? defaultMonthStart;
         const selectedDayKey =
@@ -589,8 +590,9 @@ function isFitBrowserElectronApi(
 
 function getLibraryPrefs(): FitLibraryPrefs {
     try {
-        const lastDaysRaw = localStorage.getItem(LIB_PREFS_LAST_DAYS_KEY);
-        const unitRaw = localStorage.getItem(LIB_PREFS_UNIT_KEY);
+        const runtime = fileBrowserTabRuntime();
+        const lastDaysRaw = runtime.getStorageItem(LIB_PREFS_LAST_DAYS_KEY);
+        const unitRaw = runtime.getStorageItem(LIB_PREFS_UNIT_KEY);
         const n =
             typeof lastDaysRaw === "string" ? Number(lastDaysRaw) : Number.NaN;
         const lastDays =
@@ -769,7 +771,9 @@ function loadPersistedLibraryCache(
     root: string
 ): FitLibraryCachePayload | null {
     try {
-        const raw = localStorage.getItem(getLibraryStorageKey(root));
+        const raw = fileBrowserTabRuntime().getStorageItem(
+            getLibraryStorageKey(root)
+        );
         if (!raw) {
             return null;
         }
@@ -970,11 +974,15 @@ function parseMonthKey(raw: unknown): Date | null {
 
 function persistCalendarState(state: CalendarState): void {
     try {
-        localStorage.setItem(
+        const runtime = fileBrowserTabRuntime();
+        runtime.setStorageItem(
             CAL_PREFS_MONTH_KEY,
             formatMonthKey(state.monthStart)
         );
-        localStorage.setItem(CAL_PREFS_SELECTED_DAY_KEY, state.selectedDayKey);
+        runtime.setStorageItem(
+            CAL_PREFS_SELECTED_DAY_KEY,
+            state.selectedDayKey
+        );
     } catch {
         /* ignore */
     }
@@ -995,7 +1003,7 @@ function persistLibraryCache(
                 totalDistanceM: it.totalDistanceM,
             })),
         };
-        localStorage.setItem(
+        fileBrowserTabRuntime().setStorageItem(
             getLibraryStorageKey(root),
             JSON.stringify(serializable)
         );
@@ -1006,8 +1014,9 @@ function persistLibraryCache(
 
 function persistLibraryPrefs(prefs: FitLibraryPrefs): void {
     try {
-        localStorage.setItem(LIB_PREFS_LAST_DAYS_KEY, String(prefs.lastDays));
-        localStorage.setItem(LIB_PREFS_UNIT_KEY, prefs.unit);
+        const runtime = fileBrowserTabRuntime();
+        runtime.setStorageItem(LIB_PREFS_LAST_DAYS_KEY, String(prefs.lastDays));
+        runtime.setStorageItem(LIB_PREFS_UNIT_KEY, prefs.unit);
     } catch {
         /* ignore */
     }
@@ -1651,14 +1660,20 @@ async function renderCalendarView(): Promise<void> {
         calendarEl.replaceChildren(createCalendarScaffold());
 
         const prevBtn =
-            fileBrowserTabRuntime().getElement<HTMLElement>("#fit-calendar-prev");
+            fileBrowserTabRuntime().getElement<HTMLElement>(
+                "#fit-calendar-prev"
+            );
         const nextBtn =
-            fileBrowserTabRuntime().getElement<HTMLElement>("#fit-calendar-next");
+            fileBrowserTabRuntime().getElement<HTMLElement>(
+                "#fit-calendar-next"
+            );
         const todayBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
             "#fit-calendar-today"
         );
         const scanBtn =
-            fileBrowserTabRuntime().getElement<HTMLElement>("#fit-calendar-scan");
+            fileBrowserTabRuntime().getElement<HTMLElement>(
+                "#fit-calendar-scan"
+            );
 
         if (prevBtn) {
             addManagedEventListener(prevBtn, "click", () => {
@@ -2042,7 +2057,9 @@ async function renderLibraryView(): Promise<void> {
         libraryEl.replaceChildren(createLibraryScaffold());
 
         const scanBtn =
-            fileBrowserTabRuntime().getElement<HTMLElement>("#fit-library-scan");
+            fileBrowserTabRuntime().getElement<HTMLElement>(
+                "#fit-library-scan"
+            );
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
                 await scanAndRenderLibrary(root);
