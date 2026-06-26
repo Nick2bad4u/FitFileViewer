@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import type { SettingsStateCoreRuntimeScope } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 import { getSettingsStateCoreRuntime } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 
@@ -109,7 +110,7 @@ describe("getSettingsStateCoreRuntime", () => {
         );
         const runtime = getSettingsStateCoreRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);

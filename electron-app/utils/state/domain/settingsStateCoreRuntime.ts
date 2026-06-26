@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserAddEventListener,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserDateNow,
@@ -7,10 +9,10 @@ import {
 
 export interface SettingsStateCoreRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
-        | (() => typeof globalThis.addEventListener | undefined)
+        | (() => BrowserAddEventListener | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getLocalStorage?: (() => Storage | undefined) | undefined;
@@ -28,7 +30,7 @@ export interface SettingsStateCoreRuntime {
 
 function getAbortControllerConstructor(
     scope: SettingsStateCoreRuntimeScope
-): typeof globalThis.AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(

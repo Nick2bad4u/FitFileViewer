@@ -815,7 +815,8 @@ with focused runtime coverage and architecture guardrails blocking direct settin
 construction from returning. Settings state-core runtime scopes now also resolve storage listener registration,
 abort-controller creation, and localStorage access through named provider functions instead of a broad `globalThis`
 default scope or direct scope properties, with focused coverage and architecture coverage blocking those legacy
-runtime shapes from returning.
+runtime shapes from returning. Settings state-core runtime listener/controller provider contracts now reuse shared
+browser-runtime aliases instead of spelling direct ambient `globalThis` listener/controller types in the settings module.
 Settings exported-settings timestamps, initial `lastModified` timestamps, reset/update/sync `lastModified` writes,
 and chart-setting removal timestamps now also route through `settingsStateCoreRuntime.ts` instead of calling
 `Date.now` directly inside `settingsStateCore.ts` or `settingsStateHelpers.ts`, with focused runtime coverage and

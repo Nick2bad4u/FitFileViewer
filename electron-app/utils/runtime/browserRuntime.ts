@@ -1,5 +1,6 @@
 export type BrowserAbortControllerConstructor =
     typeof globalThis.AbortController;
+export type BrowserAddEventListener = typeof globalThis.addEventListener;
 export type BrowserCancelAnimationFrame =
     typeof globalThis.cancelAnimationFrame;
 export type BrowserClearInterval = typeof globalThis.clearInterval;

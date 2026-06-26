@@ -24253,7 +24253,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(48);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -24324,6 +24324,12 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreRuntimeSource).toContain(
             "defaultSettingsStateCoreRuntimeScope"
         );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "type BrowserAddEventListener"
+        );
         expect(settingsStateCoreRuntimeSource).not.toMatch(
             directSettingsStateCoreRuntimeAmbientFallbackPattern
         );
@@ -24338,6 +24344,12 @@ describe("architecture boundaries", () => {
         );
         expect(settingsStateCoreRuntimeSource).not.toContain(
             "readonly addEventListener?:"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController | undefined"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "typeof globalThis.addEventListener | undefined"
         );
         expect(settingsStateCoreRuntimeSource).not.toContain(
             "readonly dateNow?:"
