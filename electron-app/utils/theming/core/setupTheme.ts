@@ -309,8 +309,11 @@ function isThemeSetupElectronApi(
         return false;
     }
 
-    const getTheme = (value as Record<string, unknown>)["getTheme"];
-    return getTheme === undefined || typeof getTheme === "function";
+    if (!("getTheme" in value)) {
+        return true;
+    }
+
+    return typeof value.getTheme === "function";
 }
 
 function isValidTheme(theme: unknown): theme is ThemePreference {

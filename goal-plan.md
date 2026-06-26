@@ -559,6 +559,9 @@ guardrails blocking those direct timer globals from returning. Explicit setup-th
 provide timer primitives through shared browser-runtime timer aliases instead of falling back to `globalThis` or
 direct ambient timer API types, with focused coverage and architecture coverage blocking those ambient fallbacks
 from returning.
+Setup theme fetch IPC and live theme-change IPC now validate scoped preload candidates with explicit optional-function
+property guards instead of casting renderer Electron API candidates to generic records, with focused malformed-scope
+coverage and architecture coverage blocking those casts from returning.
 Map document listener abort-controller creation, Leaflet layers-control lookup, and document/window listener registration
 now route through `mapDocumentListenersRuntime.ts` instead of constructing `AbortController`, querying `document`, or
 registering document/window listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and

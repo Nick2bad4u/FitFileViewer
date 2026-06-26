@@ -226,6 +226,32 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect(sendThemeChanged).toHaveBeenCalledWith("light");
     });
 
+    it("listenForThemeChange rejects malformed scoped theme APIs", () => {
+        expect.assertions(4);
+
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        delete document.body.dataset["receivedTheme"];
+        const getElectronAPI = vi.fn<() => unknown>(() => ({
+            onSetTheme: vi.fn(),
+            sendThemeChanged: "light",
+        }));
+        const electronApiScope: RendererElectronApiScope = {
+            getElectronAPI,
+        };
+        const onThemeChange = (nextTheme: string) => {
+            document.body.dataset["receivedTheme"] = nextTheme;
+        };
+
+        theme.listenForThemeChange(onThemeChange, { electronApiScope });
+
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(document.body.dataset["receivedTheme"]).toBeUndefined();
+        expect(warnSpy).toHaveBeenCalledOnce();
+        expect(warnSpy).toHaveBeenCalledWith(
+            "Electron API is not available. Theme change listener is not active."
+        );
+    });
+
     it("toggleTheme flips between dark and light and updates DOM/storage", () => {
         expect.assertions(2);
 

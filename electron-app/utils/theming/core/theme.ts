@@ -490,13 +490,11 @@ function isRendererThemeApi(value: unknown): value is RendererThemeApi {
         return false;
     }
 
-    const api = value as Record<string, unknown>;
-    const onSetTheme = api["onSetTheme"];
-    const sendThemeChanged = api["sendThemeChanged"];
     return (
-        (onSetTheme === undefined || typeof onSetTheme === "function") &&
-        (sendThemeChanged === undefined ||
-            typeof sendThemeChanged === "function")
+        (!("onSetTheme" in value) ||
+            typeof value.onSetTheme === "function") &&
+        (!("sendThemeChanged" in value) ||
+            typeof value.sendThemeChanged === "function")
     );
 }
 
