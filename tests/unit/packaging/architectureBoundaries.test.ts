@@ -15011,7 +15011,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -15042,6 +15042,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(copyTableAsCSVSource).toContain("copyTableAsCSVRuntime.js");
         expect(copyTableAsCSVSource).toContain("type CopyTableAsCSVRuntime");
+        expect(copyTableAsCSVSource).toContain("ElectronClipboardApi");
+        expect(copyTableAsCSVSource).not.toContain("import type { ElectronAPI");
+        expect(copyTableAsCSVSource).not.toContain("Pick<ElectronAPI");
         expect(copyTableAsCSVSource).toContain(
             "return getCopyTableAsCSVRuntime();"
         );
@@ -17189,7 +17192,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(34);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -17221,6 +17224,13 @@ describe("architecture boundaries", () => {
         expect(externalLinkHandlersSource).toContain(
             "externalLinkHandlersRuntime.js"
         );
+        expect(externalLinkHandlersSource).toContain(
+            "ElectronShellExternalApi"
+        );
+        expect(externalLinkHandlersSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(externalLinkHandlersSource).not.toContain("Pick<ElectronAPI");
         expect(externalLinkHandlersSource).toContain("runtime.isKeyboardEvent");
         expect(externalLinkHandlersSource).toContain(
             "runtime.resolveExternalLinkAnchor"

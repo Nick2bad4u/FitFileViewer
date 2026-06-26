@@ -3,7 +3,7 @@
  *
  * @readonly
  */
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronClipboardApi } from "../../../shared/preloadApi.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -42,7 +42,9 @@ type ObjectsTable = {
     objects: () => TableRow[];
 };
 
-type ClipboardElectronAPI = Required<Pick<ElectronAPI, "writeClipboardText">>;
+interface ClipboardElectronAPI {
+    writeClipboardText: ElectronClipboardApi["writeClipboardText"];
+}
 
 type CopyTableAsCSVOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;

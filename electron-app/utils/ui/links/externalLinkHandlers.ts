@@ -1,5 +1,5 @@
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronShellExternalApi } from "../../../shared/preloadApi.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -14,7 +14,9 @@ type AttachExternalLinkHandlersOptions = {
     readonly root: EventTarget | null | undefined;
 };
 
-type ElectronApiWithExternalOpen = Partial<Pick<ElectronAPI, "openExternal">>;
+interface ElectronApiWithExternalOpen {
+    openExternal?: ElectronShellExternalApi["openExternal"];
+}
 
 /**
  * Wires click and keyboard activation for links marked with
