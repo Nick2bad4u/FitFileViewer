@@ -1,18 +1,21 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type NotificationTimerHandle = ReturnType<typeof globalThis.setTimeout>;
+export type NotificationTimerHandle = BrowserTimerHandle;
 
 export interface NotificationTimerRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 

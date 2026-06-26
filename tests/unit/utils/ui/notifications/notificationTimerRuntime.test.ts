@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getNotificationTimerRuntime,
+    type NotificationTimerHandle,
     type NotificationTimerRuntimeScope,
 } from "../../../../../electron-app/utils/ui/notifications/notificationTimerRuntime.js";
 
@@ -16,10 +21,10 @@ describe("notificationTimerRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timestamp = Number("1700");
-        const timer = 43 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 43 as NotificationTimerHandle;
         const delay = Number("250");
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
 
         vi.spyOn(Date, "now").mockReturnValue(timestamp);
         vi.stubGlobal("clearTimeout", clearTimeout);
