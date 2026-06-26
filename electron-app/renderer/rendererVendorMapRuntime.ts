@@ -13,7 +13,7 @@ export interface RendererVendorMapRuntimeScope {
 }
 
 export interface RendererVendorMapRuntime {
-    deleteCompatibilityGlobal: (property: "L" | "Leaflet") => void;
+    deleteTemporaryLeafletGlobal: (property: "L" | "Leaflet") => void;
     hasDocumentElement: () => boolean;
     setDocumentElementStyleProperty: (property: string, value: string) => void;
 }
@@ -33,7 +33,7 @@ export function getRendererVendorMapRuntime(
     scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
     return {
-        deleteCompatibilityGlobal(property: "L" | "Leaflet"): void {
+        deleteTemporaryLeafletGlobal(property: "L" | "Leaflet"): void {
             scope.deleteGlobalProperty?.(property);
         },
 

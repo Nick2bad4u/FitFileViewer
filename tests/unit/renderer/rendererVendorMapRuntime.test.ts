@@ -18,8 +18,8 @@ describe("rendererVendorMapRuntime", () => {
 
         expect(utils.hasDocumentElement()).toBe(true);
         utils.setDocumentElementStyleProperty("--ffv-runtime-test", "1");
-        utils.deleteCompatibilityGlobal("L");
-        utils.deleteCompatibilityGlobal("Leaflet");
+        utils.deleteTemporaryLeafletGlobal("L");
+        utils.deleteTemporaryLeafletGlobal("Leaflet");
 
         expect(
             document.documentElement.style.getPropertyValue(
@@ -49,7 +49,7 @@ describe("rendererVendorMapRuntime", () => {
         expect(setProperty).toHaveBeenCalledTimes(1);
     });
 
-    it("deletes Leaflet compatibility globals through the focused delete provider", () => {
+    it("deletes temporary Leaflet globals through the focused delete provider", () => {
         expect.assertions(4);
 
         const globalScope = {
@@ -63,8 +63,8 @@ describe("rendererVendorMapRuntime", () => {
                 deleteGlobalProperty,
             });
 
-        utils.deleteCompatibilityGlobal("L");
-        utils.deleteCompatibilityGlobal("Leaflet");
+        utils.deleteTemporaryLeafletGlobal("L");
+        utils.deleteTemporaryLeafletGlobal("Leaflet");
 
         expect(deleteGlobalProperty).toHaveBeenNthCalledWith(1, "L");
         expect(deleteGlobalProperty).toHaveBeenNthCalledWith(2, "Leaflet");
@@ -79,7 +79,7 @@ describe("rendererVendorMapRuntime", () => {
 
         expect(utils.hasDocumentElement()).toBe(false);
         utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
-        utils.deleteCompatibilityGlobal("L");
+        utils.deleteTemporaryLeafletGlobal("L");
     });
 
     it("ignores legacy direct document and global scope properties", () => {
@@ -101,7 +101,7 @@ describe("rendererVendorMapRuntime", () => {
 
         expect(utils.hasDocumentElement()).toBe(false);
         utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
-        utils.deleteCompatibilityGlobal("L");
+        utils.deleteTemporaryLeafletGlobal("L");
 
         expect(setProperty).not.toHaveBeenCalled();
         expect(Reflect.has(globalScope, "L")).toBe(true);

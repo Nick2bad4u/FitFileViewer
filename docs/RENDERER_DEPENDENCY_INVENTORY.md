@@ -6,10 +6,10 @@ package imports and a renderer build pipeline.
 
 ## Current Runtime Model
 
-The Electron app now loads third-party browser libraries through split renderer
-compatibility bundles:
+The Electron app now loads third-party browser libraries through typed split
+renderer vendor bundles:
 
-- `static/app/index.html` no longer loads compatibility JavaScript entries
+- `static/app/index.html` no longer loads legacy vendor JavaScript entries
   directly.
 - `electron-app/main-ui.ts` starts
   `electron-app/renderer/vendorBundleLoader.ts` for

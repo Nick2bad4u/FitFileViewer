@@ -22408,7 +22408,7 @@ describe("architecture boundaries", () => {
             "installLeafletPluginCompatibilityGlobal"
         );
         expect(vendorMapEntry).not.toContain('defineMissingGlobal("L"');
-        expect(vendorMapEntry).toContain("deleteCompatibilityGlobal");
+        expect(vendorMapEntry).toContain("deleteTemporaryLeafletGlobal");
         expect(vendorMapEntry).not.toContain("Reflect.deleteProperty");
         expect(globalDefinitionViolations).toStrictEqual([]);
         expect(viteRendererConfig).toContain(
