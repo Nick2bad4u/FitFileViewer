@@ -1,7 +1,9 @@
 import {
+    getBrowserDevelopmentFlag,
     getBrowserDocument,
     getBrowserLocation,
 } from "../../runtime/browserRuntime.js";
+import { getBrowserElectronApiCandidate } from "../../runtime/electronApiRuntime.js";
 
 export interface RendererEnvironmentInput {
     readonly developmentFlag?: unknown;
@@ -21,28 +23,13 @@ export interface RendererEnvironmentRuntime {
     getDefaultRendererEnvironmentInput: () => RendererEnvironmentInput;
 }
 
-interface RendererEnvironmentGlobalScope {
-    readonly __DEVELOPMENT__?: unknown;
-    readonly electronAPI?: unknown;
-}
-
 const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
     {
-        getDevelopmentFlag: getGlobalDevelopmentFlag,
+        getDevelopmentFlag: getBrowserDevelopmentFlag,
         getDocument: getBrowserDocument,
-        getElectronAPI: getGlobalElectronAPI,
+        getElectronAPI: getBrowserElectronApiCandidate,
         getLocation: getBrowserLocation,
     };
-
-function getGlobalDevelopmentFlag(): unknown {
-    const rendererGlobal = globalThis as RendererEnvironmentGlobalScope;
-    return rendererGlobal.__DEVELOPMENT__;
-}
-
-function getGlobalElectronAPI(): unknown {
-    const rendererGlobal = globalThis as RendererEnvironmentGlobalScope;
-    return rendererGlobal.electronAPI;
-}
 
 export function getRendererEnvironmentRuntime(
     scope: RendererEnvironmentRuntimeScope = defaultRendererEnvironmentRuntimeScope

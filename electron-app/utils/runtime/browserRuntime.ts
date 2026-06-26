@@ -104,6 +104,10 @@ export function getBrowserDateNow(): (() => number) | undefined {
     return Date.now;
 }
 
+export function getBrowserDevelopmentFlag(): unknown {
+    return Reflect.get(globalThis, "__DEVELOPMENT__");
+}
+
 export function getBrowserCurrentTimestamp(): number {
     const dateNow = getBrowserDateNow();
     if (typeof dateNow !== "function") {

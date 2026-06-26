@@ -41,7 +41,7 @@ describe("rendererEnvironmentRuntime", () => {
         });
     });
 
-    it("uses shared browser providers for production document and location defaults", () => {
+    it("uses shared browser providers for production defaults", () => {
         expect.assertions(4);
 
         const electronAPI = { __devMode: true };

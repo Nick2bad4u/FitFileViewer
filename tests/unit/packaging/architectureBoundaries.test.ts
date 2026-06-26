@@ -5847,7 +5847,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(25);
+        expect.assertions(29);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
@@ -5889,15 +5889,24 @@ describe("architecture boundaries", () => {
             "defaultRendererEnvironmentRuntimeScope"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
+            "getDevelopmentFlag: getBrowserDevelopmentFlag"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getDevelopmentFlag: getGlobalDevelopmentFlag"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
+            "../../runtime/electronApiRuntime.js"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
+            "getElectronAPI: getBrowserElectronApiCandidate"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getElectronAPI: getGlobalElectronAPI"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
@@ -5909,11 +5918,14 @@ describe("architecture boundaries", () => {
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getLocation: () => globalThis.location"
         );
-        expect(rendererEnvironmentRuntimeSource).toContain(
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "return rendererGlobal.__DEVELOPMENT__;"
         );
-        expect(rendererEnvironmentRuntimeSource).toContain(
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "return rendererGlobal.electronAPI;"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "RendererEnvironmentGlobalScope"
         );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "__DEVELOPMENT__")'
