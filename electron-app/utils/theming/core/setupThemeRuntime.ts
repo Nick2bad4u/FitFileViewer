@@ -1,22 +1,23 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserLocalStorage,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type SetupThemeTimer = ReturnType<typeof globalThis.setTimeout>;
+export type SetupThemeTimer = BrowserTimerHandle;
 type SetupThemeStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 
 export interface SetupThemeRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getLocalStorage?:
         | (() => SetupThemeStorage | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface SetupThemeRuntime {
@@ -35,7 +36,7 @@ const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = {
 
 function getScopeClearTimeout(
     scope: SetupThemeRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -52,7 +53,7 @@ function getRequiredLocalStorage(
 
 function getScopeSetTimeout(
     scope: SetupThemeRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 

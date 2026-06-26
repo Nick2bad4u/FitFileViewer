@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getSetupThemeRuntime } from "../../../../../electron-app/utils/theming/core/setupThemeRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+import {
+    getSetupThemeRuntime,
+    type SetupThemeTimer,
+} from "../../../../../electron-app/utils/theming/core/setupThemeRuntime.js";
 
 describe("getSetupThemeRuntime", () => {
     afterEach(() => {
@@ -13,9 +20,9 @@ describe("getSetupThemeRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("5000");
-        const timer = 97 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 97 as SetupThemeTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
@@ -36,9 +43,9 @@ describe("getSetupThemeRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("2500");
-        const timer = 53 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 53 as SetupThemeTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const getSetTimeout = vi.fn(() => setTimeout);
         const getClearTimeout = vi.fn(() => clearTimeout);
         const {
@@ -63,9 +70,9 @@ describe("getSetupThemeRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("5000");
-        const timer = 61 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 61 as SetupThemeTimer;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -90,9 +97,9 @@ describe("getSetupThemeRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "setupThemeRuntime requires setTimeout"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("setupThemeRuntime requires clearTimeout");
+        expect(() => runtime.clearTimeout(1 as SetupThemeTimer)).toThrow(
+            "setupThemeRuntime requires clearTimeout"
+        );
         expect(() => runtime.getStorageItem("ffv-theme")).toThrow(
             "setupThemeRuntime requires localStorage"
         );
@@ -125,9 +132,9 @@ describe("getSetupThemeRuntime", () => {
         expect.assertions(6);
 
         const callback = vi.fn<() => void>();
-        const timer = 101 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 101 as SetupThemeTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const localStorage = {
             getItem: vi.fn(() => "light"),
             removeItem: vi.fn(),

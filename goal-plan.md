@@ -505,8 +505,9 @@ providers for document, computed-style, element constructors, animation frames, 
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now
-provide timer primitives instead of falling back to `globalThis`, with focused coverage and architecture coverage
-blocking those ambient fallbacks from returning.
+provide timer primitives through shared browser-runtime timer aliases instead of falling back to `globalThis` or
+direct ambient timer API types, with focused coverage and architecture coverage blocking those ambient fallbacks
+from returning.
 Map document listener abort-controller creation, Leaflet layers-control lookup, and document/window listener registration
 now route through `mapDocumentListenersRuntime.ts` instead of constructing `AbortController`, querying `document`, or
 registering document/window listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and

@@ -18566,7 +18566,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(35);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -18607,6 +18607,11 @@ describe("architecture boundaries", () => {
         expect(setupThemeRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(setupThemeRuntimeSource).toContain("type BrowserClearTimeout");
+        expect(setupThemeRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(setupThemeRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(setupThemeRuntimeSource).not.toContain("typeof globalThis.");
+        expect(setupThemeRuntimeSource).not.toContain("ReturnType<");
         expect(setupThemeRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
