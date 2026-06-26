@@ -1,3 +1,8 @@
+import {
+    getRuntimeProcess,
+    setRuntimeProcess,
+} from "../../runtime/processEnvironment.js";
+
 export interface ProcessShim {
     env?: NodeJS.ProcessEnv;
     nextTick?: unknown;
@@ -13,25 +18,11 @@ export interface RenderChartRuntimeHelpersRuntime {
     readonly getProcessShim: () => ProcessShim | null;
 }
 
-interface RenderChartRuntimeGlobalScope {
-    process?: ProcessShim;
-}
-
 const defaultRenderChartRuntimeHelpersRuntimeScope: RenderChartRuntimeHelpersRuntimeScope =
     {
-        getProcess: getGlobalProcessShim,
-        setProcess: setGlobalProcessShim,
+        getProcess: getRuntimeProcess,
+        setProcess: setRuntimeProcess,
     };
-
-function getGlobalProcessShim(): ProcessShim | undefined {
-    const chartRuntimeGlobal = globalThis as RenderChartRuntimeGlobalScope;
-    return chartRuntimeGlobal.process;
-}
-
-function setGlobalProcessShim(processShim: ProcessShim): void {
-    const chartRuntimeGlobal = globalThis as RenderChartRuntimeGlobalScope;
-    chartRuntimeGlobal.process = processShim;
-}
 
 function getScopeProcess(
     scope: RenderChartRuntimeHelpersRuntimeScope

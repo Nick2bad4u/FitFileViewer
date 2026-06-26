@@ -12680,7 +12680,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(21);
+        expect.assertions(25);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -12732,16 +12732,28 @@ describe("architecture boundaries", () => {
             "defaultRenderChartRuntimeHelpersRuntimeScope"
         );
         expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "getProcess: getRuntimeProcess"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "getProcess: getGlobalProcessShim"
         );
         expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "setProcess: setRuntimeProcess"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "setProcess: setGlobalProcessShim"
         );
-        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "return chartRuntimeGlobal.process;"
         );
-        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "chartRuntimeGlobal.process = processShim;"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
+            "RenderChartRuntimeGlobalScope"
         );
         expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "process")'

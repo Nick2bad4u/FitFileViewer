@@ -7,7 +7,7 @@
  * this helper instead.
  */
 export function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = getRuntimeProperty(globalThis, "process");
+    const processValue = getRuntimeProcess();
     if (typeof processValue !== "object" || processValue === null) {
         return undefined;
     }
@@ -21,11 +21,41 @@ export function getProcessEnvironmentValue(name: string): string | undefined {
     return typeof value === "string" ? value : undefined;
 }
 
+export function getRuntimeProcess(): unknown {
+    return getRuntimeProperty(globalThis, "process");
+}
+
+export function setRuntimeProcess(processValue: unknown): void {
+    setRuntimeProperty(globalThis, "process", processValue);
+}
+
 function getRuntimeProperty(target: object, propertyKey: string): unknown {
     try {
         return Reflect.get(target, propertyKey);
     } catch {
         return undefined;
+    }
+}
+
+function setRuntimeProperty(
+    target: object,
+    propertyKey: string,
+    value: unknown
+): void {
+    try {
+        if (Reflect.set(target, propertyKey, value)) {
+            const currentValue = Reflect.get(target, propertyKey);
+            if (Object.is(currentValue, value)) {
+                return;
+            }
+        }
+        Object.defineProperty(target, propertyKey, {
+            configurable: true,
+            value,
+            writable: true,
+        });
+    } catch {
+        // Browser-like sandboxes may expose read-only runtime globals.
     }
 }
 

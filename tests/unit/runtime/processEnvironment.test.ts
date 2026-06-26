@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     getProcessEnvironmentValue,
+    getRuntimeProcess,
     isDevelopmentEnvironment,
     isNodeEnvironment,
     isTestEnvironment,
+    setRuntimeProcess,
 } from "../../../electron-app/utils/runtime/processEnvironment.js";
 
 const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
@@ -172,5 +174,35 @@ describe("process environment runtime boundary", () => {
             isTest: true,
             nodeEnv: "test",
         });
+    });
+
+    it("gets and sets the runtime process through the shared boundary", () => {
+        expect.assertions(2);
+
+        const processShim = { env: { NODE_ENV: "test" } };
+
+        setRuntimeProcess(processShim);
+
+        expect(getRuntimeProcess()).toBe(processShim);
+        expect(getProcessEnvironmentValue("NODE_ENV")).toBe("test");
+    });
+
+    it("ignores runtime process writes when the global process setter throws", () => {
+        expect.assertions(2);
+
+        Object.defineProperty(globalThis, "process", {
+            configurable: true,
+            get() {
+                return undefined;
+            },
+            set() {
+                throw new Error("process is read-only");
+            },
+        });
+
+        expect(() => {
+            setRuntimeProcess({ env: { NODE_ENV: "test" } });
+        }).not.toThrow();
+        expect(getRuntimeProcess()).toBeUndefined();
     });
 });
