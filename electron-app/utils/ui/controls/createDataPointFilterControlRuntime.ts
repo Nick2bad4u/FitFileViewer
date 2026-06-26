@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserQueueMicrotask,
@@ -6,7 +7,7 @@ import {
 
 export interface CreateDataPointFilterControlRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getQueueMicrotask?:
@@ -29,7 +30,7 @@ const defaultCreateDataPointFilterControlRuntimeScope: CreateDataPointFilterCont
 
 function getAbortControllerConstructor(
     scope: CreateDataPointFilterControlRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(

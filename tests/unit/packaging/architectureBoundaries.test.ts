@@ -15222,7 +15222,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -15277,6 +15277,15 @@ describe("architecture boundaries", () => {
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "): typeof AbortController"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

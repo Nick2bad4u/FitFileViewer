@@ -1200,7 +1200,8 @@ descriptor-scoped helpers instead of assigning or deleting `globalThis.requestAn
 that fixture mutation pattern.
 The data-point filter control runtime facade now resolves AbortController, document access, and microtask
 scheduling through named provider functions instead of broad `globalThis` default scopes, direct scope
-properties, or document-window fallbacks, with architecture coverage blocking those ambient fallbacks.
+properties, or document-window fallbacks, and its AbortController contract now reuses the shared browser-runtime alias
+instead of a direct ambient constructor type, with architecture coverage blocking those ambient fallbacks.
 The data-point filter element factory runtime now resolves document access through a named provider function
 instead of a broad `globalThis` default scope or direct `document` scope property, with focused coverage and
 architecture coverage blocking the legacy shape from returning.

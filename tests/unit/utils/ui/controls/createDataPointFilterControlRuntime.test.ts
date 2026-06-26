@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getCreateDataPointFilterControlRuntime,
     type CreateDataPointFilterControlRuntimeScope,
@@ -99,7 +100,7 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         const runtimeWithInvalidAbortController =
             getCreateDataPointFilterControlRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
 
