@@ -1,16 +1,17 @@
 type ElectronMenuEventApi = import("../shared/preloadApi").ElectronMenuEventApi;
 type ElectronPreloadEventApi =
     import("../shared/preloadApi").ElectronPreloadEventApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiMenuDomainOptions {
+    menuEventApi: ElectronMenuEventApi;
+    preloadEventApi: ElectronPreloadEventApi;
+}
 
 export function createElectronApiMenuDomain({
     menuEventApi,
     preloadEventApi,
-}: Pick<
-    ElectronApiFactoryOptions,
-    "menuEventApi" | "preloadEventApi"
->): ElectronMenuEventApi & ElectronPreloadEventApi {
+}: ElectronApiMenuDomainOptions): ElectronMenuEventApi &
+    ElectronPreloadEventApi {
     return {
         checkForUpdates: menuEventApi.checkForUpdates,
         installUpdate: menuEventApi.installUpdate,

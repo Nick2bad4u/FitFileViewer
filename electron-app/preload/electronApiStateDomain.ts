@@ -1,10 +1,12 @@
 type ElectronMainStateApi = import("../shared/preloadApi").ElectronMainStateApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiStateDomainOptions {
+    mainStateApi: ElectronMainStateApi;
+}
 
 export function createElectronApiStateDomain({
     mainStateApi,
-}: Pick<ElectronApiFactoryOptions, "mainStateApi">): ElectronMainStateApi {
+}: ElectronApiStateDomainOptions): ElectronMainStateApi {
     return {
         getErrors: mainStateApi.getErrors,
         getMainState: mainStateApi.getMainState,

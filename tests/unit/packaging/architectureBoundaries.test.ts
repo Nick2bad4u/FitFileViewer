@@ -2454,6 +2454,57 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps Electron API leaf domains on explicit option contracts", () => {
+        const domainOptionContracts = [
+            [
+                "electron-app/preload/electronApiAppInfoDomain.ts",
+                "ElectronApiAppInfoDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiClipboardDomain.ts",
+                "ElectronApiClipboardDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiDeveloperDomain.ts",
+                "ElectronApiDeveloperDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiDiagnosticsDomain.ts",
+                "ElectronApiDiagnosticsDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiDialogDomain.ts",
+                "ElectronApiDialogDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiExternalDomain.ts",
+                "ElectronApiExternalDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiFileDomain.ts",
+                "ElectronApiFileDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiMenuDomain.ts",
+                "ElectronApiMenuDomainOptions",
+            ],
+            [
+                "electron-app/preload/electronApiStateDomain.ts",
+                "ElectronApiStateDomainOptions",
+            ],
+        ] as const;
+
+        expect.assertions(domainOptionContracts.length * 3);
+
+        for (const [filePath, optionsName] of domainOptionContracts) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export interface ${optionsName}`);
+            expect(source).not.toContain("ElectronApiFactoryOptions");
+            expect(source).not.toContain("Pick<");
+        }
+    });
+
     it("keeps preload runtime loaders on named source exports", () => {
         const loaderExports = [
             [

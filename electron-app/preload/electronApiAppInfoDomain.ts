@@ -1,15 +1,15 @@
 type ElectronAppInfoApi = import("../shared/preloadApi").ElectronAppInfoApi;
 type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiAppInfoDomainOptions {
+    appInfoApi: ElectronAppInfoApi;
+    themeApi: ElectronThemeApi;
+}
 
 export function createElectronApiAppInfoDomain({
     appInfoApi,
     themeApi,
-}: Pick<
-    ElectronApiFactoryOptions,
-    "appInfoApi" | "themeApi"
->): ElectronAppInfoApi & ElectronThemeApi {
+}: ElectronApiAppInfoDomainOptions): ElectronAppInfoApi & ElectronThemeApi {
     return {
         getAppVersion: appInfoApi.getAppVersion,
         getChromeVersion: appInfoApi.getChromeVersion,

@@ -1,10 +1,12 @@
 type ElectronClipboardApi = import("../shared/preloadApi").ElectronClipboardApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiClipboardDomainOptions {
+    clipboardBridge: ElectronClipboardApi;
+}
 
 export function createElectronApiClipboardDomain({
     clipboardBridge,
-}: Pick<ElectronApiFactoryOptions, "clipboardBridge">): ElectronClipboardApi {
+}: ElectronApiClipboardDomainOptions): ElectronClipboardApi {
     return {
         writeClipboardPngDataUrl: clipboardBridge.writeClipboardPngDataUrl,
         writeClipboardText: clipboardBridge.writeClipboardText,

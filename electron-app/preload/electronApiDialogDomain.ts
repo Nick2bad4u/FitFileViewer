@@ -1,16 +1,18 @@
 type ElectronDialogApi = import("../shared/preloadApi").ElectronDialogApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiDialogDomainOptions {
+    openFile: ElectronDialogApi["openFile"];
+    openFileDialog: ElectronDialogApi["openFileDialog"];
+    openFolderDialog: ElectronDialogApi["openFolderDialog"];
+    openOverlayDialog: ElectronDialogApi["openOverlayDialog"];
+}
 
 export function createElectronApiDialogDomain({
     openFile,
     openFileDialog,
     openFolderDialog,
     openOverlayDialog,
-}: Pick<
-    ElectronApiFactoryOptions,
-    "openFile" | "openFileDialog" | "openFolderDialog" | "openOverlayDialog"
->): ElectronDialogApi {
+}: ElectronApiDialogDomainOptions): ElectronDialogApi {
     return {
         openFile,
         openFileDialog,

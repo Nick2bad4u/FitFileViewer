@@ -1,14 +1,13 @@
 type ElectronDevtoolsMenuApi =
     import("../shared/preloadApi").ElectronDevtoolsMenuApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiDeveloperDomainOptions {
+    devtoolsMenuApi: ElectronDevtoolsMenuApi;
+}
 
 export function createElectronApiDeveloperDomain({
     devtoolsMenuApi,
-}: Pick<
-    ElectronApiFactoryOptions,
-    "devtoolsMenuApi"
->): ElectronDevtoolsMenuApi {
+}: ElectronApiDeveloperDomainOptions): ElectronDevtoolsMenuApi {
     return {
         injectMenu: devtoolsMenuApi.injectMenu,
     };

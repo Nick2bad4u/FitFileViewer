@@ -1,16 +1,16 @@
 type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
 type ElectronFitBrowserApi =
     import("../shared/preloadApi").ElectronFitBrowserApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiFileDomainOptions {
+    fileApi: ElectronFileApi;
+    fitBrowserApi: ElectronFitBrowserApi;
+}
 
 export function createElectronApiFileDomain({
     fileApi,
     fitBrowserApi,
-}: Pick<
-    ElectronApiFactoryOptions,
-    "fileApi" | "fitBrowserApi"
->): ElectronFileApi & ElectronFitBrowserApi {
+}: ElectronApiFileDomainOptions): ElectronFileApi & ElectronFitBrowserApi {
     return {
         addRecentFile: fileApi.addRecentFile,
         approveRecentFile: fileApi.approveRecentFile,

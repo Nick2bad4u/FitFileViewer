@@ -1,14 +1,13 @@
 type ElectronApiDiagnosticsApi =
     import("../shared/preloadApi").ElectronApiDiagnosticsApi;
-type ElectronApiFactoryOptions =
-    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
+
+export interface ElectronApiDiagnosticsDomainOptions {
+    apiDiagnostics: ElectronApiDiagnosticsApi;
+}
 
 export function createElectronApiDiagnosticsDomain({
     apiDiagnostics,
-}: Pick<
-    ElectronApiFactoryOptions,
-    "apiDiagnostics"
->): ElectronApiDiagnosticsApi {
+}: ElectronApiDiagnosticsDomainOptions): ElectronApiDiagnosticsApi {
     return {
         getChannelInfo: apiDiagnostics.getChannelInfo,
         validateAPI: apiDiagnostics.validateAPI,
