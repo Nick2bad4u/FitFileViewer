@@ -1,4 +1,5 @@
 import { validateFitFilePathInput } from "../../shared/fitFilePathPolicy.js";
+import { isNodeEnvironment } from "../../utils/runtime/processEnvironment.js";
 import {
     getFileAccessPolicyState,
     resetFileAccessPolicyState,
@@ -50,7 +51,7 @@ export function approveFilePath(
         state.approved.delete(first);
     }
 
-    if (options.source && process.env["NODE_ENV"] !== "production") {
+    if (options.source && !isNodeEnvironment("production")) {
         try {
             console.log(
                 `[FileAccessPolicy] Approved: ${validated} (source=${options.source})`
