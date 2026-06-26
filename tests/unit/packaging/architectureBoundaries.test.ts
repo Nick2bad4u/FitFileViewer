@@ -2929,7 +2929,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(246);
+        expect.assertions(250);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3547,6 +3547,14 @@ describe("architecture boundaries", () => {
         expect(getThemeFromRendererSource).toContain(
             "export async function getThemeFromRenderer"
         );
+        expect(getThemeFromRendererSource).toContain(
+            "../runtime/electronConfAccess.js"
+        );
+        expect(getThemeFromRendererSource).not.toContain(
+            "../window/windowValidation.js"
+        );
+        expect(getThemeFromRendererSource).not.toContain("executeJavaScript");
+        expect(getThemeFromRendererSource).not.toContain("localStorage");
         expect(setupAutoUpdaterSource).toContain(
             "export function setupAutoUpdater"
         );

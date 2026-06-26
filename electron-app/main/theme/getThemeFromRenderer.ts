@@ -1,46 +1,42 @@
 import { CONSTANTS } from "../constants.js";
-import { validateWindow } from "../window/windowValidation.js";
+import { createElectronConf } from "../runtime/electronConfAccess.js";
 
-interface ThemeWindowCandidate {
-    isDestroyed?: () => boolean;
-    webContents?: {
-        executeJavaScript: (script: string) => Promise<unknown>;
-        isDestroyed?: () => boolean;
-    };
+interface ThemePreferenceStore {
+    get: (key: string, fallback: unknown) => unknown;
 }
 
-type UsableThemeWindow = ThemeWindowCandidate & {
-    webContents: {
-        executeJavaScript: (script: string) => Promise<unknown>;
-    };
-};
-
-const validateThemeWindow = validateWindow as (
-    win?: null | ThemeWindowCandidate,
-    context?: string
-) => win is UsableThemeWindow;
+function normalizeThemePreference(theme: unknown): string {
+    const raw = typeof theme === "string" ? theme.trim().toLowerCase() : "";
+    const normalized = raw === "system" ? "auto" : raw;
+    return normalized === "dark" ||
+        normalized === "light" ||
+        normalized === "auto"
+        ? normalized
+        : CONSTANTS.DEFAULT_THEME;
+}
 
 /**
- * Fetches the persisted theme from the renderer by reading localStorage. The
- * helper is resilient to missing BrowserWindow instances so Jasmine/Vitest
- * environments without a DOM do not crash.
+ * Fetches the persisted theme from the main-process settings store.
+ *
+ * The helper keeps its historical name while callers migrate, but it no longer
+ * executes renderer JavaScript or reads renderer localStorage.
  */
 export async function getThemeFromRenderer(
-    win?: null | ThemeWindowCandidate
+    _win?: null | unknown
 ): Promise<string> {
-    if (!validateThemeWindow(win, "theme retrieval")) {
-        return CONSTANTS.DEFAULT_THEME;
-    }
-
     try {
-        const theme = await win.webContents.executeJavaScript(
-            `localStorage.getItem("${CONSTANTS.THEME_STORAGE_KEY}")`
+        const conf = createElectronConf<ThemePreferenceStore>({
+            name: CONSTANTS.SETTINGS_CONFIG_NAME,
+        });
+        if (!conf) {
+            throw new TypeError("electron-conf unavailable");
+        }
+
+        return normalizeThemePreference(
+            conf.get("theme", CONSTANTS.DEFAULT_THEME)
         );
-        return typeof theme === "string" && theme
-            ? theme
-            : CONSTANTS.DEFAULT_THEME;
     } catch (error) {
-        console.error("[main.js] Failed to get theme from renderer:", error);
+        console.error("[main.js] Failed to get persisted theme:", error);
         return CONSTANTS.DEFAULT_THEME;
     }
 }
