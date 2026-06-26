@@ -16693,7 +16693,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open FIT file path button checks behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const violations = migratedOpenFitFileFromPathRuntimeFiles
             .filter((relativeFile) =>
@@ -16738,6 +16738,7 @@ describe("architecture boundaries", () => {
         expect(openFitFileFromPathRuntimeSource).not.toContain(
             "scope: OpenFitFileFromPathRuntimeScope = globalThis"
         );
+        expect(openFitFileFromPathRuntimeSource).not.toContain("globalThis.");
         expect(openFitFileFromPathRuntimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
