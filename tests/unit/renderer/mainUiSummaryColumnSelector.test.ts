@@ -7,6 +7,7 @@ import {
     type MainUiSummaryColumnSelectorRuntimeScope,
     type MainUiSummaryColumnSelectorTimer,
 } from "../../../electron-app/renderer/mainUiSummaryColumnSelectorRuntime.js";
+import type { BrowserSetTimeout } from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 function createRuntime({
     gearButton,
@@ -178,7 +179,7 @@ describe("main UI summary column selector", () => {
         document.body.append(gearButton);
         const delayMs = Number("250");
         const timer = 51 as MainUiSummaryColumnSelectorTimer;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
 
         vi.stubGlobal("setTimeout", setTimeout);
 
@@ -198,7 +199,7 @@ describe("main UI summary column selector", () => {
 
         const callback = vi.fn();
         const timer = 42 as MainUiSummaryColumnSelectorTimer;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const runtime = getMainUiSummaryColumnSelectorRuntime({
             getDocument: () => document,
             getHTMLElement: () => HTMLElement,

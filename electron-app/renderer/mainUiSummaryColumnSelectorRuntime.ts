@@ -1,21 +1,22 @@
 import { getElementByIdFlexible } from "../utils/ui/dom/elementIdUtils.js";
 import {
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserSetTimeout,
 } from "../utils/runtime/browserRuntime.js";
 
-export type MainUiSummaryColumnSelectorTimer = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type MainUiSummaryColumnSelectorTimer = BrowserTimerHandle;
 
 export interface MainUiSummaryColumnSelectorRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 

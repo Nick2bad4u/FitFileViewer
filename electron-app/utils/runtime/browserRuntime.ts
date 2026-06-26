@@ -1,3 +1,7 @@
+export type BrowserHTMLElementConstructor = typeof globalThis.HTMLElement;
+export type BrowserSetTimeout = typeof globalThis.setTimeout;
+export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
+
 export function getBrowserAbortController():
     | typeof globalThis.AbortController
     | undefined {

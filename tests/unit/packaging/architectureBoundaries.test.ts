@@ -6252,7 +6252,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(21);
 
         const violations = migratedMainUiSummarySelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6280,6 +6280,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultMainUiSummaryColumnSelectorRuntimeScope"
         );
+        expect(runtimeSource).not.toContain("globalThis.");
         expect(runtimeSource).not.toMatch(
             directMainUiSummarySelectorRuntimeAmbientFallbackPattern
         );
