@@ -49,4 +49,27 @@ describe("preload logger", () => {
         preloadLog("warn", "ignored");
         expect(loggedEntries).toStrictEqual([]);
     });
+
+    it("ignores malformed console references", () => {
+        expect.assertions(1);
+
+        const preloadLog = createPreloadLogger(
+            null as unknown as Parameters<typeof createPreloadLogger>[0]
+        );
+
+        expect(() => preloadLog("error", "ignored")).not.toThrow();
+    });
+
+    it("ignores console method accessors that throw", () => {
+        expect.assertions(1);
+
+        const consoleRef = {
+            get error() {
+                throw new Error("console error method unavailable");
+            },
+        };
+        const preloadLog = createPreloadLogger(consoleRef);
+
+        expect(() => preloadLog("error", "ignored")).not.toThrow();
+    });
 });

@@ -1715,6 +1715,8 @@ from returning.
 Preload environment policy checks now read `NODE_ENV` and Electron runtime markers through focused process-shape
 contracts instead of generic `Reflect.get` probes, and malformed preload process shapes fail closed for development-mode
 and generic IPC allowlist checks.
+Preload logger dispatch now resolves `info`, `warn`, and `error` through explicit console method reads instead of generic
+`Reflect.get` probing, and malformed or throwing console method access fails closed.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

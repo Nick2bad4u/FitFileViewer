@@ -2338,6 +2338,20 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps preload logger dispatch on explicit console methods", () => {
+        expect.assertions(5);
+
+        const preloadLoggerSource = stripComments(
+            readRepositoryFile("electron-app/preload/logger.ts")
+        );
+
+        expect(preloadLoggerSource).toContain("getPreloadConsoleMethod");
+        expect(preloadLoggerSource).toContain("return consoleRef.log");
+        expect(preloadLoggerSource).toContain("return consoleRef.error");
+        expect(preloadLoggerSource).not.toContain("Reflect.get(");
+        expect(preloadLoggerSource).not.toContain("Record<string, unknown>");
+    });
+
     it("keeps preload event API factories on named source exports", () => {
         const eventApiFactoryExports = [
             [
