@@ -16688,7 +16688,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(30);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -16736,6 +16736,9 @@ describe("architecture boundaries", () => {
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "getOpen: getBrowserOpen"
+        );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
@@ -16754,8 +16757,11 @@ describe("architecture boundaries", () => {
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "return elevationProfileGlobal.chartOverlayColorPalette;"
         );
-        expect(createElevationProfileButtonRuntimeSource).toContain(
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "const openRef = globalThis.open;"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "getOpen: () => globalThis.open"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "chartOverlayColorPalette")'

@@ -1,6 +1,7 @@
 import {
     getBrowserAbortController,
     getBrowserDocument,
+    getBrowserOpen,
 } from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
@@ -51,20 +52,13 @@ const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileBut
         getAbortController: getBrowserAbortController,
         getChartOverlayColorPalette: getGlobalChartOverlayColorPalette,
         getDocument: getBrowserDocument,
-        getOpen: getGlobalOpen,
+        getOpen: getBrowserOpen,
     };
 
 function getGlobalChartOverlayColorPalette(): unknown {
     const elevationProfileGlobal =
         globalThis as CreateElevationProfileButtonGlobalScope;
     return elevationProfileGlobal.chartOverlayColorPalette;
-}
-
-function getGlobalOpen(): CreateElevationProfileOpen {
-    const openRef = globalThis.open;
-    return typeof openRef === "function"
-        ? (openRef as NonNullable<CreateElevationProfileOpen>).bind(globalThis)
-        : undefined;
 }
 
 function getAbortControllerConstructor(
