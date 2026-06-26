@@ -1,6 +1,7 @@
 import {
     getBrowserAbortController,
     getBrowserDocument,
+    getBrowserEventTarget,
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
 
@@ -47,7 +48,7 @@ function isHTMLElement(
 
 const defaultUpdateMapThemeRuntimeScope: UpdateMapThemeRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getBeforeUnloadTarget: () => globalThis,
+    getBeforeUnloadTarget: getBrowserEventTarget,
     getDocument: getBrowserDocument,
     getHTMLElement: getBrowserHTMLElement,
 };

@@ -1,14 +1,29 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getEventListenerManagerRuntime } from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
 
 describe("getEventListenerManagerRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("uses browser runtime providers for production AbortController defaults", () => {
         expect.assertions(1);
 
         const utils = getEventListenerManagerRuntime();
 
         expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
+    it("uses browser runtime providers for production event-target defaults", () => {
+        expect.assertions(1);
+
+        const addEventListener = vi.fn();
+        vi.stubGlobal("addEventListener", addEventListener);
+
+        expect(getEventListenerManagerRuntime().getDefaultEventTarget()).toBe(
+            globalThis
+        );
     });
 
     it("resolves the default event target through the injected event-target scope", () => {

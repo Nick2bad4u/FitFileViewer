@@ -12158,7 +12158,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(33);
+        expect.assertions(35);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -12204,6 +12204,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(resourceManagerRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
         );
         expect(resourceManagerRuntimeSource).toContain(
@@ -12223,6 +12226,9 @@ describe("architecture boundaries", () => {
         );
         expect(resourceManagerRuntimeSource).toContain(
             "getBrowserDateNow"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getBrowserEventTarget"
         );
         expect(resourceManagerRuntimeSource).toContain(
             "const dateNow = scope.getDateNow?.();"
@@ -18284,7 +18290,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(24);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -18320,6 +18326,9 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(updateMapThemeRuntimeSource).toContain(
+            "getBeforeUnloadTarget: getBrowserEventTarget"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
             "getBeforeUnloadTarget: () => globalThis"
         );
         expect(updateMapThemeRuntimeSource).toContain(
@@ -24753,7 +24762,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -24779,6 +24788,9 @@ describe("architecture boundaries", () => {
             "defaultEventListenerManagerRuntimeScope"
         );
         expect(eventListenerManagerRuntimeSource).toContain(
+            "getEventTarget: getBrowserEventTarget"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
             "getEventTarget: () => globalThis"
         );
         expect(eventListenerManagerRuntimeSource).toContain(

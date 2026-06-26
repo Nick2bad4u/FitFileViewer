@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getUpdateMapThemeRuntime } from "../../../../electron-app/utils/theming/specific/updateMapThemeRuntime.js";
 
 describe("getUpdateMapThemeRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -53,6 +57,32 @@ describe("getUpdateMapThemeRuntime", () => {
         } finally {
             document.body.replaceChildren();
         }
+    });
+
+    it("uses browser runtime providers for production beforeunload defaults", () => {
+        expect.assertions(2);
+
+        const target = new EventTarget();
+        const addEventListener = vi.fn(target.addEventListener.bind(target));
+        vi.stubGlobal("addEventListener", addEventListener);
+        let unloadCount = 0;
+        const listener = (): void => {
+            unloadCount += 1;
+        };
+        const options = { passive: true };
+
+        getUpdateMapThemeRuntime().addWindowBeforeUnloadListener(
+            listener,
+            options
+        );
+        target.dispatchEvent(new Event("beforeunload"));
+
+        expect(unloadCount).toBe(1);
+        expect(addEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            listener,
+            options
+        );
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {

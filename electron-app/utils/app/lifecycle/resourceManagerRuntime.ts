@@ -2,6 +2,7 @@ import {
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDateNow,
+    getBrowserEventTarget,
 } from "../../runtime/browserRuntime.js";
 
 type ResourceManagerEventTarget = Pick<
@@ -28,7 +29,7 @@ const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
     getDateNow: getBrowserDateNow,
-    getEventTarget: () => globalThis,
+    getEventTarget: getBrowserEventTarget,
 };
 
 function getAbortController(
