@@ -2,7 +2,7 @@
  * Tab configuration definitions.
  */
 
-/** Metadata for one tab managed by the legacy tab state manager. */
+/** Metadata for one tab managed by the renderer tab state manager. */
 export type TabDef = {
     contentId: string;
     handler: null | string;

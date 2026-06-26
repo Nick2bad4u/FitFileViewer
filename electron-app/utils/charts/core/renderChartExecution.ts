@@ -21,8 +21,7 @@ interface RunChartRenderDependencies {
 }
 
 /**
- * Runs the chart renderer and preserves the legacy graceful-completion
- * fallback.
+ * Runs the chart renderer and preserves the graceful-completion fallback.
  */
 export async function runChartRender(
     dependencies: RunChartRenderDependencies,

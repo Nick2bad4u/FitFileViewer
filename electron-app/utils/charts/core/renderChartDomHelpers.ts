@@ -41,7 +41,7 @@ export function safeAppend(parent: ParentNode, child: Node): void {
         try {
             parent.insertBefore(child, null);
         } catch {
-            // Best-effort compatibility helper; callers already tolerate failure.
+            // Callers already tolerate append failures in mocked DOM environments.
         }
     }
 }

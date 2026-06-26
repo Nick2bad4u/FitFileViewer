@@ -7350,6 +7350,26 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps active chart and tab modules free of retired bridge terminology", () => {
+        expect.assertions(1);
+
+        const activeChartAndTabFiles = [
+            "electron-app/utils/charts/core/chartTabIntegration.ts",
+            "electron-app/utils/charts/core/renderChartDomHelpers.ts",
+            "electron-app/utils/charts/core/renderChartExecution.ts",
+            "electron-app/utils/ui/tabs/tabStateManagerConfig.ts",
+        ];
+        const retiredTerminologyPattern =
+            /\blegacy (?:UI bootstrap|tab state manager|graceful-completion)|Best-effort compatibility helper/u;
+        const violations = activeChartAndTabFiles
+            .filter((relativeFile) =>
+                retiredTerminologyPattern.test(readRepositoryFile(relativeFile))
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
     it("keeps chart notification state on the chart render-state facade", () => {
         expect.assertions(2);
 

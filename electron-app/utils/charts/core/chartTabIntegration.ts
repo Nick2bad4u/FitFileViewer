@@ -238,7 +238,7 @@ function asDisableableTabButton(
 }
 
 /**
- * Singleton chart tab integration used by the legacy UI bootstrap.
+ * Singleton chart tab integration used by renderer startup.
  */
 export const chartTabIntegration = new ChartTabIntegration();
 
