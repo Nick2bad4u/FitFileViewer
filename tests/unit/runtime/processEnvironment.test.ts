@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     getProcessArgumentValues,
+    getProcessCurrentWorkingDirectory,
     getProcessEnvironmentValue,
     getProcessStringValue,
+    getProcessVersionValue,
     getRuntimeProcess,
     isDevelopmentEnvironment,
     isNodeEnvironment,
@@ -221,6 +223,42 @@ describe("process environment runtime boundary", () => {
             "C:/mock/resources"
         );
         expect(getProcessStringValue("arch")).toBeUndefined();
+    });
+
+    it("reads string process version values only", () => {
+        expect.assertions(3);
+
+        setGlobalProcess({
+            versions: {
+                chrome: "120.0.0",
+                electron: 1,
+                node: "22.0.0",
+            },
+        });
+
+        expect(getProcessVersionValue("chrome")).toBe("120.0.0");
+        expect(getProcessVersionValue("node")).toBe("22.0.0");
+        expect(getProcessVersionValue("electron")).toBeUndefined();
+    });
+
+    it("reads the process current working directory defensively", () => {
+        expect.assertions(3);
+
+        setGlobalProcess({ cwd: () => "C:/repo" });
+
+        expect(getProcessCurrentWorkingDirectory()).toBe("C:/repo");
+
+        setGlobalProcess({ cwd: "C:/repo" });
+
+        expect(getProcessCurrentWorkingDirectory()).toBeUndefined();
+
+        setGlobalProcess({
+            cwd() {
+                throw new Error("cwd unavailable");
+            },
+        });
+
+        expect(getProcessCurrentWorkingDirectory()).toBeUndefined();
     });
 
     it("gets and sets the runtime process through the shared boundary", () => {

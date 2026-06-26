@@ -1,3 +1,8 @@
+import {
+    getProcessCurrentWorkingDirectory,
+    getProcessStringValue,
+    getProcessVersionValue,
+} from "../../utils/runtime/processEnvironment.js";
 import { createElectronConf } from "../runtime/electronConfAccess.js";
 
 type InfoInvokeChannel = import("../../shared/ipc").InfoInvokeChannel;
@@ -154,15 +159,17 @@ export function registerInfoHandlers({
                 ? app.getVersion()
                 : "";
         },
-        getChromeVersion: (): InfoStringResponse => process.versions.chrome,
-        getElectronVersion: (): InfoStringResponse => process.versions.electron,
+        getChromeVersion: (): InfoStringResponse =>
+            getProcessVersionValue("chrome") ?? "",
+        getElectronVersion: (): InfoStringResponse =>
+            getProcessVersionValue("electron") ?? "",
         getLicenseInfo: async (): Promise<InfoStringResponse> => {
             try {
                 const app = appRef();
                 const basePath =
                     app && typeof app.getAppPath === "function"
                         ? app.getAppPath()
-                        : process.cwd();
+                        : (getProcessCurrentWorkingDirectory() ?? ".");
                 const readFile = fs?.promises?.readFile;
                 if (typeof readFile !== "function") {
                     throw new TypeError("Filesystem module unavailable");
@@ -185,10 +192,11 @@ export function registerInfoHandlers({
                 return "Unknown";
             }
         },
-        getNodeVersion: (): InfoStringResponse => process.versions.node,
+        getNodeVersion: (): InfoStringResponse =>
+            getProcessVersionValue("node") ?? "",
         getPlatformInfo: (): InfoPlatformResponse => ({
-            arch: process.arch,
-            platform: process.platform,
+            arch: getProcessStringValue("arch") ?? "",
+            platform: getProcessStringValue("platform") ?? "",
         }),
         "map-tab:get": () =>
             safeConfGet("selectedMapTab", "map", normalizeMapTab),

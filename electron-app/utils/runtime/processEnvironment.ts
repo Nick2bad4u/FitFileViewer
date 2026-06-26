@@ -45,6 +45,40 @@ export function getProcessStringValue(name: string): string | undefined {
     return typeof value === "string" ? value : undefined;
 }
 
+export function getProcessVersionValue(name: string): string | undefined {
+    const processValue = getRuntimeProcess();
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const versions = getRuntimeProperty(processValue, "versions");
+    if (typeof versions !== "object" || versions === null) {
+        return undefined;
+    }
+
+    const value = getRuntimeProperty(versions, name);
+    return typeof value === "string" ? value : undefined;
+}
+
+export function getProcessCurrentWorkingDirectory(): string | undefined {
+    const processValue = getRuntimeProcess();
+    if (typeof processValue !== "object" || processValue === null) {
+        return undefined;
+    }
+
+    const cwd = getRuntimeProperty(processValue, "cwd");
+    if (typeof cwd !== "function") {
+        return undefined;
+    }
+
+    try {
+        const value = cwd.call(processValue);
+        return typeof value === "string" ? value : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 export function getRuntimeProcess(): unknown {
     return getRuntimeProperty(globalThis, "process");
 }

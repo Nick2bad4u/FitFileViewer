@@ -1,6 +1,8 @@
 // @vitest-environment node
 import type { Mock } from "vitest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { setRuntimeProcess } from "../../../../electron-app/utils/runtime/processEnvironment.js";
 
 type InfoInvokeChannel =
     | "getAppVersion"
@@ -55,6 +57,8 @@ type RegisterInfoHandlersModule = {
     registerInfoHandlers: RegisterInfoHandlers;
 };
 
+const originalProcess = globalThis.process;
+
 describe("registerInfoHandlers", () => {
     let registerInfoHandlers: RegisterInfoHandlers;
     let registerIpcHandle: Mock<RegisterIpcHandle>;
@@ -70,6 +74,16 @@ describe("registerInfoHandlers", () => {
 
     beforeEach(async () => {
         vi.resetModules();
+        setRuntimeProcess({
+            arch: "x64",
+            cwd: () => "/runtime-cwd",
+            platform: "test-platform",
+            versions: {
+                chrome: "120.0.0",
+                electron: "30.0.0",
+                node: "22.0.0",
+            },
+        });
 
         mockConfGet = vi.fn<(key: string, fallback: unknown) => unknown>(
             (key, fallback) => {
@@ -105,6 +119,10 @@ describe("registerInfoHandlers", () => {
             ),
         };
         logWithContext = vi.fn<LogWithContext>();
+    });
+
+    afterEach(() => {
+        setRuntimeProcess(originalProcess);
     });
 
     function getHandlers(): Partial<Record<InfoInvokeChannel, InfoIpcHandler>> {
@@ -181,22 +199,22 @@ describe("registerInfoHandlers", () => {
             "1.2.3"
         );
         await expect(getHandler(handlers, "getChromeVersion")()).resolves.toBe(
-            process.versions.chrome
+            "120.0.0"
         );
         await expect(
             getHandler(handlers, "getElectronVersion")()
-        ).resolves.toBe(process.versions.electron);
+        ).resolves.toBe("30.0.0");
         await expect(getHandler(handlers, "getLicenseInfo")()).resolves.toBe(
             "Unlicense"
         );
         await expect(getHandler(handlers, "getNodeVersion")()).resolves.toBe(
-            process.versions.node
+            "22.0.0"
         );
         await expect(
             getHandler(handlers, "getPlatformInfo")()
         ).resolves.toStrictEqual({
-            arch: process.arch,
-            platform: process.platform,
+            arch: "x64",
+            platform: "test-platform",
         });
         await expect(getHandler(handlers, "map-tab:get")()).resolves.toBe(
             "map"
