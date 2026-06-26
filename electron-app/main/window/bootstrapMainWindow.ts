@@ -1,10 +1,12 @@
-import {
-    appRef as electronAppRef,
-    browserWindowRef as electronBrowserWindowRef,
-} from "../runtime/electronAccess.js";
 import { createWindow } from "../../windowStateUtils.js";
 import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
 import type { MainAppStateWindowLike } from "../state/appState.js";
+import {
+    callElectronWhenReadyForTests,
+    resolveExistingMainWindow,
+    type MainWindowBrowserWindowApi,
+    type MainWindowBrowserWindowConstructor,
+} from "./mainWindowSelection.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -24,15 +26,9 @@ interface MainWindowLike {
     webContents: WebContentsLike;
 }
 
-interface BrowserWindowApi {
-    getAllWindows?: () => MainWindowLike[];
-}
-
-interface ElectronAppLike {
-    whenReady?: () => unknown;
-}
-
-type BrowserWindowConstructor = new (...args: never[]) => MainWindowLike;
+type BrowserWindowApi = MainWindowBrowserWindowApi<MainWindowLike>;
+type BrowserWindowConstructor =
+    MainWindowBrowserWindowConstructor<MainWindowLike>;
 type BootstrapMainWindowGetAppState = {
     (key: "autoUpdaterInitialized"): boolean;
     (key: "loadedFitFilePath"): null | string;
@@ -80,73 +76,8 @@ interface BootstrapMainWindowOptions {
     ) => void;
 }
 
-const runtimeAppRef = electronAppRef as () => ElectronAppLike | undefined;
-const runtimeBrowserWindowRef = electronBrowserWindowRef as () =>
-    | BrowserWindowApi
-    | undefined;
-
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
-}
-
-function callElectronWhenReadyForTests(): void {
-    if (!isTestEnvironment()) {
-        return;
-    }
-
-    try {
-        const app = runtimeAppRef();
-        if (app && typeof app.whenReady === "function") {
-            try {
-                app.whenReady();
-            } catch {
-                /* Ignore errors */
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-function getElectronWindowsForTests(): MainWindowLike[] | undefined {
-    try {
-        const BrowserWindow = runtimeBrowserWindowRef();
-        if (
-            BrowserWindow &&
-            typeof BrowserWindow.getAllWindows === "function"
-        ) {
-            try {
-                return BrowserWindow.getAllWindows();
-            } catch {
-                /* Ignore errors */
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
-
-    return undefined;
-}
-
-function getWindowsFromBrowserWindowRef(
-    BrowserWindow:
-        | BrowserWindowApi
-        | BrowserWindowConstructor
-        | null
-        | undefined
-): MainWindowLike[] | undefined {
-    if (
-        BrowserWindow &&
-        typeof (BrowserWindow as BrowserWindowApi).getAllWindows === "function"
-    ) {
-        try {
-            return (BrowserWindow as BrowserWindowApi).getAllWindows?.();
-        } catch {
-            /* Ignore errors */
-        }
-    }
-
-    return undefined;
 }
 
 function createFallbackWindow(defaultTheme: string): MainWindowLike {
@@ -184,12 +115,7 @@ export function bootstrapMainWindow({
     let mainWindow: MainWindowLike | undefined;
     if (isTestEnvironment() || !isConstructor) {
         try {
-            let list = getElectronWindowsForTests();
-            if (!list || list.length === 0) {
-                list = getWindowsFromBrowserWindowRef(BrowserWindow);
-            }
-            mainWindow =
-                Array.isArray(list) && list.length > 0 ? list[0] : undefined;
+            mainWindow = resolveExistingMainWindow(BrowserWindow);
         } catch {
             /* Ignore errors */
         }

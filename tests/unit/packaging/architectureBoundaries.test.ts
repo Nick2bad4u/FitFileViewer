@@ -5333,6 +5333,42 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps main-window list resolution centralized", () => {
+        expect.assertions(7);
+
+        const bootstrapMainWindowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/window/bootstrapMainWindow.ts"
+            )
+        );
+        const initializeMainWindowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/window/initializeMainWindow.ts"
+            )
+        );
+        const mainWindowSelectionSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/window/mainWindowSelection.ts"
+            )
+        );
+        const directGetAllWindowsCalls =
+            mainWindowSelectionSource.match(/\.getAllWindows\b/gu) ?? [];
+
+        expect(bootstrapMainWindowSource).toContain("./mainWindowSelection.js");
+        expect(initializeMainWindowSource).toContain(
+            "./mainWindowSelection.js"
+        );
+        expect(bootstrapMainWindowSource).not.toContain("getAllWindows");
+        expect(initializeMainWindowSource).not.toContain("getAllWindows");
+        expect(mainWindowSelectionSource).toContain(
+            "../runtime/electronAccess.js"
+        );
+        expect(mainWindowSelectionSource).toContain(
+            "resolveExistingMainWindow"
+        );
+        expect(directGetAllWindowsCalls).toHaveLength(4);
+    });
+
     it("keeps IPC sender-policy tests on native module imports", () => {
         expect.assertions(3);
 
