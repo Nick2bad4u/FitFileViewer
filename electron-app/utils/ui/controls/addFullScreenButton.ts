@@ -9,13 +9,15 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronMenuEventApi } from "../../../shared/preloadApi.js";
 import {
     getAddFullScreenButtonRuntime,
     type AddFullScreenButtonRuntime,
 } from "./addFullScreenButtonRuntime.js";
 
-type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
+interface ElectronFullscreenAPI {
+    setFullScreen?: ElectronMenuEventApi["setFullScreen"];
+}
 type FullScreenButtonOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };

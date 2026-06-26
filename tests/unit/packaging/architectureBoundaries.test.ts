@@ -9996,7 +9996,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update notification DOM access behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedShowUpdateNotificationDomRuntimeFiles
             .filter((relativeFile) =>
@@ -10029,6 +10029,11 @@ describe("architecture boundaries", () => {
         expect(showUpdateNotificationSource).toContain(
             "showUpdateNotificationRuntime.js"
         );
+        expect(showUpdateNotificationSource).toContain("ElectronMenuEventApi");
+        expect(showUpdateNotificationSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(showUpdateNotificationSource).not.toContain("Pick<ElectronAPI");
         expect(showUpdateNotificationSource).toContain(
             "queryNotificationElement"
         );
@@ -10039,8 +10044,8 @@ describe("architecture boundaries", () => {
         expect(showUpdateNotificationSource).not.toContain(
             "const showUpdateNotificationRuntime = getShowUpdateNotificationRuntime();"
         );
-        expect(showUpdateNotificationSource).toContain(
-            "options.notificationRuntime ?? getShowUpdateNotificationRuntime()"
+        expect(showUpdateNotificationSource).toMatch(
+            /options\.notificationRuntime\s*\?\?\s*getShowUpdateNotificationRuntime\(\)/u
         );
         expect(showUpdateNotificationSource).not.toMatch(
             directShowUpdateNotificationDomRuntimeGlobalPattern
@@ -16492,7 +16497,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(68);
+        expect.assertions(71);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -16527,6 +16532,11 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonSource).toContain(
             "type AddFullScreenButtonRuntime"
         );
+        expect(fullscreenButtonSource).toContain("ElectronMenuEventApi");
+        expect(fullscreenButtonSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(fullscreenButtonSource).not.toContain("Pick<ElectronAPI");
         expect(fullscreenButtonSource).toContain("createAbortController");
         expect(fullscreenButtonSource).toContain(
             "return getAddFullScreenButtonRuntime();"

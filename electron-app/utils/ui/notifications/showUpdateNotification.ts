@@ -6,7 +6,7 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronMenuEventApi } from "../../../shared/preloadApi.js";
 import {
     getNotificationTimerRuntime,
     type NotificationTimerHandle,
@@ -19,7 +19,9 @@ import {
 
 type UpdateNotificationAction = boolean | string;
 
-type ElectronUpdateAPI = Partial<Pick<ElectronAPI, "installUpdate">>;
+interface ElectronUpdateAPI {
+    installUpdate?: ElectronMenuEventApi["installUpdate"];
+}
 type ShowUpdateNotificationOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
     readonly notificationRuntime?: ShowUpdateNotificationRuntime | undefined;
@@ -79,7 +81,8 @@ export function showUpdateNotification(
 ): void {
     try {
         const notificationRuntime =
-                options.notificationRuntime ?? getShowUpdateNotificationRuntime(),
+                options.notificationRuntime ??
+                getShowUpdateNotificationRuntime(),
             timerRuntime =
                 options.timerRuntime ?? getNotificationTimerRuntime();
 
@@ -115,7 +118,11 @@ export function showUpdateNotification(
                 timerRuntime,
             });
         } else if (withAction) {
-            createUpdateActionButton(notification, options, notificationRuntime);
+            createUpdateActionButton(
+                notification,
+                options,
+                notificationRuntime
+            );
         }
 
         // Set up auto-hide if needed
@@ -367,7 +374,8 @@ function clearAutoHideTimer(
         return;
     }
 
-    const runtime = activeAutoHideTimerRuntimes.get(notification) ?? timerRuntime;
+    const runtime =
+        activeAutoHideTimerRuntimes.get(notification) ?? timerRuntime;
     runtime.clearTimeout(timeoutHandle);
     activeAutoHideTimers.delete(notification);
     activeAutoHideTimerRuntimes.delete(notification);
