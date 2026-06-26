@@ -574,8 +574,6 @@ function isFitBrowserElectronApi(
         return false;
     }
 
-    const api = value as Record<string, unknown>;
-
     return [
         "decodeFitFile",
         "getFitBrowserFolder",
@@ -583,7 +581,7 @@ function isFitBrowserElectronApi(
         "openFolderDialog",
         "readFile",
     ].every((methodName) => {
-        const method = api[methodName];
+        const method = Reflect.get(value, methodName);
         return method === undefined || typeof method === "function";
     });
 }

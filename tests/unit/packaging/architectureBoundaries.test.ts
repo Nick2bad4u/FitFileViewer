@@ -6508,7 +6508,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(85);
+        expect.assertions(86);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -6542,6 +6542,9 @@ it("keeps the core state manager free of reactive global property bridges", () =
 
         expect(violations).toStrictEqual([]);
         expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
+        expect(browserTabSource).not.toContain(
+            "const api = value as Record<string, unknown>"
+        );
         expect(browserTabSource).toContain("type FileBrowserTabRuntime");
         expect(browserTabSource).toContain(
             "return getFileBrowserTabRuntime();"

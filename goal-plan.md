@@ -369,6 +369,9 @@ blocking those direct Browser tab DOM primitives and clock reads from returning.
 element-constructor contracts now reuse shared browser-runtime aliases instead of direct ambient constructor type
 spellings, and visible loaded/scanned status timestamps render from the same runtime timestamps recorded in Browser
 state/cache payloads.
+Scoped Browser-tab Electron API validation now checks optional IPC methods through explicit property guards instead
+of casting the candidate preload API to a generic record, with focused malformed-API coverage and architecture
+guardrails.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document
