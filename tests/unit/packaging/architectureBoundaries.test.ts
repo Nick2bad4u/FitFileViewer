@@ -3695,10 +3695,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload app leaf modules on native imports", () => {
-        expect.assertions(22);
+        expect.assertions(26);
 
         const appModuleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadAppModuleLoader.ts")
+        );
+        const developmentToolsGlobalSource = stripComments(
+            readRepositoryFile("electron-app/preload/developmentToolsGlobal.ts")
         );
         const moduleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
@@ -3762,6 +3765,16 @@ describe("architecture boundaries", () => {
         expect(appModuleLoaderSource).not.toContain(
             "registerPreloadBeforeExitHandler as unknown"
         );
+        expect(developmentToolsGlobalSource).toContain(
+            "../utils/logging/loggingTimestampRuntime.js"
+        );
+        expect(developmentToolsGlobalSource).toContain(
+            "loggingTimestampRuntime().isoNow()"
+        );
+        expect(developmentToolsGlobalSource).not.toContain(
+            "new Date().toISOString()"
+        );
+        expect(developmentToolsGlobalSource).not.toContain("Date.now");
         expect(moduleLoaderSource).toContain("loadPreloadAppModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadAppModules({ requireModule })"

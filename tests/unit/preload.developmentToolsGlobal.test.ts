@@ -43,7 +43,9 @@ describe("preload development tools global", () => {
     });
 
     it("exposes development helpers in development mode", async () => {
-        expect.assertions(7);
+        expect.assertions(8);
+
+        vi.useFakeTimers();
 
         const getAppVersion = vi.fn<() => Promise<string>>(() =>
             Promise.resolve("29.9.0")
@@ -61,45 +63,54 @@ describe("preload development tools global", () => {
                 ) => void
             >();
 
-        expect(
-            exposeDevelopmentToolsGlobal({
-                api,
-                constants,
-                contextBridge: { exposeInMainWorld },
-                isDevelopmentMode: () => true,
-                preloadLog,
-            })
-        ).toBe(true);
+        try {
+            vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
 
-        const exposedApi = exposeInMainWorld.mock.calls[0]?.[1] as
-            | ExposedDevelopmentToolsApi
-            | undefined;
+            expect(
+                exposeDevelopmentToolsGlobal({
+                    api,
+                    constants,
+                    contextBridge: { exposeInMainWorld },
+                    isDevelopmentMode: () => true,
+                    preloadLog,
+                })
+            ).toBe(true);
 
-        expect(exposeInMainWorld).toHaveBeenCalledWith(
-            DEVELOPMENT_TOOLS_GLOBAL_NAME,
-            exposedApi
-        );
-        expect(exposedApi?.getPreloadInfo()).toMatchObject({
-            apiMethods: Object.keys(api),
-            constants,
-            version: "1.0.0",
-        });
-        exposedApi?.logAPIState();
-        await expect(exposedApi?.testIPC()).resolves.toBe(true);
-        expect(getAppVersion).toHaveBeenCalledOnce();
-        expect(preloadLog).toHaveBeenCalledWith(
-            "info",
-            "[preload.js] Development tools exposed"
-        );
-        expect(preloadLog).toHaveBeenCalledWith(
-            "info",
-            "[preload.js] Current API State:",
-            expect.objectContaining({
+            const exposedApi = exposeInMainWorld.mock.calls[0]?.[1] as
+                | ExposedDevelopmentToolsApi
+                | undefined;
+            const preloadInfo = exposedApi?.getPreloadInfo();
+
+            expect(exposeInMainWorld).toHaveBeenCalledWith(
+                DEVELOPMENT_TOOLS_GLOBAL_NAME,
+                exposedApi
+            );
+            expect(preloadInfo).toMatchObject({
+                apiMethods: Object.keys(api),
                 constants,
-                electronAPI: "object",
-                methodCount: Object.keys(api).length,
-            })
-        );
+                version: "1.0.0",
+            });
+            expect(preloadInfo?.timestamp).toBe("2026-01-02T03:04:05.006Z");
+            exposedApi?.logAPIState();
+            await expect(exposedApi?.testIPC()).resolves.toBe(true);
+            expect(getAppVersion).toHaveBeenCalledOnce();
+            expect(preloadLog).toHaveBeenCalledWith(
+                "info",
+                "[preload.js] Development tools exposed"
+            );
+            expect(preloadLog).toHaveBeenCalledWith(
+                "info",
+                "[preload.js] Current API State:",
+                expect.objectContaining({
+                    constants,
+                    electronAPI: "object",
+                    methodCount: Object.keys(api).length,
+                    timestamp: "2026-01-02T03:04:05.006Z",
+                })
+            );
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("logs failed development helper exposure", () => {

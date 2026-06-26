@@ -1,3 +1,5 @@
+import { loggingTimestampRuntime } from "../utils/logging/loggingTimestampRuntime.js";
+
 type ExposeDevelopmentToolsGlobalOptions =
     import("./preloadModuleTypes").ExposeDevelopmentToolsGlobalOptions;
 
@@ -24,7 +26,7 @@ export function exposeDevelopmentToolsGlobal({
             getPreloadInfo: () => ({
                 apiMethods: Object.keys(api),
                 constants,
-                timestamp: new Date().toISOString(),
+                timestamp: loggingTimestampRuntime().isoNow(),
                 version: "1.0.0",
             }),
             logAPIState: () => {
@@ -32,7 +34,7 @@ export function exposeDevelopmentToolsGlobal({
                     constants,
                     electronAPI: typeof api,
                     methodCount: Object.keys(api).length,
-                    timestamp: new Date().toISOString(),
+                    timestamp: loggingTimestampRuntime().isoNow(),
                 });
             },
             testIPC: async () => {
