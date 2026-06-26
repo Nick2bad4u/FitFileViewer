@@ -1049,6 +1049,8 @@ const directSettingsStateCoreRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|addEventListener|localStorage)\b|\bscope:\s*SettingsStateCoreRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultSettingsStateCoreRuntimeScope:\s*SettingsStateCoreRuntimeScope\s*=\s*globalThis\b/u;
 const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|info|log|warn)\s*=/u;
+const handleOpenFileTestDirectWindowFixturePattern =
+    /\bObject\.defineProperty\(\s*global\s*,\s*["']window["']|\b(?:global|globalThis)\.window\s*=/u;
 const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
     /\bconsole\.error\s*=/u;
 const retiredDataPointFilterGlobalStateNaming = [
@@ -25868,6 +25870,20 @@ describe("architecture boundaries", () => {
 
         expect(
             handleOpenFileTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "electron-app/utils/files/import/handleOpenFile.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps handle-open-file tests off global window fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            handleOpenFileTestDirectWindowFixturePattern.test(
                 stripComments(
                     readRepositoryFile(
                         "electron-app/utils/files/import/handleOpenFile.test.ts"

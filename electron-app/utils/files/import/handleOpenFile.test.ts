@@ -74,11 +74,6 @@ const mockElectronAPI = {
 
 let currentElectronApi: MockElectronAPI | undefined = mockElectronAPI;
 
-Object.defineProperty(global, "window", {
-    value: {},
-    writable: true,
-});
-
 // Test setup
 let mockShowNotification: ReturnType<typeof vi.fn>;
 let mockSetLoading: ReturnType<typeof vi.fn>;

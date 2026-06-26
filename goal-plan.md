@@ -1525,6 +1525,8 @@ fixture.
 Handle-open-file tests now use scoped Vitest console spies and one-shot throwing mock implementations instead
 of assigning `console.log`, `console.info`, `console.warn`, or `console.error` directly, with architecture
 coverage blocking that direct console-method fixture.
+Colocated handle-open-file coverage no longer installs a placeholder `global.window` object because Electron API
+access now goes through explicit scoped providers, with architecture coverage blocking that stale fixture.
 Tab-state manager behavior tests now restore log/warn/error capture through scoped Vitest spies instead of
 assigning console methods back during cleanup, with architecture coverage blocking that direct console-method
 fixture.
