@@ -589,6 +589,9 @@ from returning.
 Version-info DOM lookup now routes through `loadVersionInfoRuntime.ts` instead of querying `document` directly inside
 `loadVersionInfo.ts`, with focused runtime coverage and architecture coverage blocking that direct document lookup
 from returning.
+Version-info Electron API validation now checks each optional preload method explicitly instead of casting the candidate
+Electron API to a generic record, with malformed-scope coverage proving fallback process metadata still populates system
+info and architecture coverage blocking the cast from returning.
 Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, stored tooltip
 timeout cleanup, listener abort-controller creation, body theme-listener registration, tooltip mousemove
 registration, and viewport reads now route through `shownFilesListRuntime.ts` instead of calling timer,

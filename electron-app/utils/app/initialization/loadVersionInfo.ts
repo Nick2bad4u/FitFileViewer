@@ -249,8 +249,6 @@ function isVersionInfoElectronAPI(
         return false;
     }
 
-    const api = value as Record<string, unknown>;
-
     return [
         "getAppVersion",
         "getChromeVersion",
@@ -259,7 +257,11 @@ function isVersionInfoElectronAPI(
         "getNodeVersion",
         "getPlatformInfo",
     ].every((methodName) => {
-        const method = api[methodName];
+        if (!(methodName in value)) {
+            return true;
+        }
+
+        const method = Reflect.get(value, methodName);
         return method === undefined || typeof method === "function";
     });
 }

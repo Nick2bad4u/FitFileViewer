@@ -162,6 +162,49 @@ describe("loadVersionInfo", () => {
         );
     });
 
+    it("rejects malformed scoped version APIs and falls back to process info", async () => {
+        expect.assertions(4);
+
+        resetTestState();
+        setRuntimeProcess({
+            arch: "x64",
+            platform: "fallback-platform",
+            versions: {
+                chrome: "121.0.0",
+                electron: "31.0.0",
+                node: "23.0.0",
+            },
+        });
+        const getElectronAPI = vi.fn<() => unknown>(() => ({
+            getAppVersion: "1.2.3",
+            getNodeVersion: vi.fn<() => Promise<string>>(),
+        }));
+
+        const { loadVersionInfoWithOptions } =
+            await importLoadVersionInfoModule();
+
+        await loadVersionInfoWithOptions({
+            electronApiScope: { getElectronAPI },
+        });
+
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(getVersionNumberElement().textContent).toBe("");
+        expect(h.updateSystemInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chrome: "121.0.0",
+                electron: "31.0.0",
+                node: "23.0.0",
+                platform: "fallback-platform (x64)",
+                version: "unknown",
+            })
+        );
+        expect(h.logWithLevel).toHaveBeenCalledWith(
+            "warn",
+            "[LoadVersionInfo] electronAPI not available",
+            undefined
+        );
+    });
+
     it("keeps defaults when electronAPI version retrieval fails", async () => {
         expect.assertions(2);
 
