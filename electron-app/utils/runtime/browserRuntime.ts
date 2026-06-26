@@ -7,6 +7,7 @@ export type BrowserEventConstructor = typeof globalThis.Event;
 export type BrowserFetch = typeof globalThis.fetch;
 export type BrowserFileReaderConstructor = typeof globalThis.FileReader;
 export type BrowserHTMLElementConstructor = typeof globalThis.HTMLElement;
+export type BrowserKeyboardEventConstructor = typeof globalThis.KeyboardEvent;
 export type BrowserNodeConstructor = typeof globalThis.Node;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;

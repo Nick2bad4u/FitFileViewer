@@ -1,4 +1,5 @@
 import {
+    type BrowserKeyboardEventConstructor,
     getBrowserDocument,
     getBrowserKeyboardEvent,
 } from "../../runtime/browserRuntime.js";
@@ -6,7 +7,7 @@ import {
 export interface UpdateActiveTabRuntimeScope {
     readonly getDocument?: (() => unknown) | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
 }
 
@@ -45,7 +46,7 @@ function getProviderDocument(
 
 function getKeyboardEventConstructor(
     scope: UpdateActiveTabRuntimeScope
-): typeof globalThis.KeyboardEvent {
+): BrowserKeyboardEventConstructor {
     const KeyboardEventConstructor = scope.getKeyboardEvent?.();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError("updateActiveTab requires a KeyboardEvent runtime");
