@@ -10091,13 +10091,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps theme setup state access on the renderer theme state facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const setupThemeSource = stripComments(
             readRepositoryFile("electron-app/utils/theming/core/setupTheme.ts")
         );
 
         expect(setupThemeSource).toContain("rendererThemeState.js");
+        expect(setupThemeSource).toContain("ElectronThemeApi");
+        expect(setupThemeSource).not.toContain("import type { ElectronAPI");
+        expect(setupThemeSource).not.toContain("Pick<ElectronAPI");
         expect(setupThemeSource).not.toContain("state/core/stateManager.js");
     });
 

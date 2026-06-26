@@ -18,7 +18,7 @@ import {
     type SetupThemeRuntime,
     type SetupThemeTimer,
 } from "./setupThemeRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronThemeApi } from "../../../shared/preloadApi.js";
 
 /** Canonical persisted theme values understood by the theme setup flow. */
 export type ThemePreference = "auto" | "dark" | "light";
@@ -38,7 +38,9 @@ type ListenForThemeChangeCallback = (
     callback: (theme: unknown) => void
 ) => void;
 type LogLevel = "error" | "info" | "warn";
-type ThemeSetupElectronApi = Partial<Pick<ElectronAPI, "getTheme">>;
+interface ThemeSetupElectronApi {
+    getTheme?: ElectronThemeApi["getTheme"];
+}
 
 // Constants for better maintainability
 const THEME_CONSTANTS = {
