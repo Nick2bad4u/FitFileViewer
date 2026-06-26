@@ -1569,6 +1569,8 @@ candidate, or `Date.now()` closures, with architecture coverage blocking those i
 Their production Electron API candidate provider now routes through the centralized `electronApiRuntime`
 browser-candidate helper instead of each renderer browser-runtime file owning its own `globalThis.electronAPI`
 scope type.
+Main UI Electron API candidate typing now uses an explicit `MainUiElectronApi` interface backed by split shared
+API-domain contracts instead of `Partial<Pick<ElectronAPI, ...>>`.
 Generic renderer helper runtimes now import shared `browserRuntime.ts` providers directly for document,
 constructor, timer, event-target, AbortController, location, navigator, and performance defaults; the
 renderer-specific browser runtime remains focused on composing the renderer entrypoint environment scope.

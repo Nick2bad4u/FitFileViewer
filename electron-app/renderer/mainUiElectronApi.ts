@@ -1,21 +1,22 @@
-import type { ElectronAPI } from "../shared/preloadApi.js";
+import type {
+    ElectronDevtoolsMenuApi,
+    ElectronMenuEventApi,
+    ElectronPreloadEventApi,
+} from "../shared/preloadApi.js";
 
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../utils/runtime/electronApiRuntime.js";
 
-export type MainUiElectronApi = Partial<
-    Pick<
-        ElectronAPI,
-        | "injectMenu"
-        | "notifyFitFileLoaded"
-        | "onOpenSummaryColumnSelector"
-        | "onSetTheme"
-        | "onUnloadFitFile"
-        | "sendThemeChanged"
-    >
->;
+export interface MainUiElectronApi {
+    injectMenu?: ElectronDevtoolsMenuApi["injectMenu"];
+    notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+    onOpenSummaryColumnSelector?: ElectronMenuEventApi["onOpenSummaryColumnSelector"];
+    onSetTheme?: ElectronMenuEventApi["onSetTheme"];
+    onUnloadFitFile?: ElectronMenuEventApi["onUnloadFitFile"];
+    sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
+}
 
 function hasOptionalFunction(
     record: Readonly<Record<string, unknown>>,

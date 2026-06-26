@@ -5913,7 +5913,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(139);
+        expect.assertions(145);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5939,6 +5939,9 @@ describe("architecture boundaries", () => {
         );
         const mainUiSource = stripComments(
             readRepositoryFile("electron-app/main-ui.ts")
+        );
+        const mainUiElectronApiSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiElectronApi.ts")
         );
         const mainUiStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/mainUiStartup.ts")
@@ -6182,6 +6185,14 @@ describe("architecture boundaries", () => {
         expect(lifecycleCleanupSource).not.toContain("globalThis.");
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
+        expect(mainUiElectronApiSource).toContain(
+            "export interface MainUiElectronApi"
+        );
+        expect(mainUiElectronApiSource).toContain("ElectronMenuEventApi");
+        expect(mainUiElectronApiSource).toContain("ElectronPreloadEventApi");
+        expect(mainUiElectronApiSource).toContain("ElectronDevtoolsMenuApi");
+        expect(mainUiElectronApiSource).not.toContain("ElectronAPI");
+        expect(mainUiElectronApiSource).not.toContain("Pick<");
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
         expect(mainUiStartupSource).toContain("mainUiBrowserRuntime.js");
         expect(mainUiStartupSource).toContain(
