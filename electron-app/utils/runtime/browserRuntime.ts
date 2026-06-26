@@ -98,6 +98,15 @@ export function getBrowserDateNow(): (() => number) | undefined {
     return Date.now;
 }
 
+export function getBrowserCurrentTimestamp(): number {
+    const dateNow = getBrowserDateNow();
+    if (typeof dateNow !== "function") {
+        throw new TypeError("browser runtime requires Date.now");
+    }
+
+    return dateNow();
+}
+
 export function getBrowserDispatchEvent():
     | typeof globalThis.dispatchEvent
     | undefined {

@@ -5301,7 +5301,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(130);
+        expect.assertions(134);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5692,6 +5692,9 @@ describe("architecture boundaries", () => {
         expect(mainUiBrowserRuntimeSource).toContain(
             "getBrowserElectronApiCandidate"
         );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "getBrowserCurrentTimestamp"
+        );
         expect(mainUiBrowserRuntimeSource).not.toContain(
             "getDefaultElectronApiCandidate"
         );
@@ -5702,10 +5705,10 @@ describe("architecture boundaries", () => {
             "return mainUiScope.electronAPI;"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
-            "getElectronApiCandidate: getBrowserMainUiElectronApiCandidate"
+            "getElectronApiCandidate: getBrowserElectronApiCandidate"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
-            "dateNow: getBrowserMainUiDateNow"
+            "dateNow: getBrowserCurrentTimestamp"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
             "getConsole: getBrowserConsole"
@@ -5718,6 +5721,13 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiBrowserRuntimeSource).not.toContain(
             "dateNow: () => Date.now()"
+        );
+        expect(mainUiBrowserRuntimeSource).not.toContain("Date.now()");
+        expect(mainUiBrowserRuntimeSource).not.toContain(
+            "getBrowserMainUiDateNow"
+        );
+        expect(mainUiBrowserRuntimeSource).not.toContain(
+            "getBrowserMainUiElectronApiCandidate"
         );
         expect(mainUiBrowserRuntimeSource).not.toContain(
             "getConsole: () => globalThis.console"
