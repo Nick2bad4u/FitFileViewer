@@ -1,4 +1,7 @@
 import {
+    type BrowserClearInterval,
+    type BrowserIntervalHandle,
+    type BrowserSetInterval,
     getBrowserClearInterval,
     getBrowserDateNow,
     getBrowserDocument,
@@ -7,9 +10,7 @@ import {
     getBrowserSetInterval,
 } from "../runtime/browserRuntime.js";
 
-export type StateDevToolsIntervalHandle = ReturnType<
-    typeof globalThis.setInterval
->;
+export type StateDevToolsIntervalHandle = BrowserIntervalHandle;
 
 export type StateDevToolsPerformanceRuntime = {
     readonly memory?: unknown;
@@ -18,7 +19,7 @@ export type StateDevToolsPerformanceRuntime = {
 
 export interface StateDevToolsRuntimeScope {
     readonly getClearInterval?:
-        | (() => typeof globalThis.clearInterval | undefined)
+        | (() => BrowserClearInterval | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getLocation?:
@@ -33,7 +34,7 @@ export interface StateDevToolsRuntimeScope {
         | (() => StateDevToolsPerformanceRuntime | undefined)
         | undefined;
     readonly getSetInterval?:
-        | (() => typeof globalThis.setInterval | undefined)
+        | (() => BrowserSetInterval | undefined)
         | undefined;
     readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
 }
@@ -82,7 +83,7 @@ function getRequiredPerformanceNow(
 
 function getScopeClearInterval(
     scope: StateDevToolsRuntimeScope
-): typeof globalThis.clearInterval | undefined {
+): BrowserClearInterval | undefined {
     return scope.getClearInterval?.();
 }
 
@@ -97,7 +98,7 @@ function getScopeLocation(scope: StateDevToolsRuntimeScope):
 
 function getScopeSetInterval(
     scope: StateDevToolsRuntimeScope
-): typeof globalThis.setInterval | undefined {
+): BrowserSetInterval | undefined {
     return scope.getSetInterval?.();
 }
 

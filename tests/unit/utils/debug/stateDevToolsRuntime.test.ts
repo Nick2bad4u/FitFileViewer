@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getStateDevToolsRuntime } from "../../../../electron-app/utils/debug/stateDevToolsRuntime.js";
+import type {
+    BrowserClearInterval,
+    BrowserIntervalHandle,
+    BrowserSetInterval,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
+import {
+    getStateDevToolsRuntime,
+    type StateDevToolsIntervalHandle,
+} from "../../../../electron-app/utils/debug/stateDevToolsRuntime.js";
 
 describe("stateDevToolsRuntime", () => {
     afterEach(() => {
@@ -68,12 +76,10 @@ describe("stateDevToolsRuntime", () => {
     it("delegates interval scheduling and clearing through the provided scope", () => {
         expect.assertions(4);
 
-        const intervalHandle = 123 as ReturnType<typeof globalThis.setInterval>;
+        const intervalHandle = 123 as StateDevToolsIntervalHandle;
         const callback = vi.fn();
-        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
-        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
-            () => intervalHandle
-        );
+        const clearIntervalMock = vi.fn<BrowserClearInterval>();
+        const setIntervalMock = vi.fn<BrowserSetInterval>(() => intervalHandle);
         const runtime = getStateDevToolsRuntime({
             getClearInterval: () => clearIntervalMock,
             getSetInterval: () => setIntervalMock,
@@ -120,12 +126,10 @@ describe("stateDevToolsRuntime", () => {
     it("delegates development checks and intervals through provider functions", () => {
         expect.assertions(9);
 
-        const intervalHandle = 321 as ReturnType<typeof globalThis.setInterval>;
+        const intervalHandle = 321 as BrowserIntervalHandle;
         const callback = vi.fn();
-        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
-        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
-            () => intervalHandle
-        );
+        const clearIntervalMock = vi.fn<BrowserClearInterval>();
+        const setIntervalMock = vi.fn<BrowserSetInterval>(() => intervalHandle);
         const getClearInterval = vi.fn(() => clearIntervalMock);
         const getLocation = vi.fn(() => ({
             hostname: "localhost",
@@ -158,7 +162,7 @@ describe("stateDevToolsRuntime", () => {
     it("uses browser runtime providers for production defaults", () => {
         expect.assertions(11);
 
-        const intervalHandle = 222 as ReturnType<typeof globalThis.setInterval>;
+        const intervalHandle = 222 as BrowserIntervalHandle;
         const callback = vi.fn();
         const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
         const memory = {
@@ -169,10 +173,8 @@ describe("stateDevToolsRuntime", () => {
         const now = vi.fn(function defaultPerformanceNow(this: Performance) {
             return 56.78;
         });
-        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
-        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
-            () => intervalHandle
-        );
+        const clearIntervalMock = vi.fn<BrowserClearInterval>();
+        const setIntervalMock = vi.fn<BrowserSetInterval>(() => intervalHandle);
         const delay = Number("1000");
 
         vi.stubGlobal("clearInterval", clearIntervalMock);
@@ -214,9 +216,7 @@ describe("stateDevToolsRuntime", () => {
             "stateDevToolsRuntime requires setInterval"
         );
         expect(() => {
-            utils.clearInterval(
-                123 as ReturnType<typeof globalThis.setInterval>
-            );
+            utils.clearInterval(123 as BrowserIntervalHandle);
         }).toThrow("stateDevToolsRuntime requires clearInterval");
     });
 
@@ -234,11 +234,11 @@ describe("stateDevToolsRuntime", () => {
     it("ignores legacy direct interval, location, and clock properties", () => {
         expect.assertions(10);
 
-        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
+        const clearIntervalMock = vi.fn<BrowserClearInterval>();
         const dateNow = vi.fn<() => number>(() => 123);
         const performanceNow = vi.fn<() => number>(() => 456);
-        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
-            () => 123 as ReturnType<typeof globalThis.setInterval>
+        const setIntervalMock = vi.fn<BrowserSetInterval>(
+            () => 123 as BrowserIntervalHandle
         );
         const utils = getStateDevToolsRuntime({
             clearInterval: clearIntervalMock,
@@ -261,9 +261,7 @@ describe("stateDevToolsRuntime", () => {
             "stateDevToolsRuntime requires setInterval"
         );
         expect(() => {
-            utils.clearInterval(
-                123 as ReturnType<typeof globalThis.setInterval>
-            );
+            utils.clearInterval(123 as BrowserIntervalHandle);
         }).toThrow("stateDevToolsRuntime requires clearInterval");
         expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();

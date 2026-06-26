@@ -12013,7 +12013,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(48);
+        expect.assertions(52);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -12066,6 +12066,14 @@ describe("architecture boundaries", () => {
         expect(stateDevToolsRuntimeSource).toContain(
             '"../runtime/browserRuntime.js"'
         );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "type BrowserClearInterval"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "type BrowserIntervalHandle"
+        );
+        expect(stateDevToolsRuntimeSource).toContain("type BrowserSetInterval");
+        expect(stateDevToolsRuntimeSource).not.toContain("typeof globalThis.");
         expect(stateDevToolsRuntimeSource).toContain(
             "getClearInterval: getBrowserClearInterval"
         );

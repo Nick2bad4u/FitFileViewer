@@ -2,6 +2,7 @@ export type BrowserAbortControllerConstructor =
     typeof globalThis.AbortController;
 export type BrowserCancelAnimationFrame =
     typeof globalThis.cancelAnimationFrame;
+export type BrowserClearInterval = typeof globalThis.clearInterval;
 export type BrowserClearTimeout = typeof globalThis.clearTimeout;
 export type BrowserCustomEventConstructor = typeof globalThis.CustomEvent;
 export type BrowserDOMParserConstructor = typeof globalThis.DOMParser;
@@ -28,6 +29,8 @@ export type BrowserNodeConstructor = typeof globalThis.Node;
 export type BrowserQueueMicrotask = typeof globalThis.queueMicrotask;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;
+export type BrowserSetInterval = typeof globalThis.setInterval;
+export type BrowserIntervalHandle = ReturnType<BrowserSetInterval>;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;
 export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
