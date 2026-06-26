@@ -1,4 +1,10 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserKeyboardEventConstructor,
+    type BrowserMutationObserverConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserDocument,
@@ -8,26 +14,24 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type MapActionButtonTimer = ReturnType<typeof globalThis.setTimeout>;
+export type MapActionButtonTimer = BrowserTimerHandle;
 
 export interface MapActionButtonsRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
     readonly getMutationObserver?:
-        | (() => typeof globalThis.MutationObserver | undefined)
+        | (() => BrowserMutationObserverConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface MapActionButtonsRuntime {
@@ -61,7 +65,7 @@ function getRequiredDateNow(scope: MapActionButtonsRuntimeScope): () => number {
 
 function getMutationObserverConstructor(
     scope: MapActionButtonsRuntimeScope
-): typeof globalThis.MutationObserver {
+): BrowserMutationObserverConstructor {
     const MutationObserverConstructor = scope.getMutationObserver?.();
     if (typeof MutationObserverConstructor !== "function") {
         throw new TypeError(

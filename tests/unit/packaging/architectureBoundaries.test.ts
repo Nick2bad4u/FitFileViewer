@@ -15979,7 +15979,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(53);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -16071,6 +16071,27 @@ describe("architecture boundaries", () => {
         );
         expect(mapActionButtonsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type BrowserKeyboardEventConstructor"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type BrowserMutationObserverConstructor"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(mapActionButtonsRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"

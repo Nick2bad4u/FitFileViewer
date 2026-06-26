@@ -2,8 +2,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getMapActionButtonsRuntime,
+    type MapActionButtonTimer,
     type MapActionButtonsRuntimeScope,
 } from "../../../../electron-app/utils/maps/controls/mapActionButtonsRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserMutationObserverConstructor,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getMapActionButtonsRuntime", () => {
     afterEach(() => {
@@ -18,13 +25,10 @@ describe("getMapActionButtonsRuntime", () => {
         let scheduledDelayMs = 0;
         const runtime = getMapActionButtonsRuntime({
             getSetTimeout: () =>
-                function setTimeout(
-                    callback,
-                    delayMs
-                ): ReturnType<typeof globalThis.setTimeout> {
+                function setTimeout(callback, delayMs): MapActionButtonTimer {
                     scheduledDelayMs = delayMs;
                     callback();
-                    return 7 as ReturnType<typeof globalThis.setTimeout>;
+                    return 7 as MapActionButtonTimer;
                 },
         });
         const retryDelayMs = Number.parseInt("150", 10);
@@ -41,14 +45,14 @@ describe("getMapActionButtonsRuntime", () => {
     it("uses the injected timer clearer", () => {
         expect.assertions(1);
 
-        let clearedTimer: ReturnType<typeof setTimeout> | undefined;
+        let clearedTimer: MapActionButtonTimer | undefined;
         const runtime = getMapActionButtonsRuntime({
             getClearTimeout: () =>
-                function clearTimeout(timer): void {
+                function clearTimeout(timer: MapActionButtonTimer): void {
                     clearedTimer = timer;
                 },
         });
-        const timer = 9 as ReturnType<typeof setTimeout>;
+        const timer = 9 as MapActionButtonTimer;
 
         runtime.clearTimeout(timer);
 
@@ -73,9 +77,9 @@ describe("getMapActionButtonsRuntime", () => {
         const callback = vi.fn<() => void>();
         const mutationCallback = vi.fn<MutationCallback>();
         const delayMs = Number("150");
-        const timer = 8 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 8 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(456);
         const observer = {
             disconnect: vi.fn(),
@@ -148,7 +152,7 @@ describe("getMapActionButtonsRuntime", () => {
         const runtime = getMapActionButtonsRuntime({
             getKeyboardEvent: () => KeyboardEvent,
             getMutationObserver: () =>
-                MutationObserverConstructor as unknown as typeof MutationObserver,
+                MutationObserverConstructor as unknown as BrowserMutationObserverConstructor,
         });
 
         expect(runtime.createMutationObserver(callback)).toBe(observer);
@@ -169,9 +173,9 @@ describe("getMapActionButtonsRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapActionButtonsRuntime requires setTimeout"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapActionButtonsRuntime requires clearTimeout");
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "mapActionButtonsRuntime requires clearTimeout"
+        );
         expect(() => runtime.getDocument()).toThrow(
             "mapActionButtonsRuntime requires document"
         );
@@ -211,9 +215,9 @@ describe("getMapActionButtonsRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapActionButtonsRuntime requires setTimeout"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapActionButtonsRuntime requires clearTimeout");
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "mapActionButtonsRuntime requires clearTimeout"
+        );
         expect(() => runtime.getDocument()).toThrow(
             "mapActionButtonsRuntime requires document"
         );
