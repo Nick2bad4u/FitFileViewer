@@ -1,4 +1,5 @@
 import {
+    type BrowserCustomEventConstructor,
     getBrowserCustomEvent,
     getBrowserDocument,
     getBrowserEventTarget,
@@ -14,7 +15,7 @@ export interface ChartSettingsRenderRuntime {
 
 export interface ChartSettingsRenderRuntimeScope {
     readonly getCustomEvent?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?:
@@ -24,7 +25,7 @@ export interface ChartSettingsRenderRuntimeScope {
 
 function getCustomEventConstructor(
     scope: ChartSettingsRenderRuntimeScope
-): typeof CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(

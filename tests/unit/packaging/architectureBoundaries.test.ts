@@ -8119,7 +8119,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(28);
+        expect.assertions(31);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -8184,6 +8184,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
             "getCustomEvent: getBrowserCustomEvent"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
@@ -8203,6 +8206,12 @@ describe("architecture boundaries", () => {
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
             "const CustomEventConstructor = scope.getCustomEvent?.();"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "): typeof CustomEvent"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "| (() => typeof CustomEvent | undefined)"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
             "const documentRef = scope.getDocument?.();"
