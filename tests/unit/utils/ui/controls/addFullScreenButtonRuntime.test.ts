@@ -4,6 +4,10 @@ import {
     FULLSCREEN_BUTTON_SVG_NAMESPACE,
     getAddFullScreenButtonRuntime,
 } from "../../../../../electron-app/utils/ui/controls/addFullScreenButtonRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserMutationObserverConstructor,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getAddFullScreenButtonRuntime", () => {
     afterEach(() => {
@@ -223,7 +227,7 @@ describe("getAddFullScreenButtonRuntime", () => {
         );
         const runtime = getAddFullScreenButtonRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -266,7 +270,7 @@ describe("getAddFullScreenButtonRuntime", () => {
         const runtime = getAddFullScreenButtonRuntime({
             getKeyboardEvent: () => KeyboardEvent,
             getMutationObserver: () =>
-                MutationObserverConstructor as unknown as typeof MutationObserver,
+                MutationObserverConstructor as unknown as BrowserMutationObserverConstructor,
         });
 
         expect(runtime.createMutationObserver(callback)).toBe(observer);

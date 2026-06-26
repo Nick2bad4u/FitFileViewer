@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserKeyboardEventConstructor,
+    type BrowserMutationObserverConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -11,7 +15,7 @@ export { SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE } from "../icons/iconF
 
 export interface AddFullScreenButtonRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocumentEventTarget?:
         | (() => AddFullScreenButtonEventTarget | undefined)
@@ -21,13 +25,13 @@ export interface AddFullScreenButtonRuntimeScope {
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
     readonly getMutationObserver?:
-        | (() => typeof globalThis.MutationObserver | undefined)
+        | (() => BrowserMutationObserverConstructor | undefined)
         | undefined;
 }
 
@@ -78,7 +82,7 @@ export interface AddFullScreenButtonRuntime {
 
 function getAbortControllerConstructor(
     scope: AddFullScreenButtonRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -112,19 +116,19 @@ function getGlobalEventTarget(
 
 function getHTMLElementConstructor(
     scope: AddFullScreenButtonRuntimeScope
-): typeof globalThis.HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 
 function getKeyboardEventConstructor(
     scope: AddFullScreenButtonRuntimeScope
-): typeof globalThis.KeyboardEvent | undefined {
+): BrowserKeyboardEventConstructor | undefined {
     return scope.getKeyboardEvent?.();
 }
 
 function getMutationObserverConstructor(
     scope: AddFullScreenButtonRuntimeScope
-): typeof globalThis.MutationObserver {
+): BrowserMutationObserverConstructor {
     const MutationObserverConstructor = scope.getMutationObserver?.();
     if (typeof MutationObserverConstructor !== "function") {
         throw new TypeError(

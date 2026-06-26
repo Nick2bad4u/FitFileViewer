@@ -315,7 +315,9 @@ use `setupFullscreenListeners`, and fullscreen button listener abort-controller 
 state update path. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
 Fullscreen button runtime production defaults now reuse shared browser runtime providers for document,
 HTMLElement, KeyboardEvent, and MutationObserver lookups instead of local inline `globalThis` getters,
-extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails.
+extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails;
+its AbortController, HTMLElement, KeyboardEvent, and MutationObserver provider contracts now also reuse shared
+browser-runtime constructor aliases instead of direct ambient constructor type spellings.
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge

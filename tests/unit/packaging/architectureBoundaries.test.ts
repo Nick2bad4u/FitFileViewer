@@ -15709,7 +15709,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(53);
+        expect.assertions(61);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -15786,7 +15786,22 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "type BrowserKeyboardEventConstructor"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "type BrowserMutationObserverConstructor"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "typeof AbortController | undefined"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -15801,16 +15816,25 @@ describe("architecture boundaries", () => {
             "getHTMLElement: getBrowserHTMLElement"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement | undefined"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
             "getKeyboardEvent: getBrowserKeyboardEvent"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
+            "typeof globalThis.KeyboardEvent | undefined"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
             "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
             "getMutationObserver: getBrowserMutationObserver"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "typeof globalThis.MutationObserver | undefined"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "getMutationObserver: () => globalThis.MutationObserver"
