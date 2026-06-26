@@ -16069,7 +16069,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(46);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -16170,6 +16170,7 @@ describe("architecture boundaries", () => {
         expect(mapDocumentListenersRuntimeSource).not.toContain(
             "MapDocumentListenersRuntimeScope = globalThis"
         );
+        expect(mapDocumentListenersRuntimeSource).not.toContain("globalThis.");
         expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
             "readonly AbortController?:"
         );

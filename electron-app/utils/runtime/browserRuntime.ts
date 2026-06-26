@@ -6,6 +6,7 @@ export type BrowserClearTimeout = typeof globalThis.clearTimeout;
 export type BrowserEventConstructor = typeof globalThis.Event;
 export type BrowserFileReaderConstructor = typeof globalThis.FileReader;
 export type BrowserHTMLElementConstructor = typeof globalThis.HTMLElement;
+export type BrowserNodeConstructor = typeof globalThis.Node;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;
 export type BrowserSetTimeout = typeof globalThis.setTimeout;

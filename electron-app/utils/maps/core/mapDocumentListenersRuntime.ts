@@ -1,4 +1,7 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserNodeConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserEventTarget,
@@ -14,15 +17,15 @@ type MapDocumentListenersResizeTarget = Pick<EventTarget, "addEventListener">;
 
 export interface MapDocumentListenersRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?:
         | (() => MapDocumentListenersDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
+    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
     readonly getResizeTarget?:
         | (() => MapDocumentListenersResizeTarget | undefined)
         | undefined;
@@ -86,19 +89,19 @@ const defaultMapDocumentListenersRuntimeScope: MapDocumentListenersRuntimeScope 
 
 function getAbortController(
     scope: MapDocumentListenersRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getHTMLElementConstructor(
     scope: MapDocumentListenersRuntimeScope
-): typeof globalThis.HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 
 function getNodeConstructor(
     scope: MapDocumentListenersRuntimeScope
-): typeof globalThis.Node | undefined {
+): BrowserNodeConstructor | undefined {
     return scope.getNode?.();
 }
 
