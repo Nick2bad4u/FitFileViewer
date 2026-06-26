@@ -11,6 +11,7 @@ import {
     type FitSummaryData,
     loadColPrefs,
     orderSummaryColumnsNamedFirst,
+    removeColPrefs,
     saveColPrefs,
 } from "./renderSummaryHelpers.js";
 import { getSummaryColModalRuntime } from "./summaryColModalRuntime.js";
@@ -273,11 +274,7 @@ export function showColModal({
 
         // If selection matches baseline, clear per-file key to avoid a "phantom" override.
         if (sameCols(baseline, cols)) {
-            try {
-                localStorage.removeItem(prefsKeyForFile);
-            } catch {
-                /* ignore */
-            }
+            removeColPrefs(prefsKeyForFile);
             return;
         }
 
@@ -471,11 +468,7 @@ export function showColModal({
     clearGlobalDefaultBtn.addEventListener(
         "click",
         () => {
-            try {
-                localStorage.removeItem(prefsKeyGlobal);
-            } catch {
-                /* ignore */
-            }
+            removeColPrefs(prefsKeyGlobal);
             globalBadge.className = "summary-col-badge summary-col-badge--off";
             globalBadge.disabled = true;
             hideTooltip();

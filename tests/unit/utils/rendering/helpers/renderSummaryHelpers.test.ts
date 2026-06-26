@@ -4,6 +4,7 @@ import {
     getRowLabel,
     getStorageKey,
     loadColPrefs,
+    removeColPrefs,
     saveColPrefs,
 } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
 import {
@@ -239,6 +240,44 @@ describe("renderSummaryHelpers core functions", () => {
             expect(loadColPrefs(key)).toStrictEqual(originalColumns);
         } finally {
             setItemSpy.mockRestore();
+            resetSummaryFixture();
+        }
+    });
+
+    it("removeColPrefs removes persisted preferences", () => {
+        expect.assertions(1);
+
+        resetSummaryFixture();
+
+        try {
+            const key = "summaryColSel_remove";
+            localStorage.setItem(key, JSON.stringify(["Speed"]));
+
+            removeColPrefs(key);
+
+            expect(localStorage.getItem(key)).toBeNull();
+        } finally {
+            resetSummaryFixture();
+        }
+    });
+
+    it("removeColPrefs ignores storage failures", () => {
+        expect.assertions(2);
+
+        resetSummaryFixture();
+
+        const key = "summaryColSel_throwing_remove";
+        const removeItemSpy = vi
+            .spyOn(localStorage, "removeItem")
+            .mockImplementation((): void => {
+                throw new Error("blocked");
+            });
+
+        try {
+            expect(() => removeColPrefs(key)).not.toThrow();
+            expect(removeItemSpy).toHaveBeenCalledExactlyOnceWith(key);
+        } finally {
+            removeItemSpy.mockRestore();
             resetSummaryFixture();
         }
     });

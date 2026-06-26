@@ -42,7 +42,7 @@ describe("getRenderSummaryRuntime", () => {
     });
 
     it("uses shared browser providers for production defaults", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -78,6 +78,10 @@ describe("getRenderSummaryRuntime", () => {
             "http://www.w3.org/2000/svg"
         );
         expect(utils.getSummaryContainer()).toBe(summaryContainer);
+        utils.setStorageItem("summaryColSel_test", '["speed"]');
+        expect(utils.getStorageItem("summaryColSel_test")).toBe('["speed"]');
+        utils.removeStorageItem("summaryColSel_test");
+        expect(utils.getStorageItem("summaryColSel_test")).toBeNull();
         utils.addResizeListener(listener, options);
         expect(addEventListener).toHaveBeenCalledWith(
             "resize",
@@ -95,8 +99,8 @@ describe("getRenderSummaryRuntime", () => {
         expect(frameCallback).not.toHaveBeenCalled();
     });
 
-    it("routes scheduling dependencies through provider functions", () => {
-        expect.assertions(25);
+    it("routes scheduling and storage dependencies through provider functions", () => {
+        expect.assertions(30);
 
         let controllerCount = 0;
         class TestAbortController implements AbortController {
@@ -135,6 +139,11 @@ describe("getRenderSummaryRuntime", () => {
             "createDocumentFragment"
         );
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const storage = {
+            getItem: vi.fn(() => '["distance"]'),
+            removeItem: vi.fn(),
+            setItem: vi.fn(),
+        };
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 44);
@@ -142,12 +151,14 @@ describe("getRenderSummaryRuntime", () => {
         const getAddEventListener = vi.fn(() => addEventListener);
         const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
         const getDocument = vi.fn(() => documentRef);
+        const getLocalStorage = vi.fn(() => storage);
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
         const scope = {
             getAbortController,
             getAddEventListener,
             getCancelAnimationFrame,
             getDocument,
+            getLocalStorage,
             getRequestAnimationFrame,
         };
         const utils = getRenderSummaryRuntime(scope);
@@ -161,6 +172,9 @@ describe("getRenderSummaryRuntime", () => {
         expect(svg.nodeName).toBe("svg");
         expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
         expect(utils.getSummaryContainer()).toBe(summaryContainer);
+        expect(utils.getStorageItem("summaryColSel_test")).toBe('["distance"]');
+        utils.setStorageItem("summaryColSel_test", '["speed"]');
+        utils.removeStorageItem("summaryColSel_test");
         utils.addResizeListener(listener, options);
         expect(utils.requestAnimationFrame(frameCallback)).toBe(44);
         utils.cancelAnimationFrame(44);
@@ -168,6 +182,7 @@ describe("getRenderSummaryRuntime", () => {
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getAddEventListener).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledTimes(4);
+        expect(getLocalStorage).toHaveBeenCalledTimes(3);
         expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
         expect(getCancelAnimationFrame).toHaveBeenCalledOnce();
         expect(controllerCount).toBe(1);
@@ -178,6 +193,12 @@ describe("getRenderSummaryRuntime", () => {
             "http://www.w3.org/2000/svg",
             "svg"
         );
+        expect(storage.getItem).toHaveBeenCalledWith("summaryColSel_test");
+        expect(storage.setItem).toHaveBeenCalledWith(
+            "summaryColSel_test",
+            '["speed"]'
+        );
+        expect(storage.removeItem).toHaveBeenCalledWith("summaryColSel_test");
         expect(addEventListener).toHaveBeenCalledWith(
             "resize",
             listener,
@@ -202,8 +223,8 @@ describe("getRenderSummaryRuntime", () => {
         }).toThrow("renderSummary requires an AbortController runtime");
     });
 
-    it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(4);
+    it("fails clearly when document or storage runtimes are unavailable", () => {
+        expect.assertions(5);
 
         const utils = getRenderSummaryRuntime({});
 
@@ -218,6 +239,9 @@ describe("getRenderSummaryRuntime", () => {
         );
         expect(() => utils.getSummaryContainer()).toThrow(
             "renderSummary requires a document runtime"
+        );
+        expect(() => utils.getStorageItem("summaryColSel_test")).toThrow(
+            "renderSummary requires a localStorage runtime"
         );
     });
 
@@ -307,8 +331,8 @@ describe("getRenderSummaryRuntime", () => {
         ).not.toThrow();
     });
 
-    it("ignores legacy direct scheduling runtime properties", () => {
-        expect.assertions(15);
+    it("ignores legacy direct scheduling and storage runtime properties", () => {
+        expect.assertions(17);
 
         let controllerCount = 0;
         class TestAbortController implements AbortController {
@@ -331,11 +355,17 @@ describe("getRenderSummaryRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 51);
+        const localStorage = {
+            getItem: vi.fn(() => '["speed"]'),
+            removeItem: vi.fn(),
+            setItem: vi.fn(),
+        };
         const utils = getRenderSummaryRuntime({
             AbortController: TestAbortController,
             addEventListener,
             cancelAnimationFrame,
             document,
+            localStorage,
             requestAnimationFrame,
         } as unknown as Parameters<typeof getRenderSummaryRuntime>[0]);
 
@@ -354,6 +384,9 @@ describe("getRenderSummaryRuntime", () => {
         expect(() => utils.getSummaryContainer()).toThrow(
             "renderSummary requires a document runtime"
         );
+        expect(() => utils.getStorageItem("summaryColSel_test")).toThrow(
+            "renderSummary requires a localStorage runtime"
+        );
         utils.addResizeListener(listener);
         expect(utils.requestAnimationFrame(frameCallback)).toBe(null);
         utils.cancelAnimationFrame(51);
@@ -362,6 +395,7 @@ describe("getRenderSummaryRuntime", () => {
         expect(addEventListener).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
+        expect(localStorage.getItem).not.toHaveBeenCalled();
         expect(listener).not.toHaveBeenCalled();
         expect(frameCallback).not.toHaveBeenCalled();
         expect(() => utils.addResizeListener(listener)).not.toThrow();

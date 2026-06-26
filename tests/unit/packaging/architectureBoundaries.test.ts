@@ -1377,7 +1377,7 @@ const directChartStateManagerRuntimeGlobalPattern =
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b|\binstanceof\s+KeyboardEvent\b/u;
 const directRenderSummarySchedulingRuntimeGlobalPattern =
-    /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b|\bnew\s+AbortController\b/u;
+    /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|localStorage|requestAnimationFrame)\b|\blocalStorage\.(?:getItem|removeItem|setItem)\b|\bnew\s+AbortController\b/u;
 const directUserDeviceInfoBoxRuntimeGlobalPattern =
     /\bglobalThis\.AbortController\b|\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -19647,7 +19647,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(51);
+        expect.assertions(52);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -19686,6 +19686,7 @@ describe("architecture boundaries", () => {
         expect(summaryColModalSource).toContain("runtime.isKeyboardEvent");
         expect(summaryColModalSource).toContain("runtime.isMouseEvent");
         expect(summaryColModalSource).not.toContain("document.");
+        expect(summaryColModalSource).not.toContain("localStorage.");
         expect(summaryColModalSource).not.toContain("instanceof HTMLElement");
         expect(summaryColModalSource).not.toContain("instanceof KeyboardEvent");
         expect(summaryColModalSource).not.toContain("instanceof MouseEvent");
@@ -19889,7 +19890,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(51);
+        expect.assertions(60);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -19934,10 +19935,20 @@ describe("architecture boundaries", () => {
         expect(renderSummarySource).toContain(
             "renderSummaryRuntime().createDocumentFragment"
         );
+        expect(renderSummarySource).toContain(
+            "renderSummaryRuntime().getStorageItem"
+        );
+        expect(renderSummarySource).toContain(
+            "renderSummaryRuntime().setStorageItem"
+        );
+        expect(renderSummarySource).toContain(
+            "renderSummaryRuntime().removeStorageItem"
+        );
         expect(renderSummarySource).not.toContain("document.createElement");
         expect(renderSummarySource).not.toContain(
             "document.createDocumentFragment"
         );
+        expect(renderSummarySource).not.toContain("localStorage.");
         expect(renderSummaryCoreSource).toContain("renderSummaryRuntime.js");
         expect(renderSummaryCoreSource).toContain("getSummaryContainer()");
         expect(renderSummaryCoreSource).toContain(
@@ -19973,6 +19984,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderSummaryRuntimeSource).not.toContain("readonly document?:");
         expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
         expect(renderSummaryRuntimeSource).not.toContain(
@@ -19985,6 +19999,7 @@ describe("architecture boundaries", () => {
             "scope.cancelAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).not.toContain("scope.document");
+        expect(renderSummaryRuntimeSource).not.toContain("scope.localStorage");
         expect(renderSummaryRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
@@ -20012,8 +20027,14 @@ describe("architecture boundaries", () => {
         expect(renderSummaryRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getLocalStorage: getBrowserLocalStorage"
+        );
         expect(renderSummaryRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "getLocalStorage: () => globalThis.localStorage"
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
@@ -20023,6 +20044,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderSummaryRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "renderSummary requires a localStorage runtime"
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getScopeDocument(scope).createElement(tagName)"

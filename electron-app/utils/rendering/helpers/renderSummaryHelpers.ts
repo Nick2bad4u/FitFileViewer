@@ -136,7 +136,7 @@ export function loadColPrefs(
     _allKeys?: readonly string[]
 ): string[] | null {
     try {
-        const v = localStorage.getItem(key);
+        const v = renderSummaryRuntime().getStorageItem(key);
         if (v) {
             const arr = JSON.parse(v);
             if (Array.isArray(arr) && arr.every((x) => typeof x === "string")) {
@@ -625,7 +625,19 @@ export function saveColPrefs(
     _allKeys?: readonly string[]
 ): void {
     try {
-        localStorage.setItem(key, JSON.stringify(visibleColumns));
+        renderSummaryRuntime().setStorageItem(
+            key,
+            JSON.stringify(visibleColumns)
+        );
+    } catch {
+        /* Intentionally ignore errors */
+    }
+}
+
+/** Removes persisted visible column preferences. */
+export function removeColPrefs(key: string): void {
+    try {
+        renderSummaryRuntime().removeStorageItem(key);
     } catch {
         /* Intentionally ignore errors */
     }

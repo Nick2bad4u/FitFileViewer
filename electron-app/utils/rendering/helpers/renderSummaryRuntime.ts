@@ -3,11 +3,17 @@ import {
     getBrowserAddEventListener,
     getBrowserCancelAnimationFrame,
     getBrowserDocument,
+    getBrowserLocalStorage,
     getBrowserRequestAnimationFrame,
 } from "../../runtime/browserRuntime.js";
 
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
+type RenderSummaryStorage = Pick<
+    Storage,
+    "getItem" | "removeItem" | "setItem"
+>;
 
 export interface RenderSummaryRuntimeScope {
     readonly getAbortController?:
@@ -20,6 +26,9 @@ export interface RenderSummaryRuntimeScope {
         | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getLocalStorage?:
+        | (() => RenderSummaryStorage | undefined)
+        | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -39,10 +48,13 @@ export interface RenderSummaryRuntime {
     readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
+    readonly getStorageItem: (key: string) => string | null;
     readonly getSummaryContainer: () => HTMLElement | null;
     readonly requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => null | number;
+    readonly removeStorageItem: (key: string) => void;
+    readonly setStorageItem: (key: string, value: string) => void;
 }
 
 const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
@@ -50,6 +62,7 @@ const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
     getAddEventListener: getBrowserAddEventListener,
     getCancelAnimationFrame: getBrowserCancelAnimationFrame,
     getDocument: getBrowserDocument,
+    getLocalStorage: getBrowserLocalStorage,
     getRequestAnimationFrame: getBrowserRequestAnimationFrame,
 };
 
@@ -78,6 +91,17 @@ function getScopeDocument(scope: RenderSummaryRuntimeScope): Document {
     }
 
     return runtimeDocument;
+}
+
+function getRequiredLocalStorage(
+    scope: RenderSummaryRuntimeScope
+): RenderSummaryStorage {
+    const storage = scope.getLocalStorage?.();
+    if (!storage) {
+        throw new TypeError("renderSummary requires a localStorage runtime");
+    }
+
+    return storage;
 }
 
 function getScopeRequestAnimationFrame(
@@ -135,6 +159,9 @@ export function getRenderSummaryRuntime(
         createSvgElement(tagName) {
             return createSvgElement(scope, tagName);
         },
+        getStorageItem(key): string | null {
+            return getRequiredLocalStorage(scope).getItem(key);
+        },
         getSummaryContainer(): HTMLElement | null {
             return getElementByIdFlexible(
                 getScopeDocument(scope),
@@ -149,6 +176,12 @@ export function getRenderSummaryRuntime(
             }
 
             return requestAnimationFrameRef.call(scope, callback);
+        },
+        removeStorageItem(key): void {
+            getRequiredLocalStorage(scope).removeItem(key);
+        },
+        setStorageItem(key, value): void {
+            getRequiredLocalStorage(scope).setItem(key, value);
         },
     };
 }
