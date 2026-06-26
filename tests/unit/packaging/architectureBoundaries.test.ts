@@ -16240,7 +16240,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(67);
+        expect.assertions(68);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -16282,6 +16282,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
         expect(fullscreenButtonSource).not.toContain(
             "const addFullScreenButtonRuntime = getAddFullScreenButtonRuntime();"
         );
+        expect(fullscreenButtonSource).not.toContain("value as Record");
         expect(fullscreenButtonSource).toContain(
             "addFullScreenButtonRuntime().createSvgElement("
         );

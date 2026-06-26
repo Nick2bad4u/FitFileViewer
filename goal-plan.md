@@ -324,6 +324,8 @@ window event-target, HTMLElement, KeyboardEvent, and MutationObserver lookups in
 extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails;
 its AbortController, HTMLElement, KeyboardEvent, and MutationObserver provider contracts now also reuse shared
 browser-runtime constructor aliases instead of direct ambient constructor type spellings.
+Fullscreen button scoped Electron API validation now uses an explicit optional-function property guard instead of
+casting the candidate preload API to a generic record.
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge

@@ -75,8 +75,18 @@ function isElectronFullscreenApi(
         return false;
     }
 
-    const setFullScreen = (value as Record<string, unknown>)["setFullScreen"];
-    return setFullScreen === undefined || typeof setFullScreen === "function";
+    return hasOptionalFullscreenFunction(value, "setFullScreen");
+}
+
+function hasOptionalFullscreenFunction(
+    value: object,
+    key: keyof ElectronFullscreenAPI
+): boolean {
+    if (!(key in value)) {
+        return true;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 const getScreenfullInstance = (): ScreenfullRuntime | undefined =>

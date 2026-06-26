@@ -162,6 +162,43 @@ describe("addFullScreenButton", () => {
         }
     });
 
+    it("falls back to native fullscreen when scoped Electron fullscreen IPC is malformed", async () => {
+        expect.assertions(3);
+
+        await resetTestState();
+        const storedHandlers: ScreenfullChangeHandler[] = [];
+        const screenfullMock = createScreenfullMock(storedHandlers);
+        await registerScreenfullRuntime(screenfullMock);
+
+        const activeContent = document.createElement("section");
+        activeContent.id = "content-data";
+        const requestFullscreen = vi.fn<() => void>();
+        defineElementMethod(
+            activeContent,
+            "requestFullscreen",
+            requestFullscreen
+        );
+        document.body.append(activeContent);
+        controlMocks.getActiveTabContent.mockReturnValue(activeContent);
+
+        const electronApiScope = createElectronApiScope({
+            setFullScreen: "not-callable",
+        });
+
+        try {
+            const module = await loadModule();
+            module.addFullScreenButton({ electronApiScope });
+
+            getRequiredFullscreenButton().click();
+
+            expect(requestFullscreen).toHaveBeenCalledOnce();
+            expect(screenfullMock.request).not.toHaveBeenCalled();
+            expect(storedHandlers).toStrictEqual([]);
+        } finally {
+            await cleanupTestState();
+        }
+    });
+
     it("handles F11 keyboard shortcut with IPC and native fallback", async () => {
         expect.assertions(7);
 
@@ -282,7 +319,15 @@ function createScreenfullMock(
 }
 
 function defineDocumentElementMethod(name: string, value: unknown): void {
-    Object.defineProperty(document.documentElement, name, {
+    defineElementMethod(document.documentElement, name, value);
+}
+
+function defineElementMethod(
+    element: Element,
+    name: string,
+    value: unknown
+): void {
+    Object.defineProperty(element, name, {
         configurable: true,
         value,
         writable: true,
@@ -321,9 +366,7 @@ function getFullscreenButtonState(button: HTMLButtonElement) {
     };
 }
 
-function createElectronApiScope(
-    api: TestElectronAPI
-): RendererElectronApiScope {
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
     return {
         getElectronAPI: () => api,
     };
