@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserDocument,
 } from "../../runtime/browserRuntime.js";
@@ -9,7 +10,7 @@ type PowerEstimationSettingsModalKeydownListener = (
 
 export interface OpenPowerEstimationSettingsModalRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
@@ -30,7 +31,7 @@ export interface OpenPowerEstimationSettingsModalRuntime {
 
 function getAbortControllerConstructor(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 

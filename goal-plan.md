@@ -355,6 +355,9 @@ modal element creation, body attachment, and body containment checks now route t
 listeners, creating elements through `document`, or reading `document.body` directly inside
 `openPowerEstimationSettingsModal.ts`, with focused runtime coverage and architecture guardrails blocking
 direct modal controller and document access from returning.
+Power-estimation settings modal runtime controller provider types now use the shared browser-runtime
+AbortController constructor alias instead of a direct ambient constructor type, with architecture coverage blocking
+that direct type surface from returning.
 CSV table clipboard fallback now routes browser clipboard writes and legacy textarea copy through
 `copyTableAsCSVRuntime.ts` instead of probing `navigator.clipboard` or calling document copy APIs directly inside
 `copyTableAsCSV.ts`; production defaults and explicit runtime scopes now use named provider functions instead of

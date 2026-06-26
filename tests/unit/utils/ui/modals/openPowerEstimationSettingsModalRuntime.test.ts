@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getOpenPowerEstimationSettingsModalRuntime } from "../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModalRuntime.js";
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getOpenPowerEstimationSettingsModalRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
@@ -14,7 +15,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         );
         const runtime = getOpenPowerEstimationSettingsModalRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -146,7 +147,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         );
         const getAbortController = vi.fn(
             () =>
-                AbortControllerConstructor as unknown as typeof AbortController
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor
         );
         const getDocument = vi.fn(() => documentEventTarget);
         const getDocumentEventTarget = vi.fn(() => documentEventTarget);
@@ -188,7 +189,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         const createElement = vi.spyOn(documentEventTarget, "createElement");
         const runtime = getOpenPowerEstimationSettingsModalRuntime({
             AbortController:
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             documentEventTarget,
         } as unknown as Parameters<
             typeof getOpenPowerEstimationSettingsModalRuntime
