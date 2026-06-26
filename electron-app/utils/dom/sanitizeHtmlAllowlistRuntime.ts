@@ -1,4 +1,7 @@
 import {
+    type BrowserDOMParserConstructor,
+    type BrowserElementConstructor,
+    type BrowserNodeFilter,
     getBrowserDocument,
     getBrowserDOMParser,
     getBrowserElement,
@@ -15,13 +18,13 @@ export interface SanitizeHtmlAllowlistRuntimeScope {
         | (() => SanitizeHtmlAllowlistDocument | undefined)
         | undefined;
     readonly getDOMParser?:
-        | (() => typeof globalThis.DOMParser | undefined)
+        | (() => BrowserDOMParserConstructor | undefined)
         | undefined;
     readonly getElement?:
-        | (() => typeof globalThis.Element | undefined)
+        | (() => BrowserElementConstructor | undefined)
         | undefined;
     readonly getNodeFilter?:
-        | (() => typeof globalThis.NodeFilter | undefined)
+        | (() => BrowserNodeFilter | undefined)
         | undefined;
 }
 
@@ -56,7 +59,7 @@ function getRequiredDocument(
 
 function getRequiredDOMParser(
     scope: SanitizeHtmlAllowlistRuntimeScope
-): typeof globalThis.DOMParser {
+): BrowserDOMParserConstructor {
     const DOMParserConstructor = scope.getDOMParser?.();
     if (typeof DOMParserConstructor !== "function") {
         throw new TypeError(
@@ -69,7 +72,7 @@ function getRequiredDOMParser(
 
 function getRequiredNodeFilter(
     scope: SanitizeHtmlAllowlistRuntimeScope
-): typeof globalThis.NodeFilter {
+): BrowserNodeFilter {
     const NodeFilterRef = scope.getNodeFilter?.();
     if (!NodeFilterRef) {
         throw new TypeError(
@@ -82,7 +85,7 @@ function getRequiredNodeFilter(
 
 function getElementConstructor(
     scope: SanitizeHtmlAllowlistRuntimeScope
-): typeof globalThis.Element | undefined {
+): BrowserElementConstructor | undefined {
     return scope.getElement?.();
 }
 

@@ -3,6 +3,8 @@ export type BrowserAbortControllerConstructor =
 export type BrowserCancelAnimationFrame =
     typeof globalThis.cancelAnimationFrame;
 export type BrowserClearTimeout = typeof globalThis.clearTimeout;
+export type BrowserDOMParserConstructor = typeof globalThis.DOMParser;
+export type BrowserElementConstructor = typeof globalThis.Element;
 export type BrowserEventConstructor = typeof globalThis.Event;
 export type BrowserFetch = typeof globalThis.fetch;
 export type BrowserFileReaderConstructor = typeof globalThis.FileReader;
@@ -10,6 +12,7 @@ export type BrowserHTMLElementConstructor = typeof globalThis.HTMLElement;
 export type BrowserKeyboardEventConstructor = typeof globalThis.KeyboardEvent;
 export type BrowserMutationObserverConstructor =
     typeof globalThis.MutationObserver;
+export type BrowserNodeFilter = typeof globalThis.NodeFilter;
 export type BrowserNodeConstructor = typeof globalThis.Node;
 export type BrowserRequestAnimationFrame =
     typeof globalThis.requestAnimationFrame;
