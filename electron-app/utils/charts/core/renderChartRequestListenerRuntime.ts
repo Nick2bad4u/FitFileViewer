@@ -1,4 +1,6 @@
 import {
+    type BrowserCustomEventConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAddEventListener,
     getBrowserCustomEvent,
     getBrowserDocument,
@@ -25,13 +27,13 @@ export interface RenderChartRequestListenerRuntimeScope {
         | (() => RenderChartRequestListenerAddEventListener | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?:
         | (() => RenderChartRequestListenerDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -65,7 +67,7 @@ const defaultRenderChartRequestListenerRuntimeScope: RenderChartRequestListenerR
 
 function getCustomEventConstructor(
     scope: RenderChartRequestListenerRuntimeScope
-): typeof CustomEvent | undefined {
+): BrowserCustomEventConstructor | undefined {
     return (
         scope.getCustomEvent?.() ??
         scope.getDocument?.()?.defaultView?.CustomEvent
@@ -85,7 +87,7 @@ function getDocument(
 
 function getHTMLElementConstructor(
     scope: RenderChartRequestListenerRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return (
         scope.getHTMLElement?.() ??
         scope.getDocument?.()?.defaultView?.HTMLElement

@@ -1115,6 +1115,8 @@ Direct chart rerender container lookups now use named runtime provider functions
 access instead of a broad `globalThis` default scope or legacy direct scope properties.
 Chart request listener registration, fallback containers, HTMLElement checks, and CustomEvent checks now use named
 runtime provider functions instead of a broad `globalThis` default scope or legacy direct scope properties.
+The request-listener HTMLElement and CustomEvent provider contracts now also reuse shared browser-runtime constructor
+aliases instead of direct ambient constructor type spellings.
 Chart state-manager DOM and timer access now uses named runtime provider functions instead of a broad `globalThis`
 default scope or legacy direct scope properties.
 Chart updater status/update/theme-change paths and chart theme listener handoff now resolve the chart state
