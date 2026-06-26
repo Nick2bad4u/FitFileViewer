@@ -1317,7 +1317,7 @@ const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
 const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern =
-    /\b(?:globalThis|global|testGlobal)\.(?:addEventListener|customElements|document|HTMLElement|setTimeout|window)\s*=|\b(?:document|window)\.addEventListener\s*=|\bReflect\.deleteProperty\(\s*(?:globalThis|document|window)\s*,/u;
+    /\b(?:globalThis|global|testGlobal)\.(?:addEventListener|customElements|document|HTMLElement|setTimeout|window)\s*=|\bsetTestGlobal\(\s*["']window["']|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']window["']|\b(?:document|window)\.addEventListener\s*=|\bReflect\.deleteProperty\(\s*(?:globalThis|document|window)\s*,/u;
 const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
 const directChartListenerStateRuntimeAmbientControllerPattern =

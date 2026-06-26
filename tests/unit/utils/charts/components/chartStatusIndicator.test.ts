@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
-type AddEventListener = typeof window.addEventListener;
+type AddEventListener = Window["addEventListener"];
 type CleanupIndicator = (indicator: HTMLElement) => void;
 type ConsoleError = typeof console.error;
 type CreateIndicator = (...args: unknown[]) => HTMLElement;
@@ -25,8 +25,7 @@ type TestGlobalProperty =
     | "customElements"
     | "document"
     | "HTMLElement"
-    | "setTimeout"
-    | "window";
+    | "setTimeout";
 type TestObjectProperty = "addEventListener";
 
 function createMockElement(id: string): HTMLElement {
@@ -38,7 +37,7 @@ function createMockElement(id: string): HTMLElement {
 function getRequiredElementById(id: string): HTMLElement {
     const element = document.getElementById(id);
 
-    if (!(element instanceof window.HTMLElement)) {
+    if (!(element instanceof HTMLElement)) {
         throw new TypeError(`Expected #${id} to exist`);
     }
 
@@ -74,6 +73,16 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
         value,
         writable: true,
     });
+}
+
+function getDocumentWindow(runtimeDocument: Document): Window {
+    const runtimeWindow = runtimeDocument.defaultView;
+
+    if (!runtimeWindow) {
+        throw new Error("Expected test document to expose defaultView");
+    }
+
+    return runtimeWindow;
 }
 
 function getPropertyDescriptorFromChain(
@@ -265,7 +274,6 @@ describe("chartStatusIndicator.js", () => {
         });
 
         setTestGlobal("document", dom.window.document);
-        setTestGlobal("window", dom.window as Window & typeof globalThis);
         setTestGlobal("HTMLElement", dom.window.HTMLElement);
         setTestGlobal("customElements", dom.window.customElements);
 
@@ -286,12 +294,13 @@ describe("chartStatusIndicator.js", () => {
             }) as SetTimeoutMock
         );
 
-        // Mock addEventListener for both window and document
+        // Mock addEventListener for both document.defaultView and document.
+        const testWindow = getDocumentWindow(dom.window.document);
         const mockWindowAddEventListener = vi.fn<AddEventListener>();
         const mockDocumentAddEventListener = vi.fn<AddEventListener>();
 
         setTestObjectProperty(
-            window,
+            testWindow,
             "addEventListener",
             mockWindowAddEventListener
         );
@@ -301,7 +310,7 @@ describe("chartStatusIndicator.js", () => {
             mockDocumentAddEventListener
         );
 
-        // Synchronize addEventListener between window and globalThis scopes using property descriptor pattern
+        // Synchronize addEventListener with the browser runtime's event target lookup.
         setTestGlobal("addEventListener", mockWindowAddEventListener);
 
         Object.defineProperty = vi.fn<DefineProperty>((obj, prop, descriptor) =>
@@ -533,7 +542,9 @@ describe("chartStatusIndicator.js", () => {
             setupChartStatusUpdates();
 
             // Assert that event listeners were added
-            expect(window.addEventListener).toHaveBeenCalledWith(
+            expect(
+                getDocumentWindow(document).addEventListener
+            ).toHaveBeenCalledWith(
                 "fieldToggleChanged",
                 expect.any(Function),
                 expect.objectContaining({ signal: expect.any(AbortSignal) })
@@ -579,7 +590,7 @@ describe("chartStatusIndicator.js", () => {
             setupChartStatusUpdates();
 
             const fieldToggleHandler = getRegisteredEventHandler(
-                window,
+                getDocumentWindow(document),
                 "fieldToggleChanged"
             );
             const chartsRenderedHandler = getRegisteredEventHandler(
@@ -608,12 +619,16 @@ describe("chartStatusIndicator.js", () => {
         it("should handle errors during setup gracefully", async () => {
             expect.assertions(3);
 
-            // Mock addEventListener to throw an error - need to update both window and globalThis
+            // Mock addEventListener to throw an error and update the browser runtime event target.
             const errorMock = vi.fn<AddEventListener>(() => {
                 throw new Error("Test error");
             });
 
-            setTestObjectProperty(window, "addEventListener", errorMock);
+            setTestObjectProperty(
+                getDocumentWindow(document),
+                "addEventListener",
+                errorMock
+            );
             setTestGlobal("addEventListener", errorMock);
 
             // Import the module

@@ -1129,9 +1129,10 @@ mutation pattern.
 State middleware branch tests now exercise localStorage write failures through a scoped `Storage.prototype.setItem`
 spy instead of assigning `localStorage.setItem` back during cleanup, with architecture coverage blocking that
 storage-method fixture mutation.
-Chart status indicator tests now install and restore temporary document, window, constructor, timer, and
-event-listener fixtures through captured descriptors instead of assigning browser globals, assigning event
-handlers, or deleting globals during cleanup, with architecture coverage blocking that fixture mutation pattern.
+Chart status indicator tests now install and restore temporary document, document-defaultView, constructor, timer,
+and event-listener fixtures through captured descriptors instead of replacing `globalThis.window`, assigning browser
+globals, assigning event handlers, or deleting globals during cleanup, with architecture coverage blocking that
+fixture mutation pattern.
 Chart status indicator DOM lookup, element/text-node creation, body appends, event-listener, viewport, timer, and
 constructor access now uses named runtime provider functions instead of a broad `globalThis` default scope or legacy
 direct scope properties; the default viewport provider now reads named `innerHeight`/`innerWidth` dimensions instead
