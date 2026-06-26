@@ -1,3 +1,5 @@
+import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
+
 export interface TabReadinessStateRuntimeScope {
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
 }
@@ -7,7 +9,7 @@ export interface TabReadinessStateRuntime {
 }
 
 const defaultTabReadinessStateRuntimeScope: TabReadinessStateRuntimeScope = {
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
 };
 
 function getRequiredDateNow(

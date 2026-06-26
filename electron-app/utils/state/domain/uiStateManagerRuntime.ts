@@ -4,6 +4,7 @@ import {
 } from "../../charts/dom/chartDomUtils.js";
 import {
     getBrowserAbortController,
+    getBrowserDateNow,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserMatchMedia,
@@ -156,7 +157,7 @@ export interface UIStateManagerRuntime {
 }
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
-    getDateNow: () => Date.now,
+    getDateNow: getBrowserDateNow,
     getAbortController: getBrowserAbortController,
     getDocument: getBrowserDocument,
     getEventTarget: () =>

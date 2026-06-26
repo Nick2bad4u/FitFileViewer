@@ -8827,7 +8827,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render notification timestamps behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const violations = migratedShowRenderNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -8874,7 +8874,13 @@ describe("architecture boundaries", () => {
             "defaultShowRenderNotificationRuntimeScope"
         );
         expect(showRenderNotificationRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(showRenderNotificationRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
+        );
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
         );
         expect(showRenderNotificationRuntimeSource).toContain(
             "readonly dateNow: () => number;"
@@ -9293,7 +9299,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(169);
+        expect.assertions(170);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -9467,6 +9473,9 @@ describe("architecture boundaries", () => {
             'return documentRef.createElement("span");'
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -10518,7 +10527,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(42);
+        expect.assertions(43);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -10584,6 +10593,9 @@ describe("architecture boundaries", () => {
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(errorHandlingRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
         expect(errorHandlingRuntimeSource).toContain(
@@ -20037,7 +20049,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab readiness timestamps behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const violations = migratedTabReadinessStateRuntimeFiles
             .filter((relativeFile) =>
@@ -20085,7 +20097,13 @@ describe("architecture boundaries", () => {
             "defaultTabReadinessStateRuntimeScope"
         );
         expect(tabReadinessStateRuntimeSource).toContain(
+            "getDateNow: getBrowserDateNow"
+        );
+        expect(tabReadinessStateRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
+        );
+        expect(tabReadinessStateRuntimeSource).toContain(
+            "../../runtime/browserRuntime.js"
         );
         expect(tabReadinessStateRuntimeSource).not.toContain(
             "scope: TabReadinessStateRuntimeScope = globalThis"
@@ -21836,7 +21854,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(74);
+        expect.assertions(79);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -21961,7 +21979,22 @@ describe("architecture boundaries", () => {
         expect(leafletRuntimeSource).toContain(
             "defaultLeafletRuntimeEnvironmentScope"
         );
-        expect(leafletRuntimeSource).toContain("getDateNow: () => Date.now");
+        expect(leafletRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(leafletRuntimeSource).toContain("getDateNow: getBrowserDateNow");
+        expect(leafletRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(leafletRuntimeSource).not.toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(leafletRuntimeSource).not.toContain(
+            "getClearTimeout: () => clearTimeout"
+        );
+        expect(leafletRuntimeSource).not.toContain(
+            "getSetTimeout: () => setTimeout"
+        );
         expect(leafletRuntimeSource).toContain(
             "waitForNextPoll: () => Promise<void>"
         );

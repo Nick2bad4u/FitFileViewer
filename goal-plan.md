@@ -772,7 +772,8 @@ error-listener abort-controller creation now routes through `errorHandlingRuntim
 performance-monitor global fixture; architecture coverage blocks the source fallback, direct controller
 construction, and test-global mutation pattern from returning. Error-handling runtime defaults now read
 `AbortController` and `addEventListener` explicitly through focused helpers instead of generic
-`Reflect.get(globalThis, ...)` probes.
+`Reflect.get(globalThis, ...)` probes, and the default date-clock now reuses the shared browser runtime provider
+instead of a local `Date.now` getter.
 `AppError` timestamp creation now also routes through `errorHandlingRuntime.ts` instead of calling `Date.now`
 directly inside `errorHandling.ts`, with focused runtime coverage and architecture guardrails blocking direct
 clock reads and legacy direct runtime scope properties from returning.
@@ -1087,9 +1088,11 @@ lives on named providers that read `globalThis.document` directly instead of bou
 UI state manager last-notification timestamps now also route through `uiStateManagerRuntime.ts` instead of calling
 `Date.now` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails blocking
 direct clock reads and legacy direct runtime scope properties from returning.
-UI state manager runtime production defaults now reuse shared browser runtime providers for document,
-HTMLElement, and matchMedia lookups instead of local inline `globalThis` getters, extending the existing
-AbortController provider migration with focused runtime coverage and architecture guardrails.
+UI state manager runtime production defaults now reuse shared browser runtime providers for date-clock, document,
+HTMLElement, and matchMedia lookups instead of local inline `globalThis` or `Date.now` getters, extending the
+existing AbortController provider migration with focused runtime coverage and architecture guardrails.
+Tab readiness state runtime production defaults now reuse the shared browser date-clock provider instead of a local
+`Date.now` getter, with focused runtime coverage and architecture guardrails blocking the inline default from returning.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.
@@ -1226,7 +1229,8 @@ operation-id clock reads now also route through that runtime instead of calling 
 `dragDropHandler.ts`, with runtime and architecture coverage blocking direct drag/drop clock reads from returning.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
-from returning.
+from returning. Leaflet runtime production clock and polling-timer defaults now reuse shared browser runtime
+providers instead of local `Date.now`, `setTimeout`, or `clearTimeout` getters.
 Shown-files list tests now pass an explicit local Leaflet runtime fixture to `setLeafletRuntime()` instead of
 stashing the fixture on `window.L` or reaching markers through `global.window.L`, with architecture coverage
 blocking that retired test fixture pattern.
@@ -1287,7 +1291,8 @@ of querying or creating through `document` directly inside `showNotification.ts`
 architecture coverage blocking those direct document calls from returning.
 Chart render-notification decision timestamps now route through `showRenderNotificationRuntime.ts` instead of calling
 `Date.now` directly inside `showRenderNotification.ts`, with focused runtime/behavior coverage and architecture coverage
-blocking direct render-notification clock globals from returning.
+blocking direct render-notification clock globals from returning. Production date-clock defaults now reuse the shared
+browser runtime provider instead of a local `Date.now` getter.
 Modal focus-trap keydown listener target lookup, active-element lookup, and keyboard-event checks now route through
 `modalFocusTrapRuntime.ts` instead of reading `document` or `KeyboardEvent` directly inside `modalFocusTrap.ts`, with
 focused runtime/behavior coverage and architecture coverage blocking those direct browser calls from returning.

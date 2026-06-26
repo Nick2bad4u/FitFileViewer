@@ -18,6 +18,22 @@ describe("tabReadinessStateRuntime", () => {
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
+    it("uses the browser runtime provider for production timestamp reads", () => {
+        expect.assertions(1);
+
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-25T21:10:00.000Z"));
+        try {
+            const runtime = getTabReadinessStateRuntime();
+
+            expect(runtime.now()).toBe(
+                new Date("2026-06-25T21:10:00.000Z").getTime()
+            );
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("does not borrow ambient clocks for explicit scopes", () => {
         expect.assertions(1);
 

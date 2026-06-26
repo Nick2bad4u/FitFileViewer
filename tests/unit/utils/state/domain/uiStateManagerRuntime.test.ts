@@ -43,21 +43,32 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("uses browser runtime providers for production browser defaults", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-25T21:10:00.000Z"));
         const mediaQuery = { matches: true } as MediaQueryList;
         const matchMedia = vi.fn(() => mediaQuery);
         vi.stubGlobal("matchMedia", matchMedia);
         const runtime = getUIStateManagerRuntime();
         const button = document.createElement("button");
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
-        expect(runtime.createSpanElement().ownerDocument).toBe(document);
-        expect(runtime.isHTMLElement(button)).toBe(true);
-        expect(runtime.getThemeRootElement()).toBe(document.documentElement);
-        expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
+        try {
+            expect(runtime.createAbortController()).toBeInstanceOf(
+                AbortController
+            );
+            expect(runtime.dateNow()).toBe(
+                new Date("2026-06-25T21:10:00.000Z").getTime()
+            );
+            expect(runtime.createSpanElement().ownerDocument).toBe(document);
+            expect(runtime.isHTMLElement(button)).toBe(true);
+            expect(runtime.getThemeRootElement()).toBe(
+                document.documentElement
+            );
+            expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("throws when abort controllers are unavailable", () => {

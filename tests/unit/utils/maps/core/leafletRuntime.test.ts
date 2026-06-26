@@ -129,6 +129,30 @@ describe("leafletRuntime", () => {
         expect(setTimeoutProvider).toHaveBeenCalledOnce();
     });
 
+    it("uses browser runtime providers for production clock and timer defaults", async () => {
+        expect.assertions(3);
+
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-25T21:10:00.000Z"));
+        try {
+            const runtime = getLeafletRuntimeEnvironment();
+            const pollPromise = runtime.waitForNextPoll();
+
+            expect(runtime.dateNow()).toBe(
+                new Date("2026-06-25T21:10:00.000Z").getTime()
+            );
+            vi.advanceTimersByTime(19);
+            await Promise.resolve();
+            expect(await Promise.race([pollPromise, "pending"])).toBe(
+                "pending"
+            );
+            vi.advanceTimersByTime(1);
+            await expect(pollPromise).resolves.toBeUndefined();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("fails clearly when poll providers are unavailable", () => {
         expect.assertions(3);
 

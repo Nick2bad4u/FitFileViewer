@@ -7,12 +7,23 @@ describe("getErrorHandlingRuntime", () => {
         vi.unstubAllGlobals();
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production defaults", () => {
+        expect.assertions(2);
 
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-06-25T21:10:00.000Z"));
         const utils = getErrorHandlingRuntime();
 
-        expect(utils.createAbortController()).toBeInstanceOf(AbortController);
+        try {
+            expect(utils.createAbortController()).toBeInstanceOf(
+                AbortController
+            );
+            expect(utils.dateNow()).toBe(
+                new Date("2026-06-25T21:10:00.000Z").getTime()
+            );
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("reads timestamps through the injected runtime", () => {

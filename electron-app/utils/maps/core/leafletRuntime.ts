@@ -1,3 +1,9 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserDateNow,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 type LeafletRuntimeRegistry = {
     runtime?: unknown;
 };
@@ -29,9 +35,9 @@ export interface LeafletRuntimeEnvironmentScope {
 const leafletRuntimeRegistry: LeafletRuntimeRegistry = {};
 
 const defaultLeafletRuntimeEnvironmentScope: LeafletRuntimeEnvironmentScope = {
-    getClearTimeout: () => clearTimeout,
-    getDateNow: () => Date.now,
-    getSetTimeout: () => setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getDateNow: getBrowserDateNow,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function setLeafletRuntime(runtime: unknown): void {
