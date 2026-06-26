@@ -1,4 +1,10 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserEventConstructor,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -7,23 +13,21 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type RenderMapTimer = ReturnType<typeof globalThis.setTimeout>;
+export type RenderMapTimer = BrowserTimerHandle;
 
 export interface RenderMapRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getEvent?: (() => typeof globalThis.Event | undefined) | undefined;
+    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface RenderMapRuntime {
@@ -42,13 +46,13 @@ export interface RenderMapRuntime {
 
 function getScopeAbortController(
     scope: RenderMapRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getRequiredClearTimeout(
     scope: RenderMapRuntimeScope
-): typeof globalThis.clearTimeout {
+): BrowserClearTimeout {
     const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("renderMap requires a clearTimeout runtime");
@@ -68,7 +72,7 @@ function getRequiredDocument(scope: RenderMapRuntimeScope): Document {
 
 function getRequiredEvent(
     scope: RenderMapRuntimeScope
-): typeof globalThis.Event {
+): BrowserEventConstructor {
     const EventConstructor = scope.getEvent?.();
     if (typeof EventConstructor !== "function") {
         throw new TypeError("renderMap requires an Event runtime");
@@ -79,13 +83,13 @@ function getRequiredEvent(
 
 function getScopeRequestAnimationFrame(
     scope: RenderMapRuntimeScope
-): typeof globalThis.requestAnimationFrame | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
 function getRequiredSetTimeout(
     scope: RenderMapRuntimeScope
-): typeof globalThis.setTimeout {
+): BrowserSetTimeout {
     const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("renderMap requires a setTimeout runtime");

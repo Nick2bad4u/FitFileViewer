@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRenderMapRuntime } from "../../../../electron-app/utils/maps/core/renderMapRuntime.js";
+import {
+    getRenderMapRuntime,
+    type RenderMapTimer,
+} from "../../../../electron-app/utils/maps/core/renderMapRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getRenderMapRuntime", () => {
     afterEach(() => {
@@ -53,17 +62,16 @@ describe("getRenderMapRuntime", () => {
         const callback = vi.fn<FrameRequestCallback>();
         const timerCallback = vi.fn<() => void>();
         const delayMs = Number("50");
-        const timeout = 12 as ReturnType<typeof globalThis.setTimeout>;
+        const timeout = 12 as RenderMapTimer;
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
             function FakeAbortController() {
                 return controller;
             }
         );
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrame =
-            vi.fn<typeof globalThis.requestAnimationFrame>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timeout);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timeout);
         class TestEvent extends Event {
             public constructor(type: string) {
                 super(`test:${type}`);
@@ -72,7 +80,7 @@ describe("getRenderMapRuntime", () => {
         const getEvent = vi.fn(() => TestEvent);
         const utils = getRenderMapRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             getClearTimeout: () => clearTimeout,
             getEvent,
             getRequestAnimationFrame: () => requestAnimationFrame,
@@ -134,12 +142,12 @@ describe("getRenderMapRuntime", () => {
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
         const delayMs = Number("125");
-        const timer = 22 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrameMock = vi.fn<
-            typeof globalThis.requestAnimationFrame
-        >(() => 5);
+        const timer = 22 as RenderMapTimer;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrameMock = vi.fn<BrowserRequestAnimationFrame>(
+            () => 5
+        );
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrameMock);

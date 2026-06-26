@@ -2,8 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     getRenderMapRuntime,
+    type RenderMapTimer,
     type RenderMapRuntimeScope,
 } from "../../../../../electron-app/utils/maps/core/renderMapRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getRenderMapRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -17,7 +24,7 @@ describe("getRenderMapRuntime", () => {
         );
         const utils = getRenderMapRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(utils.createAbortController()).toBe(controller);
@@ -44,15 +51,15 @@ describe("getRenderMapRuntime", () => {
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
         const delayMs = Number("160");
-        const timer = 123 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrame = vi.fn<
-            (callback: FrameRequestCallback) => number
-        >(() => 17);
+        const timer = 123 as RenderMapTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+            () => 17
+        );
         const getAbortController = vi.fn(
             () =>
-                AbortControllerConstructor as unknown as typeof AbortController
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
         class TestEvent extends Event {
@@ -135,7 +142,7 @@ describe("getRenderMapRuntime", () => {
 
         const callback = () => undefined;
         const delayMs = Number("240");
-        const timer = 101 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 101 as RenderMapTimer;
         let scheduledCallback: unknown;
         let scheduledDelay: unknown;
         let clearedTimer: unknown;
@@ -143,8 +150,8 @@ describe("getRenderMapRuntime", () => {
             scheduledCallback = handler;
             scheduledDelay = timeout;
             return timer;
-        }) as typeof globalThis.setTimeout;
-        const clearTimeout: typeof globalThis.clearTimeout = (handle) => {
+        }) as BrowserSetTimeout;
+        const clearTimeout: BrowserClearTimeout = (handle) => {
             clearedTimer = handle;
         };
         const utils = getRenderMapRuntime({
@@ -167,9 +174,9 @@ describe("getRenderMapRuntime", () => {
 
         const utils = getRenderMapRuntime({});
 
-        expect(() =>
-            utils.clearTimeout(101 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("renderMap requires a clearTimeout runtime");
+        expect(() => utils.clearTimeout(101 as RenderMapTimer)).toThrow(
+            "renderMap requires a clearTimeout runtime"
+        );
     });
 
     it("throws when timer scheduling is unavailable", () => {
@@ -187,7 +194,7 @@ describe("getRenderMapRuntime", () => {
 
         const callback = vi.fn<FrameRequestCallback>();
         let scheduledFrameCallback: unknown;
-        const requestAnimationFrame: typeof globalThis.requestAnimationFrame = (
+        const requestAnimationFrame: BrowserRequestAnimationFrame = (
             frameCallback
         ) => {
             scheduledFrameCallback = frameCallback;
@@ -213,8 +220,8 @@ describe("getRenderMapRuntime", () => {
             if (typeof handler === "function") {
                 handler();
             }
-            return 9 as ReturnType<typeof globalThis.setTimeout>;
-        }) as typeof globalThis.setTimeout;
+            return 9 as RenderMapTimer;
+        }) as BrowserSetTimeout;
         const utils = getRenderMapRuntime({
             getSetTimeout: () => setTimeout,
         });
@@ -247,18 +254,18 @@ describe("getRenderMapRuntime", () => {
         );
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
-        const timer = 151 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrame = vi.fn<
-            (callback: FrameRequestCallback) => number
-        >(() => 23);
+        const timer = 151 as RenderMapTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+            () => 23
+        );
         const EventConstructor = vi.fn(function FakeEvent() {
             return new Event("legacy");
         });
         const utils = getRenderMapRuntime({
             AbortController:
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             Event: EventConstructor as unknown as typeof Event,
             clearTimeout,
             requestAnimationFrame,

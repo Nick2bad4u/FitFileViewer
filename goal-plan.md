@@ -971,7 +971,8 @@ Render-map cleanup timers, layer-control hover timers, zoom-slider debounce time
 scheduling, render abort-controller creation, and lap selector change-event construction now route through
 `renderMapRuntime.ts` instead of calling timer/animation-frame globals, constructing `AbortController`, or calling
 `new Event("change")` directly inside `renderMap.ts`, with focused runtime coverage and architecture guardrails
-blocking those direct timing/controller/Event globals from returning.
+blocking those direct timing/controller/Event globals from returning. Render-map controller, timer, and animation-frame
+contracts now reuse shared browser-runtime aliases instead of direct ambient type spellings.
 Map draw-laps tests now install and restore their temporary jsdom `window` through a captured descriptor instead
 of assigning or deleting `testGlobal.window` directly, with architecture coverage blocking that fixture mutation.
 Tab visibility state tests now use the `updateTabVisibility.fitRawDataState.test.ts` filename and active raw FIT
