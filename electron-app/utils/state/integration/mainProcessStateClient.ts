@@ -41,7 +41,6 @@ function isMainStateElectronAPI(value: unknown): value is MainStateElectronAPI {
         return false;
     }
 
-    const api = value as Readonly<Record<string, unknown>>;
     return [
         "getErrors",
         "getMainState",
@@ -50,7 +49,19 @@ function isMainStateElectronAPI(value: unknown): value is MainStateElectronAPI {
         "getOperations",
         "listenToMainState",
         "setMainState",
-    ].every((key) => typeof api[key] === "function");
+    ].every((key) =>
+        hasMainStateElectronFunction(key as keyof MainStateElectronAPI, value)
+    );
+}
+
+function hasMainStateElectronFunction(
+    key: keyof MainStateElectronAPI,
+    value: object
+): boolean {
+    return (
+        key in value &&
+        typeof value[key as keyof typeof value] === "function"
+    );
 }
 
 function getMainStateElectronAPI(

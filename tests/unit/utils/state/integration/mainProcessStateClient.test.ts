@@ -153,4 +153,31 @@ describe(MainProcessStateClient, () => {
 
         consoleWarn.mockRestore();
     });
+
+    it("stays unavailable when the scoped API is malformed", async () => {
+        expect.assertions(4);
+
+        const consoleWarn = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
+        const untouchedGetMetrics = vi.fn<() => Promise<unknown>>();
+        const client = new MainProcessStateClient({
+            electronApiScope: createElectronApiScope({
+                ...createClientApi(),
+                getMainState: "not-callable",
+                getMetrics: untouchedGetMetrics,
+            }),
+        });
+
+        expect(client.isAvailable()).toBe(false);
+        await expect(client.get()).rejects.toThrow(
+            "MainProcessStateClient is not available"
+        );
+        expect(untouchedGetMetrics).not.toHaveBeenCalled();
+        expect(consoleWarn).toHaveBeenCalledWith(
+            "[MainProcessStateClient] electronAPI not available - client will be in degraded mode"
+        );
+
+        consoleWarn.mockRestore();
+    });
 });
