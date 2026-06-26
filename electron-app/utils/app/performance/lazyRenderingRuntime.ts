@@ -1,4 +1,7 @@
 import {
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserDocument,
     getBrowserHTMLElement,
     getBrowserIntersectionObserver,
@@ -8,9 +11,7 @@ import {
     getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
 
-export type LazyRenderingTimeoutHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type LazyRenderingTimeoutHandle = BrowserTimerHandle | number;
 
 type LazyRenderingRequestAnimationFrame = (
     callback: FrameRequestCallback
@@ -24,7 +25,7 @@ type LazyRenderingRequestIdleCallback = (
 type LazyRenderingSetTimeout = (
     callback: () => void,
     timeout?: number
-) => LazyRenderingTimeoutHandle;
+) => ReturnType<BrowserSetTimeout> | number;
 
 export interface LazyRenderingRuntimeDocument {
     readonly documentElement?:
@@ -40,7 +41,7 @@ export interface LazyRenderingRuntimeScope {
         | (() => LazyRenderingRuntimeDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getIntersectionObserver?:
         | (() => typeof IntersectionObserver | undefined)
