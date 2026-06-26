@@ -8,21 +8,19 @@ type RenderTable = (
     table: { rows: Record<string, unknown>[] },
     index: number
 ) => void;
+type CreateTables = (
+    dataFrames: unknown,
+    containerOverride?: HTMLElement
+) => void;
+type RenderTableModule = {
+    renderTable: ReturnType<typeof vi.fn<RenderTable>>;
+};
+type CreateTablesModule = {
+    createTables: CreateTables;
+};
 
-// Mock renderTable so we can assert on calls and avoid heavy DOM ops
-vi.mock(
-    import("../../../../../electron-app/utils/rendering/core/renderTable.js"),
-    () => ({
-        renderTable: vi.fn<RenderTable>((container, tableName) => {
-            const tableMarker = document.createElement("section");
-            tableMarker.dataset.tableName = tableName;
-            container.append(tableMarker);
-        }),
-    })
-);
-
-import { renderTable } from "../../../../../electron-app/utils/rendering/core/renderTable.js";
-import { createTables } from "../../../../../electron-app/utils/rendering/components/createTables.js";
+let createTables: CreateTables;
+let renderTable: ReturnType<typeof vi.fn<RenderTable>>;
 
 function getContainer(): HTMLDivElement {
     const container = document.createElement("div");
@@ -32,11 +30,27 @@ function getContainer(): HTMLDivElement {
     return container;
 }
 
-describe(createTables, () => {
-    beforeEach(() => {
+describe("createTables", () => {
+    beforeEach(async () => {
+        vi.resetModules();
         vi.clearAllMocks();
-        // reset DOM
         document.body.replaceChildren();
+
+        vi.doMock(
+            import("../../../../../electron-app/utils/rendering/core/renderTable.js"),
+            () => ({
+                renderTable: vi.fn<RenderTable>((container, tableName) => {
+                    const tableMarker = document.createElement("section");
+                    tableMarker.dataset.tableName = tableName;
+                    container.append(tableMarker);
+                }),
+            })
+        );
+
+        ({ renderTable } =
+            (await import("../../../../../electron-app/utils/rendering/core/renderTable.js")) as RenderTableModule);
+        ({ createTables } =
+            (await import("../../../../../electron-app/utils/rendering/components/createTables.js")) as CreateTablesModule);
     });
 
     it("renders tables without requiring Arquero", () => {

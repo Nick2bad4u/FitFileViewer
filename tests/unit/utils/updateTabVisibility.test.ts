@@ -25,19 +25,29 @@ const EXPECTED_INVALIDATE_SIZE_OPTIONS = {
     pan: false,
 } as const;
 
-// The dynamic import mock form is unstable for this mixed JS/TS module graph.
-// eslint-disable-next-line vitest/prefer-import-in-mock
-vi.mock("../../../electron-app/utils/state/core/stateManager.js", () => ({
+const stateManagerMocks = vi.hoisted(() => ({
     getState: vi.fn<StateGetter>(),
     setState: vi.fn<StateSetter>(),
     subscribe: vi.fn<StateSubscriber>(() => () => {}),
 }));
 
-import {
-    getState,
-    setState,
-    subscribe,
-} from "../../../electron-app/utils/state/core/stateManager.js";
+vi.mock(
+    "../../../electron-app/utils/state/domain/rendererStateManagerAccess.js",
+    () => ({
+        getRendererCoreStateManager: vi.fn(() => stateManagerMocks),
+        getRequiredRendererCoreStateManager: vi.fn(() => stateManagerMocks),
+        toRendererStateManagerAccess: vi.fn((candidate: unknown) =>
+            candidate &&
+            typeof candidate === "object" &&
+            "getState" in candidate &&
+            "setState" in candidate &&
+            "subscribe" in candidate
+                ? candidate
+                : undefined
+        ),
+    })
+);
+
 import {
     getRegisteredLeafletMapInstance,
     resetRegisteredLeafletMapInstanceForTests,
@@ -65,9 +75,9 @@ const contentIds = [
     "content_zwift",
 ] as const;
 
-const mockGetState = vi.mocked(getState);
-const mockSetState = vi.mocked(setState);
-const mockSubscribe = vi.mocked(subscribe);
+const mockGetState = stateManagerMocks.getState;
+const mockSetState = stateManagerMocks.setState;
+const mockSubscribe = stateManagerMocks.subscribe;
 
 function appendContentSections(): void {
     document.body.replaceChildren(

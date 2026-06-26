@@ -1,59 +1,27 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock AppActions
-vi.mock(
-    import("../../../../electron-app/utils/app/lifecycle/appActions.js"),
-    () => ({
-        AppActions: {
-            switchTab: vi.fn<(tabName: string) => void>(),
-            switchTheme: vi.fn<(theme: string) => void>(),
-            toggleChartControls: vi.fn<() => void>(),
-            toggleMeasurementMode: vi.fn<() => void>(),
-        },
-    })
-);
+type AppActionsModule =
+    typeof import("../../../../electron-app/utils/app/lifecycle/appActions.js");
+type StateManagerModule =
+    typeof import("../../../../electron-app/utils/state/core/stateManager.js");
+type UiStateManagerModule =
+    typeof import("../../../../electron-app/utils/state/domain/uiStateManager.js");
+type NotificationModule =
+    typeof import("../../../../electron-app/utils/ui/notifications/showNotification.js");
+type UIStateManagerInstance = InstanceType<
+    UiStateManagerModule["UIStateManager"]
+>;
 
-// Mock showNotification
-vi.mock(
-    import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
-    () => ({
-        showNotification:
-            vi.fn<
-                (message: string, type?: string, duration?: number) => void
-            >(),
-    })
-);
-
-// Mock state manager
-vi.mock(
-    import("../../../../electron-app/utils/state/core/stateManager.js"),
-    () => ({
-        getState: vi.fn<(path?: string) => unknown>(),
-        setState:
-            vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
-        subscribe: vi.fn<
-            (path: string, callback: (value: unknown) => void) => () => void
-        >(() => () => {}),
-        updateState:
-            vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
-    })
-);
-
-// Import the modules after mocks are set up
-import {
-    UIStateManager,
-    uiStateManager,
-    UIActions,
-} from "../../../../electron-app/utils/state/domain/uiStateManager.js";
-import { AppActions } from "../../../../electron-app/utils/app/lifecycle/appActions.js";
-import { showNotification } from "../../../../electron-app/utils/ui/notifications/showNotification.js";
-import {
-    getState,
-    setState,
-    subscribe,
-    updateState,
-} from "../../../../electron-app/utils/state/core/stateManager.js";
+let AppActions: AppActionsModule["AppActions"];
+let getState: StateManagerModule["getState"];
+let setState: StateManagerModule["setState"];
+let showNotification: NotificationModule["showNotification"];
+let subscribe: StateManagerModule["subscribe"];
+let updateState: StateManagerModule["updateState"];
+let UIActions: UiStateManagerModule["UIActions"];
+let UIStateManager: UiStateManagerModule["UIStateManager"];
+let uiStateManager: UiStateManagerModule["uiStateManager"];
 
 type MockMediaQueryList = Pick<
     MediaQueryList,
@@ -325,7 +293,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     function getElementClickListenerRegistration(
         element: Element | null,
-        manager: UIStateManager
+        manager: UIStateManagerInstance
     ) {
         expect(element).toBeInstanceOf(Element);
         if (!(element instanceof Element)) {
@@ -366,7 +334,70 @@ describe("uiStateManager - comprehensive coverage", () => {
         return { listener, options };
     }
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        vi.resetModules();
+        vi.doMock(
+            import("../../../../electron-app/utils/app/lifecycle/appActions.js"),
+            () => ({
+                AppActions: {
+                    switchTab: vi.fn<(tabName: string) => void>(),
+                    switchTheme: vi.fn<(theme: string) => void>(),
+                    toggleChartControls: vi.fn<() => void>(),
+                    toggleMeasurementMode: vi.fn<() => void>(),
+                },
+            })
+        );
+        vi.doMock(
+            import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
+            () => ({
+                showNotification:
+                    vi.fn<
+                        (
+                            message: string,
+                            type?: string,
+                            duration?: number
+                        ) => void
+                    >(),
+            })
+        );
+        vi.doMock(
+            import("../../../../electron-app/utils/state/core/stateManager.js"),
+            () => ({
+                getState: vi.fn<(path?: string) => unknown>(),
+                setState:
+                    vi.fn<
+                        (
+                            path: string,
+                            value: unknown,
+                            options?: unknown
+                        ) => void
+                    >(),
+                subscribe: vi.fn<
+                    (
+                        path: string,
+                        callback: (value: unknown) => void
+                    ) => () => void
+                >(() => () => {}),
+                updateState:
+                    vi.fn<
+                        (
+                            path: string,
+                            value: unknown,
+                            options?: unknown
+                        ) => void
+                    >(),
+            })
+        );
+
+        ({ AppActions } =
+            await import("../../../../electron-app/utils/app/lifecycle/appActions.js"));
+        ({ showNotification } =
+            await import("../../../../electron-app/utils/ui/notifications/showNotification.js"));
+        ({ getState, setState, subscribe, updateState } =
+            await import("../../../../electron-app/utils/state/core/stateManager.js"));
+        ({ UIStateManager, uiStateManager, UIActions } =
+            await import("../../../../electron-app/utils/state/domain/uiStateManager.js"));
+
         // Set up DOM elements that UIStateManager expects
         setupFixtureDom();
 

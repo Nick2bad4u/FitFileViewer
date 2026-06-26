@@ -13,44 +13,39 @@ import type {
 } from "../../../electron-app/utils/state/core/stateManager.js";
 import type { isHTMLElement as isHTMLElementSignature } from "../../../electron-app/utils/dom/index.js";
 
-// Mock the state manager
-vi.mock(
-    import("../../../electron-app/utils/state/core/stateManager.js"),
-    () => ({
-        getState: vi.fn<typeof getStateSignature>(),
-        setState: vi.fn<typeof setStateSignature>(),
-        subscribe: vi.fn<typeof subscribeSignature>(() => () => {}),
-    })
-);
+type EnableTabButtonsModule =
+    typeof import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
+type MockGetState = ReturnType<typeof vi.fn<typeof getStateSignature>>;
+type MockSetState = ReturnType<typeof vi.fn<typeof setStateSignature>>;
+type MockSubscribe = ReturnType<typeof vi.fn<typeof subscribeSignature>>;
+type MockIsHTMLElement = ReturnType<
+    typeof vi.fn<typeof isHTMLElementSignature>
+>;
+type RawDataListener = (data: unknown) => void;
+type MockSubscribeToActiveFitRawData = ReturnType<
+    typeof vi.fn<(listener: RawDataListener) => () => void>
+>;
+type MockGetActiveFitRawData = ReturnType<typeof vi.fn<() => unknown>>;
+type MockGetActiveFitMessageArray = ReturnType<
+    typeof vi.fn<(key: string) => unknown[]>
+>;
 
-// Mock DOM helpers
-vi.mock(import("../../../electron-app/utils/dom/index.js"), () => ({
-    isHTMLElement: vi.fn<typeof isHTMLElementSignature>(),
-}));
-
-import {
-    setTabButtonsEnabled,
-    initializeTabButtonState,
-    areTabButtonsEnabled,
-    debugTabButtons,
-    forceEnableTabButtons,
-    testTabButtonClicks,
-    debugTabState,
-    forceFixTabButtons,
-    __resetTabButtonStateForTests,
-} from "../../../electron-app/utils/ui/controls/enableTabButtons.js";
-
-import {
-    getState,
-    setState,
-    subscribe,
-} from "../../../electron-app/utils/state/core/stateManager.js";
-import { isHTMLElement } from "../../../electron-app/utils/dom/index.js";
-
-const mockGetState = vi.mocked(getState);
-const mockSetState = vi.mocked(setState);
-const mockSubscribe = vi.mocked(subscribe);
-const mockIsHTMLElement = vi.mocked(isHTMLElement);
+let setTabButtonsEnabled: EnableTabButtonsModule["setTabButtonsEnabled"];
+let initializeTabButtonState: EnableTabButtonsModule["initializeTabButtonState"];
+let areTabButtonsEnabled: EnableTabButtonsModule["areTabButtonsEnabled"];
+let debugTabButtons: EnableTabButtonsModule["debugTabButtons"];
+let forceEnableTabButtons: EnableTabButtonsModule["forceEnableTabButtons"];
+let testTabButtonClicks: EnableTabButtonsModule["testTabButtonClicks"];
+let debugTabState: EnableTabButtonsModule["debugTabState"];
+let forceFixTabButtons: EnableTabButtonsModule["forceFixTabButtons"];
+let __resetTabButtonStateForTests: EnableTabButtonsModule["__resetTabButtonStateForTests"];
+let mockGetState: MockGetState;
+let mockSetState: MockSetState;
+let mockSubscribe: MockSubscribe;
+let mockIsHTMLElement: MockIsHTMLElement;
+let mockSubscribeToActiveFitRawData: MockSubscribeToActiveFitRawData;
+let mockGetActiveFitRawData: MockGetActiveFitRawData;
+let mockGetActiveFitMessageArray: MockGetActiveFitMessageArray;
 let testContainer: HTMLElement;
 
 type TestButtonOptions = {
@@ -193,10 +188,54 @@ describe("enableTabButtons behavior", () => {
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
     let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        vi.resetModules();
+        mockGetState = vi.fn<typeof getStateSignature>();
+        mockSetState = vi.fn<typeof setStateSignature>();
+        mockSubscribe = vi.fn<typeof subscribeSignature>(() => () => {});
+        mockIsHTMLElement = vi.fn<typeof isHTMLElementSignature>();
+        mockSubscribeToActiveFitRawData = vi.fn<
+            (listener: RawDataListener) => () => void
+        >(() => () => {});
+        mockGetActiveFitRawData = vi.fn<() => unknown>(() => null);
+        mockGetActiveFitMessageArray = vi.fn<(key: string) => unknown[]>(
+            () => []
+        );
+
+        vi.doMock(
+            import("../../../electron-app/utils/state/core/stateManager.js"),
+            () => ({
+                getState: mockGetState,
+                setState: mockSetState,
+                subscribe: mockSubscribe,
+            })
+        );
+        vi.doMock(import("../../../electron-app/utils/dom/index.js"), () => ({
+            isHTMLElement: mockIsHTMLElement,
+        }));
+        vi.doMock(
+            import("../../../electron-app/utils/state/domain/activeFitRawDataState.js"),
+            () => ({
+                getActiveFitMessageArray: mockGetActiveFitMessageArray,
+                getActiveFitRawData: mockGetActiveFitRawData,
+                subscribeToActiveFitRawData: mockSubscribeToActiveFitRawData,
+            })
+        );
+
+        ({
+            setTabButtonsEnabled,
+            initializeTabButtonState,
+            areTabButtonsEnabled,
+            debugTabButtons,
+            forceEnableTabButtons,
+            testTabButtonClicks,
+            debugTabState,
+            forceFixTabButtons,
+            __resetTabButtonStateForTests,
+        } =
+            await import("../../../electron-app/utils/ui/controls/enableTabButtons.js"));
+
         __resetTabButtonStateForTests();
-        // Reset all mocks
-        vi.clearAllMocks();
 
         // Ensure document.body exists
         if (!document.body) {
@@ -526,11 +565,10 @@ describe("enableTabButtons behavior", () => {
             initializeTabButtonState();
 
             expect(
-                mockSubscribe.mock.calls.map(([path, callback]) => [
-                    path,
+                mockSubscribeToActiveFitRawData.mock.calls.map(([callback]) => [
                     typeof callback,
                 ])
-            ).toStrictEqual([["fitFile.rawData", "function"]]);
+            ).toStrictEqual([["function"]]);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
                 false,
@@ -550,9 +588,8 @@ describe("enableTabButtons behavior", () => {
             initializeTabButtonState();
 
             // Get the subscription callback
-            const subscriptionCallback = mockSubscribe.mock.calls[0]?.[1] as
-                | ((data: unknown) => void)
-                | undefined;
+            const subscriptionCallback =
+                mockSubscribeToActiveFitRawData.mock.calls[0]?.[0];
             expect(subscriptionCallback).toBeTypeOf("function");
 
             subscriptionCallback?.({ someData: true });
@@ -569,15 +606,14 @@ describe("enableTabButtons behavior", () => {
             );
         });
 
-        it("should disable tabs when FIT raw data is null/undefined", () => {
+        it("should disable tabs when FIT raw data is null", () => {
             expect.assertions(4);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             initializeTabButtonState();
 
-            const subscriptionCallback = mockSubscribe.mock.calls[0]?.[1] as
-                | ((data: unknown) => void)
-                | undefined;
+            const subscriptionCallback =
+                mockSubscribeToActiveFitRawData.mock.calls[0]?.[0];
             expect(subscriptionCallback).toBeTypeOf("function");
 
             subscriptionCallback?.(null);
@@ -586,7 +622,7 @@ describe("enableTabButtons behavior", () => {
             ).toStrictEqual(true);
 
             getRequiredButton("tab-test").removeAttribute("disabled");
-            subscriptionCallback?.(undefined);
+            subscriptionCallback?.(null);
 
             expect(getRequiredButton("tab-test").disabled).toStrictEqual(true);
             expect(
@@ -681,7 +717,6 @@ describe("enableTabButtons behavior", () => {
 
             mockGetState.mockImplementation((key) => {
                 const state = new Map<string, unknown>([
-                    ["fitFile.rawData", { test: true }],
                     ["isLoading", false],
                     ["ui.tabButtonsEnabled", true],
                 ]);
@@ -690,6 +725,7 @@ describe("enableTabButtons behavior", () => {
                     ? (state.get(key) ?? null)
                     : null;
             });
+            mockGetActiveFitRawData.mockReturnValue({ test: true });
 
             debugTabButtons();
 
@@ -699,7 +735,7 @@ describe("enableTabButtons behavior", () => {
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[TabButtons] SKIPPING open file button: openFileBtn"
             );
-            expect(mockGetState).toHaveBeenCalledWith("fitFile.rawData");
+            expect(mockGetActiveFitRawData).toHaveBeenCalledOnce();
             expect(mockGetState).toHaveBeenCalledWith("isLoading");
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
             expect(getRequiredButton("tab-summary").disabled).toStrictEqual(
@@ -879,7 +915,6 @@ describe("enableTabButtons behavior", () => {
             mockGetState.mockImplementation((key) => {
                 const state = new Map<string, unknown>([
                     ["ui.activeTab", "summary"],
-                    ["fitFile.rawData", { test: true }],
                     ["ui.tabButtonsEnabled", true],
                 ]);
 
@@ -887,6 +922,7 @@ describe("enableTabButtons behavior", () => {
                     ? (state.get(key) ?? null)
                     : null;
             });
+            mockGetActiveFitRawData.mockReturnValue({ test: true });
 
             debugTabState();
 
@@ -894,7 +930,7 @@ describe("enableTabButtons behavior", () => {
                 "[TabButtons] === CURRENT TAB STATE ==="
             );
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
-            expect(mockGetState).toHaveBeenCalledWith("fitFile.rawData");
+            expect(mockGetActiveFitRawData).toHaveBeenCalledOnce();
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
             expect(getRequiredButton("tab-summary").className).toBe(
                 "tab-button active"
