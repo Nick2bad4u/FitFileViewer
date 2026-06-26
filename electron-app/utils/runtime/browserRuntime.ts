@@ -77,7 +77,11 @@ export function getBrowserClipboard(): Clipboard | undefined {
 }
 
 export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown {
-    return Reflect.get(globalThis, propertyKey);
+    try {
+        return Reflect.get(globalThis, propertyKey);
+    } catch {
+        return undefined;
+    }
 }
 
 export function getBrowserChartOverlayColorPalette(): unknown {
