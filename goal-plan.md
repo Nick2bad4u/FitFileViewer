@@ -417,7 +417,9 @@ Electron app source. Icon factory default document access now lives on the named
 private `getGlobalDocument()` helper.
 Elevation-profile popup and chart-overlay palette defaults now resolve through focused global-property helpers in
 `createElevationProfileButtonRuntime.ts` instead of casting `globalThis` to a feature-specific runtime scope or
-using generic `Reflect.get(globalThis, ...)` probes.
+using generic `Reflect.get(globalThis, ...)` probes. Add-FIT-map, elevation-profile, and power-estimation map-action
+button AbortController contracts now reuse the shared browser-runtime alias instead of direct ambient constructor type
+spellings.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
 timers now route through `createFieldTogglesSectionRuntime.ts`; production defaults and explicit runtime scopes now
 use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or

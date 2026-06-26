@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserDocument,
 } from "../../runtime/browserRuntime.js";
@@ -7,7 +8,7 @@ import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateAddFitFileToMapButtonRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -37,7 +38,7 @@ function getScopeDocument(
 
 function getAbortControllerConstructor(
     scope: CreateAddFitFileToMapButtonRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
         getScopeDocument(scope)?.defaultView?.AbortController;

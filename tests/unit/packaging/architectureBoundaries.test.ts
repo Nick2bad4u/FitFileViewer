@@ -14750,7 +14750,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(18);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -14800,6 +14800,15 @@ describe("architecture boundaries", () => {
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "): typeof AbortController"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
@@ -14939,7 +14948,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(16);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -14983,6 +14992,15 @@ describe("architecture boundaries", () => {
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
+            "): typeof AbortController"
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
@@ -17877,7 +17895,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(33);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -17918,6 +17936,15 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "): typeof AbortController"
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

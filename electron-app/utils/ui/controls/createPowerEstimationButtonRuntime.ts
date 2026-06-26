@@ -1,11 +1,12 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserDocument,
 } from "../../runtime/browserRuntime.js";
 
 export interface CreatePowerEstimationButtonRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -29,7 +30,7 @@ function getScopeDocument(
 
 function getAbortControllerConstructor(
     scope: CreatePowerEstimationButtonRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
         getScopeDocument(scope)?.defaultView?.AbortController;

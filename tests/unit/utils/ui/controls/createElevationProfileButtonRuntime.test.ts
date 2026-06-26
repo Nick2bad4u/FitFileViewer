@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getCreateElevationProfileButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButtonRuntime.js";
 
 describe("getCreateElevationProfileButtonRuntime", () => {
@@ -156,7 +157,7 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         const runtimeWithInvalidAbortController =
             getCreateElevationProfileButtonRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
 
@@ -194,7 +195,7 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         const legacyPalette = ["#ff0000"];
         const runtime = getCreateElevationProfileButtonRuntime({
             AbortController:
-                legacyAbortController as unknown as typeof AbortController,
+                legacyAbortController as unknown as BrowserAbortControllerConstructor,
             chartOverlayColorPalette: legacyPalette,
             document: legacyDocument as unknown as Document,
             open: legacyOpen,

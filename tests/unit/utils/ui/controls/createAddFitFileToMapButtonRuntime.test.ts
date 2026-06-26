@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getCreateAddFitFileToMapButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createAddFitFileToMapButtonRuntime.js";
 
 describe("getCreateAddFitFileToMapButtonRuntime", () => {
@@ -69,7 +70,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         const runtimeWithInvalidAbortController =
             getCreateAddFitFileToMapButtonRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
 
@@ -100,7 +101,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         };
         const runtime = getCreateAddFitFileToMapButtonRuntime({
             AbortController:
-                legacyAbortController as unknown as typeof AbortController,
+                legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
         } as unknown as Parameters<
             typeof getCreateAddFitFileToMapButtonRuntime

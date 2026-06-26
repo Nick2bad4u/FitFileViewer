@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserChartOverlayColorPalette,
     getBrowserDocument,
@@ -19,7 +20,7 @@ type CreateElevationProfileOpen =
 
 export interface CreateElevationProfileButtonRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getChartOverlayColorPalette?: (() => unknown) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
@@ -54,7 +55,7 @@ const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileBut
 
 function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
         getScopeDocument(scope)?.defaultView?.AbortController;
