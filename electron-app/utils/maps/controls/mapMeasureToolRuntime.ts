@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -7,27 +12,25 @@ import {
 } from "../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
-export type MapMeasureToolTimer = ReturnType<typeof globalThis.setTimeout>;
+export type MapMeasureToolTimer = BrowserTimerHandle;
 
 type MapMeasureToolDocument = Document;
 type MapMeasureToolKeydownListener = (event: Readonly<KeyboardEvent>) => void;
 
 export interface MapMeasureToolRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?:
         | (() => MapMeasureToolDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface MapMeasureToolRuntime {
@@ -75,7 +78,7 @@ function getRequiredDocument(
 
 function getRequiredHTMLElement(
     scope: MapMeasureToolRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("mapMeasureTool requires an HTMLElement runtime");

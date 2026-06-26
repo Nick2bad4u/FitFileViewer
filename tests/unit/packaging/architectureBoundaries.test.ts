@@ -16517,7 +16517,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(57);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -16571,6 +16571,21 @@ describe("architecture boundaries", () => {
         expect(mapMeasureToolRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain("typeof globalThis.");
+        expect(mapMeasureToolRuntimeSource).not.toContain("ReturnType<");
         expect(mapMeasureToolRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );

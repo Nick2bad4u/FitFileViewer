@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { MapMeasureToolRuntimeScope } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
+import type {
+    MapMeasureToolRuntimeScope,
+    MapMeasureToolTimer,
+} from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 import { getMapMeasureToolRuntime } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 
 describe("getMapMeasureToolRuntime", () => {
@@ -195,9 +202,9 @@ describe("getMapMeasureToolRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("2000");
-        const timer = 41 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 41 as MapMeasureToolTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapMeasureToolRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -215,9 +222,9 @@ describe("getMapMeasureToolRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("2000");
-        const timer = 42 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 42 as MapMeasureToolTimer;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -239,9 +246,9 @@ describe("getMapMeasureToolRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapMeasureTool requires a setTimeout runtime"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapMeasureTool requires a clearTimeout runtime");
+        expect(() => runtime.clearTimeout(1 as MapMeasureToolTimer)).toThrow(
+            "mapMeasureTool requires a clearTimeout runtime"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -255,10 +262,12 @@ describe("getMapMeasureToolRuntime", () => {
         const createTextNode = vi.spyOn(documentRef, "createTextNode");
         const legacyScope = {
             AbortController,
-            clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+            clearTimeout: vi.fn<BrowserClearTimeout>(),
             document: documentRef,
             HTMLElement: documentRef.defaultView?.HTMLElement,
-            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => 41),
+            setTimeout: vi.fn<BrowserSetTimeout>(
+                () => 41 as MapMeasureToolTimer
+            ),
         } as unknown as MapMeasureToolRuntimeScope;
         const runtime = getMapMeasureToolRuntime(legacyScope);
         const missingDocumentMessage =
@@ -270,9 +279,9 @@ describe("getMapMeasureToolRuntime", () => {
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapMeasureTool requires a setTimeout runtime"
         );
-        expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
-        ).toThrow("mapMeasureTool requires a clearTimeout runtime");
+        expect(() => runtime.clearTimeout(1 as MapMeasureToolTimer)).toThrow(
+            "mapMeasureTool requires a clearTimeout runtime"
+        );
         expect(() => {
             runtime.addDocumentKeydownListener(() => undefined, {});
         }).toThrow(missingDocumentMessage);
