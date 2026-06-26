@@ -78,8 +78,6 @@ function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
         return false;
     }
 
-    const api = value as Record<string, unknown>;
-
     return [
         "installUpdate",
         "onMenuAbout",
@@ -92,7 +90,11 @@ function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
         "requestExport",
         "requestSaveAs",
     ].every((methodName) => {
-        const method = api[methodName];
+        if (!(methodName in value)) {
+            return true;
+        }
+
+        const method = Reflect.get(value, methodName);
         return method === undefined || typeof method === "function";
     });
 }

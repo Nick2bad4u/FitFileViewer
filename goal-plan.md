@@ -131,6 +131,9 @@ The app-menu creation boundary (`createAppMenu.ts` plus `utils/app/menu/index.ts
 exports/imports instead of source-level `module.exports` or a barrel `require`, and `safeCreateAppMenu.ts`
 imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers
 natively instead of requiring those source modules.
+Renderer menu IPC listener validation now checks each optional preload menu method explicitly instead of casting the
+candidate Electron API to a generic record, with malformed-scope coverage proving invalid menu candidates do not register
+handlers and architecture coverage blocking that bridge cast from returning.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
 the updater resolver boundary natively instead of requiring its source file. Electron-updater now resolves
 through the async native import path instead of a synchronous `loadNodeModule` or direct package

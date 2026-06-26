@@ -16510,7 +16510,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -16545,6 +16545,11 @@ it("keeps the core state manager free of reactive global property bridges", () =
                 "electron-app/utils/rendering/core/showFitData.ts"
             )
         );
+        const menuIpcListenersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/menuIpcListeners.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mainProcessStateClientSource).not.toContain(
@@ -16561,6 +16566,9 @@ it("keeps the core state manager free of reactive global property bridges", () =
         );
         expect(themeSource).not.toContain("value as Record<string, unknown>");
         expect(showFitDataSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
+        expect(menuIpcListenersSource).not.toContain(
             "value as Record<string, unknown>"
         );
     });

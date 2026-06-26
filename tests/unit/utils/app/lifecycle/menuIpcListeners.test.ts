@@ -184,6 +184,36 @@ function getRequiredHandler(
 }
 
 describe(registerMenuIpcListeners, () => {
+    it("rejects malformed scoped menu APIs without registering handlers", () => {
+        expect.assertions(3);
+
+        const handlers = new Map<TestMenuChannel, TestMenuHandler>();
+        const getElectronAPI = vi.fn<() => unknown>(() => ({
+            onMenuAbout: "menu-about",
+            onMenuExport: (callback: TestMenuHandler) => {
+                handlers.set("menu-export", callback);
+            },
+        }));
+        const trackUnsubscribe = vi.fn<(value: unknown) => void>();
+
+        try {
+            registerMenuIpcListeners({
+                debugMenuLog: vi.fn<(...args: unknown[]) => void>(),
+                electronApiScope: { getElectronAPI },
+                isTestEnvironment: true,
+                showAboutModal: vi.fn(),
+                showNotification: vi.fn(),
+                trackUnsubscribe,
+            });
+
+            expect(getElectronAPI).toHaveBeenCalledOnce();
+            expect(handlers.size).toBe(0);
+            expect(trackUnsubscribe).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("registers the expected menu IPC channels", () => {
         expect.assertions(2);
 
