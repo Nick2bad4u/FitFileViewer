@@ -472,14 +472,26 @@ describe("masterStateRuntime", () => {
         expect(created).toBe(true);
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production browser defaults", () => {
+        expect.assertions(5);
 
         const runtime = getMasterStateRuntime();
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+        expect(runtime.createThemeChangedEvent("dark")).toBeInstanceOf(
+            CustomEvent
+        );
+
+        runtime.addBodyClass("drag-over");
+
+        expect(document.body.classList.contains("drag-over")).toBe(true);
+        expect(runtime.hasDevelopmentModeAttribute()).toBe(false);
+
+        runtime.removeBodyClass("drag-over");
+
+        expect(document.body.classList.contains("drag-over")).toBe(false);
     });
 
     it("ignores legacy direct browser, clock, and development runtime properties", () => {

@@ -11081,7 +11081,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(108);
+        expect.assertions(110);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11183,14 +11183,23 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
+        expect(masterStateRuntimeSource).toContain(
+            "getCustomEvent: getBrowserCustomEvent"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
         expect(masterStateRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
-        expect(masterStateRuntimeSource).toContain(
-            "readonly getDocument?: (() => Document | undefined) | undefined;"
+        expect(masterStateRuntimeSource).not.toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(masterStateRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "readonly getDocument?: (() => Document | undefined) | undefined;"
         );
         expect(masterStateRuntimeSource).toContain(
             "return scope.getDocumentBody?.() ?? getScopeDocument(scope)?.body;"
@@ -11215,9 +11224,6 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "getClearInterval: () => globalThis.clearInterval"
-        );
-        expect(masterStateRuntimeSource).toContain(
-            "getCustomEvent: () => globalThis.CustomEvent"
         );
         expect(masterStateRuntimeSource).toContain(
             "getDateNow: () => Date.now"
