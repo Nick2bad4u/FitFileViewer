@@ -5599,7 +5599,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(134);
+        expect.assertions(135);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5783,6 +5783,9 @@ describe("architecture boundaries", () => {
             "getBrowserElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).not.toContain(
+            "getBrowserRendererElectronApiCandidate"
+        );
+        expect(rendererBrowserRuntimeSource).not.toContain(
             "getDefaultElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).not.toContain(
@@ -5795,7 +5798,7 @@ describe("architecture boundaries", () => {
             "return rendererScope.electronAPI;"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getElectronApiCandidate: getBrowserRendererElectronApiCandidate"
+            "getElectronApiCandidate: getBrowserElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).toContain(
             "getRendererEventTarget: getBrowserEventTarget"

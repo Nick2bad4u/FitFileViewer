@@ -11,17 +11,13 @@ import {
 import { getBrowserElectronApiCandidate } from "../utils/runtime/electronApiRuntime.js";
 import type { RendererRuntimeEnvironmentScope } from "./runtimeEnvironment.js";
 
-export function getBrowserRendererElectronApiCandidate(): unknown {
-    return getBrowserElectronApiCandidate();
-}
-
 export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvironmentScope {
     return {
         getAddEventListener: getBrowserAddEventListener,
         getClearInterval: getBrowserBoundClearInterval,
         getConsole: getBrowserConsole,
         getDocument: getBrowserDocument,
-        getElectronApiCandidate: getBrowserRendererElectronApiCandidate,
+        getElectronApiCandidate: getBrowserElectronApiCandidate,
         getRemoveEventListener: getBrowserRemoveEventListener,
         getRendererEventTarget: getBrowserEventTarget,
         getSetInterval: getBrowserBoundSetInterval,
