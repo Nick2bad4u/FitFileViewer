@@ -400,7 +400,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Tab-button integration fixture migration status: tab button state integration coverage now models FIT data only through `fitFile.rawData` instead of carrying a retired `globalData` state slot.
 - Strict main UI test fixture migration status: strict main UI startup coverage no longer seeds a retired `globalData` mock-state key while exercising renderer startup flows.
 - Computed state manager test fixture migration status: generic computed-state dependency coverage now uses neutral `sampleData` fixtures instead of normalizing the retired `globalData` state path.
-- Next removal step: keep shrinking remaining legacy renderer compatibility adapters toward typed services or scoped adapters once chart and map browser libraries are fully import-driven
+- Next removal step: keep legacy renderer utility bridges deleted while shrinking the remaining vendor-runtime compatibility adapters toward typed imports once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`

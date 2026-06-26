@@ -10760,15 +10760,11 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps legacy utility imports quarantined to compatibility bridges", () => {
+    it("keeps retired legacy utility imports out of source", () => {
         expect.assertions(1);
 
         const violations = sourceRoots
             .flatMap(collectSourceFiles)
-            .filter(
-                (relativeFile) =>
-                    !relativeFile.startsWith("electron-app/utils/legacy/")
-            )
             .flatMap((relativeFile) =>
                 getImportSpecifiers(readRepositoryFile(relativeFile))
                     .filter((specifier) =>
