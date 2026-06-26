@@ -1,4 +1,9 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserClearTimeout,
@@ -8,9 +13,7 @@ import {
     getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
 
-export type ChartStatusIndicatorTimerHandle = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type ChartStatusIndicatorTimerHandle = BrowserTimerHandle;
 
 type ChartStatusIndicatorEventListener =
     | EventListener
@@ -23,20 +26,20 @@ type ChartStatusIndicatorAddEventListener = (
 
 export interface ChartStatusIndicatorRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
         | (() => ChartStatusIndicatorAddEventListener | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
     readonly getViewport?:
         | (() => ChartStatusIndicatorViewport | undefined)
@@ -91,7 +94,7 @@ const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope 
 
 function getAbortControllerConstructor(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof globalThis.AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartStatusIndicator requires an AbortController");
@@ -111,7 +114,7 @@ function getDocument(scope: ChartStatusIndicatorRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof globalThis.HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return scope.getHTMLElement?.();
 }
 
@@ -128,7 +131,7 @@ function isHTMLElement(
 
 function getRequiredClearTimeout(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof globalThis.clearTimeout {
+): BrowserClearTimeout {
     const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
@@ -141,7 +144,7 @@ function getRequiredClearTimeout(
 
 function getRequiredSetTimeout(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof globalThis.setTimeout {
+): BrowserSetTimeout {
     const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(

@@ -18879,7 +18879,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(51);
+        expect.assertions(57);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -18912,6 +18912,24 @@ describe("architecture boundaries", () => {
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
