@@ -1,18 +1,26 @@
-import { getBrowserAbortController } from "../utils/runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserHTMLInputElement,
+} from "../utils/runtime/browserRuntime.js";
 
 export interface RendererFileInputStartupRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getHTMLInputElement?:
+        | (() => typeof HTMLInputElement | undefined)
+        | undefined;
 }
 
 export interface RendererFileInputStartupRuntime {
     createAbortController: () => AbortController;
+    isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
 }
 
 const defaultRendererFileInputStartupRuntimeScope: RendererFileInputStartupRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
+        getHTMLInputElement: getBrowserHTMLInputElement,
     };
 
 export function getRendererFileInputStartupRuntime(
@@ -28,6 +36,13 @@ export function getRendererFileInputStartupRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        isHTMLInputElement(value: unknown): value is HTMLInputElement {
+            const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+            return (
+                typeof HTMLInputElementConstructor === "function" &&
+                value instanceof HTMLInputElementConstructor
+            );
         },
     };
 }

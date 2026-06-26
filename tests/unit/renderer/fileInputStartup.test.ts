@@ -45,7 +45,7 @@ describe("renderer file input startup wiring", () => {
     });
 
     it("creates abort controllers through the injected runtime provider", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         let controllerCount = 0;
         const signal = Symbol("file-input-startup-signal");
@@ -68,10 +68,29 @@ describe("renderer file input startup wiring", () => {
             TestAbortController
         );
         expect(controllerCount).toBe(1);
+        expect(utils.isHTMLInputElement(document.createElement("input"))).toBe(
+            false
+        );
     });
 
-    it("ignores legacy direct AbortController scope properties", () => {
-        expect.assertions(1);
+    it("detects HTML input elements through the injected runtime provider", () => {
+        expect.assertions(2);
+
+        class TestHTMLInputElement {}
+        const input = new TestHTMLInputElement();
+        const utils = getRendererFileInputStartupRuntime({
+            getHTMLInputElement: () =>
+                TestHTMLInputElement as unknown as typeof HTMLInputElement,
+        });
+
+        expect(utils.isHTMLInputElement(input)).toBe(true);
+        expect(utils.isHTMLInputElement(document.createElement("div"))).toBe(
+            false
+        );
+    });
+
+    it("ignores legacy direct constructor scope properties", () => {
+        expect.assertions(2);
 
         class LegacyAbortController implements AbortController {
             public readonly signal = Symbol(
@@ -84,6 +103,7 @@ describe("renderer file input startup wiring", () => {
         }
         const utils = getRendererFileInputStartupRuntime({
             AbortController: LegacyAbortController,
+            HTMLInputElement: window.HTMLInputElement,
         } as unknown as Parameters<
             typeof getRendererFileInputStartupRuntime
         >[0]);
@@ -92,6 +112,9 @@ describe("renderer file input startup wiring", () => {
             utils.createAbortController();
         }).toThrow(
             "renderer file input startup requires an AbortController runtime"
+        );
+        expect(utils.isHTMLInputElement(document.createElement("input"))).toBe(
+            false
         );
     });
 
@@ -194,7 +217,6 @@ describe("renderer file input startup wiring", () => {
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             getHandleOpenFile: async () => asyncHandleOpenFile,
             getOverrideHandleOpenFile: () => overrideHandleOpenFile,
-            htmlInputElementConstructor: window.HTMLInputElement,
         });
 
         registerDelegatedFileInputChangeListener(
@@ -215,7 +237,6 @@ describe("renderer file input startup wiring", () => {
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             getHandleOpenFile: async () => asyncHandleOpenFile,
             getOverrideHandleOpenFile: () => undefined,
-            htmlInputElementConstructor: window.HTMLInputElement,
         });
 
         registerDelegatedFileInputChangeListener(

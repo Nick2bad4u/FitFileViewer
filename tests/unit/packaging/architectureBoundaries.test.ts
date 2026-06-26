@@ -1335,7 +1335,7 @@ const directRendererApplicationLifecycleWiringRuntimeAmbientGetterPattern =
 const directRendererFileInputStartupRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererFileInputStartupRuntimeAmbientGetterPattern =
-    /\breturn\s+globalThis\.AbortController\b/u;
+    /\breturn\s+globalThis\.(?:AbortController|HTMLInputElement)\b/u;
 const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern =
@@ -20770,8 +20770,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer file-input abort controllers behind the runtime facade", () => {
-        expect.assertions(13);
+    it("keeps renderer file-input browser constructors behind the runtime facade", () => {
+        expect.assertions(20);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -20794,6 +20794,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(fileInputStartupSource).toContain("fileInputStartupRuntime.js");
+        expect(fileInputStartupSource).toContain("runtime.isHTMLInputElement");
+        expect(fileInputStartupSource).not.toContain(
+            "htmlInputElementConstructor"
+        );
+        expect(fileInputStartupSource).not.toContain(
+            'typeof HTMLInputElement === "function"'
+        );
         expect(fileInputStartupSource).toContain(
             "globalEventTarget: RendererFileInputEventTarget"
         );
@@ -20809,8 +20816,14 @@ describe("architecture boundaries", () => {
         expect(fileInputStartupRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
         expect(fileInputStartupRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
         );
         expect(fileInputStartupRuntimeSource).not.toMatch(
             directRendererFileInputStartupRuntimeAmbientGetterPattern
@@ -20819,7 +20832,13 @@ describe("architecture boundaries", () => {
             "readonly AbortController?:"
         );
         expect(fileInputStartupRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
             "scope.AbortController"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "scope.HTMLInputElement"
         );
     });
 

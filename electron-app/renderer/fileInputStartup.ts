@@ -18,7 +18,6 @@ export type RendererFileInputEventTarget = Pick<
 export interface RendererFileInputStartupOptions {
     getHandleOpenFile: () => Promise<RendererFileOpenHandler | undefined>;
     getOverrideHandleOpenFile?: () => RendererFileOpenHandler | undefined;
-    htmlInputElementConstructor?: typeof HTMLInputElement;
     logRenderer?: RendererFileInputLogger;
 }
 
@@ -78,21 +77,14 @@ export function handleImmediateFileInputChange(
 }
 
 export function createDelegatedFileInputChangeHandler(
-    options: RendererFileInputStartupOptions
+    options: RendererFileInputStartupOptions,
+    runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): (event: Event) => void {
     return (event) => {
         try {
-            const globalInputConstructor =
-                typeof HTMLInputElement === "function"
-                    ? HTMLInputElement
-                    : undefined;
-            const inputConstructor =
-                options.htmlInputElementConstructor ?? globalInputConstructor;
-            const target =
-                inputConstructor !== undefined &&
-                event.target instanceof inputConstructor
-                    ? event.target
-                    : null;
+            const target = runtime.isHTMLInputElement(event.target)
+                ? event.target
+                : null;
             const firstFile =
                 target === null ? undefined : getFirstSelectedFile(target);
             if (target?.id === "fileInput" && firstFile !== undefined) {
