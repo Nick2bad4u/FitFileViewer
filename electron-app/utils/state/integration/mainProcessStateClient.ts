@@ -4,7 +4,7 @@ import type {
     MainStateSetOptions,
     MainStateSetValue,
 } from "../../../shared/ipc.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronMainStateApi } from "../../../shared/preloadApi.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -22,7 +22,7 @@ export type StateChangeEvent = MainStateChange & {
 };
 
 type MainStateElectronAPI = Pick<
-    ElectronAPI,
+    ElectronMainStateApi,
     | "getErrors"
     | "getMainState"
     | "getMetrics"
@@ -59,8 +59,7 @@ function hasMainStateElectronFunction(
     value: object
 ): boolean {
     return (
-        key in value &&
-        typeof value[key as keyof typeof value] === "function"
+        key in value && typeof value[key as keyof typeof value] === "function"
     );
 }
 
