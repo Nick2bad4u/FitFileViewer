@@ -435,6 +435,9 @@ instead of a broad `globalThis` default scope, direct scope properties, document
 constructor checks in the picker, and zone-color reset/apply rerender requests now resolve the chart state manager
 through `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with focused runtime
 coverage and architecture guardrails blocking those direct dependencies from returning.
+Zone color picker runtime browser-constructor provider types now use shared browser-runtime aliases instead of
+direct ambient `globalThis` constructor types, with architecture coverage blocking those direct type surfaces from
+returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick

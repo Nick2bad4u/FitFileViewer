@@ -1,4 +1,8 @@
 import {
+    type BrowserCustomEventConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserHTMLInputElementConstructor,
+    type BrowserKeyboardEventConstructor,
     getBrowserCustomEvent,
     getBrowserDispatchEvent,
     getBrowserDocument,
@@ -9,20 +13,20 @@ import {
 
 export interface OpenZoneColorPickerRuntimeScope {
     readonly getCustomEvent?:
-        | (() => typeof globalThis.CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDispatchEvent?:
         | (() => ((event: Event) => boolean) | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
 }
 
@@ -50,7 +54,7 @@ export interface OpenZoneColorPickerRuntime {
 
 function getCustomEventConstructor(
     scope: OpenZoneColorPickerRuntimeScope
-): typeof globalThis.CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
@@ -85,7 +89,7 @@ function getRuntimeDocument(scope: OpenZoneColorPickerRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     scope: OpenZoneColorPickerRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
@@ -98,7 +102,7 @@ function getHTMLElementConstructor(
 
 function getHTMLInputElementConstructor(
     scope: OpenZoneColorPickerRuntimeScope
-): typeof globalThis.HTMLInputElement {
+): BrowserHTMLInputElementConstructor {
     const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
@@ -111,7 +115,7 @@ function getHTMLInputElementConstructor(
 
 function getKeyboardEventConstructor(
     scope: OpenZoneColorPickerRuntimeScope
-): typeof globalThis.KeyboardEvent {
+): BrowserKeyboardEventConstructor {
     const KeyboardEventConstructor = scope.getKeyboardEvent?.();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError(

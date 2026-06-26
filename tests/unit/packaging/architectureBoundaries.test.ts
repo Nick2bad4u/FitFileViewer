@@ -7158,7 +7158,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(53);
+        expect.assertions(58);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -7219,6 +7219,21 @@ describe("architecture boundaries", () => {
         );
         expect(zoneColorPickerRuntimeSource).toContain(
             "defaultOpenZoneColorPickerRuntimeScope"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "BrowserCustomEventConstructor"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "BrowserHTMLElementConstructor"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "BrowserHTMLInputElementConstructor"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "BrowserKeyboardEventConstructor"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "scope: OpenZoneColorPickerRuntimeScope = globalThis"
