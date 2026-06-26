@@ -1,8 +1,11 @@
-import { getBrowserHTMLElement } from "../../runtime/browserRuntime.js";
+import {
+    type BrowserHTMLElementConstructor,
+    getBrowserHTMLElement,
+} from "../../runtime/browserRuntime.js";
 
 export interface ElementIdUtilsRuntimeScope {
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -16,7 +19,7 @@ const defaultElementIdUtilsRuntimeScope: ElementIdUtilsRuntimeScope = {
 
 function getHTMLElementConstructor(
     scope: ElementIdUtilsRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("elementIdUtils requires an HTMLElement runtime");
