@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+    getProcessArgumentValues,
     getProcessEnvironmentValue,
     getRuntimeProcess,
     isDevelopmentEnvironment,
@@ -174,6 +175,35 @@ describe("process environment runtime boundary", () => {
             isTest: true,
             nodeEnv: "test",
         });
+    });
+
+    it("reads string process arguments only", () => {
+        expect.assertions(3);
+
+        setGlobalProcess({
+            argv: ["node", "app.js", "--dev", 42, null],
+        });
+
+        expect(getProcessArgumentValues()).toStrictEqual([
+            "node",
+            "app.js",
+            "--dev",
+        ]);
+
+        setGlobalProcess({ argv: "--dev" });
+
+        expect(getProcessArgumentValues()).toStrictEqual([]);
+
+        setGlobalProcess(
+            Object.defineProperty({}, "argv", {
+                configurable: true,
+                get() {
+                    throw new Error("argv unavailable");
+                },
+            })
+        );
+
+        expect(getProcessArgumentValues()).toStrictEqual([]);
     });
 
     it("gets and sets the runtime process through the shared boundary", () => {

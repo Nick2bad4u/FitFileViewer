@@ -21,6 +21,20 @@ export function getProcessEnvironmentValue(name: string): string | undefined {
     return typeof value === "string" ? value : undefined;
 }
 
+export function getProcessArgumentValues(): readonly string[] {
+    const processValue = getRuntimeProcess();
+    if (typeof processValue !== "object" || processValue === null) {
+        return [];
+    }
+
+    const argv = getRuntimeProperty(processValue, "argv");
+    if (!Array.isArray(argv)) {
+        return [];
+    }
+
+    return argv.filter((value): value is string => typeof value === "string");
+}
+
 export function getRuntimeProcess(): unknown {
     return getRuntimeProperty(globalThis, "process");
 }

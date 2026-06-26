@@ -18,6 +18,12 @@ import { httpRef, path } from "../runtime/nodeModules.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
 import { validateWindow } from "../window/windowValidation.js";
+import {
+    getProcessArgumentValues,
+    getProcessEnvironmentValue,
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "../../utils/runtime/processEnvironment.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 
 type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
@@ -384,17 +390,9 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                         }
 
                         try {
-                            const allowed = getAppState(
+                            return getAppState(
                                 "permissions.geolocation.allowed"
                             );
-                            if (allowed === true) {
-                                return true;
-                            }
-                            if (allowed === false) {
-                                return false;
-                            }
-
-                            return false;
                         } catch {
                             return false;
                         }
@@ -488,18 +486,20 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
     function isDevMode(): boolean {
         return (
-            typeof process !== "undefined" &&
-            (process.env?.["NODE_ENV"] === "development" ||
-                (Array.isArray(process.argv) &&
-                    process.argv.includes("--dev")) ||
-                process.env?.["FFV_DEVTOOLS"] === "true")
+            isDevelopmentEnvironment() ||
+            getProcessArgumentValues().includes("--dev") ||
+            getProcessEnvironmentValue("FFV_DEVTOOLS") === "true"
         );
     }
 
     function isTestMode(): boolean {
-        return (
-            typeof process !== "undefined" &&
-            process.env?.["NODE_ENV"] === "test"
+        return isTestEnvironment();
+    }
+
+    function hasGyazoOAuthCredentials(): boolean {
+        return Boolean(
+            getProcessEnvironmentValue("GYAZO_CLIENT_ID") &&
+                getProcessEnvironmentValue("GYAZO_CLIENT_SECRET")
         );
     }
 
@@ -727,11 +727,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
             }
         });
 
-        if (
-            process.env &&
-            process.env["GYAZO_CLIENT_ID"] &&
-            process.env["GYAZO_CLIENT_SECRET"]
-        ) {
+        if (hasGyazoOAuthCredentials()) {
             rememberStartupTimer(
                 setTimeout(() => {
                     try {
