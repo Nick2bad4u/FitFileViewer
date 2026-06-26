@@ -16,7 +16,7 @@ export interface ErrorHandlingRuntimeScope {
         | (() => ErrorHandlingDateConstructor | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getEventTarget?:
+    readonly getErrorListenerTarget?:
         | (() => ErrorHandlingEventTarget | undefined)
         | undefined;
 }
@@ -30,7 +30,7 @@ export interface ErrorHandlingEventTarget {
 export interface ErrorHandlingRuntime {
     createAbortController: () => AbortController;
     dateNow: () => number;
-    getGlobalEventTarget: () => ErrorHandlingEventTarget | undefined;
+    getErrorListenerTarget: () => ErrorHandlingEventTarget | undefined;
     isoNow: () => string;
 }
 
@@ -39,10 +39,10 @@ const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
     getAddEventListener: getBrowserAddEventListener,
     getDateConstructor: () => Date,
     getDateNow: getBrowserDateNow,
-    getEventTarget: getDefaultEventTarget,
+    getErrorListenerTarget: getDefaultErrorListenerTarget,
 };
 
-function getDefaultEventTarget(
+function getDefaultErrorListenerTarget(
     scope: ErrorHandlingRuntimeScope = defaultErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
     const addEventListener = scope.getAddEventListener?.();
@@ -88,10 +88,12 @@ function getDateConstructor(
     return DateConstructor;
 }
 
-function getEventTarget(
+function getErrorListenerTarget(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
-    return scope.getEventTarget?.() ?? getDefaultEventTarget(scope);
+    return (
+        scope.getErrorListenerTarget?.() ?? getDefaultErrorListenerTarget(scope)
+    );
 }
 
 export function getErrorHandlingRuntime(
@@ -104,8 +106,8 @@ export function getErrorHandlingRuntime(
         dateNow(): number {
             return getDateNow(scope)();
         },
-        getGlobalEventTarget(): ErrorHandlingEventTarget | undefined {
-            return getEventTarget(scope);
+        getErrorListenerTarget(): ErrorHandlingEventTarget | undefined {
+            return getErrorListenerTarget(scope);
         },
         isoNow(): string {
             const DateConstructor = getDateConstructor(scope);

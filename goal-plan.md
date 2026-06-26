@@ -836,7 +836,8 @@ construction, and test-global mutation pattern from returning. Error-handling ru
 instead of a local `Date.now` getter. The error-handling runtime AbortController contract now reuses the shared
 browser-runtime alias instead of a direct ambient constructor type. Error-handling listener binding now stays in the
 shared browser runtime provider instead of rebinding the listener through `globalThis` inside
-`errorHandlingRuntime.ts`.
+`errorHandlingRuntime.ts`, and the runtime exposes an error-listener-specific target accessor instead of a generic
+global-event-target bridge.
 `AppError` timestamp creation now also routes through `errorHandlingRuntime.ts` instead of calling `Date.now`
 directly inside `errorHandling.ts`, with focused runtime coverage and architecture guardrails blocking direct
 clock reads and legacy direct runtime scope properties from returning.

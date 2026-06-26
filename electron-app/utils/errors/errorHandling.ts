@@ -418,7 +418,7 @@ export function initializeErrorHandling(
     options: InitializeErrorHandlingOptions = {}
 ): void {
     const runtime = options.runtime ?? errorHandlingRuntime();
-    const eventTarget = runtime.getGlobalEventTarget();
+    const eventTarget = runtime.getErrorListenerTarget();
 
     if (eventTarget) {
         globalErrorListenerAbortController?.abort();

@@ -241,7 +241,7 @@ describe("error handling utilities", () => {
             const runtime: ErrorHandlingRuntime = {
                 createAbortController,
                 dateNow: () => 1234,
-                getGlobalEventTarget: () => ({
+                getErrorListenerTarget: () => ({
                     addEventListener: listenerSpy,
                 }),
                 isoNow: () => "2026-01-02T03:04:05.006Z",

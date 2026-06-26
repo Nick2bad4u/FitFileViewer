@@ -129,7 +129,7 @@ describe("getErrorHandlingRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
-    it("resolves the default event target when listeners are registered", () => {
+    it("resolves the default error listener target when listeners are registered", () => {
         expect.assertions(3);
 
         const addEventListener = vi.fn();
@@ -139,7 +139,7 @@ describe("getErrorHandlingRuntime", () => {
 
         vi.stubGlobal("addEventListener", addEventListener);
 
-        const target = getErrorHandlingRuntime().getGlobalEventTarget();
+        const target = getErrorHandlingRuntime().getErrorListenerTarget();
         target?.addEventListener("error", listener, options);
 
         expect(target).toBeDefined();
@@ -164,7 +164,7 @@ describe("getErrorHandlingRuntime", () => {
             getAddEventListener: () => addEventListener,
         });
 
-        const target = runtime.getGlobalEventTarget();
+        const target = runtime.getErrorListenerTarget();
         target?.addEventListener("unhandledrejection", listener, options);
 
         expect(target).toBeDefined();
@@ -175,6 +175,24 @@ describe("getErrorHandlingRuntime", () => {
         );
 
         controller.abort();
+    });
+
+    it("resolves explicit error listener targets through the injected provider", () => {
+        expect.assertions(3);
+
+        const addEventListener = vi.fn();
+        const fallbackAddEventListener = vi.fn();
+        const runtime = getErrorHandlingRuntime({
+            getAddEventListener: () => fallbackAddEventListener,
+            getErrorListenerTarget: () => ({ addEventListener }),
+        });
+
+        const target = runtime.getErrorListenerTarget();
+        target?.addEventListener("error", vi.fn());
+
+        expect(target).toBeDefined();
+        expect(addEventListener).toHaveBeenCalledOnce();
+        expect(fallbackAddEventListener).not.toHaveBeenCalled();
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -205,7 +223,7 @@ describe("getErrorHandlingRuntime", () => {
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             Date: DateConstructor,
             dateNow,
-            eventTarget: { addEventListener },
+            errorListenerTarget: { addEventListener },
         } as unknown as Parameters<typeof getErrorHandlingRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -219,6 +237,6 @@ describe("getErrorHandlingRuntime", () => {
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(constructedCount).toBe(0);
-        expect(runtime.getGlobalEventTarget()).toBeUndefined();
+        expect(runtime.getErrorListenerTarget()).toBeUndefined();
     });
 });

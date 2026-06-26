@@ -11401,7 +11401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(47);
+        expect.assertions(53);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -11445,7 +11445,12 @@ describe("architecture boundaries", () => {
         expect(errorHandlingSource).not.toContain(
             "const errorHandlingRuntime = getErrorHandlingRuntime();"
         );
-        expect(errorHandlingRuntimeSource).toContain("getGlobalEventTarget");
+        expect(errorHandlingSource).toContain("getErrorListenerTarget");
+        expect(errorHandlingSource).not.toContain("getGlobalEventTarget");
+        expect(errorHandlingRuntimeSource).toContain("getErrorListenerTarget");
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "getGlobalEventTarget"
+        );
         expect(errorHandlingRuntimeSource).toContain("dateNow");
         expect(errorHandlingRuntimeSource).toContain("isoNow");
         expect(errorHandlingRuntimeSource).not.toMatch(
@@ -11514,6 +11519,12 @@ describe("architecture boundaries", () => {
             "readonly eventTarget?:"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly errorListenerTarget?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "getDefaultEventTarget"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
@@ -11522,6 +11533,9 @@ describe("architecture boundaries", () => {
         expect(errorHandlingRuntimeSource).not.toContain("scope.dateNow");
         expect(errorHandlingRuntimeSource).not.toContain("scope.Date");
         expect(errorHandlingRuntimeSource).not.toContain("scope.eventTarget");
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.errorListenerTarget"
+        );
         expect(errorHandlingRuntimeSource).toContain(
             "defaultErrorHandlingRuntimeScope"
         );
