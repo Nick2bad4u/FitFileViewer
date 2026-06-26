@@ -21,7 +21,10 @@ import {
 import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
 import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
 import { loggingTimestampRuntime } from "../../logging/loggingTimestampRuntime.js";
-import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
+import {
+    getProcessArgumentValues,
+    getProcessEnvironmentValue,
+} from "../../runtime/processEnvironment.js";
 import {
     getMainProcessStateRuntime,
     type MainProcessStateRuntime,
@@ -40,8 +43,16 @@ function getMainStateProcessEnvironmentValue(name: string): string | undefined {
     return getProcessEnvironmentValue(name);
 }
 
+function getMainStateProcessArgumentValues(): readonly string[] {
+    return getProcessArgumentValues();
+}
+
 function isMainProcessDevelopmentEnvironment(): boolean {
     return getMainStateProcessEnvironmentValue("NODE_ENV") === "development";
+}
+
+function isMainProcessDevelopmentArgumentPresent(): boolean {
+    return getMainStateProcessArgumentValues().includes("--dev");
 }
 
 function isRendererReadableMainStatePath(path: string): boolean {
@@ -233,9 +244,7 @@ class MainProcessState {
         this.middleware = [];
         this.devMode =
             isMainProcessDevelopmentEnvironment() ||
-            (typeof process !== "undefined" &&
-                Array.isArray(process.argv) &&
-                process.argv.includes("--dev"));
+            isMainProcessDevelopmentArgumentPresent();
 
         this._ipcHandlersRegistered = false;
 
