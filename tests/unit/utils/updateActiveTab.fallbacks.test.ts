@@ -25,7 +25,7 @@ type TabButtonState = {
     classes: string[];
     id: string;
 };
-type TestGlobalProperty = "document" | "window";
+type TestGlobalProperty = "document";
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
@@ -136,18 +136,6 @@ function getTabButtonState(
     };
 }
 
-function getFallbackWindowDocument(): Document {
-    const fallbackWindow = Reflect.get(globalThis, "window") as
-        | Pick<Window, "document">
-        | undefined;
-
-    if (!fallbackWindow?.document) {
-        throw new Error("Expected global window document fallback");
-    }
-
-    return fallbackWindow.document;
-}
-
 describe("updateActiveTab.js - environment fallbacks", () => {
     beforeEach(async () => {
         await resetAll();
@@ -199,7 +187,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         expect(effSubscribe).not.toHaveBeenCalled();
     });
 
-    it("falls back to the tab test document when document/window are unavailable/invalid", async () => {
+    it("falls back to the tab test document when document is unavailable", async () => {
         expect.assertions(3);
 
         // Create a separate JSDOM to act as the effective document
@@ -208,10 +196,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         );
         await setTabTestEnvironment({ document: effDom.window.document });
 
-        // Invalidate the standard globals so getDoc() prefers the effective document
-        // Note: typeof checks in getDoc guard these assignments.
+        // Invalidate the standard document so getDoc() prefers the effective document.
         setTestGlobal("document", undefined);
-        setTestGlobal("window", undefined);
 
         // Provide a minimal viable state manager to satisfy calls
         const setState = vi.fn<SetState>();
@@ -243,17 +229,15 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         });
     });
 
-    it("does not use window.document when document is undefined", async () => {
+    it("does not use an ambient document fallback when document is undefined", async () => {
         expect.assertions(3);
 
-        // Prepare a fresh JSDOM to simulate window.document while document is undefined
-        const dom = new JSDOM(
-            '<!doctype html><html><body><button id="tab-win" class="tab-button">Win</button></body></html>'
-        );
+        document.body.replaceChildren();
+        appendTabButton({ id: "tab-win", label: "Win" });
+        const fallbackDocument = document;
 
-        // Invalidate document; provide window.document only
+        // Invalidate document without providing a tab-test document override.
         setTestGlobal("document", undefined);
-        setTestGlobal("window", { document: dom.window.document });
 
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("win");
@@ -276,7 +260,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         expect(ok).toStrictEqual(false);
         expect(setState).not.toHaveBeenCalled();
-        const el = getRequiredElement(getFallbackWindowDocument(), "tab-win");
+        const el = getRequiredElement(fallbackDocument, "tab-win");
         expect(getTabButtonState(el.ownerDocument, "tab-win")).toEqual({
             ariaDisabled: null,
             ariaSelected: null,

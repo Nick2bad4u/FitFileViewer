@@ -1284,6 +1284,8 @@ const directSetupThemeRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
+const updateActiveTabFallbackDirectWindowFixturePattern =
+    /\bsetTestGlobal\(\s*["']window["']|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']window["']/u;
 const themeAdditionalTestDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*(?:,|\))/u;
 const uiStateManagerTestDirectMatchMediaMutationPattern =
@@ -10157,15 +10159,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab fallback tests on descriptor-scoped browser fixtures", () => {
-        expect.assertions(1);
+        expect.assertions(2);
+
+        const activeTabFallbackSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/updateActiveTab.fallbacks.test.ts"
+            )
+        );
 
         expect(
             updateActiveTabFallbackDirectGlobalFixtureMutationPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/updateActiveTab.fallbacks.test.ts"
-                    )
-                )
+                activeTabFallbackSource
+            )
+        ).toBe(false);
+        expect(
+            updateActiveTabFallbackDirectWindowFixturePattern.test(
+                activeTabFallbackSource
             )
         ).toBe(false);
     });
