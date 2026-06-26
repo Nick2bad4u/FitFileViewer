@@ -10,6 +10,7 @@ export type BrowserElementConstructor = typeof globalThis.Element;
 export type BrowserEventConstructor = typeof globalThis.Event;
 export type BrowserFetch = typeof globalThis.fetch;
 export type BrowserFileReaderConstructor = typeof globalThis.FileReader;
+export type BrowserGetComputedStyle = typeof globalThis.getComputedStyle;
 export type BrowserHTMLAnchorElementConstructor =
     typeof globalThis.HTMLAnchorElement;
 export type BrowserHTMLButtonElementConstructor =
@@ -24,6 +25,7 @@ export type BrowserHTMLElementConstructor = typeof globalThis.HTMLElement;
 export type BrowserKeyboardEventConstructor = typeof globalThis.KeyboardEvent;
 export type BrowserMutationObserverConstructor =
     typeof globalThis.MutationObserver;
+export type BrowserMatchMedia = typeof globalThis.matchMedia;
 export type BrowserNodeFilter = typeof globalThis.NodeFilter;
 export type BrowserNodeConstructor = typeof globalThis.Node;
 export type BrowserQueueMicrotask = typeof globalThis.queueMicrotask;

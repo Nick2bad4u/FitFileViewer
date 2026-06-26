@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getThemeRuntime } from "../../../../../electron-app/utils/theming/core/themeRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserCustomEventConstructor,
+    BrowserGetComputedStyle,
+    BrowserMatchMedia,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+import {
+    getThemeRuntime,
+    type ThemeRuntimeTimer,
+} from "../../../../../electron-app/utils/theming/core/themeRuntime.js";
 
 describe("getThemeRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -14,7 +25,7 @@ describe("getThemeRuntime", () => {
         );
         const runtime = getThemeRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -26,7 +37,7 @@ describe("getThemeRuntime", () => {
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const matchMedia = vi.fn(function defaultMatchMedia(
-            this: typeof globalThis,
+            this: unknown,
             query: string
         ) {
             void query;
@@ -63,9 +74,9 @@ describe("getThemeRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const timer = 89 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 89 as ThemeRuntimeTimer;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
@@ -92,7 +103,7 @@ describe("getThemeRuntime", () => {
         );
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const timer = 91 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 91 as ThemeRuntimeTimer;
         const mediaQuery = { matches: true } as MediaQueryList;
         const documentRef =
             document.implementation.createHTMLDocument("theme runtime");
@@ -101,12 +112,12 @@ describe("getThemeRuntime", () => {
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
         } as unknown as EventTarget;
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const matchMedia = vi.fn(() => mediaQuery);
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const getAbortController = vi.fn(
             () =>
-                AbortControllerConstructor as unknown as typeof AbortController
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
         class TestCustomEvent<T = unknown> extends CustomEvent<T> {
@@ -179,7 +190,7 @@ describe("getThemeRuntime", () => {
             "theme core requires a setTimeout runtime"
         );
         expect(() => {
-            utils.clearTimeout(89 as ReturnType<typeof globalThis.setTimeout>);
+            utils.clearTimeout(89 as ThemeRuntimeTimer);
         }).toThrow("theme core requires a clearTimeout runtime");
         expect(() => utils.createThemeChangeEvent({})).toThrow(
             "theme core requires a CustomEvent runtime"
@@ -290,8 +301,8 @@ describe("getThemeRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("theme body");
         documentRef.body.style.setProperty("--color-bg", "#123456");
-        const getComputedStyle = vi.fn<typeof globalThis.getComputedStyle>(
-            (element) => window.getComputedStyle(element)
+        const getComputedStyle = vi.fn<BrowserGetComputedStyle>((element) =>
+            window.getComputedStyle(element)
         );
         const runtime = getThemeRuntime({
             getComputedStyle: () => getComputedStyle,
@@ -346,7 +357,7 @@ describe("getThemeRuntime", () => {
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const matchMedia = vi.fn(function defaultMatchMedia(
-            this: typeof globalThis,
+            this: unknown,
             query: string
         ) {
             void query;
@@ -392,14 +403,14 @@ describe("getThemeRuntime", () => {
             }
         );
         const callback = vi.fn<() => void>();
-        const timer = 89 as ReturnType<typeof globalThis.setTimeout>;
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 89 as ThemeRuntimeTimer;
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const CustomEventConstructor = vi.fn(function FakeCustomEvent() {
             return new CustomEvent("legacy");
         });
         const mediaQuery = { matches: true } as MediaQueryList;
-        const matchMedia = vi.fn(() => mediaQuery);
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const matchMedia = vi.fn<BrowserMatchMedia>(() => mediaQuery);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const globalEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
@@ -407,9 +418,9 @@ describe("getThemeRuntime", () => {
         } as unknown as EventTarget;
         const runtime = getThemeRuntime({
             AbortController:
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             CustomEvent:
-                CustomEventConstructor as unknown as typeof CustomEvent,
+                CustomEventConstructor as unknown as BrowserCustomEventConstructor,
             clearTimeout,
             document,
             globalEventTarget,

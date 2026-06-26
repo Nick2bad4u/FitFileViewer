@@ -18282,7 +18282,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(96);
+        expect.assertions(105);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -18338,6 +18338,19 @@ describe("architecture boundaries", () => {
             "const defaultThemeRuntimeScope: ThemeRuntimeScope = globalThis"
         );
         expect(themeRuntimeSource).toContain("../../runtime/browserRuntime.js");
+        expect(themeRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(themeRuntimeSource).toContain("type BrowserClearTimeout");
+        expect(themeRuntimeSource).toContain(
+            "type BrowserCustomEventConstructor"
+        );
+        expect(themeRuntimeSource).toContain("type BrowserGetComputedStyle");
+        expect(themeRuntimeSource).toContain("type BrowserMatchMedia");
+        expect(themeRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(themeRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(themeRuntimeSource).not.toContain("typeof globalThis.");
+        expect(themeRuntimeSource).not.toContain("ReturnType<");
         expect(themeRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );

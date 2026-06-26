@@ -1,4 +1,11 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserCustomEventConstructor,
+    type BrowserGetComputedStyle,
+    type BrowserMatchMedia,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserBoundMatchMedia,
     getBrowserClearTimeout,
@@ -10,33 +17,29 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
+export type ThemeRuntimeTimer = BrowserTimerHandle;
 type ThemeRuntimeStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 
 export interface ThemeRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getComputedStyle?:
-        | (() => typeof globalThis.getComputedStyle | undefined)
+        | (() => BrowserGetComputedStyle | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof globalThis.CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getLocalStorage?:
         | (() => ThemeRuntimeStorage | undefined)
         | undefined;
-    readonly getMatchMedia?:
-        | (() => typeof globalThis.matchMedia | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface ThemeRuntime {
@@ -76,25 +79,25 @@ const defaultThemeRuntimeScope: ThemeRuntimeScope = {
 
 function getScopeAbortController(
     scope: ThemeRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getScopeClearTimeout(
     scope: ThemeRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
 function getScopeComputedStyle(
     scope: ThemeRuntimeScope
-): typeof globalThis.getComputedStyle | undefined {
+): BrowserGetComputedStyle | undefined {
     return scope.getComputedStyle?.();
 }
 
 function getRequiredCustomEvent(
     scope: ThemeRuntimeScope
-): typeof globalThis.CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("theme core requires a CustomEvent runtime");
@@ -135,13 +138,13 @@ function getRequiredLocalStorage(
 
 function getScopeMatchMedia(
     scope: ThemeRuntimeScope
-): typeof globalThis.matchMedia | undefined {
+): BrowserMatchMedia | undefined {
     return scope.getMatchMedia?.();
 }
 
 function getScopeSetTimeout(
     scope: ThemeRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 
