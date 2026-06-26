@@ -150,6 +150,12 @@ export function getBrowserHTMLSelectElement():
     return globalThis.HTMLSelectElement;
 }
 
+export function getBrowserHTMLTableCellElement():
+    | typeof globalThis.HTMLTableCellElement
+    | undefined {
+    return globalThis.HTMLTableCellElement;
+}
+
 export function getBrowserHTMLTextAreaElement():
     | typeof globalThis.HTMLTextAreaElement
     | undefined {

@@ -477,6 +477,10 @@ Data tab table container lookup now routes through `createTablesRuntime.ts` inst
 inside `createTables.ts`, with focused runtime/behavior coverage and architecture guardrails blocking direct
 container queries and legacy direct document runtime-scope properties from returning. Default document access now
 lives on the named default provider instead of a private `getGlobalDocument()` helper.
+Data tab table DOM creation, style reads, element type checks, animation-frame scheduling, and timer
+scheduling/cleanup now route through `renderTableRuntime.ts`; production defaults reuse shared browser runtime
+providers for document, computed-style, element constructors, animation frames, and timers instead of local inline
+`globalThis` getters, with runtime and architecture coverage blocking those defaults from regressing.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now

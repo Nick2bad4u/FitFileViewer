@@ -1,3 +1,13 @@
+import {
+    getBrowserClearTimeout,
+    getBrowserComputedStyle,
+    getBrowserDocument,
+    getBrowserHTMLElement,
+    getBrowserHTMLTableCellElement,
+    getBrowserRequestAnimationFrame,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
+
 export type RenderTableTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -117,13 +127,13 @@ function getRequiredSetTimeout(
 }
 
 const defaultRenderTableRuntimeScope: RenderTableRuntimeScope = {
-    getClearTimeout: () => globalThis.clearTimeout,
-    getComputedStyleFunction: () => globalThis.getComputedStyle,
-    getDocument: () => globalThis.document,
-    getHTMLElement: () => globalThis.HTMLElement,
-    getHTMLTableCellElement: () => globalThis.HTMLTableCellElement,
-    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
-    getSetTimeout: () => globalThis.setTimeout,
+    getClearTimeout: getBrowserClearTimeout,
+    getComputedStyleFunction: getBrowserComputedStyle,
+    getDocument: getBrowserDocument,
+    getHTMLElement: getBrowserHTMLElement,
+    getHTMLTableCellElement: getBrowserHTMLTableCellElement,
+    getRequestAnimationFrame: getBrowserRequestAnimationFrame,
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 export function getRenderTableRuntime(

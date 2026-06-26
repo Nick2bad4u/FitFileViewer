@@ -2,11 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     getRenderTableRuntime,
+    type RenderTableTimerHandle,
     type RenderTableRuntimeScope,
 } from "../../../../../electron-app/utils/rendering/core/renderTableRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
 }
 
@@ -82,6 +84,56 @@ describe("getRenderTableRuntime", () => {
             expect(clearTimeout).toHaveBeenCalledWith(11);
             expect(callback).not.toHaveBeenCalled();
             expect(frameCallback).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("uses browser runtime providers for production table defaults", () => {
+        expect.assertions(14);
+
+        try {
+            const target = document.createElement("section");
+            target.id = "target";
+            document.body.append(target);
+            const cell = document.createElement("td");
+            const callback = vi.fn<() => void>();
+            const frameCallback = vi.fn<FrameRequestCallback>();
+            const style = { display: "table" } as CSSStyleDeclaration;
+            const timer = Symbol("timer") as RenderTableTimerHandle;
+            const timeoutMs = Number.parseInt("35", 10);
+            const getComputedStyle = vi.fn<typeof globalThis.getComputedStyle>(
+                () => style
+            );
+            const requestAnimationFrame = vi.fn<
+                typeof globalThis.requestAnimationFrame
+            >(() => 17);
+            const setTimeout = vi.fn<typeof globalThis.setTimeout>(
+                () => timer
+            );
+            const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+            vi.stubGlobal("clearTimeout", clearTimeout);
+            vi.stubGlobal("getComputedStyle", getComputedStyle);
+            vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+            vi.stubGlobal("setTimeout", setTimeout);
+            const utils = getRenderTableRuntime();
+
+            expect(utils.createElement("span")).toBeInstanceOf(HTMLSpanElement);
+            expect(utils.getElementById("target")).toBe(target);
+            expect(utils.isHTMLElement(target)).toBe(true);
+            expect(utils.isTableCellElement(cell)).toBe(true);
+            expect(utils.getComputedStyle(target)).toBe(style);
+            expect(getComputedStyle).toHaveBeenCalledWith(target);
+            expect(utils.requestAnimationFrame(frameCallback)).toBe(17);
+            expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+            expect(utils.setTimeout(callback, timeoutMs)).toBe(timer);
+            utils.clearTimeout(timer);
+
+            expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+            expect(clearTimeout).toHaveBeenCalledWith(timer);
+            expect(callback).not.toHaveBeenCalled();
+            expect(frameCallback).not.toHaveBeenCalled();
+            expect(requestAnimationFrame).toHaveBeenCalledOnce();
         } finally {
             cleanupFixture();
         }

@@ -12658,7 +12658,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(41);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -12701,24 +12701,45 @@ describe("architecture boundaries", () => {
             "const defaultRenderTableRuntimeScope: RenderTableRuntimeScope = globalThis"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getComputedStyleFunction: getBrowserComputedStyle"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getComputedStyleFunction: () => globalThis.getComputedStyle"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getHTMLTableCellElement: getBrowserHTMLTableCellElement"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getHTMLTableCellElement: () => globalThis.HTMLTableCellElement"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getRequestAnimationFrame: getBrowserRequestAnimationFrame"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(renderTableRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(renderTableRuntimeScopeSource).not.toContain(
