@@ -23,11 +23,13 @@ import {
     type RendererStateIntegrationRuntime,
     type RendererStateIntegrationTimer,
 } from "./rendererStateIntegrationRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronPreloadEventApi } from "../../../shared/preloadApi.js";
 
 type Unsubscribe = () => void;
 
-type RendererElectronAPI = Partial<Pick<ElectronAPI, "onFileOpened">>;
+interface RendererElectronAPI {
+    onFileOpened?: ElectronPreloadEventApi["onFileOpened"];
+}
 
 type RendererStateIntegrationOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
@@ -95,10 +97,7 @@ export function exampleStateUsage(): Unsubscribe {
 
     // Later, clean up the subscription
     const cleanupTimeout: RendererStateIntegrationTimer =
-        rendererStateIntegrationRuntime().setTimeout(
-            () => unsubscribe(),
-            5000
-        );
+        rendererStateIntegrationRuntime().setTimeout(() => unsubscribe(), 5000);
 
     return () => {
         rendererStateIntegrationRuntime().clearTimeout(cleanupTimeout);

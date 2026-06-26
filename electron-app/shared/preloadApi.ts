@@ -266,7 +266,7 @@ export type ElectronFitBrowserApi = Pick<
 
 export type ElectronPreloadEventApi = Pick<
     ElectronAPI,
-    "notifyFitFileLoaded" | "onUpdateEvent"
+    "notifyFitFileLoaded" | "onFileOpened" | "onUpdateEvent"
 >;
 
 export type ElectronMainStateApi = Pick<

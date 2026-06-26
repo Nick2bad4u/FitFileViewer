@@ -404,6 +404,8 @@ Core theme live theme-change IPC candidate typing now uses the shared menu-event
 deriving from the monolithic `ElectronAPI` type.
 Show FIT data file-loaded notification candidate typing now uses the shared preload-event API-domain contract instead
 of deriving from the monolithic `ElectronAPI` type.
+Renderer state integration file-opened IPC candidate typing now uses the shared preload-event API-domain contract
+instead of deriving from the monolithic `ElectronAPI` type.
 Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
 from the monolithic `ElectronAPI` type.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
@@ -756,6 +758,8 @@ now lives on named default providers that read `globalThis.document` directly in
 Renderer state integration file-open IPC now validates the scoped preload candidate with an explicit optional-function
 property guard instead of casting the renderer Electron API candidate to a generic readonly record, with malformed-scope
 coverage proving state-aware DOM handlers still wire up and architecture coverage blocking the cast from returning.
+Its file-opened IPC candidate typing now uses the shared preload-event API-domain contract instead of deriving from the
+monolithic `ElectronAPI` type.
 Main UI summary selector tab lookup, gear-button lookup, and delayed gear-button scheduling now route through
 `mainUiSummaryColumnSelectorRuntime.ts` instead of keeping DOM and timer globals inside
 `mainUiSummaryColumnSelector.ts`, with focused runtime coverage and architecture guardrails blocking those direct

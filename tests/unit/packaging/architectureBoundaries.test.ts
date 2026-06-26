@@ -13195,7 +13195,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(60);
+        expect.assertions(63);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -13237,6 +13237,15 @@ describe("architecture boundaries", () => {
         expect(rendererStateIntegrationSource).toContain("getDocument()");
         expect(rendererStateIntegrationSource).toContain("isElement(");
         expect(rendererStateIntegrationSource).toContain("isHTMLElement(");
+        expect(rendererStateIntegrationSource).toContain(
+            "ElectronPreloadEventApi"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            "import type { ElectronAPI"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            "Pick<ElectronAPI"
+        );
         expect(rendererStateIntegrationSource).not.toContain(
             "document.addEventListener"
         );
