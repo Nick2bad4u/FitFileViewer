@@ -420,7 +420,7 @@ Elevation-profile popup and chart-overlay palette defaults now resolve through f
 using generic `Reflect.get(globalThis, ...)` probes. Add-FIT-map, elevation-profile, and power-estimation map-action
 button AbortController contracts now reuse the shared browser-runtime alias instead of direct ambient constructor type
 spellings, marker-count selector AbortController/Event contracts now do the same for its change-event runtime, and
-exit-fullscreen overlay AbortController/HTMLElement contracts now use shared browser-runtime aliases as well.
+exit-fullscreen overlay add/remove AbortController/HTMLElement contracts now use shared browser-runtime aliases as well.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
 timers now route through `createFieldTogglesSectionRuntime.ts`; production defaults and explicit runtime scopes now
 use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or

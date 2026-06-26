@@ -1,4 +1,7 @@
-import { getBrowserDocument } from "../../runtime/browserRuntime.js";
+import {
+    type BrowserHTMLElementConstructor,
+    getBrowserDocument,
+} from "../../runtime/browserRuntime.js";
 
 export interface RemoveExitFullscreenOverlayRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
@@ -26,7 +29,7 @@ function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     runtimeDocument: Readonly<Document>
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return runtimeDocument.defaultView?.HTMLElement;
 }
 
