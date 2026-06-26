@@ -8,7 +8,6 @@ type MockWindow = {
     isDestroyed: () => boolean;
     setFullScreen: Mock<(fullscreen: boolean) => void>;
     webContents: {
-        executeJavaScript: Mock<(script?: string) => Promise<string>>;
         isDestroyed: () => boolean;
         on: Mock<
             (eventName: string, listener: (...args: unknown[]) => void) => void
@@ -36,9 +35,6 @@ const mockWindow: MockWindow = {
     isDestroyed: () => false,
     setFullScreen: vi.fn<(fullscreen: boolean) => void>(),
     webContents: {
-        executeJavaScript: vi
-            .fn<(script?: string) => Promise<string>>()
-            .mockResolvedValue("dark"),
         isDestroyed: () => false,
         on: vi.fn<
             (eventName: string, listener: (...args: unknown[]) => void) => void
@@ -471,8 +467,6 @@ function getRequiredWebRequestHandler(): (
 function resetMockImplementations() {
     mockWindow.isDestroyed = () => false;
     mockWindow.setFullScreen.mockReset();
-    mockWindow.webContents.executeJavaScript.mockReset();
-    mockWindow.webContents.executeJavaScript.mockResolvedValue("dark");
     mockWindow.webContents.isDestroyed = () => false;
     mockWindow.webContents.on.mockReset();
     mockWindow.webContents.send.mockReset();

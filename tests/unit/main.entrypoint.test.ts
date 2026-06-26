@@ -11,9 +11,6 @@ type EventMap = Map<string, Set<Listener>>;
 
 type WebContentsMock = {
     emit: (eventName: string, ...args: unknown[]) => boolean;
-    executeJavaScript: ReturnType<
-        typeof vi.fn<(script: string) => Promise<unknown>>
-    >;
     isDestroyed: ReturnType<typeof vi.fn<() => boolean>>;
     on: ReturnType<
         typeof vi.fn<(eventName: string, listener: Listener) => void>
@@ -166,9 +163,6 @@ const harness = vi.hoisted(() => {
     const webContents: WebContentsMock = {
         emit: (eventName, ...args) =>
             webContentsEmitter.emit(eventName, ...args),
-        executeJavaScript: vi
-            .fn<(script: string) => Promise<unknown>>()
-            .mockResolvedValue("dark"),
         isDestroyed: vi.fn<() => boolean>(() => false),
         on: vi.fn<(eventName: string, listener: Listener) => void>(
             (eventName, listener) => {
@@ -371,7 +365,6 @@ const harness = vi.hoisted(() => {
         browserWindow.getAllWindows.mockReturnValue([mainWindow]);
         browserWindow.getFocusedWindow.mockReturnValue(mainWindow);
         mainWindow.isDestroyed.mockReturnValue(false);
-        webContents.executeJavaScript.mockResolvedValue("dark");
         webContents.isDestroyed.mockReturnValue(false);
     };
 

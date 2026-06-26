@@ -256,9 +256,6 @@ describe("main.js strict handlers and events", () => {
                     }
                 ),
                 send: vi.fn<(channel: string, ...args: unknown[]) => void>(),
-                executeJavaScript: vi
-                    .fn<() => Promise<string>>()
-                    .mockResolvedValue("dark"),
             },
         };
         mockBrowserWindow = {
@@ -432,9 +429,6 @@ describe("main.js strict handlers and events", () => {
             canceled: false,
             filePaths: [selectedFilePath],
         });
-        mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
-            "light"
-        );
         await expect(openHandler({})).resolves.toBe(selectedFilePath);
         // Don't assert on addRecentFile or createAppMenu due to module resolution differences; path return suffices
 
@@ -454,9 +448,6 @@ describe("main.js strict handlers and events", () => {
             "ipcMain.handle"
         );
         expect(recentAdd[0]).toBe("recentFiles:add");
-        mockMainWindow.webContents.executeJavaScript.mockResolvedValueOnce(
-            "dark"
-        );
         await expect(
             getRequiredHandler(recentAdd)({}, "D:/other.fit")
         ).resolves.toStrictEqual([]);

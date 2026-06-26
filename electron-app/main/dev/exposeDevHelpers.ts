@@ -18,7 +18,6 @@ type RendererIpcEventChannel =
 interface MainWindowLike {
     isDestroyed?: () => boolean;
     webContents: {
-        executeJavaScript?: (script: string) => Promise<unknown>;
         isDestroyed?: () => boolean;
         send?: (
             channel: RendererIpcEventChannel,

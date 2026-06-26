@@ -2929,7 +2929,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(252);
+        expect.assertions(254);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3590,6 +3590,8 @@ describe("architecture boundaries", () => {
         );
         expect(bootstrapMainWindowSource).not.toContain("executeJavaScript");
         expect(initializeMainWindowSource).not.toContain("executeJavaScript");
+        expect(safeCreateAppMenuSource).not.toContain("executeJavaScript");
+        expect(exposeDevHelpersSource).not.toContain("executeJavaScript");
         expect(windowStateUtilsSource).toContain(
             "export function createWindow"
         );
