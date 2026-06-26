@@ -4,6 +4,7 @@
  * lived in main.js so existing log expectations in tests remain unchanged.
  */
 import { getProcessEnvironmentValue } from "../../utils/runtime/processEnvironment.js";
+import { loggingTimestampRuntime } from "../../utils/logging/loggingTimestampRuntime.js";
 
 type ConsoleMethod = (
     message?: unknown,
@@ -110,7 +111,7 @@ export function logWithContext(
     message: string,
     context: LogContext = {}
 ): void {
-    const timestamp = new Date().toISOString();
+    const timestamp = loggingTimestampRuntime().isoNow();
     const log = getConsoleMethod(level);
 
     if (Object.keys(context).length > 0) {
