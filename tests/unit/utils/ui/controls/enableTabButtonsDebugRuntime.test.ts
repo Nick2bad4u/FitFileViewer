@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getEnableTabButtonsDebugRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.js";
 
 describe("getEnableTabButtonsDebugRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("calls the injected computed-style function when runtime APIs are available", () => {
         expect.assertions(2);
 
@@ -121,6 +125,36 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(
             getEnableTabButtonsDebugRuntime({}).createAbortController
         ).toThrow("enableTabButtonsDebug requires an AbortController runtime");
+    });
+
+    it("uses browser runtime providers for production timer and computed-style defaults", () => {
+        expect.assertions(6);
+
+        const element = document.createElement("button");
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+        const timeoutMs = Number("45");
+        const handler = vi.fn<() => void>();
+        const style = { display: "contents" } as CSSStyleDeclaration;
+        const getComputedStyle = vi.fn<typeof globalThis.getComputedStyle>(
+            () => style
+        );
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        vi.stubGlobal("clearTimeout", clearTimeoutMock);
+        vi.stubGlobal("getComputedStyle", getComputedStyle);
+        vi.stubGlobal("setTimeout", setTimeoutMock);
+        const runtime = getEnableTabButtonsDebugRuntime();
+
+        expect(runtime.assertComputedStyleAvailable(element)).toBeUndefined();
+        expect(getComputedStyle).toHaveBeenCalledWith(element);
+        expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(handler).not.toHaveBeenCalled();
     });
 
     it("throws when timer cleanup is unavailable", () => {

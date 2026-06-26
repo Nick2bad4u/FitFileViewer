@@ -19321,7 +19321,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(32);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -19370,15 +19370,27 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getClearTimeout: getBrowserClearTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getComputedStyleFunction: getBrowserComputedStyle"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "getComputedStyleFunction: () => globalThis.getComputedStyle"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "isRendererScope: () => getBrowserDocument() !== undefined"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(enableTabButtonsDebugRuntimeSource).not.toContain(

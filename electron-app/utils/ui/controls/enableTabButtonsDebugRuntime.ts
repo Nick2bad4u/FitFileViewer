@@ -1,4 +1,10 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserComputedStyle,
+    getBrowserDocument,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 type EnableTabButtonsDebugGetComputedStyle = (
     element: Readonly<Element>,
@@ -31,11 +37,11 @@ export interface EnableTabButtonsDebugRuntime {
 
 const defaultEnableTabButtonsDebugRuntimeScope: EnableTabButtonsDebugRuntimeScope =
     {
-    getAbortController: getBrowserAbortController,
-        getClearTimeout: () => globalThis.clearTimeout,
-        getComputedStyleFunction: () => globalThis.getComputedStyle,
-        getSetTimeout: () => globalThis.setTimeout,
-        isRendererScope: () => Reflect.has(globalThis, "document"),
+        getAbortController: getBrowserAbortController,
+        getClearTimeout: getBrowserClearTimeout,
+        getComputedStyleFunction: getBrowserComputedStyle,
+        getSetTimeout: getBrowserSetTimeout,
+        isRendererScope: () => getBrowserDocument() !== undefined,
     };
 
 function getAbortControllerConstructor(
