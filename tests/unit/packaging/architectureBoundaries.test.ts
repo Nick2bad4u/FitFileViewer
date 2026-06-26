@@ -20201,7 +20201,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -20258,6 +20258,9 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
         expect(runtimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(runtimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(runtimeSource).not.toContain(
@@ -20273,6 +20276,10 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(runtimeSource).not.toContain("): typeof AbortController");
+        expect(runtimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
         );
         expect(runtimeSource).toContain(
             "chartListenerState requires an AbortController"

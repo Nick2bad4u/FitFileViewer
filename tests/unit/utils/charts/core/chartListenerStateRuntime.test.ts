@@ -4,6 +4,7 @@ import {
     getChartListenerStateRuntime,
     type ChartListenerStateRuntimeScope,
 } from "../../../../../electron-app/utils/charts/core/chartListenerStateRuntime.js";
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getChartListenerStateRuntime", () => {
     it("uses browser runtime providers for production defaults", () => {
@@ -31,7 +32,7 @@ describe("getChartListenerStateRuntime", () => {
         expect(() =>
             getChartListenerStateRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
             }).createAbortController()
         ).toThrow("chartListenerState requires an AbortController");
     });

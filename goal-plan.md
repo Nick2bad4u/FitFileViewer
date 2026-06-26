@@ -406,7 +406,9 @@ instead of direct ambient type spellings, with architecture coverage blocking th
 from returning.
 Chart listener lifecycle abort-controller creation now routes through `chartListenerStateRuntime.ts`, and explicit
 runtime scopes must provide their controller instead of falling back to `globalThis.AbortController`, with focused
-runtime coverage and architecture guardrails blocking the ambient controller fallback from returning.
+runtime coverage and architecture guardrails blocking the ambient controller fallback from returning. The chart listener
+state AbortController contract now reuses the shared browser-runtime constructor alias instead of a direct ambient
+constructor type.
 Chart hover effects scheduling, abort-controller creation, and document listener wiring now use named runtime provider
 functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 Inline SVG creation now routes through focused runtime facades for the app icon factory, global fullscreen button,
