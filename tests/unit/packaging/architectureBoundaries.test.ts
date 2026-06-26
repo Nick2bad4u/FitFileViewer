@@ -22240,7 +22240,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input browser constructors behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(27);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -22271,10 +22271,12 @@ describe("architecture boundaries", () => {
             'typeof HTMLInputElement === "function"'
         );
         expect(fileInputStartupSource).toContain(
-            "globalEventTarget: RendererFileInputEventTarget"
+            "rendererEventTarget: RendererFileInputEventTarget"
         );
+        expect(fileInputStartupSource).not.toContain("globalEventTarget");
         expect(fileInputStartupSource).not.toContain("windowTarget");
-        expect(fileInputWiringSource).toContain("globalEventTarget");
+        expect(fileInputWiringSource).toContain("rendererEventTarget");
+        expect(fileInputWiringSource).not.toContain("globalEventTarget");
         expect(fileInputWiringSource).not.toContain("windowTarget");
         expect(fileInputStartupRuntimeSource).toContain(
             "defaultRendererFileInputStartupRuntimeScope"

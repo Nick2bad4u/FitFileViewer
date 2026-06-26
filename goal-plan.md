@@ -1298,6 +1298,9 @@ Renderer file-input delegated and import-time listener cleanup now creates abort
 focused runtime coverage and architecture coverage blocking direct file-input abort-controller construction from
 returning. The file-input startup runtime contracts now reuse shared browser-runtime AbortController and
 HTMLInputElement aliases instead of direct ambient constructor types.
+Renderer file-input beforeunload cleanup now receives the startup-provided `rendererEventTarget` directly through
+`fileInputStartup.ts` and `fileInputWiring.ts` instead of preserving the retired `globalEventTarget` file-input
+option/parameter name.
 Renderer test-only bootstrap DOMContentLoaded and window-load listener cleanup now creates abort controllers through
 `testOnlyBootstrapRuntime.ts` instead of constructing `AbortController` directly in `testOnlyBootstrap.ts`, with
 focused runtime coverage and architecture coverage blocking direct test-only bootstrap abort-controller construction

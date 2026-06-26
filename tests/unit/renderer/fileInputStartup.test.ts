@@ -136,9 +136,9 @@ describe("renderer file input startup wiring", () => {
         const { file, input } = createFileInput();
         const handleOpenFile = vi.fn<() => void>();
 
-        const globalEventTarget = window;
+        const rendererEventTarget = window;
 
-        registerImportTimeFileInputChangeHandler(input, globalEventTarget, {
+        registerImportTimeFileInputChangeHandler(input, rendererEventTarget, {
             getHandleOpenFile: async () => handleOpenFile,
         });
 
