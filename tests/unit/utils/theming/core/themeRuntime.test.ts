@@ -21,14 +21,33 @@ describe("getThemeRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
-    it("uses browser runtime providers for production AbortController defaults", () => {
-        expect.assertions(1);
+    it("uses browser runtime providers for production browser defaults", () => {
+        expect.assertions(8);
 
+        const mediaQuery = { matches: true } as MediaQueryList;
+        const matchMedia = vi.fn(function defaultMatchMedia(
+            this: typeof globalThis,
+            query: string
+        ) {
+            void query;
+            return mediaQuery;
+        });
+        vi.stubGlobal("matchMedia", matchMedia);
         const runtime = getThemeRuntime();
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             AbortController
         );
+        expect(runtime.createThemeChangeEvent({ theme: "dark" })).toBeInstanceOf(
+            CustomEvent
+        );
+        runtime.addBodyClass("theme-dark");
+        expect(document.body.classList.contains("theme-dark")).toBe(true);
+        expect(runtime.getDocumentEventTarget()).toBe(document);
+        expect(runtime.getBodyElement()).toBe(document.body);
+        expect(runtime.getBodyComputedStyleProperty("color-bg")).toBe("");
+        expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
+        expect(matchMedia.mock.contexts[0]).toBe(globalThis);
     });
 
     it("throws when abort controller creation is unavailable", () => {

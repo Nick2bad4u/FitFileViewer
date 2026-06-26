@@ -1,4 +1,12 @@
-import { getBrowserAbortController } from "../../runtime/browserRuntime.js";
+import {
+    getBrowserAbortController,
+    getBrowserClearTimeout,
+    getBrowserComputedStyle,
+    getBrowserCustomEvent,
+    getBrowserDocument,
+    getBrowserMatchMedia,
+    getBrowserSetTimeout,
+} from "../../runtime/browserRuntime.js";
 
 export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
 
@@ -62,13 +70,13 @@ function getDefaultEventTarget(): EventTarget | undefined {
 
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: getBrowserAbortController,
-    getClearTimeout: () => globalThis.clearTimeout,
-    getComputedStyle: () => globalThis.getComputedStyle,
-    getCustomEvent: () => globalThis.CustomEvent,
-    getDocument: () => globalThis.document,
+    getClearTimeout: getBrowserClearTimeout,
+    getComputedStyle: getBrowserComputedStyle,
+    getCustomEvent: getBrowserCustomEvent,
+    getDocument: getBrowserDocument,
     getGlobalEventTarget: getDefaultEventTarget,
-    getMatchMedia: () => globalThis.matchMedia?.bind(globalThis),
-    getSetTimeout: () => globalThis.setTimeout,
+    getMatchMedia: () => getBrowserMatchMedia()?.bind(globalThis),
+    getSetTimeout: getBrowserSetTimeout,
 };
 
 function getScopeAbortController(

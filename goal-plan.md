@@ -475,6 +475,9 @@ primitives instead of falling back to `globalThis`, with focused runtime coverag
 those fallbacks from returning. Default media-query helpers now use typed provider picks instead of direct optional
 browser-global shapes, and the default media-query provider now binds `matchMedia` to `globalThis` without a
 module-level `browserGlobal` alias.
+Core theme runtime production defaults now reuse shared browser runtime providers for timers, computed-style,
+CustomEvent, document, and matchMedia lookups instead of local inline `globalThis` getters, while preserving the
+bound default matchMedia call path.
 Core theme transition-style injection and meta theme-color updates now also route through `themeRuntime.ts` instead
 of querying, creating, or appending through `document` directly inside `theme.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct theme DOM calls from returning.
