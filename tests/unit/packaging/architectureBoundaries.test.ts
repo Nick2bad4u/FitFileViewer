@@ -5301,7 +5301,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(128);
+        expect.assertions(130);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5478,8 +5478,11 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).toContain(
             "renderer runtime environment requires a renderer event target"
         );
-        expect(rendererBrowserRuntimeSource).toContain(
+        expect(rendererBrowserRuntimeSource).not.toContain(
             "type RendererRuntimeGlobalScope = typeof globalThis &"
+        );
+        expect(rendererBrowserRuntimeSource).toContain(
+            "getBrowserElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).not.toContain(
             "getDefaultElectronApiCandidate"
@@ -5497,16 +5500,16 @@ describe("architecture boundaries", () => {
             "getElectronApiCandidate: getBrowserRendererElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getRendererEventTarget: getBrowserRendererEventTarget"
+            "getRendererEventTarget: getBrowserEventTarget"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getAddEventListener: getBrowserRendererAddEventListener"
+            "getAddEventListener: getBrowserAddEventListener"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getDocument: getBrowserRendererDocument"
+            "getDocument: getBrowserDocument"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getSetTimeout: getBrowserRendererBoundSetTimeout"
+            "getSetTimeout: getBrowserBoundSetTimeout"
         );
         expect(rendererBrowserRuntimeSource).not.toContain(
             "getAddEventListener: () => globalThis.addEventListener.bind(globalThis)"
@@ -5683,8 +5686,11 @@ describe("architecture boundaries", () => {
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "main UI runtime environment requires a document reference"
         );
-        expect(mainUiBrowserRuntimeSource).toContain(
+        expect(mainUiBrowserRuntimeSource).not.toContain(
             "type MainUiRuntimeGlobalScope = typeof globalThis &"
+        );
+        expect(mainUiBrowserRuntimeSource).toContain(
+            "getBrowserElectronApiCandidate"
         );
         expect(mainUiBrowserRuntimeSource).not.toContain(
             "getDefaultElectronApiCandidate"
@@ -5702,10 +5708,10 @@ describe("architecture boundaries", () => {
             "dateNow: getBrowserMainUiDateNow"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
-            "getConsole: getBrowserMainUiConsole"
+            "getConsole: getBrowserConsole"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
-            "getDocument: getBrowserMainUiDocument"
+            "getDocument: getBrowserDocument"
         );
         expect(mainUiBrowserRuntimeSource).not.toContain(
             "getElectronApiCandidate: () =>"
@@ -24521,8 +24527,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps Electron API runtime on explicit provider scopes", () => {
-        expect.assertions(10);
+    it("keeps Electron API global lookup centralized behind its runtime provider", () => {
+        expect.assertions(11);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -24548,8 +24554,11 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).not.toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
-        expect(electronApiRuntimeSource).not.toContain(
-            "readonly electronAPI?:"
+        expect(electronApiRuntimeSource).toContain(
+            "type BrowserElectronApiGlobalScope = typeof globalThis &"
+        );
+        expect(electronApiRuntimeSource).toContain(
+            "return (globalThis as BrowserElectronApiGlobalScope).electronAPI;"
         );
         expect(electronApiRuntimeSource).not.toContain("scope.electronAPI");
         expect(electronApiRuntimeSource).not.toContain(

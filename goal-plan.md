@@ -1364,14 +1364,15 @@ the event target they use, with architecture coverage blocking the broad handoff
 Renderer and main-UI browser runtime-environment scopes now assemble their production defaults from named browser
 runtime providers instead of inline `globalThis.document`, bound listener/timer, `globalThis.console`, Electron API
 candidate, or `Date.now()` closures, with architecture coverage blocking those inline defaults from returning.
+Their production Electron API candidate provider now routes through the centralized `electronApiRuntime`
+browser-candidate helper instead of each renderer browser-runtime file owning its own `globalThis.electronAPI`
+scope type.
 The runtime-environment scope contract no longer exposes `getRendererScope` or `RendererRuntimeScope`; default
 ambient lookup stays private to `runtimeEnvironment.ts`, and callers can provide only focused providers such as
 `getElectronApiCandidate` and `getRendererEventTarget`.
 The runtime-environment default implementation no longer has a private whole-renderer-object helper; Electron API
-candidate capture and event-target capture stay on their focused default providers, and the default Electron API
-candidate reader now uses a focused `RendererRuntimeGlobalScope` instead of a generic `Record<PropertyKey, unknown>`
-cast, with architecture coverage
-blocking that broad helper from returning.
+candidate capture and event-target capture stay on focused providers, and architecture coverage blocks local
+renderer/main-UI browser-runtime `RendererRuntimeGlobalScope` or `MainUiRuntimeGlobalScope` casts from returning.
 Renderer environment detection now uses focused `RendererEnvironmentInput` values for location, document,
 development-flag, and Electron API dev-mode checks instead of receiving a broad renderer-global object through a
 `getGlobalScope` provider, with runtime tests and architecture coverage blocking that broad handoff from returning.

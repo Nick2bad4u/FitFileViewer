@@ -12,6 +12,14 @@ export function getBrowserAddEventListener():
         : undefined;
 }
 
+export function getBrowserRemoveEventListener():
+    | typeof globalThis.removeEventListener
+    | undefined {
+    return typeof globalThis.removeEventListener === "function"
+        ? globalThis.removeEventListener.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserCancelIdleCallback():
     | typeof globalThis.cancelIdleCallback
     | undefined {
@@ -34,10 +42,26 @@ export function getBrowserClearInterval():
     return globalThis.clearInterval;
 }
 
+export function getBrowserBoundClearInterval():
+    | typeof globalThis.clearInterval
+    | undefined {
+    return typeof globalThis.clearInterval === "function"
+        ? globalThis.clearInterval.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserClearTimeout():
     | typeof globalThis.clearTimeout
     | undefined {
     return globalThis.clearTimeout;
+}
+
+export function getBrowserBoundClearTimeout():
+    | typeof globalThis.clearTimeout
+    | undefined {
+    return typeof globalThis.clearTimeout === "function"
+        ? globalThis.clearTimeout.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserConsole(): Console | undefined {
@@ -158,6 +182,12 @@ export function getBrowserHTMLSelectElement():
     return globalThis.HTMLSelectElement;
 }
 
+export function getBrowserHTMLScriptElement():
+    | typeof globalThis.HTMLScriptElement
+    | undefined {
+    return globalThis.HTMLScriptElement;
+}
+
 export function getBrowserHTMLTableCellElement():
     | typeof globalThis.HTMLTableCellElement
     | undefined {
@@ -272,10 +302,26 @@ export function getBrowserSetInterval():
     return globalThis.setInterval;
 }
 
+export function getBrowserBoundSetInterval():
+    | typeof globalThis.setInterval
+    | undefined {
+    return typeof globalThis.setInterval === "function"
+        ? globalThis.setInterval.bind(globalThis)
+        : undefined;
+}
+
 export function getBrowserSetTimeout():
     | typeof globalThis.setTimeout
     | undefined {
     return globalThis.setTimeout;
+}
+
+export function getBrowserBoundSetTimeout():
+    | typeof globalThis.setTimeout
+    | undefined {
+    return typeof globalThis.setTimeout === "function"
+        ? globalThis.setTimeout.bind(globalThis)
+        : undefined;
 }
 
 export function getBrowserURL(): typeof globalThis.URL | undefined {

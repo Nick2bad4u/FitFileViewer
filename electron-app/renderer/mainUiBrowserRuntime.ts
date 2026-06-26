@@ -1,30 +1,28 @@
 import type { MainUiRuntimeEnvironmentScope } from "./mainUiRuntimeEnvironment.js";
+import {
+    getBrowserConsole,
+    getBrowserDocument,
+} from "../utils/runtime/browserRuntime.js";
+import { getBrowserElectronApiCandidate } from "../utils/runtime/electronApiRuntime.js";
 
-type MainUiRuntimeGlobalScope = typeof globalThis & {
-    readonly electronAPI?: unknown;
-};
-
-export function getBrowserMainUiConsole(): Console | undefined {
-    return globalThis.console;
-}
+export {
+    getBrowserConsole as getBrowserMainUiConsole,
+    getBrowserDocument as getBrowserMainUiDocument,
+} from "../utils/runtime/browserRuntime.js";
 
 export function getBrowserMainUiDateNow(): number {
     return Date.now();
 }
 
-export function getBrowserMainUiDocument(): Document | undefined {
-    return globalThis.document;
-}
-
 export function getBrowserMainUiElectronApiCandidate(): unknown {
-    return (globalThis as MainUiRuntimeGlobalScope).electronAPI;
+    return getBrowserElectronApiCandidate();
 }
 
 export function getBrowserMainUiRuntimeEnvironmentScope(): MainUiRuntimeEnvironmentScope {
     return {
         dateNow: getBrowserMainUiDateNow,
-        getConsole: getBrowserMainUiConsole,
-        getDocument: getBrowserMainUiDocument,
+        getConsole: getBrowserConsole,
+        getDocument: getBrowserDocument,
         getElectronApiCandidate: getBrowserMainUiElectronApiCandidate,
     };
 }
