@@ -433,6 +433,50 @@ describe("rendererStateIntegration", () => {
         loadingHandler(true);
     });
 
+    it("rejects malformed file-open APIs without blocking state-aware handlers", async () => {
+        expect.assertions(5);
+
+        const tabContentSummary = document.createElement("div");
+        tabContentSummary.className = "tab-content";
+        tabContentSummary.dataset.tabContent = "summary";
+        document.body.append(tabContentSummary);
+        const tabContentMap = document.createElement("div");
+        tabContentMap.className = "tab-content";
+        tabContentMap.dataset.tabContent = "map";
+        document.body.append(tabContentMap);
+        const tabButton = document.createElement("button");
+        tabButton.dataset.tab = "map";
+        document.body.append(tabButton);
+        const getElectronAPI = vi.fn<() => unknown>(() => ({
+            onFileOpened: "file-opened",
+        }));
+
+        const module = await importTarget();
+
+        module.initializeRendererWithNewStateSystem({
+            electronApiScope: { getElectronAPI },
+        });
+        tabButton.click();
+        const activeTabHandlers = getHandlers("ui.activeTab");
+        const reactiveHandler = requireValue(
+            activeTabHandlers[1],
+            "Expected reactive handler for ui.activeTab"
+        );
+        reactiveHandler("map");
+
+        expect(initializeCompleteStateSystemMock).toHaveBeenCalledWith();
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(loadFileMock).not.toHaveBeenCalled();
+        expect(switchTabMock).toHaveBeenCalledWith("map");
+        expect({
+            mapDisplay: tabContentMap.style.display,
+            summaryDisplay: tabContentSummary.style.display,
+        }).toEqual({
+            mapDisplay: "block",
+            summaryDisplay: "none",
+        });
+    });
+
     it("migrateExistingRenderer provides guidance without throwing", async () => {
         expect.assertions(1);
 

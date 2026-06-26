@@ -44,10 +44,11 @@ function isRendererElectronAPI(value: unknown): value is RendererElectronAPI {
         return false;
     }
 
-    const onFileOpened = (value as Readonly<Record<string, unknown>>)[
-        "onFileOpened"
-    ];
-    return onFileOpened === undefined || typeof onFileOpened === "function";
+    if (!("onFileOpened" in value)) {
+        return true;
+    }
+
+    return typeof value.onFileOpened === "function";
 }
 
 function getRendererStateElectronAPI(
