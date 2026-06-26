@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserCancelAnimationFrame,
     getBrowserDocument,
@@ -32,7 +34,7 @@ type CreditsRequestAnimationFrame = (
 
 export interface CreditsMarqueeRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getCancelAnimationFrame?:
         | (() => CreditsCancelAnimationFrame | undefined)
@@ -42,7 +44,7 @@ export interface CreditsMarqueeRuntimeScope {
         | (() => CreditsMarqueeEventTarget | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getMutationObserver?:
         | (() => CreditsMutationObserverConstructor | undefined)

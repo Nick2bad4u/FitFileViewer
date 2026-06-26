@@ -22357,7 +22357,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(43);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -22439,6 +22439,13 @@ describe("architecture boundaries", () => {
         expect(creditsMarqueeRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "BrowserAbortControllerConstructor"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "BrowserHTMLElementConstructor"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain("typeof globalThis.");
         expect(creditsMarqueeRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
