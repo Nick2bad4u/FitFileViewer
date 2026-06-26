@@ -15148,7 +15148,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(36);
 
         const violations = migratedSyncRendererLoadingRuntimeFiles
             .filter((relativeFile) =>
@@ -15177,6 +15177,21 @@ describe("architecture boundaries", () => {
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
             "defaultSyncRendererLoadingRuntimeScope"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "type BrowserHTMLButtonElementConstructor"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "type BrowserHTMLInputElementConstructor"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "type BrowserHTMLSelectElementConstructor"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "type BrowserHTMLTextAreaElementConstructor"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
             "getDocument: getBrowserDocument"

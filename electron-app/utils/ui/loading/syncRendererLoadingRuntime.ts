@@ -1,5 +1,9 @@
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import {
+    type BrowserHTMLButtonElementConstructor,
+    type BrowserHTMLInputElementConstructor,
+    type BrowserHTMLSelectElementConstructor,
+    type BrowserHTMLTextAreaElementConstructor,
     getBrowserDocument,
     getBrowserHTMLButtonElement,
     getBrowserHTMLInputElement,
@@ -16,16 +20,16 @@ type DisableableFormControl =
 export interface SyncRendererLoadingRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLButtonElement?:
-        | (() => typeof globalThis.HTMLButtonElement | undefined)
+        | (() => BrowserHTMLButtonElementConstructor | undefined)
         | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
     readonly getHTMLSelectElement?:
-        | (() => typeof globalThis.HTMLSelectElement | undefined)
+        | (() => BrowserHTMLSelectElementConstructor | undefined)
         | undefined;
     readonly getHTMLTextAreaElement?:
-        | (() => typeof globalThis.HTMLTextAreaElement | undefined)
+        | (() => BrowserHTMLTextAreaElementConstructor | undefined)
         | undefined;
 }
 
@@ -64,10 +68,10 @@ function getConstructor(
         | "HTMLSelectElement"
         | "HTMLTextAreaElement"
 ):
-    | typeof globalThis.HTMLButtonElement
-    | typeof globalThis.HTMLInputElement
-    | typeof globalThis.HTMLSelectElement
-    | typeof globalThis.HTMLTextAreaElement
+    | BrowserHTMLButtonElementConstructor
+    | BrowserHTMLInputElementConstructor
+    | BrowserHTMLSelectElementConstructor
+    | BrowserHTMLTextAreaElementConstructor
     | undefined {
     switch (name) {
         case "HTMLButtonElement": {
