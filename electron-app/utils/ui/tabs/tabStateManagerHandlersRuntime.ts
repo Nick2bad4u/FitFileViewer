@@ -1,4 +1,10 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserCancelAnimationFrame,
+    type BrowserClearTimeout,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserCancelAnimationFrame,
     getBrowserClearTimeout,
@@ -7,27 +13,23 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type TabStateManagerHandlersTimerHandle = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type TabStateManagerHandlersTimerHandle = BrowserTimerHandle;
 
 export interface TabStateManagerHandlersRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getCancelAnimationFrame?:
-        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface TabStateManagerHandlersRuntime {

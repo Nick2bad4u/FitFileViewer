@@ -22054,7 +22054,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(56);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -22155,6 +22155,42 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type BrowserCancelAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController | undefined"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "typeof globalThis.cancelAnimationFrame | undefined"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout | undefined"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame | undefined"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout | undefined"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toMatch(
+            /ReturnType<\s*typeof globalThis\.setTimeout\s*>/u
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

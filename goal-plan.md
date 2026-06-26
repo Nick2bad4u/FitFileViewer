@@ -1210,7 +1210,9 @@ clearing, Zwift iframe/status DOM construction, and Zwift iframe load-listener c
 Zwift DOM nodes directly in `tabStateManagerHandlers.ts`; explicit runtime scopes must provide document, fallback
 timer, and controller primitives instead of falling back to `globalThis`, with adapter tests and architecture coverage
 blocking direct map-tab timing globals, direct controller construction, direct Zwift DOM creation, and ambient
-timer/controller fallbacks from returning.
+timer/controller fallbacks from returning. Tab-state map invalidation runtime provider contracts now reuse shared
+browser-runtime AbortController, timer, and animation-frame aliases instead of spelling direct ambient
+constructor/timer/frame types in the tab-state runtime.
 Renderer application startup listener cleanup and update-check scheduling now route the startup abort controller,
 production update-check timer, and before-unload timer clearing through `applicationStartupRuntime.ts` instead of
 calling those browser primitives directly in `applicationStartup.ts`, with adapter tests, startup behavior coverage,

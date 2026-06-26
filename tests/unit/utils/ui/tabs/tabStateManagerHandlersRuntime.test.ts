@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserCancelAnimationFrame,
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getTabStateManagerHandlersRuntime,
     type TabStateManagerHandlersRuntimeScope,
@@ -22,7 +29,7 @@ describe("getTabStateManagerHandlersRuntime", () => {
             }
         );
         const AbortControllerConstructor =
-            AbortControllerConstructorMock as unknown as typeof globalThis.AbortController;
+            AbortControllerConstructorMock as unknown as BrowserAbortControllerConstructor;
         const runtime = getTabStateManagerHandlersRuntime({
             getAbortController: () => AbortControllerConstructor,
         });
@@ -49,15 +56,14 @@ describe("getTabStateManagerHandlersRuntime", () => {
             }
         );
         const callback = vi.fn<FrameRequestCallback>();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const delayMs = Number("80");
         const frameHandle = Number("32");
-        const requestAnimationFrame = vi.fn<
-            typeof globalThis.requestAnimationFrame
-        >(() => frameHandle);
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 58);
-        const cancelAnimationFrame =
-            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+            () => frameHandle
+        );
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 58);
+        const cancelAnimationFrame = vi.fn<BrowserCancelAnimationFrame>();
         vi.stubGlobal("AbortController", AbortControllerConstructor);
         vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
         vi.stubGlobal("clearTimeout", clearTimeout);
@@ -152,8 +158,8 @@ describe("getTabStateManagerHandlersRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const fallbackDelayMs = Number("75");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 47);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 47);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getTabStateManagerHandlersRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -203,8 +209,8 @@ describe("getTabStateManagerHandlersRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => 41);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 53);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 53);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtimeDocument = {
             createElement: vi.fn(document.createElement.bind(document)),
             createTextNode: vi.fn(document.createTextNode.bind(document)),
