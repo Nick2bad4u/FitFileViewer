@@ -105,13 +105,11 @@ function isShowFitDataElectronApi(value: unknown): value is ElectronApiLike {
         return false;
     }
 
-    const notifyFitFileLoaded = (value as Record<string, unknown>)[
-        "notifyFitFileLoaded"
-    ];
-    return (
-        notifyFitFileLoaded === undefined ||
-        typeof notifyFitFileLoaded === "function"
-    );
+    if (!("notifyFitFileLoaded" in value)) {
+        return true;
+    }
+
+    return typeof value.notifyFitFileLoaded === "function";
 }
 
 /**
