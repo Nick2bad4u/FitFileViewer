@@ -5716,7 +5716,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(135);
+        expect.assertions(139);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5809,8 +5809,14 @@ it("keeps the core state manager free of reactive global property bridges", () =
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "export type RendererAddEventListener = typeof globalThis.addEventListener"
         );
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
+            'Window["addEventListener"]'
+        );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            'export type RendererAddEventListener = Window["addEventListener"]'
+            "BrowserAddEventListener"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "export type RendererAddEventListener = BrowserAddEventListener"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "export type RendererRemoveEventListener ="
@@ -5818,8 +5824,12 @@ it("keeps the core state manager free of reactive global property bridges", () =
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "export type RendererSetTimeout = typeof globalThis.setTimeout"
         );
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
+            'Window["setTimeout"]'
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain("BrowserSetTimeout");
         expect(rendererRuntimeEnvironmentSource).toContain(
-            'export type RendererSetTimeout = Window["setTimeout"]'
+            "export type RendererSetTimeout = BrowserSetTimeout"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain("globalThis.");
         expect(rendererRuntimeEnvironmentSource).not.toContain(

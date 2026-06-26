@@ -1571,6 +1571,9 @@ coverage and architecture coverage blocking direct readiness-event constructor c
 properties from returning.
 Renderer vendor shared readiness dispatch now reuses the shared browser-runtime CustomEvent constructor alias instead
 of a direct ambient constructor type, with architecture coverage blocking that type spelling from returning.
+Renderer runtime environment listener and timer contracts now reuse shared `browserRuntime.ts` listener/timer aliases
+instead of spelling direct `Window[...]` method types, with architecture coverage blocking those direct type spellings
+from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

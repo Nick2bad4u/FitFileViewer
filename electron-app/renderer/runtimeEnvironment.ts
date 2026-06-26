@@ -1,13 +1,21 @@
+import type {
+    BrowserAddEventListener,
+    BrowserClearInterval,
+    BrowserRemoveEventListener,
+    BrowserSetInterval,
+    BrowserSetTimeout,
+} from "../utils/runtime/browserRuntime.js";
+
 export type RendererRuntimeEventTarget = Pick<
     EventTarget,
     "addEventListener" | "removeEventListener"
 >;
 
-export type RendererAddEventListener = Window["addEventListener"];
-export type RendererClearInterval = Window["clearInterval"];
-export type RendererRemoveEventListener = Window["removeEventListener"];
-export type RendererSetInterval = Window["setInterval"];
-export type RendererSetTimeout = Window["setTimeout"];
+export type RendererAddEventListener = BrowserAddEventListener;
+export type RendererClearInterval = BrowserClearInterval;
+export type RendererRemoveEventListener = BrowserRemoveEventListener;
+export type RendererSetInterval = BrowserSetInterval;
+export type RendererSetTimeout = BrowserSetTimeout;
 
 export type RendererRuntimeEnvironment = {
     readonly addEventListener: RendererAddEventListener;
