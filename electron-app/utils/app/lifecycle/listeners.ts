@@ -170,11 +170,14 @@ const HIGH_CONTRAST_BODY_CLASSES = [
 ] as const;
 
 function hasOptionalLifecycleElectronFunction(
-    record: Readonly<Record<string, unknown>>,
+    value: object,
     key: keyof LifecycleElectronAPI
 ): boolean {
-    const value = record[key];
-    return value === undefined || typeof value === "function";
+    if (!(key in value)) {
+        return true;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
@@ -182,7 +185,6 @@ function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
         return false;
     }
 
-    const api = value as Readonly<Record<string, unknown>>;
     return [
         "addRecentFile",
         "checkForUpdates",
@@ -200,7 +202,7 @@ function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
         "readFile",
     ].every((key) =>
         hasOptionalLifecycleElectronFunction(
-            api,
+            value,
             key as keyof LifecycleElectronAPI
         )
     );

@@ -322,6 +322,52 @@ describe(setupListeners, () => {
         });
     });
 
+    it("ignores malformed scoped lifecycle Electron APIs", () => {
+        expect.assertions(6);
+
+        vi.clearAllMocks();
+        menuOpenHandler = null;
+        recentOpenHandler = null;
+        updateHandlers.clear();
+
+        const malformedOnOpenRecentFile =
+            vi.fn<(handler: IpcHandler) => void>();
+        const malformedOnUpdateEvent =
+            vi.fn<(event: string, handler: IpcHandler) => void>();
+        const malformedOnSetFontSize =
+            vi.fn<(handler: IpcHandler) => () => void>();
+
+        setupListeners({
+            electronApiScope: createElectronApiScope({
+                onMenuOpenFile: "not-callable",
+                onOpenRecentFile: malformedOnOpenRecentFile,
+                onSetFontSize: malformedOnSetFontSize,
+                onUpdateEvent: malformedOnUpdateEvent,
+            }),
+            openFileBtn: openButton,
+            isOpeningFileRef,
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        openButton.click();
+
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
+            isOpeningFileRef,
+            openFileBtn: openButton,
+            setLoading,
+            showNotification,
+        });
+        expect(malformedOnOpenRecentFile).not.toHaveBeenCalled();
+        expect(malformedOnUpdateEvent).not.toHaveBeenCalled();
+        expect(malformedOnSetFontSize).not.toHaveBeenCalled();
+        expect(menuOpenHandler).toBeNull();
+        expect(updateHandlers.size).toBe(0);
+    });
+
     it("shows info notification when no recent files exist", async () => {
         expect.assertions(2);
         electronAPI.recentFiles.mockResolvedValueOnce([]);

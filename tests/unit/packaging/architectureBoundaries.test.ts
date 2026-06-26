@@ -13516,7 +13516,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(65);
+        expect.assertions(66);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -13547,6 +13547,9 @@ it("keeps the core state manager free of reactive global property bridges", () =
         expect(lifecycleListenersSource).not.toContain("lifecycleGlobal");
         expect(lifecycleListenersSource).toContain(
             "runtime.isTestEnvironment()"
+        );
+        expect(lifecycleListenersSource).not.toContain(
+            "value as Readonly<Record"
         );
         expect(lifecycleListenersSource).toContain("lifecycleRuntime.print()");
         expect(

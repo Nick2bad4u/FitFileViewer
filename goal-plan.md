@@ -991,6 +991,8 @@ probes.
 Lifecycle listener runtime controller and timer provider types now use shared browser-runtime aliases instead of
 direct ambient `globalThis` controller/timer types, with architecture coverage blocking those direct type surfaces
 from returning.
+Scoped lifecycle Electron API validation now uses explicit optional-function property guards instead of casting the
+candidate preload API to a generic record.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.
