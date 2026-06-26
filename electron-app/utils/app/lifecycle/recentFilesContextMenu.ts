@@ -18,19 +18,19 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronFileApi } from "../../../shared/preloadApi.js";
 import {
     getRecentFilesContextMenuRuntime,
     type RecentFilesContextMenuTimer,
 } from "./recentFilesContextMenuRuntime.js";
 
-type RecentFilesElectronApi = Pick<
-    ElectronAPI,
-    "parseFitFile" | "readFile" | "recentFiles"
+type RecentFilesElectronApi = Omit<
+    ElectronFileApi,
+    "addRecentFile" | "parseFitFile"
 > &
-    Partial<Pick<ElectronAPI, "addRecentFile">> & {
+    Partial<Pick<ElectronFileApi, "addRecentFile">> & {
         parseFitFile: (
-            data: Parameters<ElectronAPI["parseFitFile"]>[0]
+            data: Parameters<ElectronFileApi["parseFitFile"]>[0]
         ) => Promise<FitParsePayload>;
     };
 
