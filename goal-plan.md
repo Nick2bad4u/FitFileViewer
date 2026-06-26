@@ -1449,6 +1449,9 @@ assignment pattern.
 Renderer environment API docs and focused unit coverage now describe the explicit `RendererEnvironmentInput` contract
 instead of the retired broad global-scope handoff, with architecture coverage blocking stale `@param globalScope`
 and "Global-like object to inspect" wording from returning.
+Main updater access now resolves Vitest import-mock globals through `autoUpdaterAccessRuntime.ts` instead of probing
+`globalThis` inside the updater resolver, with focused coverage and architecture coverage blocking that resolver-level
+global probe from returning.
 Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Preload source execution tests now install and restore their temporary development-log console through

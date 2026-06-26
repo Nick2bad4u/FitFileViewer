@@ -1,4 +1,8 @@
 import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
+import {
+    getAutoUpdaterAccessRuntime,
+    type AutoUpdaterAccessRuntime,
+} from "./autoUpdaterAccessRuntime.js";
 
 interface AutoUpdaterLike {
     autoDownload?: boolean;
@@ -19,8 +23,10 @@ interface VitestImportMockLike {
 
 let cachedMockedAutoUpdater: AutoUpdaterLike | null | undefined;
 
-export async function resolveAutoUpdaterAsync(): Promise<AutoUpdaterLike | null> {
-    const vitestMock = await tryResolveVitestMock();
+export async function resolveAutoUpdaterAsync(
+    runtime: AutoUpdaterAccessRuntime = getAutoUpdaterAccessRuntime()
+): Promise<AutoUpdaterLike | null> {
+    const vitestMock = await tryResolveVitestMock(runtime);
     if (vitestMock) {
         return vitestMock;
     }
@@ -32,7 +38,9 @@ export async function resolveAutoUpdaterAsync(): Promise<AutoUpdaterLike | null>
     }
 }
 
-async function tryResolveVitestMock(): Promise<AutoUpdaterLike | null> {
+async function tryResolveVitestMock(
+    runtime: AutoUpdaterAccessRuntime
+): Promise<AutoUpdaterLike | null> {
     if (cachedMockedAutoUpdater) {
         return cachedMockedAutoUpdater;
     }
@@ -41,15 +49,11 @@ async function tryResolveVitestMock(): Promise<AutoUpdaterLike | null> {
     }
 
     try {
-        const vitestGlobal = asObjectProperty(
-            globalThis,
-            "vi"
-        ) as VitestImportMockLike | null;
+        const vitestCandidate = asVitestImportMock(
+            runtime.getVitestImportMockCandidate()
+        );
         const { vi } = await import("vitest");
-        const mockApi =
-            vitestGlobal && typeof vitestGlobal.importMock === "function"
-                ? vitestGlobal
-                : vi;
+        const mockApi = vitestCandidate ?? asVitestImportMock(vi);
         if (mockApi && typeof mockApi.importMock === "function") {
             const resolved = resolveAutoUpdaterFromModule(
                 await mockApi.importMock("electron-updater")
@@ -76,6 +80,14 @@ function asAutoUpdater(value: unknown): AutoUpdaterLike | null {
         typeof candidate.checkForUpdatesAndNotify === "function" ||
         "autoDownload" in value
         ? candidate
+        : null;
+}
+
+function asVitestImportMock(value: unknown): VitestImportMockLike | null {
+    return value &&
+        (typeof value === "object" || typeof value === "function") &&
+        typeof asObjectProperty(value, "importMock") === "function"
+        ? value
         : null;
 }
 
