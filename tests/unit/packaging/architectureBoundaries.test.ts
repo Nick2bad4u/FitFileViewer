@@ -4133,7 +4133,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload runtime on native composition imports", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const runtimeSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadRuntime.ts")
@@ -4150,6 +4150,10 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain("createPreloadRuntime()");
         expect(runtimeSource).toContain("loadPreloadModules()");
+        expect(runtimeSource).toContain(
+            'const createElectronApiModule: PreloadRuntime["createElectronApi"]'
+        );
+        expect(runtimeSource).not.toContain("createElectronApi as unknown");
         expect(runtimeSource).not.toContain("PreloadModuleRequire");
         expect(runtimeSource).not.toContain("CreatePreloadRuntimeOptions");
         expect(runtimeSource).not.toContain("requireModule");

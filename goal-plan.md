@@ -24,7 +24,8 @@ bridge natively and the runtime build leaves that package as the Electron extern
 and IPC loader modules natively instead of resolving those loader modules through `requireModule`.
 `electron-app/preload/preloadRuntime.ts` now imports preload module loading, API assembly, and Electron API
 factory composition natively instead of resolving those composition modules through `requireModule`, and the
-runtime object no longer stores the preload `requireModule`.
+Electron API factory is assigned through the concrete `PreloadRuntime` contract without an `as unknown` adapter;
+the runtime object no longer stores the preload `requireModule`.
 `electron-app/preload/preloadBootstrap.ts` now imports preload runtime creation and default runtime-environment
 discovery natively instead of resolving those bootstrap dependencies through `requireModule`, and it no longer
 passes a preload `requireModule` into the Electron bridge resolver.

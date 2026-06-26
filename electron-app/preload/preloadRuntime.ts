@@ -4,8 +4,8 @@ import { loadPreloadModules } from "./preloadModuleLoader.js";
 
 type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
 
-const createElectronApiModule =
-    createElectronApi as unknown as PreloadRuntime["createElectronApi"];
+const createElectronApiModule: PreloadRuntime["createElectronApi"] =
+    createElectronApi;
 
 export function createPreloadRuntime(): PreloadRuntime {
     const modules = loadPreloadModules();
