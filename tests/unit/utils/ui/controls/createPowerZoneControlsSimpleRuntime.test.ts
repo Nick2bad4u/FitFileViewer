@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserHTMLElementConstructor,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getPowerZoneControlsSimpleRuntime } from "../../../../../electron-app/utils/ui/controls/createPowerZoneControlsSimpleRuntime.js";
 
 describe("getPowerZoneControlsSimpleRuntime", () => {
@@ -87,14 +91,14 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
         const runtimeWithInvalidAbortController =
             getPowerZoneControlsSimpleRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
         const runtimeWithInvalidHTMLElement = getPowerZoneControlsSimpleRuntime(
             {
                 getDocument: () => document,
                 getHTMLElement: () =>
-                    "HTMLElement" as unknown as typeof HTMLElement,
+                    "HTMLElement" as unknown as BrowserHTMLElementConstructor,
             }
         );
         const runtimeWithInvalidStorage = getPowerZoneControlsSimpleRuntime({

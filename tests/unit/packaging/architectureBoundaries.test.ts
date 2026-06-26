@@ -15446,7 +15446,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps simple power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(27);
 
         const violations = migratedCreatePowerZoneControlsSimpleRuntimeFiles
             .filter((relativeFile) =>
@@ -15500,6 +15500,24 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "(() => typeof AbortController | undefined)"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "(() => typeof HTMLElement | undefined)"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "): typeof HTMLElement"
         );
         expect(powerZoneControlsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

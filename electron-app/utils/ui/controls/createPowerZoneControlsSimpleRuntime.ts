@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -9,11 +11,11 @@ type PowerZoneControlsSimpleStorage = Pick<Storage, "getItem" | "setItem">;
 
 export interface PowerZoneControlsSimpleRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getLocalStorage?:
         | (() => PowerZoneControlsSimpleStorage | undefined)
@@ -47,7 +49,7 @@ function getScopeDocument(
 
 function getAbortControllerConstructor(
     scope: PowerZoneControlsSimpleRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -71,7 +73,7 @@ function getDocument(scope: PowerZoneControlsSimpleRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     scope: PowerZoneControlsSimpleRuntimeScope
-): typeof HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(

@@ -428,7 +428,9 @@ getters.
 HR, detailed power, and simple power zone control DOM creation, element checks, storage access, and listener
 abort-controller creation now route through their focused zone-control runtime facades; production defaults reuse
 shared browser runtime providers for AbortController, document, HTMLElement, and localStorage lookups instead of
-local inline `globalThis` getters, with focused runtime coverage and architecture guardrails blocking regression.
+local inline `globalThis` getters, simple power zone controller and element-constructor contracts now reuse shared
+browser-runtime aliases instead of direct ambient constructor type spellings, with focused runtime coverage and
+architecture guardrails blocking regression.
 Master state runtime production defaults now reuse shared browser runtime providers for listener, interval,
 CustomEvent, date-clock, dispatch, document, event-target, location, and performance lookups instead of local inline
 `globalThis` or `Date.now` getters, extending the existing AbortController provider migration with focused runtime
