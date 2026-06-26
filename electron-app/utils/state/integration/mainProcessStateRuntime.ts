@@ -1,4 +1,7 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserPerformance,
@@ -11,18 +14,16 @@ type MainProcessPerformanceRuntime = {
 
 export interface MainProcessStateRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getPerformance?:
         | (() => MainProcessPerformanceRuntime | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
-export type MainProcessStateTimer = ReturnType<typeof globalThis.setTimeout>;
+export type MainProcessStateTimer = BrowserTimerHandle;
 
 export interface MainProcessStateRuntime {
     clearTimeout: (handle: MainProcessStateTimer) => void;

@@ -842,9 +842,9 @@ timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of
 `globalThis.performance`, `performance.now`, or `Date.now`, or calling timer globals directly inside
 `mainProcessStateManager.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 timing globals from returning. Explicit main-process state runtime scopes must now provide timer primitives instead
-of falling back to `globalThis`, and date clocks must be supplied through `getDateNow` instead of direct
-runtime scope properties, with focused runtime coverage and architecture coverage blocking those fallbacks
-from returning.
+of falling back to `globalThis` or direct ambient timer API types, and date clocks must be supplied through
+`getDateNow` instead of direct runtime scope properties, with focused runtime coverage and architecture coverage
+blocking those fallbacks from returning.
 State middleware handler duration timing, performance-middleware duration timing, and performance-history
 timestamps now route through `stateMiddlewareRuntime.ts` instead of calling `performance.now` or `Date.now`
 directly inside `stateMiddleware.ts`, with focused runtime coverage and architecture coverage blocking direct

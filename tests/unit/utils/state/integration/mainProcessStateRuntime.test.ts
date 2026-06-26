@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getMainProcessStateRuntime } from "../../../../../electron-app/utils/state/integration/mainProcessStateRuntime.js";
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+import {
+    getMainProcessStateRuntime,
+    type MainProcessStateTimer,
+} from "../../../../../electron-app/utils/state/integration/mainProcessStateRuntime.js";
 
 describe("mainProcessStateRuntime", () => {
     afterEach(() => {
@@ -54,7 +61,7 @@ describe("mainProcessStateRuntime", () => {
 
         const callback = () => undefined;
         const delayMs = Number("50");
-        const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 67 as MainProcessStateTimer;
         let scheduledCallback: unknown;
         let scheduledDelay: unknown;
         let clearedTimer: unknown;
@@ -62,8 +69,8 @@ describe("mainProcessStateRuntime", () => {
             scheduledCallback = handler;
             scheduledDelay = timeout;
             return timer;
-        }) as typeof globalThis.setTimeout;
-        const clearTimeout: typeof globalThis.clearTimeout = (handle) => {
+        }) as BrowserSetTimeout;
+        const clearTimeout: BrowserClearTimeout = (handle) => {
             clearedTimer = handle;
         };
         const runtime = getMainProcessStateRuntime({
@@ -85,10 +92,10 @@ describe("mainProcessStateRuntime", () => {
         expect.assertions(8);
 
         const callback = vi.fn<() => void>();
-        const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 67 as MainProcessStateTimer;
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.fn<() => number>(() => 123);
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const performanceNow = vi.fn<() => number>(() => 45.5);
         const runtime = getMainProcessStateRuntime({
             clearTimeout,
@@ -124,9 +131,7 @@ describe("mainProcessStateRuntime", () => {
             "mainProcessStateRuntime requires setTimeout"
         );
         expect(() => {
-            runtime.clearTimeout(
-                67 as ReturnType<typeof globalThis.setTimeout>
-            );
+            runtime.clearTimeout(67 as MainProcessStateTimer);
         }).toThrow("mainProcessStateRuntime requires clearTimeout");
     });
 
@@ -135,9 +140,9 @@ describe("mainProcessStateRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("50");
-        const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const timer = 67 as MainProcessStateTimer;
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const performance = {
             now: vi.fn<() => number>(() => 101.5),
         };

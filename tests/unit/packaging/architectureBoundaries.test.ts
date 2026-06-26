@@ -2804,7 +2804,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(39);
+        expect.assertions(44);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2878,6 +2878,19 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "typeof globalThis."
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain("ReturnType<");
         expect(mainProcessStateRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
