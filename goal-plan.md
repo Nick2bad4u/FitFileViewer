@@ -396,6 +396,8 @@ of casting the candidate preload API to a generic record, with focused malformed
 guardrails. Browser tab, path-based FIT opening, overlay selector, drag/drop, single-overlay loading, and main UI DOM
 Electron API candidate typing now use explicit local interfaces backed by split shared preload API-domain contracts
 instead of `Pick<ElectronAPI, ...>` aliases.
+Show FIT data file-loaded notification candidate typing now uses the shared preload-event API-domain contract instead
+of deriving from the monolithic `ElectronAPI` type.
 Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
 from the monolithic `ElectronAPI` type.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
@@ -577,7 +579,9 @@ microtask scheduling, and scroll calls now route through `showFitDataRuntime.ts`
 focused runtime/behavior coverage and architecture guardrails blocking those direct browser APIs from returning.
 Show FIT data file-loaded IPC now validates the scoped preload candidate with an explicit optional-function property guard
 instead of casting the renderer Electron API candidate to a generic record, with malformed-scope coverage proving data
-display still proceeds and architecture coverage blocking the cast from returning.
+display still proceeds and architecture coverage blocking the cast from returning. Its file-loaded notification
+candidate typing now uses the shared preload-event API-domain contract instead of deriving from the monolithic
+`ElectronAPI` type.
 Show FIT data CustomEvent, dispatchEvent, matchMedia, and queueMicrotask provider contracts now reuse shared
 browser-runtime aliases instead of direct ambient type spellings, with architecture coverage blocking those
 direct provider type spellings from returning.

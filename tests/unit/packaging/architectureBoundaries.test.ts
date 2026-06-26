@@ -10909,7 +10909,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(57);
+        expect.assertions(60);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -10944,6 +10944,9 @@ describe("architecture boundaries", () => {
         );
         expect(showFitDataSource).toContain("rendererActiveFileState.js");
         expect(showFitDataSource).toContain("rendererMapRenderState.js");
+        expect(showFitDataSource).toContain("ElectronPreloadEventApi");
+        expect(showFitDataSource).not.toContain("import type { ElectronAPI");
+        expect(showFitDataSource).not.toContain("Pick<ElectronAPI");
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");
         expect(showFitDataSource).not.toContain("resetRenderStates");
         expect(showFitDataSource).not.toMatch(

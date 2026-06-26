@@ -33,7 +33,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronPreloadEventApi } from "../../../shared/preloadApi.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { createTables } from "../components/createTables.js";
 import { renderSummary } from "./renderSummary.js";
@@ -81,7 +81,9 @@ export type ShowFitDataOptions = {
     updateUI?: boolean;
 };
 
-type ElectronApiLike = Partial<Pick<ElectronAPI, "notifyFitFileLoaded">>;
+interface ElectronApiLike {
+    notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+}
 
 type FitFileStateManagerLike = {
     handleFileLoaded: (
