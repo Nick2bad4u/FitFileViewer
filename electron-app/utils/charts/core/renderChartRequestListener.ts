@@ -35,9 +35,9 @@ function getRequestReason(
 }
 
 /**
- * Registers the legacy chart render request bridge once per renderer runtime.
+ * Registers the chart render request listener once per renderer runtime.
  *
- * @param params - Runtime dependencies supplied by renderChartJS.
+ * @param params - Chart rendering dependencies supplied by renderChartJS.
  */
 export function registerChartRequestListener(
     params: RegisterChartRequestListenerParams
@@ -51,10 +51,10 @@ export function registerChartRequestListener(
     const signal = registerChartRequestListenerController();
 
     console.log(
-        "[ChartJS] Chart state management is now handled by chartStateManager"
+        "[ChartJS] Chart render requests use chartStateManager when available"
     );
     console.log(
-        "[ChartJS] Old event-based system is being phased out in favor of reactive state"
+        "[ChartJS] Event listener fallback remains available for chart render requests"
     );
 
     try {

@@ -42,7 +42,7 @@ function registerSharedConfigurationLoader(
 }
 
 /**
- * Registers renderer startup bridges.
+ * Registers chart startup listeners.
  *
  * @param params - Startup dependencies supplied by renderChartJS.
  */

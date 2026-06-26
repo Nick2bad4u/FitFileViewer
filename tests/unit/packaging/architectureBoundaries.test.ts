@@ -560,6 +560,11 @@ const migratedRenderChartRequestListenerRuntimeFiles = [
 const migratedRenderChartStartupRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartStartup.ts",
 ] as const;
+const migratedChartRenderStartupSourceFiles = [
+    "electron-app/utils/charts/core/renderChartRequestListener.ts",
+    "electron-app/utils/charts/core/renderChartRuntimeBootstrap.ts",
+    "electron-app/utils/charts/core/renderChartStartup.ts",
+] as const;
 const migratedRenderChartJsTimerRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartJS.ts",
 ] as const;
@@ -19394,6 +19399,20 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "return scope.getAddEventListener?.();"
         );
+    });
+
+    it("keeps chart render startup source off legacy bridge terminology", () => {
+        expect.assertions(1);
+
+        const violations = migratedChartRenderStartupSourceFiles
+            .filter((relativeFile) =>
+                /\b(?:legacy|bridge|old event-based system)\b/iu.test(
+                    readRepositoryFile(relativeFile)
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps renderChartJS timer APIs behind chart timer helpers", () => {

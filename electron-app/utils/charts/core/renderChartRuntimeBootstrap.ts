@@ -14,9 +14,9 @@ type InitializeChartRuntimeBootstrapDependencies = {
 };
 
 /**
- * Initializes Chart.js global plugin registration and legacy render requests.
+ * Initializes Chart.js plugin registration and chart render request handling.
  *
- * @param dependencies - Runtime render bridge dependencies.
+ * @param dependencies - Runtime chart rendering dependencies.
  */
 export function initializeChartRuntimeBootstrap(
     dependencies: InitializeChartRuntimeBootstrapDependencies
