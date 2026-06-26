@@ -405,6 +405,9 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/theming/core/setupTheme.ts",
     "electron-app/utils/theming/core/theme.ts",
 ] as const;
+const allowedFullElectronApiImportFiles = new Set<string>([
+    "electron-app/utils/runtime/electronApiRuntime.ts",
+]);
 const migratedSettingsModalRuntimeFiles = [
     "electron-app/utils/ui/settingsModal.ts",
 ] as const;
@@ -1179,6 +1182,8 @@ const bundledBrowserVendorImportPattern =
 const rendererGenericPreloadIpcPattern =
     /\belectronAPI\.(?:invoke|onIpc|send)\b/u;
 const localPreloadElectronApiPickPattern = /\bPick<\s*ElectronAPI\s*,/u;
+const fullElectronApiImportPattern =
+    /\bimport\s+type\s*\{[^}]*\bElectronAPI\b[^}]*\}\s*from\s*["'][^"']*preloadApi\.js["']/u;
 const missingRendererVendorGlobalShimPattern = /\bdefineMissingGlobal\b/u;
 const rendererVendorBundleGlobalMarkerPattern =
     /\b__FFV_RENDERER_VENDOR_BUNDLE__\b/u;
@@ -16944,6 +16949,24 @@ describe("architecture boundaries", () => {
         expect(openFileSelectorSource).not.toContain("Pick<ElectronAPI");
         expect(fileBrowserTabSource).toContain("ElectronFitBrowserApi");
         expect(fileBrowserTabSource).not.toContain("Pick<ElectronAPI");
+    });
+
+    it("keeps full ElectronAPI imports confined to the central runtime accessor", () => {
+        expect.assertions(1);
+
+        const violations = [
+            ...new Set(sourceRoots.flatMap((root) => collectSourceFiles(root))),
+        ]
+            .filter(
+                (relativeFile) =>
+                    !allowedFullElectronApiImportFiles.has(relativeFile) &&
+                    fullElectronApiImportPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps renderer Electron API registration on explicit candidates only", () => {

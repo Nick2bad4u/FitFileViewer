@@ -408,6 +408,8 @@ monolithic `ElectronAPI` type.
 Lifecycle listener IPC candidate typing now composes the shared file, menu-event, and preload-event API-domain
 contracts instead of deriving from the monolithic `ElectronAPI` type, with architecture guardrails blocking local
 `Pick<ElectronAPI, ...>` aliases from returning.
+Full `ElectronAPI` imports are now confined by architecture coverage to the central renderer runtime accessor so
+feature modules must keep using split preload API-domain contracts.
 Core theme live theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
 deriving from the monolithic `ElectronAPI` type.
 Menu IPC listener candidate typing now uses the shared menu-event API-domain contract instead of deriving from the
