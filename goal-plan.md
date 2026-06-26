@@ -1256,15 +1256,17 @@ that ambient fallback from returning.
 Renderer application lifecycle DOMContentLoaded and beforeunload listener cleanup now creates abort controllers
 through `applicationLifecycleWiringRuntime.ts` instead of constructing `AbortController` directly in
 `applicationLifecycleWiring.ts`, with focused runtime coverage and architecture coverage blocking direct lifecycle
-abort-controller construction from returning.
+abort-controller construction from returning. The lifecycle runtime contract now reuses the shared browser-runtime
+AbortController alias instead of a direct ambient constructor type.
 Renderer file-input delegated and import-time listener cleanup now creates abort controllers through
 `fileInputStartupRuntime.ts` instead of constructing `AbortController` directly in `fileInputStartup.ts`, with
 focused runtime coverage and architecture coverage blocking direct file-input abort-controller construction from
-returning.
+returning. The file-input startup runtime contracts now reuse shared browser-runtime AbortController and
+HTMLInputElement aliases instead of direct ambient constructor types.
 Renderer test-only bootstrap DOMContentLoaded and window-load listener cleanup now creates abort controllers through
 `testOnlyBootstrapRuntime.ts` instead of constructing `AbortController` directly in `testOnlyBootstrap.ts`, with
 focused runtime coverage and architecture coverage blocking direct test-only bootstrap abort-controller construction
-from returning.
+from returning. The test-only bootstrap runtime contract now reuses the shared browser-runtime AbortController alias.
 Network utility fetch, AbortController creation, and fetch-timeout scheduling now route through
 `networkUtilsRuntime.ts` instead of calling network or timer globals directly in `networkUtils.ts`, with adapter
 tests and architecture coverage blocking direct network utility globals from returning. Explicit network runtime

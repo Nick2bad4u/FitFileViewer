@@ -1,14 +1,16 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLInputElementConstructor,
     getBrowserAbortController,
     getBrowserHTMLInputElement,
 } from "../utils/runtime/browserRuntime.js";
 
 export interface RendererFileInputStartupRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
 }
 

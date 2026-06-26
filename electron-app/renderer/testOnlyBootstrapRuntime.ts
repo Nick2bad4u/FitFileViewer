@@ -1,8 +1,11 @@
-import { getBrowserAbortController } from "../utils/runtime/browserRuntime.js";
+import {
+    type BrowserAbortControllerConstructor,
+    getBrowserAbortController,
+} from "../utils/runtime/browserRuntime.js";
 
 export interface RendererTestOnlyBootstrapRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
 }
 

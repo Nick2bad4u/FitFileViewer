@@ -7,6 +7,7 @@ import {
     registerImportTimeFileInputChangeHandler,
 } from "../../../electron-app/renderer/fileInputStartup.js";
 import { getRendererFileInputStartupRuntime } from "../../../electron-app/renderer/fileInputStartupRuntime.js";
+import type { BrowserHTMLInputElementConstructor } from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 function createFileInput(id = "fileInput"): {
     file: File;
@@ -80,7 +81,7 @@ describe("renderer file input startup wiring", () => {
         const input = new TestHTMLInputElement();
         const utils = getRendererFileInputStartupRuntime({
             getHTMLInputElement: () =>
-                TestHTMLInputElement as unknown as typeof HTMLInputElement,
+                TestHTMLInputElement as unknown as BrowserHTMLInputElementConstructor,
         });
 
         expect(utils.isHTMLInputElement(input)).toBe(true);

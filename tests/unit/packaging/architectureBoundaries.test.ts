@@ -21941,7 +21941,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const violations =
             migratedRendererApplicationLifecycleWiringRuntimeFiles
@@ -21980,6 +21980,9 @@ describe("architecture boundaries", () => {
             "../utils/runtime/browserRuntime.js"
         );
         expect(lifecycleWiringRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(lifecycleWiringRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(lifecycleWiringRuntimeSource).not.toContain(
@@ -21994,10 +21997,16 @@ describe("architecture boundaries", () => {
         expect(lifecycleWiringRuntimeSource).not.toContain(
             "scope.AbortController"
         );
+        expect(lifecycleWiringRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(lifecycleWiringRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
     });
 
     it("keeps renderer file-input browser constructors behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(25);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -22040,6 +22049,12 @@ describe("architecture boundaries", () => {
             "../utils/runtime/browserRuntime.js"
         );
         expect(fileInputStartupRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "type BrowserHTMLInputElementConstructor"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(fileInputStartupRuntimeSource).toContain(
@@ -22066,10 +22081,19 @@ describe("architecture boundaries", () => {
         expect(fileInputStartupRuntimeSource).not.toContain(
             "scope.HTMLInputElement"
         );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "| (() => typeof HTMLInputElement | undefined)"
+        );
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(14);
 
         const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
             .filter((relativeFile) =>
@@ -22100,6 +22124,9 @@ describe("architecture boundaries", () => {
             "../utils/runtime/browserRuntime.js"
         );
         expect(testOnlyBootstrapRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(testOnlyBootstrapRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(testOnlyBootstrapRuntimeSource).not.toContain(
@@ -22113,6 +22140,12 @@ describe("architecture boundaries", () => {
         );
         expect(testOnlyBootstrapRuntimeSource).not.toContain(
             "scope.AbortController"
+        );
+        expect(testOnlyBootstrapRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(testOnlyBootstrapRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
         );
     });
 
