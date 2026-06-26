@@ -1439,6 +1439,9 @@ Update notification element lookup and action/message element creation now route
 `showUpdateNotificationRuntime.ts` instead of querying or creating through `document` directly inside
 `showUpdateNotification.ts`, with focused runtime coverage and architecture coverage blocking those direct document
 calls from returning.
+Update notification restart actions now validate the scoped preload candidate with an explicit optional-function property
+guard instead of casting the renderer Electron API candidate to a generic record, with strict coverage for malformed
+`installUpdate` values and architecture coverage blocking that bridge cast from returning.
 Runtime facade lint cleanup now keeps resource-manager unload registration, timer clearing, registration timestamps,
 render-summary scheduling, master-state event forwarding, modal timing adapters, and tab document runtime helpers aligned
 with the app lint gate by removing stale bound-call patterns, routing resource-manager clock reads through named providers,

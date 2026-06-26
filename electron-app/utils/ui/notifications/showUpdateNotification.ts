@@ -351,8 +351,11 @@ function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
         return false;
     }
 
-    const installUpdate = (value as Record<string, unknown>)["installUpdate"];
-    return installUpdate === undefined || typeof installUpdate === "function";
+    if (!("installUpdate" in value)) {
+        return true;
+    }
+
+    return typeof value.installUpdate === "function";
 }
 
 function clearAutoHideTimer(
