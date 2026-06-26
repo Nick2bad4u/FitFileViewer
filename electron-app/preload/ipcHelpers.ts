@@ -77,6 +77,17 @@ function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
 }
 
+function isPlainSerializableObject(
+    value: unknown
+): value is { readonly [key: string]: unknown } {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === null || prototype === Object.prototype;
+}
+
 function isSerializableMainStateValue(value: unknown): boolean {
     if (value === null || value === undefined) {
         return true;
@@ -96,18 +107,11 @@ function isSerializableMainStateValue(value: unknown): boolean {
         return value.every(isSerializableMainStateValue);
     }
 
-    if (typeof value !== "object") {
+    if (!isPlainSerializableObject(value)) {
         return false;
     }
 
-    const prototype = Object.getPrototypeOf(value);
-    if (prototype !== null && prototype !== Object.prototype) {
-        return false;
-    }
-
-    return Object.values(value as Record<string, unknown>).every(
-        isSerializableMainStateValue
-    );
+    return Object.values(value).every(isSerializableMainStateValue);
 }
 
 function validateNoArgs(channel: string, args: readonly unknown[]): void {

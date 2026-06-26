@@ -62,6 +62,8 @@ The preload devtools menu, IPC helper, Electron API factory, and Electron bridge
 source exports too.
 Preload Electron API exposure diagnostics now classify API methods/properties with `Object.entries(api)` instead
 of casting the public API through `unknown` to a generic record.
+Preload IPC main-state payload serialization now uses an explicit plain-object guard before recursive value
+inspection instead of casting unknown payload objects to a generic record.
 The remaining preload API assembly, runtime, bootstrap, and module-loader files now use named source exports;
 `electron-app/preload/*.ts` no longer contains source-level `module.exports` wrappers.
 The preload runtime environment, bootstrap, entrypoint, and preload source tests no longer carry a generic

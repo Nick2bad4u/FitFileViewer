@@ -386,7 +386,7 @@ describe("preload IPC helpers", () => {
     });
 
     it("validates main-state paths before reaching IPC", async () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
         const getMainState = helpers.createSafeInvokeHandler(
@@ -405,11 +405,17 @@ describe("preload IPC helpers", () => {
             "main-state:set",
             "setMainState"
         );
+        const nestedSerializablePayload = {
+            detail: Object.assign(Object.create(null), {
+                progress: 1,
+            }) as { progress: number },
+        };
 
         ipcRenderer.invoke
             .mockResolvedValueOnce(null)
             .mockResolvedValueOnce(true)
             .mockResolvedValueOnce({ id: "test-op" })
+            .mockResolvedValueOnce(true)
             .mockResolvedValueOnce(true);
 
         await expect(getMainState(" loadedFitFilePath ")).resolves.toBeNull();
@@ -421,6 +427,13 @@ describe("preload IPC helpers", () => {
         });
         await expect(
             setMainState("operations.fitFile:decode", { progress: 1 })
+        ).resolves.toBe(true);
+        await expect(
+            setMainState(
+                "operations.fitFile:decode",
+                nestedSerializablePayload,
+                { source: "preload" }
+            )
         ).resolves.toBe(true);
         await expect(
             getMainState("operations.__proto__.polluted")
@@ -443,6 +456,12 @@ describe("preload IPC helpers", () => {
                 "main-state:set",
                 "operations.fitFile:decode",
                 { progress: 1 },
+            ],
+            [
+                "main-state:set",
+                "operations.fitFile:decode",
+                nestedSerializablePayload,
+                { source: "preload" },
             ],
         ]);
         expect(preloadLog).toHaveBeenCalledTimes(4);
@@ -575,7 +594,7 @@ describe("preload IPC helpers", () => {
     });
 
     it("rejects invalid invoke payloads before reaching IPC", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
 
@@ -623,11 +642,21 @@ describe("preload IPC helpers", () => {
             "main-state:set: expected a state path, serializable value, and optional serializable options"
         );
         await expect(
+            helpers.createSafeInvokeHandler("main-state:set", "setMainState")(
+                "fit.instance",
+                new (class NonSerializableStateValue {
+                    readonly value = "dark";
+                })()
+            )
+        ).rejects.toThrow(
+            "main-state:set: expected a state path, serializable value, and optional serializable options"
+        );
+        await expect(
             helpers.createSafeInvokeHandler("unknown:invoke", "unknownInvoke")()
         ).rejects.toThrow("unknown:invoke: is not an allowed invoke channel");
 
         expect(ipcRenderer.invoke).not.toHaveBeenCalled();
-        expect(preloadLog).toHaveBeenCalledTimes(8);
+        expect(preloadLog).toHaveBeenCalledTimes(9);
     });
 
     it("sends IPC and logs send failures without throwing", () => {

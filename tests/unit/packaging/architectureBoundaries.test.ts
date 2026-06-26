@@ -3785,7 +3785,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const devtoolsMenuApiSource = stripComments(
             readRepositoryFile("electron-app/preload/devtoolsMenuApi.ts")
@@ -3804,6 +3804,7 @@ describe("architecture boundaries", () => {
 
         expect(devtoolsMenuApiSource).not.toContain("require(");
         expect(ipcHelpersSource).not.toContain("require(");
+        expect(ipcHelpersSource).not.toContain("value as Record");
         expect(policyModuleLoaderSource).toContain(
             "../shared/devtoolsMenuPolicy.js"
         );
