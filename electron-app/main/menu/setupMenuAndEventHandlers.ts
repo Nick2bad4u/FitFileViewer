@@ -14,6 +14,7 @@ import { getAppState } from "../state/appState.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
 import {
+    getProcessStringValue,
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../utils/runtime/processEnvironment.js";
@@ -149,7 +150,7 @@ async function requireAutoUpdater(): Promise<AutoUpdaterLike> {
 }
 
 function showLinuxManualUpdateMessage(): void {
-    if (process.platform !== CONSTANTS.PLATFORMS.LINUX) {
+    if (getProcessStringValue("platform") !== CONSTANTS.PLATFORMS.LINUX) {
         return;
     }
 
