@@ -1,4 +1,5 @@
 import {
+    type BrowserAbortControllerConstructor,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserDateNow,
@@ -6,7 +7,7 @@ import {
 
 export interface ErrorHandlingRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
         | (() => Window["addEventListener"] | undefined)
@@ -56,7 +57,7 @@ function getDefaultEventTarget(
 
 function getAbortControllerConstructor(
     scope: ErrorHandlingRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
