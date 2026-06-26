@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getRenderChartTimerRuntime as getChartTimerRuntime,
+    type RenderChartTimeout,
     type RenderChartTimerRuntimeScope,
 } from "../../../../electron-app/utils/charts/core/renderChartTimerRuntime.js";
 
@@ -14,15 +20,9 @@ describe("getRenderChartTimerRuntime", () => {
     it("routes timer scheduling and clearing through the injected scope", () => {
         expect.assertions(5);
 
-        const timeoutId = 7 as ReturnType<typeof setTimeout>;
-        const setTimeoutMock = vi.fn<
-            (
-                callback: () => void,
-                delay: number
-            ) => ReturnType<typeof setTimeout>
-        >(() => timeoutId);
-        const clearTimeoutMock =
-            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const timeoutId = 7 as RenderChartTimeout;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timeoutId);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNowMock = vi.fn<() => number>(() => 12_345);
         const timerRuntime = getChartTimerRuntime({
             getClearTimeout: () => clearTimeoutMock,
@@ -52,19 +52,13 @@ describe("getRenderChartTimerRuntime", () => {
         let resolved = false;
         let scheduledDelay: number | undefined;
         let scheduledCallback: (() => void) | undefined;
-        const timeoutId = 8 as ReturnType<typeof setTimeout>;
-        const setTimeoutMock = vi.fn<
-            (
-                callback: () => void,
-                delay: number
-            ) => ReturnType<typeof setTimeout>
-        >((callback, delay) => {
+        const timeoutId = 8 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>((callback, delay) => {
             scheduledCallback = callback;
             scheduledDelay = delay;
             return timeoutId;
         });
-        const clearTimeoutMock =
-            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const timerRuntime = getChartTimerRuntime({
             getClearTimeout: () => clearTimeoutMock,
             getSetTimeout: () => setTimeoutMock,
@@ -90,16 +84,10 @@ describe("getRenderChartTimerRuntime", () => {
     it("resolves production timer defaults through browser runtime providers", () => {
         expect.assertions(5);
 
-        const timeoutId = 10 as ReturnType<typeof setTimeout>;
+        const timeoutId = 10 as BrowserTimerHandle;
         const callback = vi.fn<() => void>();
-        const setTimeoutMock = vi.fn<
-            (
-                callback: () => void,
-                delay: number
-            ) => ReturnType<typeof setTimeout>
-        >(() => timeoutId);
-        const clearTimeoutMock =
-            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timeoutId);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(98_765);
         const scheduleDelay = 250;
 
@@ -121,7 +109,7 @@ describe("getRenderChartTimerRuntime", () => {
     it("fails clearly when timer functions are unavailable", () => {
         expect.assertions(3);
 
-        const timeoutId = 9 as ReturnType<typeof setTimeout>;
+        const timeoutId = 9 as BrowserTimerHandle;
 
         expect(() =>
             getChartTimerRuntime({}).setTimeout(() => undefined, 0)
@@ -137,7 +125,7 @@ describe("getRenderChartTimerRuntime", () => {
     it("ignores legacy direct timer scope properties", () => {
         expect.assertions(4);
 
-        const timeoutId = 11 as ReturnType<typeof setTimeout>;
+        const timeoutId = 11 as BrowserTimerHandle;
         const legacyDateNow = vi.fn<() => number>(() => 1);
         const timerRuntime = getChartTimerRuntime({
             clearTimeout() {

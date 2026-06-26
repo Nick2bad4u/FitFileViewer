@@ -1,19 +1,20 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type RenderChartTimeout = ReturnType<typeof globalThis.setTimeout>;
+export type RenderChartTimeout = BrowserTimerHandle;
 
 export interface RenderChartTimerRuntimeScope {
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface RenderChartTimerRuntime {

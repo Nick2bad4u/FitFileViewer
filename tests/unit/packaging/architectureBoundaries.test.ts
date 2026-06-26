@@ -19723,7 +19723,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(34);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -19803,6 +19803,10 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain("render chart timers require dateNow");
         expect(runtimeSource).toContain("dateNow: () => number;");
         expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
+        expect(runtimeSource).toContain("type BrowserClearTimeout");
+        expect(runtimeSource).toContain("type BrowserSetTimeout");
+        expect(runtimeSource).toContain("type BrowserTimerHandle");
+        expect(runtimeSource).not.toContain("typeof globalThis.");
         expect(runtimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
