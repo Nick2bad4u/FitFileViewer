@@ -17,6 +17,11 @@ const mockSubscribe = vi.fn<
 const mockShowNotification =
     vi.fn<(message: string, type?: string, duration?: number) => void>();
 
+const mockSettingsDateNow = vi.fn<() => number>(() => 1_700_000_000_000);
+const mockAddStorageEventListener = vi.fn<
+    (listener: (event: StorageEvent) => void, signal: AbortSignal) => boolean
+>(() => true);
+
 // Setup mocks before importing the module
 vi.mock(
     import("../../../../electron-app/utils/state/core/stateManager.js"),
@@ -31,6 +36,18 @@ vi.mock(
     import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: mockShowNotification,
+    })
+);
+
+vi.mock(
+    import("../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js"),
+    () => ({
+        getSettingsStateCoreRuntime: () => ({
+            addStorageEventListener: mockAddStorageEventListener,
+            createAbortController: () => new AbortController(),
+            dateNow: mockSettingsDateNow,
+            getLocalStorage: () => mockLocalStorage as unknown as Storage,
+        }),
     })
 );
 
@@ -64,27 +81,8 @@ const mockLocalStorage = {
     },
 };
 
-Object.defineProperty(globalThis, "localStorage", {
-    value: mockLocalStorage,
-    writable: true,
-});
-
-// Mock globalThis.addEventListener for storage events
-Object.defineProperty(globalThis, "addEventListener", {
-    value: vi.fn<
-        (
-            type: string,
-            listener: EventListenerOrEventListenerObject,
-            options?: AddEventListenerOptions | boolean
-        ) => void
-    >(),
-    writable: true,
-});
-
-function getStorageEventListener(): EventListener {
-    const listener = vi
-        .mocked(globalThis.addEventListener)
-        .mock.calls.find(([eventName]) => eventName === "storage")?.[1];
+function getStorageEventListener(): (event: StorageEvent) => void {
+    const listener = mockAddStorageEventListener.mock.calls[0]?.[0];
 
     if (typeof listener !== "function") {
         throw new Error("Expected storage event listener to be registered");
@@ -139,6 +137,8 @@ describe("settingsStateManager.js - simplified coverage", () => {
         mockGetState.mockReturnValue(null);
         mockSetState.mockReturnValue(undefined);
         mockSubscribe.mockReturnValue(() => {});
+        mockSettingsDateNow.mockReturnValue(1_700_000_000_000);
+        mockAddStorageEventListener.mockReturnValue(true);
 
         // Import the module fresh for each test
         settingsStateManagerModule =
@@ -511,8 +511,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             it("should initialize settings state manager", async () => {
                 expect.assertions(3);
                 const mockDate = 1234567890;
-                vi.useFakeTimers();
-                vi.setSystemTime(new Date(mockDate));
+                mockSettingsDateNow.mockReturnValue(mockDate);
 
                 await settingsStateManager.initialize();
 
@@ -548,8 +547,6 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect(settingsStateManager.initialized).not.toStrictEqual(
                     false
                 );
-
-                vi.useRealTimers();
             });
 
             it("should skip if already initialized", async () => {
@@ -567,8 +564,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             it("should export all settings", () => {
                 expect.assertions(2);
                 const mockDate = 1234567890;
-                vi.useFakeTimers();
-                vi.setSystemTime(new Date(mockDate));
+                mockSettingsDateNow.mockReturnValue(mockDate);
 
                 const result = settingsStateManager.exportSettings();
 
@@ -599,8 +595,6 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     },
                 });
                 expect(result.settings.theme).not.toBe("light");
-
-                vi.useRealTimers();
             });
         });
 
@@ -648,23 +642,16 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     subscriptionCallbackType: "function",
                     subscriptionPath: "settings",
                 });
-                const [
-                    eventName,
-                    storageListener,
-                    options,
-                ] = getRequiredMockCall(
-                    vi.mocked(globalThis.addEventListener).mock.calls
+                const [storageListener, signal] = getRequiredMockCall(
+                    mockAddStorageEventListener.mock.calls
                 );
-                const listenerOptions = options as
-                    | AddEventListenerOptions
-                    | undefined;
                 expect({
-                    eventName,
+                    registrationCount:
+                        mockAddStorageEventListener.mock.calls.length,
                     listenerType: typeof storageListener,
-                    signalIsAbortSignal:
-                        listenerOptions?.signal instanceof AbortSignal,
+                    signalIsAbortSignal: signal instanceof AbortSignal,
                 }).toStrictEqual({
-                    eventName: "storage",
+                    registrationCount: 1,
                     listenerType: "function",
                     signalIsAbortSignal: true,
                 });
@@ -891,8 +878,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
                 expect.assertions(2);
                 const { exportAllSettings } = settingsStateManagerModule;
                 const mockDate = 1234567890;
-                vi.useFakeTimers();
-                vi.setSystemTime(new Date(mockDate));
+                mockSettingsDateNow.mockReturnValue(mockDate);
 
                 const result = exportAllSettings();
 
@@ -923,8 +909,6 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     },
                 });
                 expect(result.version).not.toBe("2.0.0");
-
-                vi.useRealTimers();
             });
         });
 

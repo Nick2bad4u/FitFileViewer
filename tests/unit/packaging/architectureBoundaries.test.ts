@@ -1033,6 +1033,8 @@ const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
+const settingsStateManagerTestDirectRuntimeGlobalPattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:addEventListener|localStorage)["']\s*,|\bglobalThis\.(?:addEventListener|localStorage)\b/u;
 const directSettingsStateCoreRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\??\.localStorage\b|(?:^|[^\w.])localStorage\./u;
 const directSettingsStateCoreRuntimeAmbientFallbackPattern =
@@ -25646,6 +25648,25 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps settings state manager tests on explicit runtime fixtures", () => {
+        expect.assertions(2);
+
+        const settingsStateManagerTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/state/domain/settingsStateManager.test.ts"
+            )
+        );
+
+        expect(
+            settingsStateManagerTestDirectRuntimeGlobalPattern.test(
+                settingsStateManagerTestSource
+            )
+        ).toBe(false);
+        expect(settingsStateManagerTestSource).toContain(
+            "settingsStateCoreRuntime.js"
+        );
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
