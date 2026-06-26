@@ -19,7 +19,10 @@ import {
 } from "./fitParsePayload.js";
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type {
+    ElectronDialogApi,
+    ElectronFileApi,
+} from "../../../shared/preloadApi.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -52,12 +55,13 @@ type HandleOpenFileOptions = {
     validateFileSize?: boolean;
 };
 
-type FileParseResult = Awaited<ReturnType<ElectronAPI["parseFitFile"]>>;
+type FileParseResult = Awaited<ReturnType<ElectronFileApi["parseFitFile"]>>;
 
-type FileOpenElectronAPI = Pick<
-    ElectronAPI,
-    "openFile" | "parseFitFile" | "readFile"
->;
+interface FileOpenElectronAPI {
+    openFile: ElectronDialogApi["openFile"];
+    parseFitFile: ElectronFileApi["parseFitFile"];
+    readFile: ElectronFileApi["readFile"];
+}
 
 type FitFileStateManagerFacade = {
     handleFileLoadingError: (error: Error) => void;

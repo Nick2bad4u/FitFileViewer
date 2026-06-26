@@ -11238,7 +11238,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
-        expect.assertions(1);
+        expect.assertions(5);
 
         const handleOpenFileSource = stripComments(
             readRepositoryFile(
@@ -11249,6 +11249,10 @@ describe("architecture boundaries", () => {
         expect(handleOpenFileSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(handleOpenFileSource).toContain("ElectronDialogApi");
+        expect(handleOpenFileSource).toContain("ElectronFileApi");
+        expect(handleOpenFileSource).not.toContain("import type { ElectronAPI");
+        expect(handleOpenFileSource).not.toContain("Pick<ElectronAPI");
     });
 
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
