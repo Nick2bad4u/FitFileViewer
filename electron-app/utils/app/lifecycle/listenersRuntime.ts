@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -8,7 +12,7 @@ import {
 } from "../../runtime/browserRuntime.js";
 import { getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 
-export type LifecycleListenersTimer = ReturnType<typeof globalThis.setTimeout>;
+export type LifecycleListenersTimer = BrowserTimerHandle;
 
 type LifecycleListenersDocument = Pick<Document, "body" | "createElement">;
 type LifecycleListenersPrint = () => void;
@@ -19,10 +23,10 @@ type LifecycleListenersURL = Pick<
 
 export interface LifecycleListenersRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?:
         | (() => LifecycleListenersDocument | undefined)
@@ -31,9 +35,7 @@ export interface LifecycleListenersRuntimeScope {
     readonly getProcessEnvironmentValue?:
         | ((name: string) => string | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
     readonly getURL?: (() => LifecycleListenersURL | undefined) | undefined;
 }
 

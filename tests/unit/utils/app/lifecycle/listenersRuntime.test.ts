@@ -4,6 +4,12 @@ import {
     getLifecycleListenersRuntime,
     type LifecycleListenersRuntimeScope,
 } from "../../../../../electron-app/utils/app/lifecycle/listenersRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getLifecycleListenersRuntime", () => {
     afterEach(() => {
@@ -22,7 +28,7 @@ describe("getLifecycleListenersRuntime", () => {
         );
         const runtime = getLifecycleListenersRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -52,7 +58,7 @@ describe("getLifecycleListenersRuntime", () => {
 
         const callback = () => undefined;
         const delayMs = Number("100");
-        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 23 as BrowserTimerHandle;
         let scheduledCallback: unknown;
         let scheduledDelay: unknown;
         let clearedTimer: unknown;
@@ -60,8 +66,8 @@ describe("getLifecycleListenersRuntime", () => {
             scheduledCallback = handler;
             scheduledDelay = timeout;
             return timer;
-        }) as typeof globalThis.setTimeout;
-        const clearTimeout: typeof globalThis.clearTimeout = (handle) => {
+        }) as BrowserSetTimeout;
+        const clearTimeout: BrowserClearTimeout = (handle) => {
             clearedTimer = handle;
         };
         const runtime = getLifecycleListenersRuntime({
@@ -84,9 +90,9 @@ describe("getLifecycleListenersRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("100");
-        const timer = 37 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 37 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -229,9 +235,7 @@ describe("getLifecycleListenersRuntime", () => {
             "lifecycle listeners require a setTimeout runtime"
         );
         expect(() => {
-            runtime.clearTimeout(
-                23 as ReturnType<typeof globalThis.setTimeout>
-            );
+            runtime.clearTimeout(23 as BrowserTimerHandle);
         }).toThrow("lifecycle listeners require a clearTimeout runtime");
         expect(() => runtime.createDownloadAnchor()).toThrow(
             "lifecycle listeners require a document runtime"
@@ -260,15 +264,15 @@ describe("getLifecycleListenersRuntime", () => {
             }
         );
         const print = vi.fn<() => void>();
-        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 23 as BrowserTimerHandle;
         const legacyScope = {
             AbortController:
-                AbortControllerConstructor as unknown as typeof AbortController,
-            clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            clearTimeout: vi.fn<BrowserClearTimeout>(),
             print,
             processEnvironmentValue: (name: string) =>
                 name === "NODE_ENV" ? "test" : undefined,
-            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timer),
+            setTimeout: vi.fn<BrowserSetTimeout>(() => timer),
             URL: {
                 createObjectURL: vi.fn<(blob: Blob) => string>(
                     () => "blob:legacy"

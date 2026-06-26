@@ -921,6 +921,9 @@ returning. Lifecycle listener production defaults now live in an explicit provid
 AbortController, timer, print, and process access. The default process and print providers now read
 `globalThis.process` and `globalThis.print` explicitly instead of using generic `Reflect.get(globalThis, ...)`
 probes.
+Lifecycle listener runtime controller and timer provider types now use shared browser-runtime aliases instead of
+direct ambient `globalThis` controller/timer types, with architecture coverage blocking those direct type surfaces
+from returning.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.

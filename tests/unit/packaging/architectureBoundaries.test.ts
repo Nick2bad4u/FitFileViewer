@@ -12899,7 +12899,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(59);
+        expect.assertions(65);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -13010,6 +13010,18 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "BrowserAbortControllerConstructor"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "BrowserClearTimeout"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain("BrowserSetTimeout");
+        expect(lifecycleListenersRuntimeSource).toContain("BrowserTimerHandle");
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "typeof globalThis."
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain("ReturnType<");
         expect(lifecycleListenersRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
