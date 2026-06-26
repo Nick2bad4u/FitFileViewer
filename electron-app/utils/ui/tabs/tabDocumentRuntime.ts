@@ -1,4 +1,6 @@
 import {
+    type BrowserElementConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserDocument,
     getBrowserElement,
     getBrowserHTMLElement,
@@ -7,10 +9,10 @@ import {
 export interface TabDocumentRuntimeScope {
     readonly getDocument?: (() => unknown) | undefined;
     readonly getElement?:
-        | (() => typeof globalThis.Element | undefined)
+        | (() => BrowserElementConstructor | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
 
@@ -50,7 +52,7 @@ const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = {
 
 function getElementConstructor(
     scope: TabDocumentRuntimeScope
-): typeof globalThis.Element {
+): BrowserElementConstructor {
     const ElementConstructor = scope.getElement?.();
     if (typeof ElementConstructor !== "function") {
         throw new TypeError("tabDocumentRuntime requires an Element runtime");
@@ -61,7 +63,7 @@ function getElementConstructor(
 
 function getHTMLElementConstructor(
     scope: TabDocumentRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
