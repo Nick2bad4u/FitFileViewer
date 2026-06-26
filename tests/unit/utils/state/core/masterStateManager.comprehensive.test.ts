@@ -41,8 +41,8 @@ import {
     initializeFitFileViewerState,
     MasterStateManager,
     masterStateManager,
-    setMasterStateManagerModuleMocksForTests,
 } from "../../../../../electron-app/utils/state/core/masterStateManager.js";
+import type { MasterStateManagerDependencies } from "../../../../../electron-app/utils/state/core/masterStateManager.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type StateOptions = {
@@ -141,7 +141,7 @@ type Harness = {
     loadingElement: HTMLElement;
     location: Location;
     mocks: HarnessMocks;
-    moduleMocks: Record<string, unknown>;
+    dependencies: MasterStateManagerDependencies;
     windowListeners: ListenerMap;
 };
 
@@ -163,9 +163,13 @@ type MasterStateElectronApi = {
 };
 
 let activeElectronApiScope: RendererElectronApiScope | undefined;
+let activeDependencies: MasterStateManagerDependencies | undefined;
 
 function createMasterStateManager(): MasterStateManager {
-    return new MasterStateManager({ electronApiScope: activeElectronApiScope });
+    return new MasterStateManager({
+        dependencies: activeDependencies,
+        electronApiScope: activeElectronApiScope,
+    });
 }
 
 function createElectronApiScope(
@@ -364,7 +368,7 @@ describe("masterStateManager comprehensive behavior", () => {
     it("records component initialization failures and missing FIT manager errors", async () => {
         expect.assertions(4);
 
-        await withMasterStateHarness(async ({ mocks, moduleMocks }) => {
+        await withMasterStateHarness(async ({ dependencies, mocks }) => {
             const manager = createMasterStateManager();
             const settingsError = new Error("Settings failed");
             mocks.settingsStateManager.settingsStateManager.initialize.mockRejectedValue(
@@ -383,7 +387,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 initialized: false,
             });
 
-            moduleMocks["C:/fit/utils/state/domain/fitFileState.js"] = {};
+            dependencies.fitFileState = {};
 
             expect(() => {
                 manager.initializeFitFileComponents();
@@ -805,27 +809,24 @@ function createKeyboardEvent(key: string): KeyboardEvent {
     } as unknown as KeyboardEvent;
 }
 
-function createModuleMocks(mocks: HarnessMocks): Record<string, unknown> {
+function createMasterStateDependencies(
+    mocks: HarnessMocks
+): MasterStateManagerDependencies {
     return {
-        "C:/fit/utils/ui/rendererStateBindings.js": mocks.rendererStateBindings,
-        "C:/fit/utils/app/lifecycle/appActions.js": mocks.appActions,
-        "C:/fit/utils/debug/stateDevTools.js": mocks.stateDevTools,
-        "C:/fit/utils/rendering/helpers/updateControlsState.js":
-            mocks.updateControlsState,
-        "C:/fit/utils/state/core/computedStateManager.js":
-            mocks.computedStateManager,
-        "C:/fit/utils/state/core/stateManager.js": mocks.stateManager,
-        "C:/fit/utils/state/core/stateMiddleware.js": mocks.stateMiddleware,
-        "C:/fit/utils/state/domain/fitFileState.js": mocks.fitFileState,
-        "C:/fit/utils/state/domain/settingsStateManager.js":
-            mocks.settingsStateManager,
-        "C:/fit/utils/state/domain/uiStateManager.js": mocks.uiStateManager,
-        "C:/fit/utils/state/integration/stateIntegration.js":
-            mocks.stateIntegration,
-        "C:/fit/utils/ui/controls/enableTabButtons.js": mocks.enableTabButtons,
-        "C:/fit/utils/ui/tabs/updateActiveTab.js": mocks.updateActiveTab,
-        "C:/fit/utils/ui/tabs/updateTabVisibility.js":
-            mocks.updateTabVisibility,
+        appLifecycle: mocks.appActions,
+        computedState: mocks.computedStateManager,
+        controlsState: mocks.updateControlsState,
+        enableTabButtons: mocks.enableTabButtons,
+        fitFileState: mocks.fitFileState,
+        rendererStateBindings: mocks.rendererStateBindings,
+        settingsState: mocks.settingsStateManager,
+        stateDevTools: mocks.stateDevTools,
+        stateIntegration: mocks.stateIntegration,
+        stateManager: mocks.stateManager,
+        stateMiddleware: mocks.stateMiddleware,
+        uiState: mocks.uiStateManager,
+        updateActiveTab: mocks.updateActiveTab,
+        updateTabVisibility: mocks.updateTabVisibility,
     };
 }
 
@@ -889,7 +890,7 @@ async function withMasterStateHarness(
 ): Promise<void> {
     const descriptors = new Map<GlobalKey, PropertyDescriptor>();
     const mocks = createHarnessMocks();
-    const moduleMocks = createModuleMocks(mocks);
+    const dependencies = createMasterStateDependencies(mocks);
     const documentListeners: ListenerMap = new Map();
     const globalListeners: ListenerMap = new Map();
     const windowListeners: ListenerMap = new Map();
@@ -966,13 +967,12 @@ async function withMasterStateHarness(
         openFileDialog: vi.fn<() => void>(),
     } satisfies MasterStateElectronApi;
 
-    setMasterStateManagerModuleMocksForTests(moduleMocks);
-
     try {
         defineGlobalValue(descriptors, "document", documentMock);
         defineGlobalValue(descriptors, "window", windowMock);
         defineGlobalValue(descriptors, "location", location);
         activeElectronApiScope = createElectronApiScope(electronAPI);
+        activeDependencies = dependencies;
         defineGlobalValue(
             descriptors,
             "__DEVELOPMENT__",
@@ -1040,12 +1040,12 @@ async function withMasterStateHarness(
             loadingElement,
             location,
             mocks,
-            moduleMocks,
+            dependencies,
             windowListeners,
         });
     } finally {
         activeElectronApiScope = undefined;
-        setMasterStateManagerModuleMocksForTests(null);
+        activeDependencies = undefined;
         restoreGlobals(descriptors);
         vi.restoreAllMocks();
     }

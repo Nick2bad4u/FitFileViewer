@@ -84,23 +84,93 @@ type StateManagerApi = {
     subscribe: typeof subscribe;
 };
 
-type MasterStateManagerOptions = {
-    electronApiScope?: RendererElectronApiScope | undefined;
-};
-
-type DynamicModule = Record<string, unknown>;
 type RuntimeSettingsStateManager = typeof settingsStateManager & {
     cleanup?: () => void;
     initialize?: () => unknown;
+};
+
+type AppLifecycleModule = {
+    AppActions: typeof AppActions;
+    AppSelectors: typeof AppSelectors;
+};
+
+type ComputedStateModule = {
+    computedStateManager: { cleanup: () => void };
+    initializeCommonComputedValues: () => unknown;
+};
+
+type ControlsStateModule = {
+    initializeControlsState: () => unknown;
+};
+
+type EnableTabButtonsModule = {
+    initializeTabButtonState: () => unknown;
+};
+
+type FitFileStateModule = {
+    fitFileStateManager?: unknown;
+};
+
+type RendererStateBindingsModule = {
+    initializeRendererStateBindings: () => unknown;
+};
+
+type SettingsStateModule = {
+    settingsStateManager: RuntimeSettingsStateManager;
+};
+
+type StateDevToolsModule = {
+    cleanupStateDevTools: () => unknown;
+    initializeStateDevTools: () => unknown;
+};
+
+type StateIntegrationModule = {
+    initializeCompleteStateSystem: () => unknown;
+};
+
+type StateMiddlewareModule = {
+    cleanupMiddleware: () => unknown;
+    initializeDefaultMiddleware: () => unknown;
+};
+
+type UIStateModule = {
+    UIActions: typeof UIActions;
+};
+
+type UpdateActiveTabModule = {
+    initializeActiveTabState: () => unknown;
+};
+
+type UpdateTabVisibilityModule = {
+    initializeTabVisibilityState: () => unknown;
+};
+
+export type MasterStateManagerDependencies = Partial<{
+    appLifecycle: AppLifecycleModule;
+    computedState: ComputedStateModule;
+    controlsState: ControlsStateModule;
+    enableTabButtons: EnableTabButtonsModule;
+    fitFileState: FitFileStateModule;
+    rendererStateBindings: RendererStateBindingsModule;
+    settingsState: SettingsStateModule;
+    stateDevTools: StateDevToolsModule;
+    stateIntegration: StateIntegrationModule;
+    stateManager: StateManagerApi;
+    stateMiddleware: StateMiddlewareModule;
+    uiState: UIStateModule;
+    updateActiveTab: UpdateActiveTabModule;
+    updateTabVisibility: UpdateTabVisibilityModule;
+}>;
+
+type MasterStateManagerOptions = {
+    dependencies?: MasterStateManagerDependencies | undefined;
+    electronApiScope?: RendererElectronApiScope | undefined;
 };
 
 type ErrorDetails = {
     message: string;
     stack?: string;
 };
-
-let masterStateManagerModuleMocksForTests: Record<string, unknown> | null =
-    null;
 
 function masterStateRuntime(): MasterStateRuntime {
     return getMasterStateRuntime();
@@ -144,17 +214,6 @@ function getMasterElectronAPI(
     electronApiScope: RendererElectronApiScope | undefined
 ): ElectronRendererAPI | null {
     return getRendererElectronApi(isElectronRendererAPI, electronApiScope);
-}
-
-function isDynamicModule(value: unknown): value is DynamicModule {
-    return typeof value === "object" && value !== null;
-}
-
-function hasFunction<TName extends string>(
-    value: DynamicModule | null,
-    name: TName
-): value is DynamicModule & Record<TName, (...args: unknown[]) => unknown> {
-    return typeof value?.[name] === "function";
 }
 
 function getErrorDetails(value: unknown): ErrorDetails {
@@ -204,15 +263,6 @@ function getElectronDevelopmentFlag(
     return getMasterElectronAPI(electronApiScope)?.__devMode;
 }
 
-function isStateManagerApi(value: unknown): value is StateManagerApi {
-    return (
-        isDynamicModule(value) &&
-        typeof value["getState"] === "function" &&
-        typeof value["setState"] === "function" &&
-        typeof value["subscribe"] === "function"
-    );
-}
-
 /**
  * Master State Manager - orchestrates all state management components
  */
@@ -223,6 +273,8 @@ export class MasterStateManager {
 
     isInitialized = false;
 
+    private readonly dependencies: MasterStateManagerDependencies;
+
     private readonly electronApiScope: RendererElectronApiScope | undefined;
 
     private eventController = masterStateRuntime().createAbortController();
@@ -231,7 +283,11 @@ export class MasterStateManager {
 
     private performanceMonitorUnsubscribe: (() => void) | null = null;
 
-    constructor({ electronApiScope }: MasterStateManagerOptions = {}) {
+    constructor({
+        dependencies = {},
+        electronApiScope,
+    }: MasterStateManagerOptions = {}) {
+        this.dependencies = dependencies;
         this.electronApiScope = electronApiScope;
         this.components = new Map();
         this.initializationOrder = [
@@ -256,6 +312,97 @@ export class MasterStateManager {
         return getElectronDevelopmentFlag(this.electronApiScope);
     }
 
+    private getAppLifecycleModule(): AppLifecycleModule {
+        return this.dependencies.appLifecycle ?? { AppActions, AppSelectors };
+    }
+
+    private getComputedStateModule(): ComputedStateModule {
+        return (
+            this.dependencies.computedState ?? {
+                computedStateManager,
+                initializeCommonComputedValues,
+            }
+        );
+    }
+
+    private getControlsHelperModule(): ControlsStateModule {
+        return this.dependencies.controlsState ?? { initializeControlsState };
+    }
+
+    private getEnableTabButtonsModule(): EnableTabButtonsModule {
+        return (
+            this.dependencies.enableTabButtons ?? { initializeTabButtonState }
+        );
+    }
+
+    private getFitFileStateModule(): FitFileStateModule {
+        return this.dependencies.fitFileState ?? { fitFileStateManager };
+    }
+
+    private getRendererStateBindingsModule(): RendererStateBindingsModule {
+        return (
+            this.dependencies.rendererStateBindings ?? {
+                initializeRendererStateBindings,
+            }
+        );
+    }
+
+    private getSettingsStateModule(): SettingsStateModule {
+        return (
+            this.dependencies.settingsState ?? {
+                settingsStateManager,
+            }
+        );
+    }
+
+    private getStateDevToolsModule(): StateDevToolsModule {
+        return (
+            this.dependencies.stateDevTools ?? {
+                cleanupStateDevTools,
+                initializeStateDevTools,
+            }
+        );
+    }
+
+    private getStateIntegrationModule(): StateIntegrationModule {
+        return (
+            this.dependencies.stateIntegration ?? {
+                initializeCompleteStateSystem,
+            }
+        );
+    }
+
+    private getStateManagerAPI(): StateManagerApi {
+        return this.dependencies.stateManager ?? getDefaultStateManagerApi();
+    }
+
+    private getStateMiddlewareModule(): StateMiddlewareModule {
+        return (
+            this.dependencies.stateMiddleware ?? {
+                cleanupMiddleware,
+                initializeDefaultMiddleware,
+            }
+        );
+    }
+
+    private getUIStateModule(): UIStateModule {
+        return this.dependencies.uiState ?? { UIActions };
+    }
+
+    private getUpdateActiveTabModule(): UpdateActiveTabModule {
+        return (
+            this.dependencies.updateActiveTab ?? { initializeActiveTabState }
+        );
+    }
+
+    private getUpdateTabVisibilityModule(): UpdateTabVisibilityModule {
+        return (
+            this.dependencies.updateTabVisibility ?? {
+                initializeTabVisibilityState,
+            }
+        );
+    }
+
     /**
      * Clean up all state management
      */
@@ -275,30 +422,30 @@ export class MasterStateManager {
             this.performanceMonitorUnsubscribe = null;
         }
 
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
 
         // Clean up specific components
         if (this.components.has("settings")) {
             const { settingsStateManager: dynSettings } =
-                getSettingsStateModule();
+                this.getSettingsStateModule();
             dynSettings.cleanup?.();
         }
 
         if (this.components.has("computed")) {
             const { computedStateManager: dynComputed } =
-                getComputedStateModule();
+                this.getComputedStateModule();
             dynComputed.cleanup();
         }
 
         if (this.components.has("middleware")) {
             const { cleanupMiddleware: dynCleanupMiddleware } =
-                getStateMiddlewareModule();
+                this.getStateMiddlewareModule();
             dynCleanupMiddleware();
         }
 
         if (this.components.has(DEV_TOOLS_COMPONENT)) {
             const { cleanupStateDevTools: dynCleanupDevTools } =
-                getStateDevToolsModule();
+                this.getStateDevToolsModule();
             dynCleanupDevTools();
         }
 
@@ -319,7 +466,7 @@ export class MasterStateManager {
      * Get state history from the core state manager.
      */
     getHistory() {
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         return stateAPI.getStateHistory();
     }
 
@@ -327,7 +474,7 @@ export class MasterStateManager {
      * Get initialization status for all managed components.
      */
     getInitializationStatus() {
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         return {
             components: Object.fromEntries(this.components),
             isInitialized: this.isInitialized,
@@ -344,7 +491,7 @@ export class MasterStateManager {
      * Get current state from the core state manager.
      */
     getState(path?: string): unknown {
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         return stateAPI.getState(path);
     }
 
@@ -352,7 +499,7 @@ export class MasterStateManager {
      * Get active subscriptions for debugging.
      */
     getSubscriptions() {
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         return stateAPI.getSubscriptions();
     }
 
@@ -389,7 +536,7 @@ export class MasterStateManager {
             this.setupPerformanceMonitoring();
 
             this.isInitialized = true;
-            const stateAPI = getStateManagerAPI();
+            const stateAPI = this.getStateManagerAPI();
             stateAPI.setState("system.initialized", true, {
                 source: "MasterStateManager",
             });
@@ -492,7 +639,7 @@ export class MasterStateManager {
         const {
             initializeCommonComputedValues: dynInitComputed,
             computedStateManager: dynComputed,
-        } = getComputedStateModule();
+        } = this.getComputedStateModule();
         dynInitComputed();
         this.components.set("computed", dynComputed);
     }
@@ -500,10 +647,10 @@ export class MasterStateManager {
     async initializeCoreState() {
         // Resolve state API dynamically in tests (module cache injection) while
         // preserving direct imports for production/runtime
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         // Initialize the complete state system
         const { initializeCompleteStateSystem: dynInitIntegration } =
-            getStateIntegrationModule();
+            this.getStateIntegrationModule();
         await Promise.resolve(dynInitIntegration());
 
         // Determine app version with a robust fallback that works in tests
@@ -553,7 +700,7 @@ export class MasterStateManager {
         const isDevelopment = this.isDevelopmentMode();
         if (isDevelopment) {
             const { initializeStateDevTools: dynInitDevTools } =
-                getStateDevToolsModule();
+                this.getStateDevToolsModule();
             dynInitDevTools();
         }
         this.components.set(DEV_TOOLS_COMPONENT, isDevelopment);
@@ -565,15 +712,8 @@ export class MasterStateManager {
      * @throws Error when the FIT file state manager is unavailable.
      */
     initializeFitFileComponents() {
-        const mocked = getModuleExportsFromOverride(
-            "/utils/state/domain/fitfilestate.js"
-        );
-        if (mocked && !mocked["fitFileStateManager"]) {
-            // When tests inject a mocked module without a manager, throw as expected
-            throw new Error("FIT file state manager not available");
-        }
-        // Fallback to real import when no mock module is present
-        if (!fitFileStateManager) {
+        const { fitFileStateManager: manager } = this.getFitFileStateModule();
+        if (!manager) {
             throw new Error("FIT file state manager not available");
         }
     }
@@ -598,7 +738,7 @@ export class MasterStateManager {
     initializeMiddleware() {
         console.log("[MasterState] Initializing middleware system...");
         const { initializeDefaultMiddleware: dynInitMiddleware } =
-            getStateMiddlewareModule();
+            this.getStateMiddlewareModule();
         dynInitMiddleware();
         this.components.set("middleware", true);
     }
@@ -608,7 +748,7 @@ export class MasterStateManager {
      */
     initializeRendererComponents() {
         const { initializeRendererStateBindings: dynInitRenderer } =
-            getRendererStateBindingsModule();
+            this.getRendererStateBindingsModule();
         dynInitRenderer();
     }
 
@@ -617,7 +757,8 @@ export class MasterStateManager {
      */
     async initializeSettings() {
         console.log("[MasterState] Initializing settings state manager...");
-        const { settingsStateManager: dynSettings } = getSettingsStateModule();
+        const { settingsStateManager: dynSettings } =
+            this.getSettingsStateModule();
         await dynSettings.initialize?.();
         this.components.set("settings", dynSettings);
     }
@@ -627,11 +768,11 @@ export class MasterStateManager {
      */
     initializeTabComponents() {
         const { initializeTabButtonState: dynInitTabs } =
-            getEnableTabButtonsModule();
+            this.getEnableTabButtonsModule();
         const { initializeActiveTabState: dynInitActiveTab } =
-            getUpdateActiveTabModule();
+            this.getUpdateActiveTabModule();
         const { initializeTabVisibilityState: dynInitTabVisibility } =
-            getUpdateTabVisibilityModule();
+            this.getUpdateTabVisibilityModule();
         dynInitTabs();
         dynInitActiveTab();
         dynInitTabVisibility();
@@ -642,7 +783,7 @@ export class MasterStateManager {
      */
     initializeUIComponents() {
         const { initializeControlsState: dynInitControls } =
-            getControlsHelperModule();
+            this.getControlsHelperModule();
         dynInitControls();
 
         // Set up theme initialization
@@ -655,7 +796,7 @@ export class MasterStateManager {
         // - persisted: "auto" (theme core)
         // - UI/state layer historically: "system"
         const savedTheme = savedThemeRaw === "auto" ? "system" : savedThemeRaw;
-        const { UIActions: dynUI } = getUIStateModule();
+        const { UIActions: dynUI } = this.getUIStateModule();
         dynUI.setTheme(savedTheme);
     }
 
@@ -744,7 +885,7 @@ export class MasterStateManager {
         masterStateRuntime().addGlobalEventListener(
             "error",
             (event) => {
-                const stateAPI = getStateManagerAPI();
+                const stateAPI = this.getStateManagerAPI();
                 const errorDetails = getErrorDetails(event.error);
                 stateAPI.setState(
                     "system.lastError",
@@ -771,7 +912,7 @@ export class MasterStateManager {
         masterStateRuntime().addGlobalEventListener(
             "unhandledrejection",
             (event) => {
-                const stateAPI = getStateManagerAPI();
+                const stateAPI = this.getStateManagerAPI();
                 const errorDetails = getErrorDetails(event.reason);
                 stateAPI.setState(
                     "system.lastPromiseRejection",
@@ -797,16 +938,16 @@ export class MasterStateManager {
      * Set up integrations between components
      */
     setupIntegrations() {
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         // Integrate file operations with UI state
         stateAPI.subscribe("fitFile.rawData", (data: unknown) => {
             if (data) {
                 // Enable tabs when data is loaded
-                const { UIActions: dynUI } = getUIStateModule();
+                const { UIActions: dynUI } = this.getUIStateModule();
                 dynUI.showTab("summary");
             } else {
                 // Disable tabs when no data
-                const { UIActions: dynUI } = getUIStateModule();
+                const { UIActions: dynUI } = this.getUIStateModule();
                 dynUI.showTab("summary");
             }
         });
@@ -842,7 +983,7 @@ export class MasterStateManager {
         masterStateRuntime().addDocumentEventListener(
             "keydown",
             (event) => {
-                const stateAPI = getStateManagerAPI();
+                const stateAPI = this.getStateManagerAPI();
                 // Ctrl/Cmd + O - Open file
                 if ((event.ctrlKey || event.metaKey) && event.key === "o") {
                     event.preventDefault();
@@ -854,7 +995,7 @@ export class MasterStateManager {
                     event.preventDefault();
                     const currentTheme = stateAPI.getState("ui.theme"),
                         newTheme = currentTheme === "light" ? "dark" : "light";
-                    const { UIActions: dynUI } = getUIStateModule();
+                    const { UIActions: dynUI } = this.getUIStateModule();
                     dynUI.setTheme(newTheme);
                 }
 
@@ -872,14 +1013,12 @@ export class MasterStateManager {
                             "map",
                             "data",
                         ];
-                    if (tabNames[tabIndex] && AppSelectors.hasData()) {
-                        const {
-                            AppActions: dynAppActions,
-                            AppSelectors: dynAppSelectors,
-                        } = getAppLifecycleModule();
-                        if (dynAppSelectors.hasData()) {
-                            dynAppActions.switchTab(tabNames[tabIndex]);
-                        }
+                    const {
+                        AppActions: dynAppActions,
+                        AppSelectors: dynAppSelectors,
+                    } = this.getAppLifecycleModule();
+                    if (tabNames[tabIndex] && dynAppSelectors.hasData()) {
+                        dynAppActions.switchTab(tabNames[tabIndex]);
                     }
                 }
             },
@@ -906,7 +1045,7 @@ export class MasterStateManager {
             this.performanceMonitorUnsubscribe = null;
         }
 
-        const stateAPI = getStateManagerAPI();
+        const stateAPI = this.getStateManagerAPI();
         this.performanceMonitorUnsubscribe = stateAPI.subscribe("", () => {
             stateChangeCount += 1;
         });
@@ -966,7 +1105,7 @@ export class MasterStateManager {
         masterStateRuntime().addWindowEventListener(
             "resize",
             () => {
-                const { UIActions: dynUI } = getUIStateModule();
+                const { UIActions: dynUI } = this.getUIStateModule();
                 dynUI.updateWindowState();
             },
             { signal }
@@ -976,7 +1115,7 @@ export class MasterStateManager {
         masterStateRuntime().addWindowEventListener(
             "focus",
             () => {
-                const stateAPI = getStateManagerAPI();
+                const stateAPI = this.getStateManagerAPI();
                 stateAPI.setState("ui.windowFocused", true, {
                     source: "windowEventListener",
                 });
@@ -987,7 +1126,7 @@ export class MasterStateManager {
         masterStateRuntime().addWindowEventListener(
             "blur",
             () => {
-                const stateAPI = getStateManagerAPI();
+                const stateAPI = this.getStateManagerAPI();
                 stateAPI.setState("ui.windowFocused", false, {
                     source: "windowEventListener",
                 });
@@ -999,7 +1138,7 @@ export class MasterStateManager {
         masterStateRuntime().addWindowEventListener(
             "beforeunload",
             () => {
-                const stateAPI = getStateManagerAPI();
+                const stateAPI = this.getStateManagerAPI();
                 stateAPI.setState("system.unloading", true, {
                     source: "windowEventListener",
                 });
@@ -1027,217 +1166,6 @@ export async function initializeFitFileViewerState() {
     await masterStateManager.initialize();
 }
 
-export function setMasterStateManagerModuleMocksForTests(
-    mocks: Record<string, unknown> | null
-): void {
-    masterStateManagerModuleMocksForTests = mocks;
-}
-
-function getAppLifecycleModule() {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/app/lifecycle/appactions.js"
-    );
-    if (mocked && mocked["AppActions"] && mocked["AppSelectors"]) {
-        return mocked as {
-            AppActions: typeof AppActions;
-            AppSelectors: typeof AppSelectors;
-        };
-    }
-    return { AppActions, AppSelectors };
-}
-
-function getComputedStateModule(): {
-    computedStateManager: typeof computedStateManager;
-    initializeCommonComputedValues: typeof initializeCommonComputedValues;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/state/core/computedstatemanager.js"
-    );
-    if (
-        mocked &&
-        (mocked["computedStateManager"] ||
-            mocked["initializeCommonComputedValues"])
-    )
-        return mocked as {
-            computedStateManager: typeof computedStateManager;
-            initializeCommonComputedValues: typeof initializeCommonComputedValues;
-        };
-    return { computedStateManager, initializeCommonComputedValues };
-}
-
-function getControlsHelperModule(): {
-    initializeControlsState: typeof initializeControlsState;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/rendering/helpers/updatecontrolsstate.js"
-    );
-    if (hasFunction(mocked, "initializeControlsState")) {
-        return mocked;
-    }
-    return { initializeControlsState };
-}
-
-function getEnableTabButtonsModule(): {
-    initializeTabButtonState: typeof initializeTabButtonState;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/ui/controls/enabletabbuttons.js"
-    );
-    if (hasFunction(mocked, "initializeTabButtonState")) {
-        return mocked;
-    }
-    return { initializeTabButtonState };
-}
-
-// Generic helper to read explicit test module overrides by path suffix.
-function getModuleExportsFromOverride(
-    pathSuffixLower: string
-): DynamicModule | null {
-    try {
-        if (masterStateManagerModuleMocksForTests) {
-            const key = Object.keys(masterStateManagerModuleMocksForTests).find(
-                (p) =>
-                    String(p)
-                        .replaceAll("\\", "/")
-                        .toLowerCase()
-                        .endsWith(pathSuffixLower)
-            );
-            if (
-                key &&
-                isDynamicModule(masterStateManagerModuleMocksForTests[key])
-            ) {
-                return masterStateManagerModuleMocksForTests[key];
-            }
-        }
-    } catch {
-        // Ignore malformed test override maps.
-    }
-    return null;
-}
-
-// Dynamic module resolvers: prefer explicit test overrides, fallback to static imports.
-function getRendererStateBindingsModule(): {
-    initializeRendererStateBindings: typeof initializeRendererStateBindings;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/ui/rendererstatebindings.js"
-    );
-    if (hasFunction(mocked, "initializeRendererStateBindings")) {
-        return mocked;
-    }
-    return { initializeRendererStateBindings };
-}
-
-function getSettingsStateModule(): {
-    settingsStateManager: RuntimeSettingsStateManager;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/state/domain/settingsstatemanager.js"
-    );
-    if (mocked && mocked["settingsStateManager"]) {
-        return mocked as { settingsStateManager: RuntimeSettingsStateManager };
-    }
-    return { settingsStateManager };
-}
-
-function getStateDevToolsModule(): {
-    cleanupStateDevTools: typeof cleanupStateDevTools;
-    initializeStateDevTools: typeof initializeStateDevTools;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/debug/statedevtools.js"
-    );
-    if (
-        mocked &&
-        (mocked["initializeStateDevTools"] || mocked["cleanupStateDevTools"])
-    )
-        return mocked as {
-            cleanupStateDevTools: typeof cleanupStateDevTools;
-            initializeStateDevTools: typeof initializeStateDevTools;
-        };
-    return { initializeStateDevTools, cleanupStateDevTools };
-}
-
-function getStateIntegrationModule(): {
-    initializeCompleteStateSystem: typeof initializeCompleteStateSystem;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/state/integration/stateintegration.js"
-    );
-    if (hasFunction(mocked, "initializeCompleteStateSystem")) {
-        return mocked;
-    }
-    return { initializeCompleteStateSystem };
-}
-
 function getDefaultStateManagerApi(): StateManagerApi {
     return { getState, getStateHistory, getSubscriptions, setState, subscribe };
-}
-
-function getStateManagerAPI(): StateManagerApi {
-    try {
-        const mocked = getModuleExportsFromOverride(
-            "/utils/state/core/statemanager.js"
-        );
-        if (isStateManagerApi(mocked)) {
-            return mocked;
-        }
-    } catch {
-        // Ignore malformed test overrides.
-    }
-    return getDefaultStateManagerApi();
-}
-
-function getStateMiddlewareModule(): {
-    cleanupMiddleware: typeof cleanupMiddleware;
-    initializeDefaultMiddleware: typeof initializeDefaultMiddleware;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/state/core/statemiddleware.js"
-    );
-    if (
-        mocked &&
-        (mocked["cleanupMiddleware"] || mocked["initializeDefaultMiddleware"])
-    )
-        return mocked as {
-            cleanupMiddleware: typeof cleanupMiddleware;
-            initializeDefaultMiddleware: typeof initializeDefaultMiddleware;
-        };
-    return { cleanupMiddleware, initializeDefaultMiddleware };
-}
-
-function getUIStateModule(): {
-    UIActions: typeof UIActions;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/state/domain/uistatemanager.js"
-    );
-    if (mocked && mocked["UIActions"]) {
-        return mocked as { UIActions: typeof UIActions };
-    }
-    return { UIActions };
-}
-
-function getUpdateActiveTabModule(): {
-    initializeActiveTabState: typeof initializeActiveTabState;
-} {
-    const mocked =
-        getModuleExportsFromOverride("/utils/ui/tabs/activetab.js") ||
-        getModuleExportsFromOverride("/utils/ui/tabs/updateactivetab.js");
-    if (hasFunction(mocked, "initializeActiveTabState")) {
-        return mocked;
-    }
-    return { initializeActiveTabState };
-}
-
-function getUpdateTabVisibilityModule(): {
-    initializeTabVisibilityState: typeof initializeTabVisibilityState;
-} {
-    const mocked = getModuleExportsFromOverride(
-        "/utils/ui/tabs/updatetabvisibility.js"
-    );
-    if (hasFunction(mocked, "initializeTabVisibilityState")) {
-        return mocked;
-    }
-    return { initializeTabVisibilityState };
 }

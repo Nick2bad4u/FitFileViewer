@@ -2924,7 +2924,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(244);
+        expect.assertions(246);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3212,8 +3212,14 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).not.toContain(
             "getModuleExportsFromCache"
         );
-        expect(masterStateManagerSource).toContain(
+        expect(masterStateManagerSource).not.toContain(
             "getModuleExportsFromOverride"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "setMasterStateManagerModuleMocksForTests"
+        );
+        expect(masterStateManagerSource).toContain(
+            "MasterStateManagerDependencies"
         );
         expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
         expect(windowStateUtilsSource).not.toContain("module.exports");
