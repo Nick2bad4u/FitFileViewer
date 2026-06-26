@@ -1,5 +1,12 @@
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 import {
+    type BrowserCancelAnimationFrame,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserKeyboardEventConstructor,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserCancelAnimationFrame,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -9,30 +16,26 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type KeyboardShortcutsModalTimerHandle = ReturnType<
-    typeof globalThis.setTimeout
->;
+export type KeyboardShortcutsModalTimerHandle = BrowserTimerHandle;
 
 export interface KeyboardShortcutsModalRuntimeScope {
     readonly getCancelAnimationFrame?:
-        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface KeyboardShortcutsModalRuntime {
@@ -78,13 +81,13 @@ const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeSc
 
 function getScopeCancelAnimationFrame(
     scope: KeyboardShortcutsModalRuntimeScope
-): typeof globalThis.cancelAnimationFrame | undefined {
+): BrowserCancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
 }
 
 function getScopeClearTimeout(
     scope: KeyboardShortcutsModalRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -101,7 +104,7 @@ function getScopeDocument(scope: KeyboardShortcutsModalRuntimeScope): Document {
 
 function getScopeHTMLElement(
     scope: KeyboardShortcutsModalRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
@@ -114,7 +117,7 @@ function getScopeHTMLElement(
 
 function getScopeKeyboardEvent(
     scope: KeyboardShortcutsModalRuntimeScope
-): typeof globalThis.KeyboardEvent {
+): BrowserKeyboardEventConstructor {
     const KeyboardEventConstructor = scope.getKeyboardEvent?.();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError(
@@ -127,13 +130,13 @@ function getScopeKeyboardEvent(
 
 function getScopeRequestAnimationFrame(
     scope: KeyboardShortcutsModalRuntimeScope
-): typeof globalThis.requestAnimationFrame | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
 function getScopeSetTimeout(
     scope: KeyboardShortcutsModalRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 

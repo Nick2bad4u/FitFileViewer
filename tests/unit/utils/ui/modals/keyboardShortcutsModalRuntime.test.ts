@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserCancelAnimationFrame,
+    BrowserClearTimeout,
+    BrowserRequestAnimationFrame,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getKeyboardShortcutsModalRuntime,
     KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
@@ -19,8 +25,8 @@ describe("getKeyboardShortcutsModalRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 31);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 31);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const scope = {
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -60,15 +66,12 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         const delayMs = Number("75");
         const timeoutHandle = Number("53");
         const frameHandle = Number("16");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(
-            () => timeoutHandle
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timeoutHandle);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const requestAnimationFrame = vi.fn<BrowserRequestAnimationFrame>(
+            () => frameHandle
         );
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const requestAnimationFrame = vi.fn<
-            typeof globalThis.requestAnimationFrame
-        >(() => frameHandle);
-        const cancelAnimationFrame =
-            vi.fn<typeof globalThis.cancelAnimationFrame>();
+        const cancelAnimationFrame = vi.fn<BrowserCancelAnimationFrame>();
         vi.stubGlobal("setTimeout", setTimeout);
         vi.stubGlobal("clearTimeout", clearTimeout);
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
@@ -243,8 +246,8 @@ describe("getKeyboardShortcutsModalRuntime", () => {
             "legacy keyboard shortcuts modal runtime"
         );
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 37);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => 37);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 41);

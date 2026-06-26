@@ -8158,7 +8158,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(71);
+        expect.assertions(85);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -8258,6 +8258,48 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "defaultKeyboardShortcutsModalRuntimeScope"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserCancelAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserKeyboardEventConstructor"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toMatch(
+            /ReturnType<\s*typeof globalThis\.setTimeout\s*>/u
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "typeof globalThis.cancelAnimationFrame | undefined"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout | undefined"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement | undefined"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "typeof globalThis.KeyboardEvent | undefined"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame | undefined"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout | undefined"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "scope: KeyboardShortcutsModalRuntimeScope = globalThis"

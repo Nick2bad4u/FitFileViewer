@@ -1304,7 +1304,9 @@ frame cancellation through `keyboardShortcutsModalRuntime.ts` instead of calling
 `keyboardShortcutsModal.ts`; its unit tests mock that runtime instead of stubbing animation-frame globals, with
 explicit runtime scopes now required to provide close-timer primitives instead of falling back to `globalThis`,
 and architecture coverage blocking direct source globals, ambient timer fallbacks, and direct test stubs from
-returning.
+returning. Keyboard-shortcuts modal runtime provider contracts now reuse shared browser-runtime timer, animation-frame,
+HTMLElement, and keyboard-event aliases instead of spelling direct ambient constructor/timer/frame types in the modal
+runtime.
 About modal show/hide animation timing now routes hide timers, focus timers, copy-feedback timers, frame scheduling,
 and frame cancellation through `aboutModalRuntime.ts` instead of calling those globals directly in `aboutModal.ts`;
 explicit runtime scopes now required to provide hide/focus/copy-feedback timer primitives instead of falling back
