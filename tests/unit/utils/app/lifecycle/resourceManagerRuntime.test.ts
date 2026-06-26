@@ -1,9 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClearTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     clearResourceManagerTimer,
     getResourceManagerDateNow,
     registerResourceManagerUnloadCleanup,
+    type ResourceManagerTimer,
 } from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
 
 describe("resourceManagerRuntime", () => {
@@ -15,9 +21,9 @@ describe("resourceManagerRuntime", () => {
     it("clears timers through the injected runtime scope", () => {
         expect.assertions(1);
 
-        const timer = 17 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 17 as ResourceManagerTimer;
         let clearedTimer: unknown;
-        const clearTimeout: typeof globalThis.clearTimeout = (handle) => {
+        const clearTimeout: BrowserClearTimeout = (handle) => {
             clearedTimer = handle;
         };
 
@@ -32,10 +38,7 @@ describe("resourceManagerRuntime", () => {
         expect.assertions(1);
 
         expect(() => {
-            clearResourceManagerTimer(
-                17 as ReturnType<typeof globalThis.setTimeout>,
-                {}
-            );
+            clearResourceManagerTimer(17 as BrowserTimerHandle, {});
         }).toThrow("resourceManager requires clearTimeout");
     });
 
@@ -80,7 +83,7 @@ describe("resourceManagerRuntime", () => {
 
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
             getAbortController: () =>
-                AbortControllerFixture as unknown as typeof AbortController,
+                AbortControllerFixture as unknown as BrowserAbortControllerConstructor,
             getEventTarget: () => ({ addEventListener, removeEventListener }),
         });
         const [
@@ -146,8 +149,8 @@ describe("resourceManagerRuntime", () => {
     it("uses browser runtime providers for production timer and clock defaults", () => {
         expect.assertions(4);
 
-        const timer = 31 as ReturnType<typeof globalThis.setTimeout>;
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 31 as BrowserTimerHandle;
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(987_654);
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
@@ -205,7 +208,7 @@ describe("resourceManagerRuntime", () => {
         expect.assertions(9);
 
         const cleanup = vi.fn();
-        const timer = 19 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 19 as BrowserTimerHandle;
         const clearTimeout = vi.fn();
         const addEventListener = vi.fn();
         const removeEventListener = vi.fn();
@@ -245,7 +248,7 @@ describe("resourceManagerRuntime", () => {
         expect.assertions(5);
 
         const cleanup = vi.fn();
-        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
+        const timer = 23 as BrowserTimerHandle;
         const clearTimeout = vi.fn();
         const addEventListener = vi.fn();
         const removeEventListener = vi.fn();
@@ -259,7 +262,7 @@ describe("resourceManagerRuntime", () => {
 
         const legacyScope = {
             AbortController:
-                AbortControllerFixture as unknown as typeof AbortController,
+                AbortControllerFixture as unknown as BrowserAbortControllerConstructor,
             clearTimeout,
             dateNow: vi.fn(() => 1),
             eventTarget: { addEventListener, removeEventListener },

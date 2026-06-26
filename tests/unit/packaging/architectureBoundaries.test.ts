@@ -12511,7 +12511,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(35);
+        expect.assertions(39);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -12549,6 +12549,18 @@ describe("architecture boundaries", () => {
         );
         expect(resourceManagerRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(resourceManagerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"

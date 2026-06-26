@@ -1,4 +1,7 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDateNow,
@@ -12,10 +15,10 @@ type ResourceManagerEventTarget = Pick<
 
 export interface ResourceManagerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getEventTarget?:
@@ -23,7 +26,7 @@ export interface ResourceManagerRuntimeScope {
         | undefined;
 }
 
-export type ResourceManagerTimer = ReturnType<typeof globalThis.setTimeout>;
+export type ResourceManagerTimer = BrowserTimerHandle;
 
 const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
     getAbortController: getBrowserAbortController,
@@ -34,13 +37,13 @@ const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
 
 function getAbortController(
     scope: ResourceManagerRuntimeScope
-): typeof AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: ResourceManagerRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
