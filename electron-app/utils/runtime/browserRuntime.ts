@@ -46,6 +46,10 @@ export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
 export type BrowserURLConstructor = typeof globalThis.URL;
 
+interface BrowserDevelopmentFlagGlobal {
+    readonly __DEVELOPMENT__?: unknown;
+}
+
 export function getBrowserAbortController():
     | typeof globalThis.AbortController
     | undefined {
@@ -190,7 +194,7 @@ export function getBrowserDateNow(): (() => number) | undefined {
 }
 
 export function getBrowserDevelopmentFlag(): unknown {
-    return getBrowserGlobalProperty("__DEVELOPMENT__");
+    return (globalThis as BrowserDevelopmentFlagGlobal).__DEVELOPMENT__;
 }
 
 export function getBrowserCurrentTimestamp(): number {

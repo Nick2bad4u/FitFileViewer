@@ -1872,9 +1872,9 @@ describe("architecture boundaries", () => {
 
         const ledger = readRepositoryFile("docs/DEPRECATION_LEDGER.md");
         const requiredLedgerText = [
-            "Any remaining dynamic browser-global property lookup",
-            "goes through `getBrowserGlobalProperty`",
-            "returns `undefined` when hostile or test-installed accessors throw",
+            "Remaining dynamic browser-global property lookup for compatibility-only values",
+            "preload `electronAPI` candidate stays centralized in `getBrowserGlobalProperty`",
+            "renderer development-mode inspection uses focused input contracts",
         ];
 
         expect(
@@ -6428,7 +6428,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(32);
+        expect.assertions(36);
 
         const rendererEnvironmentRawSource = readRepositoryFile(
             "electron-app/utils/app/initialization/rendererEnvironment.ts"
@@ -6460,6 +6460,15 @@ describe("architecture boundaries", () => {
         expect(rendererEnvironmentSource).toContain(
             "toRendererEnvironmentInput"
         );
+        expect(rendererEnvironmentSource).toContain(
+            "interface RendererEnvironmentInputRecord"
+        );
+        expect(rendererEnvironmentSource).toContain("toLocationRecord");
+        expect(rendererEnvironmentSource).not.toContain("Reflect.get(");
+        expect(rendererEnvironmentSource).not.toContain("inputRecord,");
+        expect(rendererEnvironmentSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
         expect(rendererEnvironmentSource).not.toContain("return globalThis");
         expect(rendererEnvironmentSource).not.toContain(
             "globalScope: object = globalThis"
@@ -6472,9 +6481,6 @@ describe("architecture boundaries", () => {
         );
         expect(rendererEnvironmentRawSource).not.toContain(
             "Global-like object to inspect"
-        );
-        expect(rendererEnvironmentSource).not.toContain(
-            "value as Record<string, unknown>"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "defaultRendererEnvironmentRuntimeScope"

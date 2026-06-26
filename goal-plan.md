@@ -1641,6 +1641,8 @@ Scoped renderer-environment dev-mode inspection now reads verified objects throu
 casting the candidate preload API shape to a generic record, with focused malformed-input and architecture coverage.
 The default development-flag and Electron API candidate providers now use named explicit global readers instead of
 generic `Reflect.get(globalThis, ...)` probes.
+Renderer environment input normalization now uses focused local input/location/document/Electron dev-mode contracts
+instead of generic `Reflect.get` probes, with architecture coverage blocking that reflection path from returning.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.

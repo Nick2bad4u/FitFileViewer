@@ -19,10 +19,11 @@ describe("browserRuntime global property boundary", () => {
 
         const electronAPI = { openExternal: vi.fn() };
 
+        vi.stubGlobal("ffvRuntimeFlag", true);
         vi.stubGlobal("__DEVELOPMENT__", true);
         vi.stubGlobal("electronAPI", electronAPI);
 
-        expect(getBrowserGlobalProperty("__DEVELOPMENT__")).toBe(true);
+        expect(getBrowserGlobalProperty("ffvRuntimeFlag")).toBe(true);
         expect(getBrowserDevelopmentFlag()).toBe(true);
         expect(getBrowserElectronApiCandidate()).toBe(electronAPI);
     });
