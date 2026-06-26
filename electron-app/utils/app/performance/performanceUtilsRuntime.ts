@@ -1,4 +1,7 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserCancelIdleCallback,
     getBrowserClearTimeout,
     getBrowserDateNow,
@@ -7,22 +10,17 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type PerformanceUtilsTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
+    | BrowserTimerHandle
     | number;
 export type PerformanceUtilsIdleCallbackHandle = PerformanceUtilsTimerHandle;
 
 type PerformanceUtilsCancelIdleCallback = (handle: number) => void;
-type PerformanceUtilsClearTimeout = typeof globalThis.clearTimeout;
+type PerformanceUtilsClearTimeout = BrowserClearTimeout;
 type PerformanceUtilsDateNow = () => number;
 type PerformanceUtilsRequestIdleCallback = (
     callback: () => void,
     options?: Readonly<IdleRequestOptions>
 ) => number;
-type PerformanceUtilsSetTimeout = (
-    callback: () => void,
-    timeout?: number
-) => PerformanceUtilsTimerHandle;
-
 export interface PerformanceUtilsRuntimeScope {
     readonly getCancelIdleCallback?:
         | (() => PerformanceUtilsCancelIdleCallback | undefined)
@@ -37,7 +35,7 @@ export interface PerformanceUtilsRuntimeScope {
         | (() => PerformanceUtilsRequestIdleCallback | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => PerformanceUtilsSetTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 

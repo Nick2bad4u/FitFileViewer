@@ -21230,7 +21230,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(33);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -21338,6 +21338,7 @@ describe("architecture boundaries", () => {
         expect(performanceUtilsRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
+        expect(performanceUtilsRuntimeSource).not.toContain("globalThis.");
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
