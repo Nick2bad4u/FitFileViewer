@@ -1,4 +1,10 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserMutationObserverConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
@@ -9,7 +15,7 @@ import {
 } from "../runtime/browserRuntime.js";
 
 export type UnifiedControlBarTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
+    | BrowserTimerHandle
     | number;
 
 type UnifiedControlBarEventTarget = Pick<
@@ -17,37 +23,27 @@ type UnifiedControlBarEventTarget = Pick<
     "addEventListener" | "removeEventListener"
 >;
 
-type UnifiedControlBarMutationObserverConstructor = new (
-    callback: MutationCallback
-) => MutationObserver;
-type UnifiedControlBarClearTimeout = (
-    handle: UnifiedControlBarTimerHandle
-) => void;
-type UnifiedControlBarSetTimeout = (
-    callback: () => void,
-    timeout?: number
-) => UnifiedControlBarTimerHandle;
 type UnifiedControlBarListenerOptions = Readonly<AddEventListenerOptions>;
 
 export interface UnifiedControlBarRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => UnifiedControlBarClearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?:
         | (() => UnifiedControlBarEventTarget | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getMutationObserver?:
-        | (() => UnifiedControlBarMutationObserverConstructor | undefined)
+        | (() => BrowserMutationObserverConstructor | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => UnifiedControlBarSetTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 

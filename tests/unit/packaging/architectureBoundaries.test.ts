@@ -21764,7 +21764,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(35);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -21875,6 +21875,7 @@ describe("architecture boundaries", () => {
         expect(unifiedControlBarRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
+        expect(unifiedControlBarRuntimeSource).not.toContain("globalThis.");
         expect(unifiedControlBarRuntimeSource).toContain(
             "unifiedControlBar requires a setTimeout runtime"
         );
