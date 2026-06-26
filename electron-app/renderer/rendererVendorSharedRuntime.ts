@@ -1,4 +1,5 @@
 import {
+    type BrowserCustomEventConstructor,
     getBrowserCustomEvent,
     getBrowserEventTarget,
 } from "../utils/runtime/browserRuntime.js";
@@ -7,7 +8,7 @@ type RendererVendorEventTarget = Pick<EventTarget, "dispatchEvent">;
 
 export interface RendererVendorSharedRuntimeScope {
     readonly getCustomEvent?:
-        | (() => typeof CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getEventTarget?:
         | (() => RendererVendorEventTarget | undefined)

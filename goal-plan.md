@@ -1517,6 +1517,8 @@ Renderer vendor bundle readiness-event detail extraction now routes through `ven
 of checking the ambient `CustomEvent` constructor directly inside `vendorBundleLoader.ts`, with focused loader/runtime
 coverage and architecture coverage blocking direct readiness-event constructor checks and legacy direct scope
 properties from returning.
+Renderer vendor shared readiness dispatch now reuses the shared browser-runtime CustomEvent constructor alias instead
+of a direct ambient constructor type, with architecture coverage blocking that type spelling from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
