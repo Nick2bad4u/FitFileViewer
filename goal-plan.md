@@ -1208,7 +1208,8 @@ instead of a broad `globalThis` default scope or direct `document` scope propert
 architecture coverage blocking the legacy shape from returning.
 The data-point filter panel-controller runtime now resolves document access, viewport reads/listeners, Node
 checks, abort-controller creation, and animation-frame scheduling/cleanup through named provider functions instead
-of a broad `globalThis` default scope, direct scope properties, or document-window fallbacks.
+of a broad `globalThis` default scope, direct scope properties, or document-window fallbacks, and its
+AbortController/Node contracts now reuse shared browser-runtime aliases instead of direct ambient constructor types.
 The inline zone color selector runtime facade now resolves DOM access, event constructors/dispatch, element
 constructors, abort-controller creation, and delayed updates through named provider functions instead of a broad
 `globalThis` default scope, direct scope properties, or document-window fallbacks, with focused coverage and

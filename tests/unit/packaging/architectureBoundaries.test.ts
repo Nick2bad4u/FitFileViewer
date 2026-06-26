@@ -15707,7 +15707,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(36);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -15774,6 +15774,12 @@ describe("architecture boundaries", () => {
             "../../../runtime/browserRuntime.js"
         );
         expect(panelControllerRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "type BrowserNodeConstructor"
+        );
+        expect(panelControllerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(panelControllerRuntimeSource).toContain(
@@ -15809,6 +15815,10 @@ describe("architecture boundaries", () => {
         expect(panelControllerRuntimeSource).not.toContain(
             "getViewport: () => globalThis"
         );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(panelControllerRuntimeSource).not.toContain("): typeof Node");
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {

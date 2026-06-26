@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserNodeConstructor,
     getBrowserAbortController,
     getBrowserCancelAnimationFrame,
     getBrowserDocument,
@@ -32,13 +34,13 @@ type ViewportEventTarget = {
 
 export interface DataPointFilterPanelControllerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getCancelAnimationFrame?:
         | (() => DataPointFilterPanelCancelAnimationFrame | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getNode?: (() => typeof Node | undefined) | undefined;
+    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => DataPointFilterPanelRequestAnimationFrame | undefined)
         | undefined;
@@ -76,7 +78,7 @@ export interface DataPointFilterPanelControllerRuntime {
 
 function getAbortControllerConstructor(
     scope: DataPointFilterPanelControllerRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -102,7 +104,7 @@ function getDocument(
 
 function getNodeConstructor(
     scope: DataPointFilterPanelControllerRuntimeScope
-): typeof Node {
+): BrowserNodeConstructor {
     const NodeConstructor = scope.getNode?.();
     if (typeof NodeConstructor !== "function") {
         throw new TypeError(
