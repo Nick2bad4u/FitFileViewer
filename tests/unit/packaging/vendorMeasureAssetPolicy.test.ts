@@ -211,7 +211,7 @@ describe("renderer vendor asset policy", () => {
     });
 
     it("keeps upstream CSS npm-managed and JS as a CSP-safe local control", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile(rootPackageRepositoryPath)
@@ -244,6 +244,12 @@ describe("renderer vendor asset policy", () => {
         expect(measureLite).not.toContain("document.addEventListener");
         expect(measureLite).not.toContain("document.removeEventListener");
         expect(measureLiteRuntime).toContain(
+            "../utils/runtime/browserRuntime.js"
+        );
+        expect(measureLiteRuntime).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(measureLiteRuntime).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(measureLiteRuntime).not.toContain(

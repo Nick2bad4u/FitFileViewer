@@ -1,5 +1,7 @@
+import { getBrowserDocument } from "../utils/runtime/browserRuntime.js";
+
 const defaultLeafletMeasureLiteRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: getBrowserDocument,
 };
 
 function getDocumentEventTarget(scope) {
