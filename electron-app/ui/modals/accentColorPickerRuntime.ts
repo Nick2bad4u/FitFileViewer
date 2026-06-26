@@ -1,4 +1,8 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLButtonElementConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserHTMLInputElementConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -8,18 +12,18 @@ import {
 
 export interface AccentColorPickerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getHTMLButtonElement?:
-        | (() => typeof HTMLButtonElement | undefined)
+        | (() => BrowserHTMLButtonElementConstructor | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
 }
 
@@ -52,7 +56,7 @@ export interface AccentColorPickerRuntime {
 
 function getAbortControllerConstructor(
     scope: AccentColorPickerRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(

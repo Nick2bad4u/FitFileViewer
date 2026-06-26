@@ -11493,7 +11493,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker browser access behind the runtime facade", () => {
-        expect.assertions(67);
+        expect.assertions(75);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -11574,6 +11574,18 @@ describe("architecture boundaries", () => {
         expect(accentColorPickerSource).not.toContain("instanceof HTMLElement");
         expect(accentColorPickerRuntimeSource).toContain(
             "defaultAccentColorPickerRuntimeScope"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "type BrowserHTMLButtonElementConstructor"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "type BrowserHTMLInputElementConstructor"
         );
         expect(accentColorPickerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
@@ -11668,6 +11680,18 @@ describe("architecture boundaries", () => {
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "scope.HTMLButtonElement"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "| (() => typeof AbortController | undefined)"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "| (() => typeof HTMLElement | undefined)"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "| (() => typeof HTMLInputElement | undefined)"
         );
     });
 

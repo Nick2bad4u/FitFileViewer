@@ -830,7 +830,9 @@ tracking, preview DOM queries, element-list queries, element constructor checks,
 Escape-key document listener registration now route through `accentColorPickerRuntime.ts` instead of using ambient
 document open/style/focus/preview/construction access or constructing `AbortController` directly inside
 `accentColorPicker.ts`, with focused runtime coverage and architecture guardrails blocking direct accent picker
-open/style/focus/preview/construction/controller access from returning.
+open/style/focus/preview/construction/controller access from returning. Accent picker runtime controller and
+element-constructor contracts now reuse shared browser-runtime aliases instead of direct ambient constructor type
+spellings.
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
 blocking those runtime-global lookups from returning. The production renderer-scope default now reuses the

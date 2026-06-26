@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getAccentColorPickerRuntime } from "../../../../electron-app/ui/modals/accentColorPickerRuntime.js";
 
 describe("getAccentColorPickerRuntime", () => {
@@ -19,7 +20,7 @@ describe("getAccentColorPickerRuntime", () => {
         );
         const runtime = getAccentColorPickerRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -74,7 +75,7 @@ describe("getAccentColorPickerRuntime", () => {
         let keydownCount = 0;
         const runtime = getAccentColorPickerRuntime({
             getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
+                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             getDocumentEventTarget: () => documentEventTarget,
         });
 
