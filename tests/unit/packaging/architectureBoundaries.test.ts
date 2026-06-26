@@ -5404,6 +5404,34 @@ describe("architecture boundaries", () => {
         expect(directGetFocusedWindowCalls).toHaveLength(2);
     });
 
+    it("keeps main focused-window utility callers centralized", () => {
+        expect.assertions(6);
+
+        const setupMenuAndEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/setupMenuAndEventHandlers.ts"
+            )
+        );
+        const exposeDevHelpersSource = stripComments(
+            readRepositoryFile("electron-app/main/dev/exposeDevHelpers.ts")
+        );
+
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "../window/mainWindowSelection.js"
+        );
+        expect(exposeDevHelpersSource).toContain(
+            "../window/mainWindowSelection.js"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "resolveFocusedMainWindow"
+        );
+        expect(exposeDevHelpersSource).toContain("resolveFocusedMainWindow");
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            "getFocusedWindow"
+        );
+        expect(exposeDevHelpersSource).not.toContain("getFocusedWindow");
+    });
+
     it("keeps IPC sender-policy tests on native module imports", () => {
         expect.assertions(3);
 

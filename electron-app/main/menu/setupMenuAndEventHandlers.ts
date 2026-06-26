@@ -12,6 +12,10 @@ import { fs } from "../runtime/nodeModules.js";
 import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
 import { getAppState } from "../state/appState.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
+import {
+    resolveFocusedMainWindow,
+    type MainWindowBrowserWindowApi,
+} from "../window/mainWindowSelection.js";
 import { validateWindow } from "../window/windowValidation.js";
 import {
     getProcessStringValue,
@@ -43,7 +47,6 @@ interface IpcEventLike {
 
 interface BrowserWindowRefLike {
     fromWebContents: (webContents: unknown) => BrowserWindow | null;
-    getFocusedWindow: () => BrowserWindow | null;
 }
 
 interface DialogLike {
@@ -87,7 +90,10 @@ const MENU_UPDATE_EVENTS = [
     "menu-restart-update",
 ] as const satisfies readonly MenuUpdateEventChannel[];
 
-const browserWindowRef = electronBrowserWindowRef as () => BrowserWindowRefLike;
+const browserWindowRef = electronBrowserWindowRef as () =>
+    | (BrowserWindowRefLike & MainWindowBrowserWindowApi<BrowserWindow>)
+    | null
+    | undefined;
 const dialogRef = electronDialogRef as () => DialogLike | undefined;
 
 function toElectronFileFilters(
@@ -104,7 +110,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getBrowserWindowFromEvent(event: IpcEventLike): BrowserWindow | null {
-    return browserWindowRef().fromWebContents(event.sender);
+    return browserWindowRef()?.fromWebContents(event.sender) ?? null;
 }
 
 function getLoadedFitFilePath(): string | undefined {
@@ -142,7 +148,8 @@ function persistThemeForMenu(theme: unknown): void {
 }
 
 async function requireAutoUpdater(): Promise<AutoUpdaterLike> {
-    const autoUpdater = (await resolveAutoUpdaterAsync()) as AutoUpdaterLike | null;
+    const autoUpdater =
+        (await resolveAutoUpdaterAsync()) as AutoUpdaterLike | null;
     if (!autoUpdater) {
         throw new Error("electron-updater autoUpdater is unavailable");
     }
@@ -415,7 +422,7 @@ export function setupMenuAndEventHandlers(): void {
     }
 
     registerIpcListener("set-fullscreen", (_event, flag) => {
-        const win = browserWindowRef().getFocusedWindow();
+        const win = resolveFocusedMainWindow(browserWindowRef());
         if (win && validateWindow(win, "set-fullscreen event")) {
             win.setFullScreen(Boolean(flag));
         }

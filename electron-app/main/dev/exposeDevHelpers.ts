@@ -7,6 +7,10 @@ import {
     getAppState,
     mainProcessState,
 } from "../state/appState.js";
+import {
+    resolveFocusedMainWindow,
+    type MainWindowBrowserWindowApi,
+} from "../window/mainWindowSelection.js";
 import { validateWindow } from "../window/windowValidation.js";
 
 type RendererIpcEventChannel =
@@ -21,10 +25,6 @@ interface MainWindowLike {
             ...args: readonly unknown[]
         ) => void;
     };
-}
-
-interface BrowserWindowConstructorLike {
-    getFocusedWindow: () => MainWindowLike | null;
 }
 
 interface MainProcessStateDataLike {
@@ -42,21 +42,15 @@ interface DevHelpers {
     rebuildMenu: (theme?: null | string, filePath?: null | string) => void;
 }
 
-const browserWindowRef = electronBrowserWindowRef as () => unknown;
+const browserWindowRef = electronBrowserWindowRef as () =>
+    | MainWindowBrowserWindowApi<MainWindowLike>
+    | null
+    | undefined;
 const typedMainProcessState = mainProcessState as MainProcessStateLike;
 const validateMainWindow = validateWindow as (
     win?: MainWindowLike | null,
     context?: string
 ) => win is MainWindowLike;
-
-const hasFocusedWindowApi = (
-    value: unknown
-): value is BrowserWindowConstructorLike =>
-    Boolean(
-        value &&
-        typeof value === "function" &&
-        typeof Reflect.get(value, "getFocusedWindow") === "function"
-    );
 
 const getLoadedFitFilePath = (): null | string => {
     const loadedFitFilePath = getAppState("loadedFitFilePath");
@@ -80,10 +74,7 @@ export function exposeDevHelpers(): DevHelpers {
             });
         },
         rebuildMenu: (theme, filePath) => {
-            const BrowserWindow = browserWindowRef();
-            const win = hasFocusedWindowApi(BrowserWindow)
-                ? BrowserWindow.getFocusedWindow()
-                : null;
+            const win = resolveFocusedMainWindow(browserWindowRef());
 
             if (validateMainWindow(win, "dev helper rebuild menu")) {
                 safeCreateAppMenu(
