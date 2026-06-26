@@ -1,4 +1,10 @@
 import {
+    type BrowserClearInterval,
+    type BrowserClearTimeout,
+    type BrowserIntervalHandle,
+    type BrowserSetInterval,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearInterval,
     getBrowserClearTimeout,
     getBrowserDateNow,
@@ -8,10 +14,8 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type StateIntegrationInterval = ReturnType<
-    typeof globalThis.setInterval
->;
-export type StateIntegrationTimeout = ReturnType<typeof globalThis.setTimeout>;
+export type StateIntegrationInterval = BrowserIntervalHandle;
+export type StateIntegrationTimeout = BrowserTimerHandle;
 
 export type StateIntegrationPerformanceMemory = {
     jsHeapSizeLimit: number;
@@ -25,10 +29,10 @@ type StateIntegrationPerformance = Performance & {
 
 export interface StateIntegrationRuntimeScope {
     readonly getClearInterval?:
-        | (() => typeof globalThis.clearInterval | undefined)
+        | (() => BrowserClearInterval | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getLocalStorage?: (() => Storage | undefined) | undefined;
@@ -36,11 +40,9 @@ export interface StateIntegrationRuntimeScope {
         | (() => StateIntegrationPerformance | undefined)
         | undefined;
     readonly getSetInterval?:
-        | (() => typeof globalThis.setInterval | undefined)
+        | (() => BrowserSetInterval | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface StateIntegrationRuntime {
@@ -80,7 +82,7 @@ function getRequiredDateNow(scope: StateIntegrationRuntimeScope): () => number {
 
 function getRequiredClearInterval(
     scope: StateIntegrationRuntimeScope
-): typeof globalThis.clearInterval {
+): BrowserClearInterval {
     const clearIntervalRef = scope.getClearInterval?.();
     if (typeof clearIntervalRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires clearInterval");
@@ -91,7 +93,7 @@ function getRequiredClearInterval(
 
 function getRequiredClearTimeout(
     scope: StateIntegrationRuntimeScope
-): typeof globalThis.clearTimeout {
+): BrowserClearTimeout {
     const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires clearTimeout");
@@ -102,7 +104,7 @@ function getRequiredClearTimeout(
 
 function getRequiredSetInterval(
     scope: StateIntegrationRuntimeScope
-): typeof globalThis.setInterval {
+): BrowserSetInterval {
     const setIntervalRef = scope.getSetInterval?.();
     if (typeof setIntervalRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires setInterval");
@@ -113,7 +115,7 @@ function getRequiredSetInterval(
 
 function getRequiredSetTimeout(
     scope: StateIntegrationRuntimeScope
-): typeof globalThis.setTimeout {
+): BrowserSetTimeout {
     const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires setTimeout");

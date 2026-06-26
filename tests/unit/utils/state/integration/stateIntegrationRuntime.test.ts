@@ -1,19 +1,29 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearInterval,
+    BrowserClearTimeout,
+    BrowserIntervalHandle,
+    BrowserSetInterval,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getStateIntegrationRuntime,
+    type StateIntegrationInterval,
     type StateIntegrationRuntimeScope,
+    type StateIntegrationTimeout,
 } from "../../../../../electron-app/utils/state/integration/stateIntegrationRuntime.js";
 
 function createRuntimeScope(
     overrides: Partial<StateIntegrationRuntimeScope> = {}
 ): StateIntegrationRuntimeScope {
     return {
-        getClearInterval: () => vi.fn<typeof globalThis.clearInterval>(),
-        getClearTimeout: () => vi.fn<typeof globalThis.clearTimeout>(),
+        getClearInterval: () => vi.fn<BrowserClearInterval>(),
+        getClearTimeout: () => vi.fn<BrowserClearTimeout>(),
         getDateNow: () => vi.fn<() => number>(() => 42),
-        getSetInterval: () => vi.fn<typeof globalThis.setInterval>(),
-        getSetTimeout: () => vi.fn<typeof globalThis.setTimeout>(),
+        getSetInterval: () => vi.fn<BrowserSetInterval>(),
+        getSetTimeout: () => vi.fn<BrowserSetTimeout>(),
         ...overrides,
     };
 }
@@ -29,20 +39,18 @@ describe("getStateIntegrationRuntime", () => {
 
         const intervalCallback = vi.fn<() => void>();
         const timeoutCallback = vi.fn<() => void>();
-        const interval = 11 as ReturnType<typeof globalThis.setInterval>;
-        const timeout = 13 as ReturnType<typeof globalThis.setTimeout>;
+        const interval = 11 as StateIntegrationInterval;
+        const timeout = 13 as StateIntegrationTimeout;
         const storage = {} as Storage;
         const performanceMemory = {
             jsHeapSizeLimit: 3,
             totalJSHeapSize: 2,
             usedJSHeapSize: 1,
         };
-        const setInterval = vi.fn<typeof globalThis.setInterval>(
-            () => interval
-        );
-        const clearInterval = vi.fn<typeof globalThis.clearInterval>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timeout);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setInterval = vi.fn<BrowserSetInterval>(() => interval);
+        const clearInterval = vi.fn<BrowserClearInterval>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timeout);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.fn<() => number>(() => 42);
         const {
             clearInterval: clearScheduledInterval,
@@ -82,7 +90,7 @@ describe("getStateIntegrationRuntime", () => {
             { getClearInterval: () => undefined },
             (scope: StateIntegrationRuntimeScope) =>
                 getStateIntegrationRuntime(scope).clearInterval(
-                    1 as ReturnType<typeof globalThis.setInterval>
+                    1 as BrowserIntervalHandle
                 ),
         ],
         [
@@ -90,7 +98,7 @@ describe("getStateIntegrationRuntime", () => {
             { getClearTimeout: () => undefined },
             (scope: StateIntegrationRuntimeScope) =>
                 getStateIntegrationRuntime(scope).clearTimeout(
-                    1 as ReturnType<typeof globalThis.setTimeout>
+                    1 as BrowserTimerHandle
                 ),
         ],
         [
@@ -131,20 +139,18 @@ describe("getStateIntegrationRuntime", () => {
 
         const intervalCallback = vi.fn<() => void>();
         const timeoutCallback = vi.fn<() => void>();
-        const interval = 11 as ReturnType<typeof globalThis.setInterval>;
-        const timeout = 13 as ReturnType<typeof globalThis.setTimeout>;
+        const interval = 11 as BrowserIntervalHandle;
+        const timeout = 13 as BrowserTimerHandle;
         const storage = {} as Storage;
         const performanceMemory = {
             jsHeapSizeLimit: 3,
             totalJSHeapSize: 2,
             usedJSHeapSize: 1,
         };
-        const clearInterval = vi.fn<typeof globalThis.clearInterval>();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const setInterval = vi.fn<typeof globalThis.setInterval>(
-            () => interval
-        );
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timeout);
+        const clearInterval = vi.fn<BrowserClearInterval>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
+        const setInterval = vi.fn<BrowserSetInterval>(() => interval);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timeout);
         const runtime = getStateIntegrationRuntime({
             clearInterval,
             clearTimeout,
@@ -186,21 +192,19 @@ describe("getStateIntegrationRuntime", () => {
         const timeoutCallback = vi.fn<() => void>();
         const intervalDelayMs = Number("30000");
         const timeoutDelayMs = Number("500");
-        const interval = 11 as ReturnType<typeof globalThis.setInterval>;
-        const timeout = 13 as ReturnType<typeof globalThis.setTimeout>;
+        const interval = 11 as BrowserIntervalHandle;
+        const timeout = 13 as BrowserTimerHandle;
         const storage = {} as Storage;
         const performanceMemory = {
             jsHeapSizeLimit: 3,
             totalJSHeapSize: 2,
             usedJSHeapSize: 1,
         };
-        const clearInterval = vi.fn<typeof globalThis.clearInterval>();
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const clearInterval = vi.fn<BrowserClearInterval>();
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.spyOn(Date, "now").mockReturnValue(1234);
-        const setInterval = vi.fn<typeof globalThis.setInterval>(
-            () => interval
-        );
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timeout);
+        const setInterval = vi.fn<BrowserSetInterval>(() => interval);
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timeout);
         const runtime = getStateIntegrationRuntime();
 
         vi.stubGlobal("clearInterval", clearInterval);

@@ -12156,7 +12156,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(38);
+        expect.assertions(45);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -12195,6 +12195,27 @@ describe("architecture boundaries", () => {
         );
         expect(stateIntegrationRuntimeSource).toContain(
             '"../../runtime/browserRuntime.js"'
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type BrowserClearInterval"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type BrowserClearTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type BrowserIntervalHandle"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type BrowserSetInterval"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type BrowserSetTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type BrowserTimerHandle"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "typeof globalThis."
         );
         expect(stateIntegrationRuntimeSource).toContain(
             "getClearInterval: getBrowserClearInterval"
