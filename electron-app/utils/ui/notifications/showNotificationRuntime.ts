@@ -1,4 +1,11 @@
 import {
+    type BrowserCancelAnimationFrame,
+    type BrowserClearTimeout,
+    type BrowserHTMLElementConstructor,
+    type BrowserKeyboardEventConstructor,
+    type BrowserRequestAnimationFrame,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserCancelAnimationFrame,
     getBrowserClearTimeout,
     getBrowserDateNow,
@@ -9,33 +16,29 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type ShowNotificationTimerHandle =
-    | number
-    | ReturnType<typeof globalThis.setTimeout>;
+export type ShowNotificationTimerHandle = BrowserTimerHandle | number;
 
 export type ShowNotificationRuntimeScope = {
     readonly getCancelAnimationFrame?:
-        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | (() => BrowserCancelAnimationFrame | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
     readonly getDocument?:
         | (() => ShowNotificationDocument | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getKeyboardEvent?:
-        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
     readonly getRequestAnimationFrame?:
-        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | (() => BrowserRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
-        | undefined;
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
 };
 
 export type ShowNotificationRuntime = {
@@ -77,13 +80,13 @@ const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
 
 function getCancelAnimationFrame(
     scope: ShowNotificationRuntimeScope
-): typeof globalThis.cancelAnimationFrame | undefined {
+): BrowserCancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
 }
 
 function getClearTimeout(
     scope: ShowNotificationRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
@@ -109,12 +112,10 @@ function getRequiredDocument(
 
 function getHTMLElementConstructor(
     scope: ShowNotificationRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
-        throw new TypeError(
-            "show notification runtime requires HTMLElement"
-        );
+        throw new TypeError("show notification runtime requires HTMLElement");
     }
 
     return HTMLElementConstructor;
@@ -122,12 +123,10 @@ function getHTMLElementConstructor(
 
 function getKeyboardEventConstructor(
     scope: ShowNotificationRuntimeScope
-): typeof globalThis.KeyboardEvent {
+): BrowserKeyboardEventConstructor {
     const KeyboardEventConstructor = scope.getKeyboardEvent?.();
     if (typeof KeyboardEventConstructor !== "function") {
-        throw new TypeError(
-            "show notification runtime requires KeyboardEvent"
-        );
+        throw new TypeError("show notification runtime requires KeyboardEvent");
     }
 
     return KeyboardEventConstructor;
@@ -135,13 +134,13 @@ function getKeyboardEventConstructor(
 
 function getRequestAnimationFrame(
     scope: ShowNotificationRuntimeScope
-): typeof globalThis.requestAnimationFrame | undefined {
+): BrowserRequestAnimationFrame | undefined {
     return scope.getRequestAnimationFrame?.();
 }
 
 function getSetTimeout(
     scope: ShowNotificationRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 

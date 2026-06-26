@@ -1325,7 +1325,9 @@ Renderer notification queue timing now routes state timestamps, animation-frame 
 and serialized display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in
 `showNotification.ts`, with adapter tests and architecture coverage blocking direct notification timing globals from
 returning. Default browser frame helpers now bind animation-frame calls to `globalThis` without a module-level
-`browserGlobal` alias or direct optional browser-global shapes.
+`browserGlobal` alias or direct optional browser-global shapes. Notification runtime provider contracts now reuse shared
+browser-runtime timer, animation-frame, HTMLElement, and keyboard-event aliases instead of spelling direct ambient
+constructor/timer/frame types in the notification runtime.
 Renderer notification host lookup, reset/clear lookup, content container creation, icon/message element creation,
 action button creation, and persistent close-button creation now route through `showNotificationRuntime.ts` instead
 of querying or creating through `document` directly inside `showNotification.ts`, with focused runtime coverage and

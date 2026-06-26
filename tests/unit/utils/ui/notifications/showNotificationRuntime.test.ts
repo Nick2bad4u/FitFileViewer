@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getShowNotificationRuntime,
     type ShowNotificationRuntimeScope,
@@ -74,8 +78,8 @@ describe("getShowNotificationRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => frame);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.spyOn(Date, "now").mockReturnValue(timestamp);
 
         vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);

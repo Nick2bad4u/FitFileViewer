@@ -9102,7 +9102,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(59);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -9149,6 +9149,42 @@ describe("architecture boundaries", () => {
         );
         expect(notificationRuntimeSource).toContain(
             "defaultShowNotificationRuntimeScope"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "type BrowserCancelAnimationFrame"
+        );
+        expect(notificationRuntimeSource).toContain("type BrowserClearTimeout");
+        expect(notificationRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "type BrowserKeyboardEventConstructor"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "type BrowserRequestAnimationFrame"
+        );
+        expect(notificationRuntimeSource).toContain("type BrowserSetTimeout");
+        expect(notificationRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(notificationRuntimeSource).not.toMatch(
+            /ReturnType<\s*typeof globalThis\.setTimeout\s*>/u
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis.cancelAnimationFrame | undefined"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis.clearTimeout | undefined"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement | undefined"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis.KeyboardEvent | undefined"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis.requestAnimationFrame | undefined"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis.setTimeout | undefined"
         );
         expect(notificationRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
