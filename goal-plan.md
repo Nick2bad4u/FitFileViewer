@@ -400,6 +400,8 @@ Settings modal theme-change IPC candidate typing now uses the shared menu-event 
 deriving from the monolithic `ElectronAPI` type.
 Setup theme fetch IPC candidate typing now uses the shared theme API-domain contract instead of deriving from the
 monolithic `ElectronAPI` type.
+Core theme live theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
+deriving from the monolithic `ElectronAPI` type.
 Show FIT data file-loaded notification candidate typing now uses the shared preload-event API-domain contract instead
 of deriving from the monolithic `ElectronAPI` type.
 Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
@@ -611,7 +613,8 @@ from returning.
 Setup theme fetch IPC and live theme-change IPC now validate scoped preload candidates with explicit optional-function
 property guards instead of casting renderer Electron API candidates to generic records, with focused malformed-scope
 coverage and architecture coverage blocking those casts from returning. Setup theme fetch IPC candidate typing now uses
-the shared theme API-domain contract instead of deriving from the monolithic `ElectronAPI` type.
+the shared theme API-domain contract, and core theme live theme-change IPC candidate typing now uses the shared
+menu-event API-domain contract instead of deriving from the monolithic `ElectronAPI` type.
 Map document listener abort-controller creation, Leaflet layers-control lookup, and document/window listener registration
 now route through `mapDocumentListenersRuntime.ts` instead of constructing `AbortController`, querying `document`, or
 registering document/window listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and

@@ -19676,7 +19676,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(108);
+        expect.assertions(111);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -19716,6 +19716,9 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("setThemeDataAttributes");
         expect(themeCoreSource).toContain("ensureThemeTransitionStyles");
         expect(themeCoreSource).toContain("updateMetaThemeColor");
+        expect(themeCoreSource).toContain("ElectronMenuEventApi");
+        expect(themeCoreSource).not.toContain("import type { ElectronAPI");
+        expect(themeCoreSource).not.toContain("Pick<ElectronAPI");
         expect(themeCoreSource).not.toContain("document.body");
         expect(themeCoreSource).not.toContain("document.body.classList");
         expect(themeCoreSource).not.toContain("document.body.dataset");

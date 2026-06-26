@@ -8,7 +8,7 @@ import {
     type ThemeRuntime,
     type ThemeRuntimeTimer,
 } from "./themeRuntime.js";
-import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { ElectronMenuEventApi } from "../../../shared/preloadApi.js";
 
 /**
  * Known chart/theme color values exposed by the theme core.
@@ -40,9 +40,10 @@ export interface ThemeConfig {
     theme: EffectiveTheme;
 }
 
-type RendererThemeApi = Partial<
-    Pick<ElectronAPI, "onSetTheme" | "sendThemeChanged">
->;
+interface RendererThemeApi {
+    onSetTheme?: ElectronMenuEventApi["onSetTheme"];
+    sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
+}
 type ListenForThemeChangeOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -491,8 +492,7 @@ function isRendererThemeApi(value: unknown): value is RendererThemeApi {
     }
 
     return (
-        (!("onSetTheme" in value) ||
-            typeof value.onSetTheme === "function") &&
+        (!("onSetTheme" in value) || typeof value.onSetTheme === "function") &&
         (!("sendThemeChanged" in value) ||
             typeof value.sendThemeChanged === "function")
     );
