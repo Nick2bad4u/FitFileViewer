@@ -316,6 +316,9 @@ HTMLElement, and localStorage lookups, extending the existing AbortController pr
 the remaining local inline `globalThis` defaults from `exportUtilsRuntime.ts`; its AbortController and
 HTMLElement provider contracts also reuse shared browser-runtime constructor aliases instead of direct ambient
 constructor type spellings.
+Scoped export Electron API validation and Imgur upload response parsing now use explicit object/property guards
+instead of casting preload candidates or response payloads to generic records, with malformed-shape coverage and
+architecture guardrails.
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside

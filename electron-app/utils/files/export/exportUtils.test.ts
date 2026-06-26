@@ -343,6 +343,31 @@ describe("exportUtils", () => {
             void authPromise.catch(() => undefined);
         });
 
+        it("rejects malformed Gyazo Electron API methods", async () => {
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+                (key) => {
+                    if (key === "gyazo_client_id") return "test-client-id";
+                    if (key === "gyazo_client_secret")
+                        return "test-client-secret";
+                    return null;
+                }
+            );
+
+            await expect(
+                exportUtils.authenticateWithGyazo({
+                    electronApiScope: createExportApiScope({
+                        onGyazoOAuthCallback: "not a callback listener",
+                        startGyazoServer: vi.fn(),
+                        stopGyazoServer: vi.fn(),
+                    }),
+                })
+            ).rejects.toThrow(
+                "Gyazo OAuth is only available in the Electron desktop build"
+            );
+
+            expect(electronApiMock.startGyazoServer).not.toHaveBeenCalled();
+        });
+
         it("cleans up state and subscriptions when user cancels", async () => {
             const unsubscribe = vi.fn();
             let capturedHandler: ((data: any) => void) | null = null;
@@ -1018,6 +1043,26 @@ describe("exportUtils", () => {
                         Authorization: "Client-ID client123",
                     }),
                 })
+            );
+        });
+
+        it("rejects Imgur responses without an upload link", async () => {
+            const base64Image = "data:image/png;base64,abcd";
+            vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+                clientId: "client123",
+                uploadUrl: "https://api.imgur.com/3/image",
+            } as any);
+
+            vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: "OK",
+                json: () => Promise.resolve({ data: { link: "" } }),
+                text: () => Promise.resolve("ok"),
+            } as any);
+
+            await expect(exportUtils.uploadToImgur(base64Image)).rejects.toThrow(
+                "Invalid response from Imgur"
             );
         });
 

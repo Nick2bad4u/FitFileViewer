@@ -159,10 +159,10 @@ let detectCurrentThemeOverride: typeof __realDetectCurrentTheme | null = null;
 let showNotificationOverride: ExportNotification | null = null;
 
 function hasOptionalElectronFunction(
-    record: Readonly<Record<string, unknown>>,
+    record: object,
     key: keyof ElectronApiLike
 ): boolean {
-    const value = record[key];
+    const value = Reflect.get(record, key);
     return value === undefined || typeof value === "function";
 }
 
@@ -171,7 +171,6 @@ function isExportElectronApi(value: unknown): value is ElectronApiLike {
         return false;
     }
 
-    const api = value as Readonly<Record<string, unknown>>;
     return [
         "onGyazoOAuthCallback",
         "startGyazoServer",
@@ -179,7 +178,7 @@ function isExportElectronApi(value: unknown): value is ElectronApiLike {
         "writeClipboardPngDataUrl",
         "writeClipboardText",
     ].every((key) =>
-        hasOptionalElectronFunction(api, key as keyof ElectronApiLike)
+        hasOptionalElectronFunction(value, key as keyof ElectronApiLike)
     );
 }
 
@@ -833,12 +832,12 @@ function getImgurUploadLink(value: unknown): string | undefined {
         return undefined;
     }
 
-    const data = (value as Record<string, unknown>)["data"];
+    const data = Reflect.get(value, "data");
     if (typeof data !== "object" || data === null) {
         return undefined;
     }
 
-    const link = (data as Record<string, unknown>)["link"];
+    const link = Reflect.get(data, "link");
     return typeof link === "string" && link.length > 0 ? link : undefined;
 }
 

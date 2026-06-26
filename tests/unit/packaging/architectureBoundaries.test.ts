@@ -5200,7 +5200,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(95);
+        expect.assertions(97);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -5222,6 +5222,10 @@ it("keeps the core state manager free of reactive global property bridges", () =
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
         expect(exportUtilsSource).toContain("type ExportUtilsRuntime");
         expect(exportUtilsSource).toContain("return getExportUtilsRuntime();");
+        expect(exportUtilsSource).not.toContain("value as Readonly<Record");
+        expect(exportUtilsSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
         expect(exportUtilsSource).not.toContain(
             "const exportUtilsRuntime = getExportUtilsRuntime();"
         );
