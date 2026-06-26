@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { getAddExitFullscreenOverlayRuntime } from "../../../../../electron-app/utils/ui/controls/addExitFullscreenOverlayRuntime.js";
 
 function setFullscreenElement(element: Element | null): void {
@@ -115,7 +116,7 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         const runtimeWithInvalidAbortController =
             getAddExitFullscreenOverlayRuntime({
                 getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
+                    "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
 
@@ -144,7 +145,7 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         };
         const runtime = getAddExitFullscreenOverlayRuntime({
             AbortController:
-                legacyAbortController as unknown as typeof AbortController,
+                legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
         } as unknown as Parameters<
             typeof getAddExitFullscreenOverlayRuntime

@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserDocument,
 } from "../../runtime/browserRuntime.js";
@@ -7,7 +9,7 @@ import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface AddExitFullscreenOverlayRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -40,7 +42,7 @@ function getScopeDocument(
 
 function getAbortControllerConstructor(
     scope: AddExitFullscreenOverlayRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
         getScopeDocument(scope)?.defaultView?.AbortController;
@@ -66,7 +68,7 @@ function getDocument(scope: AddExitFullscreenOverlayRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     runtimeDocument: Readonly<Document>
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     return runtimeDocument.defaultView?.HTMLElement;
 }
 
