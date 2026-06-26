@@ -3,6 +3,11 @@ import {
     browserWindowRef as runtimeBrowserWindowRef,
 } from "./electronAccess.js";
 import { setupBlockedRequests } from "../security/setupBlockedRequests.js";
+import {
+    getProcessArgumentValues,
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "../../utils/runtime/processEnvironment.js";
 import type { MainAppStateWindowLike } from "../state/appState.js";
 
 type AppLike = {
@@ -133,16 +138,12 @@ function ignoreSettledPromise(value: unknown): void {
 }
 
 function isTestEnv(): boolean {
-    return (
-        typeof process !== "undefined" && process.env?.["NODE_ENV"] === "test"
-    );
+    return isTestEnvironment();
 }
 
 function isDevMode(): boolean {
     return (
-        typeof process !== "undefined" &&
-        (process.env?.["NODE_ENV"] === "development" ||
-            (Array.isArray(process.argv) && process.argv.includes("--dev")))
+        isDevelopmentEnvironment() || getProcessArgumentValues().includes("--dev")
     );
 }
 
