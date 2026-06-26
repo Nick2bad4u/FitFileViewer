@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+    BrowserClearTimeout,
+    BrowserSetTimeout,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getLoadSharedConfigurationRuntime,
+    type LoadSharedConfigurationTimerHandle,
     type LoadSharedConfigurationRuntimeScope,
 } from "../../../../../electron-app/utils/app/initialization/loadSharedConfigurationRuntime.js";
 
@@ -46,9 +52,11 @@ describe("getLoadSharedConfigurationRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("100");
-        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 23 as LoadSharedConfigurationTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(
+            () => timer as BrowserTimerHandle
+        );
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getLoadSharedConfigurationRuntime({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
@@ -66,9 +74,9 @@ describe("getLoadSharedConfigurationRuntime", () => {
 
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("100");
-        const timer = 29 as ReturnType<typeof globalThis.setTimeout>;
-        const setTimeoutMock = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const clearTimeoutMock = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 29 as BrowserTimerHandle;
+        const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
 
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
         vi.stubGlobal("setTimeout", setTimeoutMock);
@@ -94,7 +102,7 @@ describe("getLoadSharedConfigurationRuntime", () => {
             "loadSharedConfigurationRuntime requires setTimeout"
         );
         expect(() =>
-            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+            runtime.clearTimeout(1 as LoadSharedConfigurationTimerHandle)
         ).toThrow("loadSharedConfigurationRuntime requires clearTimeout");
     });
 
@@ -102,11 +110,9 @@ describe("getLoadSharedConfigurationRuntime", () => {
         expect.assertions(3);
 
         const callback = vi.fn<() => void>();
-        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
-        const legacySetTimeout = vi.fn<typeof globalThis.setTimeout>(
-            () => timer
-        );
-        const legacyClearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const timer = 23 as BrowserTimerHandle;
+        const legacySetTimeout = vi.fn<BrowserSetTimeout>(() => timer);
+        const legacyClearTimeout = vi.fn<BrowserClearTimeout>();
         const legacyScope = {
             clearTimeout: legacyClearTimeout,
             location: {

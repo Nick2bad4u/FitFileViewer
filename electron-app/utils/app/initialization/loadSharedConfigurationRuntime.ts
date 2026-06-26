@@ -1,13 +1,14 @@
 import {
+    type BrowserClearTimeout,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserLocation,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
 export type SharedConfigurationLocation = Pick<Location, "search">;
-export type LoadSharedConfigurationTimerHandle =
-    | ReturnType<typeof globalThis.setTimeout>
-    | number;
+export type LoadSharedConfigurationTimerHandle = BrowserTimerHandle | number;
 
 export interface LoadSharedConfigurationRuntime {
     readonly locationSearch: string;
@@ -20,11 +21,11 @@ export interface LoadSharedConfigurationRuntime {
 
 type LoadSharedConfigurationClearTimeout = (
     handle: LoadSharedConfigurationTimerHandle
-) => void;
+) => ReturnType<BrowserClearTimeout>;
 type LoadSharedConfigurationSetTimeout = (
     callback: () => void,
     timeout: number
-) => LoadSharedConfigurationTimerHandle;
+) => ReturnType<BrowserSetTimeout> | number;
 
 export interface LoadSharedConfigurationRuntimeScope {
     readonly getClearTimeout?:
