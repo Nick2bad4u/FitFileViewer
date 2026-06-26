@@ -572,6 +572,9 @@ Map lap selector control, label, option, and help-tooltip element creation now a
 Map lap selector select change-event construction now also routes through `mapLapSelectorRuntime.ts` instead of
 calling `new Event("change")` directly inside `mapLapSelector.ts`, with focused runtime coverage and architecture
 guardrails blocking direct Event construction and legacy direct Event scope properties from returning.
+Map lap selector runtime AbortController and Event provider types now use the shared browser-runtime constructor
+aliases instead of direct ambient `globalThis` constructor types, with architecture coverage blocking those direct
+type surfaces from returning.
 Chart settings header reset-button feedback timing, range-slider re-render debounce, and listener
 abort-controller creation now route through `createSettingsHeaderRuntime.ts` instead of calling timer globals or
 constructing `AbortController` directly inside `createSettingsHeader.ts`, with focused runtime coverage and

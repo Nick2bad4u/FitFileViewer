@@ -1,4 +1,6 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserEventConstructor,
     getBrowserAbortController,
     getBrowserDocument,
     getBrowserEvent,
@@ -13,12 +15,12 @@ type MapLapSelectorMouseListener = (event: Readonly<MouseEvent>) => void;
 
 export interface MapLapSelectorRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?:
         | (() => MapLapSelectorDocument | undefined)
         | undefined;
-    readonly getEvent?: (() => typeof globalThis.Event | undefined) | undefined;
+    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
 }
 
 export interface MapLapSelectorRuntime {
@@ -69,7 +71,7 @@ const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope = {
 
 function getRequiredEvent(
     scope: MapLapSelectorRuntimeScope
-): typeof globalThis.Event {
+): BrowserEventConstructor {
     const EventConstructor = scope.getEvent?.();
     if (typeof EventConstructor !== "function") {
         throw new TypeError("mapLapSelector requires an Event runtime");

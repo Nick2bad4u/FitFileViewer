@@ -16708,7 +16708,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document access behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(40);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -16757,6 +16757,13 @@ describe("architecture boundaries", () => {
         expect(mapLapSelectorRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "BrowserAbortControllerConstructor"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "BrowserEventConstructor"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain("typeof globalThis.");
         expect(mapLapSelectorRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
