@@ -172,6 +172,10 @@ type ErrorDetails = {
     stack?: string;
 };
 
+type ElectronDevelopmentModeCandidate = {
+    readonly __devMode?: unknown;
+};
+
 function masterStateRuntime(): MasterStateRuntime {
     return getMasterStateRuntime();
 }
@@ -181,11 +185,14 @@ function stateStorageRuntime(): StateStorageRuntime {
 }
 
 function hasOptionalMasterElectronFunction(
-    record: Readonly<Record<string, unknown>>,
+    value: object,
     key: "getAppVersion" | "openFile" | "openFileDialog"
 ): boolean {
-    const value = record[key];
-    return value === undefined || typeof value === "function";
+    if (!(key in value)) {
+        return true;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
 }
 
 function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
@@ -193,8 +200,7 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
         return false;
     }
 
-    const api = value as Readonly<Record<string, unknown>>;
-    const devMode = api["__devMode"];
+    const devMode = getOptionalElectronDevelopmentMode(value);
     return (
         (devMode === undefined || typeof devMode === "boolean") &&
         [
@@ -203,11 +209,23 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
             "openFileDialog",
         ].every((key) =>
             hasOptionalMasterElectronFunction(
-                api,
+                value,
                 key as "getAppVersion" | "openFile" | "openFileDialog"
             )
         )
     );
+}
+
+function getOptionalElectronDevelopmentMode(value: object): unknown {
+    return hasElectronDevelopmentModeProperty(value)
+        ? value.__devMode
+        : undefined;
+}
+
+function hasElectronDevelopmentModeProperty(
+    value: object
+): value is ElectronDevelopmentModeCandidate {
+    return "__devMode" in value;
 }
 
 function getMasterElectronAPI(

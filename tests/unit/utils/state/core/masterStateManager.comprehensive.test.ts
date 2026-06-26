@@ -172,9 +172,7 @@ function createMasterStateManager(): MasterStateManager {
     });
 }
 
-function createElectronApiScope(
-    api: MasterStateElectronApi | null
-): RendererElectronApiScope {
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
     return {
         getElectronAPI: () => api,
     };
@@ -424,6 +422,40 @@ describe("masterStateManager comprehensive behavior", () => {
             },
             { development: true }
         );
+    });
+
+    it("ignores malformed scoped Electron APIs", async () => {
+        expect.assertions(3);
+
+        await withMasterStateHarness(async ({ documentListeners, mocks }) => {
+            const openFileDialog = vi.fn<() => void>();
+            activeElectronApiScope = createElectronApiScope({
+                __devMode: "not-boolean",
+                getAppVersion: "not-callable",
+                openFileDialog,
+            });
+
+            const manager = createMasterStateManager();
+
+            expect(manager.isDevelopmentMode()).toBe(false);
+
+            await manager.initializeCoreState();
+
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "system.version",
+                "26.5.0",
+                { source: "MasterStateManager" }
+            );
+
+            manager.setupKeyboardShortcuts();
+            dispatchListeners(
+                documentListeners,
+                "keydown",
+                createKeyboardEvent("o")
+            );
+
+            expect(openFileDialog).not.toHaveBeenCalled();
+        });
     });
 
     it("sets up drag and drop handlers for valid and invalid dropped files", async () => {

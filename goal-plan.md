@@ -995,6 +995,8 @@ Scoped lifecycle Electron API validation now uses explicit optional-function pro
 candidate preload API to a generic record.
 Scoped main-process state client API validation now uses explicit required-function property guards instead of
 casting the candidate preload API to a generic record.
+Scoped master-state manager Electron API validation now uses explicit optional-function and development-mode
+property guards instead of casting the candidate preload API to a generic record.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.
