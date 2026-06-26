@@ -1,28 +1,31 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserFetch,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserFetch,
     getBrowserSetTimeout,
 } from "../runtime/browserRuntime.js";
 
-export type NetworkUtilsFetchInput = Readonly<
-    Parameters<typeof globalThis.fetch>[0]
->;
+export type NetworkUtilsFetchInput = Readonly<Parameters<BrowserFetch>[0]>;
 export type NetworkUtilsFetchInit =
-    | Readonly<NonNullable<Parameters<typeof globalThis.fetch>[1]>>
+    | Readonly<NonNullable<Parameters<BrowserFetch>[1]>>
     | undefined;
-export type NetworkUtilsTimerHandle = ReturnType<typeof globalThis.setTimeout>;
+export type NetworkUtilsTimerHandle = BrowserTimerHandle;
 
 export interface NetworkUtilsRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
-    readonly getFetch?: (() => typeof globalThis.fetch | undefined) | undefined;
+    readonly getFetch?: (() => BrowserFetch | undefined) | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
@@ -48,25 +51,23 @@ const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
 
 function getScopeAbortController(
     scope: NetworkUtilsRuntimeScope
-): typeof globalThis.AbortController | undefined {
+): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
 }
 
 function getScopeClearTimeout(
     scope: NetworkUtilsRuntimeScope
-): typeof globalThis.clearTimeout | undefined {
+): BrowserClearTimeout | undefined {
     return scope.getClearTimeout?.();
 }
 
-function getScopeFetch(
-    scope: NetworkUtilsRuntimeScope
-): typeof globalThis.fetch | undefined {
+function getScopeFetch(scope: NetworkUtilsRuntimeScope): BrowserFetch | undefined {
     return scope.getFetch?.();
 }
 
 function getScopeSetTimeout(
     scope: NetworkUtilsRuntimeScope
-): typeof globalThis.setTimeout | undefined {
+): BrowserSetTimeout | undefined {
     return scope.getSetTimeout?.();
 }
 
