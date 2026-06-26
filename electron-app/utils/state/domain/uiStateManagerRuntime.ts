@@ -3,6 +3,9 @@ import {
     getChartSettingsWrapper,
 } from "../../charts/dom/chartDomUtils.js";
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserHTMLElementConstructor,
+    type BrowserMatchMedia,
     getBrowserAbortController,
     getBrowserDateNow,
     getBrowserDocument,
@@ -48,7 +51,7 @@ type UIStateManagerFileStateBody = {
 
 export interface UIStateManagerRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly createSpanElement?: (() => HTMLSpanElement) | undefined;
     readonly getDateNow?: (() => (() => number) | undefined) | undefined;
@@ -67,7 +70,7 @@ export interface UIStateManagerRuntimeScope {
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly getAltFitIframeElement?: UIStateManagerElementProvider | undefined;
     readonly getChartControlsToggleElement?:
@@ -106,9 +109,7 @@ export interface UIStateManagerRuntimeScope {
         | UIStateManagerElementProvider
         | undefined;
     readonly getZwiftIframeElement?: UIStateManagerElementProvider | undefined;
-    readonly getMatchMedia?:
-        | (() => typeof globalThis.matchMedia | undefined)
-        | undefined;
+    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
     readonly getSetBodyCursor?:
         | (() => ((cursor: string) => void) | undefined)
         | undefined;
@@ -170,7 +171,7 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
 
 function getAbortControllerConstructor(
     scope: UIStateManagerRuntimeScope
-): typeof AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -208,7 +209,7 @@ function getEventTarget(
 
 function getHTMLElementConstructor(
     scope: UIStateManagerRuntimeScope
-): typeof HTMLElement | undefined {
+): BrowserHTMLElementConstructor | undefined {
     const HTMLElementConstructor = scope.getHTMLElement?.();
 
     return typeof HTMLElementConstructor === "function"
@@ -538,7 +539,7 @@ function getZwiftIframeElement(
 
 function getMatchMedia(
     scope: UIStateManagerRuntimeScope
-): typeof matchMedia | undefined {
+): BrowserMatchMedia | undefined {
     const candidate = scope.getMatchMedia?.();
 
     return typeof candidate === "function" ? candidate : undefined;

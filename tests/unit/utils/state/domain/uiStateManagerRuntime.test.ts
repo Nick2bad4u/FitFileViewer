@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getUIStateManagerRuntime } from "../../../../../electron-app/utils/state/domain/uiStateManagerRuntime.js";
+import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("uiStateManagerRuntime", () => {
     afterEach(() => {
@@ -33,7 +34,7 @@ describe("uiStateManagerRuntime", () => {
 
         const runtime = getUIStateManagerRuntime({
             getAbortController: () =>
-                TestAbortController as unknown as typeof AbortController,
+                TestAbortController as unknown as BrowserAbortControllerConstructor,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -589,7 +590,7 @@ describe("uiStateManagerRuntime", () => {
         const setDocumentTitle = vi.fn();
         const runtime = getUIStateManagerRuntime({
             AbortController:
-                TestAbortController as unknown as typeof AbortController,
+                TestAbortController as unknown as BrowserAbortControllerConstructor,
             activeFileNameContainerElement,
             activeFileNameElement,
             altFitIframeElement,

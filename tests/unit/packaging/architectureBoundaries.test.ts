@@ -10040,7 +10040,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(172);
+        expect.assertions(181);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -10198,6 +10198,15 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "type BrowserAbortControllerConstructor"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "typeof globalThis.AbortController"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "): typeof AbortController"
+        );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
@@ -10225,6 +10234,15 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "type BrowserHTMLElementConstructor"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "typeof globalThis.HTMLElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "): typeof HTMLElement | undefined"
+        );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
@@ -10239,6 +10257,13 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getMatchMedia: getBrowserMatchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).toContain("type BrowserMatchMedia");
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "typeof globalThis.matchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "): typeof matchMedia | undefined"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "getMatchMedia: () => globalThis.matchMedia"

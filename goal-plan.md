@@ -1139,9 +1139,9 @@ lives on named providers that read `globalThis.document` directly instead of bou
 UI state manager last-notification timestamps now also route through `uiStateManagerRuntime.ts` instead of calling
 `Date.now` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails blocking
 direct clock reads and legacy direct runtime scope properties from returning.
-UI state manager runtime production defaults now reuse shared browser runtime providers for date-clock, document,
-HTMLElement, and matchMedia lookups instead of local inline `globalThis` or `Date.now` getters, extending the
-existing AbortController provider migration with focused runtime coverage and architecture guardrails.
+UI state manager runtime production defaults now reuse shared browser runtime providers and aliases for
+AbortController, date-clock, document, HTMLElement, and matchMedia lookups instead of local inline `globalThis` or
+`Date.now` getters or direct ambient browser type contracts, with focused runtime coverage and architecture guardrails.
 Tab readiness state runtime production defaults now reuse the shared browser date-clock provider instead of a local
 `Date.now` getter, with focused runtime coverage and architecture guardrails blocking the inline default from returning.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
