@@ -565,6 +565,8 @@ providers for document, computed-style, element constructors, animation frames, 
 ambient timer-handle type spellings, with runtime and architecture coverage blocking those defaults from regressing.
 The render-table HTMLElement provider contract now also reuses the shared browser-runtime constructor alias instead
 of a direct ambient constructor type spelling.
+DataTables constructor validation now checks the static marker through explicit property guards instead of casting
+runtime dependency candidates to partial constructor shapes, with malformed-marker coverage and architecture guards.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now

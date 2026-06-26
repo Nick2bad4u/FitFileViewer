@@ -14048,7 +14048,7 @@ it("keeps the core state manager free of reactive global property bridges", () =
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(47);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -14078,6 +14078,9 @@ it("keeps the core state manager free of reactive global property bridges", () =
 
         expect(violations).toStrictEqual([]);
         expect(renderTableSource).toContain("renderTableRuntime.js");
+        expect(renderTableSource).not.toContain(
+            "value as Partial<DataTableConstructor>"
+        );
         expect(renderTableRuntimeSource).not.toMatch(
             directRenderTableRuntimeAmbientTimerFallbackPattern
         );

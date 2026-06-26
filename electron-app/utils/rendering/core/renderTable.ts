@@ -59,8 +59,7 @@ function isDataTableConstructor(
 ): value is DataTableConstructor {
     return (
         typeof value === "function" &&
-        typeof (value as Partial<DataTableConstructor>).isDataTable ===
-            "function"
+        typeof Reflect.get(value, "isDataTable") === "function"
     );
 }
 

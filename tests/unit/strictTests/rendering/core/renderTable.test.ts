@@ -138,6 +138,25 @@ describe("renderTable", () => {
         expect(firstCell?.textContent).toBe("1");
     });
 
+    it("skips DataTables enhancement for malformed constructor markers", async () => {
+        expect.assertions(2);
+
+        (dataTableModuleMock.DataTable as { isDataTable?: unknown }).isDataTable =
+            "not a static marker";
+
+        const { renderTable } = await loadModule();
+        const root = document.getElementById("root")!;
+
+        await renderTable(root, "Malformed DT", createTableLike(), 4);
+        (root.querySelector(".table-header") as HTMLElement).click();
+        vi.runAllTimers();
+
+        expect(dataTableModuleMock.DataTable).not.toHaveBeenCalled();
+        expect(root.querySelector("table#datatable_4")).toBeInstanceOf(
+            HTMLTableElement
+        );
+    });
+
     it("sanitizes injected markup from table HTML", async () => {
         expect.assertions(3);
 
