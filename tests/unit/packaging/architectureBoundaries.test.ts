@@ -20385,7 +20385,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(27);
 
         const violations = migratedEnableTabButtonsHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -20450,6 +20450,9 @@ describe("architecture boundaries", () => {
         );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "EnableTabButtonsHelpersRuntimeScope = globalThis"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "globalThis."
         );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "scope.window"

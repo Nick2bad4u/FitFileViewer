@@ -1,4 +1,5 @@
 import {
+    type BrowserHTMLElementConstructor,
     getBrowserComputedStyle,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -26,7 +27,7 @@ export interface EnableTabButtonsHelpersRuntimeScope {
         | (() => EnableTabButtonsHelpersGetComputedStyle | undefined)
         | undefined;
     readonly getHTMLElement?:
-        | (() => typeof globalThis.HTMLElement | undefined)
+        | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
     readonly isRendererScope?: (() => boolean) | undefined;
 }
@@ -60,7 +61,7 @@ function getDocument(
 
 function getHTMLElementConstructor(
     scope: EnableTabButtonsHelpersRuntimeScope
-): typeof globalThis.HTMLElement {
+): BrowserHTMLElementConstructor {
     const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
