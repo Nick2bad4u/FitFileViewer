@@ -1,4 +1,10 @@
 import {
+    type BrowserAbortControllerConstructor,
+    type BrowserClearTimeout,
+    type BrowserCustomEventConstructor,
+    type BrowserHTMLInputElementConstructor,
+    type BrowserSetTimeout,
+    type BrowserTimerHandle,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserCustomEvent,
@@ -10,23 +16,23 @@ import {
 
 export interface CreateFieldTogglesSectionRuntimeScope {
     readonly getAbortController?:
-        | (() => typeof globalThis.AbortController | undefined)
+        | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getClearTimeout?:
-        | (() => typeof globalThis.clearTimeout | undefined)
+        | (() => BrowserClearTimeout | undefined)
         | undefined;
     readonly getCustomEvent?:
-        | (() => typeof globalThis.CustomEvent | undefined)
+        | (() => BrowserCustomEventConstructor | undefined)
         | undefined;
     readonly getDispatchEvent?:
         | (() => ((event: Event) => boolean) | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getHTMLInputElement?:
-        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
     readonly getSetTimeout?:
-        | (() => typeof globalThis.setTimeout | undefined)
+        | (() => BrowserSetTimeout | undefined)
         | undefined;
 }
 
@@ -39,19 +45,19 @@ export interface CreateFieldTogglesSectionRuntime {
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
-    clearTimeout: (timer: ReturnType<typeof globalThis.setTimeout>) => void;
+    clearTimeout: (timer: BrowserTimerHandle) => void;
     dispatchEvent: (event: Event) => boolean;
     isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
     queryFieldCheckboxToggles: () => NodeListOf<HTMLInputElement>;
     setTimeout: (
         handler: () => void,
         timeout: number
-    ) => ReturnType<typeof globalThis.setTimeout>;
+    ) => BrowserTimerHandle;
 }
 
 function getAbortControllerConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
-): typeof globalThis.AbortController {
+): BrowserAbortControllerConstructor {
     const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -64,7 +70,7 @@ function getAbortControllerConstructor(
 
 function getCustomEventConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
-): typeof globalThis.CustomEvent {
+): BrowserCustomEventConstructor {
     const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
@@ -101,7 +107,7 @@ function getDocument(scope: CreateFieldTogglesSectionRuntimeScope): Document {
 
 function getHTMLInputElementConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
-): typeof globalThis.HTMLInputElement {
+): BrowserHTMLInputElementConstructor {
     const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
@@ -144,7 +150,7 @@ export function getCreateFieldTogglesSectionRuntime(
         ): HTMLElementTagNameMap[K] {
             return getDocument(scope).createElement(tagName);
         },
-        clearTimeout(timer: ReturnType<typeof globalThis.setTimeout>): void {
+        clearTimeout(timer: BrowserTimerHandle): void {
             const clearTimer = scope.getClearTimeout?.();
             if (typeof clearTimer !== "function") {
                 throw new TypeError(
@@ -167,7 +173,7 @@ export function getCreateFieldTogglesSectionRuntime(
         setTimeout(
             handler: () => void,
             timeout: number
-        ): ReturnType<typeof globalThis.setTimeout> {
+        ): BrowserTimerHandle {
             const scheduleTimer = scope.getSetTimeout?.();
             if (typeof scheduleTimer !== "function") {
                 throw new TypeError(
