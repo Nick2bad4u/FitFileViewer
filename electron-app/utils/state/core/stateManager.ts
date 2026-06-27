@@ -17,6 +17,12 @@ import {
     getStateStorageRuntime,
     type StateStorageRuntime,
 } from "./stateStorageRuntime.js";
+import {
+    normalizeBrowserListingState,
+    normalizeBrowserScanState,
+    normalizeBrowserStateBranch,
+    normalizeBrowserView,
+} from "../domain/browserStateContract.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
 
 /** Listener invoked when a subscribed state path changes. */
@@ -68,6 +74,14 @@ const RENDERER_ACTIVE_TAB_STATE_PATHS = new Set([
     "ui.activeTabContent",
 ]);
 const RENDERER_ACTIVE_TAB_UI_KEYS = ["activeTab", "activeTabContent"] as const;
+const BROWSER_STATE_PATH_NORMALIZERS = new Map<
+    string,
+    (value: unknown) => unknown
+>([
+    ["browser.listing", normalizeBrowserListingState],
+    ["browser.scan", normalizeBrowserScanState],
+    ["browser.view", normalizeBrowserView],
+]);
 
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
@@ -86,6 +100,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeStateWriteValue(path: string, value: unknown): unknown {
+    const browserNormalizer = BROWSER_STATE_PATH_NORMALIZERS.get(path);
+    if (browserNormalizer) {
+        return browserNormalizer(value);
+    }
+
+    if (path === "browser" && isRecord(value)) {
+        return normalizeBrowserStateBranch(value);
+    }
+
     if (RENDERER_ACTIVE_TAB_STATE_PATHS.has(path)) {
         return normalizeRendererActiveTab(value);
     }

@@ -128,6 +128,81 @@ describe("state manager core", () => {
         expect(getState("ui.controlsEnabled")).toBe(true);
     });
 
+    it("normalizes browser lifecycle writes at the core state boundary", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        setState("browser.view", "timeline");
+        setState("browser.listing", {
+            fileCount: Number.NaN,
+            folderCount: 3,
+            itemCount: -1,
+            status: "loaded",
+        });
+        setState("browser.scan", {
+            decodedActivityCount: 2,
+            processedFileCount: Number.POSITIVE_INFINITY,
+            status: "decoding",
+        });
+
+        expect(getState("browser.view")).toBe("files");
+        expect(getState("browser.listing")).toStrictEqual({
+            error: null,
+            fileCount: 0,
+            folderCount: 3,
+            itemCount: 0,
+            loadedAt: null,
+            relPath: "",
+            root: null,
+            status: "loaded",
+        });
+        expect(getState("browser.scan")).toStrictEqual({
+            decodedActivityCount: 2,
+            error: null,
+            fileCount: 0,
+            processedFileCount: 0,
+            root: null,
+            scannedAt: null,
+            status: "decoding",
+        });
+    });
+
+    it("normalizes browser state values when replacing the browser branch", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        setState("browser", {
+            listing: "bad",
+            relPath: "2026/june",
+            scan: [],
+            view: "bad",
+        });
+
+        expect(getState("browser.view")).toBe("files");
+        expect(getState("browser.relPath")).toBe("2026/june");
+        expect(getState("browser.listing")).toStrictEqual({
+            error: null,
+            fileCount: 0,
+            folderCount: 0,
+            itemCount: 0,
+            loadedAt: null,
+            relPath: "",
+            root: null,
+            status: "idle",
+        });
+        expect(getState("browser.scan")).toStrictEqual({
+            decodedActivityCount: 0,
+            error: null,
+            fileCount: 0,
+            processedFileCount: 0,
+            root: null,
+            scannedAt: null,
+            status: "idle",
+        });
+    });
+
     it("returns undefined for non-existent state paths", () => {
         expect.assertions(1);
 

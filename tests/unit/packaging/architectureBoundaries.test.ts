@@ -5245,7 +5245,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(20);
+        expect.assertions(22);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -5267,6 +5267,8 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("localStorage.");
         expect(stateManagerSource).toContain("stateStorageRuntime.js");
         expect(stateManagerSource).toContain("type StateStorageRuntime");
+        expect(stateManagerSource).toContain("browserStateContract.js");
+        expect(stateManagerSource).toContain("normalizeBrowserStateBranch");
         expect(stateManagerSource).toContain("rendererActiveTabContract.js");
         expect(stateManagerSource).toContain("normalizeRendererActiveTab");
         expect(stateManagerSource).toContain("ui.activeTabContent");
@@ -11972,18 +11974,35 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps browser state normalization on explicit state branch shapes", () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         const browserStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/browserState.ts"
             )
         );
+        const browserStateContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/browserStateContract.ts"
+            )
+        );
 
-        expect(browserStateSource).toContain(
+        expect(browserStateSource).toContain("browserStateContract.js");
+        expect(browserStateSource).not.toContain(
             "type BrowserListingStateCandidate"
         );
-        expect(browserStateSource).toContain("type BrowserScanStateCandidate");
+        expect(browserStateSource).not.toContain(
+            "type BrowserScanStateCandidate"
+        );
+        expect(browserStateContractSource).toContain(
+            "type BrowserListingStateCandidate"
+        );
+        expect(browserStateContractSource).toContain(
+            "type BrowserScanStateCandidate"
+        );
+        expect(browserStateContractSource).toContain(
+            "normalizeBrowserStateBranch"
+        );
         expect(browserStateSource).not.toContain(
             "value as Record<string, unknown>"
         );
