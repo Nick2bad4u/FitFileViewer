@@ -57,23 +57,18 @@ const NATIVE_FULLSCREEN_EVENTS = [
 let isWindowFullscreenRequested = false;
 let fullscreenKeydownHandler: null | StoredEventHandler = null;
 let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
-let activeElectronApiScope: RendererElectronApiScope | undefined;
+let fullscreenButtonClickController: AbortController | null = null;
+let fullscreenDomContentLoadedHandler: null | StoredEventHandler = null;
 
 function addFullScreenButtonRuntime(): AddFullScreenButtonRuntime {
     return getAddFullScreenButtonRuntime();
 }
 
-const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
-    getRendererElectronApi(isElectronFullscreenApi, activeElectronApiScope) ??
+const getElectronAPI = (
+    electronApiScope?: RendererElectronApiScope
+): ElectronFullscreenAPI | undefined =>
+    getRendererElectronApi(isElectronFullscreenApi, electronApiScope) ??
     undefined;
-
-function resolveElectronApiScope(
-    options: FullScreenButtonOptions | undefined
-): RendererElectronApiScope | undefined {
-    return options && Object.hasOwn(options, "electronApiScope")
-        ? options.electronApiScope
-        : activeElectronApiScope;
-}
 
 function isElectronFullscreenApi(
     value: unknown
@@ -82,10 +77,7 @@ function isElectronFullscreenApi(
         return false;
     }
 
-    return hasOptionalFullscreenFunction(
-        value,
-        "setFullScreen"
-    );
+    return hasOptionalFullscreenFunction(value, "setFullScreen");
 }
 
 function hasOptionalFullscreenFunction(
@@ -135,16 +127,20 @@ const isChartFullscreenActive = (): boolean => {
 /** Adds a global fullscreen toggle button for the active tab content. */
 export function addFullScreenButton(options?: FullScreenButtonOptions): void {
     try {
-        activeElectronApiScope = resolveElectronApiScope(options);
-        if (
-            addFullScreenButtonRuntime().getElementById(FULLSCREEN_WRAPPER_ID)
-        ) {
+        const { electronApiScope } = options ?? {};
+        const screenfull = getScreenfullInstance();
+        const existingButton =
+            addFullScreenButtonRuntime().getElementById(FULLSCREEN_BUTTON_ID);
+        if (existingButton) {
+            installFullscreenButtonClickHandler(existingButton, {
+                electronApiScope,
+                screenfullEnabled: Boolean(screenfull?.isEnabled),
+            });
             logWithContext(
                 "Fullscreen button already exists, skipping creation"
             );
             return;
         }
-        const screenfull = getScreenfullInstance();
         if (!screenfull || !screenfull.isEnabled) {
             const wrapper = addFullScreenButtonRuntime().createElement("div");
             wrapper.className = "fullscreen-btn-wrapper";
@@ -158,10 +154,9 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
             btn.setAttribute("tabindex", "0");
             btn.style.pointerEvents = "auto";
             btn.append(createFullscreenIconWrapper("enter"));
-            const buttonListener =
-                addFullScreenButtonRuntime().createAbortController();
-            btn.addEventListener("click", () => nativeToggleFullscreen(), {
-                signal: buttonListener.signal,
+            installFullscreenButtonClickHandler(btn, {
+                electronApiScope,
+                screenfullEnabled: false,
             });
             wrapper.append(btn);
             addFullScreenButtonRuntime().appendToBody(wrapper);
@@ -183,10 +178,9 @@ export function addFullScreenButton(options?: FullScreenButtonOptions): void {
         btn.setAttribute("tabindex", "0");
         btn.style.pointerEvents = "auto";
         btn.append(createFullscreenIconWrapper("enter"));
-        const buttonListener =
-            addFullScreenButtonRuntime().createAbortController();
-        btn.addEventListener("click", handleFullscreenToggle, {
-            signal: buttonListener.signal,
+        installFullscreenButtonClickHandler(btn, {
+            electronApiScope,
+            screenfullEnabled: true,
         });
         wrapper.append(btn);
         addFullScreenButtonRuntime().appendToBody(wrapper);
@@ -204,7 +198,6 @@ export function setupFullscreenListeners({
     electronApiScope,
 }: FullScreenButtonOptions = {}): void {
     try {
-        activeElectronApiScope = electronApiScope;
         const screenfull = getScreenfullInstance();
         if (fullscreenKeydownHandler) {
             addFullScreenButtonRuntime().removeWindowEventListener(
@@ -224,8 +217,15 @@ export function setupFullscreenListeners({
         }
         addFullScreenButtonRuntime().removeWindowEventListener(
             "DOMContentLoaded",
-            handleDOMContentLoaded
+            handleFallbackDOMContentLoaded
         );
+        if (fullscreenDomContentLoadedHandler) {
+            addFullScreenButtonRuntime().removeWindowEventListener(
+                "DOMContentLoaded",
+                fullscreenDomContentLoadedHandler
+            );
+            fullscreenDomContentLoadedHandler = null;
+        }
         if (screenfull && screenfull.isEnabled) {
             if (typeof screenfull.off === "function") {
                 try {
@@ -238,7 +238,7 @@ export function setupFullscreenListeners({
             screenfull.on("change", handleFullscreenStateChange);
             const keyHandler = (event: Event): void => {
                 if (addFullScreenButtonRuntime().isKeyboardEvent(event)) {
-                    handleKeyboardShortcuts(event);
+                    handleKeyboardShortcuts(event, electronApiScope);
                 }
             };
             const keyListener =
@@ -256,15 +256,16 @@ export function setupFullscreenListeners({
                 addFullScreenButtonRuntime().getDocument().readyState ===
                 "loading"
             ) {
-                const domReadyListener =
-                    addFullScreenButtonRuntime().createAbortController();
+                const domReadyHandler = (): void => {
+                    handleDOMContentLoaded(electronApiScope);
+                };
                 addFullScreenButtonRuntime().addWindowEventListener(
                     "DOMContentLoaded",
-                    handleDOMContentLoaded,
-                    { signal: domReadyListener.signal }
+                    domReadyHandler
                 );
+                fullscreenDomContentLoadedHandler = domReadyHandler;
             } else {
-                handleDOMContentLoaded();
+                handleDOMContentLoaded(electronApiScope);
             }
             logWithContext("Fullscreen listeners setup completed (screenfull)");
             return;
@@ -295,7 +296,7 @@ export function setupFullscreenListeners({
         nativeFullscreenChangeHandler = nativeHandler;
         const keyHandler = (event: Event): void => {
             if (addFullScreenButtonRuntime().isKeyboardEvent(event)) {
-                handleKeyboardShortcuts(event);
+                handleKeyboardShortcuts(event, electronApiScope);
             }
         };
         const keyListener =
@@ -311,15 +312,16 @@ export function setupFullscreenListeners({
         if (
             addFullScreenButtonRuntime().getDocument().readyState === "loading"
         ) {
-            const domReadyListener =
-                addFullScreenButtonRuntime().createAbortController();
+            const domReadyHandler = (): void => {
+                handleDOMContentLoaded(electronApiScope);
+            };
             addFullScreenButtonRuntime().addWindowEventListener(
                 "DOMContentLoaded",
-                handleDOMContentLoaded,
-                { signal: domReadyListener.signal }
+                domReadyHandler
             );
+            fullscreenDomContentLoadedHandler = domReadyHandler;
         } else {
-            handleDOMContentLoaded();
+            handleDOMContentLoaded(electronApiScope);
         }
         logWithContext(
             "Using native fullscreen listeners (screenfull not enabled)"
@@ -357,10 +359,18 @@ export function resetFullscreenListenerStateForTests(): void {
 
     addFullScreenButtonRuntime().removeWindowEventListener(
         "DOMContentLoaded",
-        handleDOMContentLoaded
+        handleFallbackDOMContentLoaded
     );
+    if (fullscreenDomContentLoadedHandler) {
+        addFullScreenButtonRuntime().removeWindowEventListener(
+            "DOMContentLoaded",
+            fullscreenDomContentLoadedHandler
+        );
+        fullscreenDomContentLoadedHandler = null;
+    }
+    fullscreenButtonClickController?.abort();
+    fullscreenButtonClickController = null;
     isWindowFullscreenRequested = false;
-    activeElectronApiScope = undefined;
 }
 /** Creates the icon wrapper used by the fullscreen button. */
 function createFullscreenIconWrapper(state: "enter" | "exit"): HTMLSpanElement {
@@ -423,10 +433,40 @@ function createFullscreenSvg(
 
     return svg;
 }
+
+type FullscreenButtonClickHandlerOptions = {
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+    readonly screenfullEnabled: boolean;
+};
+
+function handleFallbackDOMContentLoaded(): void {
+    handleDOMContentLoaded();
+}
+
+function installFullscreenButtonClickHandler(
+    button: HTMLElement,
+    { electronApiScope, screenfullEnabled }: FullscreenButtonClickHandlerOptions
+): void {
+    fullscreenButtonClickController?.abort();
+    fullscreenButtonClickController =
+        addFullScreenButtonRuntime().createAbortController();
+    button.addEventListener(
+        "click",
+        screenfullEnabled
+            ? (event) => handleFullscreenToggle(event, electronApiScope)
+            : () => nativeToggleFullscreen(),
+        {
+            signal: fullscreenButtonClickController.signal,
+        }
+    );
+}
+
 /** Handles DOM content loaded initialization. */
-function handleDOMContentLoaded(): void {
+function handleDOMContentLoaded(
+    electronApiScope?: RendererElectronApiScope
+): void {
     try {
-        addFullScreenButton();
+        addFullScreenButton({ electronApiScope });
         // Watch for file load state changes
         const observer = addFullScreenButtonRuntime().createMutationObserver(
             () => {
@@ -510,11 +550,14 @@ function handleFullscreenStateChange(): void {
     }
 }
 /** Handles fullscreen toggle button click events. */
-function handleFullscreenToggle(event: Event): void {
+function handleFullscreenToggle(
+    event: Event,
+    electronApiScope?: RendererElectronApiScope
+): void {
     try {
         event.stopPropagation();
         const activeContent = getActiveTabContent();
-        const electronAPI = getElectronAPI();
+        const electronAPI = getElectronAPI(electronApiScope);
 
         if (electronAPI && typeof electronAPI.setFullScreen === "function") {
             isWindowFullscreenRequested = !isWindowFullscreenRequested;
@@ -551,7 +594,10 @@ function handleFullscreenToggle(event: Event): void {
     }
 }
 /** Handles keyboard shortcuts for fullscreen functionality. */
-function handleKeyboardShortcuts(event: KeyboardEvent): void {
+function handleKeyboardShortcuts(
+    event: KeyboardEvent,
+    electronApiScope?: RendererElectronApiScope
+): void {
     try {
         if (event.key === "Escape") {
             // Let chart-level fullscreen handlers own Escape when chart fullscreen is active.
@@ -559,7 +605,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
                 return;
             }
 
-            const electronAPI = getElectronAPI();
+            const electronAPI = getElectronAPI(electronApiScope);
             if (
                 electronAPI &&
                 typeof electronAPI.setFullScreen === "function" &&
@@ -589,7 +635,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent): void {
         if (event.key === "F11") {
             event.preventDefault();
             const activeContent = getActiveTabContent();
-            const electronAPI = getElectronAPI();
+            const electronAPI = getElectronAPI(electronApiScope);
 
             if (
                 electronAPI &&
