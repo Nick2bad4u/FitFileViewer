@@ -1,5 +1,6 @@
 import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
+import type { AppActions } from "../utils/app/lifecycle/appActions.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     AppOpeningFileSubscriber,
@@ -34,9 +35,13 @@ export type RendererSetupTheme = (
     listenForThemeChange: ListenForThemeChange | undefined,
     options?: { electronApiScope?: RendererElectronApiScope | undefined }
 ) => unknown;
+export type RendererAppInitializationActions = Pick<
+    typeof AppActions,
+    "setInitialized"
+>;
 
 type ResolvedRendererCoreModules = Readonly<{
-    readonly AppActions: Record<string, unknown> | undefined;
+    readonly AppActions: RendererAppInitializationActions | undefined;
     readonly applyTheme: ApplyTheme | undefined;
     readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
@@ -259,25 +264,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function resolveAppActionsModule(
     appActionsMod: Record<string, unknown>
-): Record<string, unknown> | undefined {
+): RendererAppInitializationActions | undefined {
     const namedActions = appActionsMod["AppActions"];
-    if (isRecord(namedActions)) {
-        return namedActions;
+    const namedInitializationActions =
+        toRendererAppInitializationActions(namedActions);
+    if (namedInitializationActions !== undefined) {
+        return namedInitializationActions;
     }
 
     const defaultRecord = toModuleRecord(appActionsMod["default"]);
     const defaultActions = defaultRecord["AppActions"];
-    if (isRecord(defaultActions)) {
-        return defaultActions;
+    const defaultInitializationActions =
+        toRendererAppInitializationActions(defaultActions);
+    if (defaultInitializationActions !== undefined) {
+        return defaultInitializationActions;
     }
 
-    if (typeof appActionsMod["setInitialized"] === "function") {
-        return appActionsMod;
+    const moduleInitializationActions =
+        toRendererAppInitializationActions(appActionsMod);
+    if (moduleInitializationActions !== undefined) {
+        return moduleInitializationActions;
     }
 
-    return typeof defaultRecord["setInitialized"] === "function"
-        ? defaultRecord
-        : undefined;
+    return toRendererAppInitializationActions(defaultRecord);
 }
 
 async function resolveCoreModule(
@@ -357,6 +366,18 @@ function toRendererSetupListeners(
 function toRendererSetupTheme(value: unknown): RendererSetupTheme | undefined {
     return typeof value === "function"
         ? (value as RendererSetupTheme)
+        : undefined;
+}
+
+function toRendererAppInitializationActions(
+    value: unknown
+): RendererAppInitializationActions | undefined {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    return typeof value["setInitialized"] === "function"
+        ? (value as RendererAppInitializationActions)
         : undefined;
 }
 

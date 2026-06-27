@@ -18675,7 +18675,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(32);
+        expect.assertions(36);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -18715,16 +18715,26 @@ describe("architecture boundaries", () => {
         );
         expect(applicationStartupSource).not.toContain("RendererCoreModules");
         expect(applicationStartupSource).not.toContain("Pick<");
-        expect(applicationStartupSource).toContain(
-            "export type RendererApplicationStartupActions = Readonly<{"
+        expect(coreModuleResolutionSource).toContain(
+            "export type RendererAppInitializationActions = Pick<"
+        );
+        expect(coreModuleResolutionSource).toContain("typeof AppActions,");
+        expect(coreModuleResolutionSource).toContain(
+            "readonly AppActions: RendererAppInitializationActions | undefined;"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "): RendererAppInitializationActions | undefined {"
         );
         expect(applicationStartupSource).toContain(
-            "readonly setInitialized?: ((initialized: boolean) => unknown) | undefined;"
+            "export type RendererApplicationStartupActions = RendererAppInitializationActions;"
         );
         expect(applicationStartupSource).toContain(
             "readonly AppActions: RendererApplicationStartupActions | undefined;"
         );
         expect(applicationStartupSource).not.toContain(
+            "readonly AppActions: Record<string, unknown> | undefined;"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
             "readonly AppActions: Record<string, unknown> | undefined;"
         );
         expect(applicationStartupSource).toContain(

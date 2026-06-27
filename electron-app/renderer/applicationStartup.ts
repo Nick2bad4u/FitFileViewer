@@ -16,6 +16,7 @@ import type { RendererAddEventListener } from "./runtimeEnvironment.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     ListenForThemeChange,
+    RendererAppInitializationActions,
     RendererHandleOpenFile,
     RendererSetupListeners,
     RendererSetupTheme,
@@ -45,9 +46,7 @@ export interface RendererDependencies {
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
-export type RendererApplicationStartupActions = Readonly<{
-    readonly setInitialized?: ((initialized: boolean) => unknown) | undefined;
-}>;
+export type RendererApplicationStartupActions = RendererAppInitializationActions;
 
 export type RendererApplicationStartupCoreModules = Readonly<{
     readonly AppActions: RendererApplicationStartupActions | undefined;
