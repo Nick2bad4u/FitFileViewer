@@ -6692,7 +6692,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(154);
+        expect.assertions(165);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6721,6 +6721,11 @@ describe("architecture boundaries", () => {
         );
         const mainUiElectronApiSource = stripComments(
             readRepositoryFile("electron-app/renderer/mainUiElectronApi.ts")
+        );
+        const mainUiElectronApiBindingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/mainUiElectronApiBindings.ts"
+            )
         );
         const mainUiStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/mainUiStartup.ts")
@@ -7002,21 +7007,50 @@ describe("architecture boundaries", () => {
         expect(mainUiStartupSource).not.toContain(
             "getMainUiRuntimeEnvironment();"
         );
-        expect(mainUiStartupSource).toContain("const electronApiScope =");
+        expect(mainUiStartupSource).toContain("mainUiElectronApiBindings.js");
         expect(mainUiStartupSource).toContain(
-            "getMainUiMenuInjectionElectronApi(electronApiScope)"
+            "createMainUiElectronApiBindings(runtimeEnvironment)"
+        );
+        expect(mainUiStartupSource).not.toContain(
+            "createRendererElectronApiScope"
         );
         expect(mainUiStartupSource).toContain(
-            "getMainUiSummarySelectorElectronApi(electronApiScope)"
+            "getSummarySelectorElectronAPI()"
         );
-        expect(mainUiStartupSource).toContain(
-            "getMainUiThemeSyncElectronApi(electronApiScope)"
+        expect(mainUiStartupSource).not.toContain(
+            "getMainUiMenuInjectionElectronApi"
         );
-        expect(mainUiStartupSource).toContain(
-            "getMainUiUnloadElectronApi(electronApiScope)"
+        expect(mainUiStartupSource).not.toContain(
+            "getMainUiSummarySelectorElectronApi"
+        );
+        expect(mainUiStartupSource).not.toContain(
+            "getMainUiThemeSyncElectronApi"
+        );
+        expect(mainUiStartupSource).not.toContain(
+            "getMainUiUnloadElectronApi"
         );
         expect(mainUiStartupSource).toContain("createMainUiDragDropHandler({");
         expect(mainUiStartupSource).toContain("electronApiScope,");
+        expect(mainUiElectronApiBindingsSource).toContain(
+            "createRendererElectronApiScope"
+        );
+        expect(mainUiElectronApiBindingsSource).toContain(
+            "Pick<MainUiRuntimeEnvironment, \"electronApiCandidate\">"
+        );
+        expect(mainUiElectronApiBindingsSource).toContain(
+            "getMainUiMenuInjectionElectronApi(electronApiScope)"
+        );
+        expect(mainUiElectronApiBindingsSource).toContain(
+            "getMainUiSummarySelectorElectronApi(electronApiScope)"
+        );
+        expect(mainUiElectronApiBindingsSource).toContain(
+            "getMainUiThemeSyncElectronApi(electronApiScope)"
+        );
+        expect(mainUiElectronApiBindingsSource).toContain(
+            "getMainUiUnloadElectronApi(electronApiScope)"
+        );
+        expect(mainUiElectronApiBindingsSource).not.toContain("globalThis.");
+        expect(mainUiElectronApiBindingsSource).not.toMatch(/\bElectronAPI\b/u);
         expect(mainUiExternalLinksSource).not.toContain(
             "mainUiRuntimeEnvironment.js"
         );
