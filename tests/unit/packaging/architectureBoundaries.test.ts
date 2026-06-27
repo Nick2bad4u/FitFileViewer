@@ -18827,7 +18827,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer test-only bootstrap off the generic function bridge", () => {
-        expect.assertions(16);
+        expect.assertions(25);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -18859,13 +18859,36 @@ describe("architecture boundaries", () => {
             "type RendererTestSetupListenersOverrideModule = Readonly<{"
         );
         expect(testOnlyBootstrapSource).toContain(
-            "isTestSetupListenersOverrideModule"
+            "readonly setupListeners?: RendererTestSetupListeners | undefined;"
         );
         expect(testOnlyBootstrapSource).toContain(
-            "isTestSetupThemeOverrideModule"
+            "readonly setupTheme?: RendererTestSetupTheme | undefined;"
         );
         expect(testOnlyBootstrapSource).toContain(
-            "isTestThemeOverrideModule"
+            "readonly applyTheme?: (() => void) | undefined;"
+        );
+        expect(testOnlyBootstrapSource).toContain(
+            "readonly listenForThemeChange?: (() => void) | undefined;"
+        );
+        expect(testOnlyBootstrapSource).not.toContain(
+            "setupListeners?: unknown;"
+        );
+        expect(testOnlyBootstrapSource).not.toContain("setupTheme?: unknown;");
+        expect(testOnlyBootstrapSource).not.toContain("applyTheme?: unknown;");
+        expect(testOnlyBootstrapSource).not.toContain(
+            "listenForThemeChange?: unknown;"
+        );
+        expect(testOnlyBootstrapSource).toContain(
+            "toTestSetupListenersOverrideModule"
+        );
+        expect(testOnlyBootstrapSource).toContain(
+            "toTestSetupThemeOverrideModule"
+        );
+        expect(testOnlyBootstrapSource).toContain(
+            "toTestThemeOverrideModule"
+        );
+        expect(testOnlyBootstrapSource).not.toContain(
+            "isTestOverrideModuleRecord"
         );
         expect(testOnlyBootstrapSource).not.toContain(
             "override as { readonly"

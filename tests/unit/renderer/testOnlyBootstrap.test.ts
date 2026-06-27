@@ -100,6 +100,36 @@ describe("renderer test-only bootstrap wiring", () => {
         expect(document.body.dataset.themeFallback).toBe("scheduled");
     });
 
+    it("ignores malformed test override functions", () => {
+        expect.assertions(2);
+
+        const { exactMocks, options } = createOptions({
+            scheduleImportTimeThemeSetup: () => {
+                document.body.dataset.themeFallback = "scheduled";
+            },
+        });
+        exactMocks.set("../../utils/app/lifecycle/listeners.js", {
+            setupListeners: "not a setup listener",
+        });
+        exactMocks.set("../../utils/theming/core/setupTheme.js", {
+            setupTheme: "not a setup theme",
+        });
+        exactMocks.set("../../utils/theming/core/theme.js", {
+            applyTheme: "not apply theme",
+            listenForThemeChange: "not listen for theme change",
+        });
+
+        const contentLoadedHandler =
+            createTestDOMContentLoadedSetupHandler(options);
+        const loadHandler = createTestWindowLoadThemeSetupHandler(options);
+
+        expect(() => {
+            contentLoadedHandler();
+            loadHandler();
+        }).not.toThrow();
+        expect(document.body.dataset.themeFallback).toBe("scheduled");
+    });
+
     it("registers removable DOMContentLoaded and load listeners", () => {
         expect.assertions(2);
 
