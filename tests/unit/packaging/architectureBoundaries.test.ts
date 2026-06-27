@@ -17179,6 +17179,23 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer error message extraction on a focused error shape", () => {
+        expect.assertions(4);
+
+        const rendererErrorHandlingSource = stripComments(
+            readRepositoryFile("electron-app/renderer/errorHandling.ts")
+        );
+
+        expect(rendererErrorHandlingSource).toContain("type RendererErrorLike");
+        expect(rendererErrorHandlingSource).toContain("toRendererErrorLike");
+        expect(rendererErrorHandlingSource).not.toContain(
+            "errorLike as Record<string, unknown>"
+        );
+        expect(rendererErrorHandlingSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
+    });
+
     it("keeps renderer test-only bootstrap off the generic function bridge", () => {
         expect.assertions(11);
 

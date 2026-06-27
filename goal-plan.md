@@ -940,6 +940,9 @@ clock reads and legacy direct runtime scope properties from returning.
 Shared error-log ISO timestamps now also route through `errorHandlingRuntime.ts` instead of constructing
 `new Date()` directly inside `logError`, with focused runtime coverage and architecture guardrails blocking direct
 timestamp construction and legacy direct runtime scope properties from returning.
+Renderer startup error-message extraction now narrows thrown values through a focused `RendererErrorLike` shape
+instead of casting arbitrary error-like values to a broad `Record<string, unknown>`, with unit and architecture
+coverage blocking that generic renderer error bucket from returning.
 Accent color picker modal lookup/body append, element and text-node creation, style element creation/head append, focus
 tracking, preview DOM queries, element-list queries, element constructor checks, listener abort-controller creation, and
 Escape-key document listener registration now route through `accentColorPickerRuntime.ts` instead of using ambient

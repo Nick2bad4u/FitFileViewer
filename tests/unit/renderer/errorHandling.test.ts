@@ -7,10 +7,13 @@ import {
 
 describe("renderer error handling", () => {
     it("extracts non-empty object messages", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         expect(getRendererErrorMessage(new Error("boom"))).toBe("boom");
         expect(getRendererErrorMessage({ message: "plain" })).toBe("plain");
+        expect(
+            getRendererErrorMessage(Object.create({ message: "inherited" }))
+        ).toBe("inherited");
         expect(getRendererErrorMessage({ message: "" })).toBe("Unknown error");
         expect(getRendererErrorMessage("string failure")).toBe("Unknown error");
     });

@@ -15,6 +15,10 @@ interface RendererErrorHandlingOptions {
     logRenderer: RendererErrorLogger;
 }
 
+type RendererErrorLike = Readonly<{
+    readonly message?: unknown;
+}>;
+
 export interface RendererErrorEventHandlers {
     handleUncaughtError: (event: ErrorEvent) => Promise<void>;
     handleUnhandledRejection: (event: PromiseRejectionEvent) => Promise<void>;
@@ -92,13 +96,13 @@ export function createRendererErrorEventHandlers(
 }
 
 export function getRendererErrorMessage(errorLike: unknown): string {
-    if (typeof errorLike !== "object" || errorLike === null) {
-        return "Unknown error";
-    }
-
-    const message = (errorLike as Record<string, unknown>)["message"];
+    const { message } = toRendererErrorLike(errorLike);
 
     return typeof message === "string" && message.length > 0
         ? message
         : "Unknown error";
+}
+
+function toRendererErrorLike(value: unknown): RendererErrorLike {
+    return typeof value === "object" && value !== null ? value : {};
 }
