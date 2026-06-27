@@ -1048,6 +1048,9 @@ constructing `AbortController`, or calling `clearTimeout` directly inside `resou
 runtime coverage and architecture guardrails blocking those direct operations from returning. Explicit resource
 manager runtime scopes must now provide timer cleanup primitives instead of falling back to `globalThis`, with
 focused runtime coverage and architecture coverage blocking that fallback from returning.
+Resource-manager specialized chart/map/observer/worker cleanup validation now checks explicit cleanup-method
+candidate properties directly instead of routing known method names through a generic `Reflect.get` helper, with
+invalid non-function marker coverage and architecture coverage blocking that reflection helper from returning.
 Recent-files context-menu viewport clamping, focus-delay scheduling/cleanup, listener abort-controller creation, menu lookup/creation/body attachment, attachment verification, body debug reads, outside-click target Node checks, and menu-age timestamp reads now go through the scoped
 `recentFilesContextMenuRuntime.ts` adapter instead of probing `globalThis.window`, `window.innerWidth`, or
 `window.innerHeight`, calling clock/timer globals, constructing `AbortController`, querying/creating through `document`, reading `document.body`, or checking ambient `Node` directly inside

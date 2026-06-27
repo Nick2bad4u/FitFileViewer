@@ -182,7 +182,7 @@ describe("resourceManager", () => {
     });
 
     it("rejects invalid specialized resources", () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         setupFixture();
 
@@ -191,6 +191,14 @@ describe("resourceManager", () => {
             expect(resourceManager.registerMap({})).toBe("");
             expect(resourceManager.registerObserver({})).toBe("");
             expect(resourceManager.registerWorker({})).toBe("");
+            expect(resourceManager.registerChart({ destroy: "nope" })).toBe("");
+            expect(resourceManager.registerMap({ remove: "nope" })).toBe("");
+            expect(
+                resourceManager.registerObserver({ disconnect: "nope" })
+            ).toBe("");
+            expect(resourceManager.registerWorker({ terminate: "nope" })).toBe(
+                ""
+            );
         } finally {
             cleanupFixture();
         }

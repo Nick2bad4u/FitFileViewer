@@ -53,39 +53,52 @@ type ResourceListItem = {
 };
 
 type DestroyableChart = { destroy: () => unknown };
-type RemovableMap = { remove: () => unknown };
+type DestroyableChartCandidate = Readonly<{ destroy?: unknown }>;
 type DisconnectableObserver = { disconnect: () => unknown };
+type DisconnectableObserverCandidate = Readonly<{ disconnect?: unknown }>;
+type RemovableMap = { remove: () => unknown };
+type RemovableMapCandidate = Readonly<{ remove?: unknown }>;
 type TerminableWorker = { terminate: () => unknown };
+type TerminableWorkerCandidate = Readonly<{ terminate?: unknown }>;
 type TimerHandle = ResourceManagerTimer;
 type IntervalHandle = ReturnType<typeof setInterval>;
 
-function hasFunctionProperty<TProperty extends string>(
-    value: unknown,
-    property: TProperty
-): value is Record<TProperty, () => unknown> {
+function isDestroyableChart(value: unknown): value is DestroyableChart {
+    const candidate = value as DestroyableChartCandidate;
     return (
         typeof value === "object" &&
         value !== null &&
-        typeof Reflect.get(value, property) === "function"
+        typeof candidate.destroy === "function"
     );
-}
-
-function isDestroyableChart(value: unknown): value is DestroyableChart {
-    return hasFunctionProperty(value, "destroy");
 }
 
 function isDisconnectableObserver(
     value: unknown
 ): value is DisconnectableObserver {
-    return hasFunctionProperty(value, "disconnect");
+    const candidate = value as DisconnectableObserverCandidate;
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        typeof candidate.disconnect === "function"
+    );
 }
 
 function isRemovableMap(value: unknown): value is RemovableMap {
-    return hasFunctionProperty(value, "remove");
+    const candidate = value as RemovableMapCandidate;
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        typeof candidate.remove === "function"
+    );
 }
 
 function isTerminableWorker(value: unknown): value is TerminableWorker {
-    return hasFunctionProperty(value, "terminate");
+    const candidate = value as TerminableWorkerCandidate;
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        typeof candidate.terminate === "function"
+    );
 }
 
 function createResource(

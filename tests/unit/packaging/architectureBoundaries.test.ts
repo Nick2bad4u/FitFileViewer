@@ -13585,7 +13585,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(39);
+        expect.assertions(46);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -13610,6 +13610,17 @@ describe("architecture boundaries", () => {
         expect(resourceManagerSource).not.toContain("window.addEventListener");
         expect(resourceManagerSource).not.toContain("AbortController");
         expect(resourceManagerSource).not.toContain("Date.now");
+        expect(resourceManagerSource).not.toContain("Reflect.get(");
+        expect(resourceManagerSource).not.toContain("hasFunctionProperty");
+        expect(resourceManagerSource).toContain("DestroyableChartCandidate");
+        expect(resourceManagerSource).toContain("RemovableMapCandidate");
+        expect(resourceManagerSource).toContain(
+            "DisconnectableObserverCandidate"
+        );
+        expect(resourceManagerSource).toContain("TerminableWorkerCandidate");
+        expect(resourceManagerSource).toContain(
+            'typeof candidate.destroy === "function"'
+        );
         expect(
             directResourceManagerRuntimeGlobalPattern.test(
                 resourceManagerSource
