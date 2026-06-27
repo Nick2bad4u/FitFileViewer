@@ -114,16 +114,12 @@ function restorePerformanceMemory(): void {
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        expect.assertions(3);
+        expect.assertions(1);
         resetTestEnvironment();
 
         expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
             "function"
         );
-        expect(stateIntegration.setupStatePerformanceMonitoring).toBeTypeOf(
-            "function"
-        );
-        expect(stateIntegration.setupStatePersistence).toBeTypeOf("function");
 
         resetTestEnvironment();
     });
@@ -140,7 +136,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
         });
         installLocalStorage(storageFixture.storage);
 
-        stateIntegration.setupStatePersistence();
+        stateIntegration.initializeCompleteStateSystem();
 
         expect(storageFixture.storage.getItem).toHaveBeenCalledWith(
             persistedStateKey
@@ -166,7 +162,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
         const storageFixture = createStorageFixture();
         installLocalStorage(storageFixture.storage);
 
-        stateIntegration.setupStatePersistence();
+        stateIntegration.initializeCompleteStateSystem();
         setState("ui.theme", "dark");
         vi.advanceTimersByTime(500);
 
@@ -197,7 +193,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
             usedJSHeapSize: 256 * 1024 * 1024,
         });
 
-        stateIntegration.setupStatePerformanceMonitoring();
+        stateIntegration.initializeCompleteStateSystem();
         vi.advanceTimersByTime(30_000);
 
         expect(getState("performance.memoryUsage")).toEqual({

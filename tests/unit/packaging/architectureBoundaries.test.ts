@@ -14023,7 +14023,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(51);
+        expect.assertions(55);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -14054,6 +14054,18 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationSource).toContain("function initializeAppState");
         expect(stateIntegrationSource).not.toContain(
             "export function initializeAppState"
+        );
+        expect(stateIntegrationSource).toContain(
+            "function setupStatePerformanceMonitoring"
+        );
+        expect(stateIntegrationSource).not.toContain(
+            "export function setupStatePerformanceMonitoring"
+        );
+        expect(stateIntegrationSource).toContain(
+            "function setupStatePersistence"
+        );
+        expect(stateIntegrationSource).not.toContain(
+            "export function setupStatePersistence"
         );
         expect(stateIntegrationSource).not.toContain(
             "const stateIntegrationRuntime = getStateIntegrationRuntime();"

@@ -66,7 +66,7 @@ export function initializeCompleteStateSystem(): void {
 /**
  * Set up performance monitoring for state changes
  */
-export function setupStatePerformanceMonitoring(): void {
+function setupStatePerformanceMonitoring(): void {
     let lastResetTime = stateIntegrationRuntime().dateNow(),
         stateChangeCount = 0;
 
@@ -115,7 +115,7 @@ export function setupStatePerformanceMonitoring(): void {
 /**
  * Set up state persistence for important UI state
  */
-export function setupStatePersistence(): void {
+function setupStatePersistence(): void {
     const storage = getStorage();
     if (!storage) {
         return;

@@ -232,7 +232,7 @@ describe("stateIntegration comprehensive coverage", () => {
             vi.useFakeTimers();
             setTestGlobal("performance", mockPerformance);
 
-            const { setupStatePerformanceMonitoring } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi
@@ -245,7 +245,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 return vi.fn<StateUnsubscribe>(); // unsubscribe function
             });
 
-            setupStatePerformanceMonitoring();
+            initializeCompleteStateSystem();
             expect(mockStateManager.subscribe).toHaveBeenCalledWith(
                 "",
                 expect.any(Function)
@@ -290,10 +290,10 @@ describe("stateIntegration comprehensive coverage", () => {
             // Remove memory from performance mock
             delete (globalThis.performance as any).memory;
 
-            const { setupStatePerformanceMonitoring } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            expect(() => setupStatePerformanceMonitoring()).not.toThrow();
+            expect(() => initializeCompleteStateSystem()).not.toThrow();
 
             // Fast forward timers
             vi.advanceTimersByTime(60000);
@@ -333,14 +333,14 @@ describe("stateIntegration comprehensive coverage", () => {
                 return undefined;
             });
 
-            const { setupStatePersistence } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
 
-            setupStatePersistence();
+            initializeCompleteStateSystem();
 
             expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
                 "fitFileViewer_uiState"
@@ -392,14 +392,14 @@ describe("stateIntegration comprehensive coverage", () => {
                 throw new Error("localStorage not available");
             });
 
-            const { setupStatePersistence } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            expect(() => setupStatePersistence()).not.toThrow();
+            expect(() => initializeCompleteStateSystem()).not.toThrow();
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Failed to load persisted state:",
@@ -417,14 +417,14 @@ describe("stateIntegration comprehensive coverage", () => {
 
             mockLocalStorage.getItem.mockReturnValue("invalid json");
 
-            const { setupStatePersistence } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            expect(() => setupStatePersistence()).not.toThrow();
+            expect(() => initializeCompleteStateSystem()).not.toThrow();
 
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Failed to load persisted state:",
@@ -444,7 +444,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             vi.useFakeTimers();
 
-            const { setupStatePersistence } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             // Test setting nested values (through persistence)
@@ -455,7 +455,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 return undefined;
             });
 
-            setupStatePersistence();
+            initializeCompleteStateSystem();
 
             const subscribeCallback =
                 mockStateManager.subscribe.mock.calls.find(
