@@ -1,4 +1,9 @@
-import * as StateManager from "../core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    subscribeSingleton,
+} from "../core/stateManager.js";
 
 export type RendererStateGetter = (path?: string) => unknown;
 export type RendererStateSetter = (
@@ -31,25 +36,24 @@ type RendererStateManagerCandidate = Partial<RendererStateManagerAccess>;
 export function getRendererCoreStateManager():
     | RendererStateManagerAccess
     | undefined {
-    return toRendererStateManagerAccess(StateManager);
+    return toRendererStateManagerAccess({
+        getState,
+        setState,
+        subscribe,
+    });
 }
 
 export function getRendererCoreSubscribeSingleton():
     | RendererStateSubscribeSingleton
     | undefined {
-    const candidate = StateManager as {
-        readonly subscribeSingleton?: unknown;
-    };
-    return typeof candidate.subscribeSingleton === "function"
-        ? (candidate.subscribeSingleton as RendererStateSubscribeSingleton)
-        : undefined;
+    return subscribeSingleton;
 }
 
 export function getRequiredRendererCoreStateManager(): RendererStateManagerAccess {
     return {
-        getState: StateManager.getState,
-        setState: StateManager.setState,
-        subscribe: StateManager.subscribe,
+        getState,
+        setState,
+        subscribe,
     };
 }
 

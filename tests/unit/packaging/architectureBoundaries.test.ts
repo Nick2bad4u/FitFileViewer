@@ -5613,10 +5613,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(20);
+        expect.assertions(22);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
+        );
+        const rendererStateManagerAccessSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererStateManagerAccess.ts"
+            )
         );
         const stateStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/stateManagerStartup.ts")
@@ -5680,6 +5685,10 @@ describe("architecture boundaries", () => {
         );
         expect(stateStartupSource).not.toContain("toModuleRecord");
         expect(stateStartupSource).not.toContain("masterStateManagerRecord");
+        expect(rendererStateManagerAccessSource).not.toContain("import * as");
+        expect(rendererStateManagerAccessSource).toContain(
+            "subscribeSingleton"
+        );
         expect(stateStartupSource).toContain("subscribeToAppOpeningFile");
         expect(rendererEntrypointSource).not.toContain(
             "createRendererStateStartup({\n    ensureCoreModules,\n    logRenderer,\n    toModuleRecord,"
