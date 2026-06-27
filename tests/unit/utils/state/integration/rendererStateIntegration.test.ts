@@ -433,6 +433,41 @@ describe("rendererStateIntegration", () => {
         loadingHandler(true);
     });
 
+    it("cleans up managed subscriptions before reinitializing", async () => {
+        expect.assertions(20);
+
+        const module = await importTarget();
+
+        module.initializeRendererWithNewStateSystem();
+        const firstHandlers = [...subscriptionHandlers.values()].flat();
+        const firstUnsubscribes = firstHandlers.map((handler) =>
+            requireValue(
+                unsubscribeRegistry.get(handler),
+                "Expected unsubscribe handler for first initialization"
+            )
+        );
+
+        expect(firstHandlers).toHaveLength(7);
+        expect(getHandlers("fitFile.rawData")).toHaveLength(1);
+        expect(getHandlers("ui.activeTab")).toHaveLength(2);
+        expect(getHandlers("charts.isRendered")).toHaveLength(1);
+        expect(getHandlers("isLoading")).toHaveLength(1);
+        expect(getHandlers("ui.theme")).toHaveLength(1);
+        expect(getHandlers("charts.controlsVisible")).toHaveLength(1);
+
+        module.initializeRendererWithNewStateSystem();
+
+        for (const unsubscribe of firstUnsubscribes) {
+            expect(unsubscribe).toHaveBeenCalledOnce();
+        }
+        expect(getHandlers("fitFile.rawData")).toHaveLength(1);
+        expect(getHandlers("ui.activeTab")).toHaveLength(2);
+        expect(getHandlers("charts.isRendered")).toHaveLength(1);
+        expect(getHandlers("isLoading")).toHaveLength(1);
+        expect(getHandlers("ui.theme")).toHaveLength(1);
+        expect(getHandlers("charts.controlsVisible")).toHaveLength(1);
+    });
+
     it("rejects malformed file-open APIs without blocking state-aware handlers", async () => {
         expect.assertions(5);
 

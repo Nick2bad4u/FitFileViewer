@@ -36,6 +36,7 @@ type RendererStateIntegrationOptions = {
 };
 
 let stateAwareEventHandlersAbortController: AbortController | undefined;
+const rendererStateIntegrationUnsubscribes: Unsubscribe[] = [];
 
 function rendererStateIntegrationRuntime(): RendererStateIntegrationRuntime {
     return getRendererStateIntegrationRuntime();
@@ -57,6 +58,39 @@ function getRendererStateElectronAPI(
     electronApiScope: RendererElectronApiScope | undefined
 ): RendererElectronAPI | null {
     return getRendererElectronApi(isRendererElectronAPI, electronApiScope);
+}
+
+function invokeUnsubscribe(unsubscribe: Unsubscribe): void {
+    try {
+        unsubscribe();
+    } catch {
+        /* Ignore cleanup errors */
+    }
+}
+
+function cleanupRendererStateIntegrationSubscriptions(): void {
+    for (const unsubscribe of rendererStateIntegrationUnsubscribes.splice(0)) {
+        invokeUnsubscribe(unsubscribe);
+    }
+}
+
+function cleanupStateAwareEventHandlers(): void {
+    stateAwareEventHandlersAbortController?.abort();
+    stateAwareEventHandlersAbortController = undefined;
+}
+
+function subscribeRendererState(
+    path: string,
+    handler: Parameters<typeof subscribe>[1]
+): Unsubscribe {
+    const unsubscribe = subscribe(path, handler);
+    rendererStateIntegrationUnsubscribes.push(unsubscribe);
+    return unsubscribe;
+}
+
+export function cleanupRendererStateIntegration(): void {
+    cleanupStateAwareEventHandlers();
+    cleanupRendererStateIntegrationSubscriptions();
 }
 
 /**
@@ -112,6 +146,7 @@ export function initializeRendererWithNewStateSystem({
     electronApiScope,
 }: RendererStateIntegrationOptions = {}): void {
     console.log("[Renderer] Starting initialization with new state system...");
+    cleanupRendererStateIntegration();
 
     // Initialize the complete state system first
     initializeCompleteStateSystem();
@@ -196,7 +231,7 @@ function handleTabChange(activeTab: string): void {
  */
 function initializeComponentsWithState(): void {
     // Subscribe to data loading events
-    subscribe("fitFile.rawData", (newData) => {
+    subscribeRendererState("fitFile.rawData", (newData) => {
         if (newData) {
             console.log("[Renderer] New data loaded, updating components...");
             updateAllComponents(newData);
@@ -204,7 +239,7 @@ function initializeComponentsWithState(): void {
     });
 
     // Subscribe to active tab changes
-    subscribe("ui.activeTab", (activeTab) => {
+    subscribeRendererState("ui.activeTab", (activeTab) => {
         if (typeof activeTab !== "string") {
             return;
         }
@@ -214,14 +249,14 @@ function initializeComponentsWithState(): void {
     });
 
     // Subscribe to chart rendering state
-    subscribe("charts.isRendered", (isRendered) => {
+    subscribeRendererState("charts.isRendered", (isRendered) => {
         if (isRendered) {
             console.log("[Renderer] Charts have been rendered");
         }
     });
 
     // Subscribe to loading state
-    subscribe("isLoading", (isLoading) => {
+    subscribeRendererState("isLoading", (isLoading) => {
         console.log(`[Renderer] Loading state: ${isLoading}`);
         // Update UI loading indicators
     });
@@ -314,7 +349,7 @@ function setupReactiveUI(): void {
     const documentRef = rendererStateIntegrationRuntime().getDocument();
 
     // Update tab visibility when active tab changes
-    subscribe("ui.activeTab", (activeTab) => {
+    subscribeRendererState("ui.activeTab", (activeTab) => {
         if (typeof activeTab !== "string") {
             return;
         }
@@ -330,14 +365,14 @@ function setupReactiveUI(): void {
     });
 
     // Update theme when it changes
-    subscribe("ui.theme", (theme) => {
+    subscribeRendererState("ui.theme", (theme) => {
         if (typeof theme === "string" && theme) {
             documentRef.documentElement.dataset["theme"] = theme;
         }
     });
 
     // Update chart controls visibility
-    subscribe("charts.controlsVisible", (isVisible) => {
+    subscribeRendererState("charts.controlsVisible", (isVisible) => {
         const wrapper = getChartSettingsWrapper(documentRef);
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";
@@ -360,7 +395,7 @@ function setupStateAwareEventHandlers({
         });
     }
 
-    stateAwareEventHandlersAbortController?.abort();
+    cleanupStateAwareEventHandlers();
     stateAwareEventHandlersAbortController =
         rendererStateIntegrationRuntime().createAbortController();
     const { signal } = stateAwareEventHandlersAbortController;
