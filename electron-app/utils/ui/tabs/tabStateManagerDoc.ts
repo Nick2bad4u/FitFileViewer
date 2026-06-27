@@ -1,4 +1,3 @@
-import { getTabTestDocumentForTests } from "./tabTestEnvironment.js";
 import { getTabDocumentRuntime } from "./tabDocumentRuntime.js";
 
 /**
@@ -6,9 +5,7 @@ import { getTabDocumentRuntime } from "./tabDocumentRuntime.js";
  * present.
  */
 export function getDoc(): Document {
-    const documentRef = getTabDocumentRuntime().getDocument(
-        getTabTestDocumentForTests()
-    );
+    const documentRef = getTabDocumentRuntime().getDocument();
     if (!documentRef) {
         throw new TypeError("tabStateManagerDoc requires a document runtime");
     }

@@ -10940,7 +10940,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(42);
+        expect.assertions(44);
 
         const tabStateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/tabStateManager.ts")
@@ -10983,6 +10983,10 @@ describe("architecture boundaries", () => {
         expect(tabStateManagerSupportSource).toContain("isTabElement");
         expect(tabStateManagerSupportSource).toContain("isTabHTMLElement");
         expect(tabStateManagerDocSource).toContain("tabDocumentRuntime.js");
+        expect(tabStateManagerSupportSource).not.toContain(
+            "tabTestEnvironment.js"
+        );
+        expect(tabStateManagerDocSource).not.toContain("tabTestEnvironment.js");
         expect(tabStateManagerSupportSource).not.toContain(
             "const tabDocumentRuntime = getTabDocumentRuntime();"
         );

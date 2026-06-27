@@ -45,12 +45,9 @@ function getEffectiveStateManager(): EffectiveStateManager {
     return eff;
 }
 
-// This suite specifically validates the getStateMgr() fallback path via the
-// tab test environment, independent of the normal module mocks.
+// This suite validates the tab state manager against the typed renderer state
+// access seam instead of the retired tab test-environment fallback.
 
-// Mock the state manager module with missing/non-functional `subscribe` so
-// getStateMgr() must use the tab test-environment fallback branch, while still
-// providing the named exports required by transitive imports.
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
@@ -61,8 +58,17 @@ vi.mock(
         }),
         setState: undefined,
         updateState: undefined,
-        // Intentionally non-function so tabStateManager's getStateMgr() does not accept module exports.
         subscribe: vi.fn<Subscribe>(() => noop),
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/rendererStateManagerAccess.js"),
+    () => ({
+        getRendererCoreStateManager: vi.fn(
+            () => effectiveStateManagerRef.current
+        ),
+        getRequiredRendererCoreStateManager: vi.fn(getEffectiveStateManager),
     })
 );
 
@@ -98,22 +104,14 @@ describe("tabStateManager.fallback", () => {
             setState: vi.fn<SetState>(),
             subscribe: vi.fn<Subscribe>(() => noop),
         };
-        const { setTabTestEnvironmentForTests } =
-            await import("../../../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
-        setTabTestEnvironmentForTests({
-            stateManager: effectiveStateManagerRef.current,
-        });
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         vi.restoreAllMocks();
-        const { setTabTestEnvironmentForTests } =
-            await import("../../../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
-        setTabTestEnvironmentForTests(null);
         effectiveStateManagerRef.current = null;
     });
 
-    it("uses tab test state manager fallback and renders summary path", async () => {
+    it("uses typed renderer state-manager access and renders summary path", async () => {
         expect.assertions(6);
 
         const mod =
