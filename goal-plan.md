@@ -1684,8 +1684,8 @@ Main UI Electron API candidate typing now uses an explicit `MainUiElectronApi` i
 API-domain contracts instead of `Partial<Pick<ElectronAPI, ...>>`.
 Main UI Electron API candidate validation now uses direct optional-function property checks instead of casting the
 candidate to `Readonly<Record<string, unknown>>`.
-Main UI DOM utility FIT decoder candidate typing now uses the shared file API-domain contract instead of deriving
-from the monolithic `ElectronAPI` type.
+Main UI DOM utility FIT decoder candidate typing now uses an explicit readonly method alias backed by the shared file
+API-domain contract instead of deriving from the monolithic `ElectronAPI` type or carrying a generic local interface.
 Generic renderer helper runtimes now import shared `browserRuntime.ts` providers directly for document,
 constructor, timer, event-target, AbortController, location, navigator, and performance defaults; the
 renderer-specific browser runtime remains focused on composing the renderer entrypoint environment scope.
