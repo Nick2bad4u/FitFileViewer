@@ -26,7 +26,13 @@ type UnifiedStateSnapshot = {
 
 type Unsubscribe = () => void;
 
-const BLOCKED_STATE_PATHS = new Set(["globalData"]);
+type RetiredStateRootPath = "globalData";
+
+const RETIRED_STATE_ROOT_PATHS = new Set<RetiredStateRootPath>(["globalData"]);
+
+function isRetiredStateRootPath(path: string): path is RetiredStateRootPath {
+    return RETIRED_STATE_ROOT_PATHS.has(path as RetiredStateRootPath);
+}
 
 function unifiedStateManagerRuntime(): UnifiedStateManagerRuntime {
     return getUnifiedStateManagerRuntime();
@@ -140,9 +146,7 @@ export class UnifiedStateManager {
 
     private isBlockedStatePath(path: string): boolean {
         const [rootPath] = path.split(".");
-        return (
-            typeof rootPath === "string" && BLOCKED_STATE_PATHS.has(rootPath)
-        );
+        return typeof rootPath === "string" && isRetiredStateRootPath(rootPath);
     }
 
     private warnBlockedStatePathOnce(

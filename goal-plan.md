@@ -1620,6 +1620,8 @@ use the environment's native element constructors without another shared global 
 Unified state facade legacy-path synchronization has been removed; `unifiedStateManager.ts` now only guards retired
 state paths such as `globalData` and otherwise routes directly through the modern state manager, with focused coverage
 and architecture coverage blocking `LEGACY_PATHS`, `syncLegacy`, `legacy-sync`, and `setSyncEnabled` from returning.
+That retired-path guard is now named as an explicit `RETIRED_STATE_ROOT_PATHS` quarantine, and the focused
+`globalData` regression coverage proves retired reads, writes, and subscriptions stay fallback/no-op only.
 App-domain renderer facade subscription event timestamps now route through `appDomainStateRuntime.ts` instead of calling
 `Date.now` directly inside `appDomainState.ts`, with focused runtime coverage and architecture coverage blocking direct
 clock reads and legacy direct runtime scope properties from returning.
