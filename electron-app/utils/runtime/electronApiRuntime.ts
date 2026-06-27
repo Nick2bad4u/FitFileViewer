@@ -1,4 +1,3 @@
-import type { ElectronAPI } from "../../shared/preloadApi.js";
 import { getBrowserElectronApiCandidate } from "./browserRuntime.js";
 
 export type RendererElectronApiScope = {
@@ -11,7 +10,7 @@ export type RendererElectronApiCandidate = object;
  * Resolves the preload-exposed Electron API through a single typed boundary.
  */
 export function getRendererElectronApi<
-    T extends RendererElectronApiCandidate = Partial<ElectronAPI>,
+    T extends RendererElectronApiCandidate = RendererElectronApiCandidate,
 >(
     isExpectedApi: (value: unknown) => value is T,
     scope?: RendererElectronApiScope

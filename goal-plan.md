@@ -1665,9 +1665,10 @@ Chart status indicator tests now restore error capture through a scoped Vitest s
 Preload development-mode and edge-case tests now capture mocked `contextBridge.exposeInMainWorld` calls in
 module-local exposure maps instead of clearing or restoring `electronAPI`/`devTools` globals, with architecture
 coverage blocking global fixture definitions or cleanup in those source tests.
-Electron API runtime tests now prove the default runtime ignores ambient `electronAPI` globals and relies on a
-registered startup candidate or explicit scoped provider instead of defining or deleting `globalThis.electronAPI`
-directly, with architecture coverage blocking that direct fixture mutation and the retired default global lookup.
+Electron API runtime tests now prove the default runtime reads preload candidates only through the centralized
+browser-runtime provider or explicit scoped provider instead of defining or deleting `globalThis.electronAPI`
+directly, with architecture coverage blocking that direct fixture mutation, the retired default global lookup, and
+central runtime candidate defaults that route through `Partial<ElectronAPI>`.
 Renderer startup hooks now accept explicit Electron API lookup only through `getElectronApiScope`, not raw
 `RendererElectronApiScope` arguments or ambient global fallbacks, with runtime coverage and architecture coverage
 blocking those compatibility shapes from returning.
