@@ -13,13 +13,14 @@ describe("rendererEnvironmentRuntime", () => {
         const environmentInput = {
             developmentFlag: true,
             document: { documentElement: { dataset: {} } },
-            electronAPI: { __devMode: false },
+            electronApiCandidate: { __devMode: false },
             location: { hostname: "localhost" },
         };
         const utils = getRendererEnvironmentRuntime({
             getDevelopmentFlag: () => environmentInput.developmentFlag,
             getDocument: () => environmentInput.document,
-            getElectronAPI: () => environmentInput.electronAPI,
+            getElectronApiCandidate: () =>
+                environmentInput.electronApiCandidate,
             getLocation: () => environmentInput.location,
         });
 
@@ -36,7 +37,7 @@ describe("rendererEnvironmentRuntime", () => {
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
             developmentFlag: undefined,
             document: undefined,
-            electronAPI: undefined,
+            electronApiCandidate: undefined,
             location: undefined,
         });
     });
@@ -53,13 +54,13 @@ describe("rendererEnvironmentRuntime", () => {
         const {
             developmentFlag,
             document: runtimeDocument,
-            electronAPI: runtimeElectronAPI,
+            electronApiCandidate: runtimeElectronApiCandidate,
             location,
         } = utils.getDefaultRendererEnvironmentInput();
 
         expect(developmentFlag).toBe(true);
         expect(runtimeDocument).toBe(document);
-        expect(runtimeElectronAPI).toBe(electronAPI);
+        expect(runtimeElectronApiCandidate).toBe(electronAPI);
         expect(location).toBe(globalThis.location);
     });
 
@@ -78,7 +79,7 @@ describe("rendererEnvironmentRuntime", () => {
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
             developmentFlag: undefined,
             document: undefined,
-            electronAPI: undefined,
+            electronApiCandidate: undefined,
             location: undefined,
         });
     });

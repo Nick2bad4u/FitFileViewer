@@ -8,14 +8,14 @@ import {
 export interface RendererEnvironmentInput {
     readonly developmentFlag?: unknown;
     readonly document?: unknown;
-    readonly electronAPI?: unknown;
+    readonly electronApiCandidate?: unknown;
     readonly location?: unknown;
 }
 
 export interface RendererEnvironmentRuntimeScope {
     readonly getDevelopmentFlag?: (() => unknown) | undefined;
     readonly getDocument?: (() => unknown) | undefined;
-    readonly getElectronAPI?: (() => unknown) | undefined;
+    readonly getElectronApiCandidate?: (() => unknown) | undefined;
     readonly getLocation?: (() => unknown) | undefined;
 }
 
@@ -27,7 +27,7 @@ const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
     {
         getDevelopmentFlag: getBrowserDevelopmentFlag,
         getDocument: getBrowserDocument,
-        getElectronAPI: getBrowserElectronApiCandidate,
+        getElectronApiCandidate: getBrowserElectronApiCandidate,
         getLocation: getBrowserLocation,
     };
 
@@ -39,7 +39,7 @@ export function getRendererEnvironmentRuntime(
             return {
                 developmentFlag: scope.getDevelopmentFlag?.(),
                 document: scope.getDocument?.(),
-                electronAPI: scope.getElectronAPI?.(),
+                electronApiCandidate: scope.getElectronApiCandidate?.(),
                 location: scope.getLocation?.(),
             };
         },

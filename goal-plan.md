@@ -1698,6 +1698,9 @@ Architecture coverage now scans app source with comments stripped and keeps dire
 access centralized in `browserRuntime.ts`, preventing retired renderer globals from returning in individual modules.
 Renderer environment input normalization now uses focused local input/location/document/Electron dev-mode contracts
 instead of generic `Reflect.get` probes, with architecture coverage blocking that reflection path from returning.
+Renderer environment dev-mode input now names the preload bridge value as `electronApiCandidate` and accepts it only
+through `getElectronApiCandidate`, with unit and architecture coverage blocking the old direct `electronAPI`
+input/provider shape.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.

@@ -6582,7 +6582,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(36);
+        expect.assertions(42);
 
         const rendererEnvironmentRawSource = readRepositoryFile(
             "electron-app/utils/app/initialization/rendererEnvironment.ts"
@@ -6616,6 +6616,13 @@ describe("architecture boundaries", () => {
         );
         expect(rendererEnvironmentSource).toContain(
             "interface RendererEnvironmentInputRecord"
+        );
+        expect(rendererEnvironmentSource).toContain("electronApiCandidate");
+        expect(rendererEnvironmentSource).not.toContain(
+            "readonly electronAPI?: unknown"
+        );
+        expect(rendererEnvironmentSource).not.toContain(
+            "electronAPI: inputRecord.electronAPI"
         );
         expect(rendererEnvironmentSource).toContain("toLocationRecord");
         expect(rendererEnvironmentSource).not.toContain("Reflect.get(");
@@ -6655,10 +6662,19 @@ describe("architecture boundaries", () => {
             "getDocument: getBrowserDocument"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
+            "getElectronApiCandidate: getBrowserElectronApiCandidate"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getElectronAPI: getBrowserElectronApiCandidate"
         );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getElectronAPI: getGlobalElectronAPI"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "readonly getElectronAPI?:"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "electronAPI: scope.getElectronAPI?.()"
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "getLocation: getBrowserLocation"

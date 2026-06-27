@@ -18,7 +18,7 @@ interface RendererEnvironmentInputRecord {
     readonly __DEVELOPMENT__?: unknown;
     readonly developmentFlag?: unknown;
     readonly document?: unknown;
-    readonly electronAPI?: unknown;
+    readonly electronApiCandidate?: unknown;
     readonly location?: unknown;
 }
 
@@ -84,10 +84,10 @@ function hasDocumentDevModeFlag(
     return Object.hasOwn(dataset, "devMode");
 }
 
-function hasElectronDevModeFlag(
+function hasElectronDevModeCandidateFlag(
     environmentInput: RendererEnvironmentInput
 ): boolean {
-    return isElectronDevModeApi(environmentInput.electronAPI);
+    return isElectronDevModeCandidate(environmentInput.electronApiCandidate);
 }
 
 function isDebugRendererLocation(
@@ -136,7 +136,7 @@ function toLocationRecord(value: unknown): RendererLocationRecord {
     return toObject(value);
 }
 
-function isElectronDevModeApi(value: unknown): value is {
+function isElectronDevModeCandidate(value: unknown): value is {
     readonly __devMode: unknown;
 } {
     return toElectronDevModeRecord(value).__devMode !== undefined;
@@ -159,7 +159,7 @@ function toRendererEnvironmentInput(
                 ? inputRecord.developmentFlag
                 : inputRecord.__DEVELOPMENT__,
         document: inputRecord.document,
-        electronAPI: inputRecord.electronAPI,
+        electronApiCandidate: inputRecord.electronApiCandidate,
         location: inputRecord.location,
     };
 }
@@ -205,7 +205,7 @@ export function isDevelopmentMode(
             isDebugRendererLocation(locationParts) ||
             resolvedEnvironmentInput.developmentFlag === true ||
             hasDocumentDevModeFlag(resolvedEnvironmentInput) ||
-            hasElectronDevModeFlag(resolvedEnvironmentInput)
+            hasElectronDevModeCandidateFlag(resolvedEnvironmentInput)
         );
     } catch {
         return false;

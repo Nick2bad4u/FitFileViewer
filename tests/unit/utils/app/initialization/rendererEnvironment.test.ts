@@ -126,15 +126,9 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createEnvironmentInput({ electronAPI: { __devMode: false } })
-            ),
-        }).toStrictEqual({
-            development: true,
-        });
-
-        expect({
-            development: isDevelopmentMode(
-                createEnvironmentInput({ electronAPI: { __devMode: null } })
+                createEnvironmentInput({
+                    electronApiCandidate: { __devMode: false },
+                })
             ),
         }).toStrictEqual({
             development: true,
@@ -143,7 +137,17 @@ describe("rendererEnvironment", () => {
         expect({
             development: isDevelopmentMode(
                 createEnvironmentInput({
-                    electronAPI: { __devMode: undefined },
+                    electronApiCandidate: { __devMode: null },
+                })
+            ),
+        }).toStrictEqual({
+            development: true,
+        });
+
+        expect({
+            development: isDevelopmentMode(
+                createEnvironmentInput({
+                    electronApiCandidate: { __devMode: undefined },
                 })
             ),
         }).toStrictEqual({
@@ -158,7 +162,9 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createEnvironmentInput({ electronAPI: inheritedElectronApi })
+                createEnvironmentInput({
+                    electronApiCandidate: inheritedElectronApi,
+                })
             ),
         }).toStrictEqual({ development: true });
     });
@@ -172,7 +178,7 @@ describe("rendererEnvironment", () => {
                     dataset: "not a dataset",
                 },
             },
-            electronAPI: "not an api",
+            electronApiCandidate: "not an api",
             location: {
                 hostname: null,
                 href: undefined,
