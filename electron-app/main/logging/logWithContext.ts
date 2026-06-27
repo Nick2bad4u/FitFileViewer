@@ -129,5 +129,3 @@ export function logWithContext(
 
     log(`[${timestamp}] [main.js] ${message}`);
 }
-
-export default { logWithContext };
