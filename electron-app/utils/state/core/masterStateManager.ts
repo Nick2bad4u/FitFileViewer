@@ -92,6 +92,8 @@ type StateManagerApi = {
     subscribe: typeof subscribe;
 };
 
+type StateUnsubscribe = () => void;
+
 type RuntimeSettingsStateManager = typeof settingsStateManager & {
     cleanup?: () => void;
     initialize?: () => unknown;
@@ -292,6 +294,8 @@ export class MasterStateManager {
 
     private eventController = masterStateRuntime().createAbortController();
 
+    private readonly integrationUnsubscribes: StateUnsubscribe[] = [];
+
     private performanceMonitorInterval: MasterStateIntervalHandle | null = null;
 
     private performanceMonitorUnsubscribe: (() => void) | null = null;
@@ -417,6 +421,24 @@ export class MasterStateManager {
         );
     }
 
+    private cleanupIntegrationSubscriptions(): void {
+        for (const unsubscribe of this.integrationUnsubscribes.splice(0)) {
+            try {
+                unsubscribe();
+            } catch {
+                /* Ignore cleanup errors */
+            }
+        }
+    }
+
+    private trackIntegrationSubscription(subscription: unknown): void {
+        if (typeof subscription === "function") {
+            this.integrationUnsubscribes.push(() => {
+                subscription();
+            });
+        }
+    }
+
     /**
      * Clean up all state management
      */
@@ -435,6 +457,8 @@ export class MasterStateManager {
             this.performanceMonitorUnsubscribe();
             this.performanceMonitorUnsubscribe = null;
         }
+
+        this.cleanupIntegrationSubscriptions();
 
         const stateAPI = this.getStateManagerAPI();
 
@@ -958,38 +982,45 @@ export class MasterStateManager {
      * Set up integrations between components
      */
     setupIntegrations() {
+        this.cleanupIntegrationSubscriptions();
+
         const stateAPI = this.getStateManagerAPI();
         // Integrate file operations with UI state
-        stateAPI.subscribe("fitFile.rawData", (data: unknown) => {
-            if (data) {
-                // Enable tabs when data is loaded
-                const { UIActions: dynUI } = this.getUIStateModule();
-                dynUI.showTab("summary");
-            } else {
-                // Disable tabs when no data
-                const { UIActions: dynUI } = this.getUIStateModule();
-                dynUI.showTab("summary");
-            }
-        });
+        this.trackIntegrationSubscription(
+            stateAPI.subscribe("fitFile.rawData", (data: unknown) => {
+                if (data) {
+                    // Enable tabs when data is loaded
+                    const { UIActions: dynUI } = this.getUIStateModule();
+                    dynUI.showTab("summary");
+                } else {
+                    // Disable tabs when no data
+                    const { UIActions: dynUI } = this.getUIStateModule();
+                    dynUI.showTab("summary");
+                }
+            })
+        );
 
-        // Integrate loading state with UI
-        stateAPI.subscribe("isLoading", (isLoading: unknown) => {
-            // Update UI elements based on loading state
-            const elements = masterStateRuntime().getLoadingSensitiveElements();
-            for (const el of elements) {
-                const isLoadingActive = Boolean(isLoading);
-                el.style.pointerEvents = isLoadingActive ? "none" : "auto";
-                el.style.opacity = isLoadingActive ? "0.5" : "1";
-            }
-        });
+        this.trackIntegrationSubscription(
+            stateAPI.subscribe("isLoading", (isLoading: unknown) => {
+                // Update UI elements based on loading state
+                const elements =
+                    masterStateRuntime().getLoadingSensitiveElements();
+                for (const el of elements) {
+                    const isLoadingActive = Boolean(isLoading);
+                    el.style.pointerEvents = isLoadingActive ? "none" : "auto";
+                    el.style.opacity = isLoadingActive ? "0.5" : "1";
+                }
+            })
+        );
 
-        // Integrate theme changes with maps and charts
-        stateAPI.subscribe("ui.theme", (theme: unknown) => {
-            // Notify other components about theme changes
-            masterStateRuntime().dispatchGlobalEvent(
-                masterStateRuntime().createThemeChangedEvent(theme)
-            );
-        });
+        this.trackIntegrationSubscription(
+            stateAPI.subscribe("ui.theme", (theme: unknown) => {
+                // Notify other components about theme changes
+                masterStateRuntime().dispatchGlobalEvent(
+                    masterStateRuntime().createThemeChangedEvent(theme)
+                );
+            })
+        );
 
         console.log("[MasterState] Component integrations set up");
     }

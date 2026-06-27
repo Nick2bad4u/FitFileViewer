@@ -131,6 +131,12 @@ type HarnessMocks = {
     };
 };
 
+type StateSubscriptionRecord = {
+    callback: (value: unknown) => void;
+    path: string;
+    unsubscribe: ReturnType<typeof vi.fn<() => void>>;
+};
+
 type ListenerMap = Map<string, EventListener[]>;
 
 type Harness = {
@@ -143,6 +149,7 @@ type Harness = {
     location: Location;
     mocks: HarnessMocks;
     dependencies: MasterStateManagerDependencies;
+    stateSubscriptions: StateSubscriptionRecord[];
     windowListeners: ListenerMap;
 };
 
@@ -600,7 +607,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
-        expect.assertions(17);
+        expect.assertions(21);
 
         await withMasterStateHarness(
             async ({
@@ -608,6 +615,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 intervalHandlers,
                 loadingElement,
                 mocks,
+                stateSubscriptions,
             }) => {
                 const manager = createMasterStateManager();
 
@@ -660,6 +668,34 @@ describe("masterStateManager comprehensive behavior", () => {
                 expect(globalThis.dispatchEvent).toHaveBeenCalledWith(
                     expect.objectContaining({ type: "themeChanged" })
                 );
+
+                const integrationSubscriptions = stateSubscriptions.slice(-3);
+                expect(
+                    integrationSubscriptions.map(({ path }) => path)
+                ).toStrictEqual([
+                    "fitFile.rawData",
+                    "isLoading",
+                    "ui.theme",
+                ]);
+
+                manager.setupIntegrations();
+
+                expect(
+                    integrationSubscriptions.map(
+                        ({ unsubscribe }) => unsubscribe.mock.calls.length
+                    )
+                ).toStrictEqual([
+                    1,
+                    1,
+                    1,
+                ]);
+                expect(
+                    stateSubscriptions.slice(-3).map(({ path }) => path)
+                ).toStrictEqual([
+                    "fitFile.rawData",
+                    "isLoading",
+                    "ui.theme",
+                ]);
 
                 manager.components.set("settings", {});
                 manager.components.set("computed", {});
@@ -714,6 +750,15 @@ describe("masterStateManager comprehensive behavior", () => {
                 expect(
                     mocks.updateTabVisibility.cleanupTabVisibilityState
                 ).toHaveBeenCalledOnce();
+                expect(
+                    stateSubscriptions
+                        .slice(-3)
+                        .map(({ unsubscribe }) => unsubscribe.mock.calls.length)
+                ).toStrictEqual([
+                    1,
+                    1,
+                    1,
+                ]);
                 expect(clearInterval).toHaveBeenCalledWith(12345);
                 expect({
                     componentCount: manager.components.size,
@@ -933,6 +978,7 @@ async function withMasterStateHarness(
     const globalListeners: ListenerMap = new Map();
     const windowListeners: ListenerMap = new Map();
     const intervalHandlers: Array<() => void> = [];
+    const stateSubscriptions: StateSubscriptionRecord[] = [];
     const bodyElement = document.createElement("main");
     const loadingElement = document.createElement("button");
     const location = {
@@ -952,6 +998,11 @@ async function withMasterStateHarness(
     staticModuleMocks.AppSelectors.hasData.mockReturnValue(true);
     staticModuleMocks.initializeRendererStateBindings.mockClear();
     staticModuleMocks.showNotification.mockClear();
+    mocks.stateManager.subscribe.mockImplementation((path, callback) => {
+        const unsubscribe = vi.fn<() => void>();
+        stateSubscriptions.push({ callback, path, unsubscribe });
+        return unsubscribe;
+    });
 
     const documentMock = {
         addEventListener: vi.fn<
@@ -1079,6 +1130,7 @@ async function withMasterStateHarness(
             location,
             mocks,
             dependencies,
+            stateSubscriptions,
             windowListeners,
         });
     } finally {
