@@ -1874,6 +1874,22 @@ describe("architecture boundaries", () => {
         ).toStrictEqual([]);
     });
 
+    it("keeps lap lookup validation on explicit property guards", () => {
+        expect.assertions(3);
+
+        const lapLookupSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/data/processing/getLapNumForIdx.ts"
+            )
+        );
+
+        expect(lapLookupSource).toContain("function hasLapIndexProperties");
+        expect(lapLookupSource).toContain('"start_index" in lap');
+        expect(lapLookupSource).not.toContain(
+            "Partial<Record<keyof LapMessage, unknown>>"
+        );
+    });
+
     it("documents the centralized browser-global access boundary", () => {
         expect.assertions(1);
 

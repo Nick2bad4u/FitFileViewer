@@ -27,6 +27,10 @@ interface ValidInput {
 }
 
 type InputValidation = InvalidInput | ValidInput;
+type LapIndexCandidate = {
+    end_index: unknown;
+    start_index: unknown;
+};
 
 /**
  * Determines the 1-based lap number for a data point index, or `null` when the
@@ -79,12 +83,7 @@ function isValidLap(lap: unknown, lapIndex: number): lap is LapMessage {
         return false;
     }
 
-    const candidate = lap as Partial<Record<keyof LapMessage, unknown>>;
-
-    if (
-        typeof candidate.start_index !== "number" ||
-        typeof candidate.end_index !== "number"
-    ) {
+    if (!hasLapIndexProperties(lap)) {
         console.warn(
             `${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`,
             lap
@@ -92,7 +91,16 @@ function isValidLap(lap: unknown, lapIndex: number): lap is LapMessage {
         return false;
     }
 
-    if (candidate.start_index < 0 || candidate.end_index < 0) {
+    const { end_index: endIndex, start_index: startIndex } = lap;
+    if (typeof startIndex !== "number" || typeof endIndex !== "number") {
+        console.warn(
+            `${LOG_PREFIX} Lap at index ${lapIndex} missing numeric start_index or end_index:`,
+            lap
+        );
+        return false;
+    }
+
+    if (startIndex < 0 || endIndex < 0) {
         console.warn(
             `${LOG_PREFIX} Lap at index ${lapIndex} has negative indices:`,
             lap
@@ -100,7 +108,7 @@ function isValidLap(lap: unknown, lapIndex: number): lap is LapMessage {
         return false;
     }
 
-    if (candidate.start_index > candidate.end_index) {
+    if (startIndex > endIndex) {
         console.warn(
             `${LOG_PREFIX} Lap at index ${lapIndex} has start_index > end_index:`,
             lap
@@ -109,6 +117,10 @@ function isValidLap(lap: unknown, lapIndex: number): lap is LapMessage {
     }
 
     return true;
+}
+
+function hasLapIndexProperties(lap: object): lap is LapIndexCandidate {
+    return "start_index" in lap && "end_index" in lap;
 }
 
 function validateInputs(idx: unknown, lapMesgs: unknown): InputValidation {

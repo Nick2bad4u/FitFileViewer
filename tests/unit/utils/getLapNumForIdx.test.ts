@@ -99,6 +99,21 @@ describe(getLapNumForIdx, () => {
         );
     });
 
+    it("skips laps with non-numeric index properties", () => {
+        expect.assertions(2);
+
+        const laps = [
+            { end_index: "99", start_index: "0" },
+            { end_index: 199, start_index: 100 },
+        ];
+
+        expect(getLapNumForIdx(150, laps)).toBe(2);
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[LapLookup] Lap at index 0 missing numeric start_index or end_index:",
+            { end_index: "99", start_index: "0" }
+        );
+    });
+
     it("logs and returns null when lap property access throws", () => {
         expect.assertions(2);
 
