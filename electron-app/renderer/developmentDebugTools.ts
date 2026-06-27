@@ -33,6 +33,12 @@ type DevelopmentStateManagerMethodName =
     | "getHistory"
     | "getState"
     | "getSubscriptions";
+type DevelopmentStateManagerMethod = (this: unknown) => unknown;
+type RendererDevelopmentDebugStateManager = Readonly<
+    Partial<
+        Record<DevelopmentStateManagerMethodName, DevelopmentStateManagerMethod>
+    >
+>;
 
 type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDevelopmentDebugFunctionModules = {
@@ -359,17 +365,12 @@ function callStateManagerMethod(
     target: unknown,
     methodName: DevelopmentStateManagerMethodName
 ): unknown {
-    if (!isRecord(target)) {
+    const stateManager = toRendererDevelopmentDebugStateManager(target);
+    if (stateManager === undefined) {
         return undefined;
     }
 
-    const method = target[methodName];
-    if (typeof method !== "function") {
-        return undefined;
-    }
-
-    const methodFn = method as (this: unknown) => unknown;
-    return methodFn.call(target);
+    return stateManager[methodName]?.call(target);
 }
 
 function getDebugCoreFunction(
@@ -396,6 +397,30 @@ function getDebugErrorMessage(errorLike: unknown): string {
     } catch {
         return String(errorLike);
     }
+}
+
+function toRendererDevelopmentDebugStateManager(
+    value: unknown
+): RendererDevelopmentDebugStateManager | undefined {
+    if (typeof value !== "object" || value === null) {
+        return undefined;
+    }
+
+    const stateManager: Partial<
+        Record<DevelopmentStateManagerMethodName, DevelopmentStateManagerMethod>
+    > = {};
+    for (const methodName of [
+        "getHistory",
+        "getState",
+        "getSubscriptions",
+    ] as const) {
+        const method = Reflect.get(value, methodName);
+        if (typeof method === "function") {
+            stateManager[methodName] = method;
+        }
+    }
+
+    return Object.keys(stateManager).length === 0 ? undefined : stateManager;
 }
 
 function getRecordBoolean(
@@ -480,8 +505,4 @@ function logDevelopmentDebugCommands(
     logRenderer: DevelopmentDebugLogger
 ): void {
     logRenderer("log", "Renderer development debug utilities loaded");
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
 }

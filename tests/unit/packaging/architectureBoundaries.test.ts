@@ -5906,7 +5906,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(30);
+        expect.assertions(36);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -5937,6 +5937,24 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDevelopmentDebugStateModules = {"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "type DevelopmentStateManagerMethod = (this: unknown) => unknown;"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "type RendererDevelopmentDebugStateManager = Readonly<"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "function toRendererDevelopmentDebugStateManager("
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "stateManager[methodName] = method;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "const methodFn = method as (this: unknown) => unknown;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "methodFn.call(target)"
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDevelopmentDebugAppActions = Readonly<{"

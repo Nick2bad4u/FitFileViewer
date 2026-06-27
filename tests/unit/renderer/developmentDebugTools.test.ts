@@ -182,6 +182,41 @@ describe("renderer development debug tools", () => {
         });
     });
 
+    it("ignores malformed development state manager methods", async () => {
+        expect.assertions(3);
+
+        process.env.NODE_ENV = "development";
+
+        const view = createRendererDevelopmentDebugTools({
+            cleanup: vi.fn(),
+            ensureCoreModules: async () => ({
+                masterStateManager: {
+                    getHistory: "not history",
+                    getState: "not state",
+                    getSubscriptions: "not subscriptions",
+                },
+            }),
+            initializeApplication: async () => {},
+            isDevelopmentMode: () => true,
+            isOpeningFileRef: { value: false },
+            logRenderer: vi.fn(),
+            performanceMonitor: createPerformanceMonitor(),
+            validateDOMElements: () => true,
+        });
+
+        const rendererDev = view?.rendererDev as {
+            debugState: () => void;
+            getState: () => Promise<unknown>;
+            getStateHistory: () => Promise<unknown>;
+        };
+
+        await expect(rendererDev.getState()).resolves.toBeUndefined();
+        await expect(rendererDev.getStateHistory()).resolves.toBeUndefined();
+        expect(() => {
+            rendererDev.debugState();
+        }).not.toThrow();
+    });
+
     it("reports runtime information without assuming browser-only globals", () => {
         expect.assertions(2);
 
