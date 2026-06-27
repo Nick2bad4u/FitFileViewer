@@ -1,10 +1,6 @@
 import { registerIpcHandle, registerIpcListener } from "../ipc/ipcRegistry.js";
 import { browserWindowRef as electronBrowserWindowRef } from "../runtime/electronAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
-import {
-    isDevelopmentEnvironment,
-    isTestEnvironment,
-} from "../../utils/runtime/processEnvironment.js";
 import { registerDevtoolsInjectMenuHandler } from "./registerDevtoolsInjectMenuHandler.js";
 import { registerFileMenuHandlers } from "./registerFileMenuHandlers.js";
 import { registerFullscreenHandler } from "./registerFullscreenHandler.js";
@@ -23,10 +19,6 @@ const browserWindowRef = electronBrowserWindowRef as () =>
     | BrowserWindowRefLike
     | null
     | undefined;
-
-function isDevtoolsMenuInjectionAllowed(): boolean {
-    return isDevelopmentEnvironment() || isTestEnvironment();
-}
 
 /**
  * Registers menu-related IPC handlers and listeners.
@@ -57,7 +49,6 @@ export function setupMenuAndEventHandlers(): void {
 
     registerDevtoolsInjectMenuHandler({
         browserWindowRef,
-        isDevtoolsMenuInjectionAllowed,
         registerIpcHandle,
         safeCreateAppMenu,
     });

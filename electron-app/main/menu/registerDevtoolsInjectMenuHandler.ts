@@ -1,6 +1,10 @@
 import { validateDevtoolsInjectMenuPayload as validateDefaultDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPolicy.js";
 import { CONSTANTS as DEFAULT_CONSTANTS } from "../constants.js";
 import { logWithContext as defaultLogWithContext } from "../logging/logWithContext.js";
+import {
+    isDevelopmentEnvironment,
+    isTestEnvironment,
+} from "../../utils/runtime/processEnvironment.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
 type DevtoolsInjectMenuFitFilePath =
@@ -36,7 +40,7 @@ type RegisterDevtoolsInjectMenuIpcHandle = (
 interface RegisterDevtoolsInjectMenuHandlerOptions {
     browserWindowRef: () => BrowserWindowRefLike | null | undefined;
     constants?: DevtoolsInjectMenuConstants;
-    isDevtoolsMenuInjectionAllowed: () => boolean;
+    isDevtoolsMenuInjectionAllowed?: () => boolean;
     logWithContext?: (
         level: string,
         message: string,
@@ -58,13 +62,17 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+function defaultIsDevtoolsMenuInjectionAllowed(): boolean {
+    return isDevelopmentEnvironment() || isTestEnvironment();
+}
+
 /**
  * Registers the development-only handler for manually injecting an app menu.
  */
 export function registerDevtoolsInjectMenuHandler({
     browserWindowRef,
     constants = DEFAULT_CONSTANTS,
-    isDevtoolsMenuInjectionAllowed,
+    isDevtoolsMenuInjectionAllowed = defaultIsDevtoolsMenuInjectionAllowed,
     logWithContext = defaultLogWithContext,
     registerIpcHandle,
     safeCreateAppMenu,

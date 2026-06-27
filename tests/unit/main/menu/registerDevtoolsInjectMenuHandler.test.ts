@@ -89,7 +89,6 @@ describe("registerDevtoolsInjectMenuHandler", () => {
 
         registerDevtoolsInjectMenuHandler({
             browserWindowRef: () => null,
-            isDevtoolsMenuInjectionAllowed: () => true,
             registerIpcHandle:
                 undefined as unknown as RegisterDevtoolsInjectMenuHandlerOptions["registerIpcHandle"],
             safeCreateAppMenu: () => void 0,
