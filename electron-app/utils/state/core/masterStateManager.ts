@@ -17,6 +17,10 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
+import {
+    getBooleanElectronDevModeCompatibilityFlag,
+    getElectronDevModeCompatibilityValue,
+} from "../../runtime/electronDevModeCompatibility.js";
 import type {
     ElectronAppInfoApi,
     ElectronDialogApi,
@@ -73,7 +77,6 @@ type ComponentName =
     | "ui";
 
 type ElectronRendererAPI = {
-    readonly __devMode?: boolean;
     readonly getAppVersion?: ElectronAppInfoApi["getAppVersion"];
     readonly openFileDialog?: ElectronDialogApi["openFileDialog"];
 };
@@ -174,10 +177,6 @@ type ErrorDetails = {
     stack?: string;
 };
 
-type ElectronDevelopmentModeCandidate = {
-    readonly __devMode?: unknown;
-};
-
 function masterStateRuntime(): MasterStateRuntime {
     return getMasterStateRuntime();
 }
@@ -215,15 +214,7 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
 }
 
 function getOptionalElectronDevelopmentMode(value: object): unknown {
-    return hasElectronDevelopmentModeProperty(value)
-        ? value.__devMode
-        : undefined;
-}
-
-function hasElectronDevelopmentModeProperty(
-    value: object
-): value is ElectronDevelopmentModeCandidate {
-    return "__devMode" in value;
+    return getElectronDevModeCompatibilityValue(value);
 }
 
 function getMasterElectronAPI(
@@ -276,7 +267,9 @@ function hasDevelopmentModeAttribute(): boolean {
 function getElectronDevelopmentFlag(
     electronApiScope: RendererElectronApiScope | undefined
 ): boolean | undefined {
-    return getMasterElectronAPI(electronApiScope)?.__devMode;
+    return getBooleanElectronDevModeCompatibilityFlag(
+        getMasterElectronAPI(electronApiScope)
+    );
 }
 
 /**

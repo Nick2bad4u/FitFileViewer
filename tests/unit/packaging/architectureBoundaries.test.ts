@@ -2078,6 +2078,36 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).not.toContain("__devMode");
     });
 
+    it("keeps the retired preload dev-mode marker behind runtime compatibility helpers", () => {
+        expect.assertions(5);
+
+        const rendererEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/rendererEnvironment.ts"
+            )
+        );
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
+        const compatibilitySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/runtime/electronDevModeCompatibility.ts"
+            )
+        );
+
+        expect(rendererEnvironmentSource).toContain(
+            "hasDefinedElectronDevModeCompatibilityMarker"
+        );
+        expect(masterStateManagerSource).toContain(
+            "getElectronDevModeCompatibilityValue"
+        );
+        expect(rendererEnvironmentSource).not.toContain("__devMode");
+        expect(masterStateManagerSource).not.toContain("__devMode");
+        expect(compatibilitySource).toContain("__devMode");
+    });
+
     it("keeps exposed preload electronAPI shapers split by domain", () => {
         expect.assertions(55);
 

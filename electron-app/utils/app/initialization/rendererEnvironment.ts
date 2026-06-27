@@ -4,6 +4,9 @@ import {
     type RendererEnvironmentInput,
     type RendererEnvironmentRuntime,
 } from "./rendererEnvironmentRuntime.js";
+import {
+    hasDefinedElectronDevModeCompatibilityMarker,
+} from "../../runtime/electronDevModeCompatibility.js";
 
 export type RendererEnvironmentName = "development" | "production";
 
@@ -32,10 +35,6 @@ interface RendererDocumentElementRecord {
 
 interface RendererDatasetRecord {
     readonly devMode?: unknown;
-}
-
-interface RendererElectronDevModeRecord {
-    readonly __devMode?: unknown;
 }
 
 interface RendererLocationRecord {
@@ -87,7 +86,9 @@ function hasDocumentDevModeFlag(
 function hasElectronDevModeCandidateFlag(
     environmentInput: RendererEnvironmentInput
 ): boolean {
-    return isElectronDevModeCandidate(environmentInput.electronApiCandidate);
+    return hasDefinedElectronDevModeCompatibilityMarker(
+        environmentInput.electronApiCandidate
+    );
 }
 
 function isDebugRendererLocation(
@@ -133,18 +134,6 @@ function toEnvironmentInputRecord(
 }
 
 function toLocationRecord(value: unknown): RendererLocationRecord {
-    return toObject(value);
-}
-
-function isElectronDevModeCandidate(value: unknown): value is {
-    readonly __devMode: unknown;
-} {
-    return toElectronDevModeRecord(value).__devMode !== undefined;
-}
-
-function toElectronDevModeRecord(
-    value: unknown
-): RendererElectronDevModeRecord {
     return toObject(value);
 }
 
