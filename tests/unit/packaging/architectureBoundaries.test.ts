@@ -3401,7 +3401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(376);
+        expect.assertions(378);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3497,6 +3497,11 @@ describe("architecture boundaries", () => {
         const setupMenuAndEventHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/setupMenuAndEventHandlers.ts"
+            )
+        );
+        const registerThemeChangedHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerThemeChangedHandler.ts"
             )
         );
         const setupIpcHandlersSource = stripComments(
@@ -4086,7 +4091,15 @@ describe("architecture boundaries", () => {
         expect(fitParserIntegrationRuntimeSource).not.toContain(
             "scope.performance"
         );
-        expect(setupMenuAndEventHandlersSource).toContain("createElectronConf");
+        expect(registerThemeChangedHandlerSource).toContain(
+            "createElectronConf"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'registerIpcListener("theme-changed"'
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "registerThemeChangedHandler"
+        );
         expect(createAppMenuSource).toContain("createElectronConf");
         expect(initializeApplicationSource).not.toContain(
             'require("../constants")'

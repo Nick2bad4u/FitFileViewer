@@ -7,7 +7,6 @@ import {
     browserWindowRef as electronBrowserWindowRef,
     dialogRef as electronDialogRef,
 } from "../runtime/electronAccess.js";
-import { createElectronConf } from "../runtime/electronConfAccess.js";
 import { fs } from "../runtime/nodeModules.js";
 import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
 import {
@@ -26,6 +25,7 @@ import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../utils/runtime/processEnvironment.js";
+import { registerThemeChangedHandler } from "./registerThemeChangedHandler.js";
 import { safeCreateAppMenu } from "./safeCreateAppMenu.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
@@ -70,10 +70,6 @@ interface AutoUpdaterLike {
     quitAndInstall?: () => void;
 }
 
-interface ConfStore {
-    set: (key: string, value: unknown) => void;
-}
-
 type IpcCallback = (...args: unknown[]) => unknown;
 type MenuFileEventChannel = Extract<
     MainProcessIpcEventChannel,
@@ -115,35 +111,6 @@ function getErrorMessage(error: unknown): string {
 
 function getBrowserWindowFromEvent(event: IpcEventLike): BrowserWindow | null {
     return browserWindowRef()?.fromWebContents(event.sender) ?? null;
-}
-
-function getThemeFromPayload(theme: unknown): string {
-    return typeof theme === "string" && theme ? theme : CONSTANTS.DEFAULT_THEME;
-}
-
-function normalizePersistedTheme(theme: unknown): string | null {
-    const raw = typeof theme === "string" ? theme.trim().toLowerCase() : "";
-    const normalized = raw === "system" ? "auto" : raw;
-    return normalized === "dark" ||
-        normalized === "light" ||
-        normalized === "auto"
-        ? normalized
-        : null;
-}
-
-function persistThemeForMenu(theme: unknown): void {
-    const normalized = normalizePersistedTheme(theme);
-    if (!normalized) {
-        return;
-    }
-
-    const conf = createElectronConf<ConfStore>({
-        name: CONSTANTS.SETTINGS_CONFIG_NAME,
-    });
-    if (!conf) {
-        return;
-    }
-    conf.set("theme", normalized);
 }
 
 async function requireAutoUpdater(): Promise<AutoUpdaterLike> {
@@ -192,23 +159,11 @@ function isDevtoolsMenuInjectionAllowed(): boolean {
  * Registers menu-related IPC handlers and listeners.
  */
 export function setupMenuAndEventHandlers(): void {
-    registerIpcListener("theme-changed", (event, theme) => {
-        const win = getBrowserWindowFromEvent(event as IpcEventLike);
-        if (win && validateWindow(win, "theme-changed event")) {
-            // Persist the theme in main-process settings so `theme:get`
-            // stays in sync with renderer localStorage.
-            try {
-                persistThemeForMenu(theme);
-            } catch {
-                // Best-effort persistence; menu creation should still proceed.
-            }
-
-            safeCreateAppMenu(
-                win,
-                getThemeFromPayload(theme),
-                getLoadedFitFilePath()
-            );
-        }
+    registerThemeChangedHandler({
+        browserWindowRef,
+        registerIpcListener,
+        safeCreateAppMenu,
+        validateWindow,
     });
 
     const updateHandlers: Record<MenuUpdateEventChannel, IpcCallback> = {
