@@ -71,6 +71,7 @@ export type TabReadinessState = Record<string, TabReadinessEntry>;
  */
 export type UIState = {
     activeTab: string;
+    activeTabContent: string;
     dragCounter: number;
     dropOverlay: DropOverlayState;
     fileInfo: UIFileInfo;
@@ -370,6 +371,7 @@ export function createDefaultAppState(): AppStateShape {
         },
         ui: {
             activeTab: "summary",
+            activeTabContent: "summary",
             dragCounter: 0,
             dropOverlay: {
                 visible: false,

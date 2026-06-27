@@ -5245,7 +5245,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -5269,6 +5269,7 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).toContain("type StateStorageRuntime");
         expect(stateManagerSource).toContain("rendererActiveTabContract.js");
         expect(stateManagerSource).toContain("normalizeRendererActiveTab");
+        expect(stateManagerSource).toContain("ui.activeTabContent");
         expect(stateManagerSource).not.toContain("rendererActiveTabState.js");
         expect(stateManagerSource).toContain(
             "function stateStorageRuntime(): StateStorageRuntime"

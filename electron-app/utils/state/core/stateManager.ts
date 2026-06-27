@@ -63,6 +63,11 @@ const DEFAULT_PERSISTED_PATHS = [
     "map.baseLayer",
     "browser.view",
 ] as const;
+const RENDERER_ACTIVE_TAB_STATE_PATHS = new Set([
+    "ui.activeTab",
+    "ui.activeTabContent",
+]);
+const RENDERER_ACTIVE_TAB_UI_KEYS = ["activeTab", "activeTabContent"] as const;
 
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
@@ -81,15 +86,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeStateWriteValue(path: string, value: unknown): unknown {
-    if (path === "ui.activeTab") {
+    if (RENDERER_ACTIVE_TAB_STATE_PATHS.has(path)) {
         return normalizeRendererActiveTab(value);
     }
 
-    if (path === "ui" && isRecord(value) && "activeTab" in value) {
-        return {
-            ...value,
-            activeTab: normalizeRendererActiveTab(value["activeTab"]),
-        };
+    if (path === "ui" && isRecord(value)) {
+        let normalizedBranch: Record<string, unknown> | undefined;
+
+        for (const key of RENDERER_ACTIVE_TAB_UI_KEYS) {
+            if (key in value) {
+                normalizedBranch ??= { ...value };
+                normalizedBranch[key] = normalizeRendererActiveTab(value[key]);
+            }
+        }
+
+        if (normalizedBranch) {
+            return normalizedBranch;
+        }
     }
 
     return value;

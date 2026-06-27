@@ -65,6 +65,47 @@ describe("state manager subscriptions", () => {
         expect(listener).not.toHaveBeenCalled();
     });
 
+    it("normalizes active-tab content updates before notifying subscribers", () => {
+        expect.assertions(3);
+
+        const listener =
+            vi.fn<
+                (newValue: unknown, oldValue: unknown, path: string) => void
+            >();
+        setState("ui.activeTabContent", "map", {
+            source: "stateManager.subscriptions.setup",
+        });
+        clearStateHistory();
+
+        subscribe("ui.activeTabContent", listener);
+
+        setState("ui.activeTabContent", "table", {
+            source: "stateManager.subscriptions.test",
+        });
+
+        expect(getState("ui.activeTabContent")).toBe("summary");
+        expect(listener).toHaveBeenCalledWith(
+            "summary",
+            "map",
+            "ui.activeTabContent"
+        );
+        expect(
+            getStateHistory().map(({ newValue, oldValue, path, source }) => ({
+                newValue,
+                oldValue,
+                path,
+                source,
+            }))
+        ).toStrictEqual([
+            {
+                newValue: "summary",
+                oldValue: "map",
+                path: "ui.activeTabContent",
+                source: "stateManager.subscriptions.test",
+            },
+        ]);
+    });
+
     it("warns and leaves state unchanged for an invalid path", () => {
         expect.assertions(2);
 

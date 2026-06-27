@@ -95,7 +95,7 @@ describe("state manager core", () => {
     });
 
     it("normalizes renderer active-tab writes at the core state boundary", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         resetStateManager();
 
@@ -104,19 +104,27 @@ describe("state manager core", () => {
 
         setState("ui.activeTab", "table");
         expect(getState("ui.activeTab")).toBe("summary");
+
+        setState("ui.activeTabContent", "data");
+        expect(getState("ui.activeTabContent")).toBe("data");
+
+        setState("ui.activeTabContent", "table");
+        expect(getState("ui.activeTabContent")).toBe("summary");
     });
 
     it("normalizes active-tab values when replacing the UI state branch", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         resetStateManager();
 
         setState("ui", {
             activeTab: "charts",
+            activeTabContent: "table",
             controlsEnabled: true,
         });
 
         expect(getState("ui.activeTab")).toBe("summary");
+        expect(getState("ui.activeTabContent")).toBe("summary");
         expect(getState("ui.controlsEnabled")).toBe(true);
     });
 
@@ -644,13 +652,14 @@ describe("state manager core", () => {
     });
 
     it("returns the root state for empty getState paths", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         resetStateManager();
 
         const fullState = getRootState();
 
         expect(fullState.ui.activeTab).toBe("summary");
+        expect(fullState.ui.activeTabContent).toBe("summary");
         expect(fullState.charts.selectedChart).toBe("elevation");
         expect(fullState.map.baseLayer).toBe("openstreetmap");
         expect(fullState.ui.tabReadiness.data).toStrictEqual({
