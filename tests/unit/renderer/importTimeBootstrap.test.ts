@@ -139,10 +139,18 @@ describe("renderer import-time bootstrap", () => {
     });
 
     it("initializes default-exported master state manager test overrides", async () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
-        const initializeStateManager = vi.fn(async () => undefined);
-        const masterStateManager = { initialize: vi.fn() };
+        let initializedStateManager = false;
+        let initializedMasterStateManager = false;
+        const initializeStateManager = vi.fn(async () => {
+            initializedStateManager = true;
+        });
+        const masterStateManager = {
+            initialize: vi.fn(() => {
+                initializedMasterStateManager = true;
+            }),
+        };
         const { scheduleImportTimeStateInitialization } =
             createRendererImportTimeBootstrap({
                 ensureCoreModules: async () => createCoreModules(),
@@ -161,6 +169,8 @@ describe("renderer import-time bootstrap", () => {
         scheduleImportTimeStateInitialization();
         await flushImportTimeWork();
 
+        expect(initializedStateManager).toBe(true);
+        expect(initializedMasterStateManager).toBe(true);
         expect(initializeStateManager).toHaveBeenCalledOnce();
         expect(masterStateManager.initialize).toHaveBeenCalledOnce();
     });

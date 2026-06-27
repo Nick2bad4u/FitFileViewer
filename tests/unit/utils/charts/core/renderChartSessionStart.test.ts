@@ -26,7 +26,7 @@ describe("renderChartSessionStart", () => {
             >();
         const waitIfRapidRender = vi.fn(async () => undefined);
 
-        const result = await beginChartRenderSession(
+        const { performanceStart, ready } = await beginChartRenderSession(
             {
                 doc: document,
                 getChartLifecycleActions: () => null,
@@ -49,6 +49,9 @@ describe("renderChartSessionStart", () => {
             { chartData: null, isRendered: false, renderedCount: 0 },
             { silent: false, source: "renderChartJS.clear" }
         );
-        expect(result).toStrictEqual({ performanceStart: 1234, ready: true });
+        expect({ performanceStart, ready }).toStrictEqual({
+            performanceStart: 1234,
+            ready: true,
+        });
     });
 });

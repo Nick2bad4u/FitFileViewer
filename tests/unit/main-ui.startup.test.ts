@@ -314,7 +314,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("rejects malformed main UI Electron API candidates", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
         const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
@@ -325,6 +325,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
 
         await import("../../electron-app/main-ui.js");
 
+        expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
         expect(mocks.loadTheme).toHaveBeenCalledOnce();
         expect(onSetTheme).not.toHaveBeenCalled();
         expect(onUnloadFitFile).not.toHaveBeenCalled();
