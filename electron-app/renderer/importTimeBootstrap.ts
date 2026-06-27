@@ -47,13 +47,15 @@ export interface RendererImportTimeBootstrap {
     scheduleImportTimeThemeSetup: () => void;
 }
 
-type ImportTimeInitializableStateManager = Readonly<{
-    readonly initialize?: unknown;
-}>;
+type ImportTimeInitializeMethod = (this: unknown) => Promise<void> | void;
 
 type ImportTimeMasterStateManagerOverrideModule = Readonly<{
     readonly default?: unknown;
     readonly masterStateManager?: unknown;
+}>;
+
+type ImportTimeInitializableStateManager = Readonly<{
+    readonly initialize: ImportTimeInitializeMethod;
 }>;
 
 export function createRendererImportTimeBootstrap({
@@ -78,10 +80,12 @@ export function createRendererImportTimeBootstrap({
     }
 
     async function initializeTestOverrideMasterStateManager(): Promise<void> {
-        await callInitializeMethod(resolveTestOverrideMasterStateManager());
+        await resolveTestOverrideMasterStateManager()?.initialize();
     }
 
-    function resolveTestOverrideMasterStateManager(): unknown {
+    function resolveTestOverrideMasterStateManager():
+        | ImportTimeInitializableStateManager
+        | undefined {
         const resolved =
             resolveExactRendererCoreTestOverride(
                 "../../utils/state/core/masterStateManager.js"
@@ -95,9 +99,9 @@ export function createRendererImportTimeBootstrap({
             resolvedModule.default
         );
 
-        return (
-            resolvedModule.masterStateManager ??
-            defaultModule.masterStateManager ??
+        return firstImportTimeInitializableStateManager(
+            resolvedModule.masterStateManager,
+            defaultModule.masterStateManager,
             resolved
         );
     }
@@ -167,16 +171,6 @@ export function createRendererImportTimeBootstrap({
         }
     }
 
-    function callInitializeMethod(target: unknown): unknown {
-        const stateManager = toImportTimeInitializableStateManager(target);
-        const initialize = stateManager.initialize;
-        if (typeof initialize !== "function") {
-            return undefined;
-        }
-
-        return initialize.call(target);
-    }
-
     return {
         scheduleAppDomainStateTouch,
         scheduleImportTimeListenersSetup,
@@ -185,16 +179,38 @@ export function createRendererImportTimeBootstrap({
     };
 }
 
-function toImportTimeInitializableStateManager(
-    value: unknown
-): ImportTimeInitializableStateManager {
-    return typeof value === "object" && value !== null ? value : {};
-}
-
 function toImportTimeMasterStateManagerOverrideModule(
     value: unknown
 ): ImportTimeMasterStateManagerOverrideModule {
     return typeof value === "object" && value !== null ? value : {};
+}
+
+function firstImportTimeInitializableStateManager(
+    ...candidates: readonly unknown[]
+): ImportTimeInitializableStateManager | undefined {
+    for (const candidate of candidates) {
+        const stateManager =
+            toImportTimeInitializableStateManager(candidate);
+        if (stateManager !== undefined) {
+            return stateManager;
+        }
+    }
+    return undefined;
+}
+
+function toImportTimeInitializableStateManager(
+    value: unknown
+): ImportTimeInitializableStateManager | undefined {
+    if (
+        typeof value !== "object" ||
+        value === null ||
+        !("initialize" in value) ||
+        typeof value.initialize !== "function"
+    ) {
+        return undefined;
+    }
+
+    return value as ImportTimeInitializableStateManager;
 }
 
 function createSetupListenersOptions(dependencies: {

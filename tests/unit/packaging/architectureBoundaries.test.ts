@@ -18940,7 +18940,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(27);
+        expect.assertions(31);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -19009,6 +19009,18 @@ describe("architecture boundaries", () => {
         );
         expect(importTimeBootstrapSource).toContain(
             "type ImportTimeMasterStateManagerOverrideModule = Readonly<{"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "type ImportTimeInitializeMethod = (this: unknown) => Promise<void> | void;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "readonly initialize: ImportTimeInitializeMethod;"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "readonly initialize?: unknown;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "function toImportTimeInitializableStateManager("
         );
         expect(rendererEntrypointSource).not.toContain(
             "createRendererImportTimeBootstrap({\n    callUnknownFunction,"
