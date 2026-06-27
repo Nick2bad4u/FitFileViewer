@@ -267,7 +267,7 @@ describe("getListenersResizeRuntime", () => {
         }
     });
 
-    it("falls back to vendor fullscreen elements", () => {
+    it("falls back to valid vendor fullscreen elements", () => {
         expect.assertions(1);
 
         try {
@@ -277,6 +277,10 @@ describe("getListenersResizeRuntime", () => {
                 value: null,
             });
             Object.defineProperty(document, "webkitFullscreenElement", {
+                configurable: true,
+                value: "not-an-element",
+            });
+            Object.defineProperty(document, "mozFullScreenElement", {
                 configurable: true,
                 value: element,
             });
@@ -290,6 +294,7 @@ describe("getListenersResizeRuntime", () => {
         } finally {
             Reflect.deleteProperty(document, "fullscreenElement");
             Reflect.deleteProperty(document, "webkitFullscreenElement");
+            Reflect.deleteProperty(document, "mozFullScreenElement");
             cleanupFixture();
         }
     });

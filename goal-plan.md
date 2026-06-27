@@ -1156,7 +1156,9 @@ coverage blocking direct resize-listener abort-controller construction from retu
 runtime scopes must now provide timer primitives instead of falling back to `globalThis`, and resize-listener
 controller, element, canvas, timer, and animation-frame contracts reuse shared browser-runtime aliases instead of
 direct ambient constructor or timer type spellings, with focused runtime coverage and architecture coverage blocking
-those fallbacks from returning. Chart render session startup now routes the lifecycle fallback clear-state update
+those fallbacks from returning. Resize-listener vendor fullscreen element lookup now reads the explicit document
+candidate fields instead of routing vendor field names through `Reflect.get`, with malformed vendor-field coverage and
+architecture coverage blocking that dynamic fullscreen lookup from returning. Chart render session startup now routes the lifecycle fallback clear-state update
 through a named `ChartClearStatePatch` contract instead of casting the update payload back to a broad
 `Record<string, unknown>`, with focused unit and architecture coverage blocking that generic session-start bucket
 from returning.

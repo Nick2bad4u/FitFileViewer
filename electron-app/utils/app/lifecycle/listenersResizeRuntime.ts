@@ -90,12 +90,10 @@ export interface ListenersResizeRuntime {
     ) => ListenersResizeTimerHandle;
 }
 
-function getOptionalElementProperty(
-    target: object,
-    propertyKey: string,
+function getOptionalElement(
+    value: unknown,
     ElementConstructor: ListenersResizeElementConstructor | undefined
 ): Element | null {
-    const value: unknown = Reflect.get(target, propertyKey);
     return typeof ElementConstructor === "function" &&
         value instanceof ElementConstructor
         ? value
@@ -216,19 +214,16 @@ export function getListenersResizeRuntime(
 
             return (
                 runtimeDocument.fullscreenElement ||
-                getOptionalElementProperty(
-                    runtimeDocument,
-                    "webkitFullscreenElement",
+                getOptionalElement(
+                    runtimeDocument.webkitFullscreenElement,
                     ElementConstructor
                 ) ||
-                getOptionalElementProperty(
-                    runtimeDocument,
-                    "mozFullScreenElement",
+                getOptionalElement(
+                    runtimeDocument.mozFullScreenElement,
                     ElementConstructor
                 ) ||
-                getOptionalElementProperty(
-                    runtimeDocument,
-                    "msFullscreenElement",
+                getOptionalElement(
+                    runtimeDocument.msFullscreenElement,
                     ElementConstructor
                 )
             );

@@ -19633,7 +19633,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(71);
+        expect.assertions(75);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -19691,6 +19691,16 @@ describe("architecture boundaries", () => {
         );
         expect(listenersResizeRuntimeSource).not.toContain(
             "typeof globalThis.setTimeout"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain("Reflect.get(");
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "getOptionalElementProperty"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "runtimeDocument.webkitFullscreenElement"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "runtimeDocument.mozFullScreenElement"
         );
         expect(listenersResizeRuntimeSource).toContain(
             "type BrowserAbortControllerConstructor"
