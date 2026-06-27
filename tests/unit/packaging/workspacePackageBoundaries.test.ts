@@ -644,7 +644,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release readiness backed by app-level regression smoke coverage", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const playwrightSmoke = readFileSync(
@@ -660,6 +660,9 @@ describe("workspace package boundaries", () => {
         );
         expect(playwrightSmoke).toContain(
             'test("auto-renders the selected FIT file in the Raw Data tab"'
+        );
+        expect(playwrightSmoke).toContain(
+            'test("opens a real FIT file through the Open File button"'
         );
         expect(playwrightSmoke).toContain("expectAltFitIframeLoadedActivity");
         expect(playwrightSmoke).toContain(
