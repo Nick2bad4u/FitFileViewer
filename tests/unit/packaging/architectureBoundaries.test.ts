@@ -5899,7 +5899,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(26);
+        expect.assertions(30);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -5908,6 +5908,9 @@ describe("architecture boundaries", () => {
         );
         const developmentDebugToolsSource = stripComments(
             readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
+        );
+        const startupInfoSource = stripComments(
+            readRepositoryFile("electron-app/renderer/rendererStartupInfo.ts")
         );
 
         expect(developmentDebugToolsSource).not.toContain(
@@ -5964,6 +5967,18 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsSource).not.toContain(
             "readonly rendererDev: Record<string, unknown>"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "export type RendererDevelopmentRuntimeInfo = Readonly<{"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "): RendererDevelopmentRuntimeInfo"
+        );
+        expect(startupInfoSource).toContain(
+            "export type RendererStartupRuntimeInfo = Readonly<Record<string, unknown>>;"
+        );
+        expect(startupInfoSource).not.toContain(
+            "readonly getRuntimeInfo: () => unknown;"
         );
         expect(developmentDebugToolsSource).not.toContain("toModuleRecord");
         expect(diagnosticsWiringSource).toContain(

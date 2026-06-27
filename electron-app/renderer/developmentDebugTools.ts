@@ -62,6 +62,20 @@ type RendererDebugToolsView = {
     readonly showUpdateNotification: RendererDebugToolCall;
 };
 type RendererDebugUtilityGroup = Record<string, unknown>;
+export type RendererDevelopmentRuntimeMemoryUsage = Readonly<{
+    readonly jsHeapSizeLimit: number | undefined;
+    readonly totalJSHeapSize: number | undefined;
+    readonly usedJSHeapSize: number | undefined;
+}>;
+export type RendererDevelopmentRuntimeInfo = Readonly<{
+    readonly cookieEnabled: boolean;
+    readonly hardwareConcurrency: number | undefined;
+    readonly language: string | undefined;
+    readonly memoryUsage: RendererDevelopmentRuntimeMemoryUsage | null;
+    readonly onLine: boolean | undefined;
+    readonly platform: string | undefined;
+    readonly userAgent: string | undefined;
+}>;
 type RendererDevToolsView = {
     APP_INFO: typeof APP_INFO;
     AppActions?: RendererDevelopmentDebugAppActions;
@@ -410,7 +424,7 @@ function getRecordString(
 
 export function getRendererDevelopmentRuntimeInfo(
     runtime: RendererDevelopmentDebugToolsRuntime = getRendererDevelopmentDebugToolsRuntime()
-): Record<string, unknown> {
+): RendererDevelopmentRuntimeInfo {
     let cookieAvailability = false;
     try {
         const locationRecord = runtime.getLocationRecord();

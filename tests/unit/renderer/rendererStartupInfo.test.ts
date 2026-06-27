@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { logRendererStartupInfo } from "../../../electron-app/renderer/rendererStartupInfo.js";
+import {
+    logRendererStartupInfo,
+    type RendererStartupRuntimeInfo,
+} from "../../../electron-app/renderer/rendererStartupInfo.js";
 
 describe("rendererStartupInfo", () => {
     it("logs the startup banner without owning renderer initialization", () => {
         expect.assertions(1);
-        const runtimeInfo = { userAgent: "test" };
+        const runtimeInfo: RendererStartupRuntimeInfo = { userAgent: "test" };
         const appInfo = {
             getRuntimeInfo: () => runtimeInfo,
             name: "Test App",

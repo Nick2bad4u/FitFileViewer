@@ -4,6 +4,7 @@ import {
     APP_INFO,
     createRendererDevelopmentDebugTools,
     getRendererDevelopmentRuntimeInfo,
+    type RendererDevelopmentRuntimeInfo,
 } from "../../../electron-app/renderer/developmentDebugTools.js";
 import type { RendererDevelopmentDebugToolsRuntime } from "../../../electron-app/renderer/developmentDebugToolsRuntime.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
@@ -184,7 +185,8 @@ describe("renderer development debug tools", () => {
     it("reports runtime information without assuming browser-only globals", () => {
         expect.assertions(2);
 
-        const runtimeInfo = APP_INFO.getRuntimeInfo();
+        const runtimeInfo: RendererDevelopmentRuntimeInfo =
+            APP_INFO.getRuntimeInfo();
 
         expect(APP_INFO.name).toBe("FIT File Viewer");
         expect(Object.hasOwn(runtimeInfo, "memoryUsage")).toBe(true);

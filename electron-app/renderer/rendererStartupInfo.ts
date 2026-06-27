@@ -5,8 +5,10 @@ type RendererStartupInfoLogger = (
     ...args: unknown[]
 ) => void;
 
+export type RendererStartupRuntimeInfo = Readonly<Record<string, unknown>>;
+
 type RendererAppInfo = {
-    readonly getRuntimeInfo: () => unknown;
+    readonly getRuntimeInfo: () => RendererStartupRuntimeInfo;
     readonly name: string;
     readonly version: string;
 };
