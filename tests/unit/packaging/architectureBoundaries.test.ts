@@ -4282,7 +4282,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload leaf module loaders split by API domain on native imports", () => {
-        expect.assertions(23);
+        expect.assertions(24);
 
         const clipboardModuleLoaderSource = stripComments(
             readRepositoryFile(
@@ -4321,6 +4321,9 @@ describe("architecture boundaries", () => {
         );
         const moduleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
         );
 
         expect(developerModuleLoaderSource).toContain(
@@ -4368,6 +4371,9 @@ describe("architecture boundaries", () => {
         );
         expect(developmentToolsGlobalSource).toContain(
             "loggingTimestampRuntime().isoNow()"
+        );
+        expect(moduleTypesSource).toContain(
+            "api: PreloadDevelopmentToolsApi"
         );
         expect(developmentToolsGlobalSource).not.toContain(
             "new Date().toISOString()"

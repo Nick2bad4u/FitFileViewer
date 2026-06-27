@@ -1,10 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
 import {
     DEVELOPMENT_TOOLS_GLOBAL_NAME,
     exposeDevelopmentToolsGlobal,
 } from "../../electron-app/preload/developmentToolsGlobal.js";
+
+interface DevelopmentToolsElectronApi {
+    getAppVersion: () => Promise<string>;
+    validateAPI: () => boolean;
+}
+
 interface ExposedDevelopmentToolsApi {
     getPreloadInfo: () => {
         apiMethods: string[];
@@ -16,11 +21,13 @@ interface ExposedDevelopmentToolsApi {
     testIPC: () => Promise<boolean>;
 }
 
-function createApi(getAppVersion = vi.fn<() => Promise<string>>()) {
+function createApi(
+    getAppVersion = vi.fn<() => Promise<string>>()
+): DevelopmentToolsElectronApi {
     return {
         getAppVersion,
         validateAPI: () => true,
-    } as ElectronAPI;
+    };
 }
 
 describe("preload development tools global", () => {

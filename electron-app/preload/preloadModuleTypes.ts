@@ -516,12 +516,17 @@ export interface CreateShellExternalApiOptions {
 }
 
 export interface ExposeDevelopmentToolsGlobalOptions {
-    api: ElectronAPI;
+    api: PreloadDevelopmentToolsApi;
     constants: unknown;
     contextBridge: null | PreloadContextBridge | undefined;
     isDevelopmentMode: () => boolean;
     preloadLog: PreloadLog;
 }
+
+export type PreloadDevelopmentToolsApi = Pick<
+    ElectronAppInfoApi,
+    "getAppVersion"
+>;
 
 export interface RegisterPreloadBeforeExitHandlerOptions {
     isDevelopmentMode: () => boolean;
