@@ -2,6 +2,11 @@
  * Tab configuration definitions.
  */
 
+import {
+    isRendererTabName,
+    type RendererTabName,
+} from "../../state/domain/rendererActiveTabState.js";
+
 /** Metadata for one tab managed by the renderer tab state manager. */
 export type TabDef = {
     contentId: string;
@@ -11,7 +16,7 @@ export type TabDef = {
     requiresData: boolean;
 };
 
-const TAB_CONFIG: Record<string, TabDef> = {
+const TAB_CONFIG: Record<RendererTabName, TabDef> = {
     altfit: {
         contentId: "content_altfit",
         handler: null,
@@ -69,5 +74,9 @@ const TAB_CONFIG: Record<string, TabDef> = {
         requiresData: false,
     },
 };
+
+export function getConfiguredTab(tabName: unknown): TabDef | undefined {
+    return isRendererTabName(tabName) ? TAB_CONFIG[tabName] : undefined;
+}
 
 export { TAB_CONFIG };

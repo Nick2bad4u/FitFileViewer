@@ -9,6 +9,7 @@ import { getActiveFitActivityData } from "../../state/domain/fitActivityDataStat
 import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import {
+    getConfiguredTab,
     TAB_CONFIG as TAB_CONFIG_DEFINITIONS,
     type TabDef,
 } from "./tabStateManagerConfig.js";
@@ -76,7 +77,7 @@ function getActiveActivityData(): ActivityData | null | undefined {
 }
 
 function getTabConfig(tabName: string): TabDef | undefined {
-    return TAB_CONFIG[tabName];
+    return getConfiguredTab(tabName);
 }
 
 function isDisableableElement(

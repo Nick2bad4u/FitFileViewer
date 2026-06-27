@@ -7,6 +7,7 @@
 
 import { buildIdVariants } from "../dom/elementIdUtils.js";
 import { RENDERER_TAB_NAMES } from "../../state/domain/rendererActiveTabState.js";
+import { getConfiguredTab } from "./tabStateManagerConfig.js";
 
 /** Tab configuration shape used by tab ID resolution. */
 export type TabIdConfig = {
@@ -169,18 +170,7 @@ export function extractTabNameFromContentId(contentId: unknown): null | string {
  * @returns Content element ID.
  */
 export function getContentIdFromTabName(tabName: string): string {
-    const tabToContentMap: Record<string, string> = {
-        altfit: "content_altfit",
-        browser: "content_browser",
-        chart: "content_chartjs",
-        chartjs: "content_chartjs",
-        data: "content_data",
-        map: "content_map",
-        summary: "content_summary",
-        zwift: "content_zwift",
-    };
-
-    return tabToContentMap[tabName] ?? `content_${tabName}`;
+    return getConfiguredTab(tabName)?.contentId ?? `content_${tabName}`;
 }
 
 /** Default tab names known by the legacy tab UI. */

@@ -56,6 +56,7 @@ import {
     setState,
     subscribe,
 } from "../../../electron-app/utils/state/core/stateManager";
+import { RENDERER_TAB_NAMES } from "../../../electron-app/utils/state/domain/rendererActiveTabState.js";
 import { showNotification } from "../../../electron-app/utils/ui/notifications/showNotification";
 
 const mockGetState = vi.mocked(getState);
@@ -571,17 +572,8 @@ describe("tabStateManager regressions", () => {
             expect(duplicateHandlerGroups).toStrictEqual([
                 ["renderChartJS", ["chart", "chartjs"]],
             ]);
-            expect(new Set(Object.keys(TAB_CONFIG))).toStrictEqual(
-                new Set([
-                    "altfit",
-                    "browser",
-                    "chart",
-                    "chartjs",
-                    "data",
-                    "map",
-                    "summary",
-                    "zwift",
-                ])
+            expect(Object.keys(TAB_CONFIG).sort()).toStrictEqual(
+                [...RENDERER_TAB_NAMES].sort()
             );
             expect({
                 chart: TAB_CONFIG.chart,

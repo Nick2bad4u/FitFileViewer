@@ -81,14 +81,15 @@ describe("tabIdUtils", () => {
         }
     });
 
-    it("maps tab names to content IDs with chartjs compatibility", async () => {
-        expect.assertions(4);
+    it("maps tab names to configured content IDs with chartjs compatibility", async () => {
+        expect.assertions(5);
 
         const { getContentIdFromTabName } = await importTabIdUtils();
         const unknown = { contentId: getContentIdFromTabName("custom") };
 
         expect(getContentIdFromTabName("chart")).toBe("content_chartjs");
         expect(getContentIdFromTabName("chartjs")).toBe("content_chartjs");
+        expect(getContentIdFromTabName("zwift")).toBe("content_zwift");
         expect(unknown).toStrictEqual({ contentId: "content_custom" });
         expect(unknown).not.toStrictEqual({ contentId: "content_chartjs" });
     });
