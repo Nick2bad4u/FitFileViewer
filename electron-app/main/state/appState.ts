@@ -1,5 +1,9 @@
+import {
+    MAIN_APP_STATE_KNOWN_PATHS,
+    type MainAppStateKnownPath,
+    type RendererIpcEventChannel,
+} from "../../shared/ipc.js";
 import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
-import type { RendererIpcEventChannel } from "../../shared/ipc.js";
 import { CONSTANTS } from "../constants.js";
 import { createElectronConf } from "../runtime/electronConfAccess.js";
 
@@ -31,21 +35,18 @@ export type MainAppStateValueByPath = {
     "permissions.geolocation.allowed": boolean | null;
 };
 
-export type MainAppStateKnownPath = keyof MainAppStateValueByPath;
 export type MainAppAutoUpdaterStatus =
     MainAppStateValueByPath["autoUpdater.status"];
 
-const MAIN_APP_STATE_KNOWN_PATHS = [
-    "appIsQuitting",
-    "autoUpdater.status",
-    "autoUpdater.updateDownloaded",
-    "autoUpdaterInitialized",
-    "gyazoServer",
-    "gyazoServerPort",
-    "loadedFitFilePath",
-    "mainWindow",
-    "permissions.geolocation.allowed",
-] as const satisfies readonly MainAppStateKnownPath[];
+type MainAppStatePathCoverage = Exclude<
+    keyof MainAppStateValueByPath,
+    MainAppStateKnownPath
+>;
+
+const mainAppStatePathCoverage: MainAppStatePathCoverage extends never
+    ? true
+    : never = true;
+void mainAppStatePathCoverage;
 
 const mainAppStateKnownPathSet = new Set<string>(MAIN_APP_STATE_KNOWN_PATHS);
 

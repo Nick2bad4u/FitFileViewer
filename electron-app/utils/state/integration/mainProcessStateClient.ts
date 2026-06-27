@@ -1,8 +1,12 @@
-import type {
-    MainStateChange,
-    MainStateIpcValue,
-    MainStateSetOptions,
-    MainStateSetValue,
+import {
+    MAIN_APP_STATE_KNOWN_PATHS,
+    type MainProcessStateListenPath,
+    type MainProcessStateReadablePath,
+    type MainProcessStateWritablePath,
+    type MainStateChange,
+    type MainStateIpcValue,
+    type MainStateSetOptions,
+    type MainStateSetValue,
 } from "../../../shared/ipc.js";
 import type { ElectronMainStateApi } from "../../../shared/preloadApi.js";
 import {
@@ -14,6 +18,13 @@ import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 type Operation = MainStateIpcValue;
 type ErrorEntry = MainStateIpcValue;
 type Metrics = MainStateIpcValue;
+
+const mainAppStateKnownPathSet = new Set<string>(MAIN_APP_STATE_KNOWN_PATHS);
+const forbiddenPathSegments = new Set([
+    "__proto__",
+    "constructor",
+    "prototype",
+]);
 
 /** State change payload delivered by the main-process state bridge. */
 export type StateChangeEvent = MainStateChange & {
@@ -66,6 +77,52 @@ function getMainStateElectronAPI(
     electronApiScope: RendererElectronApiScope | undefined
 ): MainStateElectronAPI | null {
     return getRendererElectronApi(isMainStateElectronAPI, electronApiScope);
+}
+
+function hasForbiddenPathSegment(path: string): boolean {
+    return path
+        .split(".")
+        .some((segment) => forbiddenPathSegments.has(segment));
+}
+
+function isOperationPath(path: string): path is `operations.${string}` {
+    return (
+        path.startsWith("operations.") &&
+        path.length > "operations.".length &&
+        !hasForbiddenPathSegment(path)
+    );
+}
+
+function isReadablePath(path: string): path is MainProcessStateReadablePath {
+    return mainAppStateKnownPathSet.has(path) || isOperationPath(path);
+}
+
+function isWritablePath(path: string): path is MainProcessStateWritablePath {
+    return path === "loadedFitFilePath" || isOperationPath(path);
+}
+
+function isListenablePath(path: string): path is MainProcessStateListenPath {
+    return path === "*" || isReadablePath(path);
+}
+
+function assertReadablePath(
+    path: string
+): asserts path is MainProcessStateReadablePath {
+    if (!isReadablePath(path)) {
+        throw new TypeError(
+            `Unknown readable main process state path: ${path}`
+        );
+    }
+}
+
+function assertListenablePath(
+    path: string
+): asserts path is MainProcessStateListenPath {
+    if (!isListenablePath(path)) {
+        throw new TypeError(
+            `Unknown listenable main process state path: ${path}`
+        );
+    }
 }
 
 function isMainStateRecord(
@@ -149,8 +206,13 @@ export class MainProcessStateClient {
      * @throws Error when the preload state bridge is unavailable or the IPC
      *   call fails.
      */
-    public async get(path?: string): Promise<MainStateIpcValue> {
+    public async get(
+        path?: MainProcessStateReadablePath
+    ): Promise<MainStateIpcValue> {
         const electronAPI = this.requireElectronAPI();
+        if (path !== undefined) {
+            assertReadablePath(path);
+        }
 
         try {
             return await electronAPI.getMainState(path);
@@ -298,10 +360,11 @@ export class MainProcessStateClient {
      *   call fails.
      */
     public async listen(
-        path: string,
+        path: MainProcessStateListenPath,
         callback: (change: StateChangeEvent) => void
     ): Promise<() => void> {
         const electronAPI = this.requireElectronAPI();
+        assertListenablePath(path);
 
         if (typeof callback !== "function") {
             throw new TypeError("Callback must be a function");
@@ -333,11 +396,18 @@ export class MainProcessStateClient {
      *   call fails.
      */
     public async set(
-        path: string,
+        path: MainProcessStateWritablePath,
         value: MainStateSetValue,
         options: MainStateSetOptions = {}
     ): Promise<boolean> {
         const electronAPI = this.requireElectronAPI();
+        if (!isWritablePath(path)) {
+            console.warn(
+                `[MainProcessStateClient] Refusing to set "${path}" - path is not renderer-writable. ` +
+                    "Only 'loadedFitFilePath' and 'operations.*' paths can be set from renderer."
+            );
+            return false;
+        }
 
         try {
             const result = await electronAPI.setMainState(path, value, options);

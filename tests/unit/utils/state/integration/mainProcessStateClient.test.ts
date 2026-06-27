@@ -62,7 +62,7 @@ function createClientApi(): MainStateClientApi {
 
 describe(MainProcessStateClient, () => {
     it("uses an explicit renderer Electron API scope for main-state operations", async () => {
-        expect.assertions(15);
+        expect.assertions(20);
 
         const api = createClientApi();
         api.getMainState.mockImplementation(async (path?: string) => {
@@ -131,6 +131,23 @@ describe(MainProcessStateClient, () => {
         await expect(client.getMainWindow()).resolves.toStrictEqual({
             ok: true,
         });
+        await expect(client.get("restrictedPath" as never)).rejects.toThrow(
+            "Unknown readable main process state path: restrictedPath"
+        );
+        await expect(
+            client.listen("restrictedPath" as never, callback)
+        ).rejects.toThrow(
+            "Unknown listenable main process state path: restrictedPath"
+        );
+        await expect(
+            client.listen("operations.__proto__.polluted" as never, callback)
+        ).rejects.toThrow(
+            "Unknown listenable main process state path: operations.__proto__.polluted"
+        );
+        await expect(
+            client.set("restrictedPath" as never, "value")
+        ).resolves.toBe(false);
+        expect(api.setMainState).toHaveBeenCalledTimes(1);
     });
 
     it("stays unavailable when the scoped API is missing", async () => {

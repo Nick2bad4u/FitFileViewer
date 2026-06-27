@@ -35,7 +35,36 @@ export type MainStateIpcValue =
     | readonly MainStateIpcValue[]
     | MainStateIpcObject;
 
-/** Dot-path accepted by the main-process state bridge. */
+/** App-owned main-process state paths exposed through typed facades. */
+export const MAIN_APP_STATE_KNOWN_PATHS = [
+    "appIsQuitting",
+    "autoUpdater.status",
+    "autoUpdater.updateDownloaded",
+    "autoUpdaterInitialized",
+    "gyazoServer",
+    "gyazoServerPort",
+    "loadedFitFilePath",
+    "mainWindow",
+    "permissions.geolocation.allowed",
+] as const;
+
+/** Typed app-owned main-process state path. */
+export type MainAppStateKnownPath = (typeof MAIN_APP_STATE_KNOWN_PATHS)[number];
+
+/** Renderer-readable main-process state paths. */
+export type MainProcessStateReadablePath =
+    | MainAppStateKnownPath
+    | `operations.${string}`;
+
+/** Renderer-listenable main-process state paths. */
+export type MainProcessStateListenPath = "*" | MainProcessStateReadablePath;
+
+/** Renderer-writable main-process state paths. */
+export type MainProcessStateWritablePath =
+    | "loadedFitFilePath"
+    | `operations.${string}`;
+
+/** Dot-path accepted by the low-level main-process state bridge. */
 export type MainStatePath = string;
 
 /** Metadata accepted when renderer-owned main-state values are updated. */

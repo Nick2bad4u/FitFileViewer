@@ -4,10 +4,11 @@ This guide explains how to use the `mainProcessStateClient` to interact with the
 
 ## Overview
 
-The Main Process State Client provides a clean, type-safe API for the renderer process to:
+The Main Process State Client provides a typed API for the renderer process to:
 
-- Get and set main process state
-- Listen for state changes
+- Get selected main process state through known paths or convenience methods
+- Set renderer-writable state through narrow helpers
+- Listen for changes on known paths
 - Track operations and their progress
 - Monitor errors and performance metrics
 
@@ -26,10 +27,10 @@ import { mainProcessStateClient } from "./utils/state/integration/index.js";
 #### Get State
 
 ```javascript
-// Get entire state
+// Get entire serialized state for diagnostics/debugging
 const allState = await mainProcessStateClient.get();
 
-// Get specific property
+// Get a known readable property
 const filePath = await mainProcessStateClient.get("loadedFitFilePath");
 
 // Convenience method
@@ -39,7 +40,7 @@ const filePath = await mainProcessStateClient.getLoadedFilePath();
 #### Set State
 
 ```javascript
-// Set state (only allowed paths: 'loadedFitFilePath' and 'operations.*')
+// Set renderer-writable state. Allowed paths are 'loadedFitFilePath' and 'operations.*'.
 await mainProcessStateClient.set("loadedFitFilePath", "/path/to/file.fit", {
  source: "file-open-handler",
 });
@@ -141,24 +142,32 @@ if (mainProcessStateClient.isAvailable()) {
 
 ## Error Handling
 
-All async methods throw errors that should be caught:
+All async methods throw errors that should be caught. Invalid readable/listenable
+paths are rejected by the renderer client before IPC. Invalid writable paths
+return `false` and do not invoke IPC.
 
 ```javascript
 try {
- await mainProcessStateClient.set("restrictedPath", "value");
+ const updated = await mainProcessStateClient.set("restrictedPath", "value");
+ if (!updated) {
+  console.warn("The requested state path is not renderer-writable");
+ }
 } catch (error) {
- console.error("Failed to set state:", error);
+ console.error("Failed to read or listen for state:", error);
 }
 ```
 
 ## Restricted Paths
 
-For security reasons, only certain paths can be set from the renderer process:
+For security reasons, renderer code should use the convenience methods whenever
+possible. The app-facing client only accepts known readable/listenable paths and
+only certain paths can be set from the renderer process:
 
 - `loadedFitFilePath` - Path to the currently loaded FIT file
 - `operations.*` - Any operation-related state
 
-Attempting to set other paths will return `false` and log a warning.
+Attempting to set other paths returns `false` and logs a warning without calling
+IPC. Attempting to read or listen to unknown paths throws a `TypeError`.
 
 ## Integration Example
 
@@ -225,9 +234,9 @@ await appStateSync.initialize();
 ### Methods
 
 - `isAvailable(): boolean` - Check if client is properly initialized
-- `get(path?: string): Promise<any>` - Get state value(s)
-- `set(path: string, value: any, options?: object): Promise<boolean>` - Set state value
-- `listen(path: string, callback: Function): Promise<Function>` - Listen for changes
+- `get(path?: MainProcessStateReadablePath): Promise<any>` - Get serialized state or a known readable value
+- `set(path: MainProcessStateWritablePath, value: any, options?: object): Promise<boolean>` - Set a renderer-writable value
+- `listen(path: MainProcessStateListenPath, callback: Function): Promise<Function>` - Listen for changes on a known path
 - `getOperation(operationId: string): Promise<Operation|null>` - Get operation status
 - `getOperations(): Promise<Record<string, Operation>>` - Get all operations
 - `getErrors(limit?: number): Promise<ErrorEntry[]>` - Get recent errors
