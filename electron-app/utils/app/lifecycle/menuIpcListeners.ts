@@ -26,6 +26,10 @@ type MenuElectronAPI = Partial<
     >
 >;
 
+type MenuElectronApiCandidate = {
+    readonly [K in keyof MenuElectronAPI]?: unknown;
+};
+
 type RegisterMenuIpcListenersParams = {
     debugMenuLog: (...args: unknown[]) => void;
     electronApiScope?: RendererElectronApiScope | undefined;
@@ -78,25 +82,23 @@ function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
         return false;
     }
 
-    return [
-        "installUpdate",
-        "onMenuAbout",
-        "onMenuExport",
-        "onMenuKeyboardShortcuts",
-        "onMenuOpenOverlay",
-        "onMenuRestartUpdate",
-        "onMenuSaveAs",
-        "onOpenAccentColorPicker",
-        "requestExport",
-        "requestSaveAs",
-    ].every((methodName) => {
-        if (!(methodName in value)) {
-            return true;
-        }
+    const api = value as MenuElectronApiCandidate;
+    return (
+        hasOptionalFunction(api.installUpdate) &&
+        hasOptionalFunction(api.onMenuAbout) &&
+        hasOptionalFunction(api.onMenuExport) &&
+        hasOptionalFunction(api.onMenuKeyboardShortcuts) &&
+        hasOptionalFunction(api.onMenuOpenOverlay) &&
+        hasOptionalFunction(api.onMenuRestartUpdate) &&
+        hasOptionalFunction(api.onMenuSaveAs) &&
+        hasOptionalFunction(api.onOpenAccentColorPicker) &&
+        hasOptionalFunction(api.requestExport) &&
+        hasOptionalFunction(api.requestSaveAs)
+    );
+}
 
-        const method = Reflect.get(value, methodName);
-        return method === undefined || typeof method === "function";
-    });
+function hasOptionalFunction(value: unknown): boolean {
+    return value === undefined || typeof value === "function";
 }
 
 function getMenuForwardRegistry(): Set<MenuSendChannel> {
