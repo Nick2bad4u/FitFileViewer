@@ -2072,9 +2072,7 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).toContain(
             "export type ElectronDialogApi"
         );
-        expect(sharedPreloadApiSource).not.toContain(
-            "ElectronAPIWithDevFlags"
-        );
+        expect(sharedPreloadApiSource).not.toContain("ElectronAPIWithDevFlags");
         expect(sharedPreloadApiSource).not.toContain("__devMode");
     });
 
@@ -3789,9 +3787,7 @@ describe("architecture boundaries", () => {
         expect(appStateSource).toContain(
             "function isAutoUpdaterUpdateDownloaded"
         );
-        expect(appStateSource).toContain(
-            "function setAutoUpdaterInitialized"
-        );
+        expect(appStateSource).toContain("function setAutoUpdaterInitialized");
         expect(appStateSource).toContain("function setAutoUpdaterState");
         expect(initializeApplicationSource).toContain(
             "isAutoUpdaterInitialized"
@@ -3799,9 +3795,7 @@ describe("architecture boundaries", () => {
         expect(initializeApplicationSource).toContain(
             "setAutoUpdaterInitialized"
         );
-        expect(bootstrapMainWindowSource).toContain(
-            "isAutoUpdaterInitialized"
-        );
+        expect(bootstrapMainWindowSource).toContain("isAutoUpdaterInitialized");
         expect(bootstrapMainWindowSource).toContain(
             "setAutoUpdaterInitialized"
         );
@@ -3859,9 +3853,7 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).not.toContain(
             'setAppState("gyazoServerPort"'
         );
-        expect(setupApplicationEventHandlersSource).toContain(
-            "hasGyazoServer"
-        );
+        expect(setupApplicationEventHandlersSource).toContain("hasGyazoServer");
         expect(setupApplicationEventHandlersSource).not.toContain(
             'getAppState("gyazoServer")'
         );
@@ -4542,9 +4534,7 @@ describe("architecture boundaries", () => {
         expect(developmentToolsGlobalSource).toContain(
             "loggingTimestampRuntime().isoNow()"
         );
-        expect(moduleTypesSource).toContain(
-            "api: PreloadDevelopmentToolsApi"
-        );
+        expect(moduleTypesSource).toContain("api: PreloadDevelopmentToolsApi");
         expect(developmentToolsGlobalSource).not.toContain(
             "new Date().toISOString()"
         );
@@ -5552,7 +5542,7 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
-        expect(stateStartupSource).toContain("AppDomainStatePathSubscriber");
+        expect(stateStartupSource).toContain("AppOpeningFileSubscriber");
         expect(stateStartupSource).toContain(
             "export type RendererStateStartupCoreModules = Readonly<{"
         );
@@ -5565,7 +5555,7 @@ describe("architecture boundaries", () => {
             "readonly masterStateManager: unknown;"
         );
         expect(stateStartupSource).toContain(
-            "readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;"
+            "readonly subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined;"
         );
         expect(stateStartupSource).toContain(
             "export type RendererFileOpeningStateRef ="
@@ -5586,7 +5576,7 @@ describe("architecture boundaries", () => {
         );
         expect(stateStartupSource).not.toContain("toModuleRecord");
         expect(stateStartupSource).not.toContain("masterStateManagerRecord");
-        expect(stateStartupSource).not.toContain("subscribeOpeningFile");
+        expect(stateStartupSource).toContain("subscribeToAppOpeningFile");
         expect(rendererEntrypointSource).not.toContain(
             "createRendererStateStartup({\n    ensureCoreModules,\n    logRenderer,\n    toModuleRecord,"
         );
@@ -5700,21 +5690,19 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             "export interface RendererCoreModules"
         );
-        expect(coreModuleResolutionSource).toContain("AppDomainStateGetter");
+        expect(coreModuleResolutionSource).toContain("AppStartTimeGetter");
         expect(coreModuleResolutionSource).toContain(
-            "AppDomainStateSubscriber"
+            "AppOpeningFileSubscriber"
+        );
+        expect(coreModuleResolutionSource).toContain("AppStartTimeSubscriber");
+        expect(coreModuleResolutionSource).toContain(
+            "getAppStartTime: AppStartTimeGetter | undefined"
         );
         expect(coreModuleResolutionSource).toContain(
-            "AppDomainStatePathSubscriber"
+            "subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined"
         );
         expect(coreModuleResolutionSource).toContain(
-            "getAppDomainState: AppDomainStateGetter | undefined"
-        );
-        expect(coreModuleResolutionSource).toContain(
-            "subscribeAppDomain: AppDomainStateSubscriber | undefined"
-        );
-        expect(coreModuleResolutionSource).toContain(
-            "subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined"
+            "subscribeToAppStartTime: AppStartTimeSubscriber | undefined"
         );
         expect(coreModuleResolutionSource).not.toContain(
             "getAppDomainState: undefined | UnknownRendererFunction"
@@ -5742,7 +5730,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app-domain facade timestamps behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const appDomainStateSource = stripComments(
             readRepositoryFile(
@@ -5759,6 +5747,18 @@ describe("architecture boundaries", () => {
         expect(appDomainStateSource).toContain("type AppDomainStateRuntime");
         expect(appDomainStateSource).toContain(
             "function appDomainStateRuntime(): AppDomainStateRuntime"
+        );
+        expect(appDomainStateSource).toContain(
+            "export function getAppStartTime"
+        );
+        expect(appDomainStateSource).toContain(
+            "export function subscribeToAppOpeningFile"
+        );
+        expect(appDomainStateSource).toContain(
+            "export function subscribeToAppStartTime"
+        );
+        expect(appDomainStateSource).toContain(
+            'const APP_OPENING_FILE_STATE_PATH = "app.isOpeningFile"'
         );
         expect(appDomainStateSource).toContain(
             "timestamp: appDomainStateRuntime().dateNow()"
@@ -6279,7 +6279,7 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).not.toContain(
             "state/core/stateManager.js"
         );
-        expect(stateStartupSource).toContain("subscribeAppDomainPath");
+        expect(stateStartupSource).toContain("subscribeToAppOpeningFile");
     });
 
     it("keeps renderer state UI bindings on explicit dependencies", () => {
@@ -8292,7 +8292,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(32);
+        expect.assertions(34);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -8322,6 +8322,9 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationSource).toContain("activeFitRawDataState.js");
         expect(chartTabIntegrationSource).toContain("appDomainState.js");
         expect(chartTabIntegrationSource).toContain(
+            "subscribeToAppOpeningFile"
+        );
+        expect(chartTabIntegrationSource).toContain(
             "rendererActiveTabState.js"
         );
         expect(chartTabIntegrationSource).toContain(
@@ -8347,6 +8350,9 @@ describe("architecture boundaries", () => {
         );
         expect(chartTabIntegrationSource).not.toContain(
             "state/core/stateManager.js"
+        );
+        expect(chartTabIntegrationSource).not.toMatch(
+            /\bsubscribeAppDomainPath\(\s*["']app\.isOpeningFile["']/u
         );
         expect(chartTabIntegrationSource).not.toContain(
             "document.querySelector"
@@ -17244,9 +17250,7 @@ describe("architecture boundaries", () => {
             "import type { ElectronAPI"
         );
         expect(fullscreenButtonSource).not.toContain("Pick<ElectronAPI");
-        expect(fullscreenButtonSource).not.toContain(
-            "activeElectronApiScope"
-        );
+        expect(fullscreenButtonSource).not.toContain("activeElectronApiScope");
         expect(fullscreenButtonSource).toContain(
             "handleKeyboardShortcuts(event, electronApiScope)"
         );
@@ -17939,7 +17943,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -17967,7 +17971,10 @@ describe("architecture boundaries", () => {
             "readonly handleOpenFile: RendererHandleOpenFile | undefined;"
         );
         expect(importTimeBootstrapSource).toContain(
-            "readonly subscribeAppDomain: AppDomainStateSubscriber | undefined;"
+            "readonly getAppStartTime: AppStartTimeGetter | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;"
         );
         expect(importTimeBootstrapSource).toContain(
             "ensureCoreModules: () => Promise<RendererImportTimeCoreModules>"
@@ -17981,12 +17988,16 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapTestSource).not.toContain(
             "RendererCoreModules"
         );
-        expect(importTimeBootstrapSource).toContain(
+        expect(importTimeBootstrapSource).toContain("getAppStartTime?.()");
+        expect(importTimeBootstrapSource).not.toContain(
             'getAppDomainState?.("app.startTime")'
         );
         expect(importTimeBootstrapSource).toContain("setupListenersFn?.(deps)");
         expect(importTimeBootstrapSource).toContain("setupThemeFn?.(");
         expect(importTimeBootstrapSource).toContain(
+            "subscribeToAppStartTime?.(() => {})"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
             'subscribeAppDomain?.("app.startTime", () => {})'
         );
         expect(importTimeBootstrapSource).not.toContain(

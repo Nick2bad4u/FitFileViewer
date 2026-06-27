@@ -14,7 +14,7 @@ function createCoreModules(
             setInitialized: vi.fn(),
         },
         applyTheme: vi.fn(),
-        getAppDomainState: vi.fn(),
+        getAppStartTime: vi.fn(),
         handleOpenFile: vi.fn(),
         listenForThemeChange: vi.fn(),
         setupListeners: vi.fn(),
@@ -115,9 +115,7 @@ describe("renderer application startup", () => {
                 openFileBtn: openFileButton,
             })
         );
-        expect(coreModules.getAppDomainState).toHaveBeenCalledWith(
-            "app.startTime"
-        );
+        expect(coreModules.getAppStartTime).toHaveBeenCalledOnce();
         expect(coreModules.AppActions?.setInitialized).toHaveBeenCalledWith(
             true
         );

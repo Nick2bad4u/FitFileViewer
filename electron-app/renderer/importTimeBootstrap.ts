@@ -9,8 +9,8 @@ import type {
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
-    AppDomainStateGetter,
-    AppDomainStateSubscriber,
+    AppStartTimeGetter,
+    AppStartTimeSubscriber,
 } from "../utils/state/domain/appDomainState.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
@@ -18,7 +18,7 @@ export type RendererImportTimeCoreModules = Readonly<{
     readonly applyTheme:
         | ((theme: string, withTransition?: boolean) => void)
         | undefined;
-    readonly getAppDomainState: AppDomainStateGetter | undefined;
+    readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
@@ -26,7 +26,7 @@ export type RendererImportTimeCoreModules = Readonly<{
     readonly showAboutModal: ((html?: string) => void) | undefined;
     readonly showNotification: ShowNotification | undefined;
     readonly showUpdateNotification: ShowUpdateNotification | undefined;
-    readonly subscribeAppDomain: AppDomainStateSubscriber | undefined;
+    readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;
 }>;
 
 interface RendererImportTimeBootstrapOptions {
@@ -69,8 +69,8 @@ export function createRendererImportTimeBootstrap({
     async function initializeImportTimeStateManager(): Promise<void> {
         await initializeStateManager();
         try {
-            const { getAppDomainState } = await ensureCoreModules();
-            getAppDomainState?.("app.startTime");
+            const { getAppStartTime } = await ensureCoreModules();
+            getAppStartTime?.();
         } catch {
             /* Ignore errors */
         }
@@ -156,10 +156,10 @@ export function createRendererImportTimeBootstrap({
 
     async function touchAppDomainStateForCoverage(): Promise<void> {
         try {
-            const { getAppDomainState, subscribeAppDomain } =
+            const { getAppStartTime, subscribeToAppStartTime } =
                 await ensureCoreModules();
-            getAppDomainState?.("app.startTime");
-            subscribeAppDomain?.("app.startTime", () => {});
+            getAppStartTime?.();
+            subscribeToAppStartTime?.(() => {});
         } catch {
             /* Ignore errors */
         }

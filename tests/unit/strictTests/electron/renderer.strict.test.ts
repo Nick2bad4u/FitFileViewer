@@ -112,8 +112,9 @@ const importRendererFresh = async () => {
         setInitialized: vi.fn<(initialized: boolean) => void>(),
         setFileOpening: vi.fn<(isOpening: boolean) => void>(),
     };
-    const getAppDomainState = vi.fn<() => number>(() => Date.now());
-    const subscribeAppDomain = vi.fn<(...args: unknown[]) => void>();
+    const getAppStartTime = vi.fn<() => number>(() => Date.now());
+    const subscribeToAppOpeningFile = vi.fn<(...args: unknown[]) => void>();
+    const subscribeToAppStartTime = vi.fn<(...args: unknown[]) => void>();
 
     // NOTE: renderer.js expects the exact '../../../electron-app/utils/...' ids to match resolveExactRendererCoreTestOverride
     vi.doMock(
@@ -174,8 +175,9 @@ const importRendererFresh = async () => {
     vi.doMock(
         import("../../../electron-app/utils/state/domain/appDomainState.js"),
         () => ({
-            getAppDomainState,
-            subscribeAppDomain,
+            getAppStartTime,
+            subscribeToAppOpeningFile,
+            subscribeToAppStartTime,
         })
     );
 
@@ -205,8 +207,9 @@ const importRendererFresh = async () => {
             listenForThemeChange,
             msm,
             AppActions,
-            getAppDomainState,
-            subscribeAppDomain,
+            getAppStartTime,
+            subscribeToAppOpeningFile,
+            subscribeToAppStartTime,
         },
     };
 };

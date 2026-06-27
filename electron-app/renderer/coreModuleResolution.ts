@@ -1,9 +1,9 @@
 import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type {
-    AppDomainStateGetter,
-    AppDomainStatePathSubscriber,
-    AppDomainStateSubscriber,
+    AppOpeningFileSubscriber,
+    AppStartTimeGetter,
+    AppStartTimeSubscriber,
 } from "../utils/state/domain/appDomainState.js";
 
 export type ListenForThemeChange = (
@@ -35,7 +35,7 @@ export type RendererSetupTheme = (
 type ResolvedRendererCoreModules = Readonly<{
     readonly AppActions: Record<string, unknown> | undefined;
     readonly applyTheme: ApplyTheme | undefined;
-    readonly getAppDomainState: AppDomainStateGetter | undefined;
+    readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly masterStateManager: unknown;
@@ -44,8 +44,8 @@ type ResolvedRendererCoreModules = Readonly<{
     readonly showAboutModal: ((html?: string) => void) | undefined;
     readonly showNotification: ShowNotification | undefined;
     readonly showUpdateNotification: ShowUpdateNotification | undefined;
-    readonly subscribeAppDomain: AppDomainStateSubscriber | undefined;
-    readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
+    readonly subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined;
+    readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;
     readonly uiStateManager: unknown;
 }>;
 
@@ -107,8 +107,8 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
         AppActions: resolveAppActionsModule(appActionsMod),
         applyTheme: toApplyTheme(themeMod["applyTheme"]),
-        getAppDomainState: toAppDomainStateGetter(
-            resolveDefaultableExport(appDomainMod, "getAppDomainState")
+        getAppStartTime: toAppStartTimeGetter(
+            resolveDefaultableExport(appDomainMod, "getAppStartTime")
         ),
         handleOpenFile: toRendererHandleOpenFile(openFileMod["handleOpenFile"]),
         listenForThemeChange: toListenForThemeChange(
@@ -125,11 +125,11 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         showUpdateNotification: toShowUpdateNotification(
             updateNotifMod["showUpdateNotification"]
         ),
-        subscribeAppDomain: toAppDomainStateSubscriber(
-            resolveDefaultableExport(appDomainMod, "subscribeAppDomain")
+        subscribeToAppOpeningFile: toAppOpeningFileSubscriber(
+            resolveDefaultableExport(appDomainMod, "subscribeToAppOpeningFile")
         ),
-        subscribeAppDomainPath: toAppDomainStatePathSubscriber(
-            resolveDefaultableExport(appDomainMod, "subscribeAppDomainPath")
+        subscribeToAppStartTime: toAppStartTimeSubscriber(
+            resolveDefaultableExport(appDomainMod, "subscribeToAppStartTime")
         ),
         uiStateManager:
             resolveDefaultableExport(uiStateMod, "uiStateManager") ??
@@ -305,27 +305,25 @@ function toApplyTheme(value: unknown): ApplyTheme | undefined {
     return typeof value === "function" ? (value as ApplyTheme) : undefined;
 }
 
-function toAppDomainStateGetter(
+function toAppOpeningFileSubscriber(
     value: unknown
-): AppDomainStateGetter | undefined {
+): AppOpeningFileSubscriber | undefined {
     return typeof value === "function"
-        ? (value as AppDomainStateGetter)
+        ? (value as AppOpeningFileSubscriber)
         : undefined;
 }
 
-function toAppDomainStatePathSubscriber(
-    value: unknown
-): AppDomainStatePathSubscriber | undefined {
+function toAppStartTimeGetter(value: unknown): AppStartTimeGetter | undefined {
     return typeof value === "function"
-        ? (value as AppDomainStatePathSubscriber)
+        ? (value as AppStartTimeGetter)
         : undefined;
 }
 
-function toAppDomainStateSubscriber(
+function toAppStartTimeSubscriber(
     value: unknown
-): AppDomainStateSubscriber | undefined {
+): AppStartTimeSubscriber | undefined {
     return typeof value === "function"
-        ? (value as AppDomainStateSubscriber)
+        ? (value as AppStartTimeSubscriber)
         : undefined;
 }
 

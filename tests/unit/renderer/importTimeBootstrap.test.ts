@@ -25,7 +25,7 @@ function createCoreModules(
 ): RendererImportTimeCoreModules {
     return {
         applyTheme: vi.fn(),
-        getAppDomainState: vi.fn(),
+        getAppStartTime: vi.fn(),
         handleOpenFile: vi.fn(),
         listenForThemeChange: vi.fn(),
         setupListeners: vi.fn(),
@@ -33,7 +33,7 @@ function createCoreModules(
         showAboutModal: vi.fn(),
         showNotification: vi.fn(),
         showUpdateNotification: vi.fn(),
-        subscribeAppDomain: vi.fn(),
+        subscribeToAppStartTime: vi.fn(),
         ...overrides,
     };
 }
@@ -113,11 +113,8 @@ describe("renderer import-time bootstrap", () => {
         expect(getElectronApiScope).toHaveBeenCalledOnce();
         expect(initializeStateManager).toHaveBeenCalledOnce();
         expect(masterStateManager.initialize).toHaveBeenCalledOnce();
-        expect(coreModules.getAppDomainState).toHaveBeenCalledWith(
-            "app.startTime"
-        );
-        expect(coreModules.subscribeAppDomain).toHaveBeenCalledWith(
-            "app.startTime",
+        expect(coreModules.getAppStartTime).toHaveBeenCalled();
+        expect(coreModules.subscribeToAppStartTime).toHaveBeenCalledWith(
             expect.any(Function)
         );
         expect(receivedUpdateNotifications).toHaveLength(0);

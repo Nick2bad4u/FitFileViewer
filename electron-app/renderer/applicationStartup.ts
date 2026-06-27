@@ -23,7 +23,7 @@ import type {
     ShowUpdateNotification,
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
-import type { AppDomainStateGetter } from "../utils/state/domain/appDomainState.js";
+import type { AppStartTimeGetter } from "../utils/state/domain/appDomainState.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 type RendererStartupLogLevel = "error" | "log" | "warn";
@@ -47,7 +47,7 @@ export interface RendererDependencies {
 export type RendererApplicationStartupCoreModules = Readonly<{
     readonly AppActions: Record<string, unknown> | undefined;
     readonly applyTheme: ApplyTheme | undefined;
-    readonly getAppDomainState: AppDomainStateGetter | undefined;
+    readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
@@ -77,8 +77,7 @@ interface RendererApplicationStartupOptions {
 export function createRendererApplicationStartup(
     options: RendererApplicationStartupOptions
 ): () => Promise<void> {
-    const runtime =
-        options.runtime ?? getRendererApplicationStartupRuntime();
+    const runtime = options.runtime ?? getRendererApplicationStartupRuntime();
 
     async function initializeApplication(): Promise<void> {
         options.performanceMonitor.start("app_initialization");
@@ -135,8 +134,8 @@ export function createRendererApplicationStartup(
             }
 
             try {
-                if (coreModules.getAppDomainState !== undefined) {
-                    coreModules.getAppDomainState("app.startTime");
+                if (coreModules.getAppStartTime !== undefined) {
+                    coreModules.getAppStartTime();
                 }
             } catch {
                 /* Ignore errors */
@@ -218,12 +217,9 @@ async function initializeAsyncComponents(
             !options.isDevelopmentMode()
         ) {
             try {
-                const updateCheckTimer = runtime.setTimeout(
-                    () => {
-                        electronApiHooks.checkForUpdates?.();
-                    },
-                    5000
-                );
+                const updateCheckTimer = runtime.setTimeout(() => {
+                    electronApiHooks.checkForUpdates?.();
+                }, 5000);
                 options.addEventListener(
                     "beforeunload",
                     () => {

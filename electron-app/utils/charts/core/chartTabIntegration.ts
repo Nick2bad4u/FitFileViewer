@@ -3,7 +3,7 @@ import {
     hasFitChartRecordMessages,
 } from "../../state/domain/fitChartDataState.js";
 import { subscribeToActiveFitRawDataChange } from "../../state/domain/activeFitRawDataState.js";
-import { subscribeAppDomainPath } from "../../state/domain/appDomainState.js";
+import { subscribeToAppOpeningFile } from "../../state/domain/appDomainState.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
@@ -204,7 +204,7 @@ export class ChartTabIntegration {
             }
         });
 
-        subscribeAppDomainPath("app.isOpeningFile", (isOpening) => {
+        subscribeToAppOpeningFile((isOpening) => {
             if (isOpening !== true) {
                 this.checkAndRenderCharts();
             }

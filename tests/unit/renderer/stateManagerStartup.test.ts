@@ -12,17 +12,14 @@ describe("renderer state manager startup", () => {
         expect.assertions(5);
 
         const initialize = vi.fn<() => void>();
-        const subscribers = new Map<string, (value: unknown) => void>();
+        let openingFileSubscriber: ((value: unknown) => void) | undefined;
         const utils = createRendererStateStartup({
             ensureCoreModules: async () => ({
                 masterStateManager: {
                     initialize,
                 },
-                subscribeAppDomainPath: (path: unknown, callback: unknown) => {
-                    subscribers.set(
-                        path as string,
-                        callback as (value: unknown) => void
-                    );
+                subscribeToAppOpeningFile: (callback) => {
+                    openingFileSubscriber = callback;
                 },
             }),
             logRenderer: vi.fn(),
@@ -32,10 +29,10 @@ describe("renderer state manager startup", () => {
         await utils.initializeStateManager();
 
         expect(initialize).toHaveBeenCalledOnce();
-        expect([...subscribers.keys()]).toStrictEqual(["app.isOpeningFile"]);
+        expect(openingFileSubscriber).toBeTypeOf("function");
         expect(utils.isOpeningFileRef.value).toBe(false);
 
-        subscribers.get("app.isOpeningFile")?.(true);
+        openingFileSubscriber?.(true);
 
         expect(utils.isOpeningFileRef.value).toBe(true);
 
@@ -61,7 +58,7 @@ describe("renderer state manager startup", () => {
         expect(utils.isOpeningFileRef.value).toBe(false);
     });
 
-    it("requires the app-domain path subscription facade", async () => {
+    it("requires the app-opening subscription facade", async () => {
         expect.assertions(2);
 
         const utils = createRendererStateStartup({
@@ -74,7 +71,7 @@ describe("renderer state manager startup", () => {
         });
 
         await expect(utils.initializeStateManager()).rejects.toThrow(
-            "subscribeAppDomainPath missing"
+            "subscribeToAppOpeningFile missing"
         );
 
         expect(utils.isOpeningFileRef.value).toBe(false);

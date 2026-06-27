@@ -1,4 +1,4 @@
-import type { AppDomainStatePathSubscriber } from "../utils/state/domain/appDomainState.js";
+import type { AppOpeningFileSubscriber } from "../utils/state/domain/appDomainState.js";
 
 type RendererStateStartupLogger = (
     level: "error" | "log",
@@ -7,7 +7,7 @@ type RendererStateStartupLogger = (
 
 export type RendererStateStartupCoreModules = Readonly<{
     readonly masterStateManager: unknown;
-    readonly subscribeAppDomainPath: AppDomainStatePathSubscriber | undefined;
+    readonly subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined;
 }>;
 
 export type RendererFileOpeningStateRef = {
@@ -60,7 +60,7 @@ export function createRendererStateStartup(
                     "log",
                     "[Renderer] Initializing state management system..."
                 );
-                const { masterStateManager, subscribeAppDomainPath } =
+                const { masterStateManager, subscribeToAppOpeningFile } =
                     await options.ensureCoreModules();
                 const stateManager = toRendererStateManager(masterStateManager);
                 if (stateManager === undefined) {
@@ -71,11 +71,11 @@ export function createRendererStateStartup(
 
                 await stateManager.initialize();
 
-                if (typeof subscribeAppDomainPath !== "function") {
-                    throw new TypeError("subscribeAppDomainPath missing");
+                if (typeof subscribeToAppOpeningFile !== "function") {
+                    throw new TypeError("subscribeToAppOpeningFile missing");
                 }
 
-                subscribeAppDomainPath("app.isOpeningFile", (isOpening) => {
+                subscribeToAppOpeningFile((isOpening) => {
                     setRendererFileOpeningState(
                         isOpeningFileRef,
                         isOpening === true

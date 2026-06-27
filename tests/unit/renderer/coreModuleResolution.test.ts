@@ -45,7 +45,7 @@ describe("renderer core module resolution", () => {
     });
 
     it("builds the core module facade from test overrides", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const applyTheme = vi.fn();
         const handleOpenFile = vi.fn();
@@ -55,9 +55,9 @@ describe("renderer core module resolution", () => {
         const showAboutModal = vi.fn();
         const showNotification = vi.fn();
         const showUpdateNotification = vi.fn();
-        const subscribe = vi.fn();
-        const subscribePath = vi.fn();
-        const getState = vi.fn();
+        const subscribeToAppOpeningFile = vi.fn();
+        const subscribeToAppStartTime = vi.fn();
+        const getAppStartTime = vi.fn();
         const AppActions = { setInitialized: vi.fn() };
         const masterStateManager = { initialize: vi.fn() };
         const uiStateManager = { ready: true };
@@ -91,9 +91,9 @@ describe("renderer core module resolution", () => {
                 [
                     "../../utils/state/domain/appDomainState.js",
                     {
-                        getAppDomainState: getState,
-                        subscribeAppDomain: subscribe,
-                        subscribeAppDomainPath: subscribePath,
+                        getAppStartTime,
+                        subscribeToAppOpeningFile,
+                        subscribeToAppStartTime,
                     },
                 ],
                 [
@@ -112,8 +112,13 @@ describe("renderer core module resolution", () => {
         expect(coreModules.masterStateManager).toBe(masterStateManager);
         expect(coreModules.setupListeners).toBe(setupListeners);
         expect(coreModules.showNotification).toBe(showNotification);
-        expect(coreModules.subscribeAppDomain).toBe(subscribe);
-        expect(coreModules.subscribeAppDomainPath).toBe(subscribePath);
+        expect(coreModules.getAppStartTime).toBe(getAppStartTime);
+        expect(coreModules.subscribeToAppOpeningFile).toBe(
+            subscribeToAppOpeningFile
+        );
+        expect(coreModules.subscribeToAppStartTime).toBe(
+            subscribeToAppStartTime
+        );
         expect(coreModules.uiStateManager).toBe(uiStateManager);
     });
 });
