@@ -5958,7 +5958,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(146);
+        expect.assertions(147);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6228,6 +6228,9 @@ describe("architecture boundaries", () => {
             "typeof globalThis.removeEventListener"
         );
         expect(lifecycleCleanupSource).not.toContain("globalThis.");
+        expect(lifecycleCleanupSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiElectronApiSource).toContain(

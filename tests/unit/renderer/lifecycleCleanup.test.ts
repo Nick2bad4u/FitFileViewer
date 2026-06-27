@@ -118,6 +118,26 @@ describe("renderer lifecycle cleanup", () => {
         expect(isOpeningFileRef.value).toBe(false);
     });
 
+    it("resets local opening state for malformed core module shapes", async () => {
+        expect.assertions(1);
+
+        const isOpeningFileRef = { value: true };
+
+        await cleanupRendererStateManagerState({
+            errorHandlers: createErrorHandlers(),
+            getCoreModules: () =>
+                Promise.resolve({
+                    AppActions: "not actions",
+                    masterStateManager: null,
+                }),
+            isOpeningFileRef,
+            logRenderer: () => {},
+            removeEventListener: () => {},
+        });
+
+        expect(isOpeningFileRef.value).toBe(false);
+    });
+
     it("resets local opening state directly", () => {
         expect.assertions(1);
 

@@ -23,6 +23,16 @@ interface RendererLifecycleCleanupOptions {
     removeEventListener: RendererRemoveEventListener;
 }
 
+type RendererCleanupAppActions = {
+    readonly setFileOpening?: unknown;
+    readonly setInitialized?: unknown;
+};
+
+type RendererCleanupMasterStateManager = {
+    readonly cleanup?: unknown;
+    readonly isInitialized?: unknown;
+};
+
 export function createRendererLifecycleCleanup(
     options: RendererLifecycleCleanupOptions
 ): () => void {
@@ -44,13 +54,14 @@ export async function cleanupRendererStateManagerState(
     try {
         const { AppActions, masterStateManager } =
             await options.getCoreModules();
-        const appActions = toRecord(AppActions);
+        const appActions = toCleanupAppActions(AppActions);
         callBooleanAppAction(appActions, "setInitialized", false);
         callBooleanAppAction(appActions, "setFileOpening", false);
 
-        const masterStateManagerRecord = toRecord(masterStateManager);
-        if (masterStateManagerRecord["isInitialized"] === true) {
-            const cleanupStateManager = masterStateManagerRecord["cleanup"];
+        const masterStateManagerRecord =
+            toCleanupMasterStateManager(masterStateManager);
+        if (masterStateManagerRecord.isInitialized === true) {
+            const cleanupStateManager = masterStateManagerRecord.cleanup;
             if (typeof cleanupStateManager === "function") {
                 const cleanupStateManagerFn = cleanupStateManager as (
                     this: unknown
@@ -73,7 +84,7 @@ export function resetRendererOpeningState(
 }
 
 function callBooleanAppAction(
-    appActions: Record<string, unknown>,
+    appActions: RendererCleanupAppActions,
     actionName: "setFileOpening" | "setInitialized",
     value: boolean
 ): void {
@@ -97,8 +108,12 @@ function removeRendererErrorEventListeners(
     );
 }
 
-function toRecord(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
-        : {};
+function toCleanupAppActions(value: unknown): RendererCleanupAppActions {
+    return typeof value === "object" && value !== null ? value : {};
+}
+
+function toCleanupMasterStateManager(
+    value: unknown
+): RendererCleanupMasterStateManager {
+    return typeof value === "object" && value !== null ? value : {};
 }

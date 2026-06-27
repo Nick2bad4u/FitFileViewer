@@ -1617,6 +1617,9 @@ the runtime environment object, with unit and architecture coverage blocking the
 Renderer runtime environment startup now also returns a narrow `rendererEventTarget` instead of exporting the broad
 `rendererGlobal` object to the renderer entrypoint; lifecycle, test bootstrap, and file-input wiring receive only
 the event target they use, with architecture coverage blocking the broad handoff from returning.
+Renderer lifecycle cleanup now narrows core-module cleanup shapes through explicit app-action/state-manager contracts
+instead of casting unknown core modules to a broad `Record<string, unknown>`, with unit and architecture coverage
+blocking the broad cast from returning.
 Renderer and main-UI browser runtime-environment scopes now assemble their production defaults from named browser
 runtime providers instead of inline `globalThis.document`, bound listener/timer, `globalThis.console`, Electron API
 candidate, or `Date.now()` closures, with architecture coverage blocking those inline defaults from returning.
