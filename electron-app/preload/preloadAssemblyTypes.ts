@@ -137,7 +137,7 @@ export interface PreloadRuntime {
     assemblePreloadApi: AssemblePreloadApi;
     constants: PreloadConstants;
     createElectronApi: CreateElectronApi;
-    modules: PreloadModuleRegistry;
+    modules: PreloadRuntimeModules;
 }
 
 export interface PreloadApiAssemblyModules {
@@ -225,7 +225,7 @@ export interface PreloadApiAssemblyContextModules
 export interface PreloadApiAssemblyInputModules
     extends PreloadApiAssemblyContextModules, PreloadApiAssemblyModules {}
 
-export type PreloadModuleRegistry = PreloadApiAssemblyInputModules;
+export type PreloadRuntimeModules = PreloadApiAssemblyInputModules;
 
 export interface PreloadApiAssemblyContext {
     constants: PreloadConstants;

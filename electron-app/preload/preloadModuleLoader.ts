@@ -9,10 +9,10 @@ import { loadPreloadPolicyModules } from "./preloadPolicyModuleLoader.js";
 import { loadPreloadStateModules } from "./preloadStateModuleLoader.js";
 import { loadPreloadSystemModules } from "./preloadSystemModuleLoader.js";
 
-type PreloadModuleRegistry =
-    import("./preloadAssemblyTypes").PreloadModuleRegistry;
+type PreloadRuntimeModules =
+    import("./preloadAssemblyTypes").PreloadRuntimeModules;
 
-export function loadPreloadModules(): PreloadModuleRegistry {
+export function loadPreloadModules(): PreloadRuntimeModules {
     return {
         ...loadPreloadApiAssemblyModules(),
         ...loadPreloadSystemModules(),

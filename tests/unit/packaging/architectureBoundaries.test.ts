@@ -2745,7 +2745,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload domain loaders on named module contracts", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const domainLoaderFiles = [
             "electron-app/preload/preloadApiAssemblyModuleLoader.ts",
@@ -2761,7 +2761,7 @@ describe("architecture boundaries", () => {
         ];
         const broadRegistryDerivedLoaderFiles = domainLoaderFiles
             .filter((relativeFile) =>
-                /\b(?:PreloadModuleRegistry|Pick<)\b/u.test(
+                /\b(?:PreloadModuleRegistry|PreloadRuntimeModules|Pick<)\b/u.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -2771,13 +2771,14 @@ describe("architecture boundaries", () => {
         );
 
         expect(broadRegistryDerivedLoaderFiles).toStrictEqual([]);
+        expect(assemblyTypesSource).not.toContain("PreloadModuleRegistry");
         expect(assemblyTypesSource).toMatch(
-            /type\s+PreloadModuleRegistry\s*=\s*PreloadApiAssemblyInputModules/u
+            /type\s+PreloadRuntimeModules\s*=\s*PreloadApiAssemblyInputModules/u
         );
     });
 
     it("keeps preload API assembly on its narrow module contract", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -2788,6 +2789,7 @@ describe("architecture boundaries", () => {
 
         expect(apiAssemblySource).toContain("IpcBridgeCatalog");
         expect(apiAssemblySource).not.toContain("PreloadModuleRegistry");
+        expect(apiAssemblySource).not.toContain("PreloadRuntimeModules");
         expect(apiAssemblySource).toContain(
             "ipcBridgeCatalog: IpcBridgeCatalog"
         );
@@ -2797,11 +2799,12 @@ describe("architecture boundaries", () => {
         expect(assemblyTypesSource).toMatch(
             /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadApiAssemblyInputModules/u
         );
+        expect(assemblyTypesSource).not.toContain("PreloadModuleRegistry");
         expect(assemblyTypesSource).toMatch(
-            /type\s+PreloadModuleRegistry\s*=\s*PreloadApiAssemblyInputModules/u
+            /type\s+PreloadRuntimeModules\s*=\s*PreloadApiAssemblyInputModules/u
         );
         expect(assemblyTypesSource).not.toMatch(
-            /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadModuleRegistry/u
+            /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadRuntimeModules/u
         );
     });
 
