@@ -114,10 +114,9 @@ function restorePerformanceMemory(): void {
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        expect.assertions(4);
+        expect.assertions(3);
         resetTestEnvironment();
 
-        expect(stateIntegration.initializeAppState).toBeTypeOf("function");
         expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
             "function"
         );
@@ -221,7 +220,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
         const testGlobal = globalThis;
 
-        stateIntegration.initializeAppState();
+        stateIntegration.initializeCompleteStateSystem();
 
         expect({
             chartRenderedState: getState("charts.isRendered"),

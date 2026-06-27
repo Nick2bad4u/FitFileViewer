@@ -82,7 +82,7 @@ const mockUIStateManager = vi.mocked(
     await import("../../../../../electron-app/utils/state/domain/uiStateManager.js")
 ).uiStateManager;
 
-import { initializeAppState } from "../../../../../electron-app/utils/state/integration/stateIntegration.js";
+import { initializeCompleteStateSystem } from "../../../../../electron-app/utils/state/integration/stateIntegration.js";
 
 const originalLocationDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
@@ -161,7 +161,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager
@@ -182,14 +182,14 @@ describe("stateIntegration comprehensive coverage", () => {
         it("should initialize app state without debug globals (smoke)", async () => {
             expect.assertions(3);
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             const consoleSpy = vi
                 .spyOn(console, "log")
                 .mockImplementation(() => {});
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager
@@ -487,10 +487,10 @@ describe("stateIntegration comprehensive coverage", () => {
                 configurable: true,
             });
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager
@@ -501,10 +501,10 @@ describe("stateIntegration comprehensive coverage", () => {
         it("should initialize without publishing state debug globals", async () => {
             expect.assertions(2);
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager
@@ -526,10 +526,10 @@ describe("stateIntegration comprehensive coverage", () => {
                 configurable: true,
             });
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager
@@ -548,10 +548,10 @@ describe("stateIntegration comprehensive coverage", () => {
                 configurable: true,
             });
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             // Startup should not depend on browser location access.
             expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
@@ -562,10 +562,10 @@ describe("stateIntegration comprehensive coverage", () => {
         it("should leave removed compatibility globals absent (smoke)", async () => {
             expect.assertions(4);
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(getRetiredGlobalDescriptor("globalData")).toBeUndefined();
             expect(getRetiredGlobalDescriptor("AppState")).toBeUndefined();
@@ -586,10 +586,10 @@ describe("stateIntegration comprehensive coverage", () => {
         it("should keep state debug globals absent", async () => {
             expect.assertions(3);
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager
@@ -601,12 +601,12 @@ describe("stateIntegration comprehensive coverage", () => {
         it("should not expose global debug utility actions", async () => {
             expect.assertions(4);
 
-            const { initializeAppState } =
+            const { initializeCompleteStateSystem } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
             mockStateManager.getState.mockReturnValue({ id: 1 });
 
-            initializeAppState();
+            initializeCompleteStateSystem();
 
             expect(
                 mockStateManager.initializeStateManager

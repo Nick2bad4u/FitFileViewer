@@ -39,7 +39,7 @@ function stateIntegrationRuntime(): StateIntegrationRuntime {
  * Initialize the complete state management system Call this once during
  * application startup
  */
-export function initializeAppState(): void {
+function initializeAppState(): void {
     console.log(
         "[StateIntegration] Initializing application state management..."
     );
