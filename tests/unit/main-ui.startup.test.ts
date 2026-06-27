@@ -313,6 +313,23 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect("devCleanup" in globalThis).toBe(false);
     });
 
+    it("rejects malformed main UI Electron API candidates", async () => {
+        expect.assertions(3);
+
+        const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
+        const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
+        mocks.mainUiElectronApiCandidate = {
+            onSetTheme,
+            onUnloadFitFile: "not callable",
+        };
+
+        await import("../../electron-app/main-ui.js");
+
+        expect(mocks.loadTheme).toHaveBeenCalledOnce();
+        expect(onSetTheme).not.toHaveBeenCalled();
+        expect(onUnloadFitFile).not.toHaveBeenCalled();
+    });
+
     it("initializes UI side effects when loaded", async () => {
         expect.assertions(20);
 

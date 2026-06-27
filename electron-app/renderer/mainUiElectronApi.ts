@@ -18,11 +18,11 @@ export interface MainUiElectronApi {
     sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
 }
 
-function hasOptionalFunction(
-    record: Readonly<Record<string, unknown>>,
-    key: keyof MainUiElectronApi
-): boolean {
-    const value = record[key];
+type MainUiElectronApiCandidate = {
+    readonly [K in keyof MainUiElectronApi]?: unknown;
+};
+
+function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
 }
 
@@ -31,15 +31,15 @@ function isMainUiElectronApi(value: unknown): value is MainUiElectronApi {
         return false;
     }
 
-    const api = value as Readonly<Record<string, unknown>>;
-    return [
-        "injectMenu",
-        "notifyFitFileLoaded",
-        "onOpenSummaryColumnSelector",
-        "onSetTheme",
-        "onUnloadFitFile",
-        "sendThemeChanged",
-    ].every((key) => hasOptionalFunction(api, key as keyof MainUiElectronApi));
+    const api = value as MainUiElectronApiCandidate;
+    return (
+        hasOptionalFunction(api.injectMenu) &&
+        hasOptionalFunction(api.notifyFitFileLoaded) &&
+        hasOptionalFunction(api.onOpenSummaryColumnSelector) &&
+        hasOptionalFunction(api.onSetTheme) &&
+        hasOptionalFunction(api.onUnloadFitFile) &&
+        hasOptionalFunction(api.sendThemeChanged)
+    );
 }
 
 export function getMainUiElectronApi(
