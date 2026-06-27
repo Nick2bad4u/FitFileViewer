@@ -13286,8 +13286,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer logging timestamps behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
+        const loggingIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/logging/index.ts")
+        );
         const logWithLevelSource = stripComments(
             readRepositoryFile("electron-app/utils/logging/logWithLevel.ts")
         );
@@ -13300,6 +13303,7 @@ describe("architecture boundaries", () => {
             )
         );
 
+        expect(loggingIndexSource).not.toContain("export default");
         expect(logWithLevelSource).toContain("loggingTimestampRuntime.js");
         expect(rendererLoggerSource).toContain("loggingTimestampRuntime.js");
         expect(logWithLevelSource).toContain(

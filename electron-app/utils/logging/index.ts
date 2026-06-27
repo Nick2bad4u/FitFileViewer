@@ -37,12 +37,3 @@ export function logWithLevel(
 export function getObjectKeysThrowAllowedForTests(): boolean {
     return getObjectKeysThrowAllowedForTestsImpl();
 }
-
-/**
- * Namespace default keeps compatibility with existing default imports.
- */
-export default {
-    getErrorInfo,
-    getObjectKeysThrowAllowedForTests,
-    logWithLevel,
-};
