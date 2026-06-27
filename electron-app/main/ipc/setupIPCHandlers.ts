@@ -16,7 +16,10 @@ import {
 import { ensureFitParserStateIntegration } from "../runtime/fitParserIntegration.js";
 import { fs, path } from "../runtime/nodeModules.js";
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
-import { getAppState, setAppState } from "../state/appState.js";
+import {
+    getLoadedFitFilePath,
+    setLoadedFitFilePath,
+} from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import { registerBrowserHandlers } from "./registerBrowserHandlers.js";
 import { registerClipboardHandlers } from "./registerClipboardHandlers.js";
@@ -90,13 +93,6 @@ const shellRef = electronShellRef as () => ExternalShell | null | undefined;
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
-const getLoadedFitFilePath = (): string | null | undefined => {
-    const value = getAppState("loadedFitFilePath");
-    return typeof value === "string" || value === null || value === undefined
-        ? value
-        : null;
-};
-
 /**
  * Registers all IPC handlers for the main process. The structure mirrors the
  * legacy implementation but lives in a dedicated module to keep main.js lean.
@@ -127,7 +123,7 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
     registerRecentFileHandlers({
         addRecentFile,
         browserWindowRef,
-        getAppState: getLoadedFitFilePath,
+        getLoadedFitFilePath,
         getPersistedThemePreference,
         loadRecentFiles,
         logWithContext,
@@ -182,12 +178,12 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
             filePath === undefined ||
             (typeof filePath === "string" && filePath.trim() === "")
         ) {
-            setAppState("loadedFitFilePath", null);
+            setLoadedFitFilePath(null);
         } else {
             try {
                 // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
                 const approvedPath = assertFileReadAllowed(filePath);
-                setAppState("loadedFitFilePath", approvedPath);
+                setLoadedFitFilePath(approvedPath);
             } catch (error) {
                 logWithContext(
                     "warn",

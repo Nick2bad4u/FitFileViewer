@@ -65,6 +65,17 @@ export function getAppState<Path extends MainAppStateKnownPath>(
 }
 
 /**
+ * Returns the currently loaded FIT file path tracked by the main process.
+ *
+ * @returns Loaded FIT file path, or null when no file is active.
+ */
+export function getLoadedFitFilePath(): MainAppStateValueByPath[
+    "loadedFitFilePath"
+] {
+    return getAppState("loadedFitFilePath");
+}
+
+/**
  * Lazily resolves the configuration store used for fit parser decoder settings.
  * The factory mirrors the previous implementation to keep test hooks
  * unchanged.
@@ -102,12 +113,27 @@ export function setAppState<Path extends MainAppStateKnownPath>(
     runtimeMainProcessState.set(statePath, value, options);
 }
 
+/**
+ * Sets or clears the currently loaded FIT file path tracked by the main process.
+ *
+ * @param filePath - Approved loaded FIT file path, or null when cleared.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setLoadedFitFilePath(
+    filePath: MainAppStateValueByPath["loadedFitFilePath"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("loadedFitFilePath", filePath, options);
+}
+
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 
 export default {
     cleanupEventHandlers,
     getAppState,
+    getLoadedFitFilePath,
     mainProcessState: runtimeMainProcessState,
     resolveFitParserSettingsConf,
     setAppState,
+    setLoadedFitFilePath,
 };

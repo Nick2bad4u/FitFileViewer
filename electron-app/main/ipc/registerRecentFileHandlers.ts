@@ -38,7 +38,7 @@ type LogWithContext = (
 interface RegisterRecentFileHandlersOptions {
     addRecentFile: (filePath: string) => void;
     browserWindowRef: () => BrowserWindowApi | null | undefined;
-    getAppState: (key: "loadedFitFilePath") => string | null | undefined;
+    getLoadedFitFilePath: () => string | null | undefined;
     getPersistedThemePreference: () => Promise<string>;
     loadRecentFiles: () => string[];
     logWithContext?: LogWithContext;
@@ -65,7 +65,7 @@ export function registerRecentFileHandlers({
     mainWindow,
     getPersistedThemePreference,
     safeCreateAppMenu,
-    getAppState,
+    getLoadedFitFilePath,
     logWithContext,
 }: RegisterRecentFileHandlersOptions): void {
     if (typeof registerIpcHandle !== "function") {
@@ -154,7 +154,7 @@ export function registerRecentFileHandlers({
                     safeCreateAppMenu(
                         win,
                         theme,
-                        getAppState("loadedFitFilePath")
+                        getLoadedFitFilePath()
                     );
                 } catch (menuError) {
                     logWithContext?.(

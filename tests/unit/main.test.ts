@@ -335,6 +335,7 @@ const expectedMainExportKeys = [
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
     "getAppState",
+    "getLoadedFitFilePath",
     "getPersistedThemePreference",
     "initializeApplication",
     "isWindowUsable",
@@ -342,6 +343,7 @@ const expectedMainExportKeys = [
     "resolveAutoUpdaterAsync",
     "sendToRenderer",
     "setAppState",
+    "setLoadedFitFilePath",
     "setupApplicationEventHandlers",
     "setupAutoUpdater",
     "setupIPCHandlers",
@@ -359,9 +361,11 @@ type MainModule = {
     };
     exposeDevHelpers: () => DevHelpers;
     getAppState: (key: string) => unknown;
+    getLoadedFitFilePath: () => null | string;
     initializeApplication: (...args: unknown[]) => unknown;
     isWindowUsable: (window: unknown) => boolean;
     setAppState: (key: string, value: unknown) => void;
+    setLoadedFitFilePath: (filePath: null | string) => void;
     setupAutoUpdater: (window: unknown, updater: unknown) => void;
     startGyazoOAuthServer: (...args: unknown[]) => unknown;
     stopGyazoOAuthServer: () => Promise<unknown>;
@@ -599,13 +603,13 @@ describe("main.js - Electron Main Process", () => {
 
             const mainModule = await importMainModule();
 
-            mainModule.setAppState("loadedFitFilePath", "/activities/test.fit");
+            mainModule.setLoadedFitFilePath("/activities/test.fit");
 
-            expect(mainModule.getAppState("loadedFitFilePath")).toBe(
+            expect(mainModule.getLoadedFitFilePath()).toBe(
                 "/activities/test.fit"
             );
-            mainModule.setAppState("loadedFitFilePath", null);
-            expect(mainModule.getAppState("loadedFitFilePath")).toBeNull();
+            mainModule.setLoadedFitFilePath(null);
+            expect(mainModule.getLoadedFitFilePath()).toBeNull();
         });
 
         it("should complete early sync path when window exists", async () => {

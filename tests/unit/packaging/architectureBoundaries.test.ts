@@ -2888,7 +2888,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(25);
+        expect.assertions(27);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2922,6 +2922,8 @@ describe("architecture boundaries", () => {
         expect(appStateSource).toContain("MainAppStateValueByPath");
         expect(appStateSource).toContain("MainAppStateKnownPath");
         expect(appStateSource).toContain("Path extends MainAppStateKnownPath");
+        expect(appStateSource).toContain("getLoadedFitFilePath");
+        expect(appStateSource).toContain("setLoadedFitFilePath");
         expect(appStateSource).not.toContain(
             "getAppState(statePath: string): unknown"
         );
@@ -2963,7 +2965,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(67);
+        expect.assertions(69);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3111,6 +3113,12 @@ describe("architecture boundaries", () => {
         );
         expect(registerRecentFileHandlersSource).toContain(
             "resolveFocusedMainWindowOrFallback"
+        );
+        expect(registerRecentFileHandlersSource).toContain(
+            "getLoadedFitFilePath"
+        );
+        expect(registerRecentFileHandlersSource).not.toContain(
+            'getAppState: (key: "loadedFitFilePath")'
         );
         expect(registerDialogHandlersSource).not.toContain("getFocusedWindow");
         expect(registerRecentFileHandlersSource).not.toContain(
