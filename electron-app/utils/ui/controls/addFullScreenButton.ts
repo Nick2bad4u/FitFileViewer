@@ -83,7 +83,7 @@ function isElectronFullscreenApi(
     }
 
     return hasOptionalFullscreenFunction(
-        value as ElectronFullscreenApiCandidate,
+        value,
         "setFullScreen"
     );
 }

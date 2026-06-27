@@ -363,7 +363,7 @@ function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
         return false;
     }
 
-    return hasOptionalInstallUpdate(value as ElectronUpdateApiCandidate);
+    return hasOptionalInstallUpdate(value);
 }
 
 function hasOptionalInstallUpdate(value: ElectronUpdateApiCandidate): boolean {
