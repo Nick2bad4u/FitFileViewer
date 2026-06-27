@@ -2,6 +2,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../utils/runtime/electronApiRuntime.js";
+import type { RecentFilesListResponse } from "../shared/ipc.js";
 
 export type RendererApplyTheme = (
     theme: string,
@@ -10,15 +11,15 @@ export type RendererApplyTheme = (
 export type RendererElectronMenuAction = "about" | "open-file";
 
 export interface ElectronApiStartupHooks {
-    checkForUpdates: (() => unknown) | undefined;
-    isDevelopment: (() => Promise<unknown>) | undefined;
+    checkForUpdates: (() => void) | undefined;
+    isDevelopment: (() => Promise<boolean>) | undefined;
     onMenuAction:
         | ((callback: (action: RendererElectronMenuAction) => void) => unknown)
         | undefined;
     onThemeChanged:
         | ((callback: (theme: string) => void) => unknown)
         | undefined;
-    recentFiles: (() => Promise<unknown>) | undefined;
+    recentFiles: (() => Promise<RecentFilesListResponse>) | undefined;
 }
 
 type ElectronApiStartupHookSource = {
@@ -49,11 +50,11 @@ export function getElectronApiHooksFromValue(
     return {
         checkForUpdates:
             typeof apiValue.checkForUpdates === "function"
-                ? (apiValue.checkForUpdates as () => unknown)
+                ? (apiValue.checkForUpdates as () => void)
                 : undefined,
         isDevelopment:
             typeof apiValue.isDevelopment === "function"
-                ? (apiValue.isDevelopment as () => Promise<unknown>)
+                ? (apiValue.isDevelopment as () => Promise<boolean>)
                 : undefined,
         onMenuAction:
             typeof apiValue.onMenuAction === "function"
@@ -69,7 +70,7 @@ export function getElectronApiHooksFromValue(
                 : undefined,
         recentFiles:
             typeof apiValue.recentFiles === "function"
-                ? (apiValue.recentFiles as () => Promise<unknown>)
+                ? (apiValue.recentFiles as () => Promise<RecentFilesListResponse>)
                 : undefined,
     };
 }

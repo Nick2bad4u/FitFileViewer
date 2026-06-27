@@ -48,7 +48,7 @@ export function registerRendererElectronAPI(
 }
 
 async function queryElectronDevelopmentMode(
-    isDevelopment: () => Promise<unknown>
+    isDevelopment: () => Promise<boolean>
 ): Promise<void> {
     try {
         await isDevelopment();

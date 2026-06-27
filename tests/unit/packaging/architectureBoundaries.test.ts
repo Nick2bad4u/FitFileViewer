@@ -18572,7 +18572,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(16);
+        expect.assertions(23);
 
         const wiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
@@ -18594,11 +18594,26 @@ describe("architecture boundaries", () => {
         expect(startupHooksSource).toContain(
             'export type RendererElectronMenuAction = "about" | "open-file";'
         );
+        expect(startupHooksSource).toContain("RecentFilesListResponse");
+        expect(startupHooksSource).toContain(
+            "checkForUpdates: (() => void) | undefined;"
+        );
+        expect(startupHooksSource).toContain(
+            "isDevelopment: (() => Promise<boolean>) | undefined;"
+        );
+        expect(startupHooksSource).toContain(
+            "recentFiles: (() => Promise<RecentFilesListResponse>) | undefined;"
+        );
+        expect(startupHooksSource).not.toContain("Promise<unknown>");
+        expect(startupHooksSource).not.toContain("(() => unknown) | undefined");
         expect(startupHooksSource).toContain(
             "callback: (action: RendererElectronMenuAction) => void"
         );
         expect(registrationSource).toContain(
             "onMenuAction: (action: RendererElectronMenuAction) => void;"
+        );
+        expect(registrationSource).toContain(
+            "isDevelopment: () => Promise<boolean>"
         );
         expect(menuActionSource).toContain(
             "readonly onMenuAction: (action: RendererElectronMenuAction) => void;"
