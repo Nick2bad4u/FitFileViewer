@@ -116,12 +116,16 @@ function isValidationObject<T>(value: unknown): value is ValidatorResult<T> {
 }
 
 function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
-    return (
-        typeof value === "object" &&
-        value !== null &&
-        "then" in value &&
-        typeof Reflect.get(value, "then") === "function"
-    );
+    if (
+        (typeof value !== "object" && typeof value !== "function") ||
+        value === null ||
+        !("then" in value)
+    ) {
+        return false;
+    }
+
+    const candidate = value as { readonly then?: unknown };
+    return typeof candidate.then === "function";
 }
 
 /**

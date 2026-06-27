@@ -931,7 +931,8 @@ performance-monitor global fixture; architecture coverage blocks the source fall
 construction, and test-global mutation pattern from returning. Error-handling runtime defaults now read
 `AbortController` and `addEventListener` explicitly through focused helpers instead of generic
 `Reflect.get(globalThis, ...)` probes, and the default date-clock now reuses the shared browser runtime provider
-instead of a local `Date.now` getter. The error-handling runtime AbortController contract now reuses the shared
+instead of a local `Date.now` getter. Promise-like validation now reads a typed optional `then` property instead of
+probing arbitrary values through `Reflect.get`. The error-handling runtime AbortController contract now reuses the shared
 browser-runtime alias instead of a direct ambient constructor type. Error-handling listener binding now stays in the
 shared browser runtime provider instead of rebinding the listener through `globalThis` inside
 `errorHandlingRuntime.ts`, and the runtime exposes an error-listener-specific target accessor instead of a generic
