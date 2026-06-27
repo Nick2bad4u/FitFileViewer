@@ -43,9 +43,14 @@ function toStringRecord(
 function toReadonlyRecord(
     value: unknown
 ): Readonly<Record<string, unknown>> | undefined {
-    return value !== null && typeof value === "object" && !Array.isArray(value)
-        ? (value as Readonly<Record<string, unknown>>)
-        : undefined;
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
+        return undefined;
+    }
+
+    const entries = Object.entries(value).map(
+        ([key, entry]): [string, unknown] => [key, entry]
+    );
+    return Object.fromEntries(entries);
 }
 
 interface RenderPrimaryChartFieldsDependencies {

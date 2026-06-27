@@ -14313,7 +14313,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(31);
+        expect.assertions(32);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -14325,6 +14325,11 @@ describe("architecture boundaries", () => {
         const renderChartRuntimeHelpersSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts"
+            )
+        );
+        const renderChartPrimaryFieldsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartPrimaryFields.ts"
             )
         );
         const renderChartRuntimeHelpersRuntimeSource = stripComments(
@@ -14345,6 +14350,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(renderChartRuntimeHelpersSource).not.toContain(
             "getGlobalChartActions"
+        );
+        expect(renderChartPrimaryFieldsSource).not.toContain(
+            "value as Readonly<Record"
         );
         expect(renderChartRuntimeHelpersSource).toContain(
             "renderChartRuntimeHelpersRuntime.js"

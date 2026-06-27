@@ -380,6 +380,9 @@ Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the
 wording. `createAppMenu` Electron menu tests now use module-local fixture state instead of `__electron*` and
 call-log globals on `globalThis`. `masterStateManager.ts` now uses module-local test override maps plus typed
 imports instead of probing CJS module caches through `node:module`.
+Chart primary-field render option narrowing now copies object entries into an unknown-valued record instead of
+asserting arbitrary decimation candidates as `Readonly<Record<string, unknown>>`, with architecture coverage blocking
+that broad cast from returning.
 Chart canvas element creation now routes through `createChartCanvasRuntime.ts` instead of calling
 `document.createElement` directly inside `createChartCanvas.ts`, with focused runtime coverage and architecture
 guardrails blocking direct canvas document access and legacy direct runtime scope properties from returning.
