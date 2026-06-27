@@ -47,7 +47,7 @@ type LifecycleDependencies = {
 type WireHandlers = (windowCandidate: WindowLike | undefined) => void;
 type MaybeExposeDevHelpers = () => void;
 
-function isObjectLike(value: unknown): value is object {
+function isObjectLike(value: unknown): value is Record<string, unknown> {
     return (
         value !== null &&
         (typeof value === "object" || typeof value === "function")
@@ -55,10 +55,10 @@ function isObjectLike(value: unknown): value is object {
 }
 
 function getObjectMethod(
-    value: object,
+    value: Record<string, unknown>,
     property: string
 ): UnknownMethod | undefined {
-    const method: unknown = Reflect.get(value, property);
+    const method = value[property];
     return typeof method === "function" ? (method as UnknownMethod) : undefined;
 }
 
@@ -143,7 +143,8 @@ function isTestEnv(): boolean {
 
 function isDevMode(): boolean {
     return (
-        isDevelopmentEnvironment() || getProcessArgumentValues().includes("--dev")
+        isDevelopmentEnvironment() ||
+        getProcessArgumentValues().includes("--dev")
     );
 }
 
