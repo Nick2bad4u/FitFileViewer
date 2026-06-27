@@ -1722,7 +1722,9 @@ retired `chartOverlayColorPalette` browser-global compatibility property, with a
 global palette read from returning.
 Tab-button helper element filtering now resolves the HTMLElement constructor through
 `enableTabButtonsHelpersRuntime.ts` instead of checking the ambient constructor directly, with focused runtime
-coverage and architecture coverage blocking direct helper constructor access from returning.
+coverage and architecture coverage blocking direct helper constructor access from returning. Tab-button helper
+computed-style fallback now normalizes camelCase CSS property names instead of probing CSSStyleDeclaration values with
+`Reflect.get`, with focused coverage and architecture coverage blocking that dynamic style-value lookup from returning.
 Open-FIT-file path button disable/enable checks now resolve the HTMLElement constructor through
 `openFitFileFromPathRuntime.ts` instead of checking the ambient constructor directly in `openFitFileFromPath.ts`,
 with focused runtime coverage and architecture coverage blocking direct constructor access and legacy direct

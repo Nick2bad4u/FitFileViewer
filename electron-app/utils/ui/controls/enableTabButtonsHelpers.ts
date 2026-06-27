@@ -20,10 +20,16 @@ export function safeComputedStyle(
         }
 
         if (typeof computedStyle.getPropertyValue === "function") {
-            return computedStyle.getPropertyValue(property) || undefined;
-        }
+            const directValue = computedStyle.getPropertyValue(property);
+            if (directValue) {
+                return directValue;
+            }
 
-        return getIndexedStyleValue(computedStyle, property);
+            const cssPropertyName = toCssPropertyName(property);
+            return cssPropertyName === property
+                ? undefined
+                : computedStyle.getPropertyValue(cssPropertyName) || undefined;
+        }
     } catch {
         /* Ignore errors */
     }
@@ -112,11 +118,9 @@ export function isOpenFileButton(button: HTMLElement): boolean {
     return getTabButtonIdentity(button).isOpenFile;
 }
 
-function getIndexedStyleValue(
-    computedStyle: CSSStyleDeclaration,
-    property: string
-): string | undefined {
-    const value: unknown = Reflect.get(computedStyle, property);
-
-    return typeof value === "string" && value ? value : undefined;
+function toCssPropertyName(property: string): string {
+    return property.replaceAll(
+        /[A-Z]/gu,
+        (character) => `-${character.toLowerCase()}`
+    );
 }
