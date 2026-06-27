@@ -19,6 +19,7 @@ import {
     getAppState,
     getLoadedFitFilePath,
     getMainWindow,
+    setAppIsQuitting,
     setAppState,
 } from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
@@ -629,7 +630,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         });
 
         registerAppListener("window-all-closed", () => {
-            setAppState("appIsQuitting", true);
+            setAppIsQuitting(true);
             if (
                 getProcessStringValue("platform") !== CONSTANTS.PLATFORMS.DARWIN
             ) {
@@ -640,7 +641,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
         registerAppListener("before-quit", (event) => {
             void (async (): Promise<void> => {
-                setAppState("appIsQuitting", true);
+                setAppIsQuitting(true);
                 const gyazoServer = getAppState("gyazoServer");
                 if (gyazoServer) {
                     (event as PreventableEvent).preventDefault?.();

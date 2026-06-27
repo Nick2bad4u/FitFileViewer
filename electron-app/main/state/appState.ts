@@ -85,6 +85,15 @@ export function getMainWindow(): MainAppStateValueByPath["mainWindow"] {
 }
 
 /**
+ * Returns whether the main process is currently quitting.
+ *
+ * @returns True once the app shutdown lifecycle has started.
+ */
+export function isAppQuitting(): MainAppStateValueByPath["appIsQuitting"] {
+    return getAppState("appIsQuitting");
+}
+
+/**
  * Lazily resolves the configuration store used for fit parser decoder settings.
  * The factory mirrors the previous implementation to keep test hooks
  * unchanged.
@@ -148,6 +157,19 @@ export function setMainWindow(
     setAppState("mainWindow", mainWindow, options);
 }
 
+/**
+ * Sets the main process shutdown flag.
+ *
+ * @param isQuitting - True when the app shutdown lifecycle has started.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setAppIsQuitting(
+    isQuitting: MainAppStateValueByPath["appIsQuitting"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("appIsQuitting", isQuitting, options);
+}
+
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 
 export default {
@@ -155,8 +177,10 @@ export default {
     getAppState,
     getLoadedFitFilePath,
     getMainWindow,
+    isAppQuitting,
     mainProcessState: runtimeMainProcessState,
     resolveFitParserSettingsConf,
+    setAppIsQuitting,
     setAppState,
     setLoadedFitFilePath,
     setMainWindow,

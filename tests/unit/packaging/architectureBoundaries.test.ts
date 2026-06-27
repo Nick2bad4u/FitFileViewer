@@ -3310,7 +3310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(305);
+        expect.assertions(311);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3783,6 +3783,18 @@ describe("architecture boundaries", () => {
         );
         expect(setupMenuAndEventHandlersSource).toContain(
             "getLoadedFitFilePath"
+        );
+        expect(appStateSource).toContain("function isAppQuitting");
+        expect(appStateSource).toContain("function setAppIsQuitting");
+        expect(windowValidationSource).toContain("isAppQuitting");
+        expect(windowValidationSource).not.toContain(
+            'getAppState("appIsQuitting")'
+        );
+        expect(setupApplicationEventHandlersSource).toContain(
+            "setAppIsQuitting"
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'setAppState("appIsQuitting"'
         );
         expect(setupMainLifecycleSource).toContain("getMainWindow");
         expect(setupMainLifecycleSource).not.toContain(

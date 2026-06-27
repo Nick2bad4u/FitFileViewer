@@ -1,5 +1,5 @@
 import { logWithContext } from "../logging/logWithContext.js";
-import { getAppState } from "../state/appState.js";
+import { isAppQuitting } from "../state/appState.js";
 
 interface WindowUsabilityCandidate {
     isDestroyed?: () => boolean;
@@ -57,7 +57,7 @@ export function validateWindow(
         return true;
     }
 
-    if (!getAppState("appIsQuitting")) {
+    if (!isAppQuitting()) {
         logWithContext("warn", `Window validation failed during ${context}`, {
             hasWebContents: Boolean(win?.webContents),
             hasWindow: Boolean(win),
