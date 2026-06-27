@@ -15,6 +15,21 @@ function createElectronApiScope(api: unknown): RendererElectronApiScope {
     };
 }
 
+function createDeferred<T>(): {
+    promise: Promise<T>;
+    resolve: (value: T) => void;
+} {
+    let resolveDeferred: (value: T) => void = () => {};
+    const promise = new Promise<T>((resolve) => {
+        resolveDeferred = resolve;
+    });
+
+    return {
+        promise,
+        resolve: resolveDeferred,
+    };
+}
+
 function getRequiredElement<T extends Element>(
     selector: string,
     constructor: { new (): T }
@@ -210,6 +225,77 @@ describe("fileBrowserTab accessibility", () => {
         expect(
             document.querySelector("#fit-browser-current-path")?.textContent
         ).toBe("C:\\second");
+    });
+
+    it("ignores stale folder listing refreshes after a newer Browser render wins", async () => {
+        expect.assertions(7);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        const firstRoot = createDeferred<string>();
+        const firstGetFitBrowserFolder = vi.fn<() => Promise<string>>(
+            () => firstRoot.promise
+        );
+        const firstListFitBrowserFolder = vi.fn();
+
+        const firstRender = renderFileBrowserTab({
+            electronApiScope: createElectronApiScope({
+                getFitBrowserFolder: firstGetFitBrowserFolder,
+                listFitBrowserFolder: firstListFitBrowserFolder,
+            }),
+        });
+
+        await vi.waitFor(() => {
+            expect(firstGetFitBrowserFolder).toHaveBeenCalledOnce();
+        });
+
+        await renderFileBrowserTab({
+            electronApiScope: createElectronApiScope({
+                getFitBrowserFolder: async () => "C:\\new",
+                listFitBrowserFolder: async () => ({
+                    entries: [
+                        {
+                            fullPath: "C:\\new\\new.fit",
+                            kind: "file",
+                            name: "new.fit",
+                            relPath: "new.fit",
+                        },
+                    ],
+                    relPath: "",
+                    root: "C:\\new",
+                }),
+            }),
+        });
+
+        const loadedState = getBrowserListingState();
+        const loadedAtText = new Date(
+            loadedState.loadedAt ?? Number.NaN
+        ).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
+
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\new");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            `Loaded 1 item from root at ${loadedAtText} (1 file, 0 folders).`
+        );
+
+        firstRoot.resolve("C:\\old");
+        await firstRender;
+
+        expect(firstListFitBrowserFolder).not.toHaveBeenCalled();
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\new");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            `Loaded 1 item from root at ${loadedAtText} (1 file, 0 folders).`
+        );
+        expect(getBrowserListingState()).toStrictEqual(loadedState);
     });
 
     it("records folder scan progress in explicit Browser state", async () => {

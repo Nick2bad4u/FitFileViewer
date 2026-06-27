@@ -133,6 +133,8 @@ const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
 
+let activeListingRefreshId = 0;
+
 function fileBrowserTabRuntime(): FileBrowserTabRuntime {
     return getFileBrowserTabRuntime();
 }
@@ -406,6 +408,19 @@ function setBrowserStatus(message: string, loading = false): void {
     }
 }
 
+function beginListingRefresh(): number {
+    activeListingRefreshId += 1;
+    return activeListingRefreshId;
+}
+
+function invalidateListingRefresh(): void {
+    activeListingRefreshId += 1;
+}
+
+function isCurrentListingRefresh(refreshId: number): boolean {
+    return refreshId === activeListingRefreshId;
+}
+
 function getScanErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
@@ -567,10 +582,7 @@ function getCalendarState(): CalendarState {
 function getElectronAPI(
     electronApiScope?: RendererElectronApiScope
 ): FitBrowserElectronAPI | null {
-    return getRendererElectronApi(
-        isFitBrowserElectronApi,
-        electronApiScope
-    );
+    return getRendererElectronApi(isFitBrowserElectronApi, electronApiScope);
 }
 
 function isFitBrowserElectronApi(
@@ -1102,6 +1114,8 @@ async function refreshActiveView(
         return;
     }
 
+    invalidateListingRefresh();
+
     if (view === "library") {
         await renderLibraryView(electronApiScope);
         return;
@@ -1113,6 +1127,7 @@ async function refreshActiveView(
 async function refreshListing(
     electronApiScope?: RendererElectronApiScope
 ): Promise<void> {
+    const refreshId = beginListingRefresh();
     const api = getElectronAPI(electronApiScope);
     const pathEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-browser-current-path"
@@ -1143,6 +1158,10 @@ async function refreshListing(
     setBrowserListingState({ status: "loading" });
 
     const root = await api.getFitBrowserFolder();
+    if (!isCurrentListingRefresh(refreshId)) {
+        return;
+    }
+
     const rel = getBrowserRelPath();
 
     if (!root) {
@@ -1156,6 +1175,10 @@ async function refreshListing(
     }
 
     const responseRaw = await api.listFitBrowserFolder(rel);
+    if (!isCurrentListingRefresh(refreshId)) {
+        return;
+    }
+
     if (!isFitBrowserListResponse(responseRaw)) {
         pathEl.textContent = root;
         setBrowserStatus("Folder could not be loaded.");
