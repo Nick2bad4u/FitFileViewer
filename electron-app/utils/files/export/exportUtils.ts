@@ -38,15 +38,11 @@ import type {
 } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
-type ElectronApiLike = {
-    readonly onGyazoOAuthCallback?: ElectronGyazoExternalApi["onGyazoOAuthCallback"];
-    readonly startGyazoServer?: ElectronGyazoExternalApi["startGyazoServer"];
-    readonly stopGyazoServer?: ElectronGyazoExternalApi["stopGyazoServer"];
-    readonly writeClipboardPngDataUrl?: ElectronClipboardApi["writeClipboardPngDataUrl"];
-    readonly writeClipboardText?: ElectronClipboardApi["writeClipboardText"];
-};
+type ExportElectronApi = Readonly<
+    Partial<ElectronClipboardApi & ElectronGyazoExternalApi>
+>;
 type ElectronApiCandidate = Readonly<{
-    [Key in keyof ElectronApiLike]?: unknown;
+    [Key in keyof ExportElectronApi]?: unknown;
 }>;
 type ImgurUploadDataCandidate = Readonly<{
     link?: unknown;
@@ -169,13 +165,13 @@ let showNotificationOverride: ExportNotification | null = null;
 
 function hasOptionalElectronFunction(
     record: ElectronApiCandidate,
-    key: keyof ElectronApiLike
+    key: keyof ExportElectronApi
 ): boolean {
     const value = record[key];
     return value === undefined || typeof value === "function";
 }
 
-function isExportElectronApi(value: unknown): value is ElectronApiLike {
+function isExportElectronApi(value: unknown): value is ExportElectronApi {
     if (value === null || typeof value !== "object") {
         return false;
     }
@@ -188,13 +184,13 @@ function isExportElectronApi(value: unknown): value is ElectronApiLike {
         "writeClipboardPngDataUrl",
         "writeClipboardText",
     ].every((key) =>
-        hasOptionalElectronFunction(candidate, key as keyof ElectronApiLike)
+        hasOptionalElectronFunction(candidate, key as keyof ExportElectronApi)
     );
 }
 
 function getExportElectronApi(
     options?: ExportElectronApiOptions
-): ElectronApiLike | null {
+): ExportElectronApi | null {
     return getRendererElectronApi(
         isExportElectronApi,
         options?.electronApiScope
