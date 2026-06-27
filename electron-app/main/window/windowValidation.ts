@@ -68,8 +68,3 @@ export function validateWindow(
 
     return false;
 }
-
-export default {
-    isWindowUsable,
-    validateWindow,
-};
