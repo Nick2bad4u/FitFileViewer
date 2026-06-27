@@ -50,6 +50,10 @@ interface BrowserDevelopmentFlagGlobal {
     readonly __DEVELOPMENT__?: unknown;
 }
 
+interface BrowserElectronApiGlobal {
+    readonly electronAPI?: unknown;
+}
+
 type BrowserGlobalPropertyRecord = Record<PropertyKey, unknown>;
 type BrowserGlobalPropertySetResult = "blocked" | "fallback" | "set";
 
@@ -192,7 +196,7 @@ export function setBrowserGlobalProperty(
 }
 
 export function getBrowserElectronApiCandidate(): unknown {
-    return getBrowserGlobalProperty("electronAPI");
+    return (globalThis as BrowserElectronApiGlobal).electronAPI;
 }
 
 export function getBrowserComputedStyle():

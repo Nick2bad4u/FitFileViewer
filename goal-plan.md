@@ -1736,6 +1736,9 @@ unit coverage and architecture coverage blocking receiver-losing IPC helper patt
 Renderer Electron API lookup now falls back through the centralized `getBrowserElectronApiCandidate` provider when no
 explicit test scope is supplied, restoring production Open File access to the preload-exposed `electronAPI` without
 reintroducing direct `window.electronAPI`, ambient `globalThis` casts, or registered fallback candidates.
+The centralized `getBrowserElectronApiCandidate` provider now reads the explicit optional `electronAPI` global slot
+instead of routing preload API lookup through the generic global-property helper, with architecture coverage blocking
+that broad lookup from returning.
 Elevation profile overlay colors now resolve through the typed `chartOverlayColorPalette` module instead of the
 retired `chartOverlayColorPalette` browser-global compatibility property, with architecture coverage blocking that
 global palette read from returning.
