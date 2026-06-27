@@ -12768,8 +12768,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(56);
+        expect.assertions(57);
 
+        const errorsIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/errors/index.ts")
+        );
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
         );
@@ -12779,6 +12782,7 @@ describe("architecture boundaries", () => {
             )
         );
 
+        expect(errorsIndexSource).not.toContain("export default");
         expect(
             directShowNotificationGlobalLookupPattern.test(errorHandlingSource)
         ).toBe(false);
