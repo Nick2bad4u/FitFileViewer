@@ -140,4 +140,69 @@ describe("ipcRegistry sender policy", () => {
         );
         expect(listener).toHaveBeenCalledOnce();
     });
+
+    it("clears stale invoke registry entries when replacement registration fails", async () => {
+        expect.assertions(5);
+
+        const ipcMain = createIpcMainMock();
+        const registry = await loadRegistry(ipcMain);
+        const firstHandler = vi.fn<IpcCallback>(() => "first");
+        const secondHandler = vi.fn<IpcCallback>(() => "second");
+        const registrationError = new Error("replacement failed");
+
+        registry.registerIpcHandle("getAppVersion", firstHandler);
+
+        ipcMain.handle.mockImplementationOnce(() => {
+            throw registrationError;
+        });
+
+        expect(() =>
+            registry.registerIpcHandle("getAppVersion", secondHandler)
+        ).toThrow(registrationError);
+        expect(ipcMain.removeHandler).toHaveBeenCalledWith("getAppVersion");
+        expect(ipcMain.handle).toHaveBeenCalledTimes(2);
+
+        ipcMain.removeHandler.mockClear();
+        registry.resetIpcRegistries();
+
+        expect(ipcMain.removeHandler).not.toHaveBeenCalled();
+        expect(secondHandler).not.toHaveBeenCalled();
+    });
+
+    it("clears stale event listener registry entries when replacement registration fails", async () => {
+        expect.assertions(6);
+
+        const ipcMain = createIpcMainMock();
+        const registry = await loadRegistry(ipcMain);
+        const firstListener = vi.fn<IpcCallback>(() => undefined);
+        const secondListener = vi.fn<IpcCallback>(() => undefined);
+        const registrationError = new Error("listener replacement failed");
+
+        registry.registerIpcListener("fit-file-loaded", firstListener);
+
+        const firstRegisteredListener = ipcMain.on.mock.calls[0]?.[1];
+        if (typeof firstRegisteredListener !== "function") {
+            throw new TypeError("IPC listener was not registered");
+        }
+
+        ipcMain.on.mockImplementationOnce(() => {
+            throw registrationError;
+        });
+
+        expect(() =>
+            registry.registerIpcListener("fit-file-loaded", secondListener)
+        ).toThrow(registrationError);
+        expect(ipcMain.removeListener).toHaveBeenCalledWith(
+            "fit-file-loaded",
+            firstRegisteredListener
+        );
+        expect(ipcMain.on).toHaveBeenCalledTimes(2);
+
+        ipcMain.removeListener.mockClear();
+        registry.resetIpcRegistries();
+
+        expect(ipcMain.removeListener).not.toHaveBeenCalled();
+        expect(firstListener).not.toHaveBeenCalled();
+        expect(secondListener).not.toHaveBeenCalled();
+    });
 });

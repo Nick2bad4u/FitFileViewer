@@ -71,6 +71,8 @@ export function registerIpcHandle(
         return;
     }
 
+    const removedExistingForSameIpcMain = hasExistingForSameIpcMain && canRemove;
+
     if (canRemove) {
         try {
             ipcMain.removeHandler?.(channel);
@@ -88,6 +90,11 @@ export function registerIpcHandle(
         ipcMain.handle(channel, registeredHandler);
         IPC_HANDLE_REGISTRY.set(channel, { handler, ipcMain });
     } catch (error) {
+        if (removedExistingForSameIpcMain) {
+            IPC_HANDLE_REGISTRY.delete(channel);
+            throw error;
+        }
+
         // Strict ipcMain mocks can throw on duplicates. Keep the previously
         // registered handler when the same ipcMain already had one.
         if (!hasExistingForSameIpcMain) {
@@ -128,7 +135,10 @@ export function registerIpcListener(
         return;
     }
 
-    if (hasExistingForSameIpcMain && canRemove && existing) {
+    const removedExistingForSameIpcMain =
+        hasExistingForSameIpcMain && canRemove && Boolean(existing);
+
+    if (removedExistingForSameIpcMain && existing) {
         try {
             ipcMain.removeListener?.(channel, existing.registeredListener);
         } catch {
@@ -149,6 +159,11 @@ export function registerIpcListener(
             registeredListener,
         });
     } catch (error) {
+        if (removedExistingForSameIpcMain) {
+            IPC_EVENT_LISTENER_REGISTRY.delete(channel);
+            throw error;
+        }
+
         if (!hasExistingForSameIpcMain) {
             throw error;
         }
