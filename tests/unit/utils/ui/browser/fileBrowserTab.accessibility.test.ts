@@ -298,6 +298,97 @@ describe("fileBrowserTab accessibility", () => {
         expect(getBrowserListingState()).toStrictEqual(loadedState);
     });
 
+    it("ignores stale in-flight folder listing responses", async () => {
+        expect.assertions(9);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        const firstListing = createDeferred<{
+            entries: {
+                fullPath: string;
+                kind: "file";
+                name: string;
+                relPath: string;
+            }[];
+            relPath: string;
+            root: string;
+        }>();
+        const firstListFitBrowserFolder = vi.fn(() => firstListing.promise);
+
+        const firstRender = renderFileBrowserTab({
+            electronApiScope: createElectronApiScope({
+                getFitBrowserFolder: async () => "C:\\old",
+                listFitBrowserFolder: firstListFitBrowserFolder,
+            }),
+        });
+
+        await vi.waitFor(() => {
+            expect(firstListFitBrowserFolder).toHaveBeenCalledWith("");
+        });
+
+        await renderFileBrowserTab({
+            electronApiScope: createElectronApiScope({
+                getFitBrowserFolder: async () => "C:\\new",
+                listFitBrowserFolder: async () => ({
+                    entries: [
+                        {
+                            fullPath: "C:\\new\\new.fit",
+                            kind: "file",
+                            name: "new.fit",
+                            relPath: "new.fit",
+                        },
+                    ],
+                    relPath: "",
+                    root: "C:\\new",
+                }),
+            }),
+        });
+
+        const loadedState = getBrowserListingState();
+        const loadedAtText = new Date(
+            loadedState.loadedAt ?? Number.NaN
+        ).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
+
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\new");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            `Loaded 1 item from root at ${loadedAtText} (1 file, 0 folders).`
+        );
+
+        firstListing.resolve({
+            entries: [
+                {
+                    fullPath: "C:\\old\\old.fit",
+                    kind: "file",
+                    name: "old.fit",
+                    relPath: "old.fit",
+                },
+            ],
+            relPath: "",
+            root: "C:\\old",
+        });
+        await firstRender;
+
+        expect(firstListFitBrowserFolder).toHaveBeenCalledOnce();
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\new");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            `Loaded 1 item from root at ${loadedAtText} (1 file, 0 folders).`
+        );
+        expect(document.querySelector("#fit-browser-list")?.textContent).toBe(
+            "new.fit"
+        );
+        expect(getBrowserListingState()).toStrictEqual(loadedState);
+    });
+
     it("records folder scan progress in explicit Browser state", async () => {
         const container = document.createElement("div");
         container.id = "content_browser";
