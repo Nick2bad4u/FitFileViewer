@@ -1033,6 +1033,8 @@ Computed state manager computation duration timing, `lastComputed` timestamps, a
 through `computedStateManagerRuntime.ts` instead of calling `performance.now` or `Date.now` directly inside
 `computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking direct timing reads and
 legacy direct runtime scope properties from returning.
+Chart state initialization now registers computed chart values through the primary `addComputed` API, and the retired
+computed-state `define` compatibility alias has been removed with architecture coverage blocking it from returning.
 Main-process state-manager duration timing, wall-clock state timestamps, completed-operation cleanup timers, and deferred IPC setup retry
 timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of probing
 `globalThis.performance`, `performance.now`, or `Date.now`, or calling timer globals directly inside
@@ -1717,10 +1719,10 @@ The runtime-environment default implementation no longer has a private whole-ren
 candidate capture and event-target capture stay on focused providers, and architecture coverage blocks local
 renderer/main-UI browser-runtime `RendererRuntimeGlobalScope` or `MainUiRuntimeGlobalScope` casts from returning.
 Renderer environment detection now uses focused `RendererEnvironmentInput` values for location, document,
-development-flag, and Electron API dev-mode checks instead of receiving a broad renderer-global object through a
+and development-flag checks instead of receiving a broad renderer-global object through a
 `getGlobalScope` provider, with runtime tests and architecture coverage blocking that broad handoff from returning.
-Scoped renderer-environment dev-mode inspection now reads verified objects through property guards instead of
-casting the candidate preload API shape to a generic record, with focused malformed-input and architecture coverage.
+Scoped renderer-environment dev-mode inspection no longer accepts stale preload Electron API dev-mode markers; focused
+malformed-input and architecture coverage keep that retired marker out of renderer environment and master-state paths.
 The default development-flag and Electron API candidate providers now use named explicit global readers instead of
 generic `Reflect.get(globalThis, ...)` probes.
 Shared browser-runtime global reads now use named optional-slot providers for `electronAPI`, `process`, and Vitest
@@ -1729,11 +1731,10 @@ typed indexed access instead of `Reflect.get(globalThis, ...)` and keep the conf
 sandbox shims.
 Architecture coverage now scans app source with comments stripped and keeps direct `window.*`/`globalThis.*` property
 access centralized in `browserRuntime.ts`, preventing retired renderer globals from returning in individual modules.
-Renderer environment input normalization now uses focused local input/location/document/Electron dev-mode contracts
+Renderer environment input normalization now uses focused local input/location/document contracts
 instead of generic `Reflect.get` probes, with architecture coverage blocking that reflection path from returning.
-Renderer environment dev-mode input now names the preload bridge value as `electronApiCandidate` and accepts it only
-through `getElectronApiCandidate`, with unit and architecture coverage blocking the old direct `electronAPI`
-input/provider shape.
+Renderer environment dev-mode input no longer carries an `electronApiCandidate`; unit and architecture coverage block
+the old direct `electronAPI` input/provider shape plus the stale preload `__devMode` marker from returning.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.

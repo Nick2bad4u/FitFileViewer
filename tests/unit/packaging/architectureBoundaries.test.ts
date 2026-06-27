@@ -13741,7 +13741,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps computed state manager theme and timing reads behind the runtime adapter", () => {
-        expect.assertions(36);
+        expect.assertions(39);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -13773,6 +13773,13 @@ describe("architecture boundaries", () => {
             "const computedStateManagerRuntime = getComputedStateManagerRuntime();"
         );
         expect(computedStateManagerSource).toContain("isDarkSchemePreferred");
+        expect(computedStateManagerSource).not.toContain("public define");
+        expect(computedStateManagerSource).not.toContain(
+            "export function define"
+        );
+        expect(computedStateManagerSource).not.toContain(
+            "Alias for addComputed"
+        );
         expect(computedStateManagerSource).toContain(
             "computedStateManagerRuntime().nowPerformance()"
         );

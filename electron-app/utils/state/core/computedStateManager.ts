@@ -229,15 +229,6 @@ class ComputedStateManager {
         }
     }
 
-    /** Alias for addComputed for backward compatibility. */
-    public define(
-        key: string,
-        computeFn: ComputedFunction,
-        deps: string[] = []
-    ): Unsubscribe {
-        return this.addComputed(key, computeFn, deps);
-    }
-
     /** Gets all computed values with metadata. */
     public getAllComputed(): ComputedSnapshot {
         const result: ComputedSnapshot = {};
@@ -376,15 +367,6 @@ export function createReactiveComputed(
             return getComputed(key);
         },
     };
-}
-
-/** Alias for addComputed for backward compatibility. */
-export function define(
-    key: string,
-    computeFn: ComputedFunction,
-    deps: string[] = []
-): Unsubscribe {
-    return computedStateManager.define(key, computeFn, deps);
 }
 
 /** Gets a computed value. */

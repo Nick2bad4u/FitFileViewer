@@ -5,7 +5,7 @@ import type {
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface ComputedStateManager {
-    define?(key: string, compute: () => unknown): void;
+    addComputed(key: string, compute: () => unknown): void;
 }
 
 interface MiddlewareManagerLike {
@@ -67,16 +67,16 @@ export function initializeChartStateManagement(
     });
 
     const computedStateManager = dependencies.getComputedStateManager();
-    computedStateManager.define?.("charts.hasData", () =>
+    computedStateManager.addComputed("charts.hasData", () =>
         hasActiveFitChartData()
     );
 
-    computedStateManager.define?.(
+    computedStateManager.addComputed(
         "charts.renderableFieldCount",
         () => dependencies.getChartSummaryState().renderableFields.length
     );
 
-    computedStateManager.define?.("charts.summary", () => {
+    computedStateManager.addComputed("charts.summary", () => {
         const chartState = dependencies.getChartSummaryState();
         return {
             chartCount: dependencies.getState("charts.renderedCount") || 0,

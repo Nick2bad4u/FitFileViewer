@@ -28,7 +28,7 @@ import { renderPerformanceAnalysisCharts } from "../rendering/renderPerformanceA
 import { renderTimeInZoneCharts } from "../rendering/renderTimeInZoneCharts.js";
 
 interface ComputedStateManagerAccess {
-    define?(key: string, compute: () => unknown): unknown;
+    addComputed(key: string, compute: () => unknown): unknown;
     get?(key: string): unknown;
     invalidate?(key: string): unknown;
     invalidateComputed?(key: string): unknown;

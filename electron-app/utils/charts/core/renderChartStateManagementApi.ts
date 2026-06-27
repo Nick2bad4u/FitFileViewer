@@ -15,7 +15,7 @@ interface CreateChartStateManagementApiDependencies {
     chartActions: ChartRefreshActions;
     chartState: ChartStateView;
     getComputedStateManager(): {
-        define?(key: string, compute: () => unknown): void;
+        addComputed(key: string, compute: () => unknown): void;
     };
     getState(path: string): unknown;
     middlewareManager: {
@@ -67,7 +67,10 @@ export function createChartStateManagementApi(
                 getState: (path) => dependencies.getState(path),
                 middlewareManager: dependencies.middlewareManager,
                 notify: (message, type) =>
-                    dependencies.notify(message, normalizeNotificationType(type)),
+                    dependencies.notify(
+                        message,
+                        normalizeNotificationType(type)
+                    ),
                 updateState: (path, value, options) =>
                     dependencies.updateState(path, value, options),
             });

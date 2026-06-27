@@ -56,7 +56,7 @@ describe("renderChartStateManagement", () => {
         initializeChartStateManagement({
             getChartSummaryState,
             getComputedStateManager: () => ({
-                define: (key, compute) => {
+                addComputed: (key, compute) => {
                     computedValues.set(key, compute);
                 },
             }),
@@ -139,7 +139,7 @@ describe("renderChartStateManagement", () => {
                 renderableFields: [],
             }),
             getComputedStateManager: () => ({
-                define: (key, compute) => {
+                addComputed: (key, compute) => {
                     computedValues.set(key, compute);
                 },
             }),

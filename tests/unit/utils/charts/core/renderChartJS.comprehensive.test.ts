@@ -280,6 +280,7 @@ function injectChartJSMocks() {
         // State management imports - comprehensive mocking
         computedStateManager: {
             computedStateManager: {
+                addComputed: vi.fn<MockFn>(),
                 invalidateComputed: vi.fn<MockFn>(),
                 getComputedValue: vi.fn<MockFn>().mockReturnValue({}),
                 registerComputed: vi.fn<MockFn>(),
