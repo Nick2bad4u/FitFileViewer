@@ -1885,7 +1885,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps process runtime get and set behind the browser-global boundary", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1908,6 +1908,13 @@ describe("architecture boundaries", () => {
             'setBrowserGlobalProperty("process", processValue);'
         );
         expect(processEnvironmentSource).not.toContain("globalThis");
+        expect(processEnvironmentSource).not.toContain("Reflect.get(");
+        expect(processEnvironmentSource).not.toContain(
+            "return Reflect.get(target, propertyKey);"
+        );
+        expect(processEnvironmentSource).toContain(
+            "return record[propertyKey];"
+        );
     });
 
     it("keeps preload before-exit tracking off global registries", () => {

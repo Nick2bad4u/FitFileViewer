@@ -94,7 +94,8 @@ export function setRuntimeProcess(processValue: unknown): void {
 
 function getRuntimeProperty(target: object, propertyKey: string): unknown {
     try {
-        return Reflect.get(target, propertyKey);
+        const record = target as Record<string, unknown>;
+        return record[propertyKey];
     } catch {
         return undefined;
     }
