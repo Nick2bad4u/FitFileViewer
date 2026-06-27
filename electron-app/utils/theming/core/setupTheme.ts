@@ -35,7 +35,8 @@ export type SetupThemeOptions = {
 
 type ApplyThemeCallback = (theme: string) => void;
 type ListenForThemeChangeCallback = (
-    callback: (theme: unknown) => void
+    callback: (theme: unknown) => void,
+    options?: { electronApiScope?: RendererElectronApiScope | undefined }
 ) => void;
 type LogLevel = "error" | "info" | "warn";
 type ThemeSetupElectronApi = {
@@ -157,7 +158,11 @@ export async function setupTheme(
 
         // Set up theme change listeners
         if (listenForThemeChange) {
-            setupThemeChangeListener(applyTheme, listenForThemeChange);
+            setupThemeChangeListener(
+                applyTheme,
+                listenForThemeChange,
+                config.electronApiScope
+            );
         }
 
         logWithContext(
@@ -370,15 +375,21 @@ function isSupportedThemePreference(theme: string): theme is ThemePreference {
 
 function setupThemeChangeListener(
     applyTheme: ApplyThemeCallback,
-    listenForThemeChange: ListenForThemeChangeCallback
+    listenForThemeChange: ListenForThemeChangeCallback,
+    electronApiScope: RendererElectronApiScope | undefined
 ): void {
     try {
         if (typeof listenForThemeChange === "function") {
             // Set up external theme change listener
-            listenForThemeChange((newTheme) => {
-                logWithContext(`Theme change received: ${String(newTheme)}`);
-                applyAndTrackTheme(newTheme, applyTheme);
-            });
+            listenForThemeChange(
+                (newTheme) => {
+                    logWithContext(
+                        `Theme change received: ${String(newTheme)}`
+                    );
+                    applyAndTrackTheme(newTheme, applyTheme);
+                },
+                { electronApiScope }
+            );
         }
 
         // Set up state-based theme change listener

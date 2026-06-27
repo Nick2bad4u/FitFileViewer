@@ -45,7 +45,12 @@ vi.mock(
 // Hoisted module mocks for all imports used by main-ui.js
 const applyTheme = vi.fn<(theme: string) => void>();
 let listenCb: ((t: string) => void) | null = null;
-const listenForThemeChange = vi.fn<(cb: (t: string) => void) => void>((cb) => {
+const listenForThemeChange = vi.fn<
+    (
+        cb: (t: string) => void,
+        options?: { electronApiScope?: { getElectronAPI?: () => unknown } }
+    ) => void
+>((cb) => {
     listenCb = cb;
 });
 const loadTheme = vi.fn<() => string>(() => "dark");
@@ -475,7 +480,14 @@ describe("main-ui.js core flows", () => {
 
         expect(loadTheme).toHaveBeenCalledOnce();
         expect(applyTheme).toHaveBeenCalledWith("dark");
-        expect(listenForThemeChange).toHaveBeenCalledOnce();
+        expect(listenForThemeChange).toHaveBeenCalledWith(
+            expect.any(Function),
+            {
+                electronApiScope: expect.objectContaining({
+                    getElectronAPI: expect.any(Function),
+                }),
+            }
+        );
         expect(listenCb).toBeTypeOf("function");
 
         listenCb?.("light");
@@ -642,7 +654,12 @@ describe("main-ui.js core flows", () => {
         );
         expect(showFitData).toHaveBeenCalledWith(
             decodedFitData,
-            "C:/rides/activity.fit"
+            "C:/rides/activity.fit",
+            {
+                electronApiScope: expect.objectContaining({
+                    getElectronAPI: expect.any(Function),
+                }),
+            }
         );
         expect(AppActions.setFileOpening).toHaveBeenLastCalledWith(false);
         expect(notifications).toContain(

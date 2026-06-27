@@ -18461,7 +18461,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(26);
+        expect.assertions(27);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -18524,8 +18524,9 @@ describe("architecture boundaries", () => {
             "setupThemeDyn?.(\n                dependencies.applyTheme,"
         );
         expect(applicationStartupSource).toContain(
-            "dependencies.listenForThemeChange\n            )"
+            "dependencies.listenForThemeChange,\n                { electronApiScope: dependencies.electronApiScope }"
         );
+        expect(applicationStartupSource).toContain("electronApiScope,");
         expect(applicationStartupSource).toContain(
             "createSetupListenersOptions(dependencies)"
         );
@@ -18547,7 +18548,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(26);
+        expect.assertions(27);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -18598,6 +18599,9 @@ describe("architecture boundaries", () => {
         );
         expect(importTimeBootstrapSource).toContain("setupListenersFn?.(deps)");
         expect(importTimeBootstrapSource).toContain("setupThemeFn?.(");
+        expect(importTimeBootstrapSource).toContain(
+            "electronApiScope: getElectronApiScope()"
+        );
         expect(importTimeBootstrapSource).toContain(
             "subscribeToAppStartTime?.(() => {})"
         );

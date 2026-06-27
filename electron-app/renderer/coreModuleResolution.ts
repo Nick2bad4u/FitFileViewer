@@ -1,5 +1,6 @@
 import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
+import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     AppOpeningFileSubscriber,
     AppStartTimeGetter,
@@ -7,7 +8,8 @@ import type {
 } from "../utils/state/domain/appDomainState.js";
 
 export type ListenForThemeChange = (
-    onThemeChange: (theme: string) => void
+    onThemeChange: (theme: string) => void,
+    options?: { electronApiScope?: RendererElectronApiScope | undefined }
 ) => void;
 
 export type ShowNotification = (
@@ -29,7 +31,8 @@ export type RendererSetupListeners = (
 ) => unknown;
 export type RendererSetupTheme = (
     applyTheme: ApplyTheme | undefined,
-    listenForThemeChange: ListenForThemeChange | undefined
+    listenForThemeChange: ListenForThemeChange | undefined,
+    options?: { electronApiScope?: RendererElectronApiScope | undefined }
 ) => unknown;
 
 type ResolvedRendererCoreModules = Readonly<{

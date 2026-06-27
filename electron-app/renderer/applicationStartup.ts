@@ -34,6 +34,7 @@ type RendererStartupLogger = (
 
 export interface RendererDependencies {
     applyTheme: ApplyTheme | undefined;
+    electronApiScope: RendererElectronApiScope;
     handleOpenFile: RendererHandleOpenFile | undefined;
     isOpeningFileRef: RendererFileOpeningStateRef;
     listenForThemeChange: ListenForThemeChange | undefined;
@@ -261,7 +262,8 @@ async function initializeComponents(
                 await options.ensureCoreModules();
             setupThemeDyn?.(
                 dependencies.applyTheme,
-                dependencies.listenForThemeChange
+                dependencies.listenForThemeChange,
+                { electronApiScope: dependencies.electronApiScope }
             );
         } catch {
             /* Ignore errors */
@@ -339,6 +341,7 @@ function createRendererDependencies(
 ): RendererDependencies {
     return {
         applyTheme: coreModules.applyTheme,
+        electronApiScope: options.getElectronApiScope(),
         handleOpenFile: coreModules.handleOpenFile,
         isOpeningFileRef: options.isOpeningFileRef,
         listenForThemeChange: coreModules.listenForThemeChange,
@@ -355,6 +358,7 @@ function createSetupListenersOptions(
 ): SetupListenersOptions | undefined {
     const {
         handleOpenFile,
+        electronApiScope,
         showAboutModal,
         showNotification,
         showUpdateNotification,
@@ -369,6 +373,7 @@ function createSetupListenersOptions(
     }
 
     return {
+        electronApiScope,
         handleOpenFile,
         isOpeningFileRef: dependencies.isOpeningFileRef,
         openFileBtn: dependencies.openFileBtn as HTMLButtonElement | null,

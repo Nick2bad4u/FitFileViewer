@@ -102,7 +102,10 @@ describe("setupTheme", () => {
             "ui.theme",
             expect.any(Function)
         );
-        expect(listenForThemeChange).toHaveBeenCalledWith(expect.any(Function));
+        expect(listenForThemeChange).toHaveBeenCalledWith(
+            expect.any(Function),
+            { electronApiScope }
+        );
 
         // simulate external change notification
         expect(externalListener).toBeTypeOf("function");

@@ -71,6 +71,7 @@ describe("renderer application startup", () => {
         );
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const performance = createPerformanceMonitor();
+        const electronApiScope = {};
         const utils = createRendererApplicationStartup({
             addEventListener,
             ensureCoreModules: async () => coreModules,
@@ -80,7 +81,7 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
-            getElectronApiScope: () => ({}),
+            getElectronApiScope: () => electronApiScope,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isDevelopmentMode: () => true,
@@ -107,10 +108,12 @@ describe("renderer application startup", () => {
         );
         expect(coreModules.setupTheme).toHaveBeenCalledWith(
             coreModules.applyTheme,
-            coreModules.listenForThemeChange
+            coreModules.listenForThemeChange,
+            { electronApiScope }
         );
         expect(coreModules.setupListeners).toHaveBeenCalledWith(
             expect.objectContaining({
+                electronApiScope,
                 handleOpenFile: coreModules.handleOpenFile,
                 openFileBtn: openFileButton,
             })

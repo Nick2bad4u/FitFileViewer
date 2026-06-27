@@ -151,7 +151,9 @@ export function createRendererImportTimeBootstrap({
             listenForThemeChange: listenForThemeChangeFn,
             setupTheme: setupThemeFn,
         } = await ensureCoreModules();
-        setupThemeFn?.(applyThemeFn, listenForThemeChangeFn);
+        setupThemeFn?.(applyThemeFn, listenForThemeChangeFn, {
+            electronApiScope: getElectronApiScope(),
+        });
     }
 
     async function touchAppDomainState(): Promise<void> {

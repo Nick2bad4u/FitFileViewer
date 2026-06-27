@@ -99,7 +99,8 @@ describe("renderer import-time bootstrap", () => {
 
         expect(coreModules.setupTheme).toHaveBeenCalledWith(
             coreModules.applyTheme,
-            coreModules.listenForThemeChange
+            coreModules.listenForThemeChange,
+            { electronApiScope }
         );
         expect(coreModules.setupListeners).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -110,7 +111,7 @@ describe("renderer import-time bootstrap", () => {
                 setLoading,
             })
         );
-        expect(getElectronApiScope).toHaveBeenCalledOnce();
+        expect(getElectronApiScope).toHaveBeenCalledTimes(2);
         expect(initializeStateManager).toHaveBeenCalledOnce();
         expect(masterStateManager.initialize).toHaveBeenCalledOnce();
         expect(coreModules.getAppStartTime).toHaveBeenCalled();

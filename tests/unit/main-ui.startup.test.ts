@@ -34,7 +34,14 @@ const mocks = vi.hoisted(() => ({
         (entryName: "chart-data" | "core" | "map") => Promise<void>
     >(() => Promise.resolve()),
     getState: vi.fn<(path?: string) => unknown>(),
-    listenForThemeChange: vi.fn<(callback: (theme: string) => void) => void>(),
+    listenForThemeChange: vi.fn<
+        (
+            callback: (theme: string) => void,
+            options?: {
+                electronApiScope?: { getElectronAPI?: () => unknown };
+            }
+        ) => void
+    >(),
     loadTheme: vi.fn<() => string>().mockReturnValue("dark"),
     mainUiElectronApiCandidate: undefined as unknown,
     mark: vi.fn<(name: string) => void>(),
@@ -336,7 +343,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const notifyFitFileLoaded =
             vi.fn<MainUiElectronApi["notifyFitFileLoaded"]>();
@@ -365,7 +372,19 @@ describe("main-ui.js - UI Controller and State Management", () => {
 
         expect(mocks.loadTheme).toHaveBeenCalledOnce();
         expect(mocks.applyTheme).toHaveBeenCalledWith("dark");
-        expect(mocks.listenForThemeChange).toHaveBeenCalledOnce();
+        expect(mocks.listenForThemeChange).toHaveBeenCalledWith(
+            expect.any(Function),
+            {
+                electronApiScope: expect.objectContaining({
+                    getElectronAPI: expect.any(Function),
+                }),
+            }
+        );
+        const [, themeListenerOptions] =
+            mocks.listenForThemeChange.mock.calls[0] ?? [];
+        expect(themeListenerOptions?.electronApiScope?.getElectronAPI?.()).toBe(
+            mocks.mainUiElectronApiCandidate
+        );
         await vi.waitFor(() => {
             expect(mocks.setupFullscreenListeners).toHaveBeenCalledOnce();
         });
