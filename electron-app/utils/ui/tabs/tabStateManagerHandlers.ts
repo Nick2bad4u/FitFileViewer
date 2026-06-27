@@ -44,12 +44,8 @@ const ZWIFT_MAP_FALLBACK_DELAY_MS = 8000;
 
 let mapInvalidationFrameId: number | undefined;
 let mapInvalidationSecondFrameId: number | undefined;
-let mapInvalidationTimeoutId:
-    | TabStateManagerHandlersTimerHandle
-    | undefined;
-let zwiftMapFallbackTimeoutId:
-    | TabStateManagerHandlersTimerHandle
-    | undefined;
+let mapInvalidationTimeoutId: TabStateManagerHandlersTimerHandle | undefined;
+let zwiftMapFallbackTimeoutId: TabStateManagerHandlersTimerHandle | undefined;
 
 function tabStateManagerHandlersRuntime(): TabStateManagerHandlersRuntime {
     return getTabStateManagerHandlersRuntime();
@@ -74,11 +70,16 @@ function clearPendingMapInvalidation(): void {
     }
 }
 
-function scheduleFallbackMapInvalidation(executeInvalidation: () => void): void {
-    mapInvalidationTimeoutId = tabStateManagerHandlersRuntime().setTimeout(() => {
-        mapInvalidationTimeoutId = undefined;
-        executeInvalidation();
-    }, 75);
+function scheduleFallbackMapInvalidation(
+    executeInvalidation: () => void
+): void {
+    mapInvalidationTimeoutId = tabStateManagerHandlersRuntime().setTimeout(
+        () => {
+            mapInvalidationTimeoutId = undefined;
+            executeInvalidation();
+        },
+        75
+    );
 }
 
 function hasRenderedFlag(value: unknown): value is { isRendered?: boolean } {
@@ -137,13 +138,9 @@ export function handleAltFitTab(): void {
  * Handle Browser tab activation (folder-based activity browser).
  */
 export async function handleBrowserTab(): Promise<void> {
-    try {
-        const mod = await import("../browser/fileBrowserTab.js");
-        if (mod && typeof mod.renderFileBrowserTab === "function") {
-            await mod.renderFileBrowserTab();
-        }
-    } catch (error) {
-        console.error("[TabStateManager] Failed to render Browser tab", error);
+    const mod = await import("../browser/fileBrowserTab.js");
+    if (typeof mod.renderFileBrowserTab === "function") {
+        await mod.renderFileBrowserTab();
     }
 }
 
