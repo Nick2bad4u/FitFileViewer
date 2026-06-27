@@ -385,7 +385,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleZwiftTab restores the embedded ZwiftMap frame when content is blank", async () => {
-        expect.assertions(9);
+        expect.assertions(10);
         const panel = document.createElement("div");
         panel.id = "content_zwift";
         root.appendChild(panel);
@@ -408,10 +408,19 @@ describe("tabStateManager.behavior", () => {
         iframe?.dispatchEvent(new Event("load"));
 
         expect((status as HTMLElement | null)?.hidden).toBe(true);
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.tabReadiness.zwift",
+            {
+                error: null,
+                status: "ready",
+                updatedAt: expect.any(Number),
+            },
+            { source: "TabStateManager.handleZwiftTab" }
+        );
     });
 
     it("handleZwiftTab shows a fallback link when ZwiftMap does not finish loading", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
         vi.useFakeTimers();
 
         const panel = document.createElement("div");
@@ -433,6 +442,15 @@ describe("tabStateManager.behavior", () => {
         );
         expect(status?.textContent).toContain("ZwiftMap did not load.");
         expect(fallbackLink?.href).toBe("https://zwiftmap.com/");
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.tabReadiness.zwift",
+            {
+                error: "ZwiftMap did not load before the fallback timeout.",
+                status: "error",
+                updatedAt: expect.any(Number),
+            },
+            { source: "TabStateManager.handleZwiftTab" }
+        );
     });
 
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {

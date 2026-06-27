@@ -11,6 +11,7 @@ import {
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { createTables } from "../../rendering/components/createTables.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
+import { setTabReadiness } from "./tabReadinessState.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
 import {
@@ -41,6 +42,7 @@ type LeafletMapInstance = {
 
 const ZWIFT_MAP_URL = "https://zwiftmap.com/";
 const ZWIFT_MAP_FALLBACK_DELAY_MS = 8000;
+const ZWIFT_TAB_READINESS_SOURCE = "TabStateManager.handleZwiftTab";
 
 let mapInvalidationFrameId: number | undefined;
 let mapInvalidationSecondFrameId: number | undefined;
@@ -171,8 +173,15 @@ export function handleZwiftTab(): void {
         clearPendingZwiftFallback();
         if (didLoad) {
             markZwiftStatusLoaded(status);
+            setTabReadiness("zwift", "ready", ZWIFT_TAB_READINESS_SOURCE);
         } else {
             markZwiftStatusFailed(status);
+            setTabReadiness(
+                "zwift",
+                "error",
+                ZWIFT_TAB_READINESS_SOURCE,
+                "ZwiftMap did not load before the fallback timeout."
+            );
         }
     };
 
