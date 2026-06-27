@@ -56,13 +56,9 @@ type CalendarState = {
 
 type DistanceUnit = "km" | "mi";
 
-interface FitBrowserElectronAPI {
-    decodeFitFile?: ElectronFileApi["decodeFitFile"];
-    getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];
-    listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];
-    openFolderDialog?: ElectronDialogApi["openFolderDialog"];
-    readFile?: ElectronFileApi["readFile"];
-}
+type FitBrowserElectronAPI = Partial<
+    ElectronDialogApi & ElectronFileApi & ElectronFitBrowserApi
+>;
 
 type FitBrowserElectronApiCandidate = {
     readonly decodeFitFile?: unknown;
@@ -72,16 +68,17 @@ type FitBrowserElectronApiCandidate = {
     readonly readFile?: unknown;
 };
 
-type FitBrowserDecodeApi = Required<
-    Pick<FitBrowserElectronAPI, "decodeFitFile" | "readFile">
->;
+type FitBrowserDecodeApi = {
+    readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
+    readonly readFile: ElectronFileApi["readFile"];
+};
 type FileBrowserTabOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
 
-type FitBrowserListApi = Required<
-    Pick<FitBrowserElectronAPI, "listFitBrowserFolder">
->;
+type FitBrowserListApi = {
+    readonly listFitBrowserFolder: ElectronFitBrowserApi["listFitBrowserFolder"];
+};
 
 type FitLibraryCachePayload = FitBrowserLibraryCachePayload<FitLibraryItem>;
 

@@ -416,6 +416,9 @@ of casting the candidate preload API to a generic record, with focused malformed
 guardrails. Browser tab, path-based FIT opening, overlay selector, drag/drop, single-overlay loading, and main UI DOM
 Electron API candidate typing now use explicit local interfaces backed by split shared preload API-domain contracts
 instead of `Pick<ElectronAPI, ...>` aliases.
+Browser tab folder/list/read/decode candidate typing now composes shared file, dialog, and Fit Browser API-domain
+contracts directly, with explicit method slices and architecture coverage blocking local `Pick<FitBrowserElectronAPI,
+...>` aliases from returning.
 Handle-open-file candidate typing now uses shared dialog and file API-domain contracts instead of deriving from the
 monolithic `ElectronAPI` type.
 Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
