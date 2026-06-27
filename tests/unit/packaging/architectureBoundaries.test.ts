@@ -11046,7 +11046,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(181);
+        expect.assertions(183);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11061,6 +11061,8 @@ describe("architecture boundaries", () => {
 
         expect(uiStateManagerSource).toContain("uiStateManagerRuntime.js");
         expect(uiStateManagerSource).toContain("type UIStateManagerRuntime");
+        expect(uiStateManagerSource).toContain("rendererActiveTabState.js");
+        expect(uiStateManagerSource).toContain("normalizeRendererActiveTab");
         expect(uiStateManagerSource).toContain(
             "return getUIStateManagerRuntime();"
         );

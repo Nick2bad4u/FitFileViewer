@@ -12,6 +12,7 @@ import {
     updateState,
 } from "../core/stateManager.js";
 import { getActiveFitRawData } from "./activeFitRawDataState.js";
+import { normalizeRendererActiveTab } from "./rendererActiveTabState.js";
 import {
     getUIStateManagerRuntime,
     type UIStateManagerRuntime,
@@ -154,10 +155,9 @@ export class UIStateManager {
         // Update theme toggle buttons
         const themeButtons = uiStateManagerRuntime().getThemeStateElements();
         for (const button of themeButtons) {
-            const buttonTheme =
-                uiStateManagerRuntime().isHTMLElement(button)
-                    ? button.dataset["theme"]
-                    : undefined;
+            const buttonTheme = uiStateManagerRuntime().isHTMLElement(button)
+                ? button.dataset["theme"]
+                : undefined;
             button.classList.toggle("active", buttonTheme === theme);
         }
 
@@ -170,7 +170,8 @@ export class UIStateManager {
     cleanup() {
         // Remove system theme listener if it exists
         if (this.systemThemeListener) {
-            const mediaQuery = uiStateManagerRuntime().getSystemThemeMediaQuery();
+            const mediaQuery =
+                uiStateManagerRuntime().getSystemThemeMediaQuery();
             mediaQuery?.removeEventListener("change", this.systemThemeListener);
         }
 
@@ -202,10 +203,7 @@ export class UIStateManager {
     initializeReactiveElements() {
         // Subscribe to active tab changes
         subscribe("ui.activeTab", (activeTab) => {
-            const tabName =
-                typeof activeTab === "string"
-                    ? activeTab
-                    : String(activeTab ?? "");
+            const tabName = normalizeRendererActiveTab(activeTab);
             this.updateTabVisibility(tabName);
             this.updateTabButtons(tabName);
         });
@@ -297,10 +295,9 @@ export class UIStateManager {
         // Tab switching
         const tabButtons = uiStateManagerRuntime().getTabButtonElements();
         for (const button of tabButtons) {
-            const tabName =
-                uiStateManagerRuntime().isHTMLElement(button)
-                    ? button.dataset["tab"]
-                    : undefined;
+            const tabName = uiStateManagerRuntime().isHTMLElement(button)
+                ? button.dataset["tab"]
+                : undefined;
             safeAddClickListener(button, () => {
                 if (tabName) {
                     AppActions.switchTab(tabName);
@@ -319,10 +316,9 @@ export class UIStateManager {
         // Only treat explicit UI controls as theme toggles.
         const themeButtons = uiStateManagerRuntime().getThemeToggleElements();
         for (const button of themeButtons) {
-            const theme =
-                uiStateManagerRuntime().isHTMLElement(button)
-                    ? button.dataset["theme"]
-                    : undefined;
+            const theme = uiStateManagerRuntime().isHTMLElement(button)
+                ? button.dataset["theme"]
+                : undefined;
             safeAddClickListener(button, () => {
                 if (theme) {
                     AppActions.switchTheme(theme);
@@ -571,7 +567,8 @@ export class UIStateManager {
 
                 // Prevent long filenames (with auto-scroll animation) from rendering underneath the
                 // fixed "Active:" label. The viewport clips the scrolling text region.
-                const nameViewport = uiStateManagerRuntime().createSpanElement();
+                const nameViewport =
+                    uiStateManagerRuntime().createSpanElement();
                 nameViewport.className = "filename-viewport";
                 nameViewport.append(nameSpan);
 
@@ -696,15 +693,15 @@ export class UIStateManager {
     /**
      * Update tab button states
      */
-    updateTabButtons(activeTab: string) {
+    updateTabButtons(activeTab: unknown) {
+        const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
         const tabButtons = uiStateManagerRuntime().getTabButtonElements();
 
         for (const button of tabButtons) {
-            const tabName =
-                    uiStateManagerRuntime().isHTMLElement(button)
-                        ? button.dataset["tab"]
-                        : undefined,
-                isActive = tabName === activeTab;
+            const tabName = uiStateManagerRuntime().isHTMLElement(button)
+                    ? button.dataset["tab"]
+                    : undefined,
+                isActive = tabName === normalizedActiveTab;
 
             button.classList.toggle("active", isActive);
             button.setAttribute("aria-selected", isActive.toString());
@@ -714,15 +711,15 @@ export class UIStateManager {
     /**
      * Update tab visibility based on active tab
      */
-    updateTabVisibility(activeTab: string) {
+    updateTabVisibility(activeTab: unknown) {
+        const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
         const tabContents = uiStateManagerRuntime().getTabContentElements();
 
         for (const content of tabContents) {
-            const tabName =
-                    uiStateManagerRuntime().isHTMLElement(content)
-                        ? content.dataset["tabContent"]
-                        : undefined,
-                isActive = tabName === activeTab;
+            const tabName = uiStateManagerRuntime().isHTMLElement(content)
+                    ? content.dataset["tabContent"]
+                    : undefined,
+                isActive = tabName === normalizedActiveTab;
 
             if (uiStateManagerRuntime().isHTMLElement(content)) {
                 content.style.display = isActive ? "block" : "none";
@@ -730,7 +727,9 @@ export class UIStateManager {
             content.setAttribute("aria-hidden", (!isActive).toString());
         }
 
-        console.log(`[UIStateManager] Tab visibility updated: ${activeTab}`);
+        console.log(
+            `[UIStateManager] Tab visibility updated: ${normalizedActiveTab}`
+        );
     }
 
     /**

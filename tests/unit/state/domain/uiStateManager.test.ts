@@ -199,8 +199,13 @@ describe("uiStateManager - comprehensive coverage", () => {
             createElementWithAttributes("button", { id: "unload_file_btn" }),
             createElementWithAttributes(
                 "button",
-                { "data-tab": "charts", id: "tab-button-charts" },
+                { "data-tab": "chartjs", id: "tab-button-chartjs" },
                 "Charts"
+            ),
+            createElementWithAttributes(
+                "button",
+                { "data-tab": "summary", id: "tab-button-summary" },
+                "Summary"
             ),
             createElementWithAttributes(
                 "button",
@@ -229,7 +234,11 @@ describe("uiStateManager - comprehensive coverage", () => {
             ),
             createElementWithAttributes("div", {
                 class: "tab-content",
-                "data-tab-content": "charts",
+                "data-tab-content": "chartjs",
+            }),
+            createElementWithAttributes("div", {
+                class: "tab-content",
+                "data-tab-content": "summary",
             }),
             createElementWithAttributes("div", {
                 class: "tab-content",
@@ -713,7 +722,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             const manager = new UIStateManager();
 
             // Check that addEventListener was called on tab buttons
-            const tabButton = document.querySelector('[data-tab="charts"]');
+            const tabButton = document.querySelector('[data-tab="chartjs"]');
             expect(tabButton).toBeInstanceOf(HTMLButtonElement);
             getElementClickListenerRegistration(tabButton, manager);
             expect(manager.eventListenerAbortController.signal.aborted).toBe(
@@ -727,14 +736,14 @@ describe("uiStateManager - comprehensive coverage", () => {
             new UIStateManager();
 
             const tabButton = document.querySelector(
-                '[data-tab="charts"]'
+                '[data-tab="chartjs"]'
             ) as HTMLElement;
             tabButton.click();
 
             expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith(
-                "charts"
+                "chartjs"
             );
-            expect(tabButton.dataset.tab).toBe("charts");
+            expect(tabButton.dataset.tab).toBe("chartjs");
         });
 
         it("should set up theme button event listeners", () => {
@@ -1361,29 +1370,53 @@ describe("uiStateManager - comprehensive coverage", () => {
                 expect.assertions(2);
 
                 const manager = new UIStateManager();
-                const chartsButton = document.querySelector(
-                    '[data-tab="charts"]'
+                const chartButton = document.querySelector(
+                    '[data-tab="chartjs"]'
                 ) as HTMLElement;
                 const mapButton = document.querySelector(
                     '[data-tab="map"]'
                 ) as HTMLElement;
 
-                manager.updateTabButtons("charts");
+                manager.updateTabButtons("chartjs");
 
                 expect({
-                    chartsButtonAriaSelected:
-                        chartsButton.getAttribute("aria-selected"),
-                    chartsButtonClasses: [...chartsButton.classList],
+                    chartButtonAriaSelected:
+                        chartButton.getAttribute("aria-selected"),
+                    chartButtonClasses: [...chartButton.classList],
                     mapButtonAriaSelected:
                         mapButton.getAttribute("aria-selected"),
                     mapButtonClasses: [...mapButton.classList],
                 }).toStrictEqual({
-                    chartsButtonAriaSelected: "true",
-                    chartsButtonClasses: ["active"],
+                    chartButtonAriaSelected: "true",
+                    chartButtonClasses: ["active"],
                     mapButtonAriaSelected: "false",
                     mapButtonClasses: [],
                 });
                 expect([...mapButton.classList]).not.toContain("active");
+            });
+
+            it("should normalize stale active tab names before updating button states", () => {
+                expect.assertions(2);
+
+                const manager = new UIStateManager();
+                const chartButton = document.querySelector(
+                    '[data-tab="chartjs"]'
+                ) as HTMLElement;
+                const summaryButton = document.querySelector(
+                    '[data-tab="summary"]'
+                ) as HTMLElement;
+
+                manager.updateTabButtons("charts");
+
+                expect(chartButton.classList).not.toContain("active");
+                expect({
+                    summaryButtonAriaSelected:
+                        summaryButton.getAttribute("aria-selected"),
+                    summaryButtonClasses: [...summaryButton.classList],
+                }).toStrictEqual({
+                    summaryButtonAriaSelected: "true",
+                    summaryButtonClasses: ["active"],
+                });
             });
         });
 
@@ -1392,20 +1425,41 @@ describe("uiStateManager - comprehensive coverage", () => {
                 expect.assertions(5);
 
                 const manager = new UIStateManager();
-                const chartsContent = document.querySelector(
-                    '[data-tab-content="charts"]'
+                const chartContent = document.querySelector(
+                    '[data-tab-content="chartjs"]'
                 ) as HTMLElement;
                 const mapContent = document.querySelector(
                     '[data-tab-content="map"]'
                 ) as HTMLElement;
 
-                manager.updateTabVisibility("charts");
+                manager.updateTabVisibility("chartjs");
 
-                expect(chartsContent.style.display).toBe("block");
-                expect(chartsContent.getAttribute("aria-hidden")).toBe("false");
+                expect(chartContent.style.display).toBe("block");
+                expect(chartContent.getAttribute("aria-hidden")).toBe("false");
                 expect(mapContent.style.display).toBe("none");
                 expect(mapContent.getAttribute("aria-hidden")).toBe("true");
                 expect(mapContent.style.display).not.toBe("block");
+            });
+
+            it("should normalize stale active tab names before updating tab visibility", () => {
+                expect.assertions(4);
+
+                const manager = new UIStateManager();
+                const chartContent = document.querySelector(
+                    '[data-tab-content="chartjs"]'
+                ) as HTMLElement;
+                const summaryContent = document.querySelector(
+                    '[data-tab-content="summary"]'
+                ) as HTMLElement;
+
+                manager.updateTabVisibility("charts");
+
+                expect(chartContent.style.display).toBe("none");
+                expect(chartContent.getAttribute("aria-hidden")).toBe("true");
+                expect(summaryContent.style.display).toBe("block");
+                expect(summaryContent.getAttribute("aria-hidden")).toBe(
+                    "false"
+                );
             });
         });
     });
@@ -1641,11 +1695,11 @@ describe("uiStateManager - comprehensive coverage", () => {
                 document.body.dataset.activeTab = tabName;
             });
 
-            UIActions.showTab("charts");
+            UIActions.showTab("chartjs");
 
-            expect(document.body.dataset.activeTab).toBe("charts");
+            expect(document.body.dataset.activeTab).toBe("chartjs");
             expect(vi.mocked(AppActions.switchTab)).toHaveBeenCalledWith(
-                "charts"
+                "chartjs"
             );
         });
 
