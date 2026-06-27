@@ -4,9 +4,6 @@ import {
     type RendererEnvironmentInput,
     type RendererEnvironmentRuntime,
 } from "./rendererEnvironmentRuntime.js";
-import {
-    hasDefinedElectronDevModeCompatibilityMarker,
-} from "../../runtime/electronDevModeCompatibility.js";
 
 export type RendererEnvironmentName = "development" | "production";
 
@@ -21,7 +18,6 @@ interface RendererEnvironmentInputRecord {
     readonly __DEVELOPMENT__?: unknown;
     readonly developmentFlag?: unknown;
     readonly document?: unknown;
-    readonly electronApiCandidate?: unknown;
     readonly location?: unknown;
 }
 
@@ -83,14 +79,6 @@ function hasDocumentDevModeFlag(
     return Object.hasOwn(dataset, "devMode");
 }
 
-function hasElectronDevModeCandidateFlag(
-    environmentInput: RendererEnvironmentInput
-): boolean {
-    return hasDefinedElectronDevModeCompatibilityMarker(
-        environmentInput.electronApiCandidate
-    );
-}
-
 function isDebugRendererLocation(
     locationParts: RendererLocationParts
 ): boolean {
@@ -148,7 +136,6 @@ function toRendererEnvironmentInput(
                 ? inputRecord.developmentFlag
                 : inputRecord.__DEVELOPMENT__,
         document: inputRecord.document,
-        electronApiCandidate: inputRecord.electronApiCandidate,
         location: inputRecord.location,
     };
 }
@@ -193,8 +180,7 @@ export function isDevelopmentMode(
             isLocalDevelopmentHost(locationParts.hostname) ||
             isDebugRendererLocation(locationParts) ||
             resolvedEnvironmentInput.developmentFlag === true ||
-            hasDocumentDevModeFlag(resolvedEnvironmentInput) ||
-            hasElectronDevModeCandidateFlag(resolvedEnvironmentInput)
+            hasDocumentDevModeFlag(resolvedEnvironmentInput)
         );
     } catch {
         return false;

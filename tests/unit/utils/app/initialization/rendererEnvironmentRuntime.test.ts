@@ -13,14 +13,11 @@ describe("rendererEnvironmentRuntime", () => {
         const environmentInput = {
             developmentFlag: true,
             document: { documentElement: { dataset: {} } },
-            electronApiCandidate: { __devMode: false },
             location: { hostname: "localhost" },
         };
         const utils = getRendererEnvironmentRuntime({
             getDevelopmentFlag: () => environmentInput.developmentFlag,
             getDocument: () => environmentInput.document,
-            getElectronApiCandidate: () =>
-                environmentInput.electronApiCandidate,
             getLocation: () => environmentInput.location,
         });
 
@@ -37,30 +34,24 @@ describe("rendererEnvironmentRuntime", () => {
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
             developmentFlag: undefined,
             document: undefined,
-            electronApiCandidate: undefined,
             location: undefined,
         });
     });
 
     it("uses shared browser providers for production defaults", () => {
-        expect.assertions(4);
-
-        const electronAPI = { __devMode: true };
+        expect.assertions(3);
 
         vi.stubGlobal("__DEVELOPMENT__", true);
-        vi.stubGlobal("electronAPI", electronAPI);
 
         const utils = getRendererEnvironmentRuntime();
         const {
             developmentFlag,
             document: runtimeDocument,
-            electronApiCandidate: runtimeElectronApiCandidate,
             location,
         } = utils.getDefaultRendererEnvironmentInput();
 
         expect(developmentFlag).toBe(true);
         expect(runtimeDocument).toBe(document);
-        expect(runtimeElectronApiCandidate).toBe(electronAPI);
         expect(location).toBe(globalThis.location);
     });
 
@@ -79,7 +70,6 @@ describe("rendererEnvironmentRuntime", () => {
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
             developmentFlag: undefined,
             document: undefined,
-            electronApiCandidate: undefined,
             location: undefined,
         });
     });

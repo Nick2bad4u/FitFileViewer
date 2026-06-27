@@ -90,7 +90,6 @@ export interface MasterStateRuntimeScope {
 }
 
 export interface MasterStateDevelopmentOptions {
-    readonly electronDevMode?: boolean | undefined;
     readonly hasDevelopmentModeAttribute?: boolean | undefined;
 }
 
@@ -381,7 +380,6 @@ export function getMasterStateRuntime(
         },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();
-            const eventTarget = getScopeEventTarget(scope);
             const hostname = getLocationText(location, "hostname");
             const search = getLocationText(location, "search");
             const hash = getLocationText(location, "hash");
@@ -397,8 +395,6 @@ export function getMasterStateRuntime(
                 hash.includes("debug") ||
                 options.hasDevelopmentModeAttribute === true ||
                 protocol === "file:" ||
-                (eventTarget !== undefined &&
-                    options.electronDevMode !== undefined) ||
                 href.includes("electron")
             );
         },

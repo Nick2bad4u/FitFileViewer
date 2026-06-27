@@ -2093,8 +2093,8 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).not.toContain("__devMode");
     });
 
-    it("keeps the retired preload dev-mode marker behind runtime compatibility helpers", () => {
-        expect.assertions(5);
+    it("keeps the retired preload dev-mode marker out of runtime compatibility paths", () => {
+        expect.assertions(6);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
@@ -2106,21 +2106,25 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/state/core/masterStateManager.ts"
             )
         );
-        const compatibilitySource = stripComments(
+        const masterStateRuntimeSource = stripComments(
             readRepositoryFile(
-                "electron-app/utils/runtime/electronDevModeCompatibility.ts"
+                "electron-app/utils/state/core/masterStateRuntime.ts"
             )
         );
 
-        expect(rendererEnvironmentSource).toContain(
-            "hasDefinedElectronDevModeCompatibilityMarker"
-        );
-        expect(masterStateManagerSource).toContain(
-            "getElectronDevModeCompatibilityValue"
-        );
+        expect(
+            existsSync(
+                path.join(
+                    process.cwd(),
+                    "electron-app/utils/runtime/electronDevModeCompatibility.ts"
+                )
+            )
+        ).toBe(false);
+        expect(rendererEnvironmentSource).not.toContain("electronApiCandidate");
         expect(rendererEnvironmentSource).not.toContain("__devMode");
         expect(masterStateManagerSource).not.toContain("__devMode");
-        expect(compatibilitySource).toContain("__devMode");
+        expect(masterStateManagerSource).not.toContain("electronDevMode");
+        expect(masterStateRuntimeSource).not.toContain("electronDevMode");
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {
@@ -7022,7 +7026,7 @@ describe("architecture boundaries", () => {
         expect(rendererEnvironmentSource).toContain(
             "interface RendererEnvironmentInputRecord"
         );
-        expect(rendererEnvironmentSource).toContain("electronApiCandidate");
+        expect(rendererEnvironmentSource).not.toContain("electronApiCandidate");
         expect(rendererEnvironmentSource).not.toContain(
             "readonly electronAPI?: unknown"
         );
@@ -7066,8 +7070,8 @@ describe("architecture boundaries", () => {
         expect(rendererEnvironmentRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
-        expect(rendererEnvironmentRuntimeSource).toContain(
-            "getElectronApiCandidate: getBrowserElectronApiCandidate"
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "getElectronApiCandidate"
         );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getElectronAPI: getBrowserElectronApiCandidate"

@@ -121,8 +121,8 @@ describe("rendererEnvironment", () => {
         }).toStrictEqual({ development: true });
     });
 
-    it("treats any defined electron __devMode value as development", () => {
-        expect.assertions(3);
+    it("ignores stale electron dev-mode markers", () => {
+        expect.assertions(2);
 
         expect({
             development: isDevelopmentMode(
@@ -131,7 +131,7 @@ describe("rendererEnvironment", () => {
                 })
             ),
         }).toStrictEqual({
-            development: true,
+            development: false,
         });
 
         expect({
@@ -141,21 +141,11 @@ describe("rendererEnvironment", () => {
                 })
             ),
         }).toStrictEqual({
-            development: true,
-        });
-
-        expect({
-            development: isDevelopmentMode(
-                createEnvironmentInput({
-                    electronApiCandidate: { __devMode: undefined },
-                })
-            ),
-        }).toStrictEqual({
             development: false,
         });
     });
 
-    it("preserves inherited electron __devMode detection", () => {
+    it("ignores inherited stale electron dev-mode markers", () => {
         expect.assertions(1);
 
         const inheritedElectronApi = Object.create({ __devMode: true });
@@ -166,7 +156,7 @@ describe("rendererEnvironment", () => {
                     electronApiCandidate: inheritedElectronApi,
                 })
             ),
-        }).toStrictEqual({ development: true });
+        }).toStrictEqual({ development: false });
     });
 
     it("ignores malformed nested environment values", () => {

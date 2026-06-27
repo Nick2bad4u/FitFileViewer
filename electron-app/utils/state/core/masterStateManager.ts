@@ -32,10 +32,6 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import {
-    getBooleanElectronDevModeCompatibilityFlag,
-    getElectronDevModeCompatibilityValue,
-} from "../../runtime/electronDevModeCompatibility.js";
 import type {
     ElectronAppInfoApi,
     ElectronDialogApi,
@@ -223,20 +219,12 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
         return false;
     }
 
-    const devMode = getOptionalElectronDevelopmentMode(value);
-    return (
-        (devMode === undefined || typeof devMode === "boolean") &&
-        ["getAppVersion", "openFileDialog"].every((key) =>
-            hasOptionalMasterElectronFunction(
-                value,
-                key as "getAppVersion" | "openFileDialog"
-            )
+    return ["getAppVersion", "openFileDialog"].every((key) =>
+        hasOptionalMasterElectronFunction(
+            value,
+            key as "getAppVersion" | "openFileDialog"
         )
     );
-}
-
-function getOptionalElectronDevelopmentMode(value: object): unknown {
-    return getElectronDevModeCompatibilityValue(value);
 }
 
 function getMasterElectronAPI(
@@ -286,14 +274,6 @@ function hasDevelopmentModeAttribute(): boolean {
     return masterStateRuntime().hasDevelopmentModeAttribute();
 }
 
-function getElectronDevelopmentFlag(
-    electronApiScope: RendererElectronApiScope | undefined
-): boolean | undefined {
-    return getBooleanElectronDevModeCompatibilityFlag(
-        getMasterElectronAPI(electronApiScope)
-    );
-}
-
 /**
  * Master State Manager - orchestrates all state management components
  */
@@ -339,10 +319,6 @@ export class MasterStateManager {
 
     private getMasterElectronAPI(): ElectronRendererAPI | null {
         return getMasterElectronAPI(this.electronApiScope);
-    }
-
-    private getElectronDevelopmentFlag(): boolean | undefined {
-        return getElectronDevelopmentFlag(this.electronApiScope);
     }
 
     private getAppLifecycleModule(): AppLifecycleModule {
@@ -896,7 +872,6 @@ export class MasterStateManager {
     isDevelopmentMode() {
         try {
             return masterStateRuntime().isDevelopmentScope({
-                electronDevMode: this.getElectronDevelopmentFlag(),
                 hasDevelopmentModeAttribute: hasDevelopmentModeAttribute(),
             });
         } catch {

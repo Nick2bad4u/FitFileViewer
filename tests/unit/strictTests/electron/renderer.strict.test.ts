@@ -65,7 +65,6 @@ const importRendererFresh = async () => {
     // Provide a stub electronAPI before import so the renderer registers immediately
     const listeners = new Map<string, EventHandler[]>();
     const api: any = {
-        __devMode: true,
         onMenuAction: (cb: EventHandler) => {
             const arr = listeners.get("menu") || [];
             arr.push(cb);

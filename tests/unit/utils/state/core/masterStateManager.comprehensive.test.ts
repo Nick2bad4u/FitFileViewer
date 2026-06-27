@@ -172,7 +172,6 @@ type MasterStateGlobal = typeof globalThis & {
 };
 
 type MasterStateElectronApi = {
-    __devMode?: boolean;
     getAppVersion: ReturnType<typeof vi.fn<() => Promise<string>>>;
     openFileDialog: ReturnType<typeof vi.fn<() => void>>;
 };
@@ -427,7 +426,6 @@ describe("masterStateManager comprehensive behavior", () => {
                 location.search = "";
                 location.hash = "";
                 delete (globalThis as MasterStateGlobal).__DEVELOPMENT__;
-                electronAPI.__devMode = undefined;
 
                 expect({
                     developmentMode: manager.isDevelopmentMode(),
@@ -445,7 +443,6 @@ describe("masterStateManager comprehensive behavior", () => {
         await withMasterStateHarness(async ({ documentListeners, mocks }) => {
             const openFileDialog = vi.fn<() => void>();
             activeElectronApiScope = createElectronApiScope({
-                __devMode: "not-boolean",
                 getAppVersion: "not-callable",
                 openFileDialog,
             });
@@ -1075,7 +1072,6 @@ async function withMasterStateHarness(
     } satisfies Partial<Window>;
 
     const electronAPI = {
-        __devMode: options.development ? true : undefined,
         getAppVersion: vi
             .fn<() => Promise<string>>()
             .mockResolvedValue(options.appVersion ?? "26.5.0"),

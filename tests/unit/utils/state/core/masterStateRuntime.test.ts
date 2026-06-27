@@ -98,7 +98,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("detects development scopes from debug flags", () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         const rendererScope = {
             getEventTarget: () => ({ addEventListener: vi.fn() }),
@@ -137,11 +137,6 @@ describe("masterStateRuntime", () => {
         expect(
             getMasterStateRuntime(rendererScope).isDevelopmentScope({
                 hasDevelopmentModeAttribute: true,
-            })
-        ).toBe(true);
-        expect(
-            getMasterStateRuntime(rendererScope).isDevelopmentScope({
-                electronDevMode: true,
             })
         ).toBe(true);
     });
@@ -384,7 +379,7 @@ describe("masterStateRuntime", () => {
         expect(getDocumentEventTarget).toHaveBeenCalledOnce();
         expect(getDispatchEvent).toHaveBeenCalledOnce();
         expect(getLocation).toHaveBeenCalledTimes(2);
-        expect(getEventTarget).toHaveBeenCalledTimes(4);
+        expect(getEventTarget).toHaveBeenCalledTimes(3);
         expect(addDocumentEventListener).toHaveBeenCalledWith(
             "keydown",
             listener,
