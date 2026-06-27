@@ -3401,7 +3401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(378);
+        expect.assertions(384);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3497,6 +3497,11 @@ describe("architecture boundaries", () => {
         const setupMenuAndEventHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/setupMenuAndEventHandlers.ts"
+            )
+        );
+        const registerFullscreenHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerFullscreenHandler.ts"
             )
         );
         const registerThemeChangedHandlerSource = stripComments(
@@ -4093,6 +4098,20 @@ describe("architecture boundaries", () => {
         );
         expect(registerThemeChangedHandlerSource).toContain(
             "createElectronConf"
+        );
+        expect(registerFullscreenHandlerSource).toContain(
+            'registerIpcListener("set-fullscreen"'
+        );
+        expect(registerFullscreenHandlerSource).toContain(
+            "resolveFocusedMainWindow"
+        );
+        expect(registerFullscreenHandlerSource).not.toContain("module.exports");
+        expect(registerFullscreenHandlerSource).not.toContain("export default");
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'registerIpcListener("set-fullscreen"'
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "registerFullscreenHandler"
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'registerIpcListener("theme-changed"'
@@ -6340,28 +6359,39 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main focused-window utility callers centralized", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const setupMenuAndEventHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/setupMenuAndEventHandlers.ts"
             )
         );
+        const registerFullscreenHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerFullscreenHandler.ts"
+            )
+        );
         const exposeDevHelpersSource = stripComments(
             readRepositoryFile("electron-app/main/dev/exposeDevHelpers.ts")
         );
 
-        expect(setupMenuAndEventHandlersSource).toContain(
+        expect(registerFullscreenHandlerSource).toContain(
             "../window/mainWindowSelection.js"
         );
         expect(exposeDevHelpersSource).toContain(
             "../window/mainWindowSelection.js"
         );
-        expect(setupMenuAndEventHandlersSource).toContain(
+        expect(registerFullscreenHandlerSource).toContain(
             "resolveFocusedMainWindow"
         );
         expect(exposeDevHelpersSource).toContain("resolveFocusedMainWindow");
         expect(setupMenuAndEventHandlersSource).not.toContain(
+            "../window/mainWindowSelection.js"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            "resolveFocusedMainWindow"
+        );
+        expect(registerFullscreenHandlerSource).not.toContain(
             "getFocusedWindow"
         );
         expect(exposeDevHelpersSource).not.toContain("getFocusedWindow");

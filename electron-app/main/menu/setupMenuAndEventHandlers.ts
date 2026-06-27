@@ -15,16 +15,13 @@ import {
     isAutoUpdaterUpdateDownloaded,
 } from "../state/appState.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
-import {
-    resolveFocusedMainWindow,
-    type MainWindowBrowserWindowApi,
-} from "../window/mainWindowSelection.js";
 import { validateWindow } from "../window/windowValidation.js";
 import {
     getProcessStringValue,
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../utils/runtime/processEnvironment.js";
+import { registerFullscreenHandler } from "./registerFullscreenHandler.js";
 import { registerThemeChangedHandler } from "./registerThemeChangedHandler.js";
 import { safeCreateAppMenu } from "./safeCreateAppMenu.js";
 
@@ -51,6 +48,7 @@ interface IpcEventLike {
 
 interface BrowserWindowRefLike {
     fromWebContents: (webContents: unknown) => BrowserWindow | null;
+    getFocusedWindow?: () => BrowserWindow | null | undefined;
 }
 
 interface DialogLike {
@@ -91,7 +89,7 @@ const MENU_UPDATE_EVENTS = [
 ] as const satisfies readonly MenuUpdateEventChannel[];
 
 const browserWindowRef = electronBrowserWindowRef as () =>
-    | (BrowserWindowRefLike & MainWindowBrowserWindowApi<BrowserWindow>)
+    | BrowserWindowRefLike
     | null
     | undefined;
 const dialogRef = electronDialogRef as () => DialogLike | undefined;
@@ -367,11 +365,10 @@ export function setupMenuAndEventHandlers(): void {
         registerIpcListener(event, handler);
     }
 
-    registerIpcListener("set-fullscreen", (_event, flag) => {
-        const win = resolveFocusedMainWindow(browserWindowRef());
-        if (win && validateWindow(win, "set-fullscreen event")) {
-            win.setFullScreen(Boolean(flag));
-        }
+    registerFullscreenHandler({
+        browserWindowRef,
+        registerIpcListener,
+        validateWindow,
     });
 
     registerIpcHandle(
