@@ -108,8 +108,9 @@ export function getBrowserAddEventListener():
         : undefined;
 }
 
-export function deleteBrowserGlobalProperty(property: PropertyKey): boolean {
-    return Reflect.deleteProperty(globalThis, property);
+export function deleteBrowserLeafletGlobals(): void {
+    Reflect.deleteProperty(globalThis, "L");
+    Reflect.deleteProperty(globalThis, "Leaflet");
 }
 
 export function getBrowserRemoveEventListener():

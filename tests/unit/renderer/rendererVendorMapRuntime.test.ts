@@ -49,23 +49,23 @@ describe("rendererVendorMapRuntime", () => {
     });
 
     it("deletes temporary Leaflet globals through the focused delete provider", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const globalScope = {
                 L: {},
                 Leaflet: {},
             },
-            deleteGlobalProperty = vi.fn((property: "L" | "Leaflet") =>
-                Reflect.deleteProperty(globalScope, property)
-            ),
+            deleteTemporaryLeafletGlobals = vi.fn(() => {
+                Reflect.deleteProperty(globalScope, "L");
+                Reflect.deleteProperty(globalScope, "Leaflet");
+            }),
             utils = getRendererVendorMapRuntime({
-                deleteGlobalProperty,
+                deleteTemporaryLeafletGlobals,
             });
 
         utils.removeTemporaryLeafletGlobals();
 
-        expect(deleteGlobalProperty).toHaveBeenNthCalledWith(1, "L");
-        expect(deleteGlobalProperty).toHaveBeenNthCalledWith(2, "Leaflet");
+        expect(deleteTemporaryLeafletGlobals).toHaveBeenCalledTimes(1);
         expect(Reflect.has(globalScope, "L")).toBe(false);
         expect(Reflect.has(globalScope, "Leaflet")).toBe(false);
     });

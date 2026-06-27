@@ -264,11 +264,11 @@ contracts now reuse shared browser-runtime aliases instead of direct ambient typ
 Renderer vendor map minimap toggle icon document-element style writes now route through
 `rendererVendorMapRuntime.ts` instead of probing `globalThis.document` directly inside `rendererVendorMap.ts`,
 with focused runtime coverage and architecture guardrails blocking direct document probes from returning.
-Renderer vendor map package-created `L`/`Leaflet` alias cleanup now also uses a focused
-`deleteGlobalProperty` provider instead of a broad `getGlobalScope` provider, with runtime and architecture
-coverage blocking that whole-global handoff from returning.
-The document and focused deletion production defaults now come from shared `browserRuntime.ts` providers instead of
-the renderer-specific browser-runtime wrapper.
+Renderer vendor map package-created `L`/`Leaflet` alias cleanup now also uses the named
+`deleteBrowserLeafletGlobals` provider instead of a broad `getGlobalScope` or generic delete provider, with runtime and
+architecture coverage blocking those whole-global handoffs from returning.
+The document and Leaflet cleanup production defaults now come from shared `browserRuntime.ts` providers instead of the
+renderer-specific browser-runtime wrapper.
 The installed `leaflet-draw` package still exposes only `dist/leaflet.draw.js` through `main` and has no
 `module` or `exports` entry, so the remaining virtual runtime wrapper is now covered as an explicit package
 surface constraint instead of an untracked cleanup candidate.
@@ -1752,6 +1752,9 @@ returning.
 The generic `setBrowserGlobalProperty` writer is now private inside `browserRuntime.ts`; runtime process writes must
 route through `setBrowserProcessCandidate`, with browser-runtime and architecture coverage blocking the public generic
 setter from returning.
+Temporary Leaflet package alias cleanup now routes through the named `deleteBrowserLeafletGlobals` provider instead of
+exporting a generic browser-global delete helper, with renderer-vendor-map and architecture coverage blocking the broad
+delete provider from returning.
 Elevation profile overlay colors now resolve through the typed `chartOverlayColorPalette` module instead of the
 retired `chartOverlayColorPalette` browser-global compatibility property, with architecture coverage blocking that
 global palette read from returning.

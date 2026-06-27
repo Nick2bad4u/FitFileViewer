@@ -1,12 +1,10 @@
 import {
-    deleteBrowserGlobalProperty,
+    deleteBrowserLeafletGlobals,
     getBrowserDocument,
 } from "../utils/runtime/browserRuntime.js";
 
 export interface RendererVendorMapRuntimeScope {
-    readonly deleteGlobalProperty?:
-        | ((property: "L" | "Leaflet") => boolean)
-        | undefined;
+    readonly deleteTemporaryLeafletGlobals?: (() => void) | undefined;
     readonly getDocument?:
         | (() => Pick<Document, "documentElement"> | undefined)
         | undefined;
@@ -19,7 +17,7 @@ export interface RendererVendorMapRuntime {
 }
 
 const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
-    deleteGlobalProperty: deleteBrowserGlobalProperty,
+    deleteTemporaryLeafletGlobals: deleteBrowserLeafletGlobals,
     getDocument: getBrowserDocument,
 };
 
@@ -38,8 +36,7 @@ export function getRendererVendorMapRuntime(
         },
 
         removeTemporaryLeafletGlobals(): void {
-            scope.deleteGlobalProperty?.("L");
-            scope.deleteGlobalProperty?.("Leaflet");
+            scope.deleteTemporaryLeafletGlobals?.();
         },
 
         setDocumentElementStyleProperty(property: string, value: string): void {

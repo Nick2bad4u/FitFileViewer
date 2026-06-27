@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+    deleteBrowserLeafletGlobals,
     getBrowserClearTimeout,
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
@@ -38,6 +39,20 @@ describe("browserRuntime global property boundary", () => {
         expect(getBrowserDevelopmentFlag()).toBe(true);
         expect(getBrowserElectronApiCandidate()).toBe(electronAPI);
         expect(getBrowserVitestImportMockCandidate()).toBe(vitestCandidate);
+    });
+
+    it("deletes temporary Leaflet globals through a named provider", () => {
+        expect.assertions(3);
+
+        vi.stubGlobal("L", { version: "test" });
+        vi.stubGlobal("Leaflet", { version: "test" });
+        vi.stubGlobal("ffvNotLeaflet", { retained: true });
+
+        deleteBrowserLeafletGlobals();
+
+        expect(Reflect.has(globalThis, "L")).toBe(false);
+        expect(Reflect.has(globalThis, "Leaflet")).toBe(false);
+        expect(Reflect.has(globalThis, "ffvNotLeaflet")).toBe(true);
     });
 
     it("sets the process global through the named process provider", () => {
