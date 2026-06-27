@@ -127,7 +127,8 @@ that package at source level.
 Main logging, menu-creation, Electron access, and blocked-request support helpers (`logWithContext.ts`,
 `safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
-files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly,
+files. Main logging now resolves console methods through typed indexed access instead of `Reflect.get(console, level)`.
+Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly,
 and `electronAccess.ts` now imports the Electron package natively through the main build's external package
 boundary instead of owning a direct package `require("electron")` or `loadNodeModule("electron")` call; its
 unused default namespace export has also been removed.

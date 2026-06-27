@@ -3189,7 +3189,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(264);
+        expect.assertions(267);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3352,6 +3352,13 @@ describe("architecture boundaries", () => {
             "../../runtime/processEnvironment.js"
         );
         expect(logWithContextSource).not.toContain("globalThis.process");
+        expect(logWithContextSource).not.toContain("Reflect.get(");
+        expect(logWithContextSource).not.toContain(
+            "Reflect.get(console, level)"
+        );
+        expect(logWithContextSource).toContain(
+            "(console as unknown as Record<string, unknown>)[level]"
+        );
         expect(logWithContextSource).toContain("loggingTimestampRuntime.js");
         expect(logWithContextSource).toContain(
             "loggingTimestampRuntime().isoNow()"

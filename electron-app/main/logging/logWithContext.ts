@@ -20,7 +20,7 @@ const isConsoleMethod = (value: unknown): value is ConsoleMethod =>
     typeof value === "function";
 
 const getConsoleMethod = (level: string): ConsoleMethod => {
-    const method: unknown = Reflect.get(console, level);
+    const method = (console as unknown as Record<string, unknown>)[level];
 
     if (isConsoleMethod(method)) {
         return (message?: unknown, ...args: readonly unknown[]): void => {
