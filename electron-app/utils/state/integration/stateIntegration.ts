@@ -1,6 +1,6 @@
 /**
- * State Integration Utilities Helps migrate from existing state patterns to the
- * new centralized system
+ * State Integration Utilities initialize the renderer state system and
+ * synchronize persisted UI state.
  */
 
 import {
@@ -16,8 +16,6 @@ import {
     type StateIntegrationInterval,
     type StateIntegrationTimeout,
 } from "./stateIntegrationRuntime.js";
-
-type MigrationFunction = () => Promise<unknown> | unknown;
 
 const PERSISTED_STATE_KEY = "fitFileViewer_uiState";
 const PERSISTED_PATHS = [
@@ -35,39 +33,6 @@ let performanceMonitoringInterval: StateIntegrationInterval | undefined,
 
 function stateIntegrationRuntime(): StateIntegrationRuntime {
     return getStateIntegrationRuntime();
-}
-
-/**
- * Migration helper to convert old state patterns to new system
- */
-export class StateMigrationHelper {
-    private readonly migrations: MigrationFunction[] = [];
-
-    /**
-     * Add a migration function
-     *
-     * @param migrationFn - Function to run migration.
-     */
-    public addMigration(migrationFn: MigrationFunction): void {
-        this.migrations.push(migrationFn);
-    }
-
-    /**
-     * Run all migrations
-     */
-    public async runMigrations(): Promise<void> {
-        console.log("[StateMigration] Running state migrations...");
-
-        for (const migration of this.migrations) {
-            try {
-                await migration();
-            } catch (error) {
-                console.error("[StateMigration] Migration failed:", error);
-            }
-        }
-
-        console.log("[StateMigration] All migrations completed");
-    }
 }
 
 /**

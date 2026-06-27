@@ -114,10 +114,9 @@ function restorePerformanceMemory(): void {
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        expect.assertions(5);
+        expect.assertions(4);
         resetTestEnvironment();
 
-        expect(stateIntegration.StateMigrationHelper).toBeTypeOf("function");
         expect(stateIntegration.initializeAppState).toBeTypeOf("function");
         expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
             "function"
@@ -126,40 +125,6 @@ describe("stateIntegration.js - Essential Coverage", () => {
             "function"
         );
         expect(stateIntegration.setupStatePersistence).toBeTypeOf("function");
-
-        resetTestEnvironment();
-    });
-
-    it("runs every migration and logs failures without aborting later migrations", async () => {
-        expect.assertions(6);
-        resetTestEnvironment();
-
-        const firstMigration = vi.fn<() => void>();
-        const failedMigration = vi.fn<() => void>(() => {
-            throw new Error("migration failed");
-        });
-        const finalMigration = vi.fn<() => Promise<void>>(() =>
-            Promise.resolve()
-        );
-        const consoleError = vi
-            .spyOn(console, "error")
-            .mockReturnValue(undefined);
-        const helper = new stateIntegration.StateMigrationHelper();
-
-        helper.addMigration(firstMigration);
-        helper.addMigration(failedMigration);
-        helper.addMigration(finalMigration);
-
-        await expect(helper.runMigrations()).resolves.toBeUndefined();
-
-        expect(firstMigration).toHaveBeenCalledOnce();
-        expect(failedMigration).toHaveBeenCalledOnce();
-        expect(finalMigration).toHaveBeenCalledOnce();
-        expect(consoleError).toHaveBeenCalledWith(
-            "[StateMigration] Migration failed:",
-            expect.any(Error)
-        );
-        expect(firstMigration).toHaveBeenCalledBefore(finalMigration);
 
         resetTestEnvironment();
     });
