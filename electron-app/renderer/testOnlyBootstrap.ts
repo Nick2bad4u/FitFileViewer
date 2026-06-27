@@ -12,6 +12,16 @@ type RendererTestSetupTheme = (
     applyTheme: () => void,
     listenForThemeChange: () => void
 ) => unknown;
+type RendererTestSetupListenersOverrideModule = Readonly<{
+    setupListeners?: unknown;
+}>;
+type RendererTestSetupThemeOverrideModule = Readonly<{
+    setupTheme?: unknown;
+}>;
+type RendererTestThemeOverrideModule = Readonly<{
+    applyTheme?: unknown;
+    listenForThemeChange?: unknown;
+}>;
 
 interface RendererTestSetupListenersDependencies {
     readonly applyTheme: () => void;
@@ -99,13 +109,11 @@ function getTestSetupListenersOverride(
             "/utils/app/lifecycle/listeners.js"
         );
 
-    if (typeof override !== "object" || override === null) {
+    if (!isTestSetupListenersOverrideModule(override)) {
         return undefined;
     }
 
-    return toRendererTestSetupListeners(
-        (override as { readonly setupListeners?: unknown }).setupListeners
-    );
+    return toRendererTestSetupListeners(override.setupListeners);
 }
 
 function getTestSetupThemeOverride(
@@ -119,13 +127,11 @@ function getTestSetupThemeOverride(
             "/utils/theming/core/setupTheme.js"
         );
 
-    if (typeof override !== "object" || override === null) {
+    if (!isTestSetupThemeOverrideModule(override)) {
         return undefined;
     }
 
-    return toRendererTestSetupTheme(
-        (override as { readonly setupTheme?: unknown }).setupTheme
-    );
+    return toRendererTestSetupTheme(override.setupTheme);
 }
 
 function getTestThemeOverrides(options: RendererTestOnlyBootstrapOptions): {
@@ -138,22 +144,17 @@ function getTestThemeOverrides(options: RendererTestOnlyBootstrapOptions): {
         ) ??
         options.resolveRendererCoreTestOverride("/utils/theming/core/theme.js");
 
-    if (typeof override !== "object" || override === null) {
+    if (!isTestThemeOverrideModule(override)) {
         return {
             applyTheme: undefined,
             listenForThemeChange: undefined,
         };
     }
 
-    const themeOverride = override as {
-        readonly applyTheme?: unknown;
-        readonly listenForThemeChange?: unknown;
-    };
-
     return {
-        applyTheme: toNoopFunction(themeOverride.applyTheme),
+        applyTheme: toNoopFunction(override.applyTheme),
         listenForThemeChange: toNoopFunction(
-            themeOverride.listenForThemeChange
+            override.listenForThemeChange
         ),
     };
 }
@@ -235,6 +236,28 @@ export function registerRendererTestOnlyBootstrap(
 
 function toNoopFunction(value: unknown): (() => void) | undefined {
     return typeof value === "function" ? (value as () => void) : undefined;
+}
+
+function isTestOverrideModuleRecord(value: unknown): value is object {
+    return typeof value === "object" && value !== null;
+}
+
+function isTestSetupListenersOverrideModule(
+    value: unknown
+): value is RendererTestSetupListenersOverrideModule {
+    return isTestOverrideModuleRecord(value);
+}
+
+function isTestSetupThemeOverrideModule(
+    value: unknown
+): value is RendererTestSetupThemeOverrideModule {
+    return isTestOverrideModuleRecord(value);
+}
+
+function isTestThemeOverrideModule(
+    value: unknown
+): value is RendererTestThemeOverrideModule {
+    return isTestOverrideModuleRecord(value);
 }
 
 function toRendererTestSetupListeners(
