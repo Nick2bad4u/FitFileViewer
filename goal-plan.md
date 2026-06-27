@@ -354,9 +354,10 @@ from returning.
 Scoped export Electron API validation and Imgur upload response parsing now use explicit object/property guards
 instead of casting preload candidates or response payloads to generic records, with malformed-shape coverage and
 architecture guardrails.
-Export utility Electron API candidate typing now composes the shared clipboard and Gyazo API-domain contracts
-instead of deriving from the monolithic `ElectronAPI` type, with architecture guardrails blocking local
-`Pick<ElectronAPI, ...>` aliases from returning.
+Export utility Electron API candidate typing now uses explicit readonly method aliases backed by the shared clipboard and
+Gyazo API-domain contracts instead of deriving from the monolithic `ElectronAPI` type or carrying a local `Partial`
+intersection bridge, with architecture guardrails blocking local `Pick<ElectronAPI, ...>` aliases and `Partial`
+candidate bridges from returning.
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside

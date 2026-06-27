@@ -38,7 +38,13 @@ import type {
 } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
-type ElectronApiLike = Partial<ElectronClipboardApi & ElectronGyazoExternalApi>;
+type ElectronApiLike = {
+    readonly onGyazoOAuthCallback?: ElectronGyazoExternalApi["onGyazoOAuthCallback"];
+    readonly startGyazoServer?: ElectronGyazoExternalApi["startGyazoServer"];
+    readonly stopGyazoServer?: ElectronGyazoExternalApi["stopGyazoServer"];
+    readonly writeClipboardPngDataUrl?: ElectronClipboardApi["writeClipboardPngDataUrl"];
+    readonly writeClipboardText?: ElectronClipboardApi["writeClipboardText"];
+};
 type ElectronApiCandidate = Readonly<{
     [Key in keyof ElectronApiLike]?: unknown;
 }>;
