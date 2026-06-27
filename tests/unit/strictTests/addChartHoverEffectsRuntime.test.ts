@@ -300,8 +300,61 @@ describe("getChartHoverEffectsRuntime", () => {
         ).toBe(false);
     });
 
-    it("uses browser runtime providers for production document defaults", () => {
+    it("creates elements, queries selectors, and appends head nodes through the injected document runtime", () => {
         expect.assertions(5);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "chart hover document operations"
+        );
+        const runtime = getChartHoverEffectsRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const wrapper = runtime.createElement("div");
+        wrapper.id = "chart-hover-wrapper";
+        runtime.appendToBody(wrapper);
+
+        const style = runtime.createElement("style");
+        style.id = "chart-hover-effects-styles";
+        runtime.appendToHead(style);
+
+        expect(wrapper.ownerDocument).toBe(documentRef);
+        expect(style.ownerDocument).toBe(documentRef);
+        expect(documentRef.body.contains(wrapper)).toBe(true);
+        expect(documentRef.head.contains(style)).toBe(true);
+        expect(runtime.querySelector("#chart-hover-wrapper")).toBe(wrapper);
+    });
+
+    it("resolves and exits fullscreen through the injected document runtime", async () => {
+        expect.assertions(3);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "chart hover fullscreen runtime"
+        );
+        const fullscreenTarget = documentRef.createElement("div");
+        const exitFullscreen = vi.fn<() => Promise<void>>(async () => {});
+        Object.defineProperty(documentRef, "fullscreenElement", {
+            configurable: true,
+            get: () => fullscreenTarget,
+        });
+        Object.defineProperty(documentRef, "exitFullscreen", {
+            configurable: true,
+            value: exitFullscreen,
+        });
+        const runtime = getChartHoverEffectsRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.getFullscreenElement()).toBe(fullscreenTarget);
+
+        await runtime.exitFullscreen();
+
+        expect(exitFullscreen).toHaveBeenCalledOnce();
+        expect(exitFullscreen.mock.contexts[0]).toBe(documentRef);
+    });
+
+    it("uses browser runtime providers for production document defaults", () => {
+        expect.assertions(8);
 
         const documentRef = document.implementation.createHTMLDocument(
             "chart hover production document"
@@ -310,12 +363,17 @@ describe("getChartHoverEffectsRuntime", () => {
 
         const runtime = getChartHoverEffectsRuntime();
         const wrapper = documentRef.createElement("div");
+        const style = runtime.createElement("style");
         const svg = runtime.createSvgElement("svg");
 
         runtime.appendToBody(wrapper);
+        runtime.appendToHead(style);
         runtime.setBodyClass("chart-overlay-fullscreen-active", true);
 
         expect(documentRef.body.contains(wrapper)).toBe(true);
+        expect(style.ownerDocument).toBe(documentRef);
+        expect(documentRef.head.contains(style)).toBe(true);
+        expect(runtime.querySelector("style")).toBe(style);
         expect(svg.ownerDocument).toBe(documentRef);
         expect(svg.namespaceURI).toBe(CHART_HOVER_EFFECTS_SVG_NAMESPACE);
         expect(
@@ -411,7 +469,7 @@ describe("getChartHoverEffectsRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", async () => {
-        expect.assertions(8);
+        expect.assertions(13);
 
         const documentEventTarget =
             document.implementation.createHTMLDocument();
@@ -443,6 +501,21 @@ describe("getChartHoverEffectsRuntime", () => {
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
         ).toThrow("chart hover effects require a document runtime");
+        expect(() => runtime.createElement("div")).toThrow(
+            "chart hover effects require a document runtime"
+        );
+        expect(() =>
+            runtime.appendToHead(document.createElement("style"))
+        ).toThrow("chart hover effects require a document runtime");
+        expect(() => runtime.querySelector("body")).toThrow(
+            "chart hover effects require a document runtime"
+        );
+        expect(() => runtime.getFullscreenElement()).toThrow(
+            "chart hover effects require a document runtime"
+        );
+        await expect(runtime.exitFullscreen()).rejects.toThrow(
+            "chart hover effects require a document runtime"
+        );
         expect(() => runtime.setBodyClass("test", true)).toThrow(
             "chart hover effects require a document runtime"
         );

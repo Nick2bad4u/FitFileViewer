@@ -20,6 +20,15 @@ type ChartHoverEffectsKeydownListener = (
     event: Readonly<KeyboardEvent>
 ) => void;
 
+interface ChartHoverEffectsFullscreenDocument extends Document {
+    mozCancelFullScreen?: () => Promise<void> | void;
+    mozFullScreenElement?: Element | null;
+    msExitFullscreen?: () => Promise<void> | void;
+    msFullscreenElement?: Element | null;
+    webkitExitFullscreen?: () => Promise<void> | void;
+    webkitFullscreenElement?: Element | null;
+}
+
 export interface ChartHoverEffectsRuntimeScope {
     readonly getAbortController?:
         | (() => BrowserAbortControllerConstructor | undefined)
@@ -42,11 +51,18 @@ export interface ChartHoverEffectsRuntime {
         listener: ChartHoverEffectsKeydownListener,
         options: Readonly<AddEventListenerOptions>
     ) => void;
+    readonly appendToHead: (element: Node) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
     readonly appendToBody: (element: HTMLElement) => void;
+    readonly exitFullscreen: () => Promise<void>;
+    readonly getFullscreenElement: () => Element | null;
+    readonly querySelector: (selector: string) => Element | null;
     readonly setBodyClass: (className: string, enabled: boolean) => void;
     readonly removeDocumentKeydownListener: (
         listener: ChartHoverEffectsKeydownListener
@@ -88,6 +104,12 @@ function getRequiredDocument(scope: ChartHoverEffectsRuntimeScope): Document {
     }
 
     return runtimeDocument;
+}
+
+function getFullscreenDocument(
+    scope: ChartHoverEffectsRuntimeScope
+): ChartHoverEffectsFullscreenDocument {
+    return getRequiredDocument(scope);
 }
 
 function getDocumentEventTarget(
@@ -139,6 +161,9 @@ export function getChartHoverEffectsRuntime(
                 options
             );
         },
+        appendToHead(element): void {
+            getRequiredDocument(scope).head.append(element);
+        },
         createAbortController(): AbortController {
             const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
@@ -149,6 +174,11 @@ export function getChartHoverEffectsRuntime(
 
             return new AbortControllerConstructor();
         },
+        createElement<K extends keyof HTMLElementTagNameMap>(
+            tagName: K
+        ): HTMLElementTagNameMap[K] {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
@@ -156,6 +186,32 @@ export function getChartHoverEffectsRuntime(
         },
         appendToBody(element): void {
             getRequiredDocument(scope).body.append(element);
+        },
+        async exitFullscreen(): Promise<void> {
+            const runtimeDocument = getFullscreenDocument(scope);
+            const exit =
+                runtimeDocument.exitFullscreen ||
+                runtimeDocument.webkitExitFullscreen ||
+                runtimeDocument.mozCancelFullScreen ||
+                runtimeDocument.msExitFullscreen;
+            if (!exit) {
+                return;
+            }
+
+            await exit.call(runtimeDocument);
+        },
+        getFullscreenElement(): Element | null {
+            const runtimeDocument = getFullscreenDocument(scope);
+            return (
+                runtimeDocument.fullscreenElement ||
+                runtimeDocument.webkitFullscreenElement ||
+                runtimeDocument.mozFullScreenElement ||
+                runtimeDocument.msFullscreenElement ||
+                null
+            );
+        },
+        querySelector(selector): Element | null {
+            return getRequiredDocument(scope).querySelector(selector);
         },
         setBodyClass(className, enabled): void {
             getRequiredDocument(scope).body.classList.toggle(

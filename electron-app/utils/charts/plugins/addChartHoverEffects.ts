@@ -46,15 +46,6 @@ interface ChartGlobalLike {
     getChart?: (canvas: HTMLCanvasElement) => unknown;
 }
 
-interface FullscreenDocument extends Document {
-    mozCancelFullScreen?: () => Promise<void> | void;
-    mozFullScreenElement?: Element | null;
-    msExitFullscreen?: () => Promise<void> | void;
-    msFullscreenElement?: Element | null;
-    webkitExitFullscreen?: () => Promise<void> | void;
-    webkitFullscreenElement?: Element | null;
-}
-
 interface FullscreenHTMLElement extends HTMLElement {
     mozRequestFullScreen?: () => Promise<void> | void;
     msRequestFullscreen?: () => Promise<void> | void;
@@ -288,14 +279,7 @@ function applyCanvasSize(
 }
 
 function getFullscreenElement(): Element | null {
-    const doc = document as FullscreenDocument;
-    return (
-        document.fullscreenElement ||
-        doc.webkitFullscreenElement ||
-        doc.mozFullScreenElement ||
-        doc.msFullscreenElement ||
-        null
-    );
+    return chartHoverEffectsRuntime().getFullscreenElement();
 }
 
 async function waitForAnimationFrame(): Promise<void> {
@@ -347,18 +331,7 @@ async function requestElementFullscreen(element: HTMLElement): Promise<void> {
 }
 
 async function exitFullscreen(): Promise<void> {
-    const doc = document as FullscreenDocument;
-    const exit =
-        document.exitFullscreen ||
-        doc.webkitExitFullscreen ||
-        doc.mozCancelFullScreen ||
-        doc.msExitFullscreen;
-    if (exit) {
-        const result = exit.call(document);
-        if (isPromiseLike(result)) {
-            await result;
-        }
-    }
+    await chartHoverEffectsRuntime().exitFullscreen();
 }
 
 /**
@@ -396,7 +369,7 @@ export function addChartHoverEffects(
         appliedCount += 1;
 
         // Create a wrapper div for the chart to handle hover effects properly
-        const wrapper = document.createElement("div");
+        const wrapper = chartHoverEffectsRuntime().createElement("div");
         wrapper.className = "chart-wrapper";
         const colors = themeConfig.colors;
         wrapper.style.cssText = `
@@ -434,7 +407,7 @@ export function addChartHoverEffects(
         }
 
         // Add animated border glow overlay
-        const glowOverlay = document.createElement("div");
+        const glowOverlay = chartHoverEffectsRuntime().createElement("div");
         glowOverlay.className = "chart-glow-overlay";
         glowOverlay.style.cssText = `
             position: absolute;
@@ -454,7 +427,7 @@ export function addChartHoverEffects(
         wrapper.append(glowOverlay);
 
         const chartTitle = canvas.getAttribute("aria-label") || "Chart",
-            titleOverlay = document.createElement("div");
+            titleOverlay = chartHoverEffectsRuntime().createElement("div");
         const overlayTitle = chartTitle.replace("Chart for ", "").trim();
         const overlayTitleText = overlayTitle.toUpperCase() || "CHART";
         titleOverlay.className = "chart-title-overlay";
@@ -478,7 +451,7 @@ export function addChartHoverEffects(
         const titleIcon = createTitleIcon(
             resolveChartTitleIconName(overlayTitle)
         );
-        const titleText = document.createElement("span");
+        const titleText = chartHoverEffectsRuntime().createElement("span");
         titleText.className = "chart-title-overlay__text";
         titleText.textContent = overlayTitleText;
         replaceElementChildren(titleOverlay, titleIcon, titleText);
@@ -490,7 +463,7 @@ export function addChartHoverEffects(
         wrapper.append(titleOverlay);
 
         // Add zoom hint overlay (bottom-right) to guide chart interactions
-        const zoomHint = document.createElement("div");
+        const zoomHint = chartHoverEffectsRuntime().createElement("div");
         zoomHint.className = "chart-zoom-hint";
         zoomHint.style.cssText = `
             position: absolute;
@@ -521,7 +494,8 @@ export function addChartHoverEffects(
         const chartCanvas = canvas instanceof HTMLCanvasElement ? canvas : null;
 
         // Add fullscreen action button (shown on hover)
-        const fullscreenButton = document.createElement("button");
+        const fullscreenButton =
+            chartHoverEffectsRuntime().createElement("button");
         fullscreenButton.className = "chart-fullscreen-btn";
         fullscreenButton.type = "button";
         fullscreenButton.title = "View chart fullscreen";
@@ -551,7 +525,8 @@ export function addChartHoverEffects(
             }
 
             overlayParent = parent;
-            overlayPlaceholder = document.createElement("div");
+            overlayPlaceholder =
+                chartHoverEffectsRuntime().createElement("div");
             overlayPlaceholder.className =
                 "chart-overlay-fullscreen-placeholder";
             overlayPlaceholder.style.height = `${wrapper.getBoundingClientRect().height}px`;
@@ -813,7 +788,7 @@ export function addChartHoverEffects(
                     return;
                 }
                 const rect = wrapper.getBoundingClientRect(),
-                    ripple = document.createElement("div"),
+                    ripple = chartHoverEffectsRuntime().createElement("div"),
                     size = Math.max(rect.width, rect.height),
                     x = event.clientX - rect.left - size / 2,
                     y = event.clientY - rect.top - size / 2;
@@ -855,8 +830,10 @@ export function addChartHoverEffects(
     }
 
     // Inject CSS keyframes for ripple effect if not already added
-    if (!document.querySelector("#chart-hover-effects-styles")) {
-        const style = document.createElement("style");
+    if (
+        !chartHoverEffectsRuntime().querySelector("#chart-hover-effects-styles")
+    ) {
+        const style = chartHoverEffectsRuntime().createElement("style");
         style.id = "chart-hover-effects-styles";
         style.textContent = `
             @keyframes ripple-effect {
@@ -889,7 +866,7 @@ export function addChartHoverEffects(
                 display: block;
             }
         `;
-        document.head.append(style);
+        chartHoverEffectsRuntime().appendToHead(style);
     }
 
     if (isDebugLoggingEnabled) {
@@ -905,8 +882,8 @@ export function addChartHoverEffects(
  */
 export function addHoverEffectsToExistingCharts(): void {
     const chartContainer =
-        document.querySelector("#chartjs_chart_container") ||
-        document.querySelector("#chartjs-chart-container");
+        chartHoverEffectsRuntime().querySelector("#chartjs_chart_container") ||
+        chartHoverEffectsRuntime().querySelector("#chartjs-chart-container");
     if (!chartContainer) {
         console.warn("[DevHelper] Chart container not found");
         return;

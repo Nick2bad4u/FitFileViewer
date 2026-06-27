@@ -24667,7 +24667,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(78);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -24727,6 +24727,20 @@ describe("architecture boundaries", () => {
         expect(chartHoverEffectsSource).not.toContain(
             "document.removeEventListener"
         );
+        expect(chartHoverEffectsSource).not.toContain("document.createElement");
+        expect(chartHoverEffectsSource).not.toContain("document.querySelector");
+        expect(chartHoverEffectsSource).not.toContain("document.head.append");
+        expect(chartHoverEffectsSource).not.toContain(
+            "document.fullscreenElement"
+        );
+        expect(chartHoverEffectsSource).not.toContain(
+            "document.exitFullscreen"
+        );
+        expect(chartHoverEffectsSource).toContain("createElement");
+        expect(chartHoverEffectsSource).toContain("querySelector");
+        expect(chartHoverEffectsSource).toContain("appendToHead");
+        expect(chartHoverEffectsSource).toContain("getFullscreenElement");
+        expect(chartHoverEffectsSource).toContain("exitFullscreen");
         expect(chartHoverEffectsRuntimeSource).not.toMatch(
             directChartHoverEffectsRuntimeAmbientFallbackPattern
         );
@@ -24789,6 +24803,18 @@ describe("architecture boundaries", () => {
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "getRequiredDocument(scope).body.append(element)"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getRequiredDocument(scope).head.append(element)"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getRequiredDocument(scope).createElement(tagName)"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getRequiredDocument(scope).querySelector(selector)"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "function getFullscreenDocument"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "getRequiredDocument(scope).body.classList.toggle"
