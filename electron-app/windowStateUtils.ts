@@ -49,21 +49,6 @@ export interface DevHelpers {
           };
 }
 
-interface WindowStateUtilsExports {
-    CONSTANTS: typeof CONSTANTS;
-    createWindowConfig: (state: WindowState) => BrowserWindowConstructorOptions;
-    createWindow: () => BrowserWindowInstance;
-    devHelpers?: DevHelpers;
-    getWindowState: () => WindowState;
-    sanitizeWindowState: (state: unknown) => WindowState;
-    saveWindowState: (win: BrowserWindowInstance) => void;
-    settingsPath: string;
-    resolveWebSecuritySetting: (packagedAppOverride?: boolean) => boolean;
-    validateWindow: (win: unknown) => win is BrowserWindowInstance;
-    validateWindowState: (state: unknown) => state is WindowState;
-    version: "1.0.0";
-}
-
 export const CONSTANTS = {
     DEFAULTS: {
         WINDOW: {
@@ -465,27 +450,6 @@ export const devHelpers: DevHelpers | undefined =
     getEnvironmentValue("NODE_ENV") === "development"
         ? developmentDevHelpers
         : undefined;
-
-export const version = "1.0.0";
-
-const exportedApi: WindowStateUtilsExports = {
-    CONSTANTS,
-    createWindowConfig,
-    createWindow,
-    getWindowState,
-    sanitizeWindowState,
-    saveWindowState,
-    settingsPath,
-    resolveWebSecuritySetting,
-    validateWindow,
-    validateWindowState,
-    ...(devHelpers && {
-        devHelpers,
-    }),
-    version,
-};
-
-export default exportedApi;
 
 logWithContext("info", "WindowStateUtils module initialized successfully");
 /* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End synchronous window-state persistence quarantine. */
