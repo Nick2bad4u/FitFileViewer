@@ -29,6 +29,10 @@ import {
     normalizeFitFileLoadingState,
     normalizeFitFileStateBranch,
 } from "../domain/fitFileLoadingContract.js";
+import {
+    normalizeMapBaseLayer,
+    normalizeMapStateBranch,
+} from "../domain/mapBaseLayerContract.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
 
 /** Listener invoked when a subscribed state path changes. */
@@ -96,6 +100,9 @@ const FIT_FILE_STATE_PATH_NORMALIZERS = new Map<
     ["fitFile.loadingProgress", normalizeFitFileLoadingProgress],
     ["fitFile.loadingState", normalizeFitFileLoadingState],
 ]);
+const MAP_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>(
+    [["map.baseLayer", normalizeMapBaseLayer]]
+);
 
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
@@ -130,6 +137,15 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
 
     if (path === "fitFile" && isRecord(value)) {
         return normalizeFitFileStateBranch(value);
+    }
+
+    const mapNormalizer = MAP_STATE_PATH_NORMALIZERS.get(path);
+    if (mapNormalizer) {
+        return mapNormalizer(value);
+    }
+
+    if (path === "map" && isRecord(value)) {
+        return normalizeMapStateBranch(value);
     }
 
     if (RENDERER_ACTIVE_TAB_STATE_PATHS.has(path)) {

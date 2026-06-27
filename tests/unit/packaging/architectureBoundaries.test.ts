@@ -11730,14 +11730,28 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map base-layer persistence on the map base-layer state facade", () => {
-        expect.assertions(2);
+        expect.assertions(6);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
         );
+        const mapBaseLayerStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/mapBaseLayerState.ts"
+            )
+        );
+        const mapBaseLayerContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/mapBaseLayerContract.ts"
+            )
+        );
 
         expect(renderMapSource).toContain("mapBaseLayerState.js");
+        expect(renderMapSource).toContain("mapBaseLayerContract.js");
         expect(renderMapSource).not.toContain("state/core/stateManager.js");
+        expect(mapBaseLayerStateSource).toContain("normalizeMapBaseLayer");
+        expect(mapBaseLayerContractSource).toContain("MAP_BASE_LAYER_KEYS");
+        expect(mapBaseLayerContractSource).toContain("normalizeMapStateBranch");
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {

@@ -25,6 +25,7 @@ import {
     getMapBaseLayer,
     setMapBaseLayer,
 } from "../../state/domain/mapBaseLayerState.js";
+import { normalizeMapBaseLayer } from "../../state/domain/mapBaseLayerContract.js";
 import {
     installUpdateMapThemeListeners,
     updateMapTheme,
@@ -578,24 +579,10 @@ export function renderMap(): void {
             return trimmed;
         }
 
-        const lower = trimmed.toLowerCase();
-        if (lower === "openstreetmap" || lower === "osm" || lower === "mapnik")
-            return "OpenStreetMap";
-        if (lower === "topo" || lower === "opentopo" || lower === "opentopomap")
-            return "OpenTopoMap";
-        if (lower === "satellite" || lower === "worldimagery")
-            return "Esri_WorldImagery";
-        if (
-            lower === "osm_de" ||
-            lower === "osmde" ||
-            lower === "openstreetmap.de"
-        )
-            return "OSM_DE";
-
-        const found = Object.keys(runtimeBaseLayers).find(
-            (k) => k.toLowerCase() === lower
-        );
-        return found ?? "OpenStreetMap";
+        const normalizedKey = normalizeMapBaseLayer(trimmed);
+        return Object.hasOwn(runtimeBaseLayers, normalizedKey)
+            ? normalizedKey
+            : "OpenStreetMap";
     };
 
     // Build the final list for the Leaflet layers control.

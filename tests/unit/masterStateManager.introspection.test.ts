@@ -126,7 +126,7 @@ describe("masterStateManager introspection", () => {
                 trackVisible: initialState.map.trackVisible,
                 zoom: initialState.map.zoom,
             }).toStrictEqual({
-                baseLayer: "openstreetmap",
+                baseLayer: "OpenStreetMap",
                 trackVisible: true,
                 zoom: 13,
             });

@@ -342,7 +342,7 @@ export function createDefaultAppState(): AppStateShape {
         },
         isLoading: false,
         map: {
-            baseLayer: "openstreetmap",
+            baseLayer: "OpenStreetMap",
             center: null,
             isRendered: false,
             measurementMode: false,

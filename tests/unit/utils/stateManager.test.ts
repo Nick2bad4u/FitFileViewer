@@ -263,6 +263,27 @@ describe("state manager core", () => {
         });
     });
 
+    it("normalizes map base-layer writes at the core state boundary", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        setState("map.baseLayer", "osm");
+        expect(getState("map.baseLayer")).toBe("OpenStreetMap");
+
+        setState("map.baseLayer", "worldimagery");
+        expect(getState("map.baseLayer")).toBe("Esri_WorldImagery");
+
+        setState("map", {
+            baseLayer: "not-a-layer",
+            zoom: 8,
+        });
+        expect(getState("map")).toStrictEqual({
+            baseLayer: "OpenStreetMap",
+            zoom: 8,
+        });
+    });
+
     it("returns undefined for non-existent state paths", () => {
         expect.assertions(1);
 
@@ -796,7 +817,7 @@ describe("state manager core", () => {
         expect(fullState.ui.activeTab).toBe("summary");
         expect(fullState.ui.activeTabContent).toBe("summary");
         expect(fullState.charts.selectedChart).toBe("elevation");
-        expect(fullState.map.baseLayer).toBe("openstreetmap");
+        expect(fullState.map.baseLayer).toBe("OpenStreetMap");
         expect(fullState.ui.tabReadiness.data).toStrictEqual({
             error: null,
             status: "idle",
