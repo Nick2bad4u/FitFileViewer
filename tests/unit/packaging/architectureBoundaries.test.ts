@@ -2109,7 +2109,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {
-        expect.assertions(57);
+        expect.assertions(58);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -2189,6 +2189,7 @@ describe("architecture boundaries", () => {
         expect(apiAssemblySource).toContain("createPreloadExternalApiDomain");
         expect(apiAssemblySource).toContain("createPreloadClipboardApiDomain");
         expect(apiAssemblySource).toContain("createPreloadDialogApiDomain");
+        expect(apiAssemblySource).not.toContain("ElectronAPI");
         expect(apiAssemblySource).not.toContain("require(");
         expect(externalApiDomainSource).toContain("createGyazoExternalApi");
         expect(externalApiDomainSource).toContain("createShellExternalApi");

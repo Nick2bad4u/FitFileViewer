@@ -1,5 +1,4 @@
 type AssemblePreloadApi = import("./preloadModuleTypes").AssemblePreloadApi;
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 type IpcBridgeCatalog = import("./preloadModuleTypes").IpcBridgeCatalog;
 type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
 
@@ -24,7 +23,7 @@ export const assemblePreloadApi: AssemblePreloadApi = ({
     modules,
     preloadLog,
     processRef,
-}): ElectronAPI => {
+}) => {
     const {
         createPreloadApiAssemblyContext,
         createPreloadClipboardApiDomain,
