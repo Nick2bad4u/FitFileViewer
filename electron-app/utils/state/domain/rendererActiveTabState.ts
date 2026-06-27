@@ -5,24 +5,16 @@ import {
     type StateListener,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
+export {
+    isRendererChartTab,
+    isRendererTabName,
+    normalizeRendererActiveTab,
+    RENDERER_TAB_NAMES,
+    type RendererTabName,
+} from "./rendererActiveTabContract.js";
+import { normalizeRendererActiveTab } from "./rendererActiveTabContract.js";
 
 const RENDERER_ACTIVE_TAB_STATE_PATH = "ui.activeTab";
-const DEFAULT_RENDERER_ACTIVE_TAB = "summary";
-export const RENDERER_TAB_NAMES = [
-    "altfit",
-    "browser",
-    "chart",
-    "chartjs",
-    "data",
-    "map",
-    "summary",
-    "zwift",
-] as const;
-
-export type RendererTabName = (typeof RENDERER_TAB_NAMES)[number];
-
-const rendererTabNames = new Set<string>(RENDERER_TAB_NAMES);
-const rendererChartTabNames = new Set<string>(["chart", "chartjs"]);
 
 export function getRendererActiveTab(): string {
     return normalizeRendererActiveTab(getState(RENDERER_ACTIVE_TAB_STATE_PATH));
@@ -30,14 +22,6 @@ export function getRendererActiveTab(): string {
 
 export function isRendererActiveTab(tabName: string): boolean {
     return getRendererActiveTab() === tabName;
-}
-
-export function isRendererTabName(value: unknown): value is RendererTabName {
-    return typeof value === "string" && rendererTabNames.has(value);
-}
-
-export function isRendererChartTab(value: unknown): boolean {
-    return rendererChartTabNames.has(normalizeRendererActiveTab(value));
 }
 
 export function subscribeToRendererActiveTab(
@@ -74,8 +58,4 @@ export function replaceRendererActiveTab(
         ...options,
     });
     return true;
-}
-
-export function normalizeRendererActiveTab(value: unknown): string {
-    return isRendererTabName(value) ? value : DEFAULT_RENDERER_ACTIVE_TAB;
 }

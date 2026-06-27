@@ -17,6 +17,7 @@ import {
     getStateStorageRuntime,
     type StateStorageRuntime,
 } from "./stateStorageRuntime.js";
+import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
 
 /** Listener invoked when a subscribed state path changes. */
 export type StateListener = (
@@ -77,6 +78,21 @@ function stateManagerRuntime(): StateManagerRuntime {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeStateWriteValue(path: string, value: unknown): unknown {
+    if (path === "ui.activeTab") {
+        return normalizeRendererActiveTab(value);
+    }
+
+    if (path === "ui" && isRecord(value) && "activeTab" in value) {
+        return {
+            ...value,
+            activeTab: normalizeRendererActiveTab(value["activeTab"]),
+        };
+    }
+
+    return value;
 }
 
 /**
@@ -325,17 +341,19 @@ export function setState(
         return;
     }
 
-    const mergedValue = getMergedStateValue(merge, oldValue, value);
-    target[finalKey] = mergedValue ? mergedValue : value;
+    const normalizedValue = normalizeStateWriteValue(path, value);
+    const mergedValue = getMergedStateValue(merge, oldValue, normalizedValue);
+    const nextValue = mergedValue ? mergedValue : normalizedValue;
+    target[finalKey] = nextValue;
 
-    const hasChanged = !Object.is(oldValue, value);
+    const hasChanged = !Object.is(oldValue, nextValue);
     if (hasChanged) {
         if (stateHistory.length >= MAX_HISTORY_SIZE) {
             stateHistory.shift();
         }
 
         stateHistory.push({
-            newValue: value,
+            newValue: normalizedValue,
             oldValue,
             path,
             source,
@@ -344,12 +362,12 @@ export function setState(
     }
 
     if (!silent && hasChanged) {
-        notifyListeners(path, value, oldValue);
+        notifyListeners(path, normalizedValue, oldValue);
     }
 
     if (hasChanged || source.includes("dev") || source.includes("debug")) {
         console.log(`[StateManager] ${path} updated by ${source}:`, {
-            newValue: value,
+            newValue: normalizedValue,
             oldValue,
         });
     }

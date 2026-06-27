@@ -61,7 +61,7 @@ describe("state manager subscriptions", () => {
             source: "stateManager.subscriptions.test",
         });
 
-        expect(getState("ui.activeTab")).toBe("table");
+        expect(getState("ui.activeTab")).toBe("summary");
         expect(listener).not.toHaveBeenCalled();
     });
 

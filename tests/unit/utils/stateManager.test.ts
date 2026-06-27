@@ -94,6 +94,32 @@ describe("state manager core", () => {
         expect(getState("nested.deep")).toStrictEqual({ value: 42 });
     });
 
+    it("normalizes renderer active-tab writes at the core state boundary", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("ui.activeTab", "map");
+        expect(getState("ui.activeTab")).toBe("map");
+
+        setState("ui.activeTab", "table");
+        expect(getState("ui.activeTab")).toBe("summary");
+    });
+
+    it("normalizes active-tab values when replacing the UI state branch", () => {
+        expect.assertions(2);
+
+        resetStateManager();
+
+        setState("ui", {
+            activeTab: "charts",
+            controlsEnabled: true,
+        });
+
+        expect(getState("ui.activeTab")).toBe("summary");
+        expect(getState("ui.controlsEnabled")).toBe(true);
+    });
+
     it("returns undefined for non-existent state paths", () => {
         expect.assertions(1);
 

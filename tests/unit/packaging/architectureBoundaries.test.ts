@@ -5245,7 +5245,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -5267,6 +5267,9 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("localStorage.");
         expect(stateManagerSource).toContain("stateStorageRuntime.js");
         expect(stateManagerSource).toContain("type StateStorageRuntime");
+        expect(stateManagerSource).toContain("rendererActiveTabContract.js");
+        expect(stateManagerSource).toContain("normalizeRendererActiveTab");
+        expect(stateManagerSource).not.toContain("rendererActiveTabState.js");
         expect(stateManagerSource).toContain(
             "function stateStorageRuntime(): StateStorageRuntime"
         );
@@ -14107,7 +14110,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(45);
+        expect.assertions(47);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -14131,6 +14134,11 @@ describe("architecture boundaries", () => {
         const rendererActiveTabStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/rendererActiveTabState.ts"
+            )
+        );
+        const rendererActiveTabContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererActiveTabContract.ts"
             )
         );
         const appActionsRuntimeSource = stripComments(
@@ -14172,6 +14180,10 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabSource).toContain("rendererActiveTabState.js");
         expect(updateActiveTabSource).toContain("isRendererTabName");
         expect(updateActiveTabSource).toContain("normalizeRendererActiveTab");
+        expect(rendererActiveTabStateSource).toContain(
+            "rendererActiveTabContract.js"
+        );
+        expect(rendererActiveTabContractSource).toContain("RENDERER_TAB_NAMES");
         expect(rendererActiveTabStateSource).toContain("RENDERER_TAB_NAMES");
         expect(rendererActiveTabStateSource).toContain("isRendererTabName");
         expect(appActionsSource).toContain(
