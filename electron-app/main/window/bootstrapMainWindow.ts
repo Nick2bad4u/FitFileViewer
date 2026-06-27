@@ -32,10 +32,13 @@ type BootstrapMainWindowGetAppState = (
     key: "autoUpdaterInitialized"
 ) => boolean;
 type BootstrapMainWindowGetLoadedFitFilePath = () => null | string;
-type BootstrapMainWindowSetAppState = {
-    (key: "autoUpdaterInitialized", value: boolean): void;
-    (key: "mainWindow", value: MainAppStateWindowLike): void;
-};
+type BootstrapMainWindowSetAppState = (
+    key: "autoUpdaterInitialized",
+    value: boolean
+) => void;
+type BootstrapMainWindowSetMainWindow = (
+    mainWindow: MainAppStateWindowLike
+) => void;
 
 interface AutoUpdaterLike {
     checkForUpdatesAndNotify?: () => unknown;
@@ -70,6 +73,7 @@ interface BootstrapMainWindowOptions {
         ...args: unknown[]
     ) => void;
     setAppState: BootstrapMainWindowSetAppState;
+    setMainWindow: BootstrapMainWindowSetMainWindow;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
         autoUpdater: AutoUpdaterLike | null
@@ -99,6 +103,7 @@ export function bootstrapMainWindow({
     getAppState,
     getLoadedFitFilePath,
     setAppState,
+    setMainWindow,
     safeCreateAppMenu,
     CONSTANTS,
     getPersistedThemePreference,
@@ -125,7 +130,7 @@ export function bootstrapMainWindow({
         mainWindow = createWindow();
     }
 
-    setAppState("mainWindow", mainWindow);
+    setMainWindow(mainWindow);
     logWithContext(
         "info",
         "Calling createAppMenu after window selection/creation"

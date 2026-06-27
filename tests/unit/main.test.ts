@@ -336,6 +336,7 @@ const expectedMainExportKeys = [
     "exposeDevHelpers",
     "getAppState",
     "getLoadedFitFilePath",
+    "getMainWindow",
     "getPersistedThemePreference",
     "initializeApplication",
     "isWindowUsable",
@@ -344,6 +345,7 @@ const expectedMainExportKeys = [
     "sendToRenderer",
     "setAppState",
     "setLoadedFitFilePath",
+    "setMainWindow",
     "setupApplicationEventHandlers",
     "setupAutoUpdater",
     "setupIPCHandlers",
@@ -362,10 +364,12 @@ type MainModule = {
     exposeDevHelpers: () => DevHelpers;
     getAppState: (key: string) => unknown;
     getLoadedFitFilePath: () => null | string;
+    getMainWindow: () => unknown;
     initializeApplication: (...args: unknown[]) => unknown;
     isWindowUsable: (window: unknown) => boolean;
     setAppState: (key: string, value: unknown) => void;
     setLoadedFitFilePath: (filePath: null | string) => void;
+    setMainWindow: (mainWindow: unknown) => void;
     setupAutoUpdater: (window: unknown, updater: unknown) => void;
     startGyazoOAuthServer: (...args: unknown[]) => unknown;
     stopGyazoOAuthServer: () => Promise<unknown>;
@@ -579,7 +583,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
             const loadHandler = getRequiredWebContentsOnCall("did-finish-load");
 
-            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
+            expect(mainModule.getMainWindow()).toBe(mockWindow);
             expect(loadHandler[0]).toBe("did-finish-load");
             expect(mockWindow.webContents.on).toHaveBeenCalledWith(
                 "did-finish-load",
@@ -622,7 +626,7 @@ describe("main.js - Electron Main Process", () => {
 
             const mainModule = await importMainModule();
 
-            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
+            expect(mainModule.getMainWindow()).toBe(mockWindow);
             expect(
                 mainModule.validateWindow(mockWindow, "unit test")
             ).toStrictEqual(true);
@@ -641,7 +645,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             expect(mainModule.isWindowUsable(mockWindow)).toStrictEqual(true);
-            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
+            expect(mainModule.getMainWindow()).toBe(mockWindow);
         });
 
         it("should handle window enumeration errors", async () => {
@@ -653,7 +657,7 @@ describe("main.js - Electron Main Process", () => {
             });
 
             const mainModule = await importMainModule();
-            const fallbackWindow = mainModule.getAppState("mainWindow");
+            const fallbackWindow = mainModule.getMainWindow();
 
             expect(fallbackWindow).not.toBe(mockWindow);
             expect(mainModule.isWindowUsable(fallbackWindow)).toStrictEqual(
@@ -699,7 +703,7 @@ describe("main.js - Electron Main Process", () => {
 
             // Development helpers should not be available in test environment
             expect(globalThis).not.toHaveProperty("devHelpers");
-            expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
+            expect(mainModule.getMainWindow()).toBe(mockWindow);
         });
 
         it("should handle development flag", async () => {

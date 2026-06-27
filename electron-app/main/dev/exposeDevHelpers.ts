@@ -4,8 +4,8 @@ import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
 import { browserWindowRef as electronBrowserWindowRef } from "../runtime/electronAccess.js";
 import {
     cleanupEventHandlers,
-    getAppState,
     getLoadedFitFilePath,
+    getMainWindow,
     mainProcessState,
 } from "../state/appState.js";
 import {
@@ -63,7 +63,7 @@ export function exposeDevHelpers(): DevHelpers {
             logWithContext("info", "Current application state:", {
                 eventHandlersCount:
                     typedMainProcessState.data.eventHandlers.size,
-                hasMainWindow: Boolean(getAppState("mainWindow")),
+                hasMainWindow: Boolean(getMainWindow()),
                 loadedFitFilePath: getLoadedFitFilePath(),
             });
         },

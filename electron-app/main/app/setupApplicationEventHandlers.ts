@@ -18,6 +18,7 @@ import { httpRef, path } from "../runtime/nodeModules.js";
 import {
     getAppState,
     getLoadedFitFilePath,
+    getMainWindow,
     setAppState,
 } from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
@@ -579,7 +580,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                     } else {
                         const windowCandidate =
                             resolveFocusedMainWindow(BrowserWindow) ??
-                            getAppState("mainWindow");
+                            getMainWindow();
                         const win =
                             windowCandidate as WindowValidationCandidate;
                         if (validateWindow(win, "app activate event")) {

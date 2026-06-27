@@ -6,7 +6,10 @@ import {
     setElectronOverride,
 } from "./electronAccess.js";
 import { isTestEnvironment as isRuntimeTestEnvironment } from "../../utils/runtime/processEnvironment.js";
-import { getAppState, setAppState } from "../state/appState.js";
+import {
+    getMainWindow,
+    setMainWindow,
+} from "../state/appState.js";
 
 let clearPrimeTestEnvironmentTimersImpl: (() => void) | undefined;
 let primeTestEnvironmentImpl:
@@ -161,13 +164,13 @@ type PrimeTestMainWindowLike = {
         if (
             Array.isArray(windows) &&
             windows.length > 0 &&
-            !getAppState("mainWindow")
+            !getMainWindow()
         ) {
             const firstWindow = windows[0];
             if (!firstWindow) {
                 return;
             }
-            setAppState("mainWindow", firstWindow);
+            setMainWindow(firstWindow);
             if (shouldInitialize) {
                 try {
                     ignoreSettledPromise(initializeApplication());
@@ -231,7 +234,7 @@ type PrimeTestMainWindowLike = {
                         initializeApplication
                     );
                     try {
-                        if (!getAppState("mainWindow")) {
+                        if (!getMainWindow()) {
                             ignoreSettledPromise(initializeApplication());
                         }
                     } catch {

@@ -30,7 +30,7 @@ type LifecycleDependencies = {
     appRef: () => AppLike | undefined;
     browserWindowRef: () => BrowserWindowLike | undefined;
     exposeDevHelpers: () => unknown;
-    getAppState: (key: "mainWindow") => MainAppStateWindowLike | null;
+    getMainWindow: () => MainAppStateWindowLike | null;
     initializeApplication: () =>
         | Promise<WindowLike | undefined>
         | WindowLike
@@ -195,7 +195,7 @@ export function setupMainLifecycle(deps: LifecycleDependencies): void {
     const {
         appRef,
         browserWindowRef,
-        getAppState,
+        getMainWindow,
         initializeApplication,
         setupApplicationEventHandlers,
         setupIPCHandlers,
@@ -265,7 +265,7 @@ export function setupMainLifecycle(deps: LifecycleDependencies): void {
         primeBrowserWindowMocks();
         ignoreSettledPromise(safeCall(() => initializeApplication()));
 
-        const mainWindow = getAppState("mainWindow") ?? undefined;
+        const mainWindow = getMainWindow() ?? undefined;
         wireHandlers(mainWindow);
 
         const fallbackWindow = mainWindow || {

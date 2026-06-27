@@ -32,10 +32,13 @@ type InitializeMainWindowGetAppState = (
     key: "autoUpdaterInitialized"
 ) => boolean;
 type InitializeMainWindowGetLoadedFitFilePath = () => null | string;
-type InitializeMainWindowSetAppState = {
-    (key: "autoUpdaterInitialized", value: boolean): void;
-    (key: "mainWindow", value: MainAppStateWindowLike): void;
-};
+type InitializeMainWindowSetAppState = (
+    key: "autoUpdaterInitialized",
+    value: boolean
+) => void;
+type InitializeMainWindowSetMainWindow = (
+    mainWindow: MainAppStateWindowLike
+) => void;
 
 interface AutoUpdaterLike {
     checkForUpdatesAndNotify?: () => unknown;
@@ -70,6 +73,7 @@ interface InitializeMainWindowOptions {
         ...args: unknown[]
     ) => void;
     setAppState: InitializeMainWindowSetAppState;
+    setMainWindow: InitializeMainWindowSetMainWindow;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
         autoUpdater: AutoUpdaterLike | null
@@ -99,6 +103,7 @@ export function initializeMainWindow({
     getAppState,
     getLoadedFitFilePath,
     setAppState,
+    setMainWindow,
     safeCreateAppMenu,
     CONSTANTS,
     getPersistedThemePreference,
@@ -125,7 +130,7 @@ export function initializeMainWindow({
         mainWindow = createWindow();
     }
 
-    setAppState("mainWindow", mainWindow);
+    setMainWindow(mainWindow);
 
     logWithContext(
         "info",

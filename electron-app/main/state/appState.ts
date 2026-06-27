@@ -76,6 +76,15 @@ export function getLoadedFitFilePath(): MainAppStateValueByPath[
 }
 
 /**
+ * Returns the BrowserWindow tracked by the main process.
+ *
+ * @returns Current main window, or null when none has been stored.
+ */
+export function getMainWindow(): MainAppStateValueByPath["mainWindow"] {
+    return getAppState("mainWindow");
+}
+
+/**
  * Lazily resolves the configuration store used for fit parser decoder settings.
  * The factory mirrors the previous implementation to keep test hooks
  * unchanged.
@@ -126,14 +135,29 @@ export function setLoadedFitFilePath(
     setAppState("loadedFitFilePath", filePath, options);
 }
 
+/**
+ * Sets or clears the BrowserWindow tracked by the main process.
+ *
+ * @param mainWindow - Current main window, or null when no window is active.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setMainWindow(
+    mainWindow: MainAppStateValueByPath["mainWindow"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("mainWindow", mainWindow, options);
+}
+
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 
 export default {
     cleanupEventHandlers,
     getAppState,
     getLoadedFitFilePath,
+    getMainWindow,
     mainProcessState: runtimeMainProcessState,
     resolveFitParserSettingsConf,
     setAppState,
     setLoadedFitFilePath,
+    setMainWindow,
 };

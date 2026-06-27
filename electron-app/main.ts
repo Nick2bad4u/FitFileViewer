@@ -12,7 +12,7 @@ import { appRef, browserWindowRef } from "./main/runtime/electronAccess.js";
 import { initializeApplication } from "./main/runtime/initializeApplication.js";
 import { primeTestEnvironment } from "./main/runtime/primeTestEnvironment.js";
 import { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
-import { getAppState } from "./main/state/appState.js";
+import { getMainWindow } from "./main/state/appState.js";
 
 export { setupApplicationEventHandlers } from "./main/app/setupApplicationEventHandlers.js";
 export { CONSTANTS } from "./main/constants.js";
@@ -31,8 +31,10 @@ export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 export {
     getAppState,
     getLoadedFitFilePath,
+    getMainWindow,
     setAppState,
     setLoadedFitFilePath,
+    setMainWindow,
 } from "./main/state/appState.js";
 export { getPersistedThemePreference } from "./main/theme/getPersistedThemePreference.js";
 export { resolveAutoUpdaterAsync } from "./main/updater/autoUpdaterAccess.js";
@@ -65,7 +67,7 @@ setupMainLifecycle({
     appRef,
     browserWindowRef,
     exposeDevHelpers,
-    getAppState,
+    getMainWindow,
     initializeApplication: initializeApplicationForLifecycle,
     logWithContext,
     setupApplicationEventHandlers,

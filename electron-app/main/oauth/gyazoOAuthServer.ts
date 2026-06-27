@@ -1,7 +1,11 @@
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { httpRef } from "../runtime/nodeModules.js";
-import { getAppState, setAppState } from "../state/appState.js";
+import {
+    getAppState,
+    getMainWindow,
+    setAppState,
+} from "../state/appState.js";
 
 type GyazoServerStartResult = import("../../shared/ipc").GyazoServerStartResult;
 type GyazoServerStopResult = import("../../shared/ipc").GyazoServerStopResult;
@@ -73,7 +77,7 @@ function escapeHtml(value: string): string {
 }
 
 function sendOAuthCallbackToRenderer(code: string, state: string): void {
-    const mainWindow = asOAuthWindow(getAppState("mainWindow"));
+    const mainWindow = asOAuthWindow(getMainWindow());
     sendToRenderer(mainWindow, "gyazo-oauth-callback", { code, state });
 }
 

@@ -175,7 +175,7 @@ describe("gyazoOAuthServer", () => {
             await import("../../../../electron-app/main/state/appState.js");
         appState.setAppState("gyazoServer", null);
         appState.setAppState("gyazoServerPort", null);
-        appState.setAppState("mainWindow", null);
+        appState.setMainWindow(null);
         // The module under test is imported natively; mocks follow the same
         // source import paths as its migrated dependencies.
     });
@@ -275,7 +275,7 @@ describe("gyazoOAuthServer", () => {
         expect.assertions(4);
 
         const { startGyazoOAuthServer } = await importGyazoOAuthServer();
-        appState.setAppState("mainWindow", getWindowLike());
+        appState.setMainWindow(getWindowLike());
 
         await startGyazoOAuthServer(3000);
 
@@ -323,7 +323,7 @@ describe("gyazoOAuthServer", () => {
         expect.assertions(6);
 
         const { startGyazoOAuthServer } = await importGyazoOAuthServer();
-        appState.setAppState("mainWindow", getWindowLike());
+        appState.setMainWindow(getWindowLike());
 
         await startGyazoOAuthServer(3000);
 

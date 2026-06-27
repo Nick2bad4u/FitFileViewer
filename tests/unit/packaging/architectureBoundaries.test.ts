@@ -3310,7 +3310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(294);
+        expect.assertions(305);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3378,6 +3378,11 @@ describe("architecture boundaries", () => {
         const initializeApplicationSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/runtime/initializeApplication.ts"
+            )
+        );
+        const primeTestEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/primeTestEnvironment.ts"
             )
         );
         const bootstrapMainWindowSource = stripComments(
@@ -3779,11 +3784,30 @@ describe("architecture boundaries", () => {
         expect(setupMenuAndEventHandlersSource).toContain(
             "getLoadedFitFilePath"
         );
-        expect(setupMainLifecycleSource).toContain(
+        expect(setupMainLifecycleSource).toContain("getMainWindow");
+        expect(setupMainLifecycleSource).not.toContain(
             'getAppState: (key: "mainWindow")'
         );
         expect(setupMainLifecycleSource).not.toContain(
+            'getAppState("mainWindow")'
+        );
+        expect(setupMainLifecycleSource).not.toContain(
             'getAppState("mainWindow") as'
+        );
+        expect(mainSource).toContain("getMainWindow");
+        expect(mainSource).toContain("setMainWindow");
+        expect(initializeApplicationSource).toContain("setMainWindow");
+        expect(bootstrapMainWindowSource).toContain("setMainWindow");
+        expect(bootstrapMainWindowSource).not.toContain(
+            'setAppState("mainWindow"'
+        );
+        expect(initializeMainWindowSource).toContain("setMainWindow");
+        expect(initializeMainWindowSource).not.toContain(
+            'setAppState("mainWindow"'
+        );
+        expect(primeTestEnvironmentSource).toContain("setMainWindow");
+        expect(primeTestEnvironmentSource).not.toContain(
+            'setAppState("mainWindow"'
         );
         expect(fitParserIntegrationSource).toContain("createElectronConf");
         expect(fitParserIntegrationSource).toContain(

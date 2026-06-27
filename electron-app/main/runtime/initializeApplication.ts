@@ -6,6 +6,7 @@ import { browserWindowRef } from "../runtime/electronAccess.js";
 import {
     getAppState,
     getLoadedFitFilePath,
+    setMainWindow,
     setAppState,
 } from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
@@ -30,6 +31,7 @@ export async function initializeApplication(): Promise<unknown> {
         safeCreateAppMenu,
         sendToRenderer,
         setAppState,
+        setMainWindow,
         setupAutoUpdater,
     });
 }
