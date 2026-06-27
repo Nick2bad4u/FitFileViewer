@@ -640,11 +640,16 @@ export interface PreloadValidators {
 }
 
 export interface ExposeElectronApiOptions {
-    api: ElectronAPI;
+    api: PreloadExposedElectronApi;
     contextBridge: null | PreloadContextBridge | undefined;
     isDevelopmentMode: () => boolean;
     preloadLog: PreloadLog;
 }
+
+export type PreloadExposedElectronApi = Pick<
+    ElectronApiDiagnosticsApi,
+    "validateAPI"
+>;
 
 export interface PreloadApiAssemblyModules {
     createPreloadApiAssemblyContext: CreatePreloadApiAssemblyContext;

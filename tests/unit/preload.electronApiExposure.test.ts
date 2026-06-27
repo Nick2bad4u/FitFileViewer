@@ -1,12 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
 import {
     exposeElectronApi,
     getApiStructure,
 } from "../../electron-app/preload/electronApiExposure.js";
 
-function createApi(validateAPI: () => boolean = () => true): ElectronAPI {
+interface ExposureElectronApi {
+    getChannelInfo: () => {
+        channels: Record<string, never>;
+        events: Record<string, never>;
+        totalChannels: number;
+        totalEvents: number;
+    };
+    validateAPI: () => boolean;
+}
+
+function createApi(
+    validateAPI: () => boolean = () => true
+): ExposureElectronApi {
     return {
         getChannelInfo: () => ({
             channels: {},
@@ -15,7 +26,7 @@ function createApi(validateAPI: () => boolean = () => true): ElectronAPI {
             totalEvents: 0,
         }),
         validateAPI,
-    } as ElectronAPI;
+    };
 }
 
 describe("preload electron API exposure", () => {

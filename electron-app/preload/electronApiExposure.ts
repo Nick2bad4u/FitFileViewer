@@ -1,8 +1,9 @@
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 type ExposeElectronApiOptions =
     import("./preloadModuleTypes").ExposeElectronApiOptions;
+type PreloadExposedElectronApi =
+    import("./preloadModuleTypes").PreloadExposedElectronApi;
 
-export function getApiStructure(api: ElectronAPI): {
+export function getApiStructure(api: PreloadExposedElectronApi): {
     methods: string[];
     properties: string[];
     total: number;
