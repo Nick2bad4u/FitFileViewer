@@ -11455,7 +11455,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const handleOpenFileSource = stripComments(
             readRepositoryFile(
@@ -11468,6 +11468,9 @@ describe("architecture boundaries", () => {
         );
         expect(handleOpenFileSource).toContain("ElectronDialogApi");
         expect(handleOpenFileSource).toContain("ElectronFileApi");
+        expect(handleOpenFileSource).not.toContain(
+            "interface FileOpenElectronAPI"
+        );
         expect(handleOpenFileSource).not.toContain("import type { ElectronAPI");
         expect(handleOpenFileSource).not.toContain("Pick<ElectronAPI");
     });
@@ -17077,7 +17080,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(40);
+        expect.assertions(42);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -17213,9 +17216,15 @@ describe("architecture boundaries", () => {
         expect(openFitFileFromPathSource).not.toContain(
             "import type { ElectronAPI"
         );
+        expect(openFitFileFromPathSource).not.toContain(
+            "interface FitFileElectronAPI"
+        );
         expect(openFitFileFromPathSource).not.toContain("Pick<ElectronAPI");
         expect(openFileSelectorSource).toContain("ElectronDialogApi");
         expect(openFileSelectorSource).toContain("ElectronFileApi");
+        expect(openFileSelectorSource).not.toContain(
+            "interface FileSelectorElectronAPI"
+        );
         expect(openFileSelectorSource).not.toContain("Pick<ElectronAPI");
         expect(fileBrowserTabSource).toContain("ElectronDialogApi");
         expect(fileBrowserTabSource).toContain("ElectronFileApi");
@@ -18838,7 +18847,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(42);
+        expect.assertions(43);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -18888,6 +18897,9 @@ describe("architecture boundaries", () => {
             "readBlobArrayBufferWithResponse"
         );
         expect(loadSingleOverlayFileSource).toContain("ElectronFileApi");
+        expect(loadSingleOverlayFileSource).not.toContain(
+            "interface OverlayElectronAPI"
+        );
         expect(loadSingleOverlayFileSource).not.toContain(
             "import type { ElectronAPI"
         );

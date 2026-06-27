@@ -35,11 +35,11 @@ type FitFileStateManagerLike = {
     ) => boolean;
 };
 
-interface FitFileElectronAPI {
-    notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
-    parseFitFile: ElectronFileApi["parseFitFile"];
-    readFile: ElectronFileApi["readFile"];
-}
+type FitFileElectronAPI = {
+    readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+    readonly parseFitFile: ElectronFileApi["parseFitFile"];
+    readonly readFile: ElectronFileApi["readFile"];
+};
 
 type ShowNotification = (
     message: string,

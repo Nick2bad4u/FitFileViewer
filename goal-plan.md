@@ -419,8 +419,9 @@ instead of `Pick<ElectronAPI, ...>` aliases.
 Browser tab folder/list/read/decode candidate typing now composes shared file, dialog, and Fit Browser API-domain
 contracts directly, with explicit method slices and architecture coverage blocking local `Pick<FitBrowserElectronAPI,
 ...>` aliases from returning.
-Handle-open-file candidate typing now uses shared dialog and file API-domain contracts instead of deriving from the
-monolithic `ElectronAPI` type.
+FIT import candidate typing in handle-open-file, path-based FIT opening, overlay selection, and single-overlay loading
+now uses explicit shared API-domain method type aliases instead of local Electron API interfaces, with architecture
+coverage blocking those ad hoc interfaces from returning.
 Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
 deriving from the monolithic `ElectronAPI` type.
 Setup theme fetch IPC candidate typing now uses the shared theme API-domain contract instead of deriving from the

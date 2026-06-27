@@ -39,9 +39,9 @@ export type OverlayLoadResult =
           success: false;
       };
 
-interface OverlayElectronAPI {
-    decodeFitFile: ElectronFileApi["decodeFitFile"];
-}
+type OverlayElectronAPI = {
+    readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
+};
 
 type OverlayFileLike = {
     arrayBuffer?: () => Promise<ArrayBuffer>;

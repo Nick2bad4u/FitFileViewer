@@ -14,10 +14,10 @@ import {
     type OpenFileSelectorTimer,
 } from "./openFileSelectorRuntime.js";
 
-interface FileSelectorElectronAPI {
-    openOverlayDialog?: ElectronDialogApi["openOverlayDialog"];
-    readFile?: ElectronFileApi["readFile"];
-}
+type FileSelectorElectronAPI = {
+    readonly openOverlayDialog?: ElectronDialogApi["openOverlayDialog"];
+    readonly readFile?: ElectronFileApi["readFile"];
+};
 
 type NativeFileFacade = OverlayInputFile & {
     arrayBuffer: () => Promise<ArrayBuffer>;

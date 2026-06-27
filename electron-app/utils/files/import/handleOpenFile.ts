@@ -57,11 +57,11 @@ type HandleOpenFileOptions = {
 
 type FileParseResult = Awaited<ReturnType<ElectronFileApi["parseFitFile"]>>;
 
-interface FileOpenElectronAPI {
-    openFile: ElectronDialogApi["openFile"];
-    parseFitFile: ElectronFileApi["parseFitFile"];
-    readFile: ElectronFileApi["readFile"];
-}
+type FileOpenElectronAPI = {
+    readonly openFile: ElectronDialogApi["openFile"];
+    readonly parseFitFile: ElectronFileApi["parseFitFile"];
+    readonly readFile: ElectronFileApi["readFile"];
+};
 
 type FitFileStateManagerFacade = {
     handleFileLoadingError: (error: Error) => void;
