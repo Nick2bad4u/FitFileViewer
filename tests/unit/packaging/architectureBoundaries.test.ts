@@ -13347,6 +13347,7 @@ describe("architecture boundaries", () => {
             "electron-app/utils/config/index.ts",
             "electron-app/utils/data/index.ts",
             "electron-app/utils/debug/index.ts",
+            "electron-app/utils/dom/index.ts",
             "electron-app/utils/files/index.ts",
             "electron-app/utils/formatting/index.ts",
             "electron-app/utils/maps/index.ts",
@@ -16046,10 +16047,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps DOM helper listener cleanup and default document roots behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(23);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
+        );
+        const domHelpersIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/dom/index.ts")
         );
         const domHelpersRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpersRuntime.ts")
@@ -16101,6 +16105,9 @@ describe("architecture boundaries", () => {
         expect(domHelpersSource).toContain("runtime.getDocument()");
         expect(domHelpersSource).not.toContain("root: ParentNode = document");
         expect(domHelpersSource).not.toContain("document.querySelector");
+        expect(domHelpersSource).not.toContain("export default");
+        expect(domHelpersIndexSource).not.toContain("export { default");
+        expect(domHelpersIndexSource).not.toContain(" as domHelpers");
     });
 
     it("keeps DOMPurify wired through the runtime adapter instead of a renderer global", () => {

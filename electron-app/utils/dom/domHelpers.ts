@@ -276,24 +276,3 @@ function readArrayLikeLength(list: ArrayLike<Element>): number {
     const length = list.length;
     return typeof length === "number" ? length : 0;
 }
-
-export default {
-    addClass,
-    clearElement,
-    focus,
-    getChecked,
-    getData,
-    getValue,
-    isHTMLElement,
-    on,
-    query,
-    queryAll,
-    removeClass,
-    requireElement,
-    setChecked,
-    setData,
-    setDisabled,
-    setStyle,
-    setText,
-    setValue,
-};
