@@ -1887,7 +1887,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps process runtime get and set behind an explicit browser-runtime provider", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1899,6 +1899,9 @@ describe("architecture boundaries", () => {
         );
 
         expect(browserRuntimeSource).toContain(
+            "function setBrowserGlobalProperty("
+        );
+        expect(browserRuntimeSource).not.toContain(
             "export function setBrowserGlobalProperty("
         );
         expect(browserRuntimeSource).toContain(

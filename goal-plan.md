@@ -1749,6 +1749,9 @@ lookup from returning.
 The unused public `getBrowserGlobalProperty` reader has been removed from `browserRuntime.ts`; remaining compatibility
 reads must use named providers, with browser-runtime and architecture coverage blocking the generic reader from
 returning.
+The generic `setBrowserGlobalProperty` writer is now private inside `browserRuntime.ts`; runtime process writes must
+route through `setBrowserProcessCandidate`, with browser-runtime and architecture coverage blocking the public generic
+setter from returning.
 Elevation profile overlay colors now resolve through the typed `chartOverlayColorPalette` module instead of the
 retired `chartOverlayColorPalette` browser-global compatibility property, with architecture coverage blocking that
 global palette read from returning.

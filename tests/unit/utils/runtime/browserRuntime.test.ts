@@ -4,14 +4,25 @@ import {
     getBrowserClearTimeout,
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
+    getBrowserProcessCandidate,
     getBrowserVitestImportMockCandidate,
     getBrowserSetTimeout,
-    setBrowserGlobalProperty,
+    setBrowserProcessCandidate,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("browserRuntime global property boundary", () => {
+    const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        "process"
+    );
+
     afterEach(() => {
         vi.unstubAllGlobals();
+        if (originalProcessDescriptor === undefined) {
+            Reflect.deleteProperty(globalThis, "process");
+            return;
+        }
+        Object.defineProperty(globalThis, "process", originalProcessDescriptor);
     });
 
     it("reads named runtime global candidates through explicit providers", () => {
@@ -29,40 +40,38 @@ describe("browserRuntime global property boundary", () => {
         expect(getBrowserVitestImportMockCandidate()).toBe(vitestCandidate);
     });
 
-    it("sets named global properties through the shared boundary", () => {
-        expect.assertions(1);
+    it("sets the process global through the named process provider", () => {
+        expect.assertions(2);
 
         const value = { enabled: true };
 
-        vi.stubGlobal("ffvRuntimeShim", undefined);
-        setBrowserGlobalProperty("ffvRuntimeShim", value);
+        setBrowserProcessCandidate(value);
 
-        expect(globalThis).toHaveProperty("ffvRuntimeShim", value);
+        expect(getBrowserProcessCandidate()).toBe(value);
+        expect(globalThis).toHaveProperty("process", value);
     });
 
-    it("defines named globals when direct assignment cannot update an accessor", () => {
+    it("defines the process global when direct assignment cannot update an accessor", () => {
         expect.assertions(1);
 
         const value = { enabled: true };
 
-        vi.stubGlobal("ffvAccessorRuntimeShim", undefined);
-        Object.defineProperty(globalThis, "ffvAccessorRuntimeShim", {
+        Object.defineProperty(globalThis, "process", {
             configurable: true,
             get() {
                 return undefined;
             },
         });
 
-        setBrowserGlobalProperty("ffvAccessorRuntimeShim", value);
+        setBrowserProcessCandidate(value);
 
-        expect(globalThis).toHaveProperty("ffvAccessorRuntimeShim", value);
+        expect(getBrowserProcessCandidate()).toBe(value);
     });
 
-    it("ignores writes when a global property setter throws", () => {
+    it("ignores process writes when a global property setter throws", () => {
         expect.assertions(2);
 
-        vi.stubGlobal("ffvReadonlyRuntimeShim", undefined);
-        Object.defineProperty(globalThis, "ffvReadonlyRuntimeShim", {
+        Object.defineProperty(globalThis, "process", {
             configurable: true,
             get() {
                 return undefined;
@@ -73,11 +82,9 @@ describe("browserRuntime global property boundary", () => {
         });
 
         expect(() => {
-            setBrowserGlobalProperty("ffvReadonlyRuntimeShim", {
-                enabled: true,
-            });
+            setBrowserProcessCandidate({ enabled: true });
         }).not.toThrow();
-        expect(globalThis).toHaveProperty("ffvReadonlyRuntimeShim", undefined);
+        expect(getBrowserProcessCandidate()).toBeUndefined();
     });
 
     it("returns timer providers bound to the browser global", () => {

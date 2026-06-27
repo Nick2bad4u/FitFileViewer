@@ -176,7 +176,7 @@ export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
 }
 
-export function setBrowserGlobalProperty(
+function setBrowserGlobalProperty(
     propertyKey: PropertyKey,
     value: unknown
 ): void {
