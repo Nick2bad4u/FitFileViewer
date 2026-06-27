@@ -3,7 +3,11 @@ import { sendToRenderer } from "../ipc/sendToRenderer.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
 import { browserWindowRef } from "../runtime/electronAccess.js";
-import { getAppState, setAppState } from "../state/appState.js";
+import {
+    getAppState,
+    getLoadedFitFilePath,
+    setAppState,
+} from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import { setupAutoUpdater } from "../updater/setupAutoUpdater.js";
@@ -19,6 +23,7 @@ export async function initializeApplication(): Promise<unknown> {
         browserWindowRef,
         CONSTANTS,
         getAppState,
+        getLoadedFitFilePath,
         getPersistedThemePreference,
         logWithContext,
         resolveAutoUpdaterAsync,

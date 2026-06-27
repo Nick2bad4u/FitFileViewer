@@ -778,7 +778,7 @@ describe("main.js strict handlers and events", () => {
             expect(saveAsCall[0]).toBe("menu-save-as");
             const saveAs = getRequiredHandler(saveAsCall);
 
-            mainModule.setAppState("loadedFitFilePath", "C:/unapproved.fit");
+            mainModule.setLoadedFitFilePath("C:/unapproved.fit");
             await saveAs({ sender: mockMainWindow.webContents });
 
             expect(mockDialog.showSaveDialog).not.toHaveBeenCalled();
@@ -790,7 +790,7 @@ describe("main.js strict handlers and events", () => {
             );
 
             policy.approveFilePath?.(approvedFilePath, { source: "test" });
-            mainModule.setAppState("loadedFitFilePath", approvedFilePath);
+            mainModule.setLoadedFitFilePath(approvedFilePath);
             mockDialog.showSaveDialog.mockResolvedValueOnce({
                 canceled: false,
                 filePath: copiedFilePath,

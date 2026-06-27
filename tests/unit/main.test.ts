@@ -725,7 +725,7 @@ describe("main.js - Electron Main Process", () => {
                 ]);
                 expect(globalThis).not.toHaveProperty("devHelpers");
 
-                mainModule.setAppState("loadedFitFilePath", "dev-activity.fit");
+                mainModule.setLoadedFitFilePath("dev-activity.fit");
                 const devState = devHelpers.getAppState();
 
                 expect(devState.loadedFitFilePath).toBe("dev-activity.fit");

@@ -5,6 +5,7 @@ import { browserWindowRef as electronBrowserWindowRef } from "../runtime/electro
 import {
     cleanupEventHandlers,
     getAppState,
+    getLoadedFitFilePath,
     mainProcessState,
 } from "../state/appState.js";
 import {
@@ -51,12 +52,6 @@ const validateMainWindow = validateWindow as (
     context?: string
 ) => win is MainWindowLike;
 
-const getLoadedFitFilePath = (): null | string => {
-    const loadedFitFilePath = getAppState("loadedFitFilePath");
-
-    return typeof loadedFitFilePath === "string" ? loadedFitFilePath : null;
-};
-
 /**
  * Creates debugging helpers for development builds.
  */
@@ -69,7 +64,7 @@ export function exposeDevHelpers(): DevHelpers {
                 eventHandlersCount:
                     typedMainProcessState.data.eventHandlers.size,
                 hasMainWindow: Boolean(getAppState("mainWindow")),
-                loadedFitFilePath: getAppState("loadedFitFilePath"),
+                loadedFitFilePath: getLoadedFitFilePath(),
             });
         },
         rebuildMenu: (theme, filePath) => {

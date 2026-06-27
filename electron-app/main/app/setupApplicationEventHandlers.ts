@@ -15,7 +15,11 @@ import {
     shellRef as electronShellRef,
 } from "../runtime/electronAccess.js";
 import { httpRef, path } from "../runtime/nodeModules.js";
-import { getAppState, setAppState } from "../state/appState.js";
+import {
+    getAppState,
+    getLoadedFitFilePath,
+    setAppState,
+} from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import {
     resolveFocusedMainWindow,
@@ -752,13 +756,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                 }, 1)
             );
         }
-    }
-
-    function getLoadedFitFilePath(): string | undefined {
-        const loadedFitFilePath = getAppState("loadedFitFilePath");
-        return typeof loadedFitFilePath === "string"
-            ? loadedFitFilePath
-            : undefined;
     }
 
     function rememberStartupTimer(handle: ReturnType<typeof setTimeout>): void {

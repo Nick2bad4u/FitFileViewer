@@ -10,7 +10,7 @@ import {
 import { createElectronConf } from "../runtime/electronConfAccess.js";
 import { fs } from "../runtime/nodeModules.js";
 import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
-import { getAppState } from "../state/appState.js";
+import { getAppState, getLoadedFitFilePath } from "../state/appState.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import {
     resolveFocusedMainWindow,
@@ -111,11 +111,6 @@ function getErrorMessage(error: unknown): string {
 
 function getBrowserWindowFromEvent(event: IpcEventLike): BrowserWindow | null {
     return browserWindowRef()?.fromWebContents(event.sender) ?? null;
-}
-
-function getLoadedFitFilePath(): string | undefined {
-    const loadedFilePath = getAppState("loadedFitFilePath");
-    return typeof loadedFilePath === "string" ? loadedFilePath : undefined;
 }
 
 function getThemeFromPayload(theme: unknown): string {

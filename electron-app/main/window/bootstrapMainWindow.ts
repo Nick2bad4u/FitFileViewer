@@ -28,10 +28,10 @@ interface MainWindowLike {
 type BrowserWindowApi = MainWindowBrowserWindowApi<MainWindowLike>;
 type BrowserWindowConstructor =
     MainWindowBrowserWindowConstructor<MainWindowLike>;
-type BootstrapMainWindowGetAppState = {
-    (key: "autoUpdaterInitialized"): boolean;
-    (key: "loadedFitFilePath"): null | string;
-};
+type BootstrapMainWindowGetAppState = (
+    key: "autoUpdaterInitialized"
+) => boolean;
+type BootstrapMainWindowGetLoadedFitFilePath = () => null | string;
 type BootstrapMainWindowSetAppState = {
     (key: "autoUpdaterInitialized", value: boolean): void;
     (key: "mainWindow", value: MainAppStateWindowLike): void;
@@ -55,6 +55,7 @@ interface BootstrapMainWindowOptions {
         | undefined;
     CONSTANTS: { DEFAULT_THEME: string };
     getAppState: BootstrapMainWindowGetAppState;
+    getLoadedFitFilePath: BootstrapMainWindowGetLoadedFitFilePath;
     getPersistedThemePreference: () => Promise<string>;
     logWithContext: LogWithContext;
     resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike | null>;
@@ -96,6 +97,7 @@ function createFallbackWindow(): MainWindowLike {
 export function bootstrapMainWindow({
     browserWindowRef,
     getAppState,
+    getLoadedFitFilePath,
     setAppState,
     safeCreateAppMenu,
     CONSTANTS,
@@ -131,7 +133,7 @@ export function bootstrapMainWindow({
     safeCreateAppMenu(
         mainWindow,
         CONSTANTS.DEFAULT_THEME,
-        getAppState("loadedFitFilePath")
+        getLoadedFitFilePath()
     );
 
     mainWindow.webContents.on("did-finish-load", async () => {
@@ -163,7 +165,7 @@ export function bootstrapMainWindow({
             safeCreateAppMenu(
                 mainWindow,
                 theme,
-                getAppState("loadedFitFilePath")
+                getLoadedFitFilePath()
             );
             sendToRenderer(mainWindow, "set-theme", theme);
         } catch (error) {
@@ -177,7 +179,7 @@ export function bootstrapMainWindow({
             safeCreateAppMenu(
                 mainWindow,
                 CONSTANTS.DEFAULT_THEME,
-                getAppState("loadedFitFilePath")
+                getLoadedFitFilePath()
             );
             sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
         }

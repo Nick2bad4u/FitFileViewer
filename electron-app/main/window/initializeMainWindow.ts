@@ -28,10 +28,10 @@ interface MainWindowLike {
 type BrowserWindowApi = MainWindowBrowserWindowApi<MainWindowLike>;
 type BrowserWindowConstructor =
     MainWindowBrowserWindowConstructor<MainWindowLike>;
-type InitializeMainWindowGetAppState = {
-    (key: "autoUpdaterInitialized"): boolean;
-    (key: "loadedFitFilePath"): null | string;
-};
+type InitializeMainWindowGetAppState = (
+    key: "autoUpdaterInitialized"
+) => boolean;
+type InitializeMainWindowGetLoadedFitFilePath = () => null | string;
 type InitializeMainWindowSetAppState = {
     (key: "autoUpdaterInitialized", value: boolean): void;
     (key: "mainWindow", value: MainAppStateWindowLike): void;
@@ -55,6 +55,7 @@ interface InitializeMainWindowOptions {
         | undefined;
     CONSTANTS: { DEFAULT_THEME: string };
     getAppState: InitializeMainWindowGetAppState;
+    getLoadedFitFilePath: InitializeMainWindowGetLoadedFitFilePath;
     getPersistedThemePreference: () => Promise<string>;
     logWithContext: LogWithContext;
     resolveAutoUpdater: () => Promise<AutoUpdaterLike | null>;
@@ -96,6 +97,7 @@ function createFallbackWindow(): MainWindowLike {
 export function initializeMainWindow({
     browserWindowRef,
     getAppState,
+    getLoadedFitFilePath,
     setAppState,
     safeCreateAppMenu,
     CONSTANTS,
@@ -132,7 +134,7 @@ export function initializeMainWindow({
     safeCreateAppMenu(
         mainWindow,
         CONSTANTS.DEFAULT_THEME,
-        getAppState("loadedFitFilePath")
+        getLoadedFitFilePath()
     );
 
     if (typeof mainWindow.webContents?.on === "function") {
@@ -169,7 +171,7 @@ export function initializeMainWindow({
                 safeCreateAppMenu(
                     mainWindow,
                     theme,
-                    getAppState("loadedFitFilePath")
+                    getLoadedFitFilePath()
                 );
                 sendToRenderer(mainWindow, "set-theme", theme);
             } catch (error) {
@@ -183,7 +185,7 @@ export function initializeMainWindow({
                 safeCreateAppMenu(
                     mainWindow,
                     CONSTANTS.DEFAULT_THEME,
-                    getAppState("loadedFitFilePath")
+                    getLoadedFitFilePath()
                 );
                 sendToRenderer(
                     mainWindow,
