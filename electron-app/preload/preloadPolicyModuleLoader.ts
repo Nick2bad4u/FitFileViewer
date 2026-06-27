@@ -10,7 +10,8 @@ import {
     validateMainStatePathInput,
 } from "../shared/mainStatePathPolicy.js";
 
-type PreloadPolicyModules = import("./preloadModuleTypes").PreloadPolicyModules;
+type PreloadPolicyModules =
+    import("./preloadAssemblyTypes").PreloadPolicyModules;
 
 export function loadPreloadPolicyModules(): PreloadPolicyModules {
     return {

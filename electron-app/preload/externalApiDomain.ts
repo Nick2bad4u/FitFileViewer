@@ -1,7 +1,7 @@
 type PreloadApiAssemblyContext =
-    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContext;
 type PreloadExternalApiDomain =
-    import("./preloadModuleTypes").PreloadExternalApiDomain;
+    import("./preloadAssemblyTypes").PreloadExternalApiDomain;
 
 export function createPreloadExternalApiDomain({
     constants,

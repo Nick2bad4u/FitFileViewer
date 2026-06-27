@@ -10,7 +10,7 @@ import { loadPreloadStateModules } from "./preloadStateModuleLoader.js";
 import { loadPreloadSystemModules } from "./preloadSystemModuleLoader.js";
 
 type PreloadModuleRegistry =
-    import("./preloadModuleTypes").PreloadModuleRegistry;
+    import("./preloadAssemblyTypes").PreloadModuleRegistry;
 
 export function loadPreloadModules(): PreloadModuleRegistry {
     return {

@@ -63,6 +63,7 @@
         "electron-app/preload/mainStateApi.ts",
         "electron-app/preload/mainStateBridge.ts",
         "electron-app/preload/menuEventApi.ts",
+        "electron-app/preload/preloadAssemblyTypes.ts",
         "electron-app/preload/preloadModuleLoader.ts",
         "electron-app/preload/preloadModuleTypes.ts",
         "electron-app/preload/preloadApiAssemblyModuleLoader.ts",

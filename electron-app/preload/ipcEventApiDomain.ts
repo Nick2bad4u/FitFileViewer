@@ -1,7 +1,7 @@
 type PreloadApiAssemblyContext =
-    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContext;
 type PreloadIpcEventApiDomain =
-    import("./preloadModuleTypes").PreloadIpcEventApiDomain;
+    import("./preloadAssemblyTypes").PreloadIpcEventApiDomain;
 
 export function createPreloadIpcEventApiDomain({
     constants,

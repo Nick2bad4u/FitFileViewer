@@ -2,7 +2,7 @@ import { createGyazoExternalApi } from "./gyazoExternalApi.js";
 import { createShellExternalApi } from "./shellExternalApi.js";
 
 type PreloadExternalModules =
-    import("./preloadModuleTypes").PreloadExternalModules;
+    import("./preloadAssemblyTypes").PreloadExternalModules;
 
 export function loadPreloadExternalModules(): PreloadExternalModules {
     return {

@@ -8,7 +8,7 @@ import { createMenuEventApi } from "./menuEventApi.js";
 import { createPreloadEventApi } from "./preloadEventApi.js";
 import { createPreloadValidators } from "./validators.js";
 
-type PreloadIpcModules = import("./preloadModuleTypes").PreloadIpcModules;
+type PreloadIpcModules = import("./preloadAssemblyTypes").PreloadIpcModules;
 
 export function loadPreloadIpcModules(): PreloadIpcModules {
     return {

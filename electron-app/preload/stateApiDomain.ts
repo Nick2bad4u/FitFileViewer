@@ -1,7 +1,7 @@
 type PreloadApiAssemblyContext =
-    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContext;
 type PreloadStateApiDomain =
-    import("./preloadModuleTypes").PreloadStateApiDomain;
+    import("./preloadAssemblyTypes").PreloadStateApiDomain;
 
 export function createPreloadStateApiDomain({
     createSafeInvokeHandler,

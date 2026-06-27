@@ -1,8 +1,8 @@
 type ElectronDialogApi = import("../shared/preloadApi").ElectronDialogApi;
 type PreloadApiAssemblyContext =
-    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContext;
 type PreloadDialogApiDomain =
-    import("./preloadModuleTypes").PreloadDialogApiDomain;
+    import("./preloadAssemblyTypes").PreloadDialogApiDomain;
 
 export function createPreloadDialogApiDomain({
     constants,

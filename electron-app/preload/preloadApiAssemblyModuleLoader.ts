@@ -10,7 +10,7 @@ import { createPreloadStateApiDomain } from "./stateApiDomain.js";
 import { createPreloadSystemApiDomain } from "./systemApiDomain.js";
 
 type PreloadApiAssemblyModules =
-    import("./preloadModuleTypes").PreloadApiAssemblyModules;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyModules;
 
 export function loadPreloadApiAssemblyModules(): PreloadApiAssemblyModules {
     return {

@@ -2,7 +2,7 @@ import { assemblePreloadApi, createPreloadConstants } from "./apiAssembly.js";
 import { createElectronApi } from "./electronApiFactory.js";
 import { loadPreloadModules } from "./preloadModuleLoader.js";
 
-type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
+type PreloadRuntime = import("./preloadAssemblyTypes").PreloadRuntime;
 
 const createElectronApiModule: PreloadRuntime["createElectronApi"] =
     createElectronApi;

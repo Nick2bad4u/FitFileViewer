@@ -1,4 +1,4 @@
-type AssemblePreloadApi = import("./preloadModuleTypes").AssemblePreloadApi;
+type AssemblePreloadApi = import("./preloadAssemblyTypes").AssemblePreloadApi;
 type IpcBridgeCatalog = import("./preloadModuleTypes").IpcBridgeCatalog;
 type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
 

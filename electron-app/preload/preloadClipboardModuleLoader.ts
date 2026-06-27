@@ -1,7 +1,7 @@
 import { createClipboardBridge } from "./clipboardBridge.js";
 
 type PreloadClipboardModules =
-    import("./preloadModuleTypes").PreloadClipboardModules;
+    import("./preloadAssemblyTypes").PreloadClipboardModules;
 
 export function loadPreloadClipboardModules(): PreloadClipboardModules {
     return {

@@ -31,6 +31,7 @@ const preloadRuntimeEnvironmentFiles = [
 ] as const;
 const preloadDomainContractFiles = [
     "electron-app/preload/electronApiFactory.ts",
+    "electron-app/preload/preloadAssemblyTypes.ts",
     "electron-app/preload/preloadModuleTypes.ts",
 ] as const;
 
@@ -2107,7 +2108,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {
-        expect.assertions(60);
+        expect.assertions(63);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -2173,6 +2174,9 @@ describe("architecture boundaries", () => {
         );
         const moduleTypesSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+        const assemblyTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadAssemblyTypes.ts")
         );
 
         expect(hasRepositoryFile("electron-app/preload/appApiDomain.ts")).toBe(
@@ -2278,9 +2282,16 @@ describe("architecture boundaries", () => {
         expect(electronApiExposureSource).not.toContain("api as unknown");
         expect(moduleTypesSource).toContain("api: PreloadExposedElectronApi");
         expect(moduleTypesSource).toContain("ElectronShellExternalApi");
-        expect(moduleTypesSource).toContain("PreloadDialogApiDomain");
-        expect(moduleTypesSource).toContain("createPreloadDialogApiDomain");
-        expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
+        expect(assemblyTypesSource).toContain("PreloadDialogApiDomain");
+        expect(assemblyTypesSource).toContain("createPreloadDialogApiDomain");
+        expect(assemblyTypesSource).toContain(
+            "createPreloadApiAssemblyContext"
+        );
+        expect(moduleTypesSource).not.toContain("PreloadDialogApiDomain");
+        expect(moduleTypesSource).not.toContain("createPreloadDialogApiDomain");
+        expect(moduleTypesSource).not.toContain(
+            "createPreloadApiAssemblyContext"
+        );
     });
 
     it("keeps preload API assembly domains on named source exports", () => {
@@ -2755,12 +2766,12 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
-        const moduleTypesSource = stripComments(
-            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        const assemblyTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadAssemblyTypes.ts")
         );
 
         expect(broadRegistryDerivedLoaderFiles).toStrictEqual([]);
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /type\s+PreloadModuleRegistry\s*=\s*PreloadApiAssemblyInputModules/u
         );
     });
@@ -2771,8 +2782,8 @@ describe("architecture boundaries", () => {
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
         );
-        const moduleTypesSource = stripComments(
-            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        const assemblyTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadAssemblyTypes.ts")
         );
 
         expect(apiAssemblySource).toContain("IpcBridgeCatalog");
@@ -2780,16 +2791,16 @@ describe("architecture boundaries", () => {
         expect(apiAssemblySource).toContain(
             "ipcBridgeCatalog: IpcBridgeCatalog"
         );
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /interface\s+PreloadApiAssemblyInputModules\s+extends\s+PreloadApiAssemblyContextModules,\s+PreloadApiAssemblyModules/u
         );
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadApiAssemblyInputModules/u
         );
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /type\s+PreloadModuleRegistry\s*=\s*PreloadApiAssemblyInputModules/u
         );
-        expect(moduleTypesSource).not.toMatch(
+        expect(assemblyTypesSource).not.toMatch(
             /type\s+AssemblePreloadApi\s*=\s*\(options:\s*\{[^}]*modules:\s+PreloadModuleRegistry/u
         );
     });
@@ -2800,21 +2811,21 @@ describe("architecture boundaries", () => {
         const apiAssemblyContextSource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssemblyContext.ts")
         );
-        const moduleTypesSource = stripComments(
-            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        const assemblyTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadAssemblyTypes.ts")
         );
 
         expect(apiAssemblyContextSource).toContain(
             "PreloadApiAssemblyContextModules"
         );
         expect(apiAssemblyContextSource).not.toContain("PreloadModuleRegistry");
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /interface\s+PreloadApiAssemblyContextModules\s+extends\s+PreloadClipboardModules,\s+PreloadDeveloperModules,\s+PreloadExternalModules,\s+PreloadFileModules,\s+PreloadIpcModules,\s+PreloadLifecycleModules,\s+PreloadPolicyModules,\s+PreloadStateModules,\s+PreloadSystemModules/u
         );
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /type\s+CreatePreloadApiAssemblyContext[\s\S]*modules:\s+PreloadApiAssemblyContextModules/u
         );
-        expect(moduleTypesSource).toMatch(
+        expect(assemblyTypesSource).toMatch(
             /interface\s+PreloadApiAssemblyContext[\s\S]*modules:\s+PreloadApiAssemblyContextModules/u
         );
     });

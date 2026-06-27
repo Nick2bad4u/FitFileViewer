@@ -1,7 +1,7 @@
 type PreloadApiAssemblyContext =
-    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContext;
 type PreloadClipboardApiDomain =
-    import("./preloadModuleTypes").PreloadClipboardApiDomain;
+    import("./preloadAssemblyTypes").PreloadClipboardApiDomain;
 
 export function createPreloadClipboardApiDomain({
     constants,

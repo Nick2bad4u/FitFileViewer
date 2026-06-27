@@ -1,11 +1,11 @@
 type PreloadApiAssemblyContext =
-    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContext;
 type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
 type PreloadContextBridge = import("./preloadModuleTypes").PreloadContextBridge;
 type PreloadIpcRenderer = import("./preloadModuleTypes").PreloadIpcRenderer;
 type PreloadLog = import("./preloadModuleTypes").PreloadLog;
 type PreloadApiAssemblyContextModules =
-    import("./preloadModuleTypes").PreloadApiAssemblyContextModules;
+    import("./preloadAssemblyTypes").PreloadApiAssemblyContextModules;
 
 interface CreatePreloadApiAssemblyContextOptions {
     constants: PreloadConstants;
