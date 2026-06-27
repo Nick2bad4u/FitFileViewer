@@ -1,3 +1,4 @@
+import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 import { getRenderChartTimerRuntime } from "./renderChartTimerRuntime.js";
 
@@ -31,7 +32,7 @@ interface ChartRenderNotificationInput {
 }
 
 function isChartTabActive(activeTab: unknown, isTestRuntime: boolean): boolean {
-    return isTestRuntime || activeTab === "chart" || activeTab === "chartjs";
+    return isTestRuntime || isRendererChartTab(activeTab);
 }
 
 function createRenderSuccessMessage(totalChartsRendered: number): string {

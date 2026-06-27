@@ -30,6 +30,7 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
+import { normalizeRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -563,7 +564,8 @@ async function renderChartsWithData(
             chartContainer,
             createChartCanvas: createChartCanvasSafe,
             createEnhancedChart: createEnhancedChartSafe,
-            getActiveTab: () => gs_rcwd("ui.activeTab"),
+            getActiveTab: () =>
+                normalizeRendererActiveTab(gs_rcwd("ui.activeTab")),
             getFieldVisibility: (field) =>
                 chartSettingsManager.getFieldVisibility(field),
             isDebugLoggingEnabled,

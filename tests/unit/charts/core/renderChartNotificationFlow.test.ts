@@ -116,6 +116,33 @@ describe("handleChartRenderNotification", () => {
         expect(notifications).toStrictEqual([]);
     });
 
+    it("suppresses notifications for stale chart tab aliases", () => {
+        expect.assertions(3);
+
+        const updates: ChartStateUpdate[] = [];
+        const notifications: Notification[] = [];
+        let clockReads = 0;
+        const dependencies = createDependencies(
+            "charts",
+            updates,
+            notifications
+        );
+        const dateNow = (): number => {
+            clockReads += 1;
+            return 98_765;
+        };
+
+        handleChartRenderNotification(dependencies, {
+            dateNow,
+            totalChartsRendered: 2,
+            visibleFieldCount: 4,
+        });
+
+        expect(clockReads).toBe(0);
+        expect(updates).toStrictEqual([]);
+        expect(notifications).toStrictEqual([]);
+    });
+
     it("does not update notification state when the notification gate declines", () => {
         expect.assertions(3);
 

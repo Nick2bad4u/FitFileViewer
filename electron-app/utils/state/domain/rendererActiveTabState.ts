@@ -22,6 +22,7 @@ export const RENDERER_TAB_NAMES = [
 export type RendererTabName = (typeof RENDERER_TAB_NAMES)[number];
 
 const rendererTabNames = new Set<string>(RENDERER_TAB_NAMES);
+const rendererChartTabNames = new Set<string>(["chart", "chartjs"]);
 
 export function getRendererActiveTab(): string {
     return normalizeRendererActiveTab(getState(RENDERER_ACTIVE_TAB_STATE_PATH));
@@ -33,6 +34,10 @@ export function isRendererActiveTab(tabName: string): boolean {
 
 export function isRendererTabName(value: unknown): value is RendererTabName {
     return typeof value === "string" && rendererTabNames.has(value);
+}
+
+export function isRendererChartTab(value: unknown): boolean {
+    return rendererChartTabNames.has(normalizeRendererActiveTab(value));
 }
 
 export function subscribeToRendererActiveTab(

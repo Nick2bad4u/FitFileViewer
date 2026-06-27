@@ -1,3 +1,4 @@
+import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
 import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 import {
@@ -114,10 +115,6 @@ function getFieldsToPrewarm(
     return [...prioritized, ...remaining].slice(0, maxFieldsToPrewarm);
 }
 
-function isChartsTab(tab: unknown): boolean {
-    return tab === "chart" || tab === "chartjs";
-}
-
 interface PrewarmFieldProcessingInput {
     convert: (value: number, field: string) => number;
     dataSettingsSignature: string;
@@ -148,7 +145,7 @@ async function processPrewarmFieldChunk(
         input.startIndex,
         endIndex
     )) {
-        if (isChartsTab(input.getActiveTab())) {
+        if (isRendererChartTab(input.getActiveTab())) {
             return processedFields;
         }
 
@@ -210,7 +207,7 @@ export async function prewarmChartRenderCaches(
     const stateManager = getStateManagerSafe();
     const getActiveTab = (): unknown => stateManager.getState("ui.activeTab");
     const getState = (path: string): unknown => stateManager.getState(path);
-    if (isChartsTab(getActiveTab())) {
+    if (isRendererChartTab(getActiveTab())) {
         return { processedFields: 0, skipped: true };
     }
 

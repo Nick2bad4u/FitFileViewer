@@ -4,7 +4,10 @@ import {
 } from "../../state/domain/fitChartDataState.js";
 import { subscribeToActiveFitRawDataChange } from "../../state/domain/activeFitRawDataState.js";
 import { subscribeToAppOpeningFile } from "../../state/domain/appDomainState.js";
-import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
+import {
+    getRendererActiveTab,
+    isRendererChartTab,
+} from "../../state/domain/rendererActiveTabState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { ensureChartStateManagerRegistered } from "./chartStateManagerBootstrap.js";
@@ -167,8 +170,7 @@ export class ChartTabIntegration {
      * Check if the chart tab is currently active.
      */
     isChartTabActive(): boolean {
-        const activeTab = getRendererActiveTab();
-        return activeTab === "chartjs" || activeTab === "chart";
+        return isRendererChartTab(getRendererActiveTab());
     }
 
     /**

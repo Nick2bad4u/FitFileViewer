@@ -8616,7 +8616,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager on chart and renderer state facades", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const chartStateManagerSource = stripComments(
             readRepositoryFile(
@@ -8628,6 +8628,7 @@ describe("architecture boundaries", () => {
             "rendererChartRenderState.js"
         );
         expect(chartStateManagerSource).toContain("rendererActiveTabState.js");
+        expect(chartStateManagerSource).toContain("isRendererChartTab");
         expect(chartStateManagerSource).not.toContain(
             "state/core/stateManager.js"
         );
@@ -14820,7 +14821,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(32);
+        expect.assertions(33);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -14861,6 +14862,7 @@ describe("architecture boundaries", () => {
         expect(renderChartPrimaryFieldsSource).not.toContain(
             "value as Readonly<Record"
         );
+        expect(renderChartPrimaryFieldsSource).toContain("isRendererChartTab");
         expect(renderChartRuntimeHelpersSource).toContain(
             "renderChartRuntimeHelpersRuntime.js"
         );

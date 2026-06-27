@@ -5,6 +5,7 @@ import {
 } from "../../state/domain/fitChartDataState.js";
 import {
     getRendererActiveTab,
+    isRendererChartTab,
     subscribeToRendererActiveTab,
 } from "../../state/domain/rendererActiveTabState.js";
 import { subscribeToRendererChartControlsVisibleState } from "../../state/domain/rendererChartControlsState.js";
@@ -248,7 +249,7 @@ export class ChartStateManager {
         });
 
         subscribeToRendererActiveTab((activeTab) => {
-            if (activeTab === "chartjs" || activeTab === "chart") {
+            if (isRendererChartTab(activeTab)) {
                 this.handleTabActivation();
             }
         });
@@ -295,8 +296,7 @@ export class ChartStateManager {
      * Checks if the chart tab is currently active.
      */
     isChartTabActive(): boolean {
-        const activeTab = getRendererActiveTab();
-        return activeTab === "chartjs" || activeTab === "chart";
+        return isRendererChartTab(getRendererActiveTab());
     }
 
     /**

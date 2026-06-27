@@ -4,6 +4,7 @@ import * as stateManager from "../../../../../electron-app/utils/state/core/stat
 import {
     getRendererActiveTab,
     isRendererActiveTab,
+    isRendererChartTab,
     isRendererTabName,
     normalizeRendererActiveTab,
     RENDERER_TAB_NAMES,
@@ -81,5 +82,16 @@ describe("rendererActiveTabState", () => {
         ]);
         expect(isRendererTabName("zwift")).toBe(true);
         expect(isRendererTabName("table")).toBe(false);
+    });
+
+    it("detects chart renderer tabs through the shared normalized tab contract", () => {
+        expect.assertions(6);
+
+        expect(isRendererChartTab("chart")).toBe(true);
+        expect(isRendererChartTab("chartjs")).toBe(true);
+        expect(isRendererChartTab("charts")).toBe(false);
+        expect(isRendererChartTab("data")).toBe(false);
+        expect(isRendererChartTab("table")).toBe(false);
+        expect(isRendererChartTab(null)).toBe(false);
     });
 });

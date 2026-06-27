@@ -1,4 +1,5 @@
 import { fieldLabels } from "../../formatting/display/formatChartFields.js";
+import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
 import type { createChartCanvas } from "../components/createChartCanvas.js";
 import type { createEnhancedChart } from "../components/createEnhancedChart.js";
 import type { ChartDataRecord } from "./renderChartDataPreparation.js";
@@ -109,7 +110,7 @@ export function renderPrimaryChartFields(
     for (const field of options.fieldsToRender) {
         if (!dependencies.isTestRuntime && !dependencies.skipTabAbort) {
             const currentTab = dependencies.getActiveTab();
-            if (currentTab !== "chart" && currentTab !== "chartjs") {
+            if (!isRendererChartTab(currentTab)) {
                 console.log(
                     `[ChartJS] Aborting render loop - tab switched to ${String(currentTab)}`
                 );

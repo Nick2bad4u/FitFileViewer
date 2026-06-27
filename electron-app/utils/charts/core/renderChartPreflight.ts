@@ -1,3 +1,4 @@
+import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
@@ -49,7 +50,7 @@ export function shouldAbortInactiveChartRender(
 
     const stateManager = dependencies.getStateManager();
     const activeTab = stateManager.getState("ui.activeTab");
-    if (activeTab === "chart" || activeTab === "chartjs") {
+    if (isRendererChartTab(activeTab)) {
         return false;
     }
 

@@ -83,4 +83,25 @@ describe("prewarmChartRenderCaches", () => {
             "heart_rate"
         );
     });
+
+    it("skips prewarming while the chart tab is active", async () => {
+        expect.assertions(2);
+
+        mocks.activeTab = "chartjs";
+
+        await expect(
+            prewarmChartRenderCaches(
+                {
+                    recordMesgs: [{ heart_rate: 120, speed: 5, timestamp: 0 }],
+                    startTime: 0,
+                },
+                {
+                    getFieldVisibility: () => "visible",
+                    getSettings: () => ({ maxpoints: "all" }),
+                    invalidateChartRenderCache: vi.fn(),
+                }
+            )
+        ).resolves.toStrictEqual({ processedFields: 0, skipped: true });
+        expect(mocks.convertValueToUserUnits).not.toHaveBeenCalled();
+    });
 });
