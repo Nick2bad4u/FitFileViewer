@@ -42,7 +42,6 @@ interface ChannelInfo {
 
 interface PreloadElectronAPI {
     addRecentFile: (filePath: unknown) => Promise<unknown>;
-    approveRecentFile: (filePath: unknown) => Promise<unknown>;
     checkForUpdates: () => void;
     decodeFitFile: (arrayBuffer: ArrayBuffer) => Promise<unknown>;
     getAppVersion: () => Promise<unknown>;
@@ -121,7 +120,6 @@ const EXPECTED_PRELOAD_CHANNELS = {
     NODE_VERSION: "getNodeVersion",
     PLATFORM_INFO: "getPlatformInfo",
     RECENT_FILES_ADD: "recentFiles:add",
-    RECENT_FILES_APPROVE: "recentFiles:approve",
     RECENT_FILES_GET: "recentFiles:get",
     SHELL_OPEN_EXTERNAL: "shell:openExternal",
     THEME_GET: "theme:get",
@@ -166,7 +164,6 @@ const EXPECTED_PRELOAD_CONSTANTS = {
 
 const EXPECTED_ELECTRON_API_METHODS = [
     "addRecentFile",
-    "approveRecentFile",
     "checkForUpdates",
     "decodeFitFile",
     "getAppVersion",
@@ -278,8 +275,6 @@ function resolveIpcInvoke(channel: string): Promise<unknown> {
             return Promise.resolve("dark");
         case "recentFiles:get":
             return Promise.resolve(["file1.fit", "file2.fit"]);
-        case "recentFiles:approve":
-            return Promise.resolve(true);
         case "fit:decode":
             return Promise.resolve("decoded-data");
         case "fit:parse":

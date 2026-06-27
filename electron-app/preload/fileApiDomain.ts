@@ -18,7 +18,6 @@ export function createPreloadFileApiDomain({
                 FIT_DECODE: constants.CHANNELS.FIT_DECODE,
                 FIT_PARSE: constants.CHANNELS.FIT_PARSE,
                 RECENT_FILES_ADD: constants.CHANNELS.RECENT_FILES_ADD,
-                RECENT_FILES_APPROVE: constants.CHANNELS.RECENT_FILES_APPROVE,
                 RECENT_FILES_GET: constants.CHANNELS.RECENT_FILES_GET,
             },
             createSafeInvokeHandler,

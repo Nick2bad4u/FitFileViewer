@@ -42,7 +42,6 @@ import type {
     MainStateUnlistenRequest,
     MainStateUnlistenResponse,
     RecentFileRequestPayload,
-    RecentFilesApprovalResponse,
     RecentFilesListResponse,
     ShellOpenExternalRequest,
     ShellOpenExternalResponse,
@@ -52,13 +51,6 @@ import type {
 
 /** Renderer-facing API exposed by the Electron preload script. */
 export interface ElectronAPI {
-    /**
-     * Legacy compatibility method. Renderer-originated recent-file approval is
-     * denied; trusted menu actions grant read access in the main process.
-     */
-    approveRecentFile: (
-        filePath: RecentFileRequestPayload
-    ) => Promise<RecentFilesApprovalResponse>;
     /**
      * Opens the native single-file FIT dialog; returns selected path or null
      * when cancelled.
@@ -247,7 +239,6 @@ export type ElectronShellExternalApi = Pick<ElectronAPI, "openExternal">;
 export type ElectronFileApi = Pick<
     ElectronAPI,
     | "addRecentFile"
-    | "approveRecentFile"
     | "decodeFitFile"
     | "parseFitFile"
     | "readFile"

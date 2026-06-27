@@ -8,8 +8,6 @@ import {
 } from "../window/mainWindowSelection.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
-type RecentFilesApprovalResponse =
-    import("../../shared/ipc").RecentFilesApprovalResponse;
 type RecentFilesInvokeChannel =
     import("../../shared/ipc").RecentFilesInvokeChannel;
 type RecentFilesListResponse =
@@ -87,27 +85,6 @@ export function registerRecentFileHandlers({
     });
 
     registerIpcHandle(
-        "recentFiles:approve",
-        (_event, filePath): RecentFilesApprovalResponse => {
-            try {
-                logWithContext?.(
-                    "warn",
-                    "Denied renderer recentFiles:approve request",
-                    {
-                        filePath,
-                    }
-                );
-                return false;
-            } catch (error) {
-                logWithContext?.("error", "Error in recentFiles:approve:", {
-                    error: getErrorMessage(error),
-                });
-                throw error;
-            }
-        }
-    );
-
-    registerIpcHandle(
         "recentFiles:add",
         async (_event, filePath): Promise<RecentFilesListResponse> => {
             try {
@@ -151,11 +128,7 @@ export function registerRecentFileHandlers({
 
                 try {
                     const theme = await getPersistedThemePreference();
-                    safeCreateAppMenu(
-                        win,
-                        theme,
-                        getLoadedFitFilePath()
-                    );
+                    safeCreateAppMenu(win, theme, getLoadedFitFilePath());
                 } catch (menuError) {
                     logWithContext?.(
                         "warn",

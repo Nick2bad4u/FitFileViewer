@@ -114,7 +114,6 @@ export interface InvokeRequestPayloadByChannel {
     "main-state:unlisten": MainStatePath;
     "map-tab:get": never;
     "recentFiles:add": string;
-    "recentFiles:approve": string;
     "recentFiles:get": never;
     "shell:openExternal": string;
     "theme:get": never;
@@ -154,7 +153,6 @@ export interface InvokeResponsePayloadByChannel {
     "main-state:unlisten": boolean;
     "map-tab:get": string;
     "recentFiles:add": string[];
-    "recentFiles:approve": boolean;
     "recentFiles:get": string[];
     "shell:openExternal": boolean;
     "theme:get": string;
@@ -417,13 +415,12 @@ export type FileSystemResponsePayload =
 /** Recent-file invoke channels handled by main-process recent-file IPC. */
 export type RecentFilesInvokeChannel = Extract<
     GenericInvokeChannel,
-    "recentFiles:add" | "recentFiles:approve" | "recentFiles:get"
+    "recentFiles:add" | "recentFiles:get"
 >;
 
 /** Request payload accepted by recent-file mutation invoke handlers. */
-export type RecentFileRequestPayload = InvokeRequestPayloadByChannel[
-    | "recentFiles:add"
-    | "recentFiles:approve"];
+export type RecentFileRequestPayload =
+    InvokeRequestPayloadByChannel["recentFiles:add"];
 
 /** Response payload returned by recent-file invoke handlers. */
 export type RecentFilesResponsePayload =
@@ -433,10 +430,6 @@ export type RecentFilesResponsePayload =
 export type RecentFilesListResponse = InvokeResponsePayloadByChannel[
     | "recentFiles:add"
     | "recentFiles:get"];
-
-/** Approval result returned by recentFiles:approve. */
-export type RecentFilesApprovalResponse =
-    InvokeResponsePayloadByChannel["recentFiles:approve"];
 
 /** FIT browser invoke channels used by the folder-browser bridge. */
 export type FitBrowserInvokeChannel = Extract<
@@ -597,7 +590,6 @@ export type GenericInvokeChannel =
     | "main-state:unlisten"
     | "map-tab:get"
     | "recentFiles:add"
-    | "recentFiles:approve"
     | "recentFiles:get"
     | "shell:openExternal"
     | "theme:get";

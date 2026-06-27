@@ -2993,7 +2993,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(70);
+        expect.assertions(71);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3144,6 +3144,9 @@ describe("architecture boundaries", () => {
         );
         expect(registerRecentFileHandlersSource).toContain(
             "getLoadedFitFilePath"
+        );
+        expect(registerRecentFileHandlersSource).not.toContain(
+            "recentFiles:approve"
         );
         expect(registerRecentFileHandlersSource).not.toContain(
             'getAppState: (key: "loadedFitFilePath")'

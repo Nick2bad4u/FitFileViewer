@@ -217,8 +217,7 @@ function validateInvokeArgs(
         }
 
         case "file:read":
-        case "recentFiles:add":
-        case "recentFiles:approve": {
+        case "recentFiles:add": {
             if (args.length !== 1) {
                 throw createInvokeValidationError(
                     channel,

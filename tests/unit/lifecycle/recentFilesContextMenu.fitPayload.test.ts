@@ -13,7 +13,6 @@ import { attachRecentFilesContextMenu } from "../../../electron-app/utils/app/li
 import type { RendererElectronApiScope } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFile = (file: string) => Promise<void>;
-type ApproveRecentFile = (file: string) => Promise<boolean>;
 type ParseFitFile = (arrayBuffer: ArrayBuffer) => Promise<unknown>;
 type ReadFile = (file: string) => Promise<ArrayBuffer>;
 type RecentFiles = () => Promise<string[]>;
@@ -24,7 +23,6 @@ type ShowNotification = Parameters<
 
 type Harness = {
     addRecentFile: ReturnType<typeof vi.fn<AddRecentFile>>;
-    approveRecentFile: ReturnType<typeof vi.fn<ApproveRecentFile>>;
     cleanup: () => void;
     openFileBtn: HTMLButtonElement;
     parseFitFile: ReturnType<typeof vi.fn<ParseFitFile>>;
@@ -58,7 +56,6 @@ async function withRecentFilesHarness(
 
     const harness: Harness = {
         addRecentFile: vi.fn<AddRecentFile>(),
-        approveRecentFile: vi.fn<ApproveRecentFile>(),
         cleanup: () => {},
         openFileBtn,
         parseFitFile: vi.fn<ParseFitFile>(),
@@ -70,7 +67,6 @@ async function withRecentFilesHarness(
 
     const electronApiScope = createElectronApiScope({
         addRecentFile: harness.addRecentFile,
-        approveRecentFile: harness.approveRecentFile,
         parseFitFile: harness.parseFitFile,
         readFile: harness.readFile,
         recentFiles: harness.recentFiles,
@@ -104,9 +100,9 @@ describe(attachRecentFilesContextMenu, () => {
         const getElectronAPI = vi.fn<() => unknown>(() => ({
             parseFitFile: vi.fn<ParseFitFile>(),
             readFile: "read-file",
-            recentFiles: vi.fn<RecentFiles>().mockResolvedValue([
-                "C:\\activities\\activity.fit",
-            ]),
+            recentFiles: vi
+                .fn<RecentFiles>()
+                .mockResolvedValue(["C:\\activities\\activity.fit"]),
         }));
         const setLoading = vi.fn<SetLoading>();
         const cleanup = attachRecentFilesContextMenu({
@@ -139,7 +135,7 @@ describe(attachRecentFilesContextMenu, () => {
     });
 
     it("reports wrapped parser error payloads without displaying them", async () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         await withRecentFilesHarness(async (harness) => {
             harness.recentFiles.mockResolvedValue(["C:\\activities\\bad.fit"]);
@@ -168,7 +164,6 @@ describe(attachRecentFilesContextMenu, () => {
             await flushAsyncEvents();
 
             expect(menuItem).toBeInstanceOf(HTMLDivElement);
-            expect(harness.approveRecentFile).not.toHaveBeenCalled();
             expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.addRecentFile).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(

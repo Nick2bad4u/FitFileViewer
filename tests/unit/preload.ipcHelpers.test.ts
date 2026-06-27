@@ -157,9 +157,10 @@ describe("preload IPC helpers", () => {
                 "writeClipboardText"
             )("payload")
         ).resolves.toBe(true);
-        context.helpers.createSafeEventHandler("app:event", "onEvent")(
-            () => undefined
-        );
+        context.helpers.createSafeEventHandler(
+            "app:event",
+            "onEvent"
+        )(() => undefined);
         context.helpers.createSafeSendHandler("theme:set", "setTheme")("dark");
     });
 
@@ -320,7 +321,7 @@ describe("preload IPC helpers", () => {
     });
 
     it("validates FIT file paths before reaching file IPC channels", async () => {
-        expect.assertions(10);
+        expect.assertions(9);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
         const readFile = helpers.createSafeInvokeHandler(
@@ -331,15 +332,10 @@ describe("preload IPC helpers", () => {
             "recentFiles:add",
             "addRecentFile"
         );
-        const approveRecentFile = helpers.createSafeInvokeHandler(
-            "recentFiles:approve",
-            "approveRecentFile"
-        );
 
         ipcRenderer.invoke
             .mockResolvedValueOnce(new ArrayBuffer(4))
-            .mockResolvedValueOnce(["C:/rides/activity.fit"])
-            .mockResolvedValueOnce(false);
+            .mockResolvedValueOnce(["C:/rides/activity.fit"]);
 
         await expect(readFile("C:/rides/activity.fit")).resolves.toBeInstanceOf(
             ArrayBuffer
@@ -347,9 +343,6 @@ describe("preload IPC helpers", () => {
         await expect(
             addRecentFile("C:/rides/activity.fit")
         ).resolves.toStrictEqual(["C:/rides/activity.fit"]);
-        await expect(approveRecentFile("C:/rides/activity.fit")).resolves.toBe(
-            false
-        );
         await expect(readFile("activity.fit")).rejects.toThrow(
             "Only absolute file paths are allowed"
         );
@@ -366,7 +359,6 @@ describe("preload IPC helpers", () => {
         expect(ipcRenderer.invoke.mock.calls).toStrictEqual([
             ["file:read", "C:/rides/activity.fit"],
             ["recentFiles:add", "C:/rides/activity.fit"],
-            ["recentFiles:approve", "C:/rides/activity.fit"],
         ]);
         expect(preloadLog).toHaveBeenCalledTimes(4);
         expect(

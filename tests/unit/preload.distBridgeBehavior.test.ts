@@ -82,7 +82,6 @@ const EXPECTED_PRELOAD_CHANNELS = {
     NODE_VERSION: "getNodeVersion",
     PLATFORM_INFO: "getPlatformInfo",
     RECENT_FILES_ADD: "recentFiles:add",
-    RECENT_FILES_APPROVE: "recentFiles:approve",
     RECENT_FILES_GET: "recentFiles:get",
     SHELL_OPEN_EXTERNAL: "shell:openExternal",
     THEME_GET: "theme:get",
@@ -352,7 +351,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(exposedAPI.getChannelInfo()).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
-                totalChannels: 27,
+                totalChannels: 26,
                 totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
             expect(getBeforeExitRegistration(mockProcess)).toStrictEqual({
@@ -388,7 +387,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(exposedAPI.getChannelInfo()).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
-                totalChannels: 27,
+                totalChannels: 26,
                 totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
         });
@@ -610,7 +609,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(channelInfo).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
-                totalChannels: 27,
+                totalChannels: 26,
                 totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
         });
@@ -623,7 +622,7 @@ describe("preload.js dist bridge behavior", () => {
             expect(exposedAPI.getChannelInfo()).toStrictEqual({
                 channels: EXPECTED_PRELOAD_CHANNELS,
                 events: EXPECTED_PRELOAD_EVENTS,
-                totalChannels: 27,
+                totalChannels: 26,
                 totalEvents: Object.keys(EXPECTED_PRELOAD_EVENTS).length,
             });
         });

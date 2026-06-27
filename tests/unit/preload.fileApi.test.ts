@@ -24,7 +24,6 @@ function createApi() {
                 FIT_DECODE: "fit:decode",
                 FIT_PARSE: "fit:parse",
                 RECENT_FILES_ADD: "recentFiles:add",
-                RECENT_FILES_APPROVE: "recentFiles:approve",
                 RECENT_FILES_GET: "recentFiles:get",
             },
             createSafeInvokeHandler,
@@ -42,7 +41,6 @@ describe("preload file API", () => {
         const fitBuffer = new ArrayBuffer(8);
 
         await api.addRecentFile("C:/rides/a.fit");
-        await api.approveRecentFile("C:/rides/a.fit");
         await api.decodeFitFile(fitBuffer);
         await api.parseFitFile(fitBuffer);
         await api.readFile("C:/rides/a.fit");
@@ -53,11 +51,6 @@ describe("preload file API", () => {
                 args: ["C:/rides/a.fit"],
                 channel: "recentFiles:add",
                 methodName: "addRecentFile",
-            },
-            {
-                args: ["C:/rides/a.fit"],
-                channel: "recentFiles:approve",
-                methodName: "approveRecentFile",
             },
             {
                 args: [fitBuffer],

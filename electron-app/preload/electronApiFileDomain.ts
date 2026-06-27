@@ -13,7 +13,6 @@ export function createElectronApiFileDomain({
 }: ElectronApiFileDomainOptions): ElectronFileApi & ElectronFitBrowserApi {
     return {
         addRecentFile: fileApi.addRecentFile,
-        approveRecentFile: fileApi.approveRecentFile,
         decodeFitFile: fileApi.decodeFitFile,
         getFitBrowserFolder: fitBrowserApi.getFitBrowserFolder,
         isFitBrowserEnabled: fitBrowserApi.isFitBrowserEnabled,

@@ -233,7 +233,6 @@ export interface PreloadChannels {
     readonly NODE_VERSION: "getNodeVersion";
     readonly PLATFORM_INFO: "getPlatformInfo";
     readonly RECENT_FILES_ADD: "recentFiles:add";
-    readonly RECENT_FILES_APPROVE: "recentFiles:approve";
     readonly RECENT_FILES_GET: "recentFiles:get";
     readonly SHELL_OPEN_EXTERNAL: "shell:openExternal";
     readonly THEME_GET: "theme:get";
@@ -398,7 +397,6 @@ export interface FileApiChannels {
     FIT_DECODE: Extract<GenericInvokeChannel, "fit:decode">;
     FIT_PARSE: Extract<GenericInvokeChannel, "fit:parse">;
     RECENT_FILES_ADD: Extract<GenericInvokeChannel, "recentFiles:add">;
-    RECENT_FILES_APPROVE: Extract<GenericInvokeChannel, "recentFiles:approve">;
     RECENT_FILES_GET: Extract<GenericInvokeChannel, "recentFiles:get">;
 }
 

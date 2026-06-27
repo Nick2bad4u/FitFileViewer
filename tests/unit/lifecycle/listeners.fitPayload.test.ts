@@ -16,7 +16,6 @@ import type { SetupListenersOptions } from "../../../electron-app/utils/app/life
 import type { RendererElectronApiScope } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFile = (filePath: string) => Promise<void>;
-type ApproveRecentFile = (filePath: string) => Promise<boolean>;
 type HandleOpenFile = SetupListenersOptions["handleOpenFile"];
 type OnMenuOpenFile = (callback: () => unknown) => undefined;
 type OnOpenRecentFile = (
@@ -33,7 +32,6 @@ type ShowUpdateNotification = SetupListenersOptions["showUpdateNotification"];
 
 type Harness = {
     addRecentFile: ReturnType<typeof vi.fn<AddRecentFile>>;
-    approveRecentFile: ReturnType<typeof vi.fn<ApproveRecentFile>>;
     cleanup: () => void;
     handleOpenFile: ReturnType<typeof vi.fn<HandleOpenFile>>;
     onMenuOpenFile: ReturnType<typeof vi.fn<OnMenuOpenFile>>;
@@ -65,7 +63,6 @@ function createHarness(): Harness {
 
     return {
         addRecentFile: vi.fn<AddRecentFile>(),
-        approveRecentFile: vi.fn<ApproveRecentFile>(),
         cleanup: () => {},
         handleOpenFile: vi.fn<HandleOpenFile>(),
         onMenuOpenFile: vi.fn<OnMenuOpenFile>(),
@@ -94,7 +91,6 @@ async function withListenersHarness(
     document.body.append(harness.openFileBtn);
     const electronApiScope = createElectronApiScope({
         addRecentFile: harness.addRecentFile,
-        approveRecentFile: harness.approveRecentFile,
         onMenuOpenFile: harness.onMenuOpenFile,
         onOpenRecentFile: harness.onOpenRecentFile,
         parseFitFile: harness.parseFitFile,
@@ -129,7 +125,7 @@ async function withListenersHarness(
 
 describe(setupListeners, () => {
     it("reports wrapped open-recent parser errors without displaying them", async () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         await withListenersHarness(async (harness) => {
             harness.readFile.mockResolvedValue(new ArrayBuffer(16));
@@ -142,7 +138,6 @@ describe(setupListeners, () => {
 
             await harness.openRecentHandler("C:\\activities\\bad.fit");
 
-            expect(harness.approveRecentFile).not.toHaveBeenCalled();
             expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.addRecentFile).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(

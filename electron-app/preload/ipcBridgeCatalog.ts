@@ -26,7 +26,6 @@ type PreloadChannelName =
     | "NODE_VERSION"
     | "PLATFORM_INFO"
     | "RECENT_FILES_ADD"
-    | "RECENT_FILES_APPROVE"
     | "RECENT_FILES_GET"
     | "SHELL_OPEN_EXTERNAL"
     | "THEME_GET";
@@ -82,7 +81,6 @@ export const PRELOAD_CHANNELS = {
     NODE_VERSION: "getNodeVersion",
     PLATFORM_INFO: "getPlatformInfo",
     RECENT_FILES_ADD: "recentFiles:add",
-    RECENT_FILES_APPROVE: "recentFiles:approve",
     RECENT_FILES_GET: "recentFiles:get",
     SHELL_OPEN_EXTERNAL: "shell:openExternal",
     THEME_GET: "theme:get",

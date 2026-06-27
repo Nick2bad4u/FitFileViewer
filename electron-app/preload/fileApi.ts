@@ -10,10 +10,6 @@ export function createFileApi({
             channels.RECENT_FILES_ADD,
             "addRecentFile"
         ),
-        approveRecentFile: createSafeInvokeHandler(
-            channels.RECENT_FILES_APPROVE,
-            "approveRecentFile"
-        ),
         decodeFitFile: createSafeInvokeHandler(
             channels.FIT_DECODE,
             "decodeFitFile"

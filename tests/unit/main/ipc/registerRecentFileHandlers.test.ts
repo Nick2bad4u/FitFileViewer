@@ -8,10 +8,7 @@ import {
 } from "../../../../electron-app/main/security/fileAccessPolicy.js";
 import { registerRecentFileHandlers } from "../../../../electron-app/main/ipc/registerRecentFileHandlers.js";
 
-type RecentFilesInvokeChannel =
-    | "recentFiles:add"
-    | "recentFiles:approve"
-    | "recentFiles:get";
+type RecentFilesInvokeChannel = "recentFiles:add" | "recentFiles:get";
 type RecentFileIpcHandler = (
     event?: unknown,
     ...args: unknown[]
@@ -253,33 +250,6 @@ describe("registerRecentFileHandlers", () => {
         expect(list).toStrictEqual(["C:/a.fit"]);
         expect(getRecentFileState(["C:/a.fit"]).approvals).toStrictEqual({
             "C:/a.fit": false,
-        });
-    });
-
-    it("recentFiles:approve denies renderer-originated approval requests", async () => {
-        expect.assertions(3);
-
-        registerDefaultHandlers();
-
-        const approveHandler = getHandler("recentFiles:approve");
-
-        const rejectedApproval = await approveHandler({}, "C:/not-in-list.fit");
-        expect(
-            getRecentFileState(["C:/not-in-list.fit"]).approvals
-        ).toStrictEqual({
-            "C:/not-in-list.fit": false,
-        });
-
-        const deniedRecentApproval = await approveHandler({}, "C:/a.fit");
-        expect(getRecentFileState(["C:/a.fit"]).approvals).toStrictEqual({
-            "C:/a.fit": false,
-        });
-        expect({
-            deniedRecentApproval,
-            rejectedApproval,
-        }).toStrictEqual({
-            deniedRecentApproval: false,
-            rejectedApproval: false,
         });
     });
 });

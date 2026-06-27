@@ -64,7 +64,6 @@ export function createElectronApi({
 
     return {
         addRecentFile: fileDomain.addRecentFile,
-        approveRecentFile: fileDomain.approveRecentFile,
         checkForUpdates: menuDomain.checkForUpdates,
         decodeFitFile: fileDomain.decodeFitFile,
         getAppVersion: appInfoDomain.getAppVersion,

@@ -25,7 +25,6 @@ const expectedPreloadChannels = {
     NODE_VERSION: "getNodeVersion",
     PLATFORM_INFO: "getPlatformInfo",
     RECENT_FILES_ADD: "recentFiles:add",
-    RECENT_FILES_APPROVE: "recentFiles:approve",
     RECENT_FILES_GET: "recentFiles:get",
     SHELL_OPEN_EXTERNAL: "shell:openExternal",
     THEME_GET: "theme:get",

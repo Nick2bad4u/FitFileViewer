@@ -177,9 +177,6 @@ function createElectronAPIMock() {
 
         // FS operations (can be overridden per test)
         recentFiles: vi.fn<RecentFilesMock>(),
-        approveRecentFile: vi
-            .fn<(fp: string) => Promise<boolean>>()
-            .mockResolvedValue(true),
         readFile: vi.fn<ReadFileMock>(),
         parseFitFile: vi.fn<ParseFitFileMock>(),
         addRecentFile: vi.fn<AddRecentFileMock>(),
@@ -936,7 +933,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Success case
         await electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
-        expect(electronAPI.approveRecentFile).not.toHaveBeenCalled();
         expect(electronAPI.readFile).toHaveBeenCalledWith("C:/tmp/recent.fit");
         expect(electronAPI.addRecentFile).toHaveBeenCalledWith(
             "C:/tmp/recent.fit"
