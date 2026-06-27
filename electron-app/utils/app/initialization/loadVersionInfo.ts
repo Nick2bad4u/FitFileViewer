@@ -25,10 +25,6 @@ type VersionInfoElectronAPI = {
     readonly getPlatformInfo?: ElectronAppInfoApi["getPlatformInfo"];
 };
 
-type VersionInfoElectronApiCandidate = {
-    readonly [K in keyof VersionInfoElectronAPI]?: unknown;
-};
-
 type VersionInfoSource = "electronAPI" | "fallback";
 
 type LoadVersionInfoOptions = {
@@ -249,17 +245,23 @@ function isVersionInfoElectronAPI(
         return false;
     }
 
-    const api = value as VersionInfoElectronApiCandidate;
     return (
-        hasOptionalFunction(api.getAppVersion) &&
-        hasOptionalFunction(api.getChromeVersion) &&
-        hasOptionalFunction(api.getElectronVersion) &&
-        hasOptionalFunction(api.getLicenseInfo) &&
-        hasOptionalFunction(api.getNodeVersion) &&
-        hasOptionalFunction(api.getPlatformInfo)
+        hasOptionalFunctionProperty(value, "getAppVersion") &&
+        hasOptionalFunctionProperty(value, "getChromeVersion") &&
+        hasOptionalFunctionProperty(value, "getElectronVersion") &&
+        hasOptionalFunctionProperty(value, "getLicenseInfo") &&
+        hasOptionalFunctionProperty(value, "getNodeVersion") &&
+        hasOptionalFunctionProperty(value, "getPlatformInfo")
     );
 }
 
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
+}
+
+function hasOptionalFunctionProperty(
+    value: object,
+    propertyKey: string
+): boolean {
+    return hasOptionalFunction(Reflect.get(value, propertyKey));
 }

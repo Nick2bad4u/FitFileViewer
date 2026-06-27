@@ -21021,7 +21021,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(34);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -21063,6 +21063,21 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoSource).not.toContain("Pick<ElectronAPI");
         expect(loadVersionInfoSource).not.toContain(
             "Reflect.get(value, methodName)"
+        );
+        expect(loadVersionInfoSource).toContain(
+            "function hasOptionalFunctionProperty("
+        );
+        expect(loadVersionInfoSource).toContain(
+            "Reflect.get(value, propertyKey)"
+        );
+        expect(loadVersionInfoSource).not.toContain(
+            "type VersionInfoElectronApiCandidate"
+        );
+        expect(loadVersionInfoSource).not.toContain(
+            "readonly [K in keyof VersionInfoElectronAPI]?: unknown;"
+        );
+        expect(loadVersionInfoSource).not.toContain(
+            "value as VersionInfoElectronApiCandidate"
         );
         expect(loadVersionInfoSource).not.toContain("process.arch");
         expect(loadVersionInfoSource).not.toContain("process.platform");

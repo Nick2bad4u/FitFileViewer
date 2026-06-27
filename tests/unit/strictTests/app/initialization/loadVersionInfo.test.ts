@@ -205,6 +205,46 @@ describe("loadVersionInfo", () => {
         );
     });
 
+    it("rejects primitive scoped version APIs and falls back to process info", async () => {
+        expect.assertions(4);
+
+        resetTestState();
+        setRuntimeProcess({
+            arch: "x64",
+            platform: "primitive-platform",
+            versions: {
+                chrome: "122.0.0",
+                electron: "32.0.0",
+                node: "24.0.0",
+            },
+        });
+        const getElectronAPI = vi.fn<() => unknown>(() => "not an api");
+
+        const { loadVersionInfoWithOptions } =
+            await importLoadVersionInfoModule();
+
+        await loadVersionInfoWithOptions({
+            electronApiScope: { getElectronAPI },
+        });
+
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(getVersionNumberElement().textContent).toBe("");
+        expect(h.updateSystemInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chrome: "122.0.0",
+                electron: "32.0.0",
+                node: "24.0.0",
+                platform: "primitive-platform (x64)",
+                version: "unknown",
+            })
+        );
+        expect(h.logWithLevel).toHaveBeenCalledWith(
+            "warn",
+            "[LoadVersionInfo] electronAPI not available",
+            undefined
+        );
+    });
+
     it("keeps defaults when electronAPI version retrieval fails", async () => {
         expect.assertions(2);
 
