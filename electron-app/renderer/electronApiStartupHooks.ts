@@ -9,15 +9,23 @@ export type RendererApplyTheme = (
     withTransition?: boolean
 ) => void;
 export type RendererElectronMenuAction = "about" | "open-file";
+export type RendererElectronHookUnsubscribe = () => void;
+export type RendererElectronHookRegistrationResult =
+    | RendererElectronHookUnsubscribe
+    | void;
 
 export interface ElectronApiStartupHooks {
     checkForUpdates: (() => void) | undefined;
     isDevelopment: (() => Promise<boolean>) | undefined;
     onMenuAction:
-        | ((callback: (action: RendererElectronMenuAction) => void) => unknown)
+        | ((
+              callback: (action: RendererElectronMenuAction) => void
+          ) => RendererElectronHookRegistrationResult)
         | undefined;
     onThemeChanged:
-        | ((callback: (theme: string) => void) => unknown)
+        | ((
+              callback: (theme: string) => void
+          ) => RendererElectronHookRegistrationResult)
         | undefined;
     recentFiles: (() => Promise<RecentFilesListResponse>) | undefined;
 }
@@ -60,13 +68,13 @@ export function getElectronApiHooksFromValue(
             typeof apiValue.onMenuAction === "function"
                 ? (apiValue.onMenuAction as (
                       callback: (action: RendererElectronMenuAction) => void
-                  ) => unknown)
+                  ) => RendererElectronHookRegistrationResult)
                 : undefined,
         onThemeChanged:
             typeof apiValue.onThemeChanged === "function"
                 ? (apiValue.onThemeChanged as (
                       callback: (theme: string) => void
-                  ) => unknown)
+                  ) => RendererElectronHookRegistrationResult)
                 : undefined,
         recentFiles:
             typeof apiValue.recentFiles === "function"

@@ -4,17 +4,18 @@ import {
     installRendererElectronApiRegistration,
     registerRendererElectronAPI,
 } from "../../../electron-app/renderer/electronApiRegistration.js";
+import type { RendererElectronMenuAction } from "../../../electron-app/renderer/electronApiStartupHooks.js";
 import { getRendererElectronApi } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createOptions() {
     const state = {
-        menuActions: [] as unknown[],
+        menuActions: [] as RendererElectronMenuAction[],
         scheduledCount: 0,
         themeChanges: [] as string[],
     };
     const options = {
         electronApiCandidate: undefined,
-        onMenuAction: (action: unknown) => {
+        onMenuAction: (action: RendererElectronMenuAction) => {
             state.menuActions.push(action);
         },
         onThemeChanged: (theme: string) => {
@@ -30,7 +31,9 @@ function createOptions() {
 }
 
 function createElectronApi() {
-    let menuCallback: ((action: unknown) => void) | undefined;
+    let menuCallback:
+        | ((action: RendererElectronMenuAction) => void)
+        | undefined;
     let themeCallback: ((theme: string) => void) | undefined;
     const isDevelopment = vi.fn<() => Promise<boolean>>(() =>
         Promise.resolve(true)
@@ -39,14 +42,16 @@ function createElectronApi() {
     return {
         api: {
             isDevelopment,
-            onMenuAction(callback: (action: unknown) => void): void {
+            onMenuAction(
+                callback: (action: RendererElectronMenuAction) => void
+            ): void {
                 menuCallback = callback;
             },
             onThemeChanged(callback: (theme: string) => void): void {
                 themeCallback = callback;
             },
         },
-        emitMenu(action: unknown): void {
+        emitMenu(action: RendererElectronMenuAction): void {
             menuCallback?.(action);
         },
         emitTheme(theme: string): void {
