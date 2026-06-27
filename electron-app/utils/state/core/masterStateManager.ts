@@ -17,7 +17,10 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
+import type {
+    ElectronAppInfoApi,
+    ElectronDialogApi,
+} from "../../../shared/preloadApi.js";
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -69,12 +72,11 @@ type ComponentName =
     | "tabs"
     | "ui";
 
-type ElectronRendererAPI = Partial<
-    Pick<
-        ElectronAPIWithDevFlags,
-        "__devMode" | "getAppVersion" | "openFile" | "openFileDialog"
-    >
->;
+type ElectronRendererAPI = {
+    readonly __devMode?: boolean;
+    readonly getAppVersion?: ElectronAppInfoApi["getAppVersion"];
+    readonly openFileDialog?: ElectronDialogApi["openFileDialog"];
+};
 
 type StateManagerApi = {
     getState: typeof getState;
@@ -186,7 +188,7 @@ function stateStorageRuntime(): StateStorageRuntime {
 
 function hasOptionalMasterElectronFunction(
     value: object,
-    key: "getAppVersion" | "openFile" | "openFileDialog"
+    key: "getAppVersion" | "openFileDialog"
 ): boolean {
     if (!(key in value)) {
         return true;
@@ -203,14 +205,10 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
     const devMode = getOptionalElectronDevelopmentMode(value);
     return (
         (devMode === undefined || typeof devMode === "boolean") &&
-        [
-            "getAppVersion",
-            "openFile",
-            "openFileDialog",
-        ].every((key) =>
+        ["getAppVersion", "openFileDialog"].every((key) =>
             hasOptionalMasterElectronFunction(
                 value,
-                key as "getAppVersion" | "openFile" | "openFileDialog"
+                key as "getAppVersion" | "openFileDialog"
             )
         )
     );

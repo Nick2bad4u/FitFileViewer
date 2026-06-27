@@ -17106,7 +17106,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(46);
+        expect.assertions(47);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -17194,6 +17194,9 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateClientSource).not.toContain("Pick<ElectronAPI");
         expect(masterStateManagerSource).not.toContain(
             "value as Readonly<Record"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "type ElectronRendererAPI = Partial<"
         );
         expect(showUpdateNotificationSource).not.toContain(
             "value as Record<string, unknown>"
