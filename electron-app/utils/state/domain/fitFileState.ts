@@ -7,7 +7,12 @@ import {
     resolveFieldDescriptionMessages,
 } from "../../data/processing/auxHeartRateUtils.js";
 import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
-import * as stateCore from "../core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    updateState,
+} from "../core/stateManager.js";
 import type { FitFileLoadingPhase } from "../core/stateManagerDefaults.js";
 import {
     normalizeFitFileLoadingPhase,
@@ -20,7 +25,6 @@ import {
 } from "./fitFileStateRuntime.js";
 
 type DataRecord = Record<string, unknown>;
-type Unsubscribe = () => void;
 type RawFitDataArrayKey =
     | "eventMesgs"
     | "lapMesgs"
@@ -232,20 +236,9 @@ const ALLOWED_PHASE_TRANSITIONS: Record<
     ],
 };
 
-function emptyUnsubscribe(): void {
-    // No-op fallback when the state manager API is unavailable in a test mock.
-}
-
 function fitFileStateRuntime(): FitFileStateRuntime {
     return getFitFileStateRuntime();
 }
-
-const subscribe = (
-    ...args: Parameters<typeof stateCore.subscribe>
-): Unsubscribe =>
-    typeof stateCore.subscribe === "function"
-        ? stateCore.subscribe(...args)
-        : emptyUnsubscribe;
 
 function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
@@ -269,9 +262,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getCurrentLoadingPhase(): FitFileLoadingPhase {
-    return normalizeFitFileLoadingPhase(
-        stateCore.getState("fitFile.loadingPhase")
-    );
+    return normalizeFitFileLoadingPhase(getState("fitFile.loadingPhase"));
 }
 
 function isRawFitData(value: unknown): value is RawFitData {
@@ -296,17 +287,17 @@ function getRawMessageArray<T extends DataRecord = DataRecord>(
 }
 
 function getStoredRawFitData(): RawFitData | null {
-    const domainRawData = stateCore.getState("fitFile.rawData");
+    const domainRawData = getState("fitFile.rawData");
     return isRawFitData(domainRawData) ? domainRawData : null;
 }
 
 function getStoredCurrentFile(): null | string {
-    const currentFile = stateCore.getState(FIT_FILE_CURRENT_FILE_STATE_PATH);
+    const currentFile = getState(FIT_FILE_CURRENT_FILE_STATE_PATH);
     return typeof currentFile === "string" ? currentFile : null;
 }
 
 function setCurrentFileState(filePath: null | string, source: string): void {
-    stateCore.setState(FIT_FILE_CURRENT_FILE_STATE_PATH, filePath, { source });
+    setState(FIT_FILE_CURRENT_FILE_STATE_PATH, filePath, { source });
 }
 
 /**
@@ -426,32 +417,32 @@ export class FitFileStateManager {
             progress: 0,
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.isLoading", false, {
+        setState("fitFile.isLoading", false, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
         setCurrentFileState(null, SOURCE_CLEAR_FILE_STATE);
-        stateCore.setState("fitFile.rawData", null, {
+        setState("fitFile.rawData", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.processedData", null, {
+        setState("fitFile.processedData", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.validation", null, {
+        setState("fitFile.validation", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.metrics", null, {
+        setState("fitFile.metrics", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.loadingError", null, {
+        setState("fitFile.loadingError", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.processingError", null, {
+        setState("fitFile.processingError", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.loaded", null, {
+        setState("fitFile.loaded", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        stateCore.setState("fitFile.loadedFiles", [], {
+        setState("fitFile.loadedFiles", [], {
             source: SOURCE_CLEAR_FILE_STATE,
         });
 
@@ -559,10 +550,10 @@ export class FitFileStateManager {
         const source = "FitFileStateManager.handleFileLoaded";
         const safeData = fileData ?? null;
 
-        stateCore.setState("fitFile.isLoading", false, { source });
-        stateCore.setState("fitFile.loadingProgress", 100, { source });
-        stateCore.setState("fitFile.loadingError", null, { source });
-        stateCore.setState("fitFile.rawData", safeData, { source });
+        setState("fitFile.isLoading", false, { source });
+        setState("fitFile.loadingProgress", 100, { source });
+        setState("fitFile.loadingError", null, { source });
+        setState("fitFile.rawData", safeData, { source });
 
         const providedPath = isNonEmptyString(options.filePath)
             ? options.filePath
@@ -575,18 +566,16 @@ export class FitFileStateManager {
             source,
         });
         setCurrentFileState(resolvedPath, source);
-        stateCore.setState("fitFile.loaded", safeData, { source });
+        setState("fitFile.loaded", safeData, { source });
 
-        stateCore.setState("charts.isRendered", false, { source });
-        stateCore.setState("map.isRendered", false, { source });
-        stateCore.setState("tables.isRendered", false, { source });
+        setState("charts.isRendered", false, { source });
+        setState("map.isRendered", false, { source });
+        setState("tables.isRendered", false, { source });
 
-        stateCore.setState(
-            "performance.lastLoadTime",
-            fitFileStateRuntime().dateNow(),
-            { source }
-        );
-        stateCore.setState("isLoading", false, { source });
+        setState("performance.lastLoadTime", fitFileStateRuntime().dateNow(), {
+            source,
+        });
+        setState("isLoading", false, { source });
 
         showNotification("FIT file loaded successfully", "success", 3000);
         console.log("[FitFileState] File loaded successfully");
@@ -599,7 +588,7 @@ export class FitFileStateManager {
         files: readonly LoadedFitFile[],
         source = "FitFileStateManager.setLoadedFiles"
     ): void {
-        stateCore.setState("fitFile.loadedFiles", [...files], { source });
+        setState("fitFile.loadedFiles", [...files], { source });
     }
 
     /**
@@ -610,19 +599,19 @@ export class FitFileStateManager {
             return;
         }
 
-        const previousMessage = stateCore.getState("fitFile.loadingError");
+        const previousMessage = getState("fitFile.loadingError");
         const message = getErrorMessage(error);
 
         if (typeof error === "string" && previousMessage === message) {
             return;
         }
 
-        stateCore.setState("fitFile.isLoading", false, {
+        setState("fitFile.isLoading", false, {
             source: "FitFileStateManager.handleFileLoadingError",
         });
 
         if (previousMessage !== message) {
-            stateCore.setState("fitFile.loadingError", message, {
+            setState("fitFile.loadingError", message, {
                 source: "FitFileStateManager.handleFileLoadingError",
             });
         }
@@ -669,19 +658,15 @@ export class FitFileStateManager {
                 sessionInfo: this.extractSessionInfo(data),
             };
 
-            stateCore.setState("fitFile.processedData", processedData, {
+            setState("fitFile.processedData", processedData, {
                 source: "FitFileStateManager.processFileData",
             });
             console.log("[FitFileState] Data processed successfully");
         } catch (error) {
             console.error("[FitFileState] Error processing data:", error);
-            stateCore.setState(
-                "fitFile.processingError",
-                getErrorMessage(error),
-                {
-                    source: "FitFileStateManager.processFileData",
-                }
-            );
+            setState("fitFile.processingError", getErrorMessage(error), {
+                source: "FitFileStateManager.processFileData",
+            });
         }
     }
 
@@ -744,11 +729,11 @@ export class FitFileStateManager {
             progress: 0,
             source,
         });
-        stateCore.setState("fitFile.isLoading", true, { source });
-        stateCore.setState("isLoading", true, { source });
+        setState("fitFile.isLoading", true, { source });
+        setState("isLoading", true, { source });
         setCurrentFileState(filePath, source);
-        stateCore.setState("fitFile.loadingProgress", 0, { source });
-        stateCore.setState("fitFile.loadingError", null, { source });
+        setState("fitFile.loadingProgress", 0, { source });
+        setState("fitFile.loadingError", null, { source });
 
         console.log(`[FitFileState] Started loading: ${filePath}`);
     }
@@ -774,7 +759,7 @@ export class FitFileStateManager {
         const source =
             options.source ?? "FitFileStateManager.transitionLoadingPhase";
         const isLoading = ACTIVE_LOADING_PHASES.has(phase);
-        const previousState = stateCore.getState("fitFile.loadingState");
+        const previousState = getState("fitFile.loadingState");
         const previous =
             previousState !== null &&
             typeof previousState === "object" &&
@@ -800,8 +785,8 @@ export class FitFileStateManager {
                   : now;
         const error = phase === "error" ? (options.error ?? null) : null;
 
-        stateCore.setState("fitFile.loadingPhase", phase, { source });
-        stateCore.setState(
+        setState("fitFile.loadingPhase", phase, { source });
+        setState(
             "fitFile.loadingState",
             {
                 error,
@@ -813,9 +798,9 @@ export class FitFileStateManager {
             },
             { source }
         );
-        stateCore.setState("fitFile.loadingProgress", progress, { source });
-        stateCore.setState("fitFile.isLoading", isLoading, { source });
-        stateCore.setState("isLoading", isLoading, { source });
+        setState("fitFile.loadingProgress", progress, { source });
+        setState("fitFile.isLoading", isLoading, { source });
+        setState("isLoading", isLoading, { source });
 
         return true;
     }
@@ -828,7 +813,7 @@ export class FitFileStateManager {
             return;
         }
 
-        stateCore.updateState(
+        updateState(
             "fitFile.metrics",
             {
                 dataQualityScore: processedData.dataQuality.completeness,
@@ -850,7 +835,7 @@ export class FitFileStateManager {
             progress,
         };
 
-        stateCore.updateState("ui.loadingIndicator", indicatorState, {
+        updateState("ui.loadingIndicator", indicatorState, {
             source: "FitFileStateManager.updateLoadingProgress",
         });
 
@@ -895,7 +880,7 @@ export class FitFileStateManager {
             validation.errors.push("No data provided");
         }
 
-        stateCore.setState("fitFile.validation", validation, {
+        setState("fitFile.validation", validation, {
             source: "FitFileStateManager.validateFileData",
         });
 
@@ -929,13 +914,13 @@ export const FitFileSelectors = {
     },
 
     getLoadingError(): string | null {
-        const loadingError = stateCore.getState("fitFile.loadingError");
+        const loadingError = getState("fitFile.loadingError");
         return typeof loadingError === "string" ? loadingError : null;
     },
 
     getLoadingProgress(): number {
         return normalizeFitFileLoadingProgress(
-            stateCore.getState("fitFile.loadingProgress")
+            getState("fitFile.loadingProgress")
         );
     },
 
@@ -951,32 +936,30 @@ export const FitFileSelectors = {
         startedAt: null | number;
         updatedAt: null | number;
     } {
-        return normalizeFitFileLoadingState(
-            stateCore.getState("fitFile.loadingState")
-        );
+        return normalizeFitFileLoadingState(getState("fitFile.loadingState"));
     },
 
     getLoadedFiles<T extends LoadedFitFile = LoadedFitFile>(): T[] {
-        const loadedFiles = stateCore.getState("fitFile.loadedFiles");
+        const loadedFiles = getState("fitFile.loadedFiles");
         return Array.isArray(loadedFiles) ? ([...loadedFiles] as T[]) : [];
     },
 
     getMetrics(): FileMetrics | null {
-        const metrics = stateCore.getState("fitFile.metrics");
+        const metrics = getState("fitFile.metrics");
         return metrics === null || metrics === undefined
             ? null
             : (metrics as FileMetrics);
     },
 
     getProcessedData(): ProcessedData | null {
-        const processedData = stateCore.getState("fitFile.processedData");
+        const processedData = getState("fitFile.processedData");
         return processedData === null || processedData === undefined
             ? null
             : (processedData as ProcessedData);
     },
 
     getProcessingError(): string | null {
-        const processingError = stateCore.getState("fitFile.processingError");
+        const processingError = getState("fitFile.processingError");
         return typeof processingError === "string" ? processingError : null;
     },
 
@@ -1005,7 +988,7 @@ export const FitFileSelectors = {
     },
 
     getValidation(): ValidationResult | null {
-        const validation = stateCore.getState("fitFile.validation");
+        const validation = getState("fitFile.validation");
         return validation === null || validation === undefined
             ? null
             : (validation as ValidationResult);
@@ -1032,7 +1015,7 @@ export const FitFileSelectors = {
     },
 
     isLoading(): boolean {
-        return stateCore.getState("fitFile.isLoading") === true;
+        return getState("fitFile.isLoading") === true;
     },
 };
 

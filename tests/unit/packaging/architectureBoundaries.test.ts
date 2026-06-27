@@ -5210,7 +5210,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT file current-file state off the retired root mirror", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const fitFileStateSource = stripComments(
             readRepositoryFile(
@@ -5231,7 +5231,10 @@ describe("architecture boundaries", () => {
             /function\s+setCurrentFileState\(\s*filePath:\s+null\s+\|\s+string,\s*source:\s+string\s*\):\s+void/u
         );
         expect(fitFileStateSource).toMatch(
-            /stateCore\.setState\(\s*FIT_FILE_CURRENT_FILE_STATE_PATH\s*,\s*filePath,\s*\{\s*source\s*\}\s*\)/u
+            /setState\(\s*FIT_FILE_CURRENT_FILE_STATE_PATH\s*,\s*filePath,\s*\{\s*source\s*\}\s*\)/u
+        );
+        expect(fitFileStateSource).not.toContain(
+            'import * as stateCore from "../core/stateManager.js"'
         );
         expect(fitFileStateSource).not.toMatch(
             /stateCore\.setState\(\s*["']currentFile["']\s*,/u
