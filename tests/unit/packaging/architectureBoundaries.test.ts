@@ -11523,7 +11523,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(61);
+        expect.assertions(62);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -11671,6 +11671,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererActiveFileStateSource).not.toContain(
             "LEGACY_RENDERER_CURRENT_FILE_STATE_PATH"
+        );
+        expect(rendererActiveFileStateSource).not.toContain(
+            "Partial<Record<keyof RendererFileInfoState, unknown>>"
         );
         expect(rendererActiveFileStateSource).toMatch(
             /getState\(\s*RENDERER_CURRENT_FILE_STATE_PATH\s*\)/u

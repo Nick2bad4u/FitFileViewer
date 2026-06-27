@@ -71,9 +71,14 @@ describe("rendererActiveFileState", () => {
     });
 
     it("normalizes file info values", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         expect(normalizeRendererFileInfo(null)).toStrictEqual({
+            displayName: "",
+            hasFile: false,
+            title: "",
+        });
+        expect(normalizeRendererFileInfo(["ride.fit"])).toStrictEqual({
             displayName: "",
             hasFile: false,
             title: "",

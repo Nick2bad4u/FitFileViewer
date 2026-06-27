@@ -9,6 +9,11 @@ export type RendererFileInfoState = {
     hasFile: boolean;
     title: string;
 };
+type RendererFileInfoStateCandidate = Readonly<{
+    displayName?: unknown;
+    hasFile?: unknown;
+    title?: unknown;
+}>;
 
 export const DEFAULT_RENDERER_FILE_INFO: RendererFileInfoState = {
     displayName: "",
@@ -84,9 +89,7 @@ export function normalizeRendererFileInfo(
         return { ...DEFAULT_RENDERER_FILE_INFO };
     }
 
-    const record = value as Partial<
-        Record<keyof RendererFileInfoState, unknown>
-    >;
+    const record = value as RendererFileInfoStateCandidate;
     return {
         displayName:
             typeof record.displayName === "string" ? record.displayName : "",
