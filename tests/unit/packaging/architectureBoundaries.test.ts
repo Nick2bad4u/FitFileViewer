@@ -19983,7 +19983,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(42);
+        expect.assertions(43);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -20024,6 +20024,9 @@ describe("architecture boundaries", () => {
         );
         expect(getCurrentSettingsSource).not.toContain(
             "const currentSettingsRuntime = getGetCurrentSettingsRuntime();"
+        );
+        expect(getCurrentSettingsSource).not.toContain(
+            "Partial<ResettableElement>"
         );
         expect(getCurrentSettingsSource).toContain(
             "currentSettingsRuntime().clearTimeout"

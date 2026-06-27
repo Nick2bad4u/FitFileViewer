@@ -86,8 +86,7 @@ function isResettable(el: Element | null | undefined): el is ResettableElement {
     }
 
     return (
-        typeof (el as Partial<ResettableElement>)._updateFromReset ===
-        "function"
+        "_updateFromReset" in el && typeof el._updateFromReset === "function"
     );
 }
 
@@ -499,7 +498,9 @@ function updateToggleFromSettingRow(
     }
 
     parent._updateFromReset();
-    console.log(`${LOG_PREFIX} Updated toggle ${option.id} via context matching`);
+    console.log(
+        `${LOG_PREFIX} Updated toggle ${option.id} via context matching`
+    );
     return true;
 }
 

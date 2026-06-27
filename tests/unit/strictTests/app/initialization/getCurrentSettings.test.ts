@@ -177,11 +177,25 @@ describe("getCurrentSettings module", () => {
     });
 
     it("resetAllSettings clears storage, updates UI, and reports success", async () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         resetTestState();
         localStorage.setItem("chartjs_maxpoints", "1000");
         localStorage.setItem("chartjs_color_speed", "#ff00ff");
+
+        const resetHook = vi.fn<() => void>();
+        const resettableControl = Object.assign(document.createElement("div"), {
+            _updateFromReset: resetHook,
+        });
+        const malformedResetControl = Object.assign(
+            document.createElement("div"),
+            {
+                _updateFromReset: true,
+            }
+        );
+        document
+            .getElementById("chartjs-settings-wrapper")
+            ?.append(resettableControl, malformedResetControl);
 
         const { resetAllSettings } = await importGetCurrentSettings();
         const didReset = resetAllSettings();
@@ -194,6 +208,8 @@ describe("getCurrentSettings module", () => {
             "Settings reset to defaults",
             "success"
         );
+        expect(resetHook).toHaveBeenCalledWith();
+        expect(resetHook).toHaveBeenCalledTimes(1);
     });
 
     it("reRenderChartsAfterSettingChange clears caches and delegates rendering", async () => {
