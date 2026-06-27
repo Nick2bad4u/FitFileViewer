@@ -42,9 +42,9 @@ type ObjectsTable = {
     objects: () => TableRow[];
 };
 
-interface ClipboardElectronAPI {
-    writeClipboardText: ElectronClipboardApi["writeClipboardText"];
-}
+type ClipboardElectronAPI = {
+    readonly writeClipboardText: ElectronClipboardApi["writeClipboardText"];
+};
 
 type CopyTableAsCSVOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
