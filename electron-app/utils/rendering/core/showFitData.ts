@@ -81,9 +81,9 @@ export type ShowFitDataOptions = {
     updateUI?: boolean;
 };
 
-interface ElectronApiLike {
-    notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
-}
+type ShowFitDataElectronApiCandidate = {
+    readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+};
 
 type FitFileStateManagerLike = {
     handleFileLoaded: (
@@ -98,11 +98,13 @@ type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
 function getShowFitDataElectronApi(
     electronApiScope: RendererElectronApiScope | undefined
-): ElectronApiLike | null {
+): ShowFitDataElectronApiCandidate | null {
     return getRendererElectronApi(isShowFitDataElectronApi, electronApiScope);
 }
 
-function isShowFitDataElectronApi(value: unknown): value is ElectronApiLike {
+function isShowFitDataElectronApi(
+    value: unknown
+): value is ShowFitDataElectronApiCandidate {
     if (value === null || typeof value !== "object") {
         return false;
     }

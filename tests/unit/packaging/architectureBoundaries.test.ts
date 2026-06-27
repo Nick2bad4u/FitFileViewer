@@ -9609,7 +9609,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(48);
+        expect.assertions(49);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -9635,6 +9635,7 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).toContain("getDocument");
         expect(dragDropHandlerSource).toContain("getEventTarget");
         expect(dragDropHandlerSource).toContain("ElectronFileApi");
+        expect(dragDropHandlerSource).not.toContain("ElectronApiLike");
         expect(dragDropHandlerSource).not.toContain(
             "import type { ElectronAPI"
         );
@@ -11132,7 +11133,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(60);
+        expect.assertions(61);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -11168,6 +11169,7 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).toContain("rendererActiveFileState.js");
         expect(showFitDataSource).toContain("rendererMapRenderState.js");
         expect(showFitDataSource).toContain("ElectronPreloadEventApi");
+        expect(showFitDataSource).not.toContain("ElectronApiLike");
         expect(showFitDataSource).not.toContain("import type { ElectronAPI");
         expect(showFitDataSource).not.toContain("Pick<ElectronAPI");
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");

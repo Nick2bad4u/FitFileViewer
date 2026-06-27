@@ -218,8 +218,9 @@ Electron API leaf-domain modules now own explicit `ElectronApi*DomainOptions` in
 their inputs from the broad final factory options bag.
 The app-info and theme preload factories now return `ElectronAppInfoApi` and `ElectronThemeApi` directly
 instead of local `Pick<ElectronAPI, ...>` aliases. Renderer FIT decode candidates in drag/drop,
-single-overlay loading, and main UI DOM validation now use the shared file API-domain contract instead of local
-`Pick<ElectronAPI, ...>` aliases.
+single-overlay loading, and main UI DOM validation now use shared file API-domain contracts instead of local
+`Pick<ElectronAPI, ...>` aliases, and the drag/drop FIT decoder candidate now uses a named readonly alias instead
+of a generic local Electron API interface.
 
 Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
 and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling
@@ -1495,8 +1496,10 @@ constructing controllers directly in `dragDropHandler.ts`, with runtime adapter 
 blocking direct drag/drop animation-frame globals and direct controller construction from returning. Dropped-file
 operation-id clock reads now also route through that runtime instead of calling `Date.now` directly in
 `dragDropHandler.ts`, with runtime and architecture coverage blocking direct drag/drop clock reads from returning.
-Drag/drop FIT decoder candidate typing now uses the shared file API-domain contract instead of deriving from the
-monolithic `ElectronAPI` type.
+Drag/drop FIT decoder candidate typing now uses a named readonly alias backed by the shared file API-domain
+contract instead of deriving from the monolithic `ElectronAPI` type or carrying a generic local interface. FIT data
+file-loaded notification candidate typing likewise uses a named readonly alias backed by the shared preload-event
+API-domain contract instead of a generic local interface.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning. Leaflet runtime production clock and polling-timer defaults now reuse shared browser runtime

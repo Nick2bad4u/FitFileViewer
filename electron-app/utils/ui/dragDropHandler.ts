@@ -32,9 +32,9 @@ import type { ElectronFileApi } from "../../shared/preloadApi.js";
 
 type DroppedFile = File & { path?: string };
 
-interface ElectronApiLike {
-    decodeFitFile: ElectronFileApi["decodeFitFile"];
-}
+type DragDropElectronApiCandidate = {
+    readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
+};
 
 type PerformanceMonitorLike = {
     endTimer?: (id: string) => void;
@@ -49,17 +49,20 @@ type DragDropHandlerOptions = {
 
 function getDragDropElectronApi(
     scope?: RendererElectronApiScope
-): ElectronApiLike | null {
+): DragDropElectronApiCandidate | null {
     return getRendererElectronApi(isDragDropElectronApi, scope);
 }
 
-function isDragDropElectronApi(value: unknown): value is ElectronApiLike {
+function isDragDropElectronApi(
+    value: unknown
+): value is DragDropElectronApiCandidate {
     if (value === null || typeof value !== "object") {
         return false;
     }
 
     return (
-        typeof (value as Partial<ElectronApiLike>).decodeFitFile === "function"
+        typeof (value as Partial<DragDropElectronApiCandidate>)
+            .decodeFitFile === "function"
     );
 }
 
