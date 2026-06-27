@@ -35,12 +35,34 @@ export type MainAppStateKnownPath = keyof MainAppStateValueByPath;
 export type MainAppAutoUpdaterStatus =
     MainAppStateValueByPath["autoUpdater.status"];
 
+const MAIN_APP_STATE_KNOWN_PATHS = [
+    "appIsQuitting",
+    "autoUpdater.status",
+    "autoUpdater.updateDownloaded",
+    "autoUpdaterInitialized",
+    "gyazoServer",
+    "gyazoServerPort",
+    "loadedFitFilePath",
+    "mainWindow",
+    "permissions.geolocation.allowed",
+] as const satisfies readonly MainAppStateKnownPath[];
+
+const mainAppStateKnownPathSet = new Set<string>(MAIN_APP_STATE_KNOWN_PATHS);
+
 interface FitParserSettingsConf {
     get: (key: string) => unknown;
     set: (key: string, value: unknown) => void;
 }
 
 let fitParserSettingsConf: FitParserSettingsConf | null | undefined;
+
+function assertMainAppStateKnownPath(
+    path: string
+): asserts path is MainAppStateKnownPath {
+    if (!mainAppStateKnownPathSet.has(path)) {
+        throw new Error(`Unknown main app state path: ${path}`);
+    }
+}
 
 /**
  * Clears all event handlers registered within the main process state (used by
@@ -61,6 +83,8 @@ export function cleanupEventHandlers(): void {
 export function getAppState<Path extends MainAppStateKnownPath>(
     statePath: Path
 ): MainAppStateValueByPath[Path] {
+    assertMainAppStateKnownPath(statePath);
+
     return runtimeMainProcessState.get(
         statePath
     ) as MainAppStateValueByPath[Path];
@@ -71,9 +95,7 @@ export function getAppState<Path extends MainAppStateKnownPath>(
  *
  * @returns Loaded FIT file path, or null when no file is active.
  */
-export function getLoadedFitFilePath(): MainAppStateValueByPath[
-    "loadedFitFilePath"
-] {
+export function getLoadedFitFilePath(): MainAppStateValueByPath["loadedFitFilePath"] {
     return getAppState("loadedFitFilePath");
 }
 
@@ -109,9 +131,7 @@ export function getGyazoServer(): MainAppStateValueByPath["gyazoServer"] {
  *
  * @returns Stored Gyazo server port, or null when none is active.
  */
-export function getGyazoServerPort(): MainAppStateValueByPath[
-    "gyazoServerPort"
-] {
+export function getGyazoServerPort(): MainAppStateValueByPath["gyazoServerPort"] {
     return getAppState("gyazoServerPort");
 }
 
@@ -120,9 +140,7 @@ export function getGyazoServerPort(): MainAppStateValueByPath[
  *
  * @returns Cached allow/deny decision, or null when no decision is cached.
  */
-export function getGeolocationPermissionAllowed(): MainAppStateValueByPath[
-    "permissions.geolocation.allowed"
-] {
+export function getGeolocationPermissionAllowed(): MainAppStateValueByPath["permissions.geolocation.allowed"] {
     return getAppState("permissions.geolocation.allowed");
 }
 
@@ -136,14 +154,12 @@ export function isAppQuitting(): MainAppStateValueByPath["appIsQuitting"] {
 }
 
 /**
- * Returns whether the auto-updater has been initialized for the current
- * window lifecycle.
+ * Returns whether the auto-updater has been initialized for the current window
+ * lifecycle.
  *
  * @returns True once auto-updater setup completed.
  */
-export function isAutoUpdaterInitialized(): MainAppStateValueByPath[
-    "autoUpdaterInitialized"
-] {
+export function isAutoUpdaterInitialized(): MainAppStateValueByPath["autoUpdaterInitialized"] {
     return getAppState("autoUpdaterInitialized");
 }
 
@@ -152,9 +168,7 @@ export function isAutoUpdaterInitialized(): MainAppStateValueByPath[
  *
  * @returns True when the updater has a downloaded update.
  */
-export function isAutoUpdaterUpdateDownloaded(): MainAppStateValueByPath[
-    "autoUpdater.updateDownloaded"
-] {
+export function isAutoUpdaterUpdateDownloaded(): MainAppStateValueByPath["autoUpdater.updateDownloaded"] {
     return getAppState("autoUpdater.updateDownloaded");
 }
 
@@ -202,11 +216,14 @@ export function setAppState<Path extends MainAppStateKnownPath>(
     value: MainAppStateValueByPath[Path],
     options?: StateUpdateOptions
 ): void {
+    assertMainAppStateKnownPath(statePath);
+
     runtimeMainProcessState.set(statePath, value, options);
 }
 
 /**
- * Sets or clears the currently loaded FIT file path tracked by the main process.
+ * Sets or clears the currently loaded FIT file path tracked by the main
+ * process.
  *
  * @param filePath - Approved loaded FIT file path, or null when cleared.
  * @param options - Additional metadata forwarded to the state manager.

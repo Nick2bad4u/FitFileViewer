@@ -391,10 +391,7 @@ type MainModule = {
     clearGyazoServerState: () => void;
     setAppState: (key: string, value: unknown) => void;
     setAutoUpdaterInitialized: (isInitialized: boolean) => void;
-    setAutoUpdaterState: (
-        status: string,
-        updateDownloaded: boolean
-    ) => void;
+    setAutoUpdaterState: (status: string, updateDownloaded: boolean) => void;
     setGeolocationPermissionAllowed: (allowed: boolean | null) => void;
     setGyazoServerState: (server: unknown, port: null | number) => void;
     setLoadedFitFilePath: (filePath: null | string) => void;
@@ -744,7 +741,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle development flag", async () => {
-            expect.assertions(7);
+            expect.assertions(9);
 
             // Mock command line arguments
             const originalArgv = process.argv;
@@ -771,23 +768,21 @@ describe("main.js - Electron Main Process", () => {
 
                 expect(devState.loadedFitFilePath).toBe("dev-activity.fit");
                 expect(devState.mainWindow).toBe(mockWindow);
+                expect(() => mainModule.getAppState("eventHandlers")).toThrow(
+                    "Unknown main app state path: eventHandlers"
+                );
+                expect(() =>
+                    mainModule.setAppState("eventHandlers", new Map())
+                ).toThrow("Unknown main app state path: eventHandlers");
 
                 const handler = vi.fn<() => void>();
                 const removeListener =
                     vi.fn<(eventName: string, listener: () => void) => void>();
-                mainModule.setAppState(
-                    "eventHandlers",
-                    new Map([
-                        [
-                            "dev-test-handler",
-                            {
-                                emitter: { removeListener },
-                                event: "dev-event",
-                                handler,
-                            },
-                        ],
-                    ])
-                );
+                devState.eventHandlers.set("dev-test-handler", {
+                    emitter: { removeListener },
+                    event: "dev-event",
+                    handler,
+                });
                 expect(devHelpers.getAppState().eventHandlers.size).toBe(1);
 
                 devHelpers.cleanupEventHandlers();
