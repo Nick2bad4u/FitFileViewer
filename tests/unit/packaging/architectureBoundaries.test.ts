@@ -5093,11 +5093,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT file state timestamps behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(23);
 
         const fitFileStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/fitFileState.ts"
+            )
+        );
+        const fitFileLoadingContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/fitFileLoadingContract.ts"
             )
         );
         const fitFileStateRuntimeSource = stripComments(
@@ -5107,7 +5112,15 @@ describe("architecture boundaries", () => {
         );
 
         expect(fitFileStateSource).toContain("fitFileStateRuntime.js");
+        expect(fitFileStateSource).toContain("fitFileLoadingContract.js");
         expect(fitFileStateSource).toContain("type FitFileStateRuntime");
+        expect(fitFileStateSource).not.toContain("function clampProgress");
+        expect(fitFileLoadingContractSource).toContain(
+            "normalizeFitFileLoadingState"
+        );
+        expect(fitFileLoadingContractSource).toContain(
+            "normalizeFitFileStateBranch"
+        );
         expect(fitFileStateSource).toContain(
             "function fitFileStateRuntime(): FitFileStateRuntime"
         );

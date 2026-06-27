@@ -203,6 +203,66 @@ describe("state manager core", () => {
         });
     });
 
+    it("normalizes FIT-file loading lifecycle writes at the core state boundary", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        setState("fitFile.loadingPhase", "queued");
+        setState("fitFile.loadingProgress", 143.6);
+        setState("fitFile.loadingState", {
+            error: 404,
+            filePath: "C:/rides/current.fit",
+            phase: "rendering",
+            progress: Number.NaN,
+            startedAt: "yesterday",
+            updatedAt: 1234,
+        });
+
+        expect(getState("fitFile.loadingPhase")).toBe("idle");
+        expect(getState("fitFile.loadingProgress")).toBe(100);
+        expect(getState("fitFile.loadingState")).toStrictEqual({
+            error: null,
+            filePath: "C:/rides/current.fit",
+            phase: "rendering",
+            progress: 0,
+            startedAt: null,
+            updatedAt: 1234,
+        });
+    });
+
+    it("normalizes FIT-file loading values when replacing the FIT branch", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        setState("fitFile", {
+            currentFile: "C:/rides/current.fit",
+            loadingPhase: "queued",
+            loadingProgress: -20,
+            loadingState: {
+                error: "bad file",
+                filePath: false,
+                phase: "loaded",
+                progress: 99.6,
+                startedAt: Number.POSITIVE_INFINITY,
+                updatedAt: 5678,
+            },
+        });
+
+        expect(getState("fitFile.currentFile")).toBe("C:/rides/current.fit");
+        expect(getState("fitFile.loadingPhase")).toBe("idle");
+        expect(getState("fitFile.loadingProgress")).toBe(0);
+        expect(getState("fitFile.loadingState")).toStrictEqual({
+            error: "bad file",
+            filePath: null,
+            phase: "loaded",
+            progress: 100,
+            startedAt: null,
+            updatedAt: 5678,
+        });
+    });
+
     it("returns undefined for non-existent state paths", () => {
         expect.assertions(1);
 

@@ -10,6 +10,11 @@ import { showNotification } from "../../ui/notifications/syncRendererNotificatio
 import * as stateCore from "../core/stateManager.js";
 import type { FitFileLoadingPhase } from "../core/stateManagerDefaults.js";
 import {
+    normalizeFitFileLoadingPhase,
+    normalizeFitFileLoadingProgress,
+    normalizeFitFileLoadingState,
+} from "./fitFileLoadingContract.js";
+import {
     getFitFileStateRuntime,
     type FitFileStateRuntime,
 } from "./fitFileStateRuntime.js";
@@ -155,16 +160,6 @@ type LoadingPhaseTransitionOptions = {
 
 const SOURCE_CLEAR_FILE_STATE = "FitFileStateManager.clearFileState";
 const FIT_FILE_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";
-const FIT_FILE_LOADING_PHASES = [
-    "idle",
-    "selecting",
-    "reading",
-    "validating",
-    "parsing",
-    "rendering",
-    "loaded",
-    "error",
-] as const satisfies readonly FitFileLoadingPhase[];
 const ACTIVE_LOADING_PHASES = new Set<FitFileLoadingPhase>([
     "parsing",
     "reading",
@@ -273,22 +268,10 @@ function getErrorMessage(error: unknown): string {
     return "Unknown error";
 }
 
-function clampProgress(value: unknown): number {
-    const numeric = Number(value);
-
-    if (!Number.isFinite(numeric)) {
-        return 0;
-    }
-
-    return Math.max(0, Math.min(100, Math.round(numeric)));
-}
-
 function getCurrentLoadingPhase(): FitFileLoadingPhase {
-    const phase = stateCore.getState("fitFile.loadingPhase");
-    return typeof phase === "string" &&
-        (FIT_FILE_LOADING_PHASES as readonly string[]).includes(phase)
-        ? (phase as FitFileLoadingPhase)
-        : "idle";
+    return normalizeFitFileLoadingPhase(
+        stateCore.getState("fitFile.loadingPhase")
+    );
 }
 
 function isRawFitData(value: unknown): value is RawFitData {
@@ -805,7 +788,7 @@ export class FitFileStateManager {
             typeof previous.filePath === "string" ? previous.filePath : null;
         const filePath =
             options.filePath === undefined ? previousPath : options.filePath;
-        const progress = clampProgress(
+        const progress = normalizeFitFileLoadingProgress(
             options.progress ?? DEFAULT_PHASE_PROGRESS[phase]
         );
         const now = fitFileStateRuntime().dateNow();
@@ -951,8 +934,9 @@ export const FitFileSelectors = {
     },
 
     getLoadingProgress(): number {
-        const loadingProgress = stateCore.getState("fitFile.loadingProgress");
-        return typeof loadingProgress === "number" ? loadingProgress : 0;
+        return normalizeFitFileLoadingProgress(
+            stateCore.getState("fitFile.loadingProgress")
+        );
     },
 
     getLoadingPhase(): FitFileLoadingPhase {
@@ -967,51 +951,9 @@ export const FitFileSelectors = {
         startedAt: null | number;
         updatedAt: null | number;
     } {
-        const loadingState = stateCore.getState("fitFile.loadingState");
-        if (
-            loadingState !== null &&
-            typeof loadingState === "object" &&
-            !Array.isArray(loadingState)
-        ) {
-            const state = loadingState as {
-                error?: unknown;
-                filePath?: unknown;
-                phase?: unknown;
-                progress?: unknown;
-                startedAt?: unknown;
-                updatedAt?: unknown;
-            };
-            return {
-                error: typeof state.error === "string" ? state.error : null,
-                filePath:
-                    typeof state.filePath === "string" ? state.filePath : null,
-                phase:
-                    typeof state.phase === "string" &&
-                    (FIT_FILE_LOADING_PHASES as readonly string[]).includes(
-                        state.phase
-                    )
-                        ? (state.phase as FitFileLoadingPhase)
-                        : "idle",
-                progress: clampProgress(state.progress),
-                startedAt:
-                    typeof state.startedAt === "number"
-                        ? state.startedAt
-                        : null,
-                updatedAt:
-                    typeof state.updatedAt === "number"
-                        ? state.updatedAt
-                        : null,
-            };
-        }
-
-        return {
-            error: null,
-            filePath: null,
-            phase: "idle",
-            progress: 0,
-            startedAt: null,
-            updatedAt: null,
-        };
+        return normalizeFitFileLoadingState(
+            stateCore.getState("fitFile.loadingState")
+        );
     },
 
     getLoadedFiles<T extends LoadedFitFile = LoadedFitFile>(): T[] {

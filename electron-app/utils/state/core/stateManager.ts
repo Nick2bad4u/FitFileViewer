@@ -23,6 +23,12 @@ import {
     normalizeBrowserStateBranch,
     normalizeBrowserView,
 } from "../domain/browserStateContract.js";
+import {
+    normalizeFitFileLoadingPhase,
+    normalizeFitFileLoadingProgress,
+    normalizeFitFileLoadingState,
+    normalizeFitFileStateBranch,
+} from "../domain/fitFileLoadingContract.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
 
 /** Listener invoked when a subscribed state path changes. */
@@ -82,6 +88,14 @@ const BROWSER_STATE_PATH_NORMALIZERS = new Map<
     ["browser.scan", normalizeBrowserScanState],
     ["browser.view", normalizeBrowserView],
 ]);
+const FIT_FILE_STATE_PATH_NORMALIZERS = new Map<
+    string,
+    (value: unknown) => unknown
+>([
+    ["fitFile.loadingPhase", normalizeFitFileLoadingPhase],
+    ["fitFile.loadingProgress", normalizeFitFileLoadingProgress],
+    ["fitFile.loadingState", normalizeFitFileLoadingState],
+]);
 
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
@@ -107,6 +121,15 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
 
     if (path === "browser" && isRecord(value)) {
         return normalizeBrowserStateBranch(value);
+    }
+
+    const fitFileNormalizer = FIT_FILE_STATE_PATH_NORMALIZERS.get(path);
+    if (fitFileNormalizer) {
+        return fitFileNormalizer(value);
+    }
+
+    if (path === "fitFile" && isRecord(value)) {
+        return normalizeFitFileStateBranch(value);
     }
 
     if (RENDERER_ACTIVE_TAB_STATE_PATHS.has(path)) {
