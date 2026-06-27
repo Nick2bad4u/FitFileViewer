@@ -173,7 +173,8 @@ The application-event setup boundary now imports migrated logging, safe menu cre
 window-validation helpers natively.
 The window-state utility boundary now uses named source exports instead of a source-level `module.exports`
 wrapper, and application-event/window-bootstrap/window-initialization source imports `createWindow` natively
-instead of requiring `windowStateUtils`.
+instead of requiring `windowStateUtils`. Window validation now reads the optional `isDestroyed` callback through a
+typed candidate shape instead of probing the window candidate with `Reflect.get`.
 The main entrypoint now imports runtime helpers natively instead of using its `mainRequire` table or
 source-level `module.exports` fallback, and the test-only default export object has been removed so tests use
 named exports directly.

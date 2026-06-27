@@ -309,8 +309,11 @@ export function validateWindow(win: unknown): win is BrowserWindowInstance {
         return false;
     }
 
-    const isDestroyed: unknown = Reflect.get(win, "isDestroyed");
-    return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
+    const candidate = win as { readonly isDestroyed?: unknown };
+    return (
+        isBooleanCallback(candidate.isDestroyed) &&
+        candidate.isDestroyed() !== true
+    );
 }
 
 export function saveWindowState(win: BrowserWindowInstance): void {
