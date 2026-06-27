@@ -176,14 +176,6 @@ export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
 }
 
-export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown {
-    try {
-        return getBrowserGlobalRecord()[propertyKey];
-    } catch {
-        return undefined;
-    }
-}
-
 export function setBrowserGlobalProperty(
     propertyKey: PropertyKey,
     value: unknown

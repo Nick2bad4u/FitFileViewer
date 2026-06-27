@@ -4,7 +4,6 @@ import {
     getBrowserClearTimeout,
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
-    getBrowserGlobalProperty,
     getBrowserVitestImportMockCandidate,
     getBrowserSetTimeout,
     setBrowserGlobalProperty,
@@ -15,51 +14,34 @@ describe("browserRuntime global property boundary", () => {
         vi.unstubAllGlobals();
     });
 
-    it("reads named global properties through the shared boundary", () => {
-        expect.assertions(4);
+    it("reads named runtime global candidates through explicit providers", () => {
+        expect.assertions(3);
 
         const electronAPI = { openExternal: vi.fn() };
         const vitestCandidate = { importMock: vi.fn() };
 
-        vi.stubGlobal("ffvRuntimeFlag", true);
         vi.stubGlobal("__DEVELOPMENT__", true);
         vi.stubGlobal("electronAPI", electronAPI);
         vi.stubGlobal("vi", vitestCandidate);
 
-        expect(getBrowserGlobalProperty("ffvRuntimeFlag")).toBe(true);
         expect(getBrowserDevelopmentFlag()).toBe(true);
         expect(getBrowserElectronApiCandidate()).toBe(electronAPI);
         expect(getBrowserVitestImportMockCandidate()).toBe(vitestCandidate);
     });
 
-    it("returns undefined when a global property accessor throws", () => {
-        expect.assertions(1);
-
-        vi.stubGlobal("ffvThrowingGlobal", undefined);
-        Object.defineProperty(globalThis, "ffvThrowingGlobal", {
-            configurable: true,
-            get() {
-                throw new Error("global is unavailable");
-            },
-        });
-
-        expect(getBrowserGlobalProperty("ffvThrowingGlobal")).toBeUndefined();
-    });
-
     it("sets named global properties through the shared boundary", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const value = { enabled: true };
 
         vi.stubGlobal("ffvRuntimeShim", undefined);
         setBrowserGlobalProperty("ffvRuntimeShim", value);
 
-        expect(getBrowserGlobalProperty("ffvRuntimeShim")).toBe(value);
         expect(globalThis).toHaveProperty("ffvRuntimeShim", value);
     });
 
     it("defines named globals when direct assignment cannot update an accessor", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         const value = { enabled: true };
 
@@ -73,7 +55,6 @@ describe("browserRuntime global property boundary", () => {
 
         setBrowserGlobalProperty("ffvAccessorRuntimeShim", value);
 
-        expect(getBrowserGlobalProperty("ffvAccessorRuntimeShim")).toBe(value);
         expect(globalThis).toHaveProperty("ffvAccessorRuntimeShim", value);
     });
 
@@ -96,9 +77,7 @@ describe("browserRuntime global property boundary", () => {
                 enabled: true,
             });
         }).not.toThrow();
-        expect(
-            getBrowserGlobalProperty("ffvReadonlyRuntimeShim")
-        ).toBeUndefined();
+        expect(globalThis).toHaveProperty("ffvReadonlyRuntimeShim", undefined);
     });
 
     it("returns timer providers bound to the browser global", () => {

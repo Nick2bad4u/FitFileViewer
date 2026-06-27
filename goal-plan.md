@@ -1687,8 +1687,10 @@ Scoped renderer-environment dev-mode inspection now reads verified objects throu
 casting the candidate preload API shape to a generic record, with focused malformed-input and architecture coverage.
 The default development-flag and Electron API candidate providers now use named explicit global readers instead of
 generic `Reflect.get(globalThis, ...)` probes.
-Shared browser-runtime global-property reads and write-result checks now use guarded typed indexed access instead of
-`Reflect.get(globalThis, ...)`, while keeping the configurable accessor fallback for test and sandbox shims.
+Shared browser-runtime global reads now use named optional-slot providers for `electronAPI`, `process`, and Vitest
+import-mock candidates instead of a public generic global-property reader, while write-result checks still use guarded
+typed indexed access instead of `Reflect.get(globalThis, ...)` and keep the configurable accessor fallback for test and
+sandbox shims.
 Architecture coverage now scans app source with comments stripped and keeps direct `window.*`/`globalThis.*` property
 access centralized in `browserRuntime.ts`, preventing retired renderer globals from returning in individual modules.
 Renderer environment input normalization now uses focused local input/location/document/Electron dev-mode contracts
@@ -1744,6 +1746,9 @@ Runtime `process` reads and installs now go through explicit `getBrowserProcessC
 `setBrowserProcessCandidate` browser-runtime providers instead of passing the `process` key through generic
 global-property helpers in `processEnvironment.ts`, with process-runtime and architecture coverage blocking the broad
 lookup from returning.
+The unused public `getBrowserGlobalProperty` reader has been removed from `browserRuntime.ts`; remaining compatibility
+reads must use named providers, with browser-runtime and architecture coverage blocking the generic reader from
+returning.
 Elevation profile overlay colors now resolve through the typed `chartOverlayColorPalette` module instead of the
 retired `chartOverlayColorPalette` browser-global compatibility property, with architecture coverage blocking that
 global palette read from returning.

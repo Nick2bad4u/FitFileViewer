@@ -1869,13 +1869,13 @@ describe("architecture boundaries", () => {
         ).toStrictEqual([]);
     });
 
-    it("documents the centralized dynamic browser-global property boundary", () => {
+    it("documents the centralized browser-global access boundary", () => {
         expect.assertions(1);
 
         const ledger = readRepositoryFile("docs/DEPRECATION_LEDGER.md");
         const requiredLedgerText = [
-            "Remaining dynamic browser-global property lookup for compatibility-only values",
-            "preload `electronAPI` and runtime `process` candidates now use explicit browser-runtime slots",
+            "Remaining browser-global access for compatibility-only values is narrowed",
+            "preload `electronAPI`, runtime `process`, and Vitest import-mock candidates now use explicit browser-runtime slots",
             "renderer development-mode inspection uses focused input contracts",
         ];
 
@@ -27666,8 +27666,8 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).toContain(
             "getBrowserElectronApiCandidate()"
         );
-        expect(browserRuntimeSource).toContain(
-            "export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown"
+        expect(browserRuntimeSource).not.toContain(
+            "export function getBrowserGlobalProperty"
         );
         expect(browserRuntimeSource).toContain(
             "export function getBrowserElectronApiCandidate(): unknown"
@@ -27683,7 +27683,7 @@ describe("architecture boundaries", () => {
         );
         expect(browserRuntimeSource).not.toContain("Reflect.get(");
         expect(browserRuntimeSource).toContain(
-            "return getBrowserGlobalRecord()[propertyKey];"
+            "const globals = getBrowserGlobalRecord();"
         );
         expect(electronApiRuntimeSource).not.toContain("scope.electronAPI");
         expect(electronApiRuntimeSource).not.toContain(
