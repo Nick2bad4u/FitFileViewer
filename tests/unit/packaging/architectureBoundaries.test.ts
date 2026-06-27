@@ -8918,11 +8918,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(54);
+        expect.assertions(57);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartJS.ts"
+            )
+        );
+        const renderChartNotificationStateAccessSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartNotificationStateAccess.ts"
             )
         );
         const renderChartActionsSource = stripComments(
@@ -8947,6 +8952,15 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartSource).not.toContain(
             "renderChartNotificationStateCompat"
+        );
+        expect(renderChartNotificationStateAccessSource).not.toContain(
+            "import * as"
+        );
+        expect(renderChartNotificationStateAccessSource).not.toContain(
+            "Partial<typeof"
+        );
+        expect(renderChartNotificationStateAccessSource).toContain(
+            "chartNotificationState.js"
         );
         expect(renderChartSource).toContain("renderChartJSRuntime.js");
         expect(renderChartSource).toContain("type RenderChartJSRuntime");

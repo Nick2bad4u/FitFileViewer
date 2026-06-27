@@ -1,35 +1,27 @@
-import type { PreviousChartState } from "./chartNotificationState.js";
-import * as chartNotificationState from "./chartNotificationState.js";
-
-type NotificationStateModule = Partial<typeof chartNotificationState>;
-
-const fallbackPreviousChartState: PreviousChartState = {
-    chartCount: 0,
-    fieldsRendered: [],
-    lastRenderTimestamp: 0,
-};
-
-const notificationState = chartNotificationState as NotificationStateModule;
+import {
+    previousChartState,
+    resetChartNotificationState as resetNotificationState,
+    updatePreviousChartState as updateNotificationPreviousChartState,
+} from "./chartNotificationState.js";
 
 /**
  * Previous chart state exported through renderChartJS.
  */
-export const previousChartState =
-    notificationState.previousChartState ?? fallbackPreviousChartState;
+export { previousChartState };
 
 /**
- * Resets chart notification state while tolerating injected empty test modules.
+ * Resets chart notification state.
  */
 export function resetChartNotificationState(): void {
     try {
-        notificationState.resetChartNotificationState?.();
+        resetNotificationState();
     } catch {
-        // Ignore injected notification-state test module failures.
+        // Ignore notification-state failures so chart cleanup remains best-effort.
     }
 }
 
 /**
- * Updates previous chart state while tolerating injected empty test modules.
+ * Updates previous chart state.
  */
 export function updatePreviousChartState(
     chartCount: number,
@@ -37,12 +29,12 @@ export function updatePreviousChartState(
     timestamp: number
 ): void {
     try {
-        notificationState.updatePreviousChartState?.(
+        updateNotificationPreviousChartState(
             chartCount,
             visibleFields,
             timestamp
         );
     } catch {
-        // Ignore injected notification-state test module failures.
+        // Ignore notification-state failures so chart cleanup remains best-effort.
     }
 }
