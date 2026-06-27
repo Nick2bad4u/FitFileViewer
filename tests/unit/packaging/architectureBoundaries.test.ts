@@ -13338,34 +13338,30 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated utility category barrels on named exports", () => {
-        expect.assertions(10);
+        const migratedUtilityCategoryBarrels = [
+            "electron-app/utils/app/index.ts",
+            "electron-app/utils/app/menu/index.ts",
+            "electron-app/utils/charts/index.ts",
+            "electron-app/utils/config/index.ts",
+            "electron-app/utils/data/index.ts",
+            "electron-app/utils/debug/index.ts",
+            "electron-app/utils/files/index.ts",
+            "electron-app/utils/formatting/index.ts",
+            "electron-app/utils/maps/index.ts",
+            "electron-app/utils/rendering/index.ts",
+            "electron-app/utils/state/index.ts",
+            "electron-app/utils/theming/index.ts",
+            "electron-app/utils/ui/index.ts",
+        ];
 
-        const dataIndexSource = stripComments(
-            readRepositoryFile("electron-app/utils/data/index.ts")
-        );
-        const debugIndexSource = stripComments(
-            readRepositoryFile("electron-app/utils/debug/index.ts")
-        );
-        const filesIndexSource = stripComments(
-            readRepositoryFile("electron-app/utils/files/index.ts")
-        );
-        const formattingIndexSource = stripComments(
-            readRepositoryFile("electron-app/utils/formatting/index.ts")
-        );
-        const renderingIndexSource = stripComments(
-            readRepositoryFile("electron-app/utils/rendering/index.ts")
-        );
+        expect.assertions(migratedUtilityCategoryBarrels.length * 2);
 
-        expect(dataIndexSource).not.toContain("export default");
-        expect(dataIndexSource).not.toContain("import * as");
-        expect(debugIndexSource).not.toContain("export default");
-        expect(debugIndexSource).not.toContain("import * as");
-        expect(filesIndexSource).not.toContain("export default");
-        expect(filesIndexSource).not.toContain("import * as");
-        expect(formattingIndexSource).not.toContain("export default");
-        expect(formattingIndexSource).not.toContain("import * as");
-        expect(renderingIndexSource).not.toContain("export default");
-        expect(renderingIndexSource).not.toContain("import * as");
+        for (const barrelPath of migratedUtilityCategoryBarrels) {
+            const barrelSource = stripComments(readRepositoryFile(barrelPath));
+
+            expect(barrelSource).not.toContain("export default");
+            expect(barrelSource).not.toContain("import * as");
+        }
     });
 
     it("keeps strict renderer startup tests off renderer dev globals", () => {

@@ -1,11 +1,7 @@
-/* eslint-disable no-barrel-files/no-barrel-files -- Stable app category entry point for existing runtime imports. */
+/* eslint-disable no-barrel-files/no-barrel-files -- Stable app category entry point for named runtime imports. */
 /**
  * Re-exports all subcategories in the app category.
  */
-
-import * as appInitialization from "./initialization/index.js";
-import * as appLifecycle from "./lifecycle/index.js";
-import * as appMenu from "./menu/index.js";
 
 export { isLoading, setLoading } from "../ui/loading/syncRendererLoading.js";
 export {
@@ -59,10 +55,4 @@ export { registerMenuIpcListeners } from "./lifecycle/menuIpcListeners.js";
 export { attachRecentFilesContextMenu } from "./lifecycle/recentFilesContextMenu.js";
 export { resourceManager } from "./lifecycle/resourceManager.js";
 export * from "./menu/index.js";
-
-export default {
-    initialization: appInitialization,
-    lifecycle: appLifecycle,
-    menu: appMenu,
-};
 /* eslint-enable no-barrel-files/no-barrel-files */

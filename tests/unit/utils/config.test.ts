@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import config, {
+import {
     CONFIG,
     CONVERSION_FACTORS,
     FILE_CONSTANTS,
@@ -25,12 +25,12 @@ describe("config/index.js", () => {
         expect(FILE_CONSTANTS.SUPPORTED_EXTENSIONS).toStrictEqual([".fit"]);
     });
 
-    it("preserves default namespace access for existing consumers", () => {
+    it("exports former namespace values as named values", () => {
         expect.assertions(3);
 
-        expect(config.CONVERSION_FACTORS.METERS_TO_INCHES).toBe(39.3701);
-        expect(config.TIME_UNITS.HOURS).toBe("hours");
-        expect(config.CONFIG.CONVERSION.KG_TO_POUNDS).toBe(2.204_62);
+        expect(CONVERSION_FACTORS.METERS_TO_INCHES).toBe(39.3701);
+        expect(TIME_UNITS.HOURS).toBe("hours");
+        expect(CONFIG.CONVERSION.KG_TO_POUNDS).toBe(2.204_62);
     });
 
     it("supports grouped CONFIG access", () => {
@@ -44,43 +44,20 @@ describe("config/index.js", () => {
     it("does not expose a duplicated app metadata constants group", () => {
         expect.assertions(1);
 
-        expect({
-            configNamespaceKeys: Object.keys(config).sort(),
-            groupedConfigKeys: Object.keys(CONFIG).sort(),
-        }).toStrictEqual({
-            configNamespaceKeys: [
-                "CHART_CONSTANTS",
-                "CONFIG",
-                "CONVERSION_FACTORS",
-                "DEBUG_CONSTANTS",
-                "DISTANCE_UNITS",
-                "ERROR_CONSTANTS",
-                "FILE_CONSTANTS",
-                "MAP_CONSTANTS",
-                "PERFORMANCE_CONSTANTS",
-                "TEMPERATURE_UNITS",
-                "TIME_UNITS",
-                "UI_CONSTANTS",
-                "VALIDATION_CONSTANTS",
-                "getConfig",
-                "initializeConfig",
-                "validateConfig",
-            ],
-            groupedConfigKeys: [
-                "CHART",
-                "CONVERSION",
-                "DEBUG",
-                "DISTANCE_UNITS",
-                "ERROR",
-                "FILE",
-                "MAP",
-                "PERFORMANCE",
-                "TEMPERATURE_UNITS",
-                "TIME_UNITS",
-                "UI",
-                "VALIDATION",
-            ],
-        });
+        expect(Object.keys(CONFIG).sort()).toStrictEqual([
+            "CHART",
+            "CONVERSION",
+            "DEBUG",
+            "DISTANCE_UNITS",
+            "ERROR",
+            "FILE",
+            "MAP",
+            "PERFORMANCE",
+            "TEMPERATURE_UNITS",
+            "TIME_UNITS",
+            "UI",
+            "VALIDATION",
+        ]);
     });
 
     it("reads values by dot-notation path", () => {

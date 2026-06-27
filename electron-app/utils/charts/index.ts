@@ -1,4 +1,4 @@
-/* eslint-disable no-barrel-files/no-barrel-files -- Stable charts category entry point for existing runtime imports. */
+/* eslint-disable no-barrel-files/no-barrel-files -- Stable charts category entry point for named runtime imports. */
 /**
  * Organized exports for all chart-related utilities.
  */
@@ -42,38 +42,4 @@ export * from "./theming/chartThemeListener.js";
 export * from "./theming/chartThemeUtils.js";
 export * from "./theming/getThemeColors.js";
 
-/**
- * Default export object for namespace imports.
- */
-export default {
-    addChartHoverEffects: () => import("./plugins/addChartHoverEffects.js"),
-    // Plugins.
-    chartBackgroundColorPlugin: () =>
-        import("./plugins/chartBackgroundColorPlugin.js"),
-    chartColorSchemes: () => import("./theming/chartColorSchemes.js"),
-    // Core.
-    chartStateManager: () => import("./core/chartStateManager.js"),
-
-    chartTabIntegration: () => import("./core/chartTabIntegration.js"),
-    // Theming.
-    chartThemeListener: () => import("./theming/chartThemeListener.js"),
-    chartUpdater: () => import("./core/chartUpdater.js"),
-    // Components.
-    createChartCanvas: () => import("./components/createChartCanvas.js"),
-
-    createEnhancedChart: () => import("./components/createEnhancedChart.js"),
-    // Rendering.
-    renderAltitudeProfileChart: () =>
-        import("./rendering/renderAltitudeProfileChart.js"),
-
-    renderChartJS: () => import("./core/renderChartJS.js"),
-    renderEventMessagesChart: () =>
-        import("./rendering/renderEventMessagesChart.js"),
-
-    renderGPSTimeChart: () => import("./rendering/renderGPSTimeChart.js"),
-    renderGPSTrackChart: () => import("./rendering/renderGPSTrackChart.js"),
-    renderLapZoneChart: () => import("./rendering/renderLapZoneChart.js"),
-};
-
-console.log("[Charts] Barrel export loaded - all chart utilities available");
 /* eslint-enable no-barrel-files/no-barrel-files */
