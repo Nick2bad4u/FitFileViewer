@@ -6,18 +6,15 @@
 import { setActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 import {
     areRendererTablesRendered,
-    getAppActionState,
     getRendererMapState,
     getRendererPerformanceMetrics,
     isRendererMapMeasurementModeEnabled,
-    setAppActionState,
     setAppInitialized,
     setAppIsOpeningFile,
     setMapMeasurementMode,
     setMapSelectedLap,
     setPerformanceLastLoadTime,
     setRendererTablesRendered,
-    subscribeToAppActionStatePath,
     updateAppActionWindowState,
     updateRendererMapState,
     updateRendererPerformanceRenderTimes,
@@ -71,12 +68,6 @@ type TableConfig = {
     isRendered?: boolean;
     options?: Record<string, unknown>;
 };
-type MiddlewareFn = (
-    path: string,
-    value: unknown,
-    oldValue: unknown,
-    options: Record<string, unknown>
-) => unknown;
 type FitFileStateManagerLike = {
     clearFileState?: () => void;
     handleFileLoaded?: (
@@ -570,134 +561,3 @@ export const AppSelectors = {
         return isRendererActiveTab(tabName);
     },
 };
-
-/**
- * State middleware - functions that can intercept and modify state changes
- */
-export class StateMiddleware {
-    middlewares: MiddlewareFn[] = [];
-
-    /**
-     * Apply all middlewares to a state change
-     *
-     * @param path - State path.
-     * @param value - New value.
-     * @param oldValue - Old value.
-     * @param options - Options.
-     *
-     * @returns Potentially modified value.
-     */
-    apply(
-        path: string,
-        value: unknown,
-        oldValue: unknown,
-        options: Record<string, unknown>
-    ): unknown {
-        let modifiedValue = value;
-
-        for (const middleware of this.middlewares) {
-            try {
-                const result = middleware(
-                    path,
-                    modifiedValue,
-                    oldValue,
-                    options
-                );
-                if (result !== undefined) {
-                    modifiedValue = result;
-                }
-            } catch (error) {
-                console.error("[StateMiddleware] Error in middleware:", error);
-            }
-        }
-
-        return modifiedValue;
-    }
-
-    /**
-     * Add middleware function
-     *
-     * @param middleware - Middleware function.
-     */
-    use(middleware: MiddlewareFn): void {
-        this.middlewares.push(middleware);
-    }
-}
-
-/**
- * Shared global middleware instance.
- */
-export const stateMiddleware = new StateMiddleware();
-
-// Add some default middleware
-stateMiddleware.use((path, value, oldValue) => {
-    // Log important state changes
-    if (path.includes("isRendered") || path === "ui.activeTab") {
-        console.log(`[StateMiddleware] ${path} changed:`, {
-            newValue: value,
-            oldValue,
-        });
-    }
-});
-
-/**
- * Create a lazily evaluated memoized computed value invalidated by
- * dependencies.
- *
- * @typeParam T - Computed value type.
- *
- * @param computeFn - Function to compute the value.
- * @param dependencies - Array of state paths to watch.
- *
- * @returns Function that returns the computed value and exposes cleanup.
- */
-export function useComputed<T>(
-    computeFn: () => T,
-    dependencies: string[] = []
-): (() => T) & { cleanup: () => void } {
-    let cachedValue: T;
-    let isValid = false;
-
-    // Subscribe to dependency changes
-    const getComputedValue = () => {
-            if (!isValid) {
-                cachedValue = computeFn();
-                isValid = true;
-            }
-            return cachedValue;
-        },
-        unsubscribers = dependencies.map((dep) =>
-            subscribeToAppActionStatePath(dep, () => {
-                isValid = false;
-            })
-        );
-
-    // Cleanup function
-    getComputedValue.cleanup = () => {
-        for (const unsub of unsubscribers) unsub();
-    };
-
-    return getComputedValue;
-}
-
-/**
- * Hook-like accessor for state values with a setter.
- *
- * @typeParam T - State value type.
- *
- * @param path - State path to watch.
- * @param defaultValue - Default value if state is undefined.
- *
- * @returns Value and setter tuple.
- */
-export function useState<T = unknown>(
-    path: string,
-    defaultValue?: T
-): [T, (newValue: T) => void] {
-    const currentValue = getAppActionState(path) ?? defaultValue,
-        setter = (newValue: T) => {
-            setAppActionState(path, newValue, { source: "useState" });
-        };
-
-    return [currentValue as T, setter];
-}

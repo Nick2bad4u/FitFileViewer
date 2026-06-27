@@ -1,8 +1,6 @@
 import {
     getState,
     setState,
-    subscribe,
-    type StateListener,
     type StateUpdateOptions,
     updateState,
 } from "../core/stateManager.js";
@@ -25,10 +23,6 @@ export function areRendererTablesRendered(): boolean {
     return getState(TABLES_RENDERED_STATE_PATH) === true;
 }
 
-export function getAppActionState(path: string): unknown {
-    return getState(path);
-}
-
 export function getRendererMapState(): Record<string, unknown> {
     const mapState = getState(MAP_STATE_PATH);
     return isRecord(mapState) ? mapState : {};
@@ -41,17 +35,6 @@ export function getRendererPerformanceMetrics(): Record<string, unknown> {
 
 export function isRendererMapMeasurementModeEnabled(): boolean {
     return getState(MAP_MEASUREMENT_MODE_STATE_PATH) === true;
-}
-
-export function setAppActionState(
-    path: string,
-    value: unknown,
-    options: StateUpdateOptions = {}
-): void {
-    setState(path, value, {
-        source: "appActionsState.set",
-        ...options,
-    });
 }
 
 export function setAppInitialized(
@@ -112,13 +95,6 @@ export function setRendererTablesRendered(
         source: "appActionsState.setTablesRendered",
         ...options,
     });
-}
-
-export function subscribeToAppActionStatePath(
-    path: string,
-    callback: StateListener
-): () => void {
-    return subscribe(path, callback);
 }
 
 export function updateAppActionWindowState(

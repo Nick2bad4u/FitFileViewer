@@ -6,28 +6,13 @@ type ShowNotificationModule =
     typeof import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
 type FitFileStateModule =
     typeof import("../../../../../electron-app/utils/state/domain/fitFileState.js");
-type StateListener = Parameters<StateManagerModule["subscribe"]>[1];
 
 // Use hoisted container to avoid mock hoisting issues (don't self-reference during factory eval)
 const h = vi.hoisted(() => {
-    const subscribeCallbacks: Record<string, StateListener[]> = {};
-    const mockSubscribe = vi.fn<StateManagerModule["subscribe"]>(
-        (path: string, cb: StateListener) => {
-            (subscribeCallbacks[path] ||= []).push(cb);
-            return () => {
-                const arr = subscribeCallbacks[path];
-                if (!arr) return;
-                const idx = arr.indexOf(cb);
-                if (idx >= 0) arr.splice(idx, 1);
-            };
-        }
-    );
     return {
         mockGetState: vi.fn<StateManagerModule["getState"]>(),
         mockSetState: vi.fn<StateManagerModule["setState"]>(),
         mockUpdateState: vi.fn<StateManagerModule["updateState"]>(),
-        mockSubscribe,
-        subscribeCallbacks,
         mockShowNotification:
             vi.fn<ShowNotificationModule["showNotification"]>(),
         mockFitManager: {
@@ -65,7 +50,6 @@ vi.mock(
         getState: h.mockGetState,
         setState: h.mockSetState,
         updateState: h.mockUpdateState,
-        subscribe: h.mockSubscribe,
     })
 );
 
@@ -106,9 +90,6 @@ vi.mock(
 import {
     AppActions,
     AppSelectors,
-    StateMiddleware,
-    useComputed,
-    useState,
 } from "../../../../../electron-app/utils/app/lifecycle/appActions.js";
 
 beforeEach(() => {
@@ -118,7 +99,6 @@ beforeEach(() => {
     h.mockGetState.mockReset();
     h.mockSetState.mockReset();
     h.mockUpdateState.mockReset();
-    h.mockSubscribe.mockReset();
     h.mockShowNotification.mockReset();
     h.mockFitManager.startFileLoading.mockReset();
     h.mockFitManager.handleFileLoaded.mockReset();
@@ -126,9 +106,6 @@ beforeEach(() => {
     h.mockFitManager.isLoading.mockReturnValue(false);
     h.mockFitManager.clearFileState.mockReset();
     h.mockGetRawData.mockReset();
-    for (const key of Object.keys(h.subscribeCallbacks)) {
-        delete h.subscribeCallbacks[key];
-    }
 });
 
 afterEach(() => {
@@ -507,99 +484,5 @@ describe("appSelectors", () => {
             "ui.activeTab",
             "ui.activeTab",
         ]);
-    });
-});
-
-describe(StateMiddleware, () => {
-    it("apply should pass through value when middleware returns undefined", () => {
-        expect.assertions(3);
-        expect(Date.now()).toBe(1_704_067_200_000);
-
-        const mw = new StateMiddleware();
-        mw.use((_p, v) => {
-            // no return
-        });
-        const result = mw.apply("x", 10, 0, {});
-        expect(result).toBe(10);
-        expect(result).not.toBe(0);
-    });
-
-    it("apply should use modified value when middleware returns value", () => {
-        expect.assertions(2);
-        expect(Date.now()).toBe(1_704_067_200_000);
-
-        const mw = new StateMiddleware();
-        mw.use((_p, v) => (typeof v === "number" ? v + 1 : v));
-        mw.use((_p, v) => (typeof v === "number" ? v * 2 : v));
-        expect(mw.apply("y", 10, 0, {})).toBe(22);
-    });
-
-    it("apply should catch middleware errors and continue", () => {
-        expect.assertions(3);
-
-        expect(Date.now()).toBe(1_704_067_200_000);
-
-        const mw = new StateMiddleware();
-        const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-        mw.use(() => {
-            throw new Error("bad");
-        });
-        mw.use((_p, v) => "ok");
-        expect(mw.apply("z", "in", "old", {})).toBe("ok");
-        expect(spy).toHaveBeenCalledWith(
-            "[StateMiddleware] Error in middleware:",
-            expect.any(Error)
-        );
-        spy.mockRestore();
-    });
-});
-
-describe("useComputed and useState", () => {
-    it("useComputed should cache until dependencies invalidate", () => {
-        expect.assertions(8);
-        expect(Date.now()).toBe(1_704_067_200_000);
-
-        let calls = 0;
-        const compute = vi.fn<() => number>(() => {
-            calls += 1;
-            return calls;
-        });
-        const getter = useComputed(compute, ["a", "b"]);
-
-        // First call computes
-        const firstValue = getter();
-        expect(firstValue).toBe(1);
-        expect(getter()).toBe(firstValue); // cached
-        expect(compute).toHaveBeenCalledOnce();
-
-        // Invalidate via subscribed callback
-        const aCallbacks = h.subscribeCallbacks["a"];
-        expect(aCallbacks?.length).toBeGreaterThan(0);
-        aCallbacks![0]!();
-
-        expect(getter()).toBe(2);
-        expect(compute).toHaveBeenCalledTimes(2);
-
-        // Cleanup unsubscribes
-        const before = h.subscribeCallbacks["a"]?.length ?? 0;
-        getter.cleanup();
-        const after = h.subscribeCallbacks["a"]?.length ?? 0;
-        expect(after).toBeLessThan(before);
-    });
-
-    it("useState should provide default and setter that writes back", () => {
-        expect.assertions(4);
-        expect(Date.now()).toBe(1_704_067_200_000);
-
-        h.mockGetState.mockReturnValueOnce(undefined);
-        const [value, setValue] = useState("path.to.value", 42);
-        expect(value).toBe(42);
-        expect(h.mockSetState).not.toHaveBeenCalled();
-        setValue(99);
-        expect(h.mockSetState).toHaveBeenCalledWith(
-            "path.to.value",
-            99,
-            expect.any(Object)
-        );
     });
 });

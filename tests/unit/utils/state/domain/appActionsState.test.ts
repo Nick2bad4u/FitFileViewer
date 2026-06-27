@@ -2,18 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
     areRendererTablesRendered,
-    getAppActionState,
     getRendererMapState,
     getRendererPerformanceMetrics,
     isRendererMapMeasurementModeEnabled,
-    setAppActionState,
     setAppInitialized,
     setAppIsOpeningFile,
     setMapMeasurementMode,
     setMapSelectedLap,
     setPerformanceLastLoadTime,
     setRendererTablesRendered,
-    subscribeToAppActionStatePath,
     updateAppActionWindowState,
     updateRendererMapState,
     updateRendererPerformanceRenderTimes,
@@ -74,25 +71,5 @@ describe("appActionsState lifecycle facade", () => {
 
         expect(getRendererMapState()).toStrictEqual({});
         expect(getRendererPerformanceMetrics()).toStrictEqual({});
-    });
-
-    it("supports generic app-action state reads, writes, and subscriptions", () => {
-        expect.assertions(3);
-
-        const listener = vi.fn();
-        const unsubscribe = subscribeToAppActionStatePath(
-            "ui.activeTab",
-            listener
-        );
-
-        setAppActionState("ui.activeTab", "map", { source: "test" });
-
-        expect(getAppActionState("ui.activeTab")).toBe("map");
-        expect(listener).toHaveBeenCalledWith("map", "summary", "ui.activeTab");
-
-        unsubscribe();
-        setAppActionState("ui.activeTab", "chart", { source: "test" });
-
-        expect(listener).toHaveBeenCalledOnce();
     });
 });

@@ -14106,6 +14106,42 @@ describe("architecture boundaries", () => {
         expect(appActionsRuntimeSource).not.toContain("scope.performance");
     });
 
+    it("keeps generic app-actions state helpers retired", () => {
+        expect.assertions(11);
+
+        const appActionsSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
+        );
+        const appActionsStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/appActionsState.ts"
+            )
+        );
+        const appIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/index.ts")
+        );
+
+        expect(appActionsSource).not.toContain("export function useState");
+        expect(appActionsSource).not.toContain("export function useComputed");
+        expect(appActionsSource).not.toContain("export class StateMiddleware");
+        expect(appActionsSource).not.toContain("stateMiddleware =");
+        expect(appActionsSource).not.toContain("getAppActionState");
+        expect(appActionsSource).not.toContain("setAppActionState");
+        expect(appActionsStateSource).not.toContain(
+            "function getAppActionState"
+        );
+        expect(appActionsStateSource).not.toContain(
+            "function setAppActionState"
+        );
+        expect(appActionsStateSource).not.toContain(
+            "subscribeToAppActionStatePath"
+        );
+        expect(appIndexSource).not.toMatch(
+            /\b(?:StateMiddleware|stateMiddleware|useComputed|useState)\b/u
+        );
+        expect(appIndexSource).toContain("AppActions");
+    });
+
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
         expect.assertions(46);
 
