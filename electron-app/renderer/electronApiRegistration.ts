@@ -1,8 +1,11 @@
-import { getElectronApiHooksFromValue } from "./electronApiStartupHooks.js";
+import {
+    getElectronApiHooksFromValue,
+    type RendererElectronMenuAction,
+} from "./electronApiStartupHooks.js";
 
 interface RendererElectronApiRegistrationOptions {
     electronApiCandidate: unknown;
-    onMenuAction: (action: unknown) => void;
+    onMenuAction: (action: RendererElectronMenuAction) => void;
     onThemeChanged: (theme: string) => void;
     scheduleStateInitialization: () => void;
 }

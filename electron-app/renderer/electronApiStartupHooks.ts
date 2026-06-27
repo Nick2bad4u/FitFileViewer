@@ -7,12 +7,13 @@ export type RendererApplyTheme = (
     theme: string,
     withTransition?: boolean
 ) => void;
+export type RendererElectronMenuAction = "about" | "open-file";
 
 export interface ElectronApiStartupHooks {
     checkForUpdates: (() => unknown) | undefined;
     isDevelopment: (() => Promise<unknown>) | undefined;
     onMenuAction:
-        | ((callback: (action: unknown) => void) => unknown)
+        | ((callback: (action: RendererElectronMenuAction) => void) => unknown)
         | undefined;
     onThemeChanged:
         | ((callback: (theme: string) => void) => unknown)
@@ -57,7 +58,7 @@ export function getElectronApiHooksFromValue(
         onMenuAction:
             typeof apiValue.onMenuAction === "function"
                 ? (apiValue.onMenuAction as (
-                      callback: (action: unknown) => void
+                      callback: (action: RendererElectronMenuAction) => void
                   ) => unknown)
                 : undefined,
         onThemeChanged:

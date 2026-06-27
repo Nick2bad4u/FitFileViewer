@@ -1,4 +1,7 @@
-import type { RendererApplyTheme } from "./electronApiStartupHooks.js";
+import type {
+    RendererApplyTheme,
+    RendererElectronMenuAction,
+} from "./electronApiStartupHooks.js";
 
 type RendererElectronMenuLogLevel = "warn";
 
@@ -19,7 +22,7 @@ type RendererElectronMenuActionHandlersOptions = {
 };
 
 type RendererElectronMenuActionHandlers = {
-    readonly onMenuAction: (action: unknown) => void;
+    readonly onMenuAction: (action: RendererElectronMenuAction) => void;
     readonly onThemeChanged: (theme: string) => void;
 };
 
@@ -50,7 +53,7 @@ async function applyElectronThemeChange(
 }
 
 function handleElectronMenuAction(
-    action: unknown,
+    action: RendererElectronMenuAction,
     options: RendererElectronMenuActionHandlersOptions
 ): void {
     try {

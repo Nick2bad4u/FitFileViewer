@@ -1,22 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { installRendererElectronApiWiring } from "../../../electron-app/renderer/electronApiWiring.js";
+import type { RendererElectronMenuAction } from "../../../electron-app/renderer/electronApiStartupHooks.js";
 
 function createElectronApi() {
-    let menuCallback: ((action: unknown) => void) | undefined;
+    let menuCallback:
+        | ((action: RendererElectronMenuAction) => void)
+        | undefined;
     let themeCallback: ((theme: string) => void) | undefined;
 
     return {
         api: {
             isDevelopment: vi.fn(async () => false),
-            onMenuAction(callback: (action: unknown) => void): void {
+            onMenuAction(
+                callback: (action: RendererElectronMenuAction) => void
+            ): void {
                 menuCallback = callback;
             },
             onThemeChanged(callback: (theme: string) => void): void {
                 themeCallback = callback;
             },
         },
-        emitMenuAction(action: unknown): void {
+        emitMenuAction(action: RendererElectronMenuAction): void {
             menuCallback?.(action);
         },
         emitThemeChanged(theme: string): void {

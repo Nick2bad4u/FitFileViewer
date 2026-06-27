@@ -5,6 +5,7 @@ import {
     getElectronApiStartupHooks,
     probeDevelopmentMode,
     registerStartupElectronHooks,
+    type RendererElectronMenuAction,
 } from "../../../electron-app/renderer/electronApiStartupHooks.js";
 describe("renderer Electron API startup hooks", () => {
     afterEach(() => {
@@ -101,7 +102,9 @@ describe("renderer Electron API startup hooks", () => {
     it("wires menu and theme callbacks while isolating callback failures", async () => {
         expect.assertions(5);
 
-        let menuCallback: ((action: unknown) => void) | undefined;
+        let menuCallback:
+            | ((action: RendererElectronMenuAction) => void)
+            | undefined;
         let themeCallback: ((theme: string) => void) | undefined;
         const button = document.createElement("button");
         const click = vi.spyOn(button, "click");
