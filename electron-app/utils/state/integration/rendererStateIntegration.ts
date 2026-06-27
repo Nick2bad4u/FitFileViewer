@@ -27,9 +27,9 @@ import type { ElectronPreloadEventApi } from "../../../shared/preloadApi.js";
 
 type Unsubscribe = () => void;
 
-interface RendererElectronAPI {
-    onFileOpened?: ElectronPreloadEventApi["onFileOpened"];
-}
+type RendererElectronAPI = {
+    readonly onFileOpened?: ElectronPreloadEventApi["onFileOpened"];
+};
 
 type RendererStateIntegrationOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
