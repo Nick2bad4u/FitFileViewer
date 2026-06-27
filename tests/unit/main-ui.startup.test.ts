@@ -353,8 +353,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
             sendThemeChanged,
         };
 
-        const { mainUiDragDropHandler } =
-            await import("../../electron-app/main-ui.js");
+        const mainUiModule = await import("../../electron-app/main-ui.js");
         const { resourceManager } =
             await import("../../electron-app/utils/app/lifecycle/resourceManager.js");
         const { chartTabIntegration } =
@@ -395,7 +394,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
 
         expect(dragDropHandlerMock).toHaveBeenCalledOnce();
         const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
-        expect(mainUiDragDropHandler).toBe(dragDropInstance);
+        expect(Reflect.has(mainUiModule, "mainUiDragDropHandler")).toBe(false);
         expect(dragDropInstance.dispose).toBe(mocks.dragDropDispose);
         expect(onOpenSummaryColumnSelector).toHaveBeenCalledOnce();
         expect(onUnloadFitFile).toHaveBeenCalledOnce();

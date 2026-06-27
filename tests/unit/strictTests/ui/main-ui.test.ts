@@ -405,10 +405,12 @@ function getCurrentElectronAPI(): TestElectronAPI {
     return api;
 }
 
-type MainUiModule = Awaited<ReturnType<typeof importMainUI>>;
+type MainUiStartupHandles = Awaited<
+    ReturnType<typeof importMainUiStartupHandles>
+>;
 
-function getDragDropHandler(mainUiModule: MainUiModule) {
-    const handler = mainUiModule.mainUiDragDropHandler;
+function getDragDropHandler(mainUiStartupHandles: MainUiStartupHandles) {
+    const handler = mainUiStartupHandles.mainUiDragDropHandler;
 
     if (
         !handler ||
@@ -429,6 +431,13 @@ const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
 async function importMainUI() {
     // Import the module under test. Path is from this test file.
     return await import("../../../../electron-app/main-ui.js");
+}
+
+async function importMainUiStartupHandles() {
+    const { initializeMainUiStartup } =
+        await import("../../../../electron-app/renderer/mainUiStartup.js");
+
+    return initializeMainUiStartup();
 }
 
 describe("main-ui.js core flows", () => {
@@ -557,13 +566,13 @@ describe("main-ui.js core flows", () => {
     it("drag and drop overlay shows/hides", async () => {
         expect.assertions(8);
 
-        const mainUiModule = await importMainUI();
+        const mainUiStartupHandles = await importMainUiStartupHandles();
 
         const overlay = getRequiredElement("drop_overlay", HTMLElement);
         const alt = getRequiredElement("altfit-iframe", HTMLElement);
         const zwift = getRequiredElement("zwift-iframe", HTMLElement);
 
-        const handler = getDragDropHandler(mainUiModule);
+        const handler = getDragDropHandler(mainUiStartupHandles);
         handler.showDropOverlay();
         expect(overlay.style.display).toBe("flex");
         expect(alt.style.pointerEvents).toBe("none");
@@ -590,8 +599,8 @@ describe("main-ui.js core flows", () => {
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
         expect.assertions(15);
 
-        const mainUiModule = await importMainUI();
-        const handler = getDragDropHandler(mainUiModule);
+        const mainUiStartupHandles = await importMainUiStartupHandles();
+        const handler = getDragDropHandler(mainUiStartupHandles);
         const notifications: string[] = [];
         showNotification.mockImplementation((message: string, type: string) => {
             notifications.push(`${type}:${message}`);
@@ -754,17 +763,17 @@ describe("main-ui.js core flows", () => {
         expect(Reflect.has(window, "injectMenu")).toBe(false);
     });
 
-    it("development helper exports inject menu and cleanup", async () => {
+    it("startup handles inject menu and run development cleanup", async () => {
         expect.assertions(6);
 
         const api = installElectronAPI();
-        const mainUiModule = await importMainUI();
-        mainUiModule.requestMainUiMenuInjection("dark", "path.fit");
+        const mainUiStartupHandles = await importMainUiStartupHandles();
+        mainUiStartupHandles.requestMainUiMenuInjection("dark", "path.fit");
         expect(api.injectMenu).toHaveBeenCalledWith("dark", "path.fit");
 
         mockState["charts.isRendered"] = true;
         mockState["ui.dragCounter"] = 3;
-        mainUiModule.runMainUiDevelopmentCleanup();
+        mainUiStartupHandles.runMainUiDevelopmentCleanup();
         expect(AppActions.clearData).toHaveBeenCalledOnce();
         expect(chartTabIntegration.destroy).toHaveBeenCalledOnce();
         expect(setState).toHaveBeenCalledWith("charts.isRendered", false, {

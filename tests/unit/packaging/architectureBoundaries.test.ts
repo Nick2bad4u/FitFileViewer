@@ -7124,7 +7124,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui as an entrypoint-only startup bridge", () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         const mainUiSource = stripComments(
             readRepositoryFile("electron-app/main-ui.ts")
@@ -7135,15 +7135,8 @@ describe("architecture boundaries", () => {
             'import { initializeMainUiStartup } from "./renderer/mainUiStartup.js";',
         ]);
         expect(mainUiSource).toContain("await initializeMainUiStartup()");
-        expect(mainUiSource).toContain(
-            "export const { mainUiDragDropHandler }"
-        );
-        expect(mainUiSource).toContain(
-            "export const { requestMainUiMenuInjection }"
-        );
-        expect(mainUiSource).toContain(
-            "export const { runMainUiDevelopmentCleanup }"
-        );
+        expect(mainUiSource).not.toContain("export const");
+        expect(mainUiSource).not.toContain("export {");
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
