@@ -103,9 +103,43 @@ type FitData = {
 
 type TrackUnsubscribe = (maybeUnsubscribe: unknown) => void;
 
-type LifecycleElectronAPI = Partial<
-    ElectronFileApi & ElectronMenuEventApi & ElectronPreloadEventApi
->;
+type LifecycleElectronAPI = {
+    readonly addRecentFile?: ElectronFileApi["addRecentFile"];
+    readonly checkForUpdates?: ElectronMenuEventApi["checkForUpdates"];
+    readonly onDecoderOptionsChanged?: ElectronMenuEventApi["onDecoderOptionsChanged"];
+    readonly onExportFile?: ElectronMenuEventApi["onExportFile"];
+    readonly onMenuCheckForUpdates?: ElectronMenuEventApi["onMenuCheckForUpdates"];
+    readonly onMenuOpenFile?: ElectronMenuEventApi["onMenuOpenFile"];
+    readonly onMenuPrint?: ElectronMenuEventApi["onMenuPrint"];
+    readonly onOpenRecentFile?: ElectronMenuEventApi["onOpenRecentFile"];
+    readonly onSetFontSize?: ElectronMenuEventApi["onSetFontSize"];
+    readonly onSetHighContrast?: ElectronMenuEventApi["onSetHighContrast"];
+    readonly onShowNotification?: ElectronMenuEventApi["onShowNotification"];
+    readonly onUpdateEvent?: ElectronPreloadEventApi["onUpdateEvent"];
+    readonly parseFitFile?: ElectronFileApi["parseFitFile"];
+    readonly readFile?: ElectronFileApi["readFile"];
+};
+
+type LifecycleElectronApiCandidate = {
+    readonly [K in keyof LifecycleElectronAPI]?: unknown;
+};
+
+const LIFECYCLE_ELECTRON_API_METHODS = [
+    "addRecentFile",
+    "checkForUpdates",
+    "onDecoderOptionsChanged",
+    "onExportFile",
+    "onMenuCheckForUpdates",
+    "onMenuOpenFile",
+    "onMenuPrint",
+    "onOpenRecentFile",
+    "onSetFontSize",
+    "onSetHighContrast",
+    "onShowNotification",
+    "onUpdateEvent",
+    "parseFitFile",
+    "readFile",
+] as const satisfies readonly (keyof LifecycleElectronAPI)[];
 
 /** Mutable flag shared with the file-opening workflow. */
 export type FileOpeningStateRef = {
@@ -157,14 +191,11 @@ const HIGH_CONTRAST_BODY_CLASSES = [
 ] as const;
 
 function hasOptionalLifecycleElectronFunction(
-    value: object,
+    value: LifecycleElectronApiCandidate,
     key: keyof LifecycleElectronAPI
 ): boolean {
-    if (!(key in value)) {
-        return true;
-    }
-
-    return typeof value[key as keyof typeof value] === "function";
+    const candidate = value[key];
+    return candidate === undefined || typeof candidate === "function";
 }
 
 function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
@@ -172,26 +203,10 @@ function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
         return false;
     }
 
-    return [
-        "addRecentFile",
-        "checkForUpdates",
-        "onDecoderOptionsChanged",
-        "onExportFile",
-        "onMenuCheckForUpdates",
-        "onMenuOpenFile",
-        "onMenuPrint",
-        "onOpenRecentFile",
-        "onSetFontSize",
-        "onSetHighContrast",
-        "onShowNotification",
-        "onUpdateEvent",
-        "parseFitFile",
-        "readFile",
-    ].every((key) =>
-        hasOptionalLifecycleElectronFunction(
-            value,
-            key as keyof LifecycleElectronAPI
-        )
+    const api = value as LifecycleElectronApiCandidate;
+
+    return LIFECYCLE_ELECTRON_API_METHODS.every((key) =>
+        hasOptionalLifecycleElectronFunction(api, key)
     );
 }
 

@@ -430,9 +430,10 @@ Settings modal theme-change IPC candidate typing now uses the shared menu-event 
 deriving from the monolithic `ElectronAPI` type.
 Setup theme fetch IPC candidate typing now uses the shared theme API-domain contract instead of deriving from the
 monolithic `ElectronAPI` type.
-Lifecycle listener IPC candidate typing now composes the shared file, menu-event, and preload-event API-domain
-contracts instead of deriving from the monolithic `ElectronAPI` type, with architecture guardrails blocking local
-`Pick<ElectronAPI, ...>` aliases from returning.
+Lifecycle listener IPC candidate typing now uses exact optional method aliases backed by the shared file, menu-event,
+and preload-event API-domain contracts instead of deriving from the monolithic `ElectronAPI` type or carrying a broad
+local `Partial` intersection bridge, with architecture guardrails blocking local `Pick<ElectronAPI, ...>` aliases and
+the broad lifecycle `Partial` bridge from returning.
 Full `ElectronAPI` imports are now confined by architecture coverage to the central renderer runtime accessor so
 feature modules must keep using split preload API-domain contracts.
 Core theme live theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
@@ -1120,7 +1121,9 @@ Lifecycle listener runtime controller and timer provider types now use shared br
 direct ambient `globalThis` controller/timer types, with architecture coverage blocking those direct type surfaces
 from returning.
 Scoped lifecycle Electron API validation now uses explicit optional-function property guards instead of casting the
-candidate preload API to a generic record.
+candidate preload API to a generic record, and lifecycle preload candidate typing now uses exact optional method
+aliases backed by shared file, menu-event, and preload-event API-domain contracts instead of a broad local `Partial`
+intersection bridge.
 Scoped main-process state client API validation now uses explicit required-function property guards instead of
 casting the candidate preload API to a generic record.
 Scoped master-state manager Electron API validation now uses explicit optional-function and development-mode
