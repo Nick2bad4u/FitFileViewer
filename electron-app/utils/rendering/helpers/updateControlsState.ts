@@ -9,6 +9,8 @@ import {
 } from "../../state/domain/rendererChartControlsState.js";
 import { getUpdateControlsStateRuntime } from "./updateControlsStateRuntime.js";
 
+let controlsStateUnsubscribe: (() => void) | null = null;
+
 /**
  * Initialize chart controls state management.
  */
@@ -16,22 +18,45 @@ export function initializeControlsState(): void {
     const runtime = getUpdateControlsStateRuntime();
     const runtimeDocument = runtime.getDocument();
 
-    // Subscribe to state changes to keep DOM in sync
-    subscribeToRendererChartControlsVisible((controlsVisible) => {
-        const toggleBtn = getChartControlsToggle(runtimeDocument),
-            wrapper = getChartSettingsWrapper(runtimeDocument);
+    cleanupControlsState();
 
-        if (wrapper && toggleBtn) {
-            wrapper.style.display = controlsVisible ? "block" : "none";
-            toggleBtn.textContent = controlsVisible
-                ? "▼ Hide Controls"
-                : "▶ Show Controls";
-            toggleBtn.setAttribute("aria-expanded", controlsVisible.toString());
+    // Subscribe to state changes to keep DOM in sync
+    controlsStateUnsubscribe = subscribeToRendererChartControlsVisible(
+        (controlsVisible) => {
+            const toggleBtn = getChartControlsToggle(runtimeDocument),
+                wrapper = getChartSettingsWrapper(runtimeDocument);
+
+            if (wrapper && toggleBtn) {
+                wrapper.style.display = controlsVisible ? "block" : "none";
+                toggleBtn.textContent = controlsVisible
+                    ? "▼ Hide Controls"
+                    : "▶ Show Controls";
+                toggleBtn.setAttribute(
+                    "aria-expanded",
+                    controlsVisible.toString()
+                );
+            }
         }
-    });
+    );
 
     // Set initial state
     updateControlsState();
+}
+
+/**
+ * Clean up chart controls state management.
+ */
+export function cleanupControlsState(): void {
+    if (controlsStateUnsubscribe === null) {
+        return;
+    }
+
+    try {
+        controlsStateUnsubscribe();
+    } catch {
+        /* Ignore cleanup errors. */
+    }
+    controlsStateUnsubscribe = null;
 }
 
 /**

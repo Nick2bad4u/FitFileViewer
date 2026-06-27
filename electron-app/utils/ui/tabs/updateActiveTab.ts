@@ -28,6 +28,7 @@ type TabButtonLike = EventTarget & {
 };
 
 let activeTabUnsubscribe: (() => void) | null = null;
+const activeTabEventCleanups = new Set<() => void>();
 
 function activeTabRuntime(): UpdateActiveTabRuntime {
     return getUpdateActiveTabRuntime();
@@ -231,6 +232,8 @@ export function getActiveTab(): string {
  */
 export function initializeActiveTabState(): void {
     try {
+        cleanupActiveTabState();
+
         const onActiveTabChange = (activeTab: unknown) => {
             try {
                 if (typeof activeTab === "string") {
@@ -240,15 +243,6 @@ export function initializeActiveTabState(): void {
                 /* Ignore */
             }
         };
-
-        try {
-            if (typeof activeTabUnsubscribe === "function") {
-                activeTabUnsubscribe();
-            }
-        } catch {
-            /* Ignore errors */
-        }
-        activeTabUnsubscribe = null;
 
         const stateManager = getStateMgr();
         if (typeof stateManager.subscribe === "function") {
@@ -293,12 +287,16 @@ export function initializeActiveTabState(): void {
                 const button = candidate;
                 const onClick = createActiveTabClickHandler(button);
 
-                addEventListenerWithCleanup(button, "click", onClick);
-                addEventListenerWithCleanup(button, "keydown", (event) => {
-                    if (activeTabRuntime().isKeyboardEvent(event)) {
-                        handleTabKeyboardNavigation(event, button);
-                    }
-                });
+                activeTabEventCleanups.add(
+                    addEventListenerWithCleanup(button, "click", onClick)
+                );
+                activeTabEventCleanups.add(
+                    addEventListenerWithCleanup(button, "keydown", (event) => {
+                        if (activeTabRuntime().isKeyboardEvent(event)) {
+                            handleTabKeyboardNavigation(event, button);
+                        }
+                    })
+                );
             }
         }
 
@@ -306,6 +304,27 @@ export function initializeActiveTabState(): void {
     } catch {
         // Non-fatal in tests.
     }
+}
+
+/**
+ * Clean up active tab state management.
+ */
+export function cleanupActiveTabState(): void {
+    try {
+        activeTabUnsubscribe?.();
+    } catch {
+        /* Ignore errors */
+    }
+    activeTabUnsubscribe = null;
+
+    for (const cleanup of activeTabEventCleanups) {
+        try {
+            cleanup();
+        } catch {
+            /* Ignore errors */
+        }
+    }
+    activeTabEventCleanups.clear();
 }
 
 /**

@@ -41,12 +41,12 @@ const TAB_DISABLED_CLASS = "tab-disabled";
 const finalStateLogTimers = new Set<ReturnType<typeof setTimeout>>();
 let tabButtonsCurrentlyEnabled: boolean | undefined;
 let tabButtonObserver: TabButtonObserver | undefined;
+let activeFitRawDataUnsubscribe: (() => void) | null = null;
 
 /** TEST-ONLY: reset module state between suites. */
 export function __resetTabButtonStateForTests(): void {
+    cleanupTabButtonState();
     tabButtonsCurrentlyEnabled = undefined;
-    tabButtonObserver = undefined;
-    clearFinalStateLogTimers();
 }
 
 // Ensure console.trace exists for tests/environments where it is missing.
@@ -135,7 +135,8 @@ export function initializeTabButtonState(): void {
         });
     }
 
-    subscribeToActiveFitRawData((data) => {
+    cleanupActiveFitRawDataSubscription();
+    activeFitRawDataUnsubscribe = subscribeToActiveFitRawData((data) => {
         const hasData = data !== null;
         console.log(
             `[TabButtons] fitFile.rawData changed, hasData: ${hasData}`,
@@ -150,6 +151,21 @@ export function initializeTabButtonState(): void {
     console.log(
         "[TabButtons] State management initialized - tabs disabled until file loaded"
     );
+}
+
+/**
+ * Clean up tab button observers, timers, and subscriptions.
+ */
+export function cleanupTabButtonState(): void {
+    cleanupActiveFitRawDataSubscription();
+    clearFinalStateLogTimers();
+
+    try {
+        tabButtonObserver?.disconnect?.();
+    } catch {
+        /* Ignore cleanup errors */
+    }
+    tabButtonObserver = undefined;
 }
 
 /**
@@ -347,6 +363,19 @@ function clearFinalStateLogTimers(): void {
         runtime.clearTimeout(handle);
     }
     finalStateLogTimers.clear();
+}
+
+function cleanupActiveFitRawDataSubscription(): void {
+    if (activeFitRawDataUnsubscribe === null) {
+        return;
+    }
+
+    try {
+        activeFitRawDataUnsubscribe();
+    } catch {
+        /* Ignore cleanup errors */
+    }
+    activeFitRawDataUnsubscribe = null;
 }
 
 function handleMutation(mutation: MutationRecord): void {

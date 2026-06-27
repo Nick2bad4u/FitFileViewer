@@ -4,6 +4,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+    cleanupControlsState,
     initializeControlsState,
     toggleChartControls,
     updateControlsState,
@@ -41,6 +42,7 @@ const mockSubscribe = vi.mocked(subscribe);
 
 const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 const mockGetComputedStyle = vi.fn<(element: Element) => CSSStyleDeclaration>();
+const mockUnsubscribes: Array<ReturnType<typeof vi.fn<() => void>>> = [];
 
 let mockToggleButton: HTMLButtonElement;
 let mockWrapper: HTMLDivElement;
@@ -73,6 +75,8 @@ describe(updateControlsState, () => {
         vi.clearAllMocks();
         document.body.replaceChildren();
         currentControlsVisible = undefined;
+        cleanupControlsState();
+        mockUnsubscribes.length = 0;
 
         Object.defineProperty(globalThis, "getComputedStyle", {
             configurable: true,
@@ -87,6 +91,11 @@ describe(updateControlsState, () => {
             if (key === "charts.controlsVisible") {
                 currentControlsVisible = value;
             }
+        });
+        mockSubscribe.mockImplementation(() => {
+            const unsubscribe = vi.fn<() => void>();
+            mockUnsubscribes.push(unsubscribe);
+            return unsubscribe;
         });
         installControlsDom();
     });
@@ -148,6 +157,28 @@ describe(updateControlsState, () => {
                 "charts.controlsVisible",
                 expect.any(Function)
             );
+        });
+
+        it("should clean previous subscription before reinitializing", () => {
+            expect.assertions(3);
+
+            initializeControlsState();
+            initializeControlsState();
+
+            expect(mockSubscribe).toHaveBeenCalledTimes(2);
+            expect(
+                mockUnsubscribes.map(
+                    (unsubscribe) => unsubscribe.mock.calls.length
+                )
+            ).toStrictEqual([1, 0]);
+
+            cleanupControlsState();
+
+            expect(
+                mockUnsubscribes.map(
+                    (unsubscribe) => unsubscribe.mock.calls.length
+                )
+            ).toStrictEqual([1, 1]);
         });
     });
 

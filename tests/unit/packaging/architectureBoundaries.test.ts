@@ -6318,7 +6318,7 @@ describe("architecture boundaries", () => {
             "defaultRendererStateBindingsDependencies"
         );
         expect(rendererStateBindingsSource).toContain(
-            "createRendererStateBindings(defaultRendererStateBindingsDependencies)()"
+            "cleanupCurrentRendererStateBindings = createRendererStateBindings"
         );
         expect(masterStateManagerSource).toContain("rendererStateBindings");
         expect(masterStateManagerSource).toContain(

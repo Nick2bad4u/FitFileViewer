@@ -17,12 +17,17 @@ type RendererStateBindingsModule =
 const stateMock = vi.hoisted(() => {
     const listeners = new Map<string, Set<StateListener>>();
     const state = new Map<string, unknown>();
+    const unsubscribes: Array<ReturnType<typeof vi.fn<() => void>>> = [];
 
     return {
         getState: vi.fn<(path: string) => unknown>((path) => state.get(path)),
+        getUnsubscribes(): Array<ReturnType<typeof vi.fn<() => void>>> {
+            return unsubscribes;
+        },
         reset(): void {
             listeners.clear();
             state.clear();
+            unsubscribes.length = 0;
             this.getState.mockClear();
             this.setState.mockClear();
             this.subscribe.mockClear();
@@ -52,9 +57,12 @@ const stateMock = vi.hoisted(() => {
                 pathListeners.add(callback);
                 listeners.set(path, pathListeners);
 
-                return () => {
+                const unsubscribe = vi.fn(() => {
                     pathListeners.delete(callback);
-                };
+                });
+                unsubscribes.push(unsubscribe);
+
+                return unsubscribe;
             }
         ),
     };
@@ -246,8 +254,10 @@ describe("sync renderer UI helpers", () => {
 
         resetTestState();
 
-        const { initializeRendererStateBindings } =
-            await importRendererStateBindings();
+        const {
+            cleanupRendererStateBindings,
+            initializeRendererStateBindings,
+        } = await importRendererStateBindings();
         const overlay = requireHTMLElement("loadingOverlay");
         const notification = requireHTMLElement("notification");
 
@@ -284,6 +294,39 @@ describe("sync renderer UI helpers", () => {
 
         expect(notification.textContent).toBe("Done");
         expect(notification.getAttribute("role")).toBe("alert");
+
+        cleanupRendererStateBindings();
+    });
+
+    it("initializeRendererStateBindings cleans previous subscriptions before rewiring", async () => {
+        expect.assertions(4);
+
+        resetTestState();
+
+        const {
+            cleanupRendererStateBindings,
+            initializeRendererStateBindings,
+        } = await importRendererStateBindings();
+
+        initializeRendererStateBindings();
+        initializeRendererStateBindings();
+
+        const unsubscribes = stateMock.getUnsubscribes();
+        expect(stateMock.subscribe).toHaveBeenCalledTimes(4);
+        expect(unsubscribes).toHaveLength(4);
+        expect(
+            unsubscribes
+                .slice(0, 2)
+                .map((unsubscribe) => unsubscribe.mock.calls.length)
+        ).toStrictEqual([1, 1]);
+
+        cleanupRendererStateBindings();
+
+        expect(
+            unsubscribes
+                .slice(2)
+                .map((unsubscribe) => unsubscribe.mock.calls.length)
+        ).toStrictEqual([1, 1]);
     });
 
     it("createRendererStateBindings wires explicit state and UI dependencies", async () => {

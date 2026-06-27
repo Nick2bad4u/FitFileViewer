@@ -24,6 +24,7 @@ vi.mock(
 );
 
 import {
+    cleanupActiveTabState,
     getActiveTab,
     initializeActiveTabState,
     updateActiveTab,
@@ -159,6 +160,7 @@ describe("updateActiveTab state behavior", () => {
     });
 
     afterEach(() => {
+        cleanupActiveTabState();
         testContainer.remove();
         setTabTestEnvironmentForTests(null);
         vi.restoreAllMocks();
@@ -627,6 +629,36 @@ describe("updateActiveTab state behavior", () => {
                 0
             );
             expectActiveTabSubscriptionRegistered();
+        });
+
+        it("should clean previous subscription and listeners before reinitializing", () => {
+            expect.assertions(4);
+
+            appendTabElement({ id: "tab-summary", text: "Summary" });
+            const unsubscribes = [vi.fn<() => void>(), vi.fn<() => void>()];
+            mockSubscribe
+                .mockReturnValueOnce(unsubscribes[0])
+                .mockReturnValueOnce(unsubscribes[1]);
+
+            initializeActiveTabState();
+            initializeActiveTabState();
+            getRequiredElement("tab-summary").click();
+
+            expect(mockSubscribe).toHaveBeenCalledTimes(2);
+            expect(mockSetState).toHaveBeenCalledExactlyOnceWith(
+                "ui.activeTab",
+                "summary",
+                { source: "tabButtonClick" }
+            );
+            expect(
+                unsubscribes.map((unsubscribe) => unsubscribe.mock.calls.length)
+            ).toStrictEqual([1, 0]);
+
+            cleanupActiveTabState();
+
+            expect(
+                unsubscribes.map((unsubscribe) => unsubscribe.mock.calls.length)
+            ).toStrictEqual([1, 1]);
         });
     });
 

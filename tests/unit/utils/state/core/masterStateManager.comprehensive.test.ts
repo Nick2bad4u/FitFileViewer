@@ -9,6 +9,7 @@ const staticModuleMocks = vi.hoisted(() => ({
     AppSelectors: {
         hasData: vi.fn<() => boolean>().mockReturnValue(true),
     },
+    cleanupRendererStateBindings: vi.fn<() => void>(),
     initializeRendererStateBindings: vi.fn<() => void>(),
     showNotification: vi.fn<(message: string, kind: string) => void>(),
 }));
@@ -16,6 +17,8 @@ const staticModuleMocks = vi.hoisted(() => ({
 vi.mock(
     import("../../../../../electron-app/utils/ui/rendererStateBindings.js"),
     () => ({
+        cleanupRendererStateBindings:
+            staticModuleMocks.cleanupRendererStateBindings,
         initializeRendererStateBindings:
             staticModuleMocks.initializeRendererStateBindings,
     })
@@ -81,6 +84,7 @@ type HarnessMocks = {
         initializeCommonComputedValues: ReturnType<typeof vi.fn<() => void>>;
     };
     enableTabButtons: {
+        cleanupTabButtonState: ReturnType<typeof vi.fn<() => void>>;
         initializeTabButtonState: ReturnType<typeof vi.fn<() => void>>;
     };
     fitFileState: {
@@ -90,6 +94,7 @@ type HarnessMocks = {
         };
     };
     rendererStateBindings: {
+        cleanupRendererStateBindings: ReturnType<typeof vi.fn<() => void>>;
         initializeRendererStateBindings: ReturnType<typeof vi.fn<() => void>>;
     };
     settingsStateManager: {
@@ -120,9 +125,11 @@ type HarnessMocks = {
         };
     };
     updateActiveTab: {
+        cleanupActiveTabState: ReturnType<typeof vi.fn<() => void>>;
         initializeActiveTabState: ReturnType<typeof vi.fn<() => void>>;
     };
     updateControlsState: {
+        cleanupControlsState: ReturnType<typeof vi.fn<() => void>>;
         initializeControlsState: ReturnType<typeof vi.fn<() => void>>;
     };
     updateTabVisibility: {
@@ -607,7 +614,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
-        expect.assertions(21);
+        expect.assertions(25);
 
         await withMasterStateHarness(
             async ({
@@ -701,7 +708,9 @@ describe("masterStateManager comprehensive behavior", () => {
                 manager.components.set("computed", {});
                 manager.components.set("middleware", {});
                 manager.components.set(devToolsComponentName, {});
+                manager.components.set("renderer", {});
                 manager.components.set("tabs", {});
+                manager.components.set("ui", {});
                 manager.isInitialized = true;
                 const performanceUnsubscribe = vi.fn<() => void>();
                 mocks.stateManager.subscribe.mockImplementation((path) =>
@@ -748,7 +757,19 @@ describe("masterStateManager comprehensive behavior", () => {
                     mocks.stateDevTools.cleanupStateDevTools
                 ).toHaveBeenCalledOnce();
                 expect(
+                    mocks.rendererStateBindings.cleanupRendererStateBindings
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.enableTabButtons.cleanupTabButtonState
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.updateActiveTab.cleanupActiveTabState
+                ).toHaveBeenCalledOnce();
+                expect(
                     mocks.updateTabVisibility.cleanupTabVisibilityState
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.updateControlsState.cleanupControlsState
                 ).toHaveBeenCalledOnce();
                 expect(
                     stateSubscriptions
@@ -813,6 +834,7 @@ function createHarnessMocks(): HarnessMocks {
             initializeCommonComputedValues: vi.fn<() => void>(),
         },
         enableTabButtons: {
+            cleanupTabButtonState: vi.fn<() => void>(),
             initializeTabButtonState: vi.fn<() => void>(),
         },
         fitFileState: {
@@ -822,6 +844,7 @@ function createHarnessMocks(): HarnessMocks {
             },
         },
         rendererStateBindings: {
+            cleanupRendererStateBindings: vi.fn<() => void>(),
             initializeRendererStateBindings: vi.fn<() => void>(),
         },
         settingsStateManager: {
@@ -871,9 +894,11 @@ function createHarnessMocks(): HarnessMocks {
             },
         },
         updateActiveTab: {
+            cleanupActiveTabState: vi.fn<() => void>(),
             initializeActiveTabState: vi.fn<() => void>(),
         },
         updateControlsState: {
+            cleanupControlsState: vi.fn<() => void>(),
             initializeControlsState: vi.fn<() => void>(),
         },
         updateTabVisibility: {
@@ -996,6 +1021,7 @@ async function withMasterStateHarness(
     vi.spyOn(console, "warn").mockReturnValue(undefined);
     staticModuleMocks.AppActions.switchTab.mockClear();
     staticModuleMocks.AppSelectors.hasData.mockReturnValue(true);
+    staticModuleMocks.cleanupRendererStateBindings.mockClear();
     staticModuleMocks.initializeRendererStateBindings.mockClear();
     staticModuleMocks.showNotification.mockClear();
     mocks.stateManager.subscribe.mockImplementation((path, callback) => {

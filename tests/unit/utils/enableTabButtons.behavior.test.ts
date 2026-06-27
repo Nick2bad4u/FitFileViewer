@@ -32,6 +32,7 @@ type MockGetActiveFitMessageArray = ReturnType<
 
 let setTabButtonsEnabled: EnableTabButtonsModule["setTabButtonsEnabled"];
 let initializeTabButtonState: EnableTabButtonsModule["initializeTabButtonState"];
+let cleanupTabButtonState: EnableTabButtonsModule["cleanupTabButtonState"];
 let areTabButtonsEnabled: EnableTabButtonsModule["areTabButtonsEnabled"];
 let debugTabButtons: EnableTabButtonsModule["debugTabButtons"];
 let forceEnableTabButtons: EnableTabButtonsModule["forceEnableTabButtons"];
@@ -193,6 +194,7 @@ describe("enableTabButtons behavior", () => {
         ({
             setTabButtonsEnabled,
             initializeTabButtonState,
+            cleanupTabButtonState,
             areTabButtonsEnabled,
             debugTabButtons,
             forceEnableTabButtons,
@@ -635,6 +637,53 @@ describe("enableTabButtons behavior", () => {
 
             expect(mutationObserverSpy).toHaveBeenCalledOnce();
             expect(Reflect.has(globalThis, "tabButtonObserver")).toBe(false);
+        });
+
+        it("should clean previous raw-data subscription before reinitializing", () => {
+            expect.assertions(3);
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
+            const unsubscribes = [vi.fn<() => void>(), vi.fn<() => void>()];
+            mockSubscribeToActiveFitRawData
+                .mockReturnValueOnce(unsubscribes[0])
+                .mockReturnValueOnce(unsubscribes[1]);
+
+            initializeTabButtonState();
+            initializeTabButtonState();
+
+            expect(mockSubscribeToActiveFitRawData).toHaveBeenCalledTimes(2);
+            expect(
+                unsubscribes.map((unsubscribe) => unsubscribe.mock.calls.length)
+            ).toStrictEqual([1, 0]);
+
+            cleanupTabButtonState();
+
+            expect(
+                unsubscribes.map((unsubscribe) => unsubscribe.mock.calls.length)
+            ).toStrictEqual([1, 1]);
+        });
+
+        it("should disconnect observer during cleanup", () => {
+            expect.assertions(3);
+            appendTabButtons([{ id: "tab-test", text: "Test" }]);
+
+            const mockObserver = createMutationObserverMock();
+            const mutationObserverSpy = vi
+                .fn<(callback: MutationCallback) => MutationObserver>()
+                .mockImplementation(function MutationObserverMock(callback) {
+                    void callback;
+                    return mockObserver as MutationObserver;
+                });
+
+            setTestMutationObserver(mutationObserverSpy);
+
+            initializeTabButtonState();
+            cleanupTabButtonState();
+
+            expect(mutationObserverSpy).toHaveBeenCalledOnce();
+            expect(mockObserver.disconnect).toHaveBeenCalledOnce();
+            expect(getRequiredButton("tab-test").hasAttribute("disabled")).toBe(
+                true
+            );
         });
     });
 

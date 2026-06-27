@@ -7,11 +7,23 @@ import {
     cleanupStateDevTools,
     initializeStateDevTools,
 } from "../../debug/stateDevTools.js";
-import { initializeControlsState } from "../../rendering/helpers/updateControlsState.js";
-import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js";
+import {
+    cleanupControlsState,
+    initializeControlsState,
+} from "../../rendering/helpers/updateControlsState.js";
+import {
+    cleanupTabButtonState,
+    initializeTabButtonState,
+} from "../../ui/controls/enableTabButtons.js";
 import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
-import { initializeRendererStateBindings } from "../../ui/rendererStateBindings.js";
-import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
+import {
+    cleanupRendererStateBindings,
+    initializeRendererStateBindings,
+} from "../../ui/rendererStateBindings.js";
+import {
+    cleanupActiveTabState,
+    initializeActiveTabState,
+} from "../../ui/tabs/updateActiveTab.js";
 import {
     cleanupTabVisibilityState,
     initializeTabVisibilityState,
@@ -110,10 +122,12 @@ type ComputedStateModule = {
 };
 
 type ControlsStateModule = {
+    cleanupControlsState?: () => unknown;
     initializeControlsState: () => unknown;
 };
 
 type EnableTabButtonsModule = {
+    cleanupTabButtonState?: () => unknown;
     initializeTabButtonState: () => unknown;
 };
 
@@ -122,6 +136,7 @@ type FitFileStateModule = {
 };
 
 type RendererStateBindingsModule = {
+    cleanupRendererStateBindings?: () => unknown;
     initializeRendererStateBindings: () => unknown;
 };
 
@@ -148,6 +163,7 @@ type UIStateModule = {
 };
 
 type UpdateActiveTabModule = {
+    cleanupActiveTabState?: () => unknown;
     initializeActiveTabState: () => unknown;
 };
 
@@ -343,12 +359,20 @@ export class MasterStateManager {
     }
 
     private getControlsHelperModule(): ControlsStateModule {
-        return this.dependencies.controlsState ?? { initializeControlsState };
+        return (
+            this.dependencies.controlsState ?? {
+                cleanupControlsState,
+                initializeControlsState,
+            }
+        );
     }
 
     private getEnableTabButtonsModule(): EnableTabButtonsModule {
         return (
-            this.dependencies.enableTabButtons ?? { initializeTabButtonState }
+            this.dependencies.enableTabButtons ?? {
+                cleanupTabButtonState,
+                initializeTabButtonState,
+            }
         );
     }
 
@@ -359,6 +383,7 @@ export class MasterStateManager {
     private getRendererStateBindingsModule(): RendererStateBindingsModule {
         return (
             this.dependencies.rendererStateBindings ?? {
+                cleanupRendererStateBindings,
                 initializeRendererStateBindings,
             }
         );
@@ -408,7 +433,10 @@ export class MasterStateManager {
 
     private getUpdateActiveTabModule(): UpdateActiveTabModule {
         return (
-            this.dependencies.updateActiveTab ?? { initializeActiveTabState }
+            this.dependencies.updateActiveTab ?? {
+                cleanupActiveTabState,
+                initializeActiveTabState,
+            }
         );
     }
 
@@ -487,10 +515,28 @@ export class MasterStateManager {
             dynCleanupDevTools();
         }
 
+        if (this.components.has("renderer")) {
+            const { cleanupRendererStateBindings: dynCleanupRendererBindings } =
+                this.getRendererStateBindingsModule();
+            dynCleanupRendererBindings?.();
+        }
+
         if (this.components.has("tabs")) {
+            const { cleanupTabButtonState: dynCleanupTabButtons } =
+                this.getEnableTabButtonsModule();
+            const { cleanupActiveTabState: dynCleanupActiveTab } =
+                this.getUpdateActiveTabModule();
             const { cleanupTabVisibilityState: dynCleanupTabVisibility } =
                 this.getUpdateTabVisibilityModule();
+            dynCleanupTabButtons?.();
+            dynCleanupActiveTab?.();
             dynCleanupTabVisibility?.();
+        }
+
+        if (this.components.has("ui")) {
+            const { cleanupControlsState: dynCleanupControls } =
+                this.getControlsHelperModule();
+            dynCleanupControls?.();
         }
 
         // Clean up components

@@ -9,6 +9,7 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type TabButtonObserver = {
+    disconnect?: () => void;
     observe?: (
         target: Readonly<Element>,
         options?: Readonly<MutationObserverInit>
