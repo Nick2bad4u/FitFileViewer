@@ -2,21 +2,25 @@ import { describe, expect, it, vi } from "vitest";
 
 type TabIdUtilsModule =
     typeof import("../../../../../electron-app/utils/ui/tabs/tabIdUtils.js");
+type RendererActiveTabStateModule =
+    typeof import("../../../../../electron-app/utils/state/domain/rendererActiveTabState.js");
 
 describe("tabIdUtils", () => {
     it("normalizes tab names and content tab aliases", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const {
             DEFAULT_TAB_NAMES_LIST,
             normalizeContentTabName,
             normalizeTabName,
         } = await importTabIdUtils();
+        const { RENDERER_TAB_NAMES } = await importRendererActiveTabState();
 
         expect(normalizeTabName("ChartJS")).toBe("chart_js");
         expect(normalizeTabName("PowerZone")).toBe("power_zone");
         expect(normalizeContentTabName("chartjs")).toBe("chart");
         expect(DEFAULT_TAB_NAMES_LIST).toContain("summary");
+        expect(DEFAULT_TAB_NAMES_LIST).toStrictEqual([...RENDERER_TAB_NAMES]);
     });
 
     it("extracts tab names from known button ID patterns", async () => {
@@ -92,4 +96,8 @@ describe("tabIdUtils", () => {
 
 async function importTabIdUtils(): Promise<TabIdUtilsModule> {
     return import("../../../../../electron-app/utils/ui/tabs/tabIdUtils.js");
+}
+
+async function importRendererActiveTabState(): Promise<RendererActiveTabStateModule> {
+    return import("../../../../../electron-app/utils/state/domain/rendererActiveTabState.js");
 }

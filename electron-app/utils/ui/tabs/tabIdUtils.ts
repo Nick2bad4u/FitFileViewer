@@ -6,6 +6,7 @@
  */
 
 import { buildIdVariants } from "../dom/elementIdUtils.js";
+import { RENDERER_TAB_NAMES } from "../../state/domain/rendererActiveTabState.js";
 
 /** Tab configuration shape used by tab ID resolution. */
 export type TabIdConfig = {
@@ -16,17 +17,6 @@ export type TabIdConfig = {
 export type ExtractTabNameOptions = {
     knownTabNames?: readonly string[];
 };
-
-const DEFAULT_TAB_NAMES = [
-    "altfit",
-    "browser",
-    "chart",
-    "chartjs",
-    "data",
-    "map",
-    "summary",
-    "zwift",
-] as const;
 
 /**
  * Normalize a tab name for matching.
@@ -65,7 +55,7 @@ export function extractTabNameFromButtonId(
     tabId: string,
     options: ExtractTabNameOptions = {}
 ): string {
-    const knownTabNames = options.knownTabNames ?? DEFAULT_TAB_NAMES;
+    const knownTabNames = options.knownTabNames ?? RENDERER_TAB_NAMES;
 
     const patterns: RegExp[] = [
         /^tab_(.+)$/,
@@ -194,4 +184,4 @@ export function getContentIdFromTabName(tabName: string): string {
 }
 
 /** Default tab names known by the legacy tab UI. */
-export const DEFAULT_TAB_NAMES_LIST = [...DEFAULT_TAB_NAMES];
+export const DEFAULT_TAB_NAMES_LIST = [...RENDERER_TAB_NAMES];
