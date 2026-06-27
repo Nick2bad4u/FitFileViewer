@@ -97,6 +97,8 @@ for constants/app-state/state-manager dependencies; app-event OAuth/theme/window
 lazy so permission-handler source tests can import the ESM source boundary natively.
 Gyazo startup timer state and main-process test priming now use named source exports too, and the app-event
 handler imports the timer setter natively instead of requiring that source module.
+Application event-handler permission-detail string reads now use typed indexed access instead of generic
+`Reflect.get` probes, with architecture coverage blocking that dynamic detail lookup from returning.
 Strict Electron main-handler tests now import Electron access, file-access policy, filesystem, and
 file-system handler modules natively instead of using `createRequire`, `requireCjs`, or inline `require(...)`
 test bridges.

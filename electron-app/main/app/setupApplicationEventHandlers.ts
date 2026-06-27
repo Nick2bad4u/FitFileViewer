@@ -154,12 +154,14 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
     type SessionHandlerRegistration = "download" | "permissions";
 
-    type ReflectTarget = object & Record<PropertyKey, unknown>;
+    type PropertyLookupTarget = object & Record<PropertyKey, unknown>;
 
-    function asReflectTarget(value: unknown): ReflectTarget | null {
+    function asPropertyLookupTarget(
+        value: unknown
+    ): PropertyLookupTarget | null {
         return value &&
             (typeof value === "object" || typeof value === "function")
-            ? (value as ReflectTarget)
+            ? (value as PropertyLookupTarget)
             : null;
     }
 
@@ -167,8 +169,8 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         value: unknown,
         key: string
     ): string | undefined {
-        const record = asReflectTarget(value);
-        const property = record ? Reflect.get(record, key) : undefined;
+        const record = asPropertyLookupTarget(value);
+        const property = record ? record[key] : undefined;
         return typeof property === "string" ? property : undefined;
     }
 
