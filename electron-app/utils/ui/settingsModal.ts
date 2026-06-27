@@ -48,7 +48,6 @@ let closeAnimationTimer: SettingsModalTimerHandle | undefined;
 let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | undefined;
 let showAnimationFrameId: null | number = null;
-let activeElectronApiScope: RendererElectronApiScope | undefined;
 
 function clearCloseAnimationTimer(): void {
     if (closeAnimationTimer !== undefined) {
@@ -81,10 +80,12 @@ function restoreLastFocusedElement(): void {
     }
 }
 
-function getSettingsModalElectronApi(): SettingsModalElectronApi | null {
+function getSettingsModalElectronApi(
+    electronApiScope?: RendererElectronApiScope
+): SettingsModalElectronApi | null {
     return getRendererElectronApi(
         isSettingsModalElectronApi,
-        activeElectronApiScope
+        electronApiScope
     );
 }
 
@@ -126,7 +127,6 @@ function handleCloseSettingsModal(): void {
 export async function showSettingsModal({
     electronApiScope,
 }: SettingsModalOptions = {}): Promise<void> {
-    activeElectronApiScope = electronApiScope;
     let modal = settingsModalRuntime().queryElement<HTMLElement>(
         `#${SETTINGS_MODAL_ID}`
     );
@@ -177,7 +177,7 @@ export async function showSettingsModal({
     });
 
     // Setup event handlers
-    setupSettingsModalHandlers(modal, effectiveTheme);
+    setupSettingsModalHandlers(modal, effectiveTheme, electronApiScope);
     cleanupFocusTrap();
     focusTrapCleanup = createModalFocusTrap(
         modal,
@@ -647,7 +647,8 @@ function injectSettingsModalStyles(): void {
  */
 function setupSettingsModalHandlers(
     modal: HTMLElement,
-    currentEffectiveTheme: string
+    currentEffectiveTheme: string,
+    electronApiScope?: RendererElectronApiScope
 ): void {
     let effectiveTheme = currentEffectiveTheme;
 
@@ -730,7 +731,9 @@ function setupSettingsModalHandlers(
             // Keep the main process in sync so it doesn't override the renderer's
             // theme later (e.g., after focus/menu interactions).
             try {
-                getSettingsModalElectronApi()?.sendThemeChanged?.(newTheme);
+                getSettingsModalElectronApi(
+                    electronApiScope
+                )?.sendThemeChanged?.(newTheme);
             } catch {
                 /* ignore */
             }
