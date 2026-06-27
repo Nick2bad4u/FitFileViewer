@@ -126,6 +126,7 @@ type HarnessMocks = {
         initializeControlsState: ReturnType<typeof vi.fn<() => void>>;
     };
     updateTabVisibility: {
+        cleanupTabVisibilityState: ReturnType<typeof vi.fn<() => void>>;
         initializeTabVisibilityState: ReturnType<typeof vi.fn<() => void>>;
     };
 };
@@ -599,7 +600,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         await withMasterStateHarness(
             async ({
@@ -664,6 +665,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 manager.components.set("computed", {});
                 manager.components.set("middleware", {});
                 manager.components.set(devToolsComponentName, {});
+                manager.components.set("tabs", {});
                 manager.isInitialized = true;
                 const performanceUnsubscribe = vi.fn<() => void>();
                 mocks.stateManager.subscribe.mockImplementation((path) =>
@@ -708,6 +710,9 @@ describe("masterStateManager comprehensive behavior", () => {
                 ).toHaveBeenCalledOnce();
                 expect(
                     mocks.stateDevTools.cleanupStateDevTools
+                ).toHaveBeenCalledOnce();
+                expect(
+                    mocks.updateTabVisibility.cleanupTabVisibilityState
                 ).toHaveBeenCalledOnce();
                 expect(clearInterval).toHaveBeenCalledWith(12345);
                 expect({
@@ -827,6 +832,7 @@ function createHarnessMocks(): HarnessMocks {
             initializeControlsState: vi.fn<() => void>(),
         },
         updateTabVisibility: {
+            cleanupTabVisibilityState: vi.fn<() => void>(),
             initializeTabVisibilityState: vi.fn<() => void>(),
         },
     };

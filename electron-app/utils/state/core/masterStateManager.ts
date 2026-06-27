@@ -12,7 +12,10 @@ import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js"
 import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
 import { initializeRendererStateBindings } from "../../ui/rendererStateBindings.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
-import { initializeTabVisibilityState } from "../../ui/tabs/updateTabVisibility.js";
+import {
+    cleanupTabVisibilityState,
+    initializeTabVisibilityState,
+} from "../../ui/tabs/updateTabVisibility.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
@@ -147,6 +150,7 @@ type UpdateActiveTabModule = {
 };
 
 type UpdateTabVisibilityModule = {
+    cleanupTabVisibilityState?: () => unknown;
     initializeTabVisibilityState: () => unknown;
 };
 
@@ -407,6 +411,7 @@ export class MasterStateManager {
     private getUpdateTabVisibilityModule(): UpdateTabVisibilityModule {
         return (
             this.dependencies.updateTabVisibility ?? {
+                cleanupTabVisibilityState,
                 initializeTabVisibilityState,
             }
         );
@@ -456,6 +461,12 @@ export class MasterStateManager {
             const { cleanupStateDevTools: dynCleanupDevTools } =
                 this.getStateDevToolsModule();
             dynCleanupDevTools();
+        }
+
+        if (this.components.has("tabs")) {
+            const { cleanupTabVisibilityState: dynCleanupTabVisibility } =
+                this.getUpdateTabVisibilityModule();
+            dynCleanupTabVisibility?.();
         }
 
         // Clean up components

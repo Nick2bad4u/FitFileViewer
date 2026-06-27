@@ -37,6 +37,8 @@ type LeafletMapInstance = {
     invalidateSize: (options?: { animate?: boolean; pan?: boolean }) => void;
 };
 
+type StateUnsubscribe = () => void;
+
 const TAB_CONTENT_IDS = [
     "content_data",
     "content_chartjs",
@@ -52,6 +54,8 @@ const DISPLAY_NONE = "none";
 
 let mapReflowTimerLong: UpdateTabVisibilityTimerHandle | undefined;
 let mapReflowTimerShort: UpdateTabVisibilityTimerHandle | undefined;
+let noDataSwitchTimer: null | UpdateTabVisibilityTimerHandle = null;
+const tabVisibilityUnsubscribes: StateUnsubscribe[] = [];
 
 function canUseDocument(candidate: unknown): candidate is Document {
     return (
@@ -115,6 +119,44 @@ function getStringState(path: string): null | string {
     const value = getStateMgr().getState(path);
 
     return typeof value === "string" && value ? value : null;
+}
+
+function clearNoDataSwitchTimer(): void {
+    if (noDataSwitchTimer === null) {
+        return;
+    }
+
+    getUpdateTabVisibilityRuntime().clearTimeout(noDataSwitchTimer);
+    noDataSwitchTimer = null;
+}
+
+function clearMapReflowTimers(): void {
+    const runtime = getUpdateTabVisibilityRuntime();
+
+    if (mapReflowTimerShort !== undefined) {
+        runtime.clearTimeout(mapReflowTimerShort);
+        mapReflowTimerShort = undefined;
+    }
+    if (mapReflowTimerLong !== undefined) {
+        runtime.clearTimeout(mapReflowTimerLong);
+        mapReflowTimerLong = undefined;
+    }
+}
+
+function invokeUnsubscribe(unsubscribe: StateUnsubscribe): void {
+    try {
+        unsubscribe();
+    } catch {
+        /* Ignore cleanup errors */
+    }
+}
+
+function trackSubscription(subscription: unknown): void {
+    if (typeof subscription === "function") {
+        tabVisibilityUnsubscribes.push(() => {
+            subscription();
+        });
+    }
 }
 
 function getContentElementMap(): Record<string, HTMLElement> {
@@ -185,51 +227,65 @@ export function hideAllTabContent(): void {
 }
 
 /**
+ * Cleans up tab visibility subscriptions and pending timers.
+ */
+export function cleanupTabVisibilityState(): void {
+    clearNoDataSwitchTimer();
+    clearMapReflowTimers();
+
+    for (const unsubscribe of tabVisibilityUnsubscribes.splice(0)) {
+        invokeUnsubscribe(unsubscribe);
+    }
+}
+
+/**
  * Initialize tab visibility state management.
  */
 export function initializeTabVisibilityState(): void {
+    cleanupTabVisibilityState();
+
     const runtime = getUpdateTabVisibilityRuntime();
-    let noDataSwitchTimer: null | UpdateTabVisibilityTimerHandle = null;
+    const stateManager = getStateMgr();
 
-    getStateMgr().subscribe("ui.activeTab", (activeTab: unknown) => {
-        if (typeof activeTab === "string") {
-            const contentId = getContentIdFromTabName(activeTab);
-            updateTabVisibility(contentId);
-        }
-    });
+    trackSubscription(
+        stateManager.subscribe("ui.activeTab", (activeTab: unknown) => {
+            if (typeof activeTab === "string") {
+                const contentId = getContentIdFromTabName(activeTab);
+                updateTabVisibility(contentId);
+            }
+        })
+    );
 
-    getStateMgr().subscribe("fitFile.rawData", (data: unknown) => {
-        const hasData = data !== null && data !== undefined;
+    trackSubscription(
+        stateManager.subscribe("fitFile.rawData", (data: unknown) => {
+            const hasData = data !== null && data !== undefined;
 
-        if (hasData) {
-            if (noDataSwitchTimer !== null) {
-                runtime.clearTimeout(noDataSwitchTimer);
+            if (hasData) {
+                clearNoDataSwitchTimer();
+                return;
+            }
+
+            clearNoDataSwitchTimer();
+
+            noDataSwitchTimer = runtime.setTimeout(() => {
                 noDataSwitchTimer = null;
-            }
-            return;
-        }
 
-        if (noDataSwitchTimer !== null) {
-            runtime.clearTimeout(noDataSwitchTimer);
-        }
+                const latestData = getActiveFitActivityData().rawData;
+                const stillNoData =
+                    latestData === null || latestData === undefined;
+                const isLoading = getRendererLoadingFromState(
+                    stateManager.getState
+                );
+                const latestTab = getStringState("ui.activeTab") ?? "summary";
 
-        noDataSwitchTimer = runtime.setTimeout(() => {
-            noDataSwitchTimer = null;
-
-            const latestData = getActiveFitActivityData().rawData;
-            const stillNoData = latestData === null || latestData === undefined;
-            const isLoading = getRendererLoadingFromState(
-                getStateMgr().getState
-            );
-            const latestTab = getStringState("ui.activeTab") ?? "summary";
-
-            if (stillNoData && !isLoading && latestTab !== "summary") {
-                getStateMgr().setState("ui.activeTab", "summary", {
-                    source: "initializeTabVisibilityState",
-                });
-            }
-        }, 250);
-    });
+                if (stillNoData && !isLoading && latestTab !== "summary") {
+                    stateManager.setState("ui.activeTab", "summary", {
+                        source: "initializeTabVisibilityState",
+                    });
+                }
+            }, 250);
+        })
+    );
 
     console.log("[TabVisibility] State management initialized");
 }
@@ -290,14 +346,7 @@ function scheduleMapReflowRefresh(): void {
     }
 
     const runtime = getUpdateTabVisibilityRuntime();
-    if (mapReflowTimerShort !== undefined) {
-        runtime.clearTimeout(mapReflowTimerShort);
-        mapReflowTimerShort = undefined;
-    }
-    if (mapReflowTimerLong !== undefined) {
-        runtime.clearTimeout(mapReflowTimerLong);
-        mapReflowTimerLong = undefined;
-    }
+    clearMapReflowTimers();
 
     const reflow = () => {
         try {

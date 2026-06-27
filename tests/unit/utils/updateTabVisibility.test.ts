@@ -58,6 +58,7 @@ import {
     setRegisteredMapMiniMapControl,
 } from "../../../electron-app/utils/maps/state/mapPluginControlState.js";
 import {
+    cleanupTabVisibilityState,
     getVisibleTabContent,
     hideAllTabContent,
     initializeTabVisibilityState,
@@ -175,6 +176,7 @@ describe(updateTabVisibility, () => {
     });
 
     afterEach(() => {
+        cleanupTabVisibilityState();
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapPluginControlsForTests();
         warnSpy.mockRestore();
@@ -297,6 +299,37 @@ describe(updateTabVisibility, () => {
         );
         expect(getSubscription("ui.activeTab")).toBeTypeOf("function");
         expect(getSubscription("fitFile.rawData")).toBeTypeOf("function");
+
+        logSpy.mockRestore();
+    });
+
+    it("cleans prior subscriptions and pending no-data timers before reinitializing", () => {
+        expect.assertions(5);
+
+        vi.useFakeTimers();
+        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        const unsubscribes: Array<ReturnType<typeof vi.fn<() => void>>> = [];
+        mockSubscribe.mockImplementation(() => {
+            const unsubscribe = vi.fn<() => void>();
+            unsubscribes.push(unsubscribe);
+            return unsubscribe;
+        });
+
+        initializeTabVisibilityState();
+        getSubscription("fitFile.rawData")(null);
+
+        initializeTabVisibilityState();
+        vi.advanceTimersByTime(260);
+
+        expect(mockSubscribe).toHaveBeenCalledTimes(4);
+        expect(unsubscribes).toHaveLength(4);
+        expect(unsubscribes[0]).toHaveBeenCalledOnce();
+        expect(unsubscribes[1]).toHaveBeenCalledOnce();
+        expect(mockSetState).not.toHaveBeenCalledWith(
+            "ui.activeTab",
+            "summary",
+            { source: "initializeTabVisibilityState" }
+        );
 
         logSpy.mockRestore();
     });
