@@ -674,8 +674,8 @@ from returning.
 Version-info DOM lookup now routes through `loadVersionInfoRuntime.ts` instead of querying `document` directly inside
 `loadVersionInfo.ts`, with focused runtime coverage and architecture coverage blocking that direct document lookup
 from returning.
-Version-info candidate typing now uses the shared app-info API-domain contract instead of deriving from the monolithic
-`ElectronAPI` type.
+Version-info candidate typing now uses explicit readonly method aliases backed by the shared app-info API-domain
+contract instead of deriving from the monolithic `ElectronAPI` type or carrying a broad `Partial` bridge.
 Version-info Electron API validation now checks each optional preload method explicitly instead of casting the candidate
 Electron API to a generic record, with malformed-scope coverage proving fallback process metadata still populates system
 info and architecture coverage blocking the cast from returning.

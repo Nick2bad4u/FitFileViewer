@@ -16,7 +16,14 @@ import type { ElectronAppInfoApi } from "../../../shared/preloadApi.js";
 
 type VersionSystemInfo = Record<SystemInfoField, string>;
 
-type VersionInfoElectronAPI = Partial<ElectronAppInfoApi>;
+type VersionInfoElectronAPI = {
+    readonly getAppVersion?: ElectronAppInfoApi["getAppVersion"];
+    readonly getChromeVersion?: ElectronAppInfoApi["getChromeVersion"];
+    readonly getElectronVersion?: ElectronAppInfoApi["getElectronVersion"];
+    readonly getLicenseInfo?: ElectronAppInfoApi["getLicenseInfo"];
+    readonly getNodeVersion?: ElectronAppInfoApi["getNodeVersion"];
+    readonly getPlatformInfo?: ElectronAppInfoApi["getPlatformInfo"];
+};
 
 type VersionInfoElectronApiCandidate = {
     readonly [K in keyof VersionInfoElectronAPI]?: unknown;

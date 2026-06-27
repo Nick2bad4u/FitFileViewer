@@ -19410,7 +19410,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(29);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -19443,6 +19443,9 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoSource).toContain("loadVersionInfoRuntime.js");
         expect(loadVersionInfoSource).toContain("processEnvironment.js");
         expect(loadVersionInfoSource).toContain("ElectronAppInfoApi");
+        expect(loadVersionInfoSource).not.toContain(
+            "Partial<ElectronAppInfoApi>"
+        );
         expect(loadVersionInfoSource).not.toContain(
             "import type { ElectronAPI"
         );
