@@ -27148,7 +27148,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps decoded FIT data rendering off the retired showFitData loader name", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const retiredLoaderPath =
             "electron-app/utils/rendering/core/loadShowFitData.ts";
@@ -27168,6 +27168,7 @@ describe("architecture boundaries", () => {
             true
         );
         expect(rendererLoaderSource).toContain("showFitData.js");
+        expect(rendererLoaderSource).toContain("electronApiScope");
         expect(runtimeTsConfigSource).toContain(rendererLoaderPath);
     });
 

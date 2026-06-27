@@ -126,7 +126,7 @@ export async function openFitFileFromPath({
             progress: 90,
             source: "openFitFileFromPath.rendering",
         });
-        await renderDecodedFitData(data, filePath);
+        await renderDecodedFitData(data, filePath, { electronApiScope });
 
         sendFitFileToAltFitReader(arrayBuffer);
 

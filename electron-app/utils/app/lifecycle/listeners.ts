@@ -65,6 +65,7 @@ type ExportDownloadDependencies = {
 };
 
 type DecoderReloadDependencies = {
+    electronApiScope?: RendererElectronApiScope | undefined;
     electronAPI: LifecycleElectronAPI;
     setLoading: (loading: boolean) => void;
     showNotification: ShowNotification;
@@ -408,6 +409,7 @@ function handleExportFileRequest(
 }
 
 async function reloadCachedFitFileAfterDecoderOptionsChange({
+    electronApiScope,
     electronAPI,
     setLoading,
     showNotification,
@@ -435,7 +437,9 @@ async function reloadCachedFitFileAfterDecoderOptionsChange({
             return;
         }
 
-        await renderDecodedFitData(unwrapFitParseMessages(result), filePath);
+        await renderDecodedFitData(unwrapFitParseMessages(result), filePath, {
+            electronApiScope,
+        });
     } catch (error) {
         showNotification(`Error reloading file: ${String(error)}`, "error");
     } finally {
@@ -544,6 +548,7 @@ function registerNamedLifecycleIpcListeners({
         electronAPI.onDecoderOptionsChanged?.(() => {
             showNotification("Decoder options updated.", "info", 2000);
             void reloadCachedFitFileAfterDecoderOptionsChange({
+                electronApiScope,
                 electronAPI,
                 setLoading,
                 showNotification,
@@ -761,7 +766,9 @@ export function setupListeners({
 
                     // Display the data with proper error handling
                     try {
-                        await renderDecodedFitData(fitData, filePathString);
+                        await renderDecodedFitData(fitData, filePathString, {
+                            electronApiScope,
+                        });
                         sendFitFileToAltFitReader(arrayBuffer);
                     } catch (displayError) {
                         showNotification(

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
-    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+    vi.fn<
+        (data: unknown, filePath: string, options?: unknown) => Promise<void>
+    >(async () => {})
 );
 const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
     vi.fn<(arrayBuffer: ArrayBuffer) => void>()
@@ -191,7 +193,8 @@ describe(openFitFileFromPath, () => {
             expect(parseFitFile).toHaveBeenCalledWith(fitBuffer);
             expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
                 fitData,
-                filePath
+                filePath,
+                { electronApiScope }
             );
             expect(sendFitFileToAltFitReaderMock).toHaveBeenCalledWith(
                 fitBuffer

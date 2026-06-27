@@ -16,7 +16,9 @@ import { AppActions } from "../../../../../electron-app/utils/app/lifecycle/appA
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
-    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+    vi.fn<
+        (data: unknown, filePath: string, options?: unknown) => Promise<void>
+    >(async () => {})
 );
 const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
     vi.fn<(buffer: ArrayBuffer) => void>()
@@ -562,7 +564,12 @@ describe("handleOpenFile.js", () => {
             expect(result).toBe(true);
             expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
                 mockFitData,
-                "/path/to/file.fit"
+                "/path/to/file.fit",
+                {
+                    electronApiScope: expect.objectContaining({
+                        getElectronAPI: expect.any(Function),
+                    }),
+                }
             );
             // Implementation passes the ArrayBuffer contents to the alternate reader
             expect(sendFitFileToAltFitReaderMock).toHaveBeenCalledWith(

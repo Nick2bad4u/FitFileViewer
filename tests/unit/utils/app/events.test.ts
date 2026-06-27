@@ -13,7 +13,7 @@ const csvExportMocks = vi.hoisted(() => ({
 
 const fitDataRendererMocks = vi.hoisted(() => ({
     renderDecodedFitData: vi.fn<
-        (data: unknown, filePath: string) => Promise<void>
+        (data: unknown, filePath: string, options?: unknown) => Promise<void>
     >(async () => {}),
 }));
 const altFitMocks = vi.hoisted(() => ({
@@ -448,7 +448,8 @@ describe(setupListeners, () => {
         });
         expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
             { recordMesgs: [{ speed: 10 }] },
-            "C:/rides/demo.fit"
+            "C:/rides/demo.fit",
+            { electronApiScope }
         );
         expect(altFitMocks.sendFitFileToAltFitReader).toHaveBeenCalledWith(
             arrayBuffer
@@ -575,7 +576,8 @@ describe(setupListeners, () => {
         });
         expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
             { recordMesgs: [] },
-            "C:/rides/other.fit"
+            "C:/rides/other.fit",
+            { electronApiScope }
         );
         expect(altFitMocks.sendFitFileToAltFitReader).toHaveBeenCalledWith(
             arrayBuffer

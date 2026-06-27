@@ -360,7 +360,9 @@ async function handleOpenFile(
                 progress: 90,
                 source: "handleOpenFile.rendering",
             });
-            await renderDecodedFitData(fitData, filePathString);
+            await renderDecodedFitData(fitData, filePathString, {
+                electronApiScope: config.electronApiScope,
+            });
             sendFitFileToAltFitReader(arrayBuffer);
         } catch (error) {
             const message =

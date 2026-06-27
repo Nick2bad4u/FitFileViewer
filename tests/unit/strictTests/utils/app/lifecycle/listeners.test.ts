@@ -45,7 +45,7 @@ const csvExportMocks = vi.hoisted(() => ({
 
 const fitDataRendererMocks = vi.hoisted(() => ({
     renderDecodedFitData: vi.fn<
-        (data: unknown, filePath: string) => Promise<void>
+        (data: unknown, filePath: string, options?: unknown) => Promise<void>
     >(async () => {}),
 }));
 const altFitMocks = vi.hoisted(() => ({
@@ -471,7 +471,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
             expect(
                 fitDataRendererMocks.renderDecodedFitData
-            ).toHaveBeenCalledWith(parseResult.data, files[1]);
+            ).toHaveBeenCalledWith(parseResult.data, files[1], {
+                electronApiScope,
+            });
         });
         // Loading toggled on/off
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
@@ -571,7 +573,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.parseFitFile).toHaveBeenCalledWith(arrayBuf);
             expect(
                 fitDataRendererMocks.renderDecodedFitData
-            ).toHaveBeenCalledWith(parsed, "C:/tmp/sample.fit");
+            ).toHaveBeenCalledWith(parsed, "C:/tmp/sample.fit", {
+                electronApiScope,
+            });
             // loading on/off around reload
             expect(setLoading).toHaveBeenCalledWith(true);
             expect(setLoading).toHaveBeenCalledWith(false);
@@ -1021,7 +1025,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[0]);
             expect(
                 fitDataRendererMocks.renderDecodedFitData
-            ).toHaveBeenCalledWith(parseResult.data, files[0]);
+            ).toHaveBeenCalledWith(parseResult.data, files[0], {
+                electronApiScope,
+            });
         });
     });
 

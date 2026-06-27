@@ -3,7 +3,9 @@ import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
-    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+    vi.fn<
+        (data: unknown, filePath: string, options?: unknown) => Promise<void>
+    >(async () => {})
 );
 const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
     vi.fn<(buffer: ArrayBuffer) => void>()
@@ -746,7 +748,12 @@ describe("handleOpenFile Module", () => {
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
             expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
                 { sessions: [{ id: 1 }] },
-                "test.fit"
+                "test.fit",
+                {
+                    electronApiScope: expect.objectContaining({
+                        getElectronAPI: expect.any(Function),
+                    }),
+                }
             );
             expect(mockParams.showNotification).not.toHaveBeenCalled();
         });

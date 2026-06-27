@@ -290,7 +290,9 @@ export function attachRecentFilesContextMenu({
 
                         const dataToShow = unwrapFitParseMessages(result);
 
-                        await renderDecodedFitData(dataToShow, file);
+                        await renderDecodedFitData(dataToShow, file, {
+                            electronApiScope,
+                        });
                         sendFitFileToAltFitReader(arrayBuffer);
                         await activeElectronAPI.addRecentFile?.(file);
                     } catch (error) {

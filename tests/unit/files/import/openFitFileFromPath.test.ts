@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
-    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+    vi.fn<
+        (data: unknown, filePath: string, options?: unknown) => Promise<void>
+    >(async () => {})
 );
 
 vi.mock(
@@ -100,7 +102,8 @@ describe(openFitFileFromPath, () => {
             expect({ result }).toStrictEqual({ result: true });
             expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
                 decodedMessages,
-                "C:\\activities\\ride.fit"
+                "C:\\activities\\ride.fit",
+                { electronApiScope: harness.electronApiScope }
             );
             expect(harness.notifyFitFileLoaded).toHaveBeenCalledWith(
                 "C:\\activities\\ride.fit"

@@ -187,7 +187,9 @@ export class DragDropHandler {
                 : null;
             if (result && !parseErrorMessage) {
                 const fitData = unwrapFitParseMessages(result);
-                await renderDecodedFitData(fitData, filePath);
+                await renderDecodedFitData(fitData, filePath, {
+                    electronApiScope: this.electronApiScope,
+                });
                 sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(
                     `File "${file.name}" loaded successfully`,
