@@ -31,9 +31,15 @@ describe("registerUpdateMenuHandlers", () => {
         readonly checkForUpdates: ReturnType<typeof vi.fn>;
         readonly quitAndInstall: ReturnType<typeof vi.fn>;
         readonly resolveAutoUpdaterAsync: ReturnType<typeof vi.fn>;
+        readonly updateActions: readonly string[];
     } {
-        const checkForUpdates = vi.fn();
-        const quitAndInstall = vi.fn();
+        const updateActions: string[] = [];
+        const checkForUpdates = vi.fn(() => {
+            updateActions.push("check-for-updates");
+        });
+        const quitAndInstall = vi.fn(() => {
+            updateActions.push("quit-and-install");
+        });
         const resolveAutoUpdaterAsync = vi.fn(async () => ({
             checkForUpdates,
             quitAndInstall,
@@ -81,6 +87,7 @@ describe("registerUpdateMenuHandlers", () => {
             resolveAutoUpdaterAsync:
                 (overrides.resolveAutoUpdaterAsync as typeof resolveAutoUpdaterAsync) ??
                 resolveAutoUpdaterAsync,
+            updateActions,
         };
     }
 
@@ -161,13 +168,18 @@ describe("registerUpdateMenuHandlers", () => {
     });
 
     it("runs update actions when readiness checks pass", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        const { checkForUpdates, quitAndInstall } = registerDefaultHandlers();
+        const { checkForUpdates, quitAndInstall, updateActions } =
+            registerDefaultHandlers();
 
         await getListener("menu-check-for-updates")({ sender: "sender" });
         await getListener("menu-restart-update")({ sender: "sender" });
 
+        expect(updateActions).toStrictEqual([
+            "check-for-updates",
+            "quit-and-install",
+        ]);
         expect(checkForUpdates).toHaveBeenCalledOnce();
         expect(quitAndInstall).toHaveBeenCalledOnce();
     });

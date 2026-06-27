@@ -240,7 +240,7 @@ describe("fileBrowserTab accessibility", () => {
         );
         const firstListFitBrowserFolder = vi.fn();
 
-        const firstRender = renderFileBrowserTab({
+        const view = renderFileBrowserTab({
             electronApiScope: createElectronApiScope({
                 getFitBrowserFolder: firstGetFitBrowserFolder,
                 listFitBrowserFolder: firstListFitBrowserFolder,
@@ -286,7 +286,7 @@ describe("fileBrowserTab accessibility", () => {
         );
 
         firstRoot.resolve("C:\\old");
-        await firstRender;
+        await view;
 
         expect(firstListFitBrowserFolder).not.toHaveBeenCalled();
         expect(
@@ -317,7 +317,7 @@ describe("fileBrowserTab accessibility", () => {
         }>();
         const firstListFitBrowserFolder = vi.fn(() => firstListing.promise);
 
-        const firstRender = renderFileBrowserTab({
+        const view = renderFileBrowserTab({
             electronApiScope: createElectronApiScope({
                 getFitBrowserFolder: async () => "C:\\old",
                 listFitBrowserFolder: firstListFitBrowserFolder,
@@ -374,7 +374,7 @@ describe("fileBrowserTab accessibility", () => {
             relPath: "",
             root: "C:\\old",
         });
-        await firstRender;
+        await view;
 
         expect(firstListFitBrowserFolder).toHaveBeenCalledOnce();
         expect(

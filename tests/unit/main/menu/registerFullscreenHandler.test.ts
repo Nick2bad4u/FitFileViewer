@@ -19,10 +19,14 @@ describe("registerFullscreenHandler", () => {
     function registerDefaultHandler(
         overrides: Partial<RegisterFullscreenHandlerOptions> = {}
     ): {
+        readonly getFullScreenState: () => boolean | null;
         readonly setFullScreen: ReturnType<typeof vi.fn>;
         readonly validateWindow: ReturnType<typeof vi.fn<() => boolean>>;
     } {
-        const setFullScreen = vi.fn();
+        let fullScreenState: boolean | null = null;
+        const setFullScreen = vi.fn((flag: boolean) => {
+            fullScreenState = flag;
+        });
         const win = { setFullScreen } as never;
         const validateWindow = vi.fn<() => boolean>(() => true);
 
@@ -42,6 +46,7 @@ describe("registerFullscreenHandler", () => {
         });
 
         return {
+            getFullScreenState: () => fullScreenState,
             setFullScreen,
             validateWindow:
                 (overrides.validateWindow as typeof validateWindow) ??
@@ -71,40 +76,48 @@ describe("registerFullscreenHandler", () => {
     });
 
     it("sets fullscreen from truthy and falsey payloads", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
-        const { setFullScreen, validateWindow } = registerDefaultHandler();
+        const { getFullScreenState, setFullScreen, validateWindow } =
+            registerDefaultHandler();
 
         getListener()({}, 1);
+        expect(getFullScreenState()).toBe(true);
+
         getListener()({}, 0);
 
+        expect(getFullScreenState()).toBe(false);
         expect(validateWindow).toHaveBeenCalledTimes(2);
         expect(setFullScreen).toHaveBeenNthCalledWith(1, true);
         expect(setFullScreen).toHaveBeenNthCalledWith(2, false);
     });
 
     it("skips fullscreen updates when there is no focused window", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        const { setFullScreen, validateWindow } = registerDefaultHandler({
-            resolveFocusedMainWindow: () => undefined,
-        });
+        const { getFullScreenState, setFullScreen, validateWindow } =
+            registerDefaultHandler({
+                resolveFocusedMainWindow: () => undefined,
+            });
 
         getListener()({}, true);
 
+        expect(getFullScreenState()).toBeNull();
         expect(validateWindow).not.toHaveBeenCalled();
         expect(setFullScreen).not.toHaveBeenCalled();
     });
 
     it("validates the focused window before changing fullscreen state", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
-        const { setFullScreen, validateWindow } = registerDefaultHandler({
-            validateWindow: vi.fn<() => boolean>(() => false),
-        });
+        const { getFullScreenState, setFullScreen, validateWindow } =
+            registerDefaultHandler({
+                validateWindow: vi.fn<() => boolean>(() => false),
+            });
 
         getListener()({}, true);
 
+        expect(getFullScreenState()).toBeNull();
         expect(validateWindow).toHaveBeenCalledWith(
             expect.objectContaining({ setFullScreen }),
             "set-fullscreen event"

@@ -64,6 +64,7 @@ interface MockElectronAPI {
 // Import the module to test and spy on its public app-state integration.
 let handleOpenFileModule: HandleOpenFileModule;
 let mockSetState: ReturnType<typeof vi.spyOn>;
+
 beforeAll(async () => {
     handleOpenFileModule =
         await import("../../../../../electron-app/utils/files/import/handleOpenFile.js");
