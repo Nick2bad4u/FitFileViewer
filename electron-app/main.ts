@@ -31,7 +31,6 @@ export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 export {
     clearGeolocationPermissionAllowed,
     clearGyazoServerState,
-    getAppState,
     getAutoUpdaterStatus,
     getGeolocationPermissionAllowed,
     getGyazoServer,
@@ -41,7 +40,6 @@ export {
     hasGyazoServer,
     isAutoUpdaterInitialized,
     isAutoUpdaterUpdateDownloaded,
-    setAppState,
     setAutoUpdaterInitialized,
     setAutoUpdaterState,
     setGeolocationPermissionAllowed,

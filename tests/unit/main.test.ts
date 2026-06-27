@@ -336,7 +336,6 @@ const expectedMainExportKeys = [
     "clearGyazoServerState",
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
-    "getAppState",
     "getAutoUpdaterStatus",
     "getGeolocationPermissionAllowed",
     "getGyazoServer",
@@ -352,7 +351,6 @@ const expectedMainExportKeys = [
     "logWithContext",
     "resolveAutoUpdaterAsync",
     "sendToRenderer",
-    "setAppState",
     "setAutoUpdaterInitialized",
     "setAutoUpdaterState",
     "setGeolocationPermissionAllowed",
@@ -376,7 +374,6 @@ type MainModule = {
     };
     exposeDevHelpers: () => DevHelpers;
     clearGeolocationPermissionAllowed: () => void;
-    getAppState: (key: string) => unknown;
     getAutoUpdaterStatus: () => string;
     getGeolocationPermissionAllowed: () => boolean | null;
     getGyazoServer: () => unknown;
@@ -389,7 +386,6 @@ type MainModule = {
     isAutoUpdaterUpdateDownloaded: () => boolean;
     isWindowUsable: (window: unknown) => boolean;
     clearGyazoServerState: () => void;
-    setAppState: (key: string, value: unknown) => void;
     setAutoUpdaterInitialized: (isInitialized: boolean) => void;
     setAutoUpdaterState: (status: string, updateDownloaded: boolean) => void;
     setGeolocationPermissionAllowed: (allowed: boolean | null) => void;
@@ -425,6 +421,16 @@ async function setMainElectronOverride(override: unknown): Promise<void> {
 
 async function importGyazoStartupTimerState() {
     return await import("../../electron-app/main/app/gyazoStartupTimerState.js");
+}
+
+async function importAppStateModule(): Promise<{
+    getAppState: (key: string) => unknown;
+    setAppState: (key: string, value: unknown) => void;
+}> {
+    return (await import("../../electron-app/main/state/appState.js")) as unknown as {
+        getAppState: (key: string) => unknown;
+        setAppState: (key: string, value: unknown) => void;
+    };
 }
 
 async function importMainModule({
@@ -753,6 +759,7 @@ describe("main.js - Electron Main Process", () => {
 
             try {
                 const mainModule = await importMainModule();
+                const appStateModule = await importAppStateModule();
                 const devHelpers = mainModule.exposeDevHelpers();
 
                 expect(Object.keys(devHelpers).sort()).toStrictEqual([
@@ -768,11 +775,11 @@ describe("main.js - Electron Main Process", () => {
 
                 expect(devState.loadedFitFilePath).toBe("dev-activity.fit");
                 expect(devState.mainWindow).toBe(mockWindow);
-                expect(() => mainModule.getAppState("eventHandlers")).toThrow(
-                    "Unknown main app state path: eventHandlers"
-                );
                 expect(() =>
-                    mainModule.setAppState("eventHandlers", new Map())
+                    appStateModule.getAppState("eventHandlers")
+                ).toThrow("Unknown main app state path: eventHandlers");
+                expect(() =>
+                    appStateModule.setAppState("eventHandlers", new Map())
                 ).toThrow("Unknown main app state path: eventHandlers");
 
                 const handler = vi.fn<() => void>();
