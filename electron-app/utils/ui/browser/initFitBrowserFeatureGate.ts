@@ -10,6 +10,10 @@ interface FitBrowserFeatureGateApi {
     isFitBrowserEnabled: ElectronFitBrowserApi["isFitBrowserEnabled"];
     onFitBrowserEnabledChanged?: ElectronFitBrowserApi["onFitBrowserEnabledChanged"];
 }
+type FitBrowserFeatureGateApiCandidate = Readonly<{
+    isFitBrowserEnabled?: unknown;
+    onFitBrowserEnabledChanged?: unknown;
+}>;
 type InitFitBrowserFeatureGateOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -74,7 +78,7 @@ function isFitBrowserFeatureGateApi(
         return false;
     }
 
-    const featureGateApi = api as Partial<FitBrowserFeatureGateApi>;
+    const featureGateApi = api as FitBrowserFeatureGateApiCandidate;
 
     return (
         typeof featureGateApi.isFitBrowserEnabled === "function" &&

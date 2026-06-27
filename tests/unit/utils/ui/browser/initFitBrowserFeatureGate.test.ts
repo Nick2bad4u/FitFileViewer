@@ -41,9 +41,7 @@ function getBrowserTabElements(): {
     return { button, content };
 }
 
-function createElectronApiScope(
-    api: TestElectronApi | undefined
-): RendererElectronApiScope {
+function createElectronApiScope(api: unknown): RendererElectronApiScope {
     return {
         getElectronAPI: () => api,
     };
@@ -73,6 +71,40 @@ describe(initFitBrowserFeatureGate, () => {
         await runWithBrowserTabFixture(({ button, content }) => {
             initFitBrowserFeatureGate({
                 electronApiScope: createElectronApiScope(undefined),
+            });
+
+            expect(button.style.display).toBe("");
+            expect(content.style.display).toBe("");
+        });
+    });
+
+    it("does nothing when the preload API has a malformed enabled reader", async () => {
+        expect.assertions(2);
+
+        await runWithBrowserTabFixture(({ button, content }) => {
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope({
+                    isFitBrowserEnabled: true,
+                    onFitBrowserEnabledChanged: vi.fn(),
+                }),
+            });
+
+            expect(button.style.display).toBe("");
+            expect(content.style.display).toBe("");
+        });
+    });
+
+    it("does nothing when the optional enabled-change listener is malformed", async () => {
+        expect.assertions(2);
+
+        await runWithBrowserTabFixture(({ button, content }) => {
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope({
+                    isFitBrowserEnabled: vi
+                        .fn<() => Promise<boolean>>()
+                        .mockResolvedValue(false),
+                    onFitBrowserEnabledChanged: "not a function",
+                }),
             });
 
             expect(button.style.display).toBe("");
