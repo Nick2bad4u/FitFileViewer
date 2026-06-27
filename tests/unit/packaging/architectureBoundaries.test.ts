@@ -18572,7 +18572,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(27);
+        expect.assertions(30);
 
         const wiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
@@ -18586,6 +18586,11 @@ describe("architecture boundaries", () => {
         const menuActionSource = stripComments(
             readRepositoryFile(
                 "electron-app/renderer/electronMenuActionHandlers.ts"
+            )
+        );
+        const startupHooksTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/renderer/electronApiStartupHooks.test.ts"
             )
         );
 
@@ -18628,6 +18633,15 @@ describe("architecture boundaries", () => {
         );
         expect(menuActionSource).not.toContain(
             "readonly onMenuAction: (action: unknown) => void;"
+        );
+        expect(startupHooksTestSource).toContain(
+            "type RendererElectronMenuRegistration ="
+        );
+        expect(startupHooksTestSource).toContain(
+            "vi.fn<RendererElectronMenuRegistration>()"
+        );
+        expect(startupHooksTestSource).not.toContain(
+            "vi.fn<(callback: () => void) => void>"
         );
         expect(wiringSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'

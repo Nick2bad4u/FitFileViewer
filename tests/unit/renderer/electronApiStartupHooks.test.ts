@@ -5,8 +5,18 @@ import {
     getElectronApiStartupHooks,
     probeDevelopmentMode,
     registerStartupElectronHooks,
+    type RendererElectronHookRegistrationResult,
     type RendererElectronMenuAction,
 } from "../../../electron-app/renderer/electronApiStartupHooks.js";
+
+type RendererElectronMenuRegistration = (
+    callback: (action: RendererElectronMenuAction) => void
+) => RendererElectronHookRegistrationResult;
+
+type RendererElectronThemeRegistration = (
+    callback: (theme: string) => void
+) => RendererElectronHookRegistrationResult;
+
 describe("renderer Electron API startup hooks", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -18,8 +28,8 @@ describe("renderer Electron API startup hooks", () => {
 
         const checkForUpdates = vi.fn<() => void>();
         const isDevelopment = vi.fn<() => Promise<boolean>>();
-        const onMenuAction = vi.fn<(callback: () => void) => void>();
-        const onThemeChanged = vi.fn<(callback: () => void) => void>();
+        const onMenuAction = vi.fn<RendererElectronMenuRegistration>();
+        const onThemeChanged = vi.fn<RendererElectronThemeRegistration>();
         const recentFiles = vi.fn<() => Promise<string[]>>();
 
         expect(
