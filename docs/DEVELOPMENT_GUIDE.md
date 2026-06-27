@@ -490,11 +490,11 @@ runs `npm run release:verify`, verifies that unsigned package artifacts were
 created, and uploads install, release-gate, dependency-tree, `dist/`, and
 `release-dist` diagnostics when the rehearsal fails.
 
-Dependency pull requests that change root or Docusaurus manifests, lockfiles,
-Dependabot config, or the dependency-validation workflow itself should go
-through this workflow before merge. Treat a green dependency-only unit or lint
-run as incomplete until the scheduled validation path has exercised the full
-release gate and package smoke coverage.
+Dependency pull requests that change dependency update configuration, root or
+Docusaurus manifests, lockfiles, Dependabot config, or the dependency-validation
+workflow itself should go through this workflow before merge. Treat a green
+dependency-only unit or lint run as incomplete until the scheduled validation
+path has exercised the full release gate and package smoke coverage.
 
 ### Windows 7 Compatibility Snapshot
 

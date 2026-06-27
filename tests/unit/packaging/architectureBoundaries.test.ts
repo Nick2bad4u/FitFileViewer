@@ -5041,7 +5041,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps dependency validation on the scheduled release gate", () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const dependencyValidationWorkflow = readRepositoryFile(
             ".github/workflows/dependency-validation.yml"
@@ -5056,6 +5056,7 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain("contents: read");
         expect(dependencyValidationWorkflow).toContain('"package.json"');
         expect(dependencyValidationWorkflow).toContain('"package-lock.json"');
+        expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
         expect(dependencyValidationWorkflow).toContain(
             '"docusaurus/package.json"'
         );

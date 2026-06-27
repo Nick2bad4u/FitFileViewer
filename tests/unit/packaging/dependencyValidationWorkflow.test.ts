@@ -21,7 +21,7 @@ function readDependencyValidationWorkflow(): string {
 
 describe("dependency validation workflow", () => {
     it("uploads release gate diagnostics when dependency validation fails", () => {
-        expect.assertions(54);
+        expect.assertions(55);
 
         const workflow = readDependencyValidationWorkflow();
         const developmentGuide = readFileSync(developmentGuidePath, "utf8");
@@ -33,6 +33,7 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain("workflow_dispatch:");
         expect(workflow).toContain('"package.json"');
         expect(workflow).toContain('"package-lock.json"');
+        expect(workflow).toContain('".ncurc.json"');
         expect(workflow).toContain('"docusaurus/package.json"');
         expect(workflow).toContain('"docusaurus/package-lock.json"');
         expect(workflow).toContain('".github/dependabot.yml"');
@@ -116,7 +117,7 @@ describe("dependency validation workflow", () => {
         expect(developmentGuide).toContain("### Dependency Validation");
         expect(developmentGuide).toContain("runs `npm run release:verify`");
         expect(developmentGuide).toContain(
-            "Dependency pull requests that change root or Docusaurus manifests"
+            "Dependency pull requests that change dependency update configuration"
         );
         expect(developmentGuide).toContain(
             "release gate and package smoke coverage"

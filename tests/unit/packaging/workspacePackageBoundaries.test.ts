@@ -850,7 +850,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
@@ -898,6 +898,7 @@ describe("workspace package boundaries", () => {
             )
         ).toStrictEqual([]);
         expect(dependencyValidationWorkflow).toContain("schedule:");
+        expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
         expect(dependencyValidationWorkflow).toContain("node-version: 24");
         expect(dependencyValidationWorkflow).toContain(
             "xvfb-run -a npm run release:verify"
