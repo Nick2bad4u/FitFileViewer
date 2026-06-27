@@ -4,7 +4,10 @@ import {
     installRendererElectronApiRegistration,
     registerRendererElectronAPI,
 } from "../../../electron-app/renderer/electronApiRegistration.js";
-import type { RendererElectronMenuAction } from "../../../electron-app/renderer/electronApiStartupHooks.js";
+import {
+    getElectronApiHooksFromValue,
+    type RendererElectronMenuAction,
+} from "../../../electron-app/renderer/electronApiStartupHooks.js";
 import { getRendererElectronApi } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createOptions() {
@@ -14,7 +17,7 @@ function createOptions() {
         themeChanges: [] as string[],
     };
     const options = {
-        electronApiCandidate: undefined,
+        electronApiHooks: undefined,
         onMenuAction: (action: RendererElectronMenuAction) => {
             state.menuActions.push(action);
         },
@@ -67,12 +70,17 @@ describe("renderer Electron API registration", () => {
     });
 
     it("registers menu, theme, and development hooks without seeding the shared fallback", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const { api, emitMenu, emitTheme, isDevelopment } = createElectronApi();
+        const hooks = getElectronApiHooksFromValue(api);
         const { options, state } = createOptions();
 
-        registerRendererElectronAPI(api, options);
+        expect(hooks).not.toBeNull();
+        if (hooks === null) {
+            throw new Error("Expected Electron API startup hooks");
+        }
+        registerRendererElectronAPI(hooks, options);
         emitMenu("about");
         emitTheme("dark");
         await Promise.resolve();
@@ -97,7 +105,7 @@ describe("renderer Electron API registration", () => {
 
         installRendererElectronApiRegistration({
             ...options,
-            electronApiCandidate: api,
+            electronApiHooks: getElectronApiHooksFromValue(api),
         });
         emitMenu("open-file");
         await Promise.resolve();

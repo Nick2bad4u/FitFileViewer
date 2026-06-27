@@ -18631,12 +18631,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron API registration on explicit candidates only", () => {
-        expect.assertions(8);
+        expect.assertions(12);
 
         const registrationSource = stripComments(
             readRepositoryFile(
                 "electron-app/renderer/electronApiRegistration.ts"
             )
+        );
+        const wiringSource = stripComments(
+            readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
         );
         const installerSource = registrationSource.slice(
             registrationSource.indexOf(
@@ -18648,7 +18651,17 @@ describe("architecture boundaries", () => {
         );
 
         expect(installerSource).toContain(
-            "registerRendererElectronAPI(options.electronApiCandidate, options)"
+            "registerRendererElectronAPI(options.electronApiHooks, options)"
+        );
+        expect(registrationSource).toContain(
+            "electronApiHooks: ElectronApiStartupHooks | null | undefined;"
+        );
+        expect(registrationSource).not.toContain(
+            "electronApiCandidate: unknown;"
+        );
+        expect(wiringSource).toContain("getElectronApiHooksFromValue(");
+        expect(wiringSource).toContain(
+            "electronApiHooks: getElectronApiHooksFromValue("
         );
         expect(installerSource).not.toContain(
             'Reflect.get(options.scope, "electronAPI")'

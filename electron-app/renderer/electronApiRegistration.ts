@@ -1,10 +1,10 @@
 import {
-    getElectronApiHooksFromValue,
+    type ElectronApiStartupHooks,
     type RendererElectronMenuAction,
 } from "./electronApiStartupHooks.js";
 
 interface RendererElectronApiRegistrationOptions {
-    electronApiCandidate: unknown;
+    electronApiHooks: ElectronApiStartupHooks | null | undefined;
     onMenuAction: (action: RendererElectronMenuAction) => void;
     onThemeChanged: (theme: string) => void;
     scheduleStateInitialization: () => void;
@@ -14,8 +14,11 @@ export function installRendererElectronApiRegistration(
     options: RendererElectronApiRegistrationOptions
 ): void {
     try {
-        if (options.electronApiCandidate !== undefined) {
-            registerRendererElectronAPI(options.electronApiCandidate, options);
+        if (
+            options.electronApiHooks !== null &&
+            options.electronApiHooks !== undefined
+        ) {
+            registerRendererElectronAPI(options.electronApiHooks, options);
         }
     } catch {
         /* Ignore errors */
@@ -23,15 +26,10 @@ export function installRendererElectronApiRegistration(
 }
 
 export function registerRendererElectronAPI(
-    api: unknown,
+    hooks: ElectronApiStartupHooks,
     options: RendererElectronApiRegistrationOptions
 ): void {
     try {
-        const hooks = getElectronApiHooksFromValue(api);
-        if (hooks === null) {
-            return;
-        }
-
         if (hooks.onMenuAction !== undefined) {
             hooks.onMenuAction(options.onMenuAction);
         }

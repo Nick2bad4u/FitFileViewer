@@ -1,4 +1,5 @@
 import { installRendererElectronApiRegistration } from "./electronApiRegistration.js";
+import { getElectronApiHooksFromValue } from "./electronApiStartupHooks.js";
 import {
     createRendererElectronMenuActionHandlers,
     type RendererElectronMenuCoreModules,
@@ -29,7 +30,9 @@ export function installRendererElectronApiWiring(
     );
 
     installRendererElectronApiRegistration({
-        electronApiCandidate: options.electronApiCandidate,
+        electronApiHooks: getElectronApiHooksFromValue(
+            options.electronApiCandidate
+        ),
         onMenuAction: electronMenuActionHandlers.onMenuAction,
         onThemeChanged: electronMenuActionHandlers.onThemeChanged,
         scheduleStateInitialization: options.scheduleStateInitialization,

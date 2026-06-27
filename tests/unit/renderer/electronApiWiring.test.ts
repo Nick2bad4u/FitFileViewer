@@ -62,4 +62,24 @@ describe("renderer Electron API wiring", () => {
         expect(scheduleStateInitialization).toHaveBeenCalled();
         expect(api.isDevelopment).toHaveBeenCalledOnce();
     });
+
+    it("ignores malformed Electron API candidates before registration", () => {
+        expect.assertions(1);
+
+        const state = {
+            scheduled: false,
+        };
+
+        installRendererElectronApiWiring({
+            electronApiCandidate: "not electron api",
+            ensureCoreModules: async () => ({ applyTheme: vi.fn() }),
+            getFileInput: () => null,
+            logRenderer: vi.fn(),
+            scheduleStateInitialization: () => {
+                state.scheduled = true;
+            },
+        });
+
+        expect(state.scheduled).toBe(false);
+    });
 });
