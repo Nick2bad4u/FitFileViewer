@@ -155,7 +155,7 @@
         "package.json"
     ],
     "scripts": {
-        "audit": "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=moderate",
+        "audit": "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=high",
         "build": "node scripts/build-package.mjs",
         "build:all": "node scripts/build-package.mjs -mwl",
         "build:ci-matrix": "node scripts/build-ci-matrix.mjs",
@@ -211,7 +211,7 @@
         "lint:css": "stylelint \"static/app/*.css\" --config stylelint.config.mjs --quiet",
         "lint:css:fix": "stylelint \"static/app/*.css\" --config stylelint.config.mjs --fix",
         "lint:docusaurus": "node scripts/run-eslint.mjs docusaurus && npm run lint:docusaurus:content",
-        "lint:docusaurus:content": "markdownlint-cli2 \"docusaurus/docs/**/*.{md,mdx}\" \"!docusaurus/docs/api/**/*.md\" \"docusaurus/blog/**/*.{md,mdx}\" \"docusaurus/src/**/*.{md,mdx}\" --config .markdownlint.json",
+        "lint:docusaurus:content": "markdownlint \"docusaurus/docs/**/*.{md,mdx}\" \"!docusaurus/docs/api/**/*.md\" \"docusaurus/blog/**/*.{md,mdx}\" \"docusaurus/src/**/*.{md,mdx}\" --config .markdownlint.json",
         "lint:docusaurus:fix": "node scripts/run-eslint.mjs docusaurus --fix && npm run lint:docusaurus:content",
         "lint:fix": "npm run lint:root:fix && npm run lint:app:fix && npm run lint:docusaurus:fix",
         "lint:remark": "remark docs docusaurus/docs docusaurus/blog docusaurus/src --quiet --frail --rc-path .remarkrc.mjs --ignore-pattern \"docusaurus/docs/api/**\"",
@@ -326,7 +326,7 @@
         "leaflet.locatecontrol": "^0.90.0",
         "makensis": "^3.0.5",
         "maplibre-gl": "^5.24.0",
-        "markdownlint-cli2": "^0.22.1",
+        "markdownlint-cli": "^0.49.0",
         "npm-check-updates": "^22.2.2",
         "prettier": "^3.8.3",
         "prettier-config-nick2bad4u": "^1.0.13",

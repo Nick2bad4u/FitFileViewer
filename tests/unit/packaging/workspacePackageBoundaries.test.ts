@@ -241,7 +241,7 @@ const rendererDependencyInventoryPath = path.posix.join(
 );
 
 const expectedRootToolingScripts = {
-    audit: "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=moderate",
+    audit: "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=high",
     "docs:install": "npm ci --prefix docusaurus --no-audit --no-fund",
     lint: "npm run lint:secretlint && npm run lint:root && npm run lint:app && npm run lint:docusaurus && npm run lint:remark",
     "lint:app": "node scripts/run-eslint.mjs app && npm run typecheck",
