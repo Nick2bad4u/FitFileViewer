@@ -217,6 +217,33 @@ describe("renderer development debug tools", () => {
         }).not.toThrow();
     });
 
+    it("ignores malformed development debug function exports", async () => {
+        expect.assertions(1);
+
+        process.env.NODE_ENV = "development";
+
+        const view = createRendererDevelopmentDebugTools({
+            cleanup: vi.fn(),
+            ensureCoreModules: async () => ({
+                handleOpenFile: "not a handler" as never,
+            }),
+            initializeApplication: async () => {},
+            isDevelopmentMode: () => true,
+            isOpeningFileRef: { value: false },
+            logRenderer: vi.fn(),
+            performanceMonitor: createPerformanceMonitor(),
+            validateDOMElements: () => true,
+        });
+
+        const rendererDebug = view?.rendererDebug as {
+            handleOpenFile: (...args: unknown[]) => Promise<unknown>;
+        };
+
+        await expect(
+            rendererDebug.handleOpenFile("fit-file")
+        ).resolves.toBeUndefined();
+    });
+
     it("reports runtime information without assuming browser-only globals", () => {
         expect.assertions(2);
 

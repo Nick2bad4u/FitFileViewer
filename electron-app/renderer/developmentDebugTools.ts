@@ -40,9 +40,12 @@ type RendererDevelopmentDebugStateManager = Readonly<
     >
 >;
 
-type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
+type RendererDebugCoreFunction = (...args: never[]) => unknown;
+type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;
 type RendererDevelopmentDebugFunctionModules = {
-    readonly [Name in DevelopmentDebugCoreFunctionName]?: unknown;
+    readonly [Name in DevelopmentDebugCoreFunctionName]?:
+        | RendererDebugCoreFunction
+        | undefined;
 };
 type RendererDevelopmentDebugAppActions = Readonly<{
     readonly setInitialized: typeof AppActions.setInitialized;
@@ -376,10 +379,10 @@ function callStateManagerMethod(
 function getDebugCoreFunction(
     coreModules: RendererDevelopmentDebugCoreModules,
     exportName: DevelopmentDebugCoreFunctionName
-): RendererDebugCoreFunction | undefined {
+): RendererDebugCoreFunctionCaller | undefined {
     const debugFunction = coreModules[exportName];
     return typeof debugFunction === "function"
-        ? (debugFunction as RendererDebugCoreFunction)
+        ? (...args: unknown[]) => Reflect.apply(debugFunction, undefined, args)
         : undefined;
 }
 

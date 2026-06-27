@@ -5906,7 +5906,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(36);
+        expect.assertions(41);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -5924,7 +5924,10 @@ describe("architecture boundaries", () => {
             'from "./coreModuleResolution.js"'
         );
         expect(developmentDebugToolsSource).toContain(
-            "type RendererDebugCoreFunction = (...args: unknown[]) => unknown;"
+            "type RendererDebugCoreFunction = (...args: never[]) => unknown;"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;"
         );
         expect(developmentDebugToolsSource).not.toContain(
             "UnknownRendererFunction"
@@ -5934,6 +5937,18 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsSource).toContain(
             "readonly [Name in DevelopmentDebugCoreFunctionName]?:"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "readonly [Name in DevelopmentDebugCoreFunctionName]?:\n        | RendererDebugCoreFunction\n        | undefined;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "readonly [Name in DevelopmentDebugCoreFunctionName]?: unknown;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "debugFunction as RendererDebugCoreFunction"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "Reflect.apply(debugFunction, undefined, args)"
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDevelopmentDebugStateModules = {"
