@@ -9231,6 +9231,38 @@ describe("architecture boundaries", () => {
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps renderer notification state normalization on the shared contract", () => {
+        expect.assertions(5);
+
+        const rendererNotificationStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererNotificationState.ts"
+            )
+        );
+        const rendererNotificationContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererNotificationContract.ts"
+            )
+        );
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+
+        expect(rendererNotificationStateSource).toContain(
+            "rendererNotificationContract.js"
+        );
+        expect(rendererNotificationStateSource).not.toContain(
+            "function isNotificationType"
+        );
+        expect(rendererNotificationContractSource).toContain(
+            "normalizeRendererNotificationUiBranch"
+        );
+        expect(stateManagerSource).toContain("ui.currentNotification");
+        expect(stateManagerSource).toContain(
+            "normalizeRendererNotificationUiBranch"
+        );
+    });
+
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
         expect.assertions(85);
 

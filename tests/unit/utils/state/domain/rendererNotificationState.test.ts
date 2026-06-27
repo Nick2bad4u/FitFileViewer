@@ -71,7 +71,7 @@ describe("rendererNotificationState", () => {
     });
 
     it("subscribes with normalized notifications", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const received: unknown[] = [];
         const unsubscribe = subscribeToCurrentNotification((notification) => {
@@ -95,5 +95,6 @@ describe("rendererNotificationState", () => {
             type: "success",
         });
         expect(received[1]).toBeNull();
+        expect(stateManager.getState("ui.currentNotification")).toBeNull();
     });
 });

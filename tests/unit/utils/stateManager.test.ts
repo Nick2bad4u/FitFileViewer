@@ -113,7 +113,7 @@ describe("state manager core", () => {
     });
 
     it("normalizes active-tab values when replacing the UI state branch", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         resetStateManager();
 
@@ -121,6 +121,10 @@ describe("state manager core", () => {
             activeTab: "charts",
             activeTabContent: "table",
             controlsEnabled: true,
+            currentNotification: {
+                message: "Broken",
+                type: "fatal",
+            },
             previousTheme: "auto",
             theme: "solarized",
         });
@@ -128,8 +132,42 @@ describe("state manager core", () => {
         expect(getState("ui.activeTab")).toBe("summary");
         expect(getState("ui.activeTabContent")).toBe("summary");
         expect(getState("ui.controlsEnabled")).toBe(true);
+        expect(getState("ui.currentNotification")).toBeNull();
         expect(getState("ui.previousTheme")).toBe("system");
         expect(getState("ui.theme")).toBe("system");
+    });
+
+    it("normalizes renderer notification writes at the core state boundary", () => {
+        expect.assertions(3);
+
+        resetStateManager();
+
+        setState("ui.currentNotification", {
+            message: "Saved",
+            timestamp: 123,
+            type: "success",
+        });
+        expect(getState("ui.currentNotification")).toStrictEqual({
+            message: "Saved",
+            timestamp: 123,
+            type: "success",
+        });
+
+        setState("ui.currentNotification", {
+            message: "Bad",
+            timestamp: "ignored",
+            type: "warning",
+        });
+        expect(getState("ui.currentNotification")).toStrictEqual({
+            message: "Bad",
+            type: "warning",
+        });
+
+        setState("ui.currentNotification", {
+            message: "Broken",
+            type: "fatal",
+        });
+        expect(getState("ui.currentNotification")).toBeNull();
     });
 
     it("normalizes renderer theme writes at the core state boundary", () => {

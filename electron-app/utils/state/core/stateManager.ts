@@ -35,6 +35,10 @@ import {
 } from "../domain/mapBaseLayerContract.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
 import {
+    normalizeRendererNotification,
+    normalizeRendererNotificationUiBranch,
+} from "../domain/rendererNotificationContract.js";
+import {
     normalizeRendererTheme,
     normalizeRendererThemeUiBranch,
 } from "../domain/rendererThemeContract.js";
@@ -89,6 +93,7 @@ const RENDERER_ACTIVE_TAB_STATE_PATHS = new Set([
 ]);
 const RENDERER_ACTIVE_TAB_UI_KEYS = ["activeTab", "activeTabContent"] as const;
 const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
+    ["ui.currentNotification", normalizeRendererNotification],
     ["ui.previousTheme", normalizeRendererTheme],
     ["ui.theme", normalizeRendererTheme],
 ]);
@@ -180,6 +185,12 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
         );
         if (themeNormalizedBranch !== (normalizedBranch ?? value)) {
             normalizedBranch = themeNormalizedBranch;
+        }
+
+        const notificationNormalizedBranch =
+            normalizeRendererNotificationUiBranch(normalizedBranch ?? value);
+        if (notificationNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = notificationNormalizedBranch;
         }
 
         if (normalizedBranch) {
