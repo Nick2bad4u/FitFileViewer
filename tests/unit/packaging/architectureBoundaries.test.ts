@@ -2618,8 +2618,18 @@ describe("architecture boundaries", () => {
                 "function",
             ],
             [
-                "electron-app/preload/preloadAppModuleLoader.ts",
-                "loadPreloadAppModules",
+                "electron-app/preload/preloadClipboardModuleLoader.ts",
+                "loadPreloadClipboardModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadDeveloperModuleLoader.ts",
+                "loadPreloadDeveloperModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadExternalModuleLoader.ts",
+                "loadPreloadExternalModules",
                 "function",
             ],
             [
@@ -2635,6 +2645,11 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/preloadIpcModuleLoader.ts",
                 "loadPreloadIpcModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadLifecycleModuleLoader.ts",
+                "loadPreloadLifecycleModules",
                 "function",
             ],
             [
@@ -2655,6 +2670,11 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/preloadStateModuleLoader.ts",
                 "loadPreloadStateModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadSystemModuleLoader.ts",
+                "loadPreloadSystemModules",
                 "function",
             ],
         ] as const;
@@ -2678,11 +2698,15 @@ describe("architecture boundaries", () => {
 
         const domainLoaderFiles = [
             "electron-app/preload/preloadApiAssemblyModuleLoader.ts",
-            "electron-app/preload/preloadAppModuleLoader.ts",
+            "electron-app/preload/preloadClipboardModuleLoader.ts",
+            "electron-app/preload/preloadDeveloperModuleLoader.ts",
+            "electron-app/preload/preloadExternalModuleLoader.ts",
             "electron-app/preload/preloadFileModuleLoader.ts",
             "electron-app/preload/preloadIpcModuleLoader.ts",
+            "electron-app/preload/preloadLifecycleModuleLoader.ts",
             "electron-app/preload/preloadPolicyModuleLoader.ts",
             "electron-app/preload/preloadStateModuleLoader.ts",
+            "electron-app/preload/preloadSystemModuleLoader.ts",
         ];
         const broadRegistryDerivedLoaderFiles = domainLoaderFiles
             .filter((relativeFile) =>
@@ -2745,7 +2769,7 @@ describe("architecture boundaries", () => {
         );
         expect(apiAssemblyContextSource).not.toContain("PreloadModuleRegistry");
         expect(moduleTypesSource).toMatch(
-            /interface\s+PreloadApiAssemblyContextModules\s+extends\s+PreloadAppModules,\s+PreloadFileModules,\s+PreloadIpcModules,\s+PreloadPolicyModules,\s+PreloadStateModules/u
+            /interface\s+PreloadApiAssemblyContextModules\s+extends\s+PreloadClipboardModules,\s+PreloadDeveloperModules,\s+PreloadExternalModules,\s+PreloadFileModules,\s+PreloadIpcModules,\s+PreloadLifecycleModules,\s+PreloadPolicyModules,\s+PreloadStateModules,\s+PreloadSystemModules/u
         );
         expect(moduleTypesSource).toMatch(
             /type\s+CreatePreloadApiAssemblyContext[\s\S]*modules:\s+PreloadApiAssemblyContextModules/u
@@ -4217,12 +4241,41 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps preload app leaf modules on native imports", () => {
-        expect.assertions(26);
+    it("keeps preload leaf module loaders split by API domain on native imports", () => {
+        expect.assertions(23);
 
-        const appModuleLoaderSource = stripComments(
-            readRepositoryFile("electron-app/preload/preloadAppModuleLoader.ts")
+        const clipboardModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadClipboardModuleLoader.ts"
+            )
         );
+        const developerModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadDeveloperModuleLoader.ts"
+            )
+        );
+        const externalModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadExternalModuleLoader.ts"
+            )
+        );
+        const lifecycleModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadLifecycleModuleLoader.ts"
+            )
+        );
+        const systemModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadSystemModuleLoader.ts"
+            )
+        );
+        const splitModuleLoaderSources = [
+            clipboardModuleLoaderSource,
+            developerModuleLoaderSource,
+            externalModuleLoaderSource,
+            lifecycleModuleLoaderSource,
+            systemModuleLoaderSource,
+        ];
         const developmentToolsGlobalSource = stripComments(
             readRepositoryFile("electron-app/preload/developmentToolsGlobal.ts")
         );
@@ -4230,64 +4283,46 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
         );
 
-        expect(appModuleLoaderSource).toContain(
+        expect(developerModuleLoaderSource).toContain(
             'import { createApiDiagnostics } from "./apiDiagnostics.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(systemModuleLoaderSource).toContain(
             'import { createAppInfoApi } from "./appInfoApi.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(lifecycleModuleLoaderSource).toContain(
             'import { registerPreloadBeforeExitHandler } from "./beforeExitHandler.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(clipboardModuleLoaderSource).toContain(
             'import { createClipboardBridge } from "./clipboardBridge.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(developerModuleLoaderSource).toContain(
             'import { createDevtoolsMenuApi } from "./devtoolsMenuApi.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(developerModuleLoaderSource).toContain(
             'import { exposeDevelopmentToolsGlobal } from "./developmentToolsGlobal.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(lifecycleModuleLoaderSource).toContain(
             'import { isPreloadDevelopmentMode } from "./environment.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(externalModuleLoaderSource).toContain(
             'import { createGyazoExternalApi } from "./gyazoExternalApi.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(externalModuleLoaderSource).toContain(
             'import { createShellExternalApi } from "./shellExternalApi.js";'
         );
-        expect(appModuleLoaderSource).toContain(
+        expect(systemModuleLoaderSource).toContain(
             'import { createThemeApi } from "./themeApi.js";'
         );
-        expect(appModuleLoaderSource).not.toContain("requireModule");
-        expect(appModuleLoaderSource).not.toContain(
-            "createApiDiagnostics as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "createAppInfoApi as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "createClipboardBridge as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "createDevtoolsMenuApi as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "createThemeApi as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "createGyazoExternalApi as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "createShellExternalApi as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "exposeDevelopmentToolsGlobal as unknown"
-        );
-        expect(appModuleLoaderSource).not.toContain(
-            "registerPreloadBeforeExitHandler as unknown"
-        );
+        expect(
+            splitModuleLoaderSources.filter((source) =>
+                source.includes("requireModule")
+            )
+        ).toStrictEqual([]);
+        expect(
+            splitModuleLoaderSources.filter((source) =>
+                source.includes(" as unknown")
+            )
+        ).toStrictEqual([]);
         expect(developmentToolsGlobalSource).toContain(
             "../utils/logging/loggingTimestampRuntime.js"
         );
@@ -4298,7 +4333,12 @@ describe("architecture boundaries", () => {
             "new Date().toISOString()"
         );
         expect(developmentToolsGlobalSource).not.toContain("Date.now");
-        expect(moduleLoaderSource).toContain("loadPreloadAppModules()");
+        expect(moduleLoaderSource).toContain("loadPreloadSystemModules()");
+        expect(moduleLoaderSource).toContain("loadPreloadClipboardModules()");
+        expect(moduleLoaderSource).toContain("loadPreloadDeveloperModules()");
+        expect(moduleLoaderSource).toContain("loadPreloadExternalModules()");
+        expect(moduleLoaderSource).toContain("loadPreloadLifecycleModules()");
+        expect(moduleLoaderSource).not.toContain("loadPreloadAppModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadAppModules({ requireModule })"
         );
@@ -4425,7 +4465,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload module loader on native loader imports", () => {
-        expect.assertions(10);
+        expect.assertions(15);
 
         const moduleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
@@ -4438,7 +4478,13 @@ describe("architecture boundaries", () => {
             'import { loadPreloadApiAssemblyModules } from "./preloadApiAssemblyModuleLoader.js";'
         );
         expect(moduleLoaderSource).toContain(
-            'import { loadPreloadAppModules } from "./preloadAppModuleLoader.js";'
+            'import { loadPreloadClipboardModules } from "./preloadClipboardModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadDeveloperModules } from "./preloadDeveloperModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadExternalModules } from "./preloadExternalModuleLoader.js";'
         );
         expect(moduleLoaderSource).toContain(
             'import { loadPreloadFileModules } from "./preloadFileModuleLoader.js";'
@@ -4447,11 +4493,18 @@ describe("architecture boundaries", () => {
             'import { loadPreloadIpcModules } from "./preloadIpcModuleLoader.js";'
         );
         expect(moduleLoaderSource).toContain(
+            'import { loadPreloadLifecycleModules } from "./preloadLifecycleModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
             'import { loadPreloadPolicyModules } from "./preloadPolicyModuleLoader.js";'
         );
         expect(moduleLoaderSource).toContain(
             'import { loadPreloadStateModules } from "./preloadStateModuleLoader.js";'
         );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadSystemModules } from "./preloadSystemModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).not.toContain("preloadAppModuleLoader");
         expect(moduleLoaderSource).not.toContain("requireModule");
         expect(runtimeSource).toContain("loadPreloadModules()");
         expect(runtimeSource).not.toContain(

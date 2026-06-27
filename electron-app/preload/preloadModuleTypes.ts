@@ -654,17 +654,29 @@ export interface PreloadApiAssemblyModules {
     createPreloadSystemApiDomain: CreatePreloadSystemApiDomain;
 }
 
-export interface PreloadAppModules {
-    createApiDiagnostics: CreateApiDiagnostics;
-    createAppInfoApi: CreateAppInfoApi;
+export interface PreloadClipboardModules {
     createClipboardBridge: CreateClipboardBridge;
+}
+
+export interface PreloadDeveloperModules {
+    createApiDiagnostics: CreateApiDiagnostics;
     createDevtoolsMenuApi: CreateDevtoolsMenuApi;
+    exposeDevelopmentToolsGlobal: ExposeDevelopmentToolsGlobal;
+}
+
+export interface PreloadExternalModules {
     createGyazoExternalApi: CreateGyazoExternalApi;
     createShellExternalApi: CreateShellExternalApi;
-    createThemeApi: CreateThemeApi;
-    exposeDevelopmentToolsGlobal: ExposeDevelopmentToolsGlobal;
+}
+
+export interface PreloadLifecycleModules {
     isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
     registerPreloadBeforeExitHandler: RegisterPreloadBeforeExitHandler;
+}
+
+export interface PreloadSystemModules {
+    createAppInfoApi: CreateAppInfoApi;
+    createThemeApi: CreateThemeApi;
 }
 
 export interface PreloadFileModules {
@@ -701,11 +713,15 @@ export interface PreloadStateModules {
 
 export interface PreloadApiAssemblyContextModules
     extends
-        PreloadAppModules,
+        PreloadClipboardModules,
+        PreloadDeveloperModules,
+        PreloadExternalModules,
         PreloadFileModules,
         PreloadIpcModules,
+        PreloadLifecycleModules,
         PreloadPolicyModules,
-        PreloadStateModules {}
+        PreloadStateModules,
+        PreloadSystemModules {}
 
 export interface PreloadApiAssemblyInputModules
     extends PreloadApiAssemblyContextModules, PreloadApiAssemblyModules {}
