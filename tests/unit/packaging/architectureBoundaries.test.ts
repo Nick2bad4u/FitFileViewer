@@ -1891,7 +1891,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps process runtime get and set behind an explicit browser-runtime provider", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1937,9 +1937,13 @@ describe("architecture boundaries", () => {
         expect(processEnvironmentSource).not.toContain(
             "return Reflect.get(target, propertyKey);"
         );
+        expect(processEnvironmentSource).not.toContain(
+            "target as Record<string, unknown>"
+        );
         expect(processEnvironmentSource).toContain(
             "return record[propertyKey];"
         );
+        expect(processEnvironmentSource).toContain("RuntimePropertyCandidate");
     });
 
     it("keeps preload before-exit tracking off global registries", () => {

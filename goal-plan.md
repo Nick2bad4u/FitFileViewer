@@ -1646,7 +1646,8 @@ Process environment runtime access now uses explicit `getBrowserProcessCandidate
 providers for runtime `process` reads and test/install writes instead of owning direct `globalThis` process access,
 calling generic global-property helpers, or carrying a local global-property setter helper, with focused runtime coverage
 and architecture coverage blocking that drift.
-Nested process/env property reads now use guarded typed indexed access instead of a local `Reflect.get` probe.
+Nested process/env property reads now use guarded typed indexed access on a named runtime property candidate instead of
+a local `Reflect.get` probe or generic `Record<string, unknown>` cast.
 Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Preload source execution tests now install and restore their temporary development-log console through

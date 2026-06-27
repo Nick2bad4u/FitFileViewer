@@ -3,6 +3,10 @@ import {
     setBrowserProcessCandidate,
 } from "./browserRuntime.js";
 
+type RuntimePropertyCandidate = {
+    readonly [propertyKey: string]: unknown;
+};
+
 /**
  * Reads process environment values through a defensive runtime boundary.
  *
@@ -94,7 +98,7 @@ export function setRuntimeProcess(processValue: unknown): void {
 
 function getRuntimeProperty(target: object, propertyKey: string): unknown {
     try {
-        const record = target as Record<string, unknown>;
+        const record = target as RuntimePropertyCandidate;
         return record[propertyKey];
     } catch {
         return undefined;
