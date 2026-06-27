@@ -1550,6 +1550,8 @@ const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
     /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]|\bscope\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b|\bscope\.document\?\.defaultView\b|\bget(?:Document|HTML(?:Button|Input|Select|TextArea)Element):\s*\(\)\s*=>\s*globalThis\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 const directDocumentSvgElementCreationPattern =
     /\bdocument\.createElementNS\b/u;
+const directBrowserGlobalPropertyAccessPattern =
+    /\b(?:window|globalThis)\.[A-Za-z_$][\w$]*\b/u;
 const topLevelRendererRuntimeSingletonPattern =
     /^(?:export\s+)?const\s+\w+Runtime\s*=\s*getRenderer\w+Runtime\(\)\s*;/gmu;
 
@@ -25095,6 +25097,24 @@ describe("architecture boundaries", () => {
                 directDocumentSvgElementCreationPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps direct browser global property access centralized in browserRuntime", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !relativeFile.includes(".test.") &&
+                    !allowedBrowserRuntimeGlobalBridgeFiles.has(relativeFile) &&
+                    directBrowserGlobalPropertyAccessPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
             )
             .sort();
 

@@ -1686,6 +1686,8 @@ The default development-flag and Electron API candidate providers now use named 
 generic `Reflect.get(globalThis, ...)` probes.
 Shared browser-runtime global-property reads and write-result checks now use guarded typed indexed access instead of
 `Reflect.get(globalThis, ...)`, while keeping the configurable accessor fallback for test and sandbox shims.
+Architecture coverage now scans app source with comments stripped and keeps direct `window.*`/`globalThis.*` property
+access centralized in `browserRuntime.ts`, preventing retired renderer globals from returning in individual modules.
 Renderer environment input normalization now uses focused local input/location/document/Electron dev-mode contracts
 instead of generic `Reflect.get` probes, with architecture coverage blocking that reflection path from returning.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
