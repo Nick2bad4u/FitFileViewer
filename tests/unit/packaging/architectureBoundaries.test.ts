@@ -11364,6 +11364,28 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps browser state normalization on explicit state branch shapes", () => {
+        expect.assertions(5);
+
+        const browserStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/browserState.ts"
+            )
+        );
+
+        expect(browserStateSource).toContain(
+            "type BrowserListingStateCandidate"
+        );
+        expect(browserStateSource).toContain("type BrowserScanStateCandidate");
+        expect(browserStateSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
+        expect(browserStateSource).not.toContain(
+            "function asRecord(value: unknown): Record<string, unknown>"
+        );
+        expect(browserStateSource).not.toContain('getState("globalData")');
+    });
+
     it("keeps the unified state facade free of legacy path synchronization", () => {
         expect.assertions(8);
 

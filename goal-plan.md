@@ -1414,6 +1414,9 @@ option/parameter name.
 Renderer file-input wiring now narrows handle-open-file test override modules through a named local override-module
 shape instead of casting unknown override values to a broad `Record<string, unknown>`, with unit and architecture
 coverage blocking the broad helper from returning.
+Browser listing and scan state normalization now narrows persisted browser-branch payloads through explicit
+listing/scan candidate shapes instead of casting unknown values to a broad `Record<string, unknown>`, with unit and
+architecture coverage blocking that generic state bucket from returning.
 Renderer test-only bootstrap DOMContentLoaded and window-load listener cleanup now creates abort controllers through
 `testOnlyBootstrapRuntime.ts` instead of constructing `AbortController` directly in `testOnlyBootstrap.ts`, with
 focused runtime coverage and architecture coverage blocking direct test-only bootstrap abort-controller construction

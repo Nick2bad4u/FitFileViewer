@@ -34,6 +34,27 @@ export type BrowserScanStateUpdate = {
     readonly status: BrowserScanStatus;
 };
 
+type BrowserListingStateCandidate = Readonly<{
+    readonly error?: unknown;
+    readonly fileCount?: unknown;
+    readonly folderCount?: unknown;
+    readonly itemCount?: unknown;
+    readonly loadedAt?: unknown;
+    readonly relPath?: unknown;
+    readonly root?: unknown;
+    readonly status?: unknown;
+}>;
+
+type BrowserScanStateCandidate = Readonly<{
+    readonly decodedActivityCount?: unknown;
+    readonly error?: unknown;
+    readonly fileCount?: unknown;
+    readonly processedFileCount?: unknown;
+    readonly root?: unknown;
+    readonly scannedAt?: unknown;
+    readonly status?: unknown;
+}>;
+
 const BROWSER_REL_PATH_STATE_PATH = "browser.relPath";
 const BROWSER_VIEW_STATE_PATH = "browser.view";
 const BROWSER_LISTING_STATE_PATH = "browser.listing";
@@ -123,9 +144,19 @@ function isBrowserScanStatus(value: unknown): value is BrowserScanStatus {
     );
 }
 
-function asRecord(value: unknown): Record<string, unknown> {
+function toBrowserListingStateCandidate(
+    value: unknown
+): BrowserListingStateCandidate {
     return value !== null && typeof value === "object" && !Array.isArray(value)
-        ? (value as Record<string, unknown>)
+        ? value
+        : {};
+}
+
+function toBrowserScanStateCandidate(
+    value: unknown
+): BrowserScanStateCandidate {
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+        ? value
         : {};
 }
 
@@ -148,8 +179,8 @@ function asString(value: unknown): string {
 }
 
 function normalizeBrowserListingState(value: unknown): BrowserListingState {
-    const state = asRecord(value);
-    const status = state["status"];
+    const state = toBrowserListingStateCandidate(value);
+    const { status } = state;
 
     return {
         error: asNullableString(state["error"]),
@@ -164,8 +195,8 @@ function normalizeBrowserListingState(value: unknown): BrowserListingState {
 }
 
 function normalizeBrowserScanState(value: unknown): BrowserScanState {
-    const state = asRecord(value);
-    const status = state["status"];
+    const state = toBrowserScanStateCandidate(value);
+    const { status } = state;
 
     return {
         decodedActivityCount: asNonNegativeNumber(

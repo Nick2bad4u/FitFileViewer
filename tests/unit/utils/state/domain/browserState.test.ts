@@ -124,4 +124,31 @@ describe("browserState", () => {
             status: "idle",
         });
     });
+
+    it("falls back to safe defaults for array-shaped persisted Browser state", () => {
+        expect.assertions(2);
+
+        stateManager.setState("browser.listing", [], { source: "test" });
+        stateManager.setState("browser.scan", [], { source: "test" });
+
+        expect(getBrowserListingState()).toStrictEqual({
+            error: null,
+            fileCount: 0,
+            folderCount: 0,
+            itemCount: 0,
+            loadedAt: null,
+            relPath: "",
+            root: null,
+            status: "idle",
+        });
+        expect(getBrowserScanState()).toStrictEqual({
+            decodedActivityCount: 0,
+            error: null,
+            fileCount: 0,
+            processedFileCount: 0,
+            root: null,
+            scannedAt: null,
+            status: "idle",
+        });
+    });
 });
