@@ -3401,7 +3401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(393);
+        expect.assertions(406);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3512,6 +3512,11 @@ describe("architecture boundaries", () => {
         const registerThemeChangedHandlerSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/registerThemeChangedHandler.ts"
+            )
+        );
+        const registerUpdateMenuHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerUpdateMenuHandlers.ts"
             )
         );
         const setupIpcHandlersSource = stripComments(
@@ -3661,7 +3666,7 @@ describe("architecture boundaries", () => {
         expect(setupMenuAndEventHandlersSource).not.toContain(
             "process.platform"
         );
-        expect(setupMenuAndEventHandlersSource).toContain(
+        expect(setupMenuAndEventHandlersSource).not.toContain(
             "getProcessStringValue"
         );
         expect(setupMenuAndEventHandlersSource).toContain(
@@ -3943,10 +3948,10 @@ describe("architecture boundaries", () => {
         expect(initializeMainWindowSource).not.toContain(
             'setAppState("autoUpdaterInitialized"'
         );
-        expect(setupMenuAndEventHandlersSource).toContain(
+        expect(registerUpdateMenuHandlersSource).toContain(
             "isAutoUpdaterInitialized"
         );
-        expect(setupMenuAndEventHandlersSource).toContain(
+        expect(registerUpdateMenuHandlersSource).toContain(
             "isAutoUpdaterUpdateDownloaded"
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
@@ -4144,6 +4149,43 @@ describe("architecture boundaries", () => {
         );
         expect(setupMenuAndEventHandlersSource).toContain(
             "registerFullscreenHandler"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "registerIpcListener"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain('"install-update"');
+        expect(registerUpdateMenuHandlersSource).toContain(
+            '"menu-check-for-updates"'
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            '"menu-restart-update"'
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "resolveAutoUpdaterAsync"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "isAutoUpdaterInitialized"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "isAutoUpdaterUpdateDownloaded"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "getProcessStringValue"
+        );
+        expect(registerUpdateMenuHandlersSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerUpdateMenuHandlersSource).not.toContain(
+            "export default"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            "resolveAutoUpdaterAsync"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            "isAutoUpdaterInitialized"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "registerUpdateMenuHandlers"
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'registerIpcListener("theme-changed"'
