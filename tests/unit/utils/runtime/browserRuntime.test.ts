@@ -54,6 +54,25 @@ describe("browserRuntime global property boundary", () => {
         expect(globalThis).toHaveProperty("ffvRuntimeShim", value);
     });
 
+    it("defines named globals when direct assignment cannot update an accessor", () => {
+        expect.assertions(2);
+
+        const value = { enabled: true };
+
+        vi.stubGlobal("ffvAccessorRuntimeShim", undefined);
+        Object.defineProperty(globalThis, "ffvAccessorRuntimeShim", {
+            configurable: true,
+            get() {
+                return undefined;
+            },
+        });
+
+        setBrowserGlobalProperty("ffvAccessorRuntimeShim", value);
+
+        expect(getBrowserGlobalProperty("ffvAccessorRuntimeShim")).toBe(value);
+        expect(globalThis).toHaveProperty("ffvAccessorRuntimeShim", value);
+    });
+
     it("ignores writes when a global property setter throws", () => {
         expect.assertions(2);
 

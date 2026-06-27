@@ -27581,7 +27581,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Electron API global lookup centralized behind its runtime provider", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -27633,6 +27633,10 @@ describe("architecture boundaries", () => {
         );
         expect(browserRuntimeSource).toContain(
             'return getBrowserGlobalProperty("electronAPI");'
+        );
+        expect(browserRuntimeSource).not.toContain("Reflect.get(");
+        expect(browserRuntimeSource).toContain(
+            "return getBrowserGlobalRecord()[propertyKey];"
         );
         expect(electronApiRuntimeSource).not.toContain("scope.electronAPI");
         expect(electronApiRuntimeSource).not.toContain(

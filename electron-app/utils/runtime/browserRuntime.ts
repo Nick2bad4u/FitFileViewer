@@ -50,6 +50,38 @@ interface BrowserDevelopmentFlagGlobal {
     readonly __DEVELOPMENT__?: unknown;
 }
 
+type BrowserGlobalPropertyRecord = Record<PropertyKey, unknown>;
+type BrowserGlobalPropertySetResult = "blocked" | "fallback" | "set";
+
+function getBrowserGlobalRecord(): BrowserGlobalPropertyRecord {
+    return globalThis;
+}
+
+function hasBrowserGlobalSetter(propertyKey: PropertyKey): boolean {
+    let target: object | null = globalThis;
+    while (target !== null) {
+        const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey);
+        if (descriptor !== undefined) {
+            return "set" in descriptor && typeof descriptor.set === "function";
+        }
+        target = Object.getPrototypeOf(target);
+    }
+    return false;
+}
+
+function trySetBrowserGlobalProperty(
+    propertyKey: PropertyKey,
+    value: unknown
+): BrowserGlobalPropertySetResult {
+    try {
+        const globals = getBrowserGlobalRecord();
+        globals[propertyKey] = value;
+        return Object.is(globals[propertyKey], value) ? "set" : "fallback";
+    } catch {
+        return hasBrowserGlobalSetter(propertyKey) ? "blocked" : "fallback";
+    }
+}
+
 export function getBrowserAbortController():
     | typeof globalThis.AbortController
     | undefined {
@@ -134,7 +166,7 @@ export function getBrowserClipboard(): Clipboard | undefined {
 
 export function getBrowserGlobalProperty(propertyKey: PropertyKey): unknown {
     try {
-        return Reflect.get(globalThis, propertyKey);
+        return getBrowserGlobalRecord()[propertyKey];
     } catch {
         return undefined;
     }
@@ -145,11 +177,9 @@ export function setBrowserGlobalProperty(
     value: unknown
 ): void {
     try {
-        if (Reflect.set(globalThis, propertyKey, value)) {
-            const currentValue = Reflect.get(globalThis, propertyKey);
-            if (Object.is(currentValue, value)) {
-                return;
-            }
+        const setResult = trySetBrowserGlobalProperty(propertyKey, value);
+        if (setResult === "set" || setResult === "blocked") {
+            return;
         }
         Object.defineProperty(globalThis, propertyKey, {
             configurable: true,
