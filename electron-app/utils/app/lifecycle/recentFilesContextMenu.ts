@@ -24,15 +24,14 @@ import {
     type RecentFilesContextMenuTimer,
 } from "./recentFilesContextMenuRuntime.js";
 
-type RecentFilesElectronApi = Omit<
-    ElectronFileApi,
-    "addRecentFile" | "parseFitFile"
-> &
-    Partial<Pick<ElectronFileApi, "addRecentFile">> & {
-        parseFitFile: (
-            data: Parameters<ElectronFileApi["parseFitFile"]>[0]
-        ) => Promise<FitParsePayload>;
-    };
+type RecentFilesElectronApi = {
+    readonly addRecentFile?: ElectronFileApi["addRecentFile"];
+    readonly parseFitFile: (
+        data: Parameters<ElectronFileApi["parseFitFile"]>[0]
+    ) => Promise<FitParsePayload>;
+    readonly readFile: ElectronFileApi["readFile"];
+    readonly recentFiles: ElectronFileApi["recentFiles"];
+};
 
 type AttachRecentFilesContextMenuParams = {
     electronApiScope?: RendererElectronApiScope | undefined;

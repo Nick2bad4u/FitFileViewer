@@ -13863,7 +13863,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(76);
+        expect.assertions(77);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -13894,6 +13894,9 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).toContain("ElectronFileApi");
         expect(recentFilesContextMenuSource).not.toContain(
             "import type { ElectronAPI"
+        );
+        expect(recentFilesContextMenuSource).not.toContain(
+            "Omit<ElectronFileApi"
         );
         expect(recentFilesContextMenuSource).not.toContain("Pick<ElectronAPI");
         expect(recentFilesContextMenuSource).toContain(

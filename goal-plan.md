@@ -1083,8 +1083,8 @@ and architecture coverage blocking those fallbacks from returning.
 Recent-files context-menu Electron API validation now checks the required and optional preload methods explicitly instead
 of casting the candidate Electron API to a partial API record, with malformed-scope coverage proving invalid candidates do
 not render a menu and architecture coverage blocking the cast from returning.
-Recent-files context-menu candidate typing now uses the shared file API-domain contract instead of deriving from the
-monolithic `ElectronAPI` type.
+Recent-files context-menu candidate typing now uses explicit readonly method aliases backed by the shared file API-domain
+contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local `Omit`/`Partial<Pick>` bridge.
 Recent-files context-menu runtime controller, timer, and Node provider types now use shared browser-runtime aliases
 instead of direct ambient browser constructor/timer types, with architecture coverage blocking those direct type
 surfaces from returning.
