@@ -13,6 +13,10 @@ type ConsoleMethod = (
 
 type LogContext = Record<string, unknown>;
 
+type ConsoleMethodCandidate = {
+    readonly [method: string]: unknown;
+};
+
 const getNodeEnvironment = (): string | undefined =>
     getProcessEnvironmentValue("NODE_ENV");
 
@@ -20,7 +24,7 @@ const isConsoleMethod = (value: unknown): value is ConsoleMethod =>
     typeof value === "function";
 
 const getConsoleMethod = (level: string): ConsoleMethod => {
-    const method = (console as unknown as Record<string, unknown>)[level];
+    const method = (console as unknown as ConsoleMethodCandidate)[level];
 
     if (isConsoleMethod(method)) {
         return (message?: unknown, ...args: readonly unknown[]): void => {
