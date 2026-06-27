@@ -49,9 +49,19 @@ export interface RendererImportTimeBootstrap {
 
 type ImportTimeInitializeMethod = (this: unknown) => Promise<void> | void;
 
+type ImportTimeMasterStateManagerDefaultExport = Readonly<{
+    readonly masterStateManager?:
+        | ImportTimeInitializableStateManager
+        | undefined;
+}>;
+
 type ImportTimeMasterStateManagerOverrideModule = Readonly<{
-    readonly default?: unknown;
-    readonly masterStateManager?: unknown;
+    readonly default?:
+        | ImportTimeMasterStateManagerDefaultExport
+        | undefined;
+    readonly masterStateManager?:
+        | ImportTimeInitializableStateManager
+        | undefined;
 }>;
 
 type ImportTimeInitializableStateManager = Readonly<{
@@ -95,13 +105,10 @@ export function createRendererImportTimeBootstrap({
             );
         const resolvedModule =
             toImportTimeMasterStateManagerOverrideModule(resolved);
-        const defaultModule = toImportTimeMasterStateManagerOverrideModule(
-            resolvedModule.default
-        );
 
         return firstImportTimeInitializableStateManager(
-            resolvedModule.masterStateManager,
-            defaultModule.masterStateManager,
+            resolvedModule?.masterStateManager,
+            resolvedModule?.default?.masterStateManager,
             resolved
         );
     }
@@ -181,8 +188,47 @@ export function createRendererImportTimeBootstrap({
 
 function toImportTimeMasterStateManagerOverrideModule(
     value: unknown
-): ImportTimeMasterStateManagerOverrideModule {
-    return typeof value === "object" && value !== null ? value : {};
+): ImportTimeMasterStateManagerOverrideModule | undefined {
+    if (typeof value !== "object" || value === null) {
+        return undefined;
+    }
+
+    const defaultExport =
+        "default" in value
+            ? toImportTimeMasterStateManagerDefaultExport(value.default)
+            : undefined;
+    const masterStateManager =
+        "masterStateManager" in value
+            ? toImportTimeInitializableStateManager(value.masterStateManager)
+            : undefined;
+
+    if (defaultExport === undefined && masterStateManager === undefined) {
+        return undefined;
+    }
+
+    return {
+        default: defaultExport,
+        masterStateManager,
+    };
+}
+
+function toImportTimeMasterStateManagerDefaultExport(
+    value: unknown
+): ImportTimeMasterStateManagerDefaultExport | undefined {
+    if (
+        typeof value !== "object" ||
+        value === null ||
+        !("masterStateManager" in value)
+    ) {
+        return undefined;
+    }
+
+    const masterStateManager = toImportTimeInitializableStateManager(
+        value.masterStateManager
+    );
+    return masterStateManager === undefined
+        ? undefined
+        : { masterStateManager };
 }
 
 function firstImportTimeInitializableStateManager(

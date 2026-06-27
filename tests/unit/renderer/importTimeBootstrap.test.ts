@@ -195,6 +195,37 @@ describe("renderer import-time bootstrap", () => {
         expect(initializeStateManager).toHaveBeenCalledOnce();
     });
 
+    it("ignores malformed named and default master state manager exports", async () => {
+        expect.assertions(2);
+
+        const initializeStateManager = vi.fn(async () => undefined);
+        const { scheduleImportTimeStateInitialization } =
+            createRendererImportTimeBootstrap({
+                ensureCoreModules: async () => createCoreModules(),
+                getElectronApiScope: () => ({ getElectronAPI: () => null }),
+                getOpenFileButton: () => null,
+                initializeStateManager,
+                isOpeningFileRef: { value: false },
+                resolveExactRendererCoreTestOverride: () => ({
+                    default: {
+                        masterStateManager: {
+                            initialize: "not initialize",
+                        },
+                    },
+                    masterStateManager: {
+                        initialize: "not initialize",
+                    },
+                }),
+                resolveRendererCoreTestOverride: () => null,
+                setLoading: vi.fn(),
+            });
+
+        scheduleImportTimeStateInitialization();
+        await expect(flushImportTimeWork()).resolves.toBeUndefined();
+
+        expect(initializeStateManager).toHaveBeenCalledOnce();
+    });
+
     it("runs import-time setup and state touch in renderer order", () => {
         expect.assertions(1);
 
