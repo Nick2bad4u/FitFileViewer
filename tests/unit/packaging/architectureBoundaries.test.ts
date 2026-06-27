@@ -3189,7 +3189,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(274);
+        expect.assertions(277);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3487,6 +3487,13 @@ describe("architecture boundaries", () => {
         );
         expect(electronConfAccessSource).not.toContain("module.exports");
         expect(electronConfAccessSource).not.toContain("export default");
+        expect(electronConfAccessSource).not.toContain("Reflect.get(");
+        expect(electronConfAccessSource).not.toContain(
+            'Reflect.get(electronConfModule, "Conf")'
+        );
+        expect(electronConfAccessSource).toContain(
+            "const { Conf } = electronConfModule as { readonly Conf?: unknown };"
+        );
         expect(electronAccessSource).toContain(
             'import * as electronModule from "electron"'
         );

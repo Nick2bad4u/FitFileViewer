@@ -155,7 +155,8 @@ package-load fallbacks.
 Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts`; the adapter
 imports Electron-conf natively, exposes named source exports only, and keeps app state, FIT-parser integration,
 app-menu creation, menu event handling, and browser/info IPC handlers off direct source-level
-`require("electron-conf")` calls.
+`require("electron-conf")` calls. The adapter now reads the native `Conf` export through typed namespace access
+instead of a source-level `Reflect.get` probe.
 The main lifecycle setup boundary now uses a named source export instead of a source-level `module.exports`
 wrapper.
 The main development-helper boundary now uses a named source export and imports app-state helpers natively

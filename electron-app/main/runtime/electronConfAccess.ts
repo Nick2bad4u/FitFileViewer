@@ -18,7 +18,7 @@ export function resolveElectronConfConstructor<
         return null;
     }
 
-    const Conf = Reflect.get(electronConfModule, "Conf");
+    const { Conf } = electronConfModule as { readonly Conf?: unknown };
     return typeof Conf === "function"
         ? (Conf as ElectronConfConstructor<TStore>)
         : null;
