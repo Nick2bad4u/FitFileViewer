@@ -15,9 +15,14 @@ import {
     type AddFullScreenButtonRuntime,
 } from "./addFullScreenButtonRuntime.js";
 
-interface ElectronFullscreenAPI {
-    setFullScreen?: ElectronMenuEventApi["setFullScreen"];
-}
+type ElectronFullscreenAPI = {
+    readonly setFullScreen?: ElectronMenuEventApi["setFullScreen"];
+};
+
+type ElectronFullscreenApiCandidate = {
+    readonly [K in keyof ElectronFullscreenAPI]?: unknown;
+};
+
 type FullScreenButtonOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -77,18 +82,18 @@ function isElectronFullscreenApi(
         return false;
     }
 
-    return hasOptionalFullscreenFunction(value, "setFullScreen");
+    return hasOptionalFullscreenFunction(
+        value as ElectronFullscreenApiCandidate,
+        "setFullScreen"
+    );
 }
 
 function hasOptionalFullscreenFunction(
-    value: object,
+    value: ElectronFullscreenApiCandidate,
     key: keyof ElectronFullscreenAPI
 ): boolean {
-    if (!(key in value)) {
-        return true;
-    }
-
-    return typeof value[key as keyof typeof value] === "function";
+    const candidate = value[key];
+    return candidate === undefined || typeof candidate === "function";
 }
 
 const getScreenfullInstance = (): ScreenfullRuntime | undefined =>

@@ -19,9 +19,14 @@ import {
 
 type UpdateNotificationAction = boolean | string;
 
-interface ElectronUpdateAPI {
-    installUpdate?: ElectronMenuEventApi["installUpdate"];
-}
+type ElectronUpdateAPI = {
+    readonly installUpdate?: ElectronMenuEventApi["installUpdate"];
+};
+
+type ElectronUpdateApiCandidate = {
+    readonly [K in keyof ElectronUpdateAPI]?: unknown;
+};
+
 type ShowUpdateNotificationOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
     readonly notificationRuntime?: ShowUpdateNotificationRuntime | undefined;
@@ -358,11 +363,12 @@ function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
         return false;
     }
 
-    if (!("installUpdate" in value)) {
-        return true;
-    }
+    return hasOptionalInstallUpdate(value as ElectronUpdateApiCandidate);
+}
 
-    return typeof value.installUpdate === "function";
+function hasOptionalInstallUpdate(value: ElectronUpdateApiCandidate): boolean {
+    const candidate = value.installUpdate;
+    return candidate === undefined || typeof candidate === "function";
 }
 
 function clearAutoHideTimer(

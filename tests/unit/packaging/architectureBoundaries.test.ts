@@ -10231,7 +10231,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update notification DOM access behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const violations = migratedShowUpdateNotificationDomRuntimeFiles
             .filter((relativeFile) =>
@@ -10265,6 +10265,9 @@ describe("architecture boundaries", () => {
             "showUpdateNotificationRuntime.js"
         );
         expect(showUpdateNotificationSource).toContain("ElectronMenuEventApi");
+        expect(showUpdateNotificationSource).not.toContain(
+            "interface ElectronUpdateAPI"
+        );
         expect(showUpdateNotificationSource).not.toContain(
             "import type { ElectronAPI"
         );
@@ -16834,7 +16837,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(71);
+        expect.assertions(72);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -16870,6 +16873,9 @@ describe("architecture boundaries", () => {
             "type AddFullScreenButtonRuntime"
         );
         expect(fullscreenButtonSource).toContain("ElectronMenuEventApi");
+        expect(fullscreenButtonSource).not.toContain(
+            "interface ElectronFullscreenAPI"
+        );
         expect(fullscreenButtonSource).not.toContain(
             "import type { ElectronAPI"
         );

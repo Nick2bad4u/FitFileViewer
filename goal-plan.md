@@ -369,10 +369,11 @@ window event-target, HTMLElement, KeyboardEvent, and MutationObserver lookups in
 extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails;
 its AbortController, HTMLElement, KeyboardEvent, and MutationObserver provider contracts now also reuse shared
 browser-runtime constructor aliases instead of direct ambient constructor type spellings.
-Fullscreen button scoped Electron API validation now uses an explicit optional-function property guard instead of
-casting the candidate preload API to a generic record.
-Fullscreen command candidate typing now uses the shared menu-event API-domain contract instead of deriving from the
-monolithic `ElectronAPI` type.
+Fullscreen button scoped Electron API validation now uses an explicit optional-function property guard over an
+unknown-valued candidate instead of casting the candidate preload API to a generic record.
+Fullscreen command candidate typing now uses an exact readonly method alias backed by the shared menu-event
+API-domain contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local Electron API
+interface.
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge
@@ -1598,10 +1599,11 @@ Update notification element lookup and action/message element creation now route
 `showUpdateNotification.ts`, with focused runtime coverage and architecture coverage blocking those direct document
 calls from returning.
 Update notification restart actions now validate the scoped preload candidate with an explicit optional-function property
-guard instead of casting the renderer Electron API candidate to a generic record, with strict coverage for malformed
-`installUpdate` values and architecture coverage blocking that bridge cast from returning.
-Update notification restart-action candidate typing now uses the shared menu-event API-domain contract instead of deriving
-from the monolithic `ElectronAPI` type.
+guard over an unknown-valued candidate instead of casting the renderer Electron API candidate to a generic record, with
+strict coverage for malformed `installUpdate` values and architecture coverage blocking that bridge cast from returning.
+Update notification restart-action candidate typing now uses an exact readonly method alias backed by the shared
+menu-event API-domain contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local Electron
+API interface.
 Runtime facade lint cleanup now keeps resource-manager unload registration, timer clearing, registration timestamps,
 render-summary scheduling, master-state event forwarding, modal timing adapters, and tab document runtime helpers aligned
 with the app lint gate by removing stale bound-call patterns, routing resource-manager clock reads through named providers,
