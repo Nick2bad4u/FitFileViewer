@@ -35,13 +35,17 @@ export type RendererSetupTheme = (
     listenForThemeChange: ListenForThemeChange | undefined,
     options?: { electronApiScope?: RendererElectronApiScope | undefined }
 ) => unknown;
-export type RendererAppInitializationActions = Pick<
+export type RendererAppCleanupActions = Pick<
     typeof AppActions,
+    "setFileOpening" | "setInitialized"
+>;
+export type RendererAppInitializationActions = Pick<
+    RendererAppCleanupActions,
     "setInitialized"
 >;
 
 type ResolvedRendererCoreModules = Readonly<{
-    readonly AppActions: RendererAppInitializationActions | undefined;
+    readonly AppActions: RendererAppCleanupActions | undefined;
     readonly applyTheme: ApplyTheme | undefined;
     readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
@@ -264,29 +268,26 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function resolveAppActionsModule(
     appActionsMod: Record<string, unknown>
-): RendererAppInitializationActions | undefined {
+): RendererAppCleanupActions | undefined {
     const namedActions = appActionsMod["AppActions"];
-    const namedInitializationActions =
-        toRendererAppInitializationActions(namedActions);
-    if (namedInitializationActions !== undefined) {
-        return namedInitializationActions;
+    const namedCleanupActions = toRendererAppCleanupActions(namedActions);
+    if (namedCleanupActions !== undefined) {
+        return namedCleanupActions;
     }
 
     const defaultRecord = toModuleRecord(appActionsMod["default"]);
     const defaultActions = defaultRecord["AppActions"];
-    const defaultInitializationActions =
-        toRendererAppInitializationActions(defaultActions);
-    if (defaultInitializationActions !== undefined) {
-        return defaultInitializationActions;
+    const defaultCleanupActions = toRendererAppCleanupActions(defaultActions);
+    if (defaultCleanupActions !== undefined) {
+        return defaultCleanupActions;
     }
 
-    const moduleInitializationActions =
-        toRendererAppInitializationActions(appActionsMod);
-    if (moduleInitializationActions !== undefined) {
-        return moduleInitializationActions;
+    const moduleCleanupActions = toRendererAppCleanupActions(appActionsMod);
+    if (moduleCleanupActions !== undefined) {
+        return moduleCleanupActions;
     }
 
-    return toRendererAppInitializationActions(defaultRecord);
+    return toRendererAppCleanupActions(defaultRecord);
 }
 
 async function resolveCoreModule(
@@ -369,15 +370,16 @@ function toRendererSetupTheme(value: unknown): RendererSetupTheme | undefined {
         : undefined;
 }
 
-function toRendererAppInitializationActions(
+function toRendererAppCleanupActions(
     value: unknown
-): RendererAppInitializationActions | undefined {
+): RendererAppCleanupActions | undefined {
     if (!isRecord(value)) {
         return undefined;
     }
 
-    return typeof value["setInitialized"] === "function"
-        ? (value as RendererAppInitializationActions)
+    return typeof value["setFileOpening"] === "function" &&
+        typeof value["setInitialized"] === "function"
+        ? (value as RendererAppCleanupActions)
         : undefined;
 }
 

@@ -127,7 +127,7 @@ describe("renderer lifecycle cleanup", () => {
             errorHandlers: createErrorHandlers(),
             getCoreModules: () =>
                 Promise.resolve({
-                    AppActions: "not actions",
+                    AppActions: "not actions" as never,
                     masterStateManager: null,
                 }),
             isOpeningFileRef,
@@ -160,7 +160,7 @@ describe("renderer lifecycle cleanup", () => {
                 errorHandlers: createErrorHandlers(),
                 getCoreModules: () =>
                     Promise.resolve({
-                        AppActions: {},
+                        AppActions: undefined,
                         masterStateManager: {},
                     }),
                 isOpeningFileRef: { value: true },

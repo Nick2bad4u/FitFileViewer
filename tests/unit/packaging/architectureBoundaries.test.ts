@@ -6707,7 +6707,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(165);
+        expect.assertions(172);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6978,6 +6978,15 @@ describe("architecture boundaries", () => {
         );
         expect(applicationLifecycleWiringSource).not.toContain("globalThis.");
         expect(lifecycleCleanupSource).toContain("RendererRemoveEventListener");
+        expect(lifecycleCleanupSource).toContain(
+            "type RendererCleanupAppActions = {"
+        );
+        expect(lifecycleCleanupSource).toContain(
+            "readonly setFileOpening: typeof AppActions.setFileOpening;"
+        );
+        expect(lifecycleCleanupSource).toContain(
+            "readonly setInitialized: typeof AppActions.setInitialized;"
+        );
         expect(lifecycleCleanupSource).not.toContain(
             "typeof globalThis.removeEventListener"
         );
@@ -6985,6 +6994,14 @@ describe("architecture boundaries", () => {
         expect(lifecycleCleanupSource).not.toContain(
             "value as Record<string, unknown>"
         );
+        expect(lifecycleCleanupSource).toContain(
+            "AppActions?.setInitialized?.(false);"
+        );
+        expect(lifecycleCleanupSource).toContain(
+            "AppActions?.setFileOpening?.(false);"
+        );
+        expect(lifecycleCleanupSource).not.toContain("callBooleanAppAction");
+        expect(lifecycleCleanupSource).not.toContain("toCleanupAppActions");
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiElectronApiSource).toContain(
@@ -18690,7 +18707,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(36);
+        expect.assertions(38);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -18731,14 +18748,20 @@ describe("architecture boundaries", () => {
         expect(applicationStartupSource).not.toContain("RendererCoreModules");
         expect(applicationStartupSource).not.toContain("Pick<");
         expect(coreModuleResolutionSource).toContain(
-            "export type RendererAppInitializationActions = Pick<"
+            "export type RendererAppCleanupActions = Pick<"
         );
         expect(coreModuleResolutionSource).toContain("typeof AppActions,");
         expect(coreModuleResolutionSource).toContain(
-            "readonly AppActions: RendererAppInitializationActions | undefined;"
+            '"setFileOpening" | "setInitialized"'
         );
         expect(coreModuleResolutionSource).toContain(
-            "): RendererAppInitializationActions | undefined {"
+            "export type RendererAppInitializationActions = Pick<"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "readonly AppActions: RendererAppCleanupActions | undefined;"
+        );
+        expect(coreModuleResolutionSource).toContain(
+            "): RendererAppCleanupActions | undefined {"
         );
         expect(applicationStartupSource).toContain(
             "export type RendererApplicationStartupActions = RendererAppInitializationActions;"

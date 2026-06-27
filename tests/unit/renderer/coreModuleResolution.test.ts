@@ -58,7 +58,10 @@ describe("renderer core module resolution", () => {
         const subscribeToAppOpeningFile = vi.fn();
         const subscribeToAppStartTime = vi.fn();
         const getAppStartTime = vi.fn();
-        const AppActions = { setInitialized: vi.fn() };
+        const AppActions = {
+            setFileOpening: vi.fn(),
+            setInitialized: vi.fn(),
+        };
         const masterStateManager = { initialize: vi.fn() };
         const uiStateManager = { ready: true };
 

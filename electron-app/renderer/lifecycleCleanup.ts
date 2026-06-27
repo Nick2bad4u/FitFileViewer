@@ -1,6 +1,7 @@
 import type { RendererErrorEventHandlers } from "./errorHandling.js";
 import type { RendererRemoveEventListener } from "./runtimeEnvironment.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
+import type { AppActions } from "../utils/app/lifecycle/appActions.js";
 
 type RendererCleanupLogger = (
     level: "error" | "log",
@@ -8,7 +9,7 @@ type RendererCleanupLogger = (
 ) => void;
 
 interface RendererCleanupCoreModules {
-    AppActions: unknown;
+    AppActions: RendererCleanupAppActions | undefined;
     masterStateManager: unknown;
 }
 
@@ -24,8 +25,8 @@ interface RendererLifecycleCleanupOptions {
 }
 
 type RendererCleanupAppActions = {
-    readonly setFileOpening?: unknown;
-    readonly setInitialized?: unknown;
+    readonly setFileOpening: typeof AppActions.setFileOpening;
+    readonly setInitialized: typeof AppActions.setInitialized;
 };
 
 type RendererCleanupMasterStateManager = {
@@ -54,9 +55,8 @@ export async function cleanupRendererStateManagerState(
     try {
         const { AppActions, masterStateManager } =
             await options.getCoreModules();
-        const appActions = toCleanupAppActions(AppActions);
-        callBooleanAppAction(appActions, "setInitialized", false);
-        callBooleanAppAction(appActions, "setFileOpening", false);
+        AppActions?.setInitialized?.(false);
+        AppActions?.setFileOpening?.(false);
 
         const masterStateManagerRecord =
             toCleanupMasterStateManager(masterStateManager);
@@ -83,18 +83,6 @@ export function resetRendererOpeningState(
     options.isOpeningFileRef.value = false;
 }
 
-function callBooleanAppAction(
-    appActions: RendererCleanupAppActions,
-    actionName: "setFileOpening" | "setInitialized",
-    value: boolean
-): void {
-    const action = appActions[actionName];
-    if (typeof action === "function") {
-        const actionFn = action as (value: boolean) => unknown;
-        actionFn(value);
-    }
-}
-
 function removeRendererErrorEventListeners(
     options: RendererLifecycleCleanupOptions
 ): void {
@@ -106,10 +94,6 @@ function removeRendererErrorEventListeners(
         "error",
         options.errorHandlers.onUncaughtErrorEvent
     );
-}
-
-function toCleanupAppActions(value: unknown): RendererCleanupAppActions {
-    return typeof value === "object" && value !== null ? value : {};
 }
 
 function toCleanupMasterStateManager(
