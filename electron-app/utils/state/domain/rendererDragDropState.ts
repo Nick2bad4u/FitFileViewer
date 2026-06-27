@@ -3,6 +3,15 @@ import {
     setState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
+export {
+    normalizeDragCounter,
+    normalizeDropOverlayVisible,
+    type RendererDropOverlayState,
+} from "./rendererDragDropContract.js";
+import {
+    normalizeDragCounter,
+    normalizeDropOverlayVisible,
+} from "./rendererDragDropContract.js";
 
 const RENDERER_DRAG_COUNTER_STATE_PATH = "ui.dragCounter";
 const RENDERER_DROP_OVERLAY_VISIBLE_STATE_PATH = "ui.dropOverlay.visible";
@@ -31,15 +40,12 @@ export function setRendererDropOverlayVisible(
     visible: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_DROP_OVERLAY_VISIBLE_STATE_PATH, visible, {
-        source: "rendererDragDropState.dropOverlay",
-        ...options,
-    });
+    setState(
+        RENDERER_DROP_OVERLAY_VISIBLE_STATE_PATH,
+        normalizeDropOverlayVisible(visible),
+        {
+            source: "rendererDragDropState.dropOverlay",
+            ...options,
+        }
+    );
 }
-
-export function normalizeDragCounter(value: unknown): number {
-    const counter = Number(value);
-    return Number.isFinite(counter) && counter > 0 ? counter : 0;
-}
-
-export const normalizeDropOverlayVisible: (value: unknown) => boolean = Boolean;

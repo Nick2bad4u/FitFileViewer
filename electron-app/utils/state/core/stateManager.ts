@@ -39,6 +39,12 @@ import {
     normalizeRendererNotificationUiBranch,
 } from "../domain/rendererNotificationContract.js";
 import {
+    normalizeDragCounter,
+    normalizeDropOverlayVisible,
+    normalizeRendererDragDropUiBranch,
+} from "../domain/rendererDragDropContract.js";
+import { normalizeRendererLoading } from "../domain/rendererLoadingContract.js";
+import {
     normalizeRendererTheme,
     normalizeRendererThemeUiBranch,
 } from "../domain/rendererThemeContract.js";
@@ -92,8 +98,14 @@ const RENDERER_ACTIVE_TAB_STATE_PATHS = new Set([
     "ui.activeTabContent",
 ]);
 const RENDERER_ACTIVE_TAB_UI_KEYS = ["activeTab", "activeTabContent"] as const;
+const ROOT_STATE_PATH_NORMALIZERS = new Map<
+    string,
+    (value: unknown) => unknown
+>([["isLoading", normalizeRendererLoading]]);
 const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
     ["ui.currentNotification", normalizeRendererNotification],
+    ["ui.dragCounter", normalizeDragCounter],
+    ["ui.dropOverlay.visible", normalizeDropOverlayVisible],
     ["ui.previousTheme", normalizeRendererTheme],
     ["ui.theme", normalizeRendererTheme],
 ]);
@@ -134,6 +146,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeStateWriteValue(path: string, value: unknown): unknown {
+    const rootNormalizer = ROOT_STATE_PATH_NORMALIZERS.get(path);
+    if (rootNormalizer) {
+        return rootNormalizer(value);
+    }
+
     const uiNormalizer = UI_STATE_PATH_NORMALIZERS.get(path);
     if (uiNormalizer) {
         return uiNormalizer(value);
@@ -191,6 +208,13 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
             normalizeRendererNotificationUiBranch(normalizedBranch ?? value);
         if (notificationNormalizedBranch !== (normalizedBranch ?? value)) {
             normalizedBranch = notificationNormalizedBranch;
+        }
+
+        const dragDropNormalizedBranch = normalizeRendererDragDropUiBranch(
+            normalizedBranch ?? value
+        );
+        if (dragDropNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = dragDropNormalizedBranch;
         }
 
         if (normalizedBranch) {

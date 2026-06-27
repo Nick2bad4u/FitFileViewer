@@ -113,7 +113,7 @@ describe("state manager core", () => {
     });
 
     it("normalizes active-tab values when replacing the UI state branch", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         resetStateManager();
 
@@ -125,6 +125,10 @@ describe("state manager core", () => {
                 message: "Broken",
                 type: "fatal",
             },
+            dragCounter: -2,
+            dropOverlay: {
+                visible: "visible",
+            },
             previousTheme: "auto",
             theme: "solarized",
         });
@@ -133,8 +137,34 @@ describe("state manager core", () => {
         expect(getState("ui.activeTabContent")).toBe("summary");
         expect(getState("ui.controlsEnabled")).toBe(true);
         expect(getState("ui.currentNotification")).toBeNull();
+        expect(getState("ui.dragCounter")).toBe(0);
+        expect(getState("ui.dropOverlay.visible")).toBe(true);
         expect(getState("ui.previousTheme")).toBe("system");
         expect(getState("ui.theme")).toBe("system");
+    });
+
+    it("normalizes renderer loading and drag/drop writes at the core state boundary", () => {
+        expect.assertions(6);
+
+        resetStateManager();
+
+        setState("isLoading", "true");
+        expect(getState("isLoading")).toBe(false);
+
+        setState("isLoading", true);
+        expect(getState("isLoading")).toBe(true);
+
+        setState("ui.dragCounter", "3");
+        expect(getState("ui.dragCounter")).toBe(3);
+
+        setState("ui.dragCounter", Number.NaN);
+        expect(getState("ui.dragCounter")).toBe(0);
+
+        setState("ui.dropOverlay.visible", "visible");
+        expect(getState("ui.dropOverlay.visible")).toBe(true);
+
+        setState("ui.dropOverlay.visible", 0);
+        expect(getState("ui.dropOverlay.visible")).toBe(false);
     });
 
     it("normalizes renderer notification writes at the core state boundary", () => {

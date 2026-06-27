@@ -43,7 +43,7 @@ describe("rendererLoadingState", () => {
     });
 
     it("subscribes with normalized loading values", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const received: boolean[] = [];
         const unsubscribe = subscribeToLoading((loading) => {
@@ -55,10 +55,7 @@ describe("rendererLoadingState", () => {
         setRendererLoading(false, { source: "test" });
         unsubscribe();
 
-        expect(received).toStrictEqual([
-            true,
-            false,
-            false,
-        ]);
+        expect(received).toStrictEqual([true, false]);
+        expect(stateManager.getState("isLoading")).toBe(false);
     });
 });

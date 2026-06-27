@@ -49,4 +49,22 @@ describe("rendererDragDropState", () => {
         expect(normalizeDropOverlayVisible("visible")).toBe(true);
         expect(normalizeDropOverlayVisible(0)).toBe(false);
     });
+
+    it("stores normalized drag/drop values through direct state writes", () => {
+        expect.assertions(4);
+
+        stateManager.setState("ui.dragCounter", "4", { source: "test" });
+        expect(stateManager.getState("ui.dragCounter")).toBe(4);
+
+        stateManager.setState("ui.dragCounter", -1, { source: "test" });
+        expect(stateManager.getState("ui.dragCounter")).toBe(0);
+
+        stateManager.setState("ui.dropOverlay.visible", "visible", {
+            source: "test",
+        });
+        expect(stateManager.getState("ui.dropOverlay.visible")).toBe(true);
+
+        stateManager.setState("ui.dropOverlay.visible", 0, { source: "test" });
+        expect(stateManager.getState("ui.dropOverlay.visible")).toBe(false);
+    });
 });

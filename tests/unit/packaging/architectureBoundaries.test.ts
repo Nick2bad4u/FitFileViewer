@@ -9263,6 +9263,59 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer loading and drag/drop state normalization on shared contracts", () => {
+        expect.assertions(10);
+
+        const rendererLoadingStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererLoadingState.ts"
+            )
+        );
+        const rendererDragDropStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererDragDropState.ts"
+            )
+        );
+        const rendererLoadingContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererLoadingContract.ts"
+            )
+        );
+        const rendererDragDropContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererDragDropContract.ts"
+            )
+        );
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+
+        expect(rendererLoadingStateSource).toContain(
+            "rendererLoadingContract.js"
+        );
+        expect(rendererLoadingStateSource).not.toContain(
+            "function normalizeRendererLoading"
+        );
+        expect(rendererDragDropStateSource).toContain(
+            "rendererDragDropContract.js"
+        );
+        expect(rendererDragDropStateSource).not.toContain(
+            "function normalizeDragCounter"
+        );
+        expect(rendererLoadingContractSource).toContain(
+            "normalizeRendererLoading"
+        );
+        expect(rendererDragDropContractSource).toContain(
+            "normalizeRendererDragDropUiBranch"
+        );
+        expect(stateManagerSource).toContain("isLoading");
+        expect(stateManagerSource).toContain("ui.dragCounter");
+        expect(stateManagerSource).toContain("ui.dropOverlay.visible");
+        expect(stateManagerSource).toContain(
+            "normalizeRendererDragDropUiBranch"
+        );
+    });
+
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
         expect.assertions(85);
 

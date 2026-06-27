@@ -4,6 +4,8 @@ import {
     subscribe,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
+export { normalizeRendererLoading } from "./rendererLoadingContract.js";
+import { normalizeRendererLoading } from "./rendererLoadingContract.js";
 
 const RENDERER_LOADING_STATE_PATH = "isLoading";
 
@@ -24,7 +26,7 @@ export function setRendererLoading(
     loading: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_LOADING_STATE_PATH, loading, {
+    setState(RENDERER_LOADING_STATE_PATH, normalizeRendererLoading(loading), {
         source: "rendererLoadingState.set",
         ...options,
     });
@@ -36,8 +38,4 @@ export function subscribeToRendererLoading(
     return subscribe(RENDERER_LOADING_STATE_PATH, (loading) => {
         listener(normalizeRendererLoading(loading));
     });
-}
-
-export function normalizeRendererLoading(value: unknown): boolean {
-    return value === true;
 }
