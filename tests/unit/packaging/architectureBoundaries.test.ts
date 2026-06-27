@@ -2058,8 +2058,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps preload API domain contracts in the shared preload API module", () => {
-        expect.assertions(9);
+    it("keeps preload API domain contracts split from the composed preload API", () => {
+        expect.assertions(14);
 
         const localDomainContracts = preloadDomainContractFiles
             .filter((relativeFile) =>
@@ -2071,24 +2071,32 @@ describe("architecture boundaries", () => {
         const sharedPreloadApiSource = stripComments(
             readRepositoryFile("electron-app/shared/preloadApi.ts")
         );
+        const sharedPreloadApiDomainsSource = stripComments(
+            readRepositoryFile("electron-app/shared/preloadApiDomains.ts")
+        );
 
         expect(localDomainContracts).toStrictEqual([]);
-        expect(sharedPreloadApiSource).toContain("export type ElectronFileApi");
         expect(sharedPreloadApiSource).toContain(
-            "export type ElectronMenuEventApi"
+            "export interface ElectronAPI"
         );
-        expect(sharedPreloadApiSource).toContain(
-            "export type ElectronMainStateApi"
+        expect(sharedPreloadApiSource).toContain("ElectronApiDiagnosticsApi");
+        expect(sharedPreloadApiSource).toContain("ElectronFileApi");
+        expect(sharedPreloadApiSource).toContain("ElectronMenuEventApi");
+        expect(sharedPreloadApiSource).toContain("ElectronMainStateApi");
+        expect(sharedPreloadApiSource).not.toContain("Pick<ElectronAPI");
+        expect(sharedPreloadApiDomainsSource).toContain(
+            "export interface ElectronFileApi"
         );
-        expect(sharedPreloadApiSource).toContain(
-            "export type ElectronGyazoExternalApi"
+        expect(sharedPreloadApiDomainsSource).toContain(
+            "export interface ElectronMenuEventApi"
         );
-        expect(sharedPreloadApiSource).toContain(
-            "export type ElectronShellExternalApi"
+        expect(sharedPreloadApiDomainsSource).toContain(
+            "export interface ElectronGyazoExternalApi"
         );
-        expect(sharedPreloadApiSource).toContain(
-            "export type ElectronDialogApi"
+        expect(sharedPreloadApiDomainsSource).toContain(
+            "export interface ElectronDialogApi"
         );
+        expect(sharedPreloadApiDomainsSource).not.toContain("Pick<ElectronAPI");
         expect(sharedPreloadApiSource).not.toContain("ElectronAPIWithDevFlags");
         expect(sharedPreloadApiSource).not.toContain("__devMode");
     });
