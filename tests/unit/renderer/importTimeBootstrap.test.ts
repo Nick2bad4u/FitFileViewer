@@ -138,6 +138,55 @@ describe("renderer import-time bootstrap", () => {
         expect(coreModules.showAboutModal).not.toHaveBeenCalled();
     });
 
+    it("initializes default-exported master state manager test overrides", async () => {
+        expect.assertions(2);
+
+        const initializeStateManager = vi.fn(async () => undefined);
+        const masterStateManager = { initialize: vi.fn() };
+        const { scheduleImportTimeStateInitialization } =
+            createRendererImportTimeBootstrap({
+                ensureCoreModules: async () => createCoreModules(),
+                getElectronApiScope: () => ({ getElectronAPI: () => null }),
+                getOpenFileButton: () => null,
+                initializeStateManager,
+                isOpeningFileRef: { value: false },
+                resolveExactRendererCoreTestOverride: (testId) =>
+                    testId === "../../utils/state/core/masterStateManager.js"
+                        ? { default: { masterStateManager } }
+                        : null,
+                resolveRendererCoreTestOverride: () => null,
+                setLoading: vi.fn(),
+            });
+
+        scheduleImportTimeStateInitialization();
+        await flushImportTimeWork();
+
+        expect(initializeStateManager).toHaveBeenCalledOnce();
+        expect(masterStateManager.initialize).toHaveBeenCalledOnce();
+    });
+
+    it("ignores malformed master state manager test overrides", async () => {
+        expect.assertions(2);
+
+        const initializeStateManager = vi.fn(async () => undefined);
+        const { scheduleImportTimeStateInitialization } =
+            createRendererImportTimeBootstrap({
+                ensureCoreModules: async () => createCoreModules(),
+                getElectronApiScope: () => ({ getElectronAPI: () => null }),
+                getOpenFileButton: () => null,
+                initializeStateManager,
+                isOpeningFileRef: { value: false },
+                resolveExactRendererCoreTestOverride: () => "not-a-module",
+                resolveRendererCoreTestOverride: () => null,
+                setLoading: vi.fn(),
+            });
+
+        scheduleImportTimeStateInitialization();
+        await expect(flushImportTimeWork()).resolves.toBeUndefined();
+
+        expect(initializeStateManager).toHaveBeenCalledOnce();
+    });
+
     it("runs import-time setup and coverage touches in renderer order", () => {
         expect.assertions(1);
 

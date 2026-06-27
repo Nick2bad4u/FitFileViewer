@@ -47,6 +47,15 @@ export interface RendererImportTimeBootstrap {
     scheduleImportTimeThemeSetup: () => void;
 }
 
+type ImportTimeInitializableStateManager = Readonly<{
+    readonly initialize?: unknown;
+}>;
+
+type ImportTimeMasterStateManagerOverrideModule = Readonly<{
+    readonly default?: unknown;
+    readonly masterStateManager?: unknown;
+}>;
+
 export function createRendererImportTimeBootstrap({
     ensureCoreModules,
     getElectronApiScope,
@@ -69,10 +78,7 @@ export function createRendererImportTimeBootstrap({
     }
 
     async function initializeTestOverrideMasterStateManager(): Promise<void> {
-        await callRecordMethod(
-            resolveTestOverrideMasterStateManager(),
-            "initialize"
-        );
+        await callInitializeMethod(resolveTestOverrideMasterStateManager());
     }
 
     function resolveTestOverrideMasterStateManager(): unknown {
@@ -83,11 +89,15 @@ export function createRendererImportTimeBootstrap({
             resolveRendererCoreTestOverride(
                 "/utils/state/core/masterStateManager.js"
             );
-        const resolvedRecord = toOverrideRecord(resolved);
+        const resolvedModule =
+            toImportTimeMasterStateManagerOverrideModule(resolved);
+        const defaultModule = toImportTimeMasterStateManagerOverrideModule(
+            resolvedModule.default
+        );
 
         return (
-            resolvedRecord["masterStateManager"] ??
-            toOverrideRecord(resolvedRecord["default"])["masterStateManager"] ??
+            resolvedModule.masterStateManager ??
+            defaultModule.masterStateManager ??
             resolved
         );
     }
@@ -155,19 +165,14 @@ export function createRendererImportTimeBootstrap({
         }
     }
 
-    function callRecordMethod(
-        target: unknown,
-        methodName: string,
-        args: unknown[] = []
-    ): unknown {
-        const method = toOverrideRecord(target)[methodName];
-        if (typeof method !== "function") {
+    function callInitializeMethod(target: unknown): unknown {
+        const stateManager = toImportTimeInitializableStateManager(target);
+        const initialize = stateManager.initialize;
+        if (typeof initialize !== "function") {
             return undefined;
         }
 
-        const methodFn =
-            /** @type {(this: unknown, ...args: unknown[]) => unknown} */ method;
-        return methodFn.apply(target, args);
+        return initialize.call(target);
     }
 
     return {
@@ -176,6 +181,18 @@ export function createRendererImportTimeBootstrap({
         scheduleImportTimeStateInitialization,
         scheduleImportTimeThemeSetup,
     };
+}
+
+function toImportTimeInitializableStateManager(
+    value: unknown
+): ImportTimeInitializableStateManager {
+    return typeof value === "object" && value !== null ? value : {};
+}
+
+function toImportTimeMasterStateManagerOverrideModule(
+    value: unknown
+): ImportTimeMasterStateManagerOverrideModule {
+    return typeof value === "object" && value !== null ? value : {};
 }
 
 function createSetupListenersOptions(dependencies: {
@@ -240,12 +257,6 @@ function adaptShowUpdateNotification(
 
         return showUpdateNotification(message, type, duration, action);
     };
-}
-
-function toOverrideRecord(value: unknown): Record<string, unknown> {
-    return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
-        : {};
 }
 
 export function runRendererImportTimeBootstrap(

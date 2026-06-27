@@ -1620,6 +1620,9 @@ the event target they use, with architecture coverage blocking the broad handoff
 Renderer lifecycle cleanup now narrows core-module cleanup shapes through explicit app-action/state-manager contracts
 instead of casting unknown core modules to a broad `Record<string, unknown>`, with unit and architecture coverage
 blocking the broad cast from returning.
+Renderer import-time bootstrap now narrows master-state-manager test override modules and initializable managers
+through named local shapes instead of casting unknown override values to a broad `Record<string, unknown>`, with unit
+and architecture coverage blocking the broad helper from returning.
 Renderer and main-UI browser runtime-environment scopes now assemble their production defaults from named browser
 runtime providers instead of inline `globalThis.document`, bound listener/timer, `globalThis.console`, Electron API
 candidate, or `Date.now()` closures, with architecture coverage blocking those inline defaults from returning.
