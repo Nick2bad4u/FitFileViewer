@@ -956,6 +956,8 @@ const settingsModalTestRetiredGlobalMutationPattern =
     /\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,120}?\)\.(?:closeSettingsModal|showSettingsModal)\b|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeSettingsModal|showSettingsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeSettingsModal|showSettingsModal)\s*=/u;
 const lifecycleListenersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']createExportGPXButton["']\s*,|\b(?:globalThis|window)\.(?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)\s*=/u;
+const lifecycleListenersTestRetiredGlobalDataVocabularyPattern =
+    /\b(?:handles no globalData|Mock globalData)\b/u;
 const lifecycleListenersTestDirectPrintAssignmentPattern =
     /\bwindow\.print\s*=/u;
 const appEventsTestRetiredFitDataGlobalMutationPattern =
@@ -978,6 +980,8 @@ const strictMainUiTestRetiredGlobalDataFixturePattern =
     /\bglobalData:\s*undefined|\bmockState\[\s*["']globalData["']\s*\]/u;
 const computedStateManagerTestRetiredGlobalDataFixturePattern =
     /\bglobalData(?:\.(?:missing|test))?\b/u;
+const uiStateManagerTestRetiredGlobalDataVocabularyPattern =
+    /\bEnsure globalData is present\b/u;
 const createShownFilesListTestRetiredLeafletGlobalPattern =
     /\bwindowMock\.L\b|\(\s*global\.window\s+as\s+any\s*\)\.L\b|\b(?:window|globalThis)\.L\b/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
@@ -26076,6 +26080,25 @@ describe("architecture boundaries", () => {
                     readRepositoryFile(
                         "tests/unit/utils/state/domain/loadedFitFilesState.test.ts"
                     )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps lifecycle and UI state tests off retired globalData vocabulary", () => {
+        expect.assertions(2);
+
+        expect(
+            lifecycleListenersTestRetiredGlobalDataVocabularyPattern.test(
+                readRepositoryFile(
+                    "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts"
+                )
+            )
+        ).toBe(false);
+        expect(
+            uiStateManagerTestRetiredGlobalDataVocabularyPattern.test(
+                readRepositoryFile(
+                    "tests/unit/state/domain/uiStateManager.test.ts"
                 )
             )
         ).toBe(false);

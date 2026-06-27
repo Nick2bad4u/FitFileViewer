@@ -1451,7 +1451,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
     });
 
-    it("export-file: handles no globalData", async () => {
+    it("export-file: handles missing active FIT raw data", async () => {
         expect.hasAssertions();
 
         setupListeners({
@@ -1985,7 +1985,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const semicircleConversion = (degrees: number) =>
             Math.round((degrees * 2 ** 31) / 180);
 
-        // Mock globalData with valid coordinates
+        // Seed active FIT raw data with valid coordinates.
         setActiveFitRawData(
             {
                 recordMesgs: [
