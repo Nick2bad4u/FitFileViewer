@@ -115,7 +115,7 @@ describe("updateTabVisibility - additional branches", () => {
         expect(data.style.display).toBe("none");
     });
 
-    it("derives active content from an unknown content id without showing tracked content", async () => {
+    it("ignores unknown content ids without showing tracked content", async () => {
         expect.assertions(9);
 
         const setState =
@@ -145,11 +145,7 @@ describe("updateTabVisibility - additional branches", () => {
         expect(document.getElementById("content_missing")).not.toBeInstanceOf(
             HTMLElement
         );
-        expect(setState).toHaveBeenCalledWith(
-            "ui.activeTabContent",
-            "missing",
-            { source: "updateTabVisibility" }
-        );
+        expect(setState).not.toHaveBeenCalled();
         for (const id of contentIds) {
             expect(getRequiredElement(id).style.display).toBe("none");
         }

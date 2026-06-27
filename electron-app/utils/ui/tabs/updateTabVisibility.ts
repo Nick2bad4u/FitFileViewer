@@ -13,6 +13,10 @@ import {
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
 import {
+    isRendererTabName,
+    normalizeRendererActiveTab,
+} from "../../state/domain/rendererActiveTabState.js";
+import {
     buildIdVariants,
     getElementByIdFlexible,
 } from "../dom/elementIdUtils.js";
@@ -112,6 +116,14 @@ function getStringState(path: string): null | string {
     return typeof value === "string" && value ? value : null;
 }
 
+function getConfiguredContentIdFromTabName(tabName: unknown): null | string {
+    const normalizedTabName = normalizeRendererActiveTab(tabName);
+
+    return isRendererTabName(normalizedTabName)
+        ? getContentIdFromTabName(normalizedTabName)
+        : null;
+}
+
 function clearNoDataSwitchTimer(): void {
     if (noDataSwitchTimer === null) {
         return;
@@ -189,7 +201,7 @@ function resolveTargetContentId(
 
     if (targetId && !(targetId in elementMap)) {
         const maybeName = extractTabNameFromContentId(String(targetId));
-        if (maybeName) {
+        if (isRendererTabName(maybeName)) {
             const canonicalId = getContentIdFromTabName(maybeName);
             if (canonicalId in elementMap) {
                 targetId = canonicalId;
@@ -240,8 +252,8 @@ export function initializeTabVisibilityState(): void {
 
     trackSubscription(
         stateManager.subscribe("ui.activeTab", (activeTab: unknown) => {
-            if (typeof activeTab === "string") {
-                const contentId = getContentIdFromTabName(activeTab);
+            const contentId = getConfiguredContentIdFromTabName(activeTab);
+            if (contentId) {
                 updateTabVisibility(contentId);
             }
         })
@@ -267,7 +279,9 @@ export function initializeTabVisibilityState(): void {
                 const isLoading = getRendererLoadingFromState(
                     stateManager.getState
                 );
-                const latestTab = getStringState("ui.activeTab") ?? "summary";
+                const latestTab = normalizeRendererActiveTab(
+                    getStringState("ui.activeTab")
+                );
 
                 if (stillNoData && !isLoading && latestTab !== "summary") {
                     stateManager.setState("ui.activeTab", "summary", {
@@ -287,8 +301,7 @@ export function initializeTabVisibilityState(): void {
  * @param tabName - Name of the tab to show.
  */
 export function showTabContent(tabName: string): void {
-    const contentId = getContentIdFromTabName(tabName);
-    updateTabVisibility(contentId);
+    updateTabVisibility(getConfiguredContentIdFromTabName(tabName));
 }
 
 /**
@@ -312,7 +325,7 @@ export function updateTabVisibility(
         element.classList.toggle("active", isVisible);
     }
 
-    if (targetId) {
+    if (targetId && targetId in elementMap) {
         const tabName = derivedTabName ?? extractTabNameFromContentId(targetId);
         if (tabName) {
             getStateMgr().setState("ui.activeTabContent", tabName, {

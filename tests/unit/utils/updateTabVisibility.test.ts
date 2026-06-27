@@ -253,7 +253,7 @@ describe(updateTabVisibility, () => {
         expect(getContentElement("content_map").style.display).toBe("flex");
     });
 
-    it("keeps all tracked sections hidden for unknown content ids but stores derived content names", () => {
+    it("keeps all tracked sections hidden for unknown content ids without storing derived content names", () => {
         expect.assertions(2);
 
         updateTabVisibility("content_missing");
@@ -261,11 +261,7 @@ describe(updateTabVisibility, () => {
         expect(getAllContentSectionStates()).toStrictEqual(
             contentIds.map((id) => getHiddenContentState(id))
         );
-        expect(mockSetState).toHaveBeenCalledWith(
-            "ui.activeTabContent",
-            "missing",
-            { source: "updateTabVisibility" }
-        );
+        expect(mockSetState).not.toHaveBeenCalled();
     });
 
     it("reads visible content from state", () => {
@@ -349,17 +345,34 @@ describe(updateTabVisibility, () => {
         );
     });
 
-    it("does not show content when the active-tab subscription receives a non-string value", () => {
+    it("normalizes non-string active-tab subscription values to summary content", () => {
         expect.assertions(2);
 
         initializeTabVisibilityState();
 
         getSubscription("ui.activeTab")(null);
 
-        expect(getAllContentSectionStates()).toStrictEqual(
-            contentIds.map((id) => getInitialHiddenContentState(id))
+        expect(getContentElement("content_summary").style.display).toBe("flex");
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.activeTabContent",
+            "summary",
+            { source: "updateTabVisibility" }
         );
-        expect(mockSetState).not.toHaveBeenCalled();
+    });
+
+    it("normalizes unknown active-tab subscription values to summary content", () => {
+        expect.assertions(2);
+
+        initializeTabVisibilityState();
+
+        getSubscription("ui.activeTab")("unknown");
+
+        expect(getContentElement("content_summary").style.display).toBe("flex");
+        expect(mockSetState).toHaveBeenCalledWith(
+            "ui.activeTabContent",
+            "summary",
+            { source: "updateTabVisibility" }
+        );
     });
 
     it("hides all content through the helper", () => {
