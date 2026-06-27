@@ -161,6 +161,53 @@ describe("fileBrowserTab accessibility", () => {
         });
     });
 
+    it("uses the latest scoped Electron API after rerendering the Browser tab", async () => {
+        expect.assertions(3);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        const firstOpenFolderDialog = vi.fn<() => Promise<string | null>>(
+            async () => "C:\\first"
+        );
+        const secondOpenFolderDialog = vi.fn<() => Promise<string | null>>(
+            async () => "C:\\second"
+        );
+        const createApi = (
+            openFolderDialog: typeof firstOpenFolderDialog
+        ) => ({
+            getFitBrowserFolder: async () => "C:\\rides",
+            listFitBrowserFolder: async () => ({
+                entries: [],
+                relPath: "",
+                root: "C:\\rides",
+            }),
+            openFolderDialog,
+        });
+
+        await renderFileBrowserTab({
+            electronApiScope: createElectronApiScope(
+                createApi(firstOpenFolderDialog)
+            ),
+        });
+        await renderFileBrowserTab({
+            electronApiScope: createElectronApiScope(
+                createApi(secondOpenFolderDialog)
+            ),
+        });
+
+        getRequiredElement(
+            "#fit-browser-pick-folder",
+            HTMLButtonElement
+        ).click();
+
+        await vi.waitFor(() => {
+            expect(secondOpenFolderDialog).toHaveBeenCalledOnce();
+        });
+        expect(firstOpenFolderDialog).not.toHaveBeenCalled();
+    });
+
     it("records folder scan progress in explicit Browser state", async () => {
         const container = document.createElement("div");
         container.id = "content_browser";

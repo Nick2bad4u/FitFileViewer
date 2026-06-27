@@ -132,7 +132,6 @@ const LIB_PREFS_LAST_DAYS_KEY = "fitLibrary.lastDays";
 const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
-let activeElectronApiScope: RendererElectronApiScope | undefined;
 
 function fileBrowserTabRuntime(): FileBrowserTabRuntime {
     return getFileBrowserTabRuntime();
@@ -170,74 +169,69 @@ function addManagedEventListener<K extends keyof HTMLElementEventMap>(
 export async function renderFileBrowserTab({
     electronApiScope,
 }: FileBrowserTabOptions = {}): Promise<void> {
-    activeElectronApiScope = electronApiScope;
     const container = fileBrowserTabRuntime().getElementById("content_browser");
     if (!container) {
         return;
     }
 
-    // One-time UI scaffolding.
-    if (!container.dataset["ffvBrowserInitialized"]) {
-        container.dataset["ffvBrowserInitialized"] = "true";
-        container.replaceChildren(createFileBrowserScaffold());
+    container.replaceChildren(createFileBrowserScaffold());
 
-        const pickBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
-            "#fit-browser-pick-folder"
-        );
-        if (pickBtn) {
-            addManagedEventListener(pickBtn, "click", async () => {
-                const api = getElectronAPI();
-                if (!api || typeof api.openFolderDialog !== "function") {
-                    showNotification("Folder picker is unavailable.", "error");
-                    return;
-                }
+    const pickBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
+        "#fit-browser-pick-folder"
+    );
+    if (pickBtn) {
+        addManagedEventListener(pickBtn, "click", async () => {
+            const api = getElectronAPI(electronApiScope);
+            if (!api || typeof api.openFolderDialog !== "function") {
+                showNotification("Folder picker is unavailable.", "error");
+                return;
+            }
 
-                const selected = await api.openFolderDialog();
-                if (!selected) {
-                    return;
-                }
+            const selected = await api.openFolderDialog();
+            if (!selected) {
+                return;
+            }
 
-                // Reset the relative path when a new root is chosen.
-                setBrowserRelPath("", {
-                    source: "fileBrowser.pickFolder",
-                });
-                await refreshActiveView();
+            // Reset the relative path when a new root is chosen.
+            setBrowserRelPath("", {
+                source: "fileBrowser.pickFolder",
             });
-        }
-
-        const filesBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
-            "#fit-browser-view-files"
-        );
-        const libraryBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
-            "#fit-browser-view-library"
-        );
-        const calendarBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
-            "#fit-browser-view-calendar"
-        );
-
-        const setView = async (view: BrowserView): Promise<void> => {
-            setBrowserView(view, { source: "fileBrowser.setView" });
-            await refreshActiveView();
-        };
-
-        if (filesBtn) {
-            addManagedEventListener(filesBtn, "click", async () =>
-                setView("files")
-            );
-        }
-        if (libraryBtn) {
-            addManagedEventListener(libraryBtn, "click", async () =>
-                setView("library")
-            );
-        }
-        if (calendarBtn) {
-            addManagedEventListener(calendarBtn, "click", async () =>
-                setView("calendar")
-            );
-        }
+            await refreshActiveView(electronApiScope);
+        });
     }
 
-    await refreshActiveView();
+    const filesBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
+        "#fit-browser-view-files"
+    );
+    const libraryBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
+        "#fit-browser-view-library"
+    );
+    const calendarBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
+        "#fit-browser-view-calendar"
+    );
+
+    const setView = async (view: BrowserView): Promise<void> => {
+        setBrowserView(view, { source: "fileBrowser.setView" });
+        await refreshActiveView(electronApiScope);
+    };
+
+    if (filesBtn) {
+        addManagedEventListener(filesBtn, "click", async () =>
+            setView("files")
+        );
+    }
+    if (libraryBtn) {
+        addManagedEventListener(libraryBtn, "click", async () =>
+            setView("library")
+        );
+    }
+    if (calendarBtn) {
+        addManagedEventListener(calendarBtn, "click", async () =>
+            setView("calendar")
+        );
+    }
+
+    await refreshActiveView(electronApiScope);
 }
 
 function createFileBrowserScaffold(): HTMLElement {
@@ -570,10 +564,12 @@ function getCalendarState(): CalendarState {
     }
 }
 
-function getElectronAPI(): FitBrowserElectronAPI | null {
+function getElectronAPI(
+    electronApiScope?: RendererElectronApiScope
+): FitBrowserElectronAPI | null {
     return getRendererElectronApi(
         isFitBrowserElectronApi,
-        activeElectronApiScope
+        electronApiScope
     );
 }
 
@@ -924,9 +920,12 @@ async function ensureBrowserFileReadApproval(
     return isFitBrowserListResponse(responseRaw);
 }
 
-async function openBrowserFile(filePath: string): Promise<void> {
+async function openBrowserFile(
+    filePath: string,
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
     try {
-        const api = getElectronAPI();
+        const api = getElectronAPI(electronApiScope);
         if (!api) {
             showNotification("Browser is unavailable.", "error");
             return;
@@ -1032,7 +1031,9 @@ function persistLibraryPrefs(prefs: FitLibraryPrefs): void {
     }
 }
 
-async function refreshActiveView(): Promise<void> {
+async function refreshActiveView(
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
     const view = getBrowserView();
     const filesBtn = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-browser-view-files"
@@ -1097,20 +1098,22 @@ async function refreshActiveView(): Promise<void> {
     );
 
     if (view === "files") {
-        await refreshListing();
+        await refreshListing(electronApiScope);
         return;
     }
 
     if (view === "library") {
-        await renderLibraryView();
+        await renderLibraryView(electronApiScope);
         return;
     }
 
-    await renderCalendarView();
+    await renderCalendarView(electronApiScope);
 }
 
-async function refreshListing(): Promise<void> {
-    const api = getElectronAPI();
+async function refreshListing(
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
+    const api = getElectronAPI(electronApiScope);
     const pathEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-browser-current-path"
     );
@@ -1199,7 +1202,7 @@ async function refreshListing(): Promise<void> {
             setBrowserRelPath(parentRelPath(relPath), {
                 source: "fileBrowser.up",
             });
-            await refreshListing();
+            await refreshListing(electronApiScope);
         });
         listEl.append(up);
     }
@@ -1221,11 +1224,11 @@ async function refreshListing(): Promise<void> {
                 setBrowserRelPath(entryRelPath, {
                     source: "fileBrowser.enterDir",
                 });
-                await refreshListing();
+                await refreshListing(electronApiScope);
             });
         } else {
             addManagedEventListener(btn, "click", async () => {
-                await openBrowserFile(fullPath);
+                await openBrowserFile(fullPath, electronApiScope);
             });
         }
 
@@ -1257,7 +1260,8 @@ function createBrowserItemButton(
 
 function renderCalendarResults(
     root: string,
-    payload: FitLibraryCachePayload | null
+    payload: FitLibraryCachePayload | null,
+    electronApiScope?: RendererElectronApiScope
 ): void {
     const titleEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-calendar-title"
@@ -1366,7 +1370,7 @@ function renderCalendarResults(
         addManagedEventListener(button, "click", () => {
             const next = { ...getCalendarState(), selectedDayKey: dayKey };
             persistCalendarState(next);
-            renderCalendarResults(root, payload);
+            renderCalendarResults(root, payload, electronApiScope);
         });
         gridItems.push(button);
     }
@@ -1387,7 +1391,8 @@ function renderCalendarResults(
         sortLibraryItemsByStartTimeDesc(selectedItems),
         unitLabel,
         fmt,
-        { includeSportBadge: true, useTimeOnly: true }
+        { includeSportBadge: true, useTimeOnly: true },
+        electronApiScope
     );
     panelEl.replaceChildren(createCalendarPanelTitle(selectedDayKey), rows);
 }
@@ -1621,8 +1626,10 @@ function createBrowserActionButton({
 /**
  * Render the Calendar view.
  */
-async function renderCalendarView(): Promise<void> {
-    const api = getElectronAPI();
+async function renderCalendarView(
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
+    const api = getElectronAPI(electronApiScope);
     const pathEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-browser-current-path"
     );
@@ -1697,7 +1704,8 @@ async function renderCalendarView(): Promise<void> {
                 renderCalendarResults(
                     root,
                     loadPersistedLibraryCache(root) ??
-                        loadSessionLibraryCache(root)
+                        loadSessionLibraryCache(root),
+                    electronApiScope
                 );
             });
         }
@@ -1713,7 +1721,8 @@ async function renderCalendarView(): Promise<void> {
                 renderCalendarResults(
                     root,
                     loadPersistedLibraryCache(root) ??
-                        loadSessionLibraryCache(root)
+                        loadSessionLibraryCache(root),
+                    electronApiScope
                 );
             });
         }
@@ -1729,24 +1738,26 @@ async function renderCalendarView(): Promise<void> {
                 renderCalendarResults(
                     root,
                     loadPersistedLibraryCache(root) ??
-                        loadSessionLibraryCache(root)
+                        loadSessionLibraryCache(root),
+                    electronApiScope
                 );
             });
         }
 
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
-                await scanAndRenderLibrary(root);
+                await scanAndRenderLibrary(root, electronApiScope);
                 renderCalendarResults(
                     root,
                     loadPersistedLibraryCache(root) ??
-                        loadSessionLibraryCache(root)
+                        loadSessionLibraryCache(root),
+                    electronApiScope
                 );
             });
         }
     }
 
-    renderCalendarResults(root, cached);
+    renderCalendarResults(root, cached, electronApiScope);
 }
 
 function createLibraryCard(
@@ -1781,7 +1792,8 @@ function createLibraryRows(
     items: FitLibraryItem[],
     unitLabel: DistanceUnit,
     formatDistance: (meters: number) => string,
-    options: LibraryRowOptions
+    options: LibraryRowOptions,
+    electronApiScope?: RendererElectronApiScope
 ): HTMLElement {
     const rows = fileBrowserTabRuntime().createElement("div");
     rows.className = "file-library__rows";
@@ -1792,7 +1804,7 @@ function createLibraryRows(
         row.className = "file-library__row";
         row.dataset["fullpath"] = item.fullPath;
         addManagedEventListener(row, "click", async () => {
-            await openBrowserFile(item.fullPath);
+            await openBrowserFile(item.fullPath, electronApiScope);
         });
 
         const main = fileBrowserTabRuntime().createElement("span");
@@ -1953,7 +1965,8 @@ function createLibraryUnitControl(): HTMLLabelElement {
 
 function renderLibraryResults(
     root: string,
-    payload: FitLibraryCachePayload
+    payload: FitLibraryCachePayload,
+    electronApiScope?: RendererElectronApiScope
 ): void {
     const statusEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-library-status"
@@ -2013,16 +2026,24 @@ function renderLibraryResults(
         }
 
         listEl.replaceChildren(
-            createLibraryRows(items, unitLabel, fmt, {
-                includeSportBadge: false,
-                useTimeOnly: false,
-            })
+            createLibraryRows(
+                items,
+                unitLabel,
+                fmt,
+                {
+                    includeSportBadge: false,
+                    useTimeOnly: false,
+                },
+                electronApiScope
+            )
         );
     }
 }
 
-async function renderLibraryView(): Promise<void> {
-    const api = getElectronAPI();
+async function renderLibraryView(
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
+    const api = getElectronAPI(electronApiScope);
     const pathEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-browser-current-path"
     );
@@ -2073,7 +2094,7 @@ async function renderLibraryView(): Promise<void> {
             );
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
-                await scanAndRenderLibrary(root);
+                await scanAndRenderLibrary(root, electronApiScope);
             });
         }
 
@@ -2104,7 +2125,7 @@ async function renderLibraryView(): Promise<void> {
                     loadPersistedLibraryCache(root) ??
                     loadSessionLibraryCache(root);
                 if (cached) {
-                    renderLibraryResults(root, cached);
+                    renderLibraryResults(root, cached, electronApiScope);
                 }
             });
         }
@@ -2119,7 +2140,7 @@ async function renderLibraryView(): Promise<void> {
                     loadPersistedLibraryCache(root) ??
                     loadSessionLibraryCache(root);
                 if (cached) {
-                    renderLibraryResults(root, cached);
+                    renderLibraryResults(root, cached, electronApiScope);
                 }
             });
         }
@@ -2133,7 +2154,7 @@ async function renderLibraryView(): Promise<void> {
         setBrowserStatus(
             `Loaded folder summary with ${cachedForRoot.items.length} decoded activit${cachedForRoot.items.length === 1 ? "y" : "ies"} at ${formatLoadedAt(loadedAt)}.`
         );
-        renderLibraryResults(root, cachedForRoot);
+        renderLibraryResults(root, cachedForRoot, electronApiScope);
         return;
     }
 
@@ -2149,8 +2170,11 @@ async function renderLibraryView(): Promise<void> {
     }
 }
 
-async function scanAndRenderLibrary(root: string): Promise<void> {
-    const api = getElectronAPI();
+async function scanAndRenderLibrary(
+    root: string,
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
+    const api = getElectronAPI(electronApiScope);
     const statusEl = fileBrowserTabRuntime().getElement<HTMLElement>(
         "#fit-library-status"
     );
@@ -2187,7 +2211,11 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
         if (files.length === 0) {
             const scannedAt = fileBrowserTabRuntime().dateNow();
             if (statusEl) statusEl.textContent = "No .fit files found.";
-            renderLibraryResults(root, { items: [], scannedAt });
+            renderLibraryResults(
+                root,
+                { items: [], scannedAt },
+                electronApiScope
+            );
             setBrowserStatus(`Scanned ${root}. No FIT files found.`);
             setBrowserScanState({
                 fileCount: 0,
@@ -2260,7 +2288,7 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
             status: "completed",
         });
 
-        renderLibraryResults(root, payload);
+        renderLibraryResults(root, payload, electronApiScope);
     } catch (error) {
         console.error("[fileBrowserTab] Library scan failed", error);
         if (statusEl) statusEl.textContent = "Scan failed.";

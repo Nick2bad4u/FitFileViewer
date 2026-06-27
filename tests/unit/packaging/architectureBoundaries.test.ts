@@ -7003,7 +7003,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(87);
+        expect.assertions(90);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -7042,6 +7042,13 @@ describe("architecture boundaries", () => {
         );
         expect(browserTabSource).not.toContain(
             "Reflect.get(value, methodName)"
+        );
+        expect(browserTabSource).not.toContain("activeElectronApiScope");
+        expect(browserTabSource).toContain(
+            "await refreshActiveView(electronApiScope)"
+        );
+        expect(browserTabSource).toContain(
+            "const api = getElectronAPI(electronApiScope)"
         );
         expect(browserTabSource).toContain("type FileBrowserTabRuntime");
         expect(browserTabSource).toContain(
