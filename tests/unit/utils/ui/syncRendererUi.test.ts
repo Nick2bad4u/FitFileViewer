@@ -296,9 +296,10 @@ describe("sync renderer UI helpers", () => {
         const notificationSubscribers: Array<(notification: unknown) => void> =
             [];
         const updateLoadingFromState = vi.fn<(loading: boolean) => void>();
-        const updateNotificationFromState = vi.fn<(notification: unknown) => void>();
+        const updateNotificationFromState =
+            vi.fn<(notification: unknown) => void>();
 
-        const initializeBindings = createRendererStateBindings({
+        const utils = createRendererStateBindings({
             logStateInitialized,
             subscribeToCurrentRendererNotification: (listener) => {
                 notificationSubscribers.push(listener);
@@ -310,7 +311,7 @@ describe("sync renderer UI helpers", () => {
             updateNotificationFromState,
         });
 
-        initializeBindings();
+        utils();
         loadingSubscribers[0]?.(true);
         notificationSubscribers[0]?.({
             message: "Saved",

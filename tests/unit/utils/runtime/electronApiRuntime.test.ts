@@ -67,10 +67,10 @@ describe("electronApiRuntime", () => {
         };
         const getElectronAPI = vi.fn(() => api);
 
-        const scope = createRendererElectronApiScope(getElectronAPI);
+        const utils = createRendererElectronApiScope(getElectronAPI);
 
         expect(getElectronAPI).not.toHaveBeenCalled();
-        expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
+        expect(getRendererElectronApi(isExternalOpenApi, utils)).toBe(api);
         expect(getElectronAPI).toHaveBeenCalledOnce();
     });
 

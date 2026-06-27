@@ -162,7 +162,7 @@ describe("fileBrowserTab accessibility", () => {
     });
 
     it("uses the latest scoped Electron API after rerendering the Browser tab", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const container = document.createElement("div");
         container.id = "content_browser";
@@ -175,25 +175,26 @@ describe("fileBrowserTab accessibility", () => {
             async () => "C:\\second"
         );
         const createApi = (
-            openFolderDialog: typeof firstOpenFolderDialog
+            openFolderDialog: typeof firstOpenFolderDialog,
+            root: string
         ) => ({
-            getFitBrowserFolder: async () => "C:\\rides",
+            getFitBrowserFolder: async () => root,
             listFitBrowserFolder: async () => ({
                 entries: [],
                 relPath: "",
-                root: "C:\\rides",
+                root,
             }),
             openFolderDialog,
         });
 
         await renderFileBrowserTab({
             electronApiScope: createElectronApiScope(
-                createApi(firstOpenFolderDialog)
+                createApi(firstOpenFolderDialog, "C:\\first")
             ),
         });
         await renderFileBrowserTab({
             electronApiScope: createElectronApiScope(
-                createApi(secondOpenFolderDialog)
+                createApi(secondOpenFolderDialog, "C:\\second")
             ),
         });
 
@@ -206,6 +207,9 @@ describe("fileBrowserTab accessibility", () => {
             expect(secondOpenFolderDialog).toHaveBeenCalledOnce();
         });
         expect(firstOpenFolderDialog).not.toHaveBeenCalled();
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\second");
     });
 
     it("records folder scan progress in explicit Browser state", async () => {
