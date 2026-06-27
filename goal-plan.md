@@ -146,7 +146,8 @@ The auto-updater access helper now uses named source exports too, and setup/menu
 the updater resolver boundary natively instead of requiring its source file. Electron-updater now resolves
 through the async native import path instead of a synchronous `loadNodeModule` or direct package
 `require("electron-updater")` fallback, and the redundant Node ESM `module.exports` namespace branch plus
-the unused default namespace export have been removed.
+the unused default namespace export have been removed. Its guarded updater module property reads now use a named
+unknown-valued candidate instead of casting the lazy module namespace to a generic `Record<string, unknown>`.
 The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef`; its
 generic `loadNodeModule` package-compatibility escape hatch and unused default namespace export have been
 removed. File-access, IPC sender policy, Gyazo OAuth, application-event, menu-event, IPC setup, and Electron

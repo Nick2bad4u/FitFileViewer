@@ -21,6 +21,10 @@ interface VitestImportMockLike {
     importMock?: (id: string) => Promise<unknown>;
 }
 
+type UpdaterModulePropertyCandidate = {
+    readonly [property: string]: unknown;
+};
+
 let cachedMockedAutoUpdater: AutoUpdaterLike | null | undefined;
 
 export async function resolveAutoUpdaterAsync(
@@ -122,7 +126,7 @@ function asObjectProperty(value: unknown, property: string): unknown {
     }
 
     try {
-        const candidate = value as Record<string, unknown>;
+        const candidate = value as UpdaterModulePropertyCandidate;
         return candidate[property];
     } catch {
         return undefined;
