@@ -29,7 +29,7 @@ import {
 import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
-const leafletGlobal = Leaflet as typeof Leaflet & {
+const leafletRuntime = Leaflet as typeof Leaflet & {
     Control: typeof Leaflet.Control & {
         FullScreen?: typeof FullScreen;
         Locate?: typeof LocateControl;
@@ -79,12 +79,12 @@ export async function installRendererMapVendorEntry(
 
     installMinimapToggleIcon(runtime);
 
-    leafletGlobal.Control.FullScreen = FullScreen;
-    leafletGlobal.Control.Locate = LocateControl;
-    leafletGlobal.Control.MiniMap = LeafletMiniMap;
-    leafletGlobal.control.fullscreen = (options) => new FullScreen(options);
-    leafletGlobal.control.locate = (options) => new LocateControl(options);
-    leafletGlobal.control.minimap = (layer, options) =>
+    leafletRuntime.Control.FullScreen = FullScreen;
+    leafletRuntime.Control.Locate = LocateControl;
+    leafletRuntime.Control.MiniMap = LeafletMiniMap;
+    leafletRuntime.control.fullscreen = (options) => new FullScreen(options);
+    leafletRuntime.control.locate = (options) => new LocateControl(options);
+    leafletRuntime.control.minimap = (layer, options) =>
         new LeafletMiniMap(layer, options);
 
     setLeafletRuntime(Leaflet);

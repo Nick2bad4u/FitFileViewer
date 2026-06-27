@@ -66,8 +66,10 @@ renderer vendor bundles:
   `fitfileviewer:leaflet-draw-runtime` virtual side-effect module, which wraps
   the package dist file with a module-scoped Leaflet import instead of a Vite
   package transform or persistent `L` compatibility global. The map bundle no
-  longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, and the
-  app-side Leaflet adapter no longer uses a global symbol registry.
+  longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, the
+  module-local plugin registration target is named as a runtime rather than a
+  global, and the app-side Leaflet adapter no longer uses a global symbol
+  registry.
 - `electron-app/renderer/rendererVendorChartData.ts` publishes Chart.js,
   Chart.js zoom, and DataTables constructors through the typed split-vendor
   readiness payload consumed by `electron-app/renderer/vendorBundleLoader.ts`;

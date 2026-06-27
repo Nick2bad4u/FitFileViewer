@@ -248,6 +248,8 @@ transform for Leaflet.draw has been removed. Leaflet.draw now loads through the
 `fitfileviewer:leaflet-draw-runtime` virtual side-effect module, which gives the package dist file a
 module-scoped Leaflet import without publishing a persistent `L` global. Leaflet runtime unit tests now reset only the typed module-local adapter instead of
 deleting retired `L` globals from `globalThis`.
+Renderer map vendor plugin registration now names the module-local Leaflet target as `leafletRuntime` instead of
+`leafletGlobal`, with architecture coverage blocking the misleading local global terminology from returning.
 Leaflet runtime wait-loop timeout clocks and polling waits now route through `leafletRuntime.ts` environment
 providers instead of calling `Date.now` directly inside the runtime wait loop, with focused runtime and architecture
 coverage blocking direct loop clocks and direct scope properties from returning.
