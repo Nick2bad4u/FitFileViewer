@@ -3008,7 +3008,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(86);
+        expect.assertions(92);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3032,6 +3032,11 @@ describe("architecture boundaries", () => {
         const registerFitFileHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/ipc/registerFitFileHandlers.ts"
+            )
+        );
+        const registerFitFileLoadedHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerFitFileLoadedHandlers.ts"
             )
         );
         const registerBrowserHandlersSource = stripComments(
@@ -3113,6 +3118,18 @@ describe("architecture boundaries", () => {
         );
         expect(registerFitFileHandlersSource).not.toContain("module.exports");
         expect(registerFitFileHandlersSource).not.toContain("export default");
+        expect(registerFitFileLoadedHandlersSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerFitFileLoadedHandlersSource).not.toContain(
+            "export default"
+        );
+        expect(registerFitFileLoadedHandlersSource).toContain(
+            'registerIpcListener("fit-file-loaded"'
+        );
+        expect(registerFitFileLoadedHandlersSource).toContain(
+            "assertFileReadAllowed"
+        );
         expect(registerBrowserHandlersSource).not.toContain("module.exports");
         expect(registerBrowserHandlersSource).not.toContain("export default");
         expect(registerDialogHandlersSource).not.toContain("module.exports");
@@ -3203,6 +3220,12 @@ describe("architecture boundaries", () => {
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("./registerFitFileHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'registerIpcListener("fit-file-loaded"'
+        );
+        expect(setupIpcHandlersSource).toContain(
+            "registerFitFileLoadedHandlers"
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("./registerRecentFileHandlers")'

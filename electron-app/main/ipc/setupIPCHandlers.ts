@@ -27,6 +27,7 @@ import { registerDialogHandlers } from "./registerDialogHandlers.js";
 import { registerExternalHandlers } from "./registerExternalHandlers.js";
 import { registerFileSystemHandlers } from "./registerFileSystemHandlers.js";
 import { registerFitFileHandlers } from "./registerFitFileHandlers.js";
+import { registerFitFileLoadedHandlers } from "./registerFitFileLoadedHandlers.js";
 import { registerInfoHandlers } from "./registerInfoHandlers.js";
 import { registerIpcHandle, registerIpcListener } from "./ipcRegistry.js";
 import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
@@ -172,47 +173,14 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
         registerIpcHandle,
     });
 
-    registerIpcListener("fit-file-loaded", async (event, filePath) => {
-        if (
-            filePath === null ||
-            filePath === undefined ||
-            (typeof filePath === "string" && filePath.trim() === "")
-        ) {
-            setLoadedFitFilePath(null);
-        } else {
-            try {
-                // Don't trust renderer-provided paths blindly; only persist if it is an approved FIT path.
-                const approvedPath = assertFileReadAllowed(filePath);
-                setLoadedFitFilePath(approvedPath);
-            } catch (error) {
-                logWithContext(
-                    "warn",
-                    "Rejected fit-file-loaded with unapproved path",
-                    {
-                        error: getErrorMessage(error),
-                        filePath,
-                    }
-                );
-                return;
-            }
-        }
-
-        const win = browserWindowRef().fromWebContents(
-            (event as { sender: unknown }).sender
-        );
-        if (win) {
-            try {
-                const theme = await getPersistedThemePreference();
-                safeCreateAppMenu(win, theme, getLoadedFitFilePath());
-            } catch (error) {
-                logWithContext(
-                    "error",
-                    "Failed to update menu after fit file loaded:",
-                    {
-                        error: getErrorMessage(error),
-                    }
-                );
-            }
-        }
+    registerFitFileLoadedHandlers({
+        assertFileReadAllowed,
+        browserWindowRef,
+        getLoadedFitFilePath,
+        getPersistedThemePreference,
+        logWithContext,
+        registerIpcListener,
+        safeCreateAppMenu,
+        setLoadedFitFilePath,
     });
 }
