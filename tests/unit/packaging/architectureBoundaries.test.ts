@@ -25387,7 +25387,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(86);
+        expect.assertions(85);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -25443,11 +25443,11 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
-        const setLeafletRuntimeIndex = vendorMapEntry.indexOf(
-            "setLeafletRuntime(Leaflet)"
-        );
         const leafletDrawImportIndex = vendorMapEntry.indexOf(
             'import("fitfileviewer:leaflet-draw-runtime")'
+        );
+        const markMapVendorLoadedIndex = vendorMapEntry.indexOf(
+            'markRendererVendorEntryLoaded("map"'
         );
 
         expect(vendorMapEntry).toContain(
@@ -25460,15 +25460,16 @@ describe("architecture boundaries", () => {
         expect(vendorMapEntry).not.toContain(
             "const rendererVendorMapRuntime ="
         );
-        expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
+        expect(vendorMapEntry).not.toContain("setLeafletRuntime");
         expect(vendorMapEntry).toContain("const leafletRuntime =");
         expect(vendorMapEntry).not.toContain("const leafletGlobal =");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
         expect(vendorMapEntry).toContain(
             'import("fitfileviewer:leaflet-draw-runtime")'
         );
-        expect(setLeafletRuntimeIndex).toBeGreaterThanOrEqual(0);
-        expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
+        expect(markMapVendorLoadedIndex).toBeGreaterThan(
+            leafletDrawImportIndex
+        );
         expect(vendorMapEntry).not.toContain('import("leaflet-draw")');
         expect(vendorMapEntry).not.toContain("leaflet.markercluster");
         expect(vendorMapEntry).not.toContain("globalThis.document");

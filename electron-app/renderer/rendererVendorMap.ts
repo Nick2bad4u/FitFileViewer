@@ -27,7 +27,6 @@ import {
     type RendererVendorMapRuntime,
 } from "./rendererVendorMapRuntime.js";
 import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
-import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
 const leafletRuntime = Leaflet as typeof Leaflet & {
     Control: typeof Leaflet.Control & {
@@ -86,8 +85,6 @@ export async function installRendererMapVendorEntry(
     leafletRuntime.control.locate = (options) => new LocateControl(options);
     leafletRuntime.control.minimap = (layer, options) =>
         new LeafletMiniMap(layer, options);
-
-    setLeafletRuntime(Leaflet);
 
     // eslint-disable-next-line import-x/no-unresolved -- Vite provides this virtual module in vite.renderer.config.mjs.
     await import("fitfileviewer:leaflet-draw-runtime");
