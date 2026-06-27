@@ -5,7 +5,7 @@ const renderDecodedFitDataMock = vi.hoisted(() =>
 );
 
 vi.mock(
-    "../../../electron-app/utils/rendering/core/loadShowFitData.js",
+    "../../../electron-app/utils/rendering/core/renderDecodedFitData.js",
     () => ({ renderDecodedFitData: renderDecodedFitDataMock })
 );
 

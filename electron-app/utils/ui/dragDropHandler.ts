@@ -6,7 +6,7 @@ import {
     unwrapFitParseMessages,
 } from "../files/import/fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "../files/import/sendFitFileToAltFitReader.js";
-import { renderDecodedFitData } from "../rendering/core/loadShowFitData.js";
+import { renderDecodedFitData } from "../rendering/core/renderDecodedFitData.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,

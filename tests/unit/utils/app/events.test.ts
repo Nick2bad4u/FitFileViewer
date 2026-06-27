@@ -29,7 +29,7 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    import("../../../../electron-app/utils/rendering/core/renderDecodedFitData.js"),
     () => ({ renderDecodedFitData: fitDataRendererMocks.renderDecodedFitData })
 );
 

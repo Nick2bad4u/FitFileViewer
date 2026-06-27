@@ -17,7 +17,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
+import { renderDecodedFitData } from "../../rendering/core/renderDecodedFitData.js";
 import type { ElectronFileApi } from "../../../shared/preloadApi.js";
 import {
     getRecentFilesContextMenuRuntime,

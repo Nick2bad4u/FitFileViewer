@@ -23,7 +23,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
+import { renderDecodedFitData } from "../../rendering/core/renderDecodedFitData.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";

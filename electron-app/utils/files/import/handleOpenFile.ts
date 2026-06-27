@@ -9,7 +9,7 @@ import {
     type RendererLogLevel,
 } from "../../logging/rendererLogger.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
-import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
+import { renderDecodedFitData } from "../../rendering/core/renderDecodedFitData.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {

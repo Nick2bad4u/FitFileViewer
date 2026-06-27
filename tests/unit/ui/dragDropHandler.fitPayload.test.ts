@@ -46,7 +46,7 @@ vi.mock(import("../../../electron-app/utils/debug/stateDevTools.js"), () => ({
 }));
 
 vi.mock(
-    import("../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    import("../../../electron-app/utils/rendering/core/renderDecodedFitData.js"),
     () => ({
         renderDecodedFitData: mocks.renderDecodedFitData,
     })

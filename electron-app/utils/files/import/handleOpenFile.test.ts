@@ -22,7 +22,7 @@ const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
     vi.fn<(buffer: ArrayBuffer) => void>()
 );
 
-vi.mock("../../rendering/core/loadShowFitData.js", () => ({
+vi.mock("../../rendering/core/renderDecodedFitData.js", () => ({
     renderDecodedFitData: renderDecodedFitDataMock,
 }));
 vi.mock("./sendFitFileToAltFitReader.js", () => ({

@@ -343,7 +343,7 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
                 );
             }
             const renderModuleUrl = new URL(
-                "utils/rendering/core/loadShowFitData.js",
+                "utils/rendering/core/renderDecodedFitData.js",
                 globalThis.location.href
             ).href;
             const activityStateModuleUrl = new URL(

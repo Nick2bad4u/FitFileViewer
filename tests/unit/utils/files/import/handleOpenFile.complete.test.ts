@@ -10,7 +10,7 @@ const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    import("../../../../../electron-app/utils/rendering/core/renderDecodedFitData.js"),
     () => ({ renderDecodedFitData: renderDecodedFitDataMock })
 );
 vi.mock(

@@ -26184,6 +26184,30 @@ describe("architecture boundaries", () => {
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
     });
 
+    it("keeps decoded FIT data rendering off the retired showFitData loader name", () => {
+        expect.assertions(4);
+
+        const retiredLoaderPath =
+            "electron-app/utils/rendering/core/loadShowFitData.ts";
+        const rendererLoaderPath =
+            "electron-app/utils/rendering/core/renderDecodedFitData.ts";
+        const rendererLoaderSource = stripComments(
+            readRepositoryFile(rendererLoaderPath)
+        );
+        const runtimeTsConfigSource = readRepositoryFile(
+            "tsconfig.runtime.json"
+        );
+
+        expect(existsSync(path.join(process.cwd(), retiredLoaderPath))).toBe(
+            false
+        );
+        expect(existsSync(path.join(process.cwd(), rendererLoaderPath))).toBe(
+            true
+        );
+        expect(rendererLoaderSource).toContain("showFitData.js");
+        expect(runtimeTsConfigSource).toContain(rendererLoaderPath);
+    });
+
     it("keeps debug sensor tests from mutating retired globalData", () => {
         expect.assertions(1);
 

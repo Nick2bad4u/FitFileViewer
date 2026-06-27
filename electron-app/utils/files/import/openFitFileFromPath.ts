@@ -13,7 +13,7 @@ import type {
     ElectronFileApi,
     ElectronPreloadEventApi,
 } from "../../../shared/preloadApi.js";
-import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
+import { renderDecodedFitData } from "../../rendering/core/renderDecodedFitData.js";
 import {
     getRendererElectronApi,
     type RendererElectronApiScope,
