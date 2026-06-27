@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+    clearRegisteredMapDrawnItems,
     getRegisteredMapDrawControl,
     getRegisteredMapDrawnItems,
     getRegisteredMapMiniMapControl,
@@ -33,6 +34,22 @@ describe("mapPluginControlState", () => {
         expect(getRegisteredMapDrawControl()).toBe(drawControl);
         expect(getRegisteredMapDrawnItems()).toBe(drawnItems);
         expect(getRegisteredMapMiniMapControl()).toBe(miniMapControl);
+    });
+
+    it("clears registered drawn layers without removing the draw control", () => {
+        expect.assertions(3);
+
+        const clearLayers = vi.fn<() => void>();
+        const drawControl = { remove: vi.fn<() => void>() };
+        const drawnItems = { clearLayers };
+        setRegisteredMapDrawControl(drawControl);
+        setRegisteredMapDrawnItems(drawnItems);
+
+        clearRegisteredMapDrawnItems();
+
+        expect(clearLayers).toHaveBeenCalledOnce();
+        expect(getRegisteredMapDrawControl()).toBe(drawControl);
+        expect(getRegisteredMapDrawnItems()).toBe(drawnItems);
     });
 
     it("removes and clears disposable draw and minimap controls", () => {

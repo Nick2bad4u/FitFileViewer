@@ -3,9 +3,17 @@ export type DisposableMapPluginControl = {
     remove?: () => void;
 };
 
+export type ClearableMapDrawnItems = {
+    clearLayers?: () => void;
+};
+
 let registeredMapDrawControl: DisposableMapPluginControl | null = null;
-let registeredMapDrawnItems: object | null = null;
+let registeredMapDrawnItems: ClearableMapDrawnItems | null = null;
 let registeredMapMiniMapControl: DisposableMapPluginControl | null = null;
+
+export function clearRegisteredMapDrawnItems(): void {
+    registeredMapDrawnItems?.clearLayers?.();
+}
 
 export function getRegisteredMapDrawControl<
     T extends object = DisposableMapPluginControl,
@@ -51,7 +59,7 @@ export function setRegisteredMapDrawControl<
     registeredMapDrawControl = control;
 }
 
-export function setRegisteredMapDrawnItems<T extends object>(
+export function setRegisteredMapDrawnItems<T extends ClearableMapDrawnItems>(
     drawnItems: T | null
 ): void {
     registeredMapDrawnItems = drawnItems;

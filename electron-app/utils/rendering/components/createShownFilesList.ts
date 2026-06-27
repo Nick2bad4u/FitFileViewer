@@ -6,6 +6,7 @@ import {
     setLoadedFitFiles,
 } from "../../state/domain/loadedFitFilesState.js";
 import { clearRegisteredMapMeasurements } from "../../maps/state/mapMeasureControlState.js";
+import { clearRegisteredMapDrawnItems } from "../../maps/state/mapPluginControlState.js";
 import { attachOverlayListItemHandlers } from "./shownFilesListItemHandlers.js";
 import { scheduleOverlayMapRender } from "./scheduleOverlayMapRender.js";
 import {
@@ -532,6 +533,12 @@ export function createShownFilesList(): HTMLElement {
                         clearRegisteredMapMeasurements();
                     } catch {
                         // Ignore optional map measurement cleanup failures.
+                    }
+
+                    try {
+                        clearRegisteredMapDrawnItems();
+                    } catch {
+                        // Ignore optional drawn-layer cleanup failures.
                     }
 
                     clearOverlayLoadedFitFiles("createShownFilesList.clearAll");

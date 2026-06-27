@@ -19,6 +19,10 @@ import {
     setRegisteredMapMeasureControl,
 } from "../../../../electron-app/utils/maps/state/mapMeasureControlState.js";
 import {
+    resetRegisteredMapPluginControlsForTests,
+    setRegisteredMapDrawnItems,
+} from "../../../../electron-app/utils/maps/state/mapPluginControlState.js";
+import {
     registerOverlayMapPolyline,
     resetMapPolylineRegistryForTests,
 } from "../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js";
@@ -390,6 +394,7 @@ describe("createShownFilesList", () => {
         resetMapDrawLapsMocks();
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
+        resetRegisteredMapPluginControlsForTests();
         resetMapPolylineRegistryForTests();
 
         // Re-establish default mock returns after clearing
@@ -424,6 +429,7 @@ describe("createShownFilesList", () => {
         vi.clearAllTimers();
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
+        resetRegisteredMapPluginControlsForTests();
         resetMapPolylineRegistryForTests();
         clearOverlayTooltipTimeout();
         clearLeafletRuntimeForTests();
@@ -1221,10 +1227,12 @@ describe("createShownFilesList", () => {
             });
         });
 
-        it("removes all overlays and measurements when clear all clicked", async () => {
-            expect.assertions(5);
+        it("removes all overlays and map measurements when clear all clicked", async () => {
+            expect.assertions(6);
             const clearMeasurements = vi.fn<() => void>();
+            const clearDrawnLayers = vi.fn<() => void>();
             setRegisteredMapMeasureControl({ clearMeasurements });
+            setRegisteredMapDrawnItems({ clearLayers: clearDrawnLayers });
             const container = createShownFilesList();
             updateShownFilesList();
 
@@ -1234,6 +1242,7 @@ describe("createShownFilesList", () => {
                 { data: {}, filePath: "main.fit" },
             ]);
             expect(clearMeasurements).toHaveBeenCalledOnce();
+            expect(clearDrawnLayers).toHaveBeenCalledOnce();
             await vi.waitFor(() => {
                 if (renderMapMocks.renderMap.mock.calls.length === 0) {
                     throw new Error("Expected renderMap to be scheduled");
