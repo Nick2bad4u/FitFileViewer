@@ -286,6 +286,49 @@ describe("sync renderer UI helpers", () => {
         expect(notification.getAttribute("role")).toBe("alert");
     });
 
+    it("createRendererStateBindings wires explicit state and UI dependencies", async () => {
+        expect.assertions(5);
+
+        const { createRendererStateBindings } =
+            await importRendererStateBindings();
+        const logStateInitialized = vi.fn<(message: string) => void>();
+        const loadingSubscribers: Array<(loading: boolean) => void> = [];
+        const notificationSubscribers: Array<(notification: unknown) => void> =
+            [];
+        const updateLoadingFromState = vi.fn<(loading: boolean) => void>();
+        const updateNotificationFromState = vi.fn<(notification: unknown) => void>();
+
+        const initializeBindings = createRendererStateBindings({
+            logStateInitialized,
+            subscribeToCurrentRendererNotification: (listener) => {
+                notificationSubscribers.push(listener);
+            },
+            subscribeToRendererLoading: (listener) => {
+                loadingSubscribers.push(listener);
+            },
+            updateLoadingFromState,
+            updateNotificationFromState,
+        });
+
+        initializeBindings();
+        loadingSubscribers[0]?.(true);
+        notificationSubscribers[0]?.({
+            message: "Saved",
+            type: "success",
+        });
+
+        expect(loadingSubscribers).toHaveLength(1);
+        expect(notificationSubscribers).toHaveLength(1);
+        expect(updateLoadingFromState).toHaveBeenCalledExactlyOnceWith(true);
+        expect(updateNotificationFromState).toHaveBeenCalledExactlyOnceWith({
+            message: "Saved",
+            type: "success",
+        });
+        expect(logStateInitialized).toHaveBeenCalledExactlyOnceWith(
+            "[RendererUtils] State management initialized"
+        );
+    });
+
     it("helper wrappers call showNotification with their expected types", async () => {
         expect.assertions(1);
 

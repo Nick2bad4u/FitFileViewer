@@ -6282,6 +6282,39 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).toContain("subscribeAppDomainPath");
     });
 
+    it("keeps renderer state UI bindings on explicit dependencies", () => {
+        expect.assertions(7);
+
+        const rendererStateBindingsSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/rendererStateBindings.ts")
+        );
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
+
+        expect(rendererStateBindingsSource).toContain(
+            "export type RendererStateBindingsDependencies"
+        );
+        expect(rendererStateBindingsSource).toContain(
+            "export function createRendererStateBindings"
+        );
+        expect(rendererStateBindingsSource).toContain(
+            "defaultRendererStateBindingsDependencies"
+        );
+        expect(rendererStateBindingsSource).toContain(
+            "createRendererStateBindings(defaultRendererStateBindingsDependencies)()"
+        );
+        expect(masterStateManagerSource).toContain("rendererStateBindings");
+        expect(masterStateManagerSource).toContain(
+            "initializeRendererStateBindings"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "updateLoadingFromState"
+        );
+    });
+
     it("keeps renderer startup performance timing behind its runtime facade", () => {
         expect.assertions(14);
 
