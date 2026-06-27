@@ -14,9 +14,9 @@ type AttachExternalLinkHandlersOptions = {
     readonly root: EventTarget | null | undefined;
 };
 
-interface ElectronApiWithExternalOpen {
-    openExternal?: ElectronShellExternalApi["openExternal"];
-}
+type ElectronApiWithExternalOpen = {
+    readonly openExternal?: ElectronShellExternalApi["openExternal"];
+};
 
 /**
  * Wires click and keyboard activation for links marked with

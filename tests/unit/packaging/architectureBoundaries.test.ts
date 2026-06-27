@@ -17600,7 +17600,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(35);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -17634,6 +17634,9 @@ describe("architecture boundaries", () => {
         );
         expect(externalLinkHandlersSource).toContain(
             "ElectronShellExternalApi"
+        );
+        expect(externalLinkHandlersSource).not.toContain(
+            "interface ElectronApiWithExternalOpen"
         );
         expect(externalLinkHandlersSource).not.toContain(
             "import type { ElectronAPI"
