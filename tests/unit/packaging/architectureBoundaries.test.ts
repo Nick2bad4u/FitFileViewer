@@ -25183,7 +25183,7 @@ describe("architecture boundaries", () => {
         expect(runtimeGlobalFallbackViolations).toStrictEqual([]);
     });
 
-    it("keeps legacy renderer globals behind named compatibility modules", () => {
+    it("keeps legacy renderer global compatibility modules removed", () => {
         expect.assertions(96);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
@@ -25843,7 +25843,7 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
-        const deletedCompatibilityFiles = [
+        const compatibilityFilesThatMustStayDeleted = [
             "docs/MOCK_COMMONJS_IN_ESM.md",
             "electron-app/main/security/externalUrlPolicy.ts",
             "electron-app/renderer/globalApiExposure.ts",
@@ -25856,7 +25856,10 @@ describe("architecture boundaries", () => {
             "electron-app/utils/legacy/globalUtilityRendering.ts",
             "electron-app/utils/legacy/globalUtilityTheming.ts",
             "electron-app/utils/legacy/globalUtilityUi.ts",
-        ].filter(hasRepositoryFile);
+        ];
+        const deletedCompatibilityFiles = compatibilityFilesThatMustStayDeleted
+            .filter(hasRepositoryFile)
+            .sort();
 
         expect(directRuntimeGlobalDataMentions).toStrictEqual([]);
         expect(directGlobalDataWrites).toStrictEqual([]);
