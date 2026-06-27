@@ -23486,7 +23486,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab readiness timestamps behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(18);
 
         const violations = migratedTabReadinessStateRuntimeFiles
             .filter((relativeFile) =>
@@ -23525,6 +23525,10 @@ describe("architecture boundaries", () => {
         );
         expect(tabReadinessStateSource).toContain(
             "tabReadinessStateRuntime().now()"
+        );
+        expect(tabReadinessStateSource).toContain("isRendererTabName");
+        expect(tabReadinessStateSource).toContain(
+            "Ignoring unknown tab readiness key"
         );
         expect(tabReadinessStateSource).not.toContain("Date.now");
         expect(tabReadinessStateRuntimeSource).not.toMatch(

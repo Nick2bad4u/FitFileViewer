@@ -2,6 +2,7 @@ import {
     getStateManagerDefaultsRuntime,
     type StateManagerDefaultsRuntime,
 } from "./stateManagerDefaultsRuntime.js";
+import type { RendererTabName } from "../domain/rendererActiveTabContract.js";
 
 function stateManagerDefaultsRuntime(): StateManagerDefaultsRuntime {
     return getStateManagerDefaultsRuntime();
@@ -64,7 +65,7 @@ export type TabReadinessEntry = {
 /**
  * Renderer tab readiness branch keyed by tab name.
  */
-export type TabReadinessState = Record<string, TabReadinessEntry>;
+export type TabReadinessState = Record<RendererTabName, TabReadinessEntry>;
 
 /**
  * Renderer UI state branch.

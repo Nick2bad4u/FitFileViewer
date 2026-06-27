@@ -3,6 +3,7 @@
  */
 
 import { getStateMgr } from "./tabStateManagerSupport.js";
+import { isRendererTabName } from "../../state/domain/rendererActiveTabState.js";
 import {
     getTabReadinessStateRuntime,
     type TabReadinessStateRuntime,
@@ -60,7 +61,14 @@ export function setTabReadiness(
     status: TabReadinessStatus,
     source: string,
     error?: unknown
-): void {
+): boolean {
+    if (!isRendererTabName(tabName)) {
+        console.warn(
+            `[TabReadinessState] Ignoring unknown tab readiness key: ${tabName}`
+        );
+        return false;
+    }
+
     const entry: TabReadinessEntry = {
         error: getErrorMessage(error),
         status,
@@ -70,4 +78,5 @@ export function setTabReadiness(
     getStateMgr().setState(`ui.tabReadiness.${tabName}`, entry, {
         source,
     });
+    return true;
 }

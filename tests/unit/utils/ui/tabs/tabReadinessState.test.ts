@@ -40,12 +40,12 @@ describe("tabReadinessState", () => {
     });
 
     it("writes explicit tab readiness entries to renderer state", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { setTabReadiness } =
             await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
 
-        setTabReadiness("data", "loading", "test.source");
+        expect(setTabReadiness("data", "loading", "test.source")).toBe(true);
 
         expect(stateEntries.get("ui.tabReadiness.data")).toStrictEqual({
             error: null,
@@ -64,12 +64,19 @@ describe("tabReadinessState", () => {
     });
 
     it("normalizes Error details on failed readiness entries", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { setTabReadiness } =
             await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
 
-        setTabReadiness("zwift", "error", "test.error", new Error("blocked"));
+        expect(
+            setTabReadiness(
+                "zwift",
+                "error",
+                "test.error",
+                new Error("blocked")
+            )
+        ).toBe(true);
 
         expect(stateEntries.get("ui.tabReadiness.zwift")).toStrictEqual({
             error: "blocked",
@@ -88,14 +95,16 @@ describe("tabReadinessState", () => {
     });
 
     it("normalizes non-Error details on blocked readiness entries", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { setTabReadiness } =
             await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
 
-        setTabReadiness("map", "blocked", "test.blocked", {
-            reason: "missing FIT data",
-        });
+        expect(
+            setTabReadiness("map", "blocked", "test.blocked", {
+                reason: "missing FIT data",
+            })
+        ).toBe(true);
 
         expect(stateEntries.get("ui.tabReadiness.map")).toStrictEqual({
             error: '{"reason":"missing FIT data"}',
@@ -111,5 +120,23 @@ describe("tabReadinessState", () => {
             },
             { source: "test.blocked" }
         );
+    });
+
+    it("rejects unknown tab readiness keys", async () => {
+        expect.assertions(4);
+
+        const warnSpy = vi.spyOn(console, "warn").mockReturnValue(undefined);
+        const { setTabReadiness } =
+            await import("../../../../../electron-app/utils/ui/tabs/tabReadinessState.js");
+
+        expect(setTabReadiness("table", "ready", "test.unknown")).toBe(false);
+
+        expect(stateEntries.has("ui.tabReadiness.table")).toBe(false);
+        expect(mockSetState).not.toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[TabReadinessState] Ignoring unknown tab readiness key: table"
+        );
+
+        warnSpy.mockRestore();
     });
 });
