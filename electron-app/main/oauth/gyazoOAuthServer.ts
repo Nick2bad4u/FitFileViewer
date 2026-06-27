@@ -24,18 +24,19 @@ function getErrorMessage(error: unknown): string {
 
 function isAddressInUseError(error: unknown): boolean {
     if (!error || typeof error !== "object") return false;
-    return Reflect.get(error, "code") === "EADDRINUSE";
+    const candidate = error as { readonly code?: unknown };
+    return candidate.code === "EADDRINUSE";
 }
 
 function asOAuthServer(value: unknown): OAuthServer | null {
-    if (
-        value &&
-        typeof value === "object" &&
-        typeof Reflect.get(value, "close") === "function"
-    ) {
-        return value as OAuthServer;
+    if (!value || typeof value !== "object") {
+        return null;
     }
-    return null;
+
+    const candidate = value as { readonly close?: unknown };
+    return typeof candidate.close === "function"
+        ? (value as OAuthServer)
+        : null;
 }
 
 function asOAuthWindow(value: unknown): OAuthWindowLike | null {
