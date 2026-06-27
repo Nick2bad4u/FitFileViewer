@@ -5785,7 +5785,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5828,6 +5828,13 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).not.toContain(
             "Partial<RendererStateManager>"
         );
+        expect(stateStartupSource).toContain(
+            "type RendererStateManagerInitializer = () => Promise<void> | void;"
+        );
+        expect(stateStartupSource).toContain(
+            "initialize: RendererStateManagerInitializer;"
+        );
+        expect(stateStartupSource).not.toContain("initialize?: unknown");
         expect(stateStartupSource).not.toContain("RendererCoreModules,");
         expect(stateStartupSource).toContain(
             "ensureCoreModules: () => Promise<RendererStateStartupCoreModules>"

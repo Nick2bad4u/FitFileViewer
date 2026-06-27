@@ -19,12 +19,11 @@ interface RendererStateStartupOptions {
     logRenderer: RendererStateStartupLogger;
 }
 
+type RendererStateManagerInitializer = () => Promise<void> | void;
+
 type RendererStateManager = {
-    initialize: () => Promise<unknown> | unknown;
+    initialize: RendererStateManagerInitializer;
 };
-type RendererStateManagerCandidate = Readonly<{
-    initialize?: unknown;
-}>;
 
 interface RendererStateStartup {
     initializeStateManager: () => Promise<void>;
@@ -147,6 +146,5 @@ function isRendererStateManager(value: unknown): value is RendererStateManager {
         return false;
     }
 
-    const candidate = value as RendererStateManagerCandidate;
-    return typeof candidate.initialize === "function";
+    return "initialize" in value && typeof value.initialize === "function";
 }
