@@ -1,5 +1,4 @@
 import {
-    previousChartState,
     resetChartNotificationState as resetNotificationState,
     updatePreviousChartState as updateNotificationPreviousChartState,
 } from "./chartNotificationState.js";
@@ -7,7 +6,7 @@ import {
 /**
  * Previous chart state exported through renderChartJS.
  */
-export { previousChartState };
+export { previousChartState } from "./chartNotificationState.js";
 
 /**
  * Resets chart notification state.
