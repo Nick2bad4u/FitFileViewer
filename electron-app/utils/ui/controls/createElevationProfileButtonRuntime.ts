@@ -30,6 +30,10 @@ export interface CreateElevationProfileButtonRuntimeScope {
 export interface CreateElevationProfileButtonRuntime {
     createAbortController: () => AbortController;
     createButton: () => HTMLButtonElement;
+    createDocumentElement: <K extends keyof HTMLElementTagNameMap>(
+        targetDocument: Document,
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
@@ -112,6 +116,12 @@ export function getCreateElevationProfileButtonRuntime(
         },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
+        },
+        createDocumentElement<K extends keyof HTMLElementTagNameMap>(
+            targetDocument: Document,
+            tagName: K
+        ): HTMLElementTagNameMap[K] {
+            return targetDocument.createElement(tagName);
         },
         createElement<K extends keyof HTMLElementTagNameMap>(
             tagName: K

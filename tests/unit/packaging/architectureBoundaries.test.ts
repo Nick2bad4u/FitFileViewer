@@ -19851,7 +19851,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(41);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -19910,6 +19910,12 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "getOpen: getBrowserOpen"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "createDocumentElement"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "return targetDocument.createElement(tagName)"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
@@ -19976,6 +19982,18 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonSource).toContain(
             "createElevationProfileButtonRuntime.js"
+        );
+        expect(createElevationProfileButtonSource).toContain(
+            "runtime.createDocumentElement"
+        );
+        expect(createElevationProfileButtonSource).not.toContain(
+            "chartWin.document.createElement"
+        );
+        expect(createElevationProfileButtonSource).not.toContain(
+            "chartDoc.createElement"
+        );
+        expect(createElevationProfileButtonSource).not.toContain(
+            "doc.createElement"
         );
     });
 

@@ -10,15 +10,28 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     });
 
     it("creates HTML and SVG elements through the injected document", () => {
-        expect.assertions(3);
+        expect.assertions(7);
 
+        const popupDocument =
+            document.implementation.createHTMLDocument("elevation popup");
+        const createElement = vi.spyOn(popupDocument, "createElement");
         const runtime = getCreateElevationProfileButtonRuntime({
             getDocument: () => document,
         });
+        const popupElement = runtime.createDocumentElement(
+            popupDocument,
+            "div"
+        );
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
         expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+        expect(popupElement).toBeInstanceOf(
+            popupDocument.defaultView?.HTMLDivElement ?? HTMLDivElement
+        );
+        expect(popupElement.ownerDocument).toBe(popupDocument);
+        expect(createElement).toHaveBeenCalledWith("div");
+        expect(document.body.contains(popupElement)).toBe(false);
     });
 
     it("creates abort controllers through the injected runtime", () => {
@@ -114,7 +127,7 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const utils = getCreateElevationProfileButtonRuntime();
         const popup = {} as Window;
@@ -133,6 +146,9 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         expect(controller).toBeInstanceOf(AbortController);
         expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.createDocumentElement(document, "div")).toBeInstanceOf(
+            HTMLDivElement
+        );
         expect(utils.createElement("span")).toBeInstanceOf(HTMLSpanElement);
         expect(utils.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
         expect(utils.getChartOverlayColorPalette()).toBe(
@@ -181,7 +197,7 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const legacyAbortController = vi.fn();
         const legacyDocument = {
@@ -206,6 +222,9 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         expect(() => runtime.createButton()).toThrow(
             "createElevationProfileButton requires a document runtime"
+        );
+        expect(runtime.createDocumentElement(document, "div")).toBeInstanceOf(
+            HTMLDivElement
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "createElevationProfileButton requires a document runtime"

@@ -394,6 +394,7 @@ function buildElevationProfilePopup(
         safeThemeColors,
     }: ElevationPopupOptions
 ): void {
+    const runtime = getCreateElevationProfileButtonRuntime();
     const chartDoc = chartWin.document;
 
     chartDoc.head.replaceChildren();
@@ -401,33 +402,33 @@ function buildElevationProfilePopup(
     chartDoc.title = "Elevation Profiles";
     chartDoc.body.className = isDark ? "theme-dark" : "theme-light";
 
-    const viewport = chartDoc.createElement("meta");
+    const viewport = runtime.createDocumentElement(chartDoc, "meta");
     viewport.name = "viewport";
     viewport.content = "width=device-width, initial-scale=1";
 
-    const stylesheet = chartDoc.createElement("link");
+    const stylesheet = runtime.createDocumentElement(chartDoc, "link");
     stylesheet.rel = "stylesheet";
     stylesheet.href = "./elevProfile.css";
 
-    const style = chartDoc.createElement("style");
+    const style = runtime.createDocumentElement(chartDoc, "style");
     style.textContent = createElevationPopupStyles(safeThemeColors, isDark);
 
     chartDoc.head.append(viewport, stylesheet, style);
 
-    const header = chartDoc.createElement("header");
-    const heading = chartDoc.createElement("h2");
+    const header = runtime.createDocumentElement(chartDoc, "header");
+    const heading = runtime.createDocumentElement(chartDoc, "h2");
     heading.style.cssText =
         "margin:0;font-size:1.5em;font-weight:700;letter-spacing:0.01em;";
     heading.textContent = "Elevation Profiles";
 
-    const fileCount = chartDoc.createElement("span");
+    const fileCount = runtime.createDocumentElement(chartDoc, "span");
     fileCount.style.cssText = "font-size:1.1em;opacity:0.7;";
     fileCount.textContent = `${fitFilesModel.length} file${
         fitFilesModel.length > 1 ? "s" : ""
     }`;
     header.append(heading, fileCount);
 
-    const container = chartDoc.createElement("div");
+    const container = runtime.createDocumentElement(chartDoc, "div");
     container.id = "elevChartsContainer";
     chartDoc.body.append(header, container);
 
@@ -546,13 +547,17 @@ function renderElevationCharts(
     if (!isElevationChartConstructor(Chart)) {
         return;
     }
+    const runtime = getCreateElevationProfileButtonRuntime();
 
     for (const [idx, file] of fitFiles.entries()) {
         const block = createElevationChartBlock(chartWin.document, file, idx);
         container.append(block);
 
         if (file.altitudes.length === 0) {
-            const noData = chartWin.document.createElement("div");
+            const noData = runtime.createDocumentElement(
+                chartWin.document,
+                "div"
+            );
             noData.className = "no-altitude-data";
             noData.textContent = "No altitude data.";
             block.append(noData);
@@ -602,23 +607,24 @@ function createElevationChartBlock(
     file: ElevationProfileFileModel,
     idx: number
 ): HTMLDivElement {
-    const block = doc.createElement("div");
+    const runtime = getCreateElevationProfileButtonRuntime();
+    const block = runtime.createDocumentElement(doc, "div");
     block.className = "elev-profile-block";
 
-    const label = doc.createElement("div");
+    const label = runtime.createDocumentElement(doc, "div");
     label.className = "elev-profile-label";
     label.style.color = file.color;
 
-    const dot = doc.createElement("span");
+    const dot = runtime.createDocumentElement(doc, "span");
     dot.className = "dot";
     dot.style.background = file.color;
 
-    const text = doc.createElement("span");
+    const text = runtime.createDocumentElement(doc, "span");
     text.textContent = file.filePath;
     label.append(dot, text);
     block.append(label);
 
-    const canvas = doc.createElement("canvas");
+    const canvas = runtime.createDocumentElement(doc, "canvas");
     canvas.id = `elevChart_${idx}`;
     canvas.className = "elev-profile-canvas";
     block.append(canvas);
