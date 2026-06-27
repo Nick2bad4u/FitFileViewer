@@ -1875,7 +1875,7 @@ describe("architecture boundaries", () => {
         const ledger = readRepositoryFile("docs/DEPRECATION_LEDGER.md");
         const requiredLedgerText = [
             "Remaining dynamic browser-global property lookup for compatibility-only values",
-            "preload `electronAPI` candidate stays centralized in `getBrowserGlobalProperty`",
+            "preload `electronAPI` and runtime `process` candidates now use explicit browser-runtime slots",
             "renderer development-mode inspection uses focused input contracts",
         ];
 
@@ -1886,8 +1886,8 @@ describe("architecture boundaries", () => {
         ).toStrictEqual([]);
     });
 
-    it("keeps process runtime get and set behind the browser-global boundary", () => {
-        expect.assertions(9);
+    it("keeps process runtime get and set behind an explicit browser-runtime provider", () => {
+        expect.assertions(13);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1901,13 +1901,29 @@ describe("architecture boundaries", () => {
         expect(browserRuntimeSource).toContain(
             "export function setBrowserGlobalProperty("
         );
-        expect(processEnvironmentSource).toContain("getBrowserGlobalProperty");
-        expect(processEnvironmentSource).toContain("setBrowserGlobalProperty");
-        expect(processEnvironmentSource).toContain(
-            'return getBrowserGlobalProperty("process");'
+        expect(browserRuntimeSource).toContain(
+            "export function getBrowserProcessCandidate(): unknown"
+        );
+        expect(browserRuntimeSource).toContain(
+            "return (globalThis as BrowserProcessGlobal).process;"
+        );
+        expect(browserRuntimeSource).toContain(
+            "export function setBrowserProcessCandidate(processValue: unknown): void"
+        );
+        expect(browserRuntimeSource).toContain(
+            'setBrowserGlobalProperty("process", processValue);'
         );
         expect(processEnvironmentSource).toContain(
-            'setBrowserGlobalProperty("process", processValue);'
+            "getBrowserProcessCandidate"
+        );
+        expect(processEnvironmentSource).toContain(
+            "setBrowserProcessCandidate"
+        );
+        expect(processEnvironmentSource).not.toContain(
+            "getBrowserGlobalProperty"
+        );
+        expect(processEnvironmentSource).not.toContain(
+            "setBrowserGlobalProperty"
         );
         expect(processEnvironmentSource).not.toContain("globalThis");
         expect(processEnvironmentSource).not.toContain("Reflect.get(");

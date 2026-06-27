@@ -1,6 +1,6 @@
 import {
-    getBrowserGlobalProperty,
-    setBrowserGlobalProperty,
+    getBrowserProcessCandidate,
+    setBrowserProcessCandidate,
 } from "./browserRuntime.js";
 
 /**
@@ -85,11 +85,11 @@ export function getProcessCurrentWorkingDirectory(): string | undefined {
 }
 
 export function getRuntimeProcess(): unknown {
-    return getBrowserGlobalProperty("process");
+    return getBrowserProcessCandidate();
 }
 
 export function setRuntimeProcess(processValue: unknown): void {
-    setBrowserGlobalProperty("process", processValue);
+    setBrowserProcessCandidate(processValue);
 }
 
 function getRuntimeProperty(target: object, propertyKey: string): unknown {

@@ -54,6 +54,10 @@ interface BrowserElectronApiGlobal {
     readonly electronAPI?: unknown;
 }
 
+interface BrowserProcessGlobal {
+    readonly process?: unknown;
+}
+
 type BrowserGlobalPropertyRecord = Record<PropertyKey, unknown>;
 type BrowserGlobalPropertySetResult = "blocked" | "fallback" | "set";
 
@@ -197,6 +201,18 @@ export function setBrowserGlobalProperty(
 
 export function getBrowserElectronApiCandidate(): unknown {
     return (globalThis as BrowserElectronApiGlobal).electronAPI;
+}
+
+export function getBrowserProcessCandidate(): unknown {
+    try {
+        return (globalThis as BrowserProcessGlobal).process;
+    } catch {
+        return undefined;
+    }
+}
+
+export function setBrowserProcessCandidate(processValue: unknown): void {
+    setBrowserGlobalProperty("process", processValue);
 }
 
 export function getBrowserComputedStyle():

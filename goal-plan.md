@@ -1739,6 +1739,10 @@ reintroducing direct `window.electronAPI`, ambient `globalThis` casts, or regist
 The centralized `getBrowserElectronApiCandidate` provider now reads the explicit optional `electronAPI` global slot
 instead of routing preload API lookup through the generic global-property helper, with architecture coverage blocking
 that broad lookup from returning.
+Runtime `process` reads and installs now go through explicit `getBrowserProcessCandidate` and
+`setBrowserProcessCandidate` browser-runtime providers instead of passing the `process` key through generic
+global-property helpers in `processEnvironment.ts`, with process-runtime and architecture coverage blocking the broad
+lookup from returning.
 Elevation profile overlay colors now resolve through the typed `chartOverlayColorPalette` module instead of the
 retired `chartOverlayColorPalette` browser-global compatibility property, with architecture coverage blocking that
 global palette read from returning.
