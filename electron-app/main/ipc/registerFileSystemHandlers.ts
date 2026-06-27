@@ -177,5 +177,3 @@ export function registerFileSystemHandlers({
         }
     });
 }
-
-export default { registerFileSystemHandlers };

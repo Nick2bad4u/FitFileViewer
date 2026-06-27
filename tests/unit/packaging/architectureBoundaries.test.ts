@@ -2997,7 +2997,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(71);
+        expect.assertions(84);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3067,7 +3067,9 @@ describe("architecture boundaries", () => {
         );
 
         expect(fileReadPayloadSource).not.toContain("module.exports");
+        expect(fileReadPayloadSource).not.toContain("export default");
         expect(fitIpcPayloadSource).not.toContain("module.exports");
+        expect(fitIpcPayloadSource).not.toContain("export default");
         expect(fileAccessPolicySource).not.toContain("module.exports");
         expect(fileAccessPolicyStateSource).not.toContain("module.exports");
         expect(fileAccessPolicySource).not.toContain("process.env");
@@ -3088,19 +3090,30 @@ describe("architecture boundaries", () => {
             "module.exports"
         );
         expect(registerFileSystemHandlersSource).not.toContain(
+            "export default"
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
             'require("zod")'
         );
         expect(registerFileSystemHandlersSource).toContain(
             'import { z } from "zod"'
         );
         expect(registerFitFileHandlersSource).not.toContain("module.exports");
+        expect(registerFitFileHandlersSource).not.toContain("export default");
         expect(registerBrowserHandlersSource).not.toContain("module.exports");
+        expect(registerBrowserHandlersSource).not.toContain("export default");
         expect(registerDialogHandlersSource).not.toContain("module.exports");
+        expect(registerDialogHandlersSource).not.toContain("export default");
         expect(registerRecentFileHandlersSource).not.toContain(
             "module.exports"
         );
+        expect(registerRecentFileHandlersSource).not.toContain(
+            "export default"
+        );
         expect(registerClipboardHandlersSource).not.toContain("module.exports");
+        expect(registerClipboardHandlersSource).not.toContain("export default");
         expect(registerExternalHandlersSource).not.toContain("module.exports");
+        expect(registerExternalHandlersSource).not.toContain("export default");
         expect(registerClipboardHandlersSource).not.toContain('require("zod")');
         expect(registerExternalHandlersSource).not.toContain('require("zod")');
         expect(registerClipboardHandlersSource).toContain(
@@ -3110,13 +3123,16 @@ describe("architecture boundaries", () => {
             'import { z } from "zod"'
         );
         expect(registerInfoHandlersSource).not.toContain("module.exports");
+        expect(registerInfoHandlersSource).not.toContain("export default");
         expect(registerInfoHandlersSource).not.toContain("process.arch");
         expect(registerInfoHandlersSource).not.toContain("process.cwd");
         expect(registerInfoHandlersSource).not.toContain("process.platform");
         expect(registerInfoHandlersSource).not.toContain("process.versions");
         expect(registerInfoHandlersSource).toContain("getProcessStringValue");
         expect(ipcRegistrySource).not.toContain("module.exports");
+        expect(ipcRegistrySource).not.toContain("export default");
         expect(ipcSenderPolicySource).not.toContain("module.exports");
+        expect(ipcSenderPolicySource).not.toContain("export default");
         expect(ipcSenderPolicySource).not.toContain("process.env");
         expect(ipcSenderPolicySource).not.toContain("process.resourcesPath");
         expect(ipcSenderPolicySource).not.toContain("process.platform");
@@ -3162,6 +3178,7 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain(
             'require("../security/fileAccessPolicy")'
         );
+        expect(setupIpcHandlersSource).not.toContain("export default");
         expect(setupIpcHandlersSource).not.toContain(
             'require("./registerBrowserHandlers")'
         );
@@ -3348,7 +3365,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(365);
+        expect.assertions(366);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3616,6 +3633,7 @@ describe("architecture boundaries", () => {
         expect(electronAccessSource).not.toContain("module.exports");
         expect(electronAccessSource).not.toContain("export default");
         expect(sendToRendererSource).not.toContain("module.exports");
+        expect(sendToRendererSource).not.toContain("export default");
         expect(windowValidationSource).not.toContain("module.exports");
         expect(getPersistedThemePreferenceSource).not.toContain(
             "module.exports"

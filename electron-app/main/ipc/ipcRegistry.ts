@@ -71,7 +71,8 @@ export function registerIpcHandle(
         return;
     }
 
-    const removedExistingForSameIpcMain = hasExistingForSameIpcMain && canRemove;
+    const removedExistingForSameIpcMain =
+        hasExistingForSameIpcMain && canRemove;
 
     if (canRemove) {
         try {
@@ -207,9 +208,3 @@ export function resetIpcRegistries(): void {
     IPC_HANDLE_REGISTRY.clear();
     IPC_EVENT_LISTENER_REGISTRY.clear();
 }
-
-export default {
-    registerIpcHandle,
-    registerIpcListener,
-    resetIpcRegistries,
-};

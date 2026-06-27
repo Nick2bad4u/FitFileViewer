@@ -220,5 +220,3 @@ export function registerDialogHandlers({
         }
     );
 }
-
-export default { registerDialogHandlers };

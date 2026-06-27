@@ -128,9 +128,3 @@ function normalizePath(filePath: string): string {
 function isTestMode(): boolean {
     return isTestEnvironment();
 }
-
-export default {
-    assertIpcSenderAllowed,
-    getIpcSenderUrl,
-    isAllowedIpcSenderUrl,
-};

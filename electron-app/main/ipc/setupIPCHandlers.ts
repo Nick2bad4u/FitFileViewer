@@ -216,4 +216,3 @@ export function setupIPCHandlers(mainWindow?: BrowserWindow | null): void {
         }
     });
 }
-export default { setupIPCHandlers };

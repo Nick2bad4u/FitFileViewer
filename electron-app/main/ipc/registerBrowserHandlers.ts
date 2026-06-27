@@ -619,5 +619,3 @@ function resolveWithinRoot(
 
     return abs;
 }
-
-export default { registerBrowserHandlers };

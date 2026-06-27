@@ -139,5 +139,3 @@ export function registerExternalHandlers({
         }
     );
 }
-
-export default { registerExternalHandlers };

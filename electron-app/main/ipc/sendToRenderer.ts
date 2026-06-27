@@ -40,5 +40,3 @@ export function sendToRenderer(
         win.webContents.send(channel, ...args);
     }
 }
-
-export default { sendToRenderer };

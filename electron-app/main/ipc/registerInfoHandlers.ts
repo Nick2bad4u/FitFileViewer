@@ -222,5 +222,3 @@ export function registerInfoHandlers({
 function isPackageMetadata(value: unknown): value is PackageMetadata {
     return value !== null && typeof value === "object";
 }
-
-export default { registerInfoHandlers };

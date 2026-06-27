@@ -178,5 +178,3 @@ function sanitizeRecentFilesList(list: unknown): string[] {
 
     return out;
 }
-
-export default { registerRecentFileHandlers };

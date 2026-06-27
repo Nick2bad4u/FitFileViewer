@@ -59,8 +59,3 @@ export function normalizeFitIpcPayloadToBuffer(value: unknown): NodeBuffer {
 
     throw new TypeError("Invalid FIT data: expected ArrayBuffer");
 }
-
-export default {
-    MAX_FIT_IPC_PAYLOAD_BYTES,
-    normalizeFitIpcPayloadToBuffer,
-};

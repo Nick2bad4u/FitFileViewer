@@ -67,9 +67,3 @@ export function normalizeFileReadResultToArrayBuffer(
         value.byteOffset + value.byteLength
     );
 }
-
-export default {
-    MAX_FIT_FILE_BYTES,
-    assertFitFileByteLength,
-    normalizeFileReadResultToArrayBuffer,
-};

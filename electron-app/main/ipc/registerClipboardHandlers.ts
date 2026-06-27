@@ -131,5 +131,3 @@ export function registerClipboardHandlers({
         }
     );
 }
-
-export default { registerClipboardHandlers };

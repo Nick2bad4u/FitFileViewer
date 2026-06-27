@@ -65,5 +65,3 @@ export function registerFitFileHandlers({
     registerHandler("fit:parse");
     registerHandler("fit:decode");
 }
-
-export default { registerFitFileHandlers };
