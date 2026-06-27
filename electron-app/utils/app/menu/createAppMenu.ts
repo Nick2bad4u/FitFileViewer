@@ -1068,10 +1068,3 @@ export function setCreateAppMenuLastBuiltTemplateForTests(
 ): void {
     lastBuiltMenuTemplateForTests = template;
 }
-
-export default {
-    createAppMenu,
-    getCreateAppMenuLastBuiltTemplateForTests,
-    setCreateAppMenuRecentFilesOverrideForTests,
-    setCreateAppMenuLastBuiltTemplateForTests,
-};

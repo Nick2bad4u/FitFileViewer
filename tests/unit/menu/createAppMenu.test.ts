@@ -1685,10 +1685,11 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("exports createAppMenu without publishing a global bridge", () => {
-        expect.assertions(1);
+        expect.assertions(2);
         const mod = importCreateAppMenuModule();
 
         expect(mod.createAppMenu).toBeTypeOf("function");
+        expect(Object.hasOwn(mod, "default")).toBe(false);
     });
 
     it("executes all menu click handlers without throwing", async () => {
