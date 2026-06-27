@@ -47,6 +47,7 @@ import { initializeRendererDiagnostics } from "./renderer/rendererDiagnosticsWir
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
 import { createRendererDomAccess } from "./renderer/domElementAccess.js";
+import { createRendererElectronApiScope } from "./utils/runtime/electronApiRuntime.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
@@ -89,9 +90,10 @@ const domAccess = createRendererDomAccess({
     logRenderer,
 });
 
-const getRendererElectronApiScope = () => ({
-    getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
-});
+const getRendererElectronApiScope = () =>
+    createRendererElectronApiScope(
+        () => runtimeEnvironment.electronApiCandidate
+    );
 
 const importTimeBootstrap = createRendererImportTimeBootstrap({
     ensureCoreModules,

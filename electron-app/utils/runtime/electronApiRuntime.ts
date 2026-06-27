@@ -5,6 +5,13 @@ export type RendererElectronApiScope = {
 };
 
 export type RendererElectronApiCandidate = object;
+export type RendererElectronApiProvider = () => unknown;
+
+export function createRendererElectronApiScope(
+    getElectronAPI: RendererElectronApiProvider
+): RendererElectronApiScope {
+    return { getElectronAPI };
+}
 
 /**
  * Resolves the preload-exposed Electron API through a single typed boundary.

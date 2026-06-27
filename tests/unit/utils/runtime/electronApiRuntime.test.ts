@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+    createRendererElectronApiScope,
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
@@ -56,6 +57,21 @@ describe("electronApiRuntime", () => {
                 getElectronAPI: () => undefined,
             })
         ).toBeNull();
+    });
+
+    it("creates explicit provider scopes without reading the API eagerly", () => {
+        expect.assertions(3);
+
+        const api = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const getElectronAPI = vi.fn(() => api);
+
+        const scope = createRendererElectronApiScope(getElectronAPI);
+
+        expect(getElectronAPI).not.toHaveBeenCalled();
+        expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
+        expect(getElectronAPI).toHaveBeenCalledOnce();
     });
 
     it("ignores missing or malformed APIs", () => {

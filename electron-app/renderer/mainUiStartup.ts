@@ -26,6 +26,7 @@ import {
 import { initializeMainUiVendorStartup } from "./mainUiVendorStartup.js";
 import { setupWindow } from "../utils/app/initialization/setupWindow.js";
 import { UI_CONSTANTS } from "../utils/config/constants.js";
+import { createRendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 type MainUiLogLevel = "error" | "info" | "warn";
 
@@ -71,9 +72,9 @@ export async function initializeMainUiStartup({
     runtimeEnvironment = getDefaultMainUiRuntimeEnvironment(),
 }: MainUiStartupOptions = {}): Promise<MainUiStartupHandles> {
     const logMainUi = createMainUiLogger(runtimeEnvironment.consoleRef);
-    const electronApiScope = {
-        getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
-    };
+    const electronApiScope = createRendererElectronApiScope(
+        () => runtimeEnvironment.electronApiCandidate
+    );
     const getMenuInjectionElectronAPI = () =>
         getMainUiMenuInjectionElectronApi(electronApiScope);
     const getThemeSyncElectronAPI = () =>
