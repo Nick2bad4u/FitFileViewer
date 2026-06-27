@@ -6,6 +6,10 @@ import {
     toRendererStateManagerAccess,
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
+import {
+    isRendererTabName,
+    normalizeRendererActiveTab,
+} from "../../state/domain/rendererActiveTabState.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { extractTabNameFromButtonId } from "./tabIdUtils.js";
@@ -117,7 +121,7 @@ function setActiveTabFromButton(button: TabButtonLike, source: string): void {
     }
 
     const tabName = extractTabNameFromButtonId(buttonId);
-    if (!tabName) {
+    if (!isRendererTabName(tabName)) {
         return;
     }
 
@@ -224,7 +228,7 @@ function handleTabKeyboardNavigation(
 export function getActiveTab(): string {
     const activeTab = getStateMgr().getState("ui.activeTab");
 
-    return typeof activeTab === "string" && activeTab ? activeTab : "summary";
+    return normalizeRendererActiveTab(activeTab);
 }
 
 /**
@@ -236,9 +240,9 @@ export function initializeActiveTabState(): void {
 
         const onActiveTabChange = (activeTab: unknown) => {
             try {
-                if (typeof activeTab === "string") {
-                    updateTabButtonsFromState(activeTab);
-                }
+                updateTabButtonsFromState(
+                    normalizeRendererActiveTab(activeTab)
+                );
             } catch {
                 /* Ignore */
             }
@@ -344,6 +348,9 @@ export function updateActiveTab(tabId: unknown): boolean {
         const currentActive = getDoc()?.querySelector(".tab-button.active");
         if (currentActive && currentActive.id === tabId) {
             const tabNameFast = extractTabNameFromButtonId(tabId);
+            if (!isRendererTabName(tabNameFast)) {
+                return false;
+            }
             getStateMgr().setState("ui.activeTab", tabNameFast, {
                 source: "updateActiveTab",
             });
@@ -351,18 +358,6 @@ export function updateActiveTab(tabId: unknown): boolean {
         }
     } catch {
         /* Ignore errors */
-    }
-
-    const activeNow = getButtonCollection(".tab-button.active");
-    if (activeNow && activeNow.length > 0) {
-        if (activeNow.length === 1) {
-            const [only] = activeNow;
-            removeActiveClass(only);
-        } else {
-            for (const element of activeNow) {
-                removeActiveClass(element);
-            }
-        }
     }
 
     const runtimeDocument = getDoc();
@@ -373,9 +368,24 @@ export function updateActiveTab(tabId: unknown): boolean {
 
     const target = getElementByIdFlexible(runtimeDocument, tabId);
     if (isButtonLike(target)) {
-        target.classList.add("active");
         const tabName = extractTabNameFromButtonId(tabId);
+        if (!isRendererTabName(tabName)) {
+            return false;
+        }
 
+        const activeNow = getButtonCollection(".tab-button.active");
+        if (activeNow && activeNow.length > 0) {
+            if (activeNow.length === 1) {
+                const [only] = activeNow;
+                removeActiveClass(only);
+            } else {
+                for (const element of activeNow) {
+                    removeActiveClass(element);
+                }
+            }
+        }
+
+        target.classList.add("active");
         getStateMgr().setState("ui.activeTab", tabName, {
             source: "updateActiveTab",
         });

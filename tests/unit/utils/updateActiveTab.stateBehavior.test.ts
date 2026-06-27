@@ -241,56 +241,63 @@ describe("updateActiveTab state behavior", () => {
             });
         });
 
-        it("should handle all tab ID patterns correctly", () => {
-            expect.assertions(15);
+        it("should handle configured tab ID patterns correctly", () => {
+            expect.assertions(12);
 
             appendTabElements([
-                { id: "tab-test1", text: "Tab Pattern" },
-                { id: "test2-tab", text: "Reverse Tab" },
-                { id: "btn-test3", text: "Btn Pattern" },
-                { id: "test4-btn", text: "Reverse Btn" },
-                { id: "custom-element", text: "Fallback" },
+                { id: "tab-summary", text: "Tab Pattern" },
+                { id: "data-tab", text: "Reverse Tab" },
+                { id: "btn-map", text: "Btn Pattern" },
+                { id: "chart-btn", text: "Reverse Btn" },
             ]);
 
-            expect(updateActiveTab("tab-test1")).toStrictEqual(true);
-            expectActiveState("tab-test1", true);
+            expect(updateActiveTab("tab-summary")).toStrictEqual(true);
+            expectActiveState("tab-summary", true);
             expect(mockSetState).toHaveBeenLastCalledWith(
                 "ui.activeTab",
-                "test1",
+                "summary",
                 { source: "updateActiveTab" }
             );
 
-            expect(updateActiveTab("test2-tab")).toStrictEqual(true);
-            expectActiveState("test2-tab", true);
+            expect(updateActiveTab("data-tab")).toStrictEqual(true);
+            expectActiveState("data-tab", true);
             expect(mockSetState).toHaveBeenLastCalledWith(
                 "ui.activeTab",
-                "test2",
+                "data",
                 { source: "updateActiveTab" }
             );
 
-            expect(updateActiveTab("btn-test3")).toStrictEqual(true);
-            expectActiveState("btn-test3", true);
+            expect(updateActiveTab("btn-map")).toStrictEqual(true);
+            expectActiveState("btn-map", true);
             expect(mockSetState).toHaveBeenLastCalledWith(
                 "ui.activeTab",
-                "test3",
+                "map",
                 { source: "updateActiveTab" }
             );
 
-            expect(updateActiveTab("test4-btn")).toStrictEqual(true);
-            expectActiveState("test4-btn", true);
+            expect(updateActiveTab("chart-btn")).toStrictEqual(true);
+            expectActiveState("chart-btn", true);
             expect(mockSetState).toHaveBeenLastCalledWith(
                 "ui.activeTab",
-                "test4",
+                "chart",
                 { source: "updateActiveTab" }
             );
+        });
 
-            expect(updateActiveTab("custom-element")).toStrictEqual(true);
-            expectActiveState("custom-element", true);
-            expect(mockSetState).toHaveBeenLastCalledWith(
-                "ui.activeTab",
-                "custom-element",
-                { source: "updateActiveTab" }
-            );
+        it("should reject tab IDs that extract unknown tab names", () => {
+            expect.assertions(4);
+
+            appendTabElement({
+                active: true,
+                id: "tab-summary",
+                text: "Summary",
+            });
+            appendTabElement({ id: "tab-test", text: "Test" });
+
+            expect(updateActiveTab("tab-test")).toStrictEqual(false);
+            expectActiveState("tab-summary", true);
+            expectActiveState("tab-test", false);
+            expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should remove active class from all tab buttons before setting new one", () => {
@@ -414,7 +421,7 @@ describe("updateActiveTab state behavior", () => {
             expect(mockSetState).not.toHaveBeenCalled();
         });
 
-        it("should handle special characters in tab IDs", () => {
+        it("should reject special-character IDs that do not name a configured tab", () => {
             expect.assertions(3);
 
             const specialId = "test-special_chars.with+symbols";
@@ -428,14 +435,10 @@ describe("updateActiveTab state behavior", () => {
             expect({
                 updated,
             }).toStrictEqual({
-                updated: true,
+                updated: false,
             });
-            expectActiveState(`tab-${specialId}`, true);
-            expect(mockSetState).toHaveBeenCalledWith(
-                "ui.activeTab",
-                specialId,
-                { source: "updateActiveTab" }
-            );
+            expectActiveState(`tab-${specialId}`, false);
+            expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should work with large numbers of tab buttons", () => {
@@ -443,13 +446,13 @@ describe("updateActiveTab state behavior", () => {
 
             for (let index = 0; index < 100; index += 1) {
                 appendTabElement({
-                    id: `tab-item${index}`,
+                    id: index === 50 ? "tab-map" : `tab-item${index}`,
                     text: `Tab ${index}`,
                 });
             }
 
             const startTime = performance.now();
-            const updated = updateActiveTab("tab-item50");
+            const updated = updateActiveTab("tab-map");
             const endTime = performance.now();
 
             expect({
@@ -458,12 +461,10 @@ describe("updateActiveTab state behavior", () => {
                 updated: true,
             });
             expect(endTime - startTime).toBeLessThan(50);
-            expectActiveState("tab-item50", true);
-            expect(mockSetState).toHaveBeenCalledWith(
-                "ui.activeTab",
-                "item50",
-                { source: "updateActiveTab" }
-            );
+            expectActiveState("tab-map", true);
+            expect(mockSetState).toHaveBeenCalledWith("ui.activeTab", "map", {
+                source: "updateActiveTab",
+            });
         });
     });
 
@@ -499,6 +500,15 @@ describe("updateActiveTab state behavior", () => {
             expect.assertions(2);
 
             mockGetState.mockReturnValue("");
+
+            expect(getActiveTab()).toBe("summary");
+            expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
+        });
+
+        it('should return default "summary" when state has an unknown tab name', () => {
+            expect.assertions(2);
+
+            mockGetState.mockReturnValue("nonexistent");
 
             expect(getActiveTab()).toBe("summary");
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
@@ -758,7 +768,7 @@ describe("updateActiveTab state behavior", () => {
             expect.assertions(4);
 
             appendTabElements([
-                { id: "tab-test", text: "Test" },
+                { id: "tab-summary", text: "Summary" },
                 { tagName: "div", text: "Not a button" },
                 { id: "", text: "Empty ID" },
             ]);
@@ -768,11 +778,11 @@ describe("updateActiveTab state behavior", () => {
             expect(testContainer.querySelectorAll(".tab-button")).toHaveLength(
                 3
             );
-            expect(updateActiveTab("tab-test")).toStrictEqual(true);
-            expectActiveState("tab-test", true);
+            expect(updateActiveTab("tab-summary")).toStrictEqual(true);
+            expectActiveState("tab-summary", true);
         });
 
-        it("should handle missing extractTabName function gracefully", () => {
+        it("should reject malformed IDs that do not extract configured tab names", () => {
             expect.assertions(3);
 
             appendTabElement({ id: "malformed-id", text: "Test" });
@@ -782,14 +792,10 @@ describe("updateActiveTab state behavior", () => {
             expect({
                 updated,
             }).toStrictEqual({
-                updated: true,
+                updated: false,
             });
-            expectActiveState("malformed-id", true);
-            expect(mockSetState).toHaveBeenCalledWith(
-                "ui.activeTab",
-                "malformed-id",
-                { source: "updateActiveTab" }
-            );
+            expectActiveState("malformed-id", false);
+            expect(mockSetState).not.toHaveBeenCalled();
         });
 
         it("should handle document.querySelectorAll returning empty array", () => {

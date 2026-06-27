@@ -276,13 +276,16 @@ describe("tab button disabled state", () => {
             mockState.setState("ui.activeTab", "nonexistent");
 
             expect(mockState.getState("ui.activeTab")).toBe("nonexistent");
-            expect(
-                document.querySelector(".tab-button.active")
-            ).not.toBeInstanceOf(HTMLButtonElement);
+            expect(document.querySelector(".tab-button.active")).toBe(
+                getRequiredElement("tab-summary")
+            );
             const tabs = document.querySelectorAll(".tab-button");
             tabs.forEach((tab) => {
-                expectTabActiveClass(tab, false);
-                expect(tab.getAttribute("aria-selected")).toBe("false");
+                const isSummary = tab.id === "tab-summary";
+                expectTabActiveClass(tab, isSummary);
+                expect(tab.getAttribute("aria-selected")).toBe(
+                    isSummary.toString()
+                );
             });
         });
     });
@@ -301,7 +304,7 @@ describe("tab button disabled state", () => {
                 ["tab-summary", "summary"],
                 ["tab-chart", "chart"],
                 ["btn-map", "map"],
-                ["table-btn", "table"],
+                ["data-btn", "data"],
             ];
 
             testCases.forEach(([buttonId, expectedName]) => {
