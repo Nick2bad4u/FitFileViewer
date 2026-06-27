@@ -17097,7 +17097,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(43);
+        expect.assertions(44);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -17205,6 +17205,9 @@ describe("architecture boundaries", () => {
         expect(menuIpcListenersSource).toContain("ElectronMenuEventApi");
         expect(menuIpcListenersSource).not.toContain(
             "import type { ElectronAPI"
+        );
+        expect(menuIpcListenersSource).not.toContain(
+            "type MenuElectronAPI = Partial<"
         );
         expect(menuIpcListenersSource).not.toContain("Pick<ElectronAPI");
         expect(rendererStateIntegrationSource).not.toContain(

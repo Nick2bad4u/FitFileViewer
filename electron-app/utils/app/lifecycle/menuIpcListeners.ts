@@ -16,15 +16,18 @@ type MenuEventMethodName =
     | "onMenuSaveAs"
     | "onOpenAccentColorPicker";
 
-type MenuElectronAPI = Partial<
-    Pick<
-        ElectronMenuEventApi,
-        | "installUpdate"
-        | MenuEventMethodName
-        | "requestExport"
-        | "requestSaveAs"
-    >
->;
+type MenuElectronAPI = {
+    readonly installUpdate?: ElectronMenuEventApi["installUpdate"];
+    readonly onMenuAbout?: ElectronMenuEventApi["onMenuAbout"];
+    readonly onMenuExport?: ElectronMenuEventApi["onMenuExport"];
+    readonly onMenuKeyboardShortcuts?: ElectronMenuEventApi["onMenuKeyboardShortcuts"];
+    readonly onMenuOpenOverlay?: ElectronMenuEventApi["onMenuOpenOverlay"];
+    readonly onMenuRestartUpdate?: ElectronMenuEventApi["onMenuRestartUpdate"];
+    readonly onMenuSaveAs?: ElectronMenuEventApi["onMenuSaveAs"];
+    readonly onOpenAccentColorPicker?: ElectronMenuEventApi["onOpenAccentColorPicker"];
+    readonly requestExport?: ElectronMenuEventApi["requestExport"];
+    readonly requestSaveAs?: ElectronMenuEventApi["requestSaveAs"];
+};
 
 type MenuElectronApiCandidate = {
     readonly [K in keyof MenuElectronAPI]?: unknown;

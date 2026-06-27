@@ -434,8 +434,8 @@ Full `ElectronAPI` imports are now confined by architecture coverage to the cent
 feature modules must keep using split preload API-domain contracts.
 Core theme live theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
 deriving from the monolithic `ElectronAPI` type.
-Menu IPC listener candidate typing now uses the shared menu-event API-domain contract instead of deriving from the
-monolithic `ElectronAPI` type.
+Menu IPC listener candidate typing now uses explicit readonly method aliases backed by the shared menu-event API-domain
+contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local `Partial<Pick>` bridge.
 Main-process state client candidate typing now uses explicit readonly method aliases backed by the shared main-state
 API-domain contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local `Pick` bridge.
 Show FIT data file-loaded notification candidate typing now uses the shared preload-event API-domain contract instead
