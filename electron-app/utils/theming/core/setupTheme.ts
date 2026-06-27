@@ -38,9 +38,9 @@ type ListenForThemeChangeCallback = (
     callback: (theme: unknown) => void
 ) => void;
 type LogLevel = "error" | "info" | "warn";
-interface ThemeSetupElectronApi {
-    getTheme?: ElectronThemeApi["getTheme"];
-}
+type ThemeSetupElectronApi = {
+    readonly getTheme?: ElectronThemeApi["getTheme"];
+};
 
 // Constants for better maintainability
 const THEME_CONSTANTS = {

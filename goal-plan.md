@@ -647,7 +647,8 @@ of calling timer globals directly inside `setupTheme.ts`, with focused runtime c
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now
 provide timer primitives through shared browser-runtime timer aliases instead of falling back to `globalThis` or
 direct ambient timer API types, with focused coverage and architecture coverage blocking those ambient fallbacks
-from returning.
+from returning. Setup-theme preload candidate typing now uses an explicit readonly method alias backed by the
+shared theme API-domain contract instead of carrying a local Electron API interface.
 Setup theme fetch IPC and live theme-change IPC now validate scoped preload candidates with explicit optional-function
 property guards instead of casting renderer Electron API candidates to generic records, with focused malformed-scope
 coverage and architecture coverage blocking those casts from returning. Setup theme fetch IPC candidate typing now uses
@@ -1487,7 +1488,9 @@ active-element lookup, document keydown listener target lookup, and browser even
 `settingsModalRuntime.ts`, with runtime adapter tests plus architecture coverage blocking direct document and
 constructor access from returning to `settingsModal.ts`. Settings modal runtime provider contracts now reuse shared
 browser-runtime timer, animation-frame, HTMLElement, HTML input/select, and keyboard-event aliases instead of spelling
-direct ambient constructor/timer/frame types in the settings modal runtime.
+direct ambient constructor/timer/frame types in the settings modal runtime. Settings modal preload candidate typing
+now uses an explicit readonly method alias backed by the shared menu-event API-domain contract instead of carrying a
+local Electron API interface.
 Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of deriving
 from the monolithic `ElectronAPI` type.
 Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,

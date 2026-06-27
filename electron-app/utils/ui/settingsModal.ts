@@ -33,9 +33,9 @@ const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-interface SettingsModalElectronApi {
-    sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
-}
+type SettingsModalElectronApi = {
+    readonly sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
+};
 type SettingsModalOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };

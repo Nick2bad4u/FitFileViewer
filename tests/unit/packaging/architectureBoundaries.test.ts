@@ -8777,7 +8777,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings modal theme writes on the renderer theme state facade", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const settingsModalSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
@@ -8785,6 +8785,9 @@ describe("architecture boundaries", () => {
 
         expect(settingsModalSource).toContain("rendererThemeState.js");
         expect(settingsModalSource).toContain("ElectronMenuEventApi");
+        expect(settingsModalSource).not.toContain(
+            "interface SettingsModalElectronApi"
+        );
         expect(settingsModalSource).not.toContain("import type { ElectronAPI");
         expect(settingsModalSource).not.toContain("Pick<ElectronAPI");
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
@@ -10309,7 +10312,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps theme setup state access on the renderer theme state facade", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const setupThemeSource = stripComments(
             readRepositoryFile("electron-app/utils/theming/core/setupTheme.ts")
@@ -10317,6 +10320,9 @@ describe("architecture boundaries", () => {
 
         expect(setupThemeSource).toContain("rendererThemeState.js");
         expect(setupThemeSource).toContain("ElectronThemeApi");
+        expect(setupThemeSource).not.toContain(
+            "interface ThemeSetupElectronApi"
+        );
         expect(setupThemeSource).not.toContain("import type { ElectronAPI");
         expect(setupThemeSource).not.toContain("Pick<ElectronAPI");
         expect(setupThemeSource).not.toContain("state/core/stateManager.js");
