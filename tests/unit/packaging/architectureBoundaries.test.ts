@@ -21048,7 +21048,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(111);
+        expect.assertions(113);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -21070,6 +21070,8 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("themeRuntime.js");
         expect(themeCoreSource).toContain("type ThemeRuntime");
         expect(themeCoreSource).toContain("return getThemeRuntime();");
+        expect(themeCoreSource).not.toContain("Legacy aggregated theme API");
+        expect(themeCoreSource).not.toContain("export const theme");
         expect(themeCoreSource).not.toContain(
             "const themeRuntime = getThemeRuntime();"
         );

@@ -608,21 +608,3 @@ function updateMetaThemeColor(theme: ThemePreference): void {
 
     themeRuntime().updateMetaThemeColor(themeColor);
 }
-
-/**
- * Legacy aggregated theme API for compatibility with modules expecting a
- * namespace export. Provides direct access to the primary theme helpers via an
- * object reference.
- */
-export const theme = {
-    THEME_MODES,
-    applyTheme,
-    getEffectiveTheme,
-    getSystemTheme,
-    getThemeConfig,
-    initializeTheme,
-    listenForSystemThemeChange,
-    listenForThemeChange,
-    loadTheme,
-    toggleTheme,
-};
