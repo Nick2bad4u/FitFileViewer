@@ -58,6 +58,10 @@ interface BrowserProcessGlobal {
     readonly process?: unknown;
 }
 
+interface BrowserVitestGlobal {
+    readonly vi?: unknown;
+}
+
 type BrowserGlobalPropertyRecord = Record<PropertyKey, unknown>;
 type BrowserGlobalPropertySetResult = "blocked" | "fallback" | "set";
 
@@ -213,6 +217,14 @@ export function getBrowserProcessCandidate(): unknown {
 
 export function setBrowserProcessCandidate(processValue: unknown): void {
     setBrowserGlobalProperty("process", processValue);
+}
+
+export function getBrowserVitestImportMockCandidate(): unknown {
+    try {
+        return (globalThis as BrowserVitestGlobal).vi;
+    } catch {
+        return undefined;
+    }
 }
 
 export function getBrowserComputedStyle():

@@ -1,4 +1,4 @@
-import { getBrowserGlobalProperty } from "../../utils/runtime/browserRuntime.js";
+import { getBrowserVitestImportMockCandidate } from "../../utils/runtime/browserRuntime.js";
 
 export interface AutoUpdaterAccessRuntimeScope {
     readonly getVitestImportMockCandidate?: (() => unknown) | undefined;
@@ -9,7 +9,7 @@ export interface AutoUpdaterAccessRuntime {
 }
 
 const defaultAutoUpdaterAccessRuntimeScope: AutoUpdaterAccessRuntimeScope = {
-    getVitestImportMockCandidate: () => getBrowserGlobalProperty("vi"),
+    getVitestImportMockCandidate: getBrowserVitestImportMockCandidate,
 };
 
 export function getAutoUpdaterAccessRuntime(

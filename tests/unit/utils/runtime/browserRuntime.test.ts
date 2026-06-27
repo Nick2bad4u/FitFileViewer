@@ -5,6 +5,7 @@ import {
     getBrowserDevelopmentFlag,
     getBrowserElectronApiCandidate,
     getBrowserGlobalProperty,
+    getBrowserVitestImportMockCandidate,
     getBrowserSetTimeout,
     setBrowserGlobalProperty,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
@@ -15,17 +16,20 @@ describe("browserRuntime global property boundary", () => {
     });
 
     it("reads named global properties through the shared boundary", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const electronAPI = { openExternal: vi.fn() };
+        const vitestCandidate = { importMock: vi.fn() };
 
         vi.stubGlobal("ffvRuntimeFlag", true);
         vi.stubGlobal("__DEVELOPMENT__", true);
         vi.stubGlobal("electronAPI", electronAPI);
+        vi.stubGlobal("vi", vitestCandidate);
 
         expect(getBrowserGlobalProperty("ffvRuntimeFlag")).toBe(true);
         expect(getBrowserDevelopmentFlag()).toBe(true);
         expect(getBrowserElectronApiCandidate()).toBe(electronAPI);
+        expect(getBrowserVitestImportMockCandidate()).toBe(vitestCandidate);
     });
 
     it("returns undefined when a global property accessor throws", () => {

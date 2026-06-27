@@ -1607,12 +1607,13 @@ Main updater access now resolves Vitest import-mock globals through `autoUpdater
 `globalThis` inside the updater resolver, with focused coverage and architecture coverage blocking that resolver-level
 global probe from returning. The updater module property reader now uses typed indexed access inside its guarded
 try/catch instead of a source-level `Reflect.get` probe while preserving lazy-getter fallback behavior.
-That updater-access runtime now reuses the shared `getBrowserGlobalProperty` boundary instead of carrying a local
-`Reflect.get(globalThis, "vi")` helper, with focused coverage and architecture coverage blocking the local helper from
-returning.
-Process environment runtime access now reuses the shared `getBrowserGlobalProperty` and `setBrowserGlobalProperty`
-boundary for runtime `process` reads and test/install writes instead of owning direct `globalThis` process access or a
-local global-property setter helper, with focused runtime coverage and architecture coverage blocking that drift.
+That updater-access runtime now uses the explicit `getBrowserVitestImportMockCandidate` browser-runtime provider
+instead of carrying a local `Reflect.get(globalThis, "vi")` helper or importing the generic global-property helper, with
+focused coverage and architecture coverage blocking those broad lookup paths from returning.
+Process environment runtime access now uses explicit `getBrowserProcessCandidate` and `setBrowserProcessCandidate`
+providers for runtime `process` reads and test/install writes instead of owning direct `globalThis` process access,
+calling generic global-property helpers, or carrying a local global-property setter helper, with focused runtime coverage
+and architecture coverage blocking that drift.
 Nested process/env property reads now use guarded typed indexed access instead of a local `Reflect.get` probe.
 Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
