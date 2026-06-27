@@ -418,9 +418,9 @@ of casting the candidate preload API to a generic record, with focused malformed
 guardrails. Browser tab, path-based FIT opening, overlay selector, drag/drop, single-overlay loading, and main UI DOM
 Electron API candidate typing now use explicit local interfaces backed by split shared preload API-domain contracts
 instead of `Pick<ElectronAPI, ...>` aliases.
-Browser tab folder/list/read/decode candidate typing now composes shared file, dialog, and Fit Browser API-domain
-contracts directly, with explicit method slices and architecture coverage blocking local `Pick<FitBrowserElectronAPI,
-...>` aliases from returning.
+Browser tab folder/list/read/decode candidate typing now uses explicit optional method aliases backed by shared file,
+dialog, and Fit Browser API-domain contracts, with architecture coverage blocking local
+`Pick<FitBrowserElectronAPI, ...>` aliases and `Partial` intersection bridges from returning.
 FIT import candidate typing in handle-open-file, path-based FIT opening, overlay selection, and single-overlay loading
 now uses explicit shared API-domain method type aliases instead of local Electron API interfaces, with architecture
 coverage blocking those ad hoc interfaces from returning. Handle-open-file Electron API candidate validation now narrows

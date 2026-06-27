@@ -56,9 +56,13 @@ type CalendarState = {
 
 type DistanceUnit = "km" | "mi";
 
-type FitBrowserElectronAPI = Partial<
-    ElectronDialogApi & ElectronFileApi & ElectronFitBrowserApi
->;
+type FitBrowserElectronAPI = {
+    readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
+    readonly getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];
+    readonly listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];
+    readonly openFolderDialog?: ElectronDialogApi["openFolderDialog"];
+    readonly readFile?: ElectronFileApi["readFile"];
+};
 
 type FitBrowserElectronApiCandidate = {
     readonly decodeFitFile?: unknown;
