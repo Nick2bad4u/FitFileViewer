@@ -73,7 +73,7 @@ const rendererElectronApiRuntimeSourceFiles = [
 ] as const;
 const scopedRendererElectronApiRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
-    "electron-app/utils/files/import/handleOpenFile.test.ts",
+    "tests/unit/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
     "tests/unit/utils/state/integration/mainProcessStateClient.test.ts",
@@ -27529,7 +27529,7 @@ describe("architecture boundaries", () => {
             handleOpenFileTestDirectConsoleMethodAssignmentPattern.test(
                 stripComments(
                     readRepositoryFile(
-                        "electron-app/utils/files/import/handleOpenFile.test.ts"
+                        "tests/unit/utils/files/import/handleOpenFile.test.ts"
                     )
                 )
             )
@@ -27543,7 +27543,7 @@ describe("architecture boundaries", () => {
             handleOpenFileTestDirectWindowFixturePattern.test(
                 stripComments(
                     readRepositoryFile(
-                        "electron-app/utils/files/import/handleOpenFile.test.ts"
+                        "tests/unit/utils/files/import/handleOpenFile.test.ts"
                     )
                 )
             )
@@ -27988,6 +27988,24 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directRetiredRendererTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps runtime source mostly free of colocated tests", () => {
+        expect.assertions(1);
+
+        const allowedColocatedRuntimeTests = new Set([
+            "electron-app/utils/files/export/exportUtils.test.ts",
+        ]);
+        const colocatedRuntimeTests = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    /\.test\.[cm]?[jt]s$/u.test(relativeFile) &&
+                    !allowedColocatedRuntimeTests.has(relativeFile)
+            )
+            .sort();
+
+        expect(colocatedRuntimeTests).toStrictEqual([]);
     });
 
     it("keeps runtime source from adding ad hoc Window bridge types", () => {

@@ -12,8 +12,8 @@ import {
     beforeAll,
     vi,
 } from "vitest";
-import { AppActions } from "../../app/lifecycle/appActions.js";
-import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
+import { AppActions } from "../../../../../electron-app/utils/app/lifecycle/appActions.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
     vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
@@ -22,14 +22,22 @@ const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
     vi.fn<(buffer: ArrayBuffer) => void>()
 );
 
-vi.mock("../../rendering/core/renderDecodedFitData.js", () => ({
-    renderDecodedFitData: renderDecodedFitDataMock,
-}));
-vi.mock("./sendFitFileToAltFitReader.js", () => ({
-    sendFitFileToAltFitReader: sendFitFileToAltFitReaderMock,
-}));
+vi.mock(
+    "../../../../../electron-app/utils/rendering/core/renderDecodedFitData.js",
+    () => ({
+        renderDecodedFitData: renderDecodedFitDataMock,
+    })
+);
+vi.mock(
+    "../../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js",
+    () => ({
+        sendFitFileToAltFitReader: sendFitFileToAltFitReaderMock,
+    })
+);
 
-type HandleOpenFileModule = Awaited<typeof import("./handleOpenFile.js")>;
+type HandleOpenFileModule = Awaited<
+    typeof import("../../../../../electron-app/utils/files/import/handleOpenFile.js")
+>;
 type HandleOpenFileParams = Parameters<
     HandleOpenFileModule["handleOpenFile"]
 >[0];
@@ -55,7 +63,8 @@ interface MockElectronAPI {
 let handleOpenFileModule: HandleOpenFileModule;
 let mockSetState: ReturnType<typeof vi.spyOn>;
 beforeAll(async () => {
-    handleOpenFileModule = await import("./handleOpenFile.js");
+    handleOpenFileModule =
+        await import("../../../../../electron-app/utils/files/import/handleOpenFile.js");
     mockSetState = vi.spyOn(AppActions, "setFileOpening");
 });
 
