@@ -121,7 +121,7 @@ function getScopeSecureRandomCrypto(
     const cryptoObject = scope.getSecureRandomCrypto?.();
     return cryptoObject &&
         typeof cryptoObject === "object" &&
-        typeof Reflect.get(cryptoObject, "getRandomValues") === "function"
+        typeof cryptoObject.getRandomValues === "function"
         ? cryptoObject
         : undefined;
 }
@@ -133,9 +133,9 @@ function getScopeStorage(
 
     return storage &&
         typeof storage === "object" &&
-        (typeof Reflect.get(storage, "getItem") === "function" ||
-            typeof Reflect.get(storage, "setItem") === "function" ||
-            typeof Reflect.get(storage, "removeItem") === "function")
+        (typeof storage.getItem === "function" ||
+            typeof storage.setItem === "function" ||
+            typeof storage.removeItem === "function")
         ? storage
         : null;
 }

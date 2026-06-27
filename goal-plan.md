@@ -1750,6 +1750,9 @@ menu method names through `Reflect.get`, with architecture coverage blocking tha
 Version-info preload API candidate validation now checks explicit optional method properties directly instead of
 iterating app-info method names through `Reflect.get`, with architecture coverage blocking that generic probe from
 returning.
+Export utility Electron API candidate validation, Imgur upload response parsing, and export runtime crypto/storage
+candidate checks now use explicit typed property reads instead of generic `Reflect.get` probes, with focused malformed
+shape coverage and architecture coverage blocking those reflective export utility probes from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

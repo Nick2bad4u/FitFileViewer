@@ -5424,7 +5424,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(101);
+        expect.assertions(104);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -5480,6 +5480,7 @@ describe("architecture boundaries", () => {
             "document.body.append(overlay)"
         );
         expect(exportUtilsSource).not.toContain("Reflect.get(globalThis");
+        expect(exportUtilsSource).not.toContain("Reflect.get(");
         expect(exportUtilsSource).not.toContain("globalThis.window");
         expect(exportUtilsSource).not.toContain("globalThis.localStorage");
         expect(exportUtilsSource).not.toContain("document.addEventListener");
@@ -5580,6 +5581,7 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).not.toContain("getWindow");
         expect(exportUtilsRuntimeSource).not.toContain("typeof globalThis &");
         expect(exportUtilsRuntimeSource).not.toContain("globalThis as Partial");
+        expect(exportUtilsRuntimeSource).not.toContain("Reflect.get(");
         expect(exportUtilsRuntimeSource).not.toContain(
             "Pick<typeof globalThis"
         );
@@ -5654,6 +5656,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "const cryptoObject = scope.getSecureRandomCrypto?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'typeof cryptoObject.getRandomValues === "function"'
         );
         expect(exportUtilsRuntimeSource).toContain(
             "const storage = scope.getStorage?.();"

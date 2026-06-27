@@ -791,6 +791,27 @@ describe("exportUtils core flows", () => {
             expect(result).toBe("https://imgur.com/test.png");
         });
 
+        it("uploadToImgur rejects malformed response link shapes", async () => {
+            expect.hasAssertions();
+
+            const { exportUtils } = await loadExportUtils();
+
+            localStorage.setItem("imgur_client_id", "test-client-id");
+
+            const mockResponse = createFetchResponse({
+                json: {
+                    success: true,
+                    data: { link: { href: "https://imgur.com/test.png" } },
+                },
+            });
+
+            stubFetchWithResponse(mockResponse);
+
+            await expect(
+                exportUtils.uploadToImgur("data:image/png;base64,ABC123")
+            ).rejects.toThrow("Invalid response from Imgur");
+        });
+
         it("uploadToImgur handles API errors", async () => {
             expect.hasAssertions();
 

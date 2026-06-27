@@ -39,6 +39,15 @@ import type {
 
 type LooseRecord = unknown;
 type ElectronApiLike = Partial<ElectronClipboardApi & ElectronGyazoExternalApi>;
+type ElectronApiCandidate = Readonly<{
+    [Key in keyof ElectronApiLike]?: unknown;
+}>;
+type ImgurUploadDataCandidate = Readonly<{
+    link?: unknown;
+}>;
+type ImgurUploadResponseCandidate = Readonly<{
+    data?: unknown;
+}>;
 type ChartDataPoint = {
     x?: LooseRecord;
     y?: LooseRecord;
@@ -153,10 +162,10 @@ let detectCurrentThemeOverride: typeof __realDetectCurrentTheme | null = null;
 let showNotificationOverride: ExportNotification | null = null;
 
 function hasOptionalElectronFunction(
-    record: object,
+    record: ElectronApiCandidate,
     key: keyof ElectronApiLike
 ): boolean {
-    const value = Reflect.get(record, key);
+    const value = record[key];
     return value === undefined || typeof value === "function";
 }
 
@@ -165,6 +174,7 @@ function isExportElectronApi(value: unknown): value is ElectronApiLike {
         return false;
     }
 
+    const candidate = value as ElectronApiCandidate;
     return [
         "onGyazoOAuthCallback",
         "startGyazoServer",
@@ -172,7 +182,7 @@ function isExportElectronApi(value: unknown): value is ElectronApiLike {
         "writeClipboardPngDataUrl",
         "writeClipboardText",
     ].every((key) =>
-        hasOptionalElectronFunction(value, key as keyof ElectronApiLike)
+        hasOptionalElectronFunction(candidate, key as keyof ElectronApiLike)
     );
 }
 
@@ -826,12 +836,12 @@ function getImgurUploadLink(value: unknown): string | undefined {
         return undefined;
     }
 
-    const data = Reflect.get(value, "data");
+    const { data } = value as ImgurUploadResponseCandidate;
     if (typeof data !== "object" || data === null) {
         return undefined;
     }
 
-    const link = Reflect.get(data, "link");
+    const { link } = data as ImgurUploadDataCandidate;
     return typeof link === "string" && link.length > 0 ? link : undefined;
 }
 

@@ -103,13 +103,22 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("ignores invalid scoped storage runtimes", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const runtime = getExportUtilsRuntime({
             getStorage: () => ({}) as Storage,
         });
+        const malformedMethodRuntime = getExportUtilsRuntime({
+            getStorage: () =>
+                ({
+                    getItem: "not-a-function",
+                    removeItem: "not-a-function",
+                    setItem: "not-a-function",
+                }) as unknown as Storage,
+        });
 
         expect(runtime.getStorage()).toBeNull();
+        expect(malformedMethodRuntime.getStorage()).toBeNull();
     });
 
     it("resolves secure randomness through the scoped crypto runtime", () => {
@@ -126,13 +135,20 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("ignores invalid scoped secure-random runtimes", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const runtime = getExportUtilsRuntime({
             getSecureRandomCrypto: () => ({}) as Crypto,
         });
+        const malformedMethodRuntime = getExportUtilsRuntime({
+            getSecureRandomCrypto: () =>
+                ({
+                    getRandomValues: "not-a-function",
+                }) as unknown as Crypto,
+        });
 
         expect(runtime.getSecureRandomScope()).toStrictEqual({});
+        expect(malformedMethodRuntime.getSecureRandomScope()).toStrictEqual({});
     });
 
     it("returns null when print-window opening is unavailable", () => {
