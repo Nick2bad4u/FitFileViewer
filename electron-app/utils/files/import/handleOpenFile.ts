@@ -63,6 +63,12 @@ type FileOpenElectronAPI = {
     readonly readFile: ElectronFileApi["readFile"];
 };
 
+type FileOpenElectronApiCandidate = {
+    readonly openFile?: unknown;
+    readonly parseFitFile?: unknown;
+    readonly readFile?: unknown;
+};
+
 type FitFileStateManagerFacade = {
     handleFileLoadingError: (error: Error) => void;
     startFileLoading?: (filePath: string) => void;
@@ -105,7 +111,7 @@ function isFileOpenElectronAPI(value: unknown): value is FileOpenElectronAPI {
         return false;
     }
 
-    const electronAPI = value as Partial<FileOpenElectronAPI>;
+    const electronAPI = value as FileOpenElectronApiCandidate;
     return REQUIRED_ELECTRON_API_METHODS.every(
         (method) => typeof electronAPI[method] === "function"
     );

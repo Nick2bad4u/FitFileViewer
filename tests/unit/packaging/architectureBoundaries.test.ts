@@ -11466,7 +11466,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const handleOpenFileSource = stripComments(
             readRepositoryFile(
@@ -11481,6 +11481,9 @@ describe("architecture boundaries", () => {
         expect(handleOpenFileSource).toContain("ElectronFileApi");
         expect(handleOpenFileSource).not.toContain(
             "interface FileOpenElectronAPI"
+        );
+        expect(handleOpenFileSource).not.toContain(
+            "value as Partial<FileOpenElectronAPI>"
         );
         expect(handleOpenFileSource).not.toContain("import type { ElectronAPI");
         expect(handleOpenFileSource).not.toContain("Pick<ElectronAPI");

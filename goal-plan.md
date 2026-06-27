@@ -423,7 +423,9 @@ contracts directly, with explicit method slices and architecture coverage blocki
 ...>` aliases from returning.
 FIT import candidate typing in handle-open-file, path-based FIT opening, overlay selection, and single-overlay loading
 now uses explicit shared API-domain method type aliases instead of local Electron API interfaces, with architecture
-coverage blocking those ad hoc interfaces from returning.
+coverage blocking those ad hoc interfaces from returning. Handle-open-file Electron API candidate validation now narrows
+scoped candidates through an unknown-valued candidate shape instead of casting to `Partial<FileOpenElectronAPI>`, with
+architecture coverage blocking that bridge cast from returning.
 Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of
 deriving from the monolithic `ElectronAPI` type.
 Setup theme fetch IPC candidate typing now uses the shared theme API-domain contract instead of deriving from the
