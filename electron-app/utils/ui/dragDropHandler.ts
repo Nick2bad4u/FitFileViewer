@@ -36,6 +36,10 @@ type DragDropElectronApiCandidate = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
 };
 
+type UnknownDragDropElectronApiCandidate = {
+    readonly decodeFitFile?: unknown;
+};
+
 type PerformanceMonitorLike = {
     endTimer?: (id: string) => void;
     isEnabled?: boolean | (() => boolean);
@@ -61,8 +65,8 @@ function isDragDropElectronApi(
     }
 
     return (
-        typeof (value as Partial<DragDropElectronApiCandidate>)
-            .decodeFitFile === "function"
+        typeof (value as UnknownDragDropElectronApiCandidate).decodeFitFile ===
+        "function"
     );
 }
 

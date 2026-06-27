@@ -9615,7 +9615,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(49);
+        expect.assertions(50);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -9644,6 +9644,9 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).not.toContain("ElectronApiLike");
         expect(dragDropHandlerSource).not.toContain(
             "import type { ElectronAPI"
+        );
+        expect(dragDropHandlerSource).not.toContain(
+            "value as Partial<DragDropElectronApiCandidate>"
         );
         expect(dragDropHandlerSource).not.toContain("Pick<ElectronAPI");
         expect(dragDropHandlerSource).not.toContain(

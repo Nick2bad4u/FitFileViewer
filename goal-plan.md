@@ -1503,9 +1503,10 @@ blocking direct drag/drop animation-frame globals and direct controller construc
 operation-id clock reads now also route through that runtime instead of calling `Date.now` directly in
 `dragDropHandler.ts`, with runtime and architecture coverage blocking direct drag/drop clock reads from returning.
 Drag/drop FIT decoder candidate typing now uses a named readonly alias backed by the shared file API-domain
-contract instead of deriving from the monolithic `ElectronAPI` type or carrying a generic local interface. FIT data
-file-loaded notification candidate typing likewise uses a named readonly alias backed by the shared preload-event
-API-domain contract instead of a generic local interface.
+contract instead of deriving from the monolithic `ElectronAPI` type or carrying a generic local interface, and scoped
+candidate validation now narrows through an unknown-valued candidate shape instead of casting to
+`Partial<DragDropElectronApiCandidate>`. FIT data file-loaded notification candidate typing likewise uses a named
+readonly alias backed by the shared preload-event API-domain contract instead of a generic local interface.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning. Leaflet runtime production clock and polling-timer defaults now reuse shared browser runtime
