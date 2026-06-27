@@ -27,27 +27,18 @@ export interface MainUiUnloadElectronApi {
     onUnloadFitFile?: ElectronMenuEventApi["onUnloadFitFile"];
 }
 
-type MainUiMenuInjectionElectronApiCandidate =
-    MainUiApiCandidate<MainUiMenuInjectionElectronApi>;
-
-type MainUiSummarySelectorElectronApiCandidate =
-    MainUiApiCandidate<MainUiSummarySelectorElectronApi>;
-
-type MainUiThemeSyncElectronApiCandidate =
-    MainUiApiCandidate<MainUiThemeSyncElectronApi>;
-
-type MainUiUnloadElectronApiCandidate =
-    MainUiApiCandidate<MainUiUnloadElectronApi>;
-
-type MainUiApiCandidate<TApi> = {
-    readonly [K in keyof TApi]?: unknown;
-};
-
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
 }
 
-function isObjectApiCandidate(value: unknown): value is object {
+function hasOptionalFunctionProperty(
+    value: object,
+    propertyKey: string
+): boolean {
+    return hasOptionalFunction(Reflect.get(value, propertyKey));
+}
+
+function isMainUiElectronApiCandidate(value: unknown): value is object {
     if (value === null || typeof value !== "object") {
         return false;
     }
@@ -58,50 +49,46 @@ function isObjectApiCandidate(value: unknown): value is object {
 function isMainUiMenuInjectionElectronApi(
     value: unknown
 ): value is MainUiMenuInjectionElectronApi {
-    if (!isObjectApiCandidate(value)) {
+    if (!isMainUiElectronApiCandidate(value)) {
         return false;
     }
 
-    const api = value as MainUiMenuInjectionElectronApiCandidate;
-    return hasOptionalFunction(api.injectMenu);
+    return hasOptionalFunctionProperty(value, "injectMenu");
 }
 
 function isMainUiSummarySelectorElectronApi(
     value: unknown
 ): value is MainUiSummarySelectorElectronApi {
-    if (!isObjectApiCandidate(value)) {
+    if (!isMainUiElectronApiCandidate(value)) {
         return false;
     }
 
-    const api = value as MainUiSummarySelectorElectronApiCandidate;
-    return hasOptionalFunction(api.onOpenSummaryColumnSelector);
+    return hasOptionalFunctionProperty(value, "onOpenSummaryColumnSelector");
 }
 
 function isMainUiThemeSyncElectronApi(
     value: unknown
 ): value is MainUiThemeSyncElectronApi {
-    if (!isObjectApiCandidate(value)) {
+    if (!isMainUiElectronApiCandidate(value)) {
         return false;
     }
 
-    const api = value as MainUiThemeSyncElectronApiCandidate;
     return (
-        hasOptionalFunction(api.onSetTheme) &&
-        hasOptionalFunction(api.sendThemeChanged)
+        hasOptionalFunctionProperty(value, "onSetTheme") &&
+        hasOptionalFunctionProperty(value, "sendThemeChanged")
     );
 }
 
 function isMainUiUnloadElectronApi(
     value: unknown
 ): value is MainUiUnloadElectronApi {
-    if (!isObjectApiCandidate(value)) {
+    if (!isMainUiElectronApiCandidate(value)) {
         return false;
     }
 
-    const api = value as MainUiUnloadElectronApiCandidate;
     return (
-        hasOptionalFunction(api.notifyFitFileLoaded) &&
-        hasOptionalFunction(api.onUnloadFitFile)
+        hasOptionalFunctionProperty(value, "notifyFitFileLoaded") &&
+        hasOptionalFunctionProperty(value, "onUnloadFitFile")
     );
 }
 

@@ -38,4 +38,15 @@ describe("main UI Electron API bindings", () => {
         expect(bindings.getThemeSyncElectronAPI()).toBeNull();
         expect(bindings.getUnloadElectronAPI()).toBeNull();
     });
+
+    it("rejects primitive runtime candidates for every domain", () => {
+        const bindings = createMainUiElectronApiBindings({
+            electronApiCandidate: "not an api",
+        });
+
+        expect(bindings.getMenuInjectionElectronAPI()).toBeNull();
+        expect(bindings.getSummarySelectorElectronAPI()).toBeNull();
+        expect(bindings.getThemeSyncElectronAPI()).toBeNull();
+        expect(bindings.getUnloadElectronAPI()).toBeNull();
+    });
 });

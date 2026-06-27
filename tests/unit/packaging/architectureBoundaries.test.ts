@@ -6762,7 +6762,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(178);
+        expect.assertions(184);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7098,6 +7098,22 @@ describe("architecture boundaries", () => {
         expect(mainUiElectronApiSource).not.toContain("ElectronAPI");
         expect(mainUiElectronApiSource).not.toContain("Pick<");
         expect(mainUiElectronApiSource).not.toContain("Readonly<Record");
+        expect(mainUiElectronApiSource).toContain(
+            "function hasOptionalFunctionProperty("
+        );
+        expect(mainUiElectronApiSource).toContain(
+            "Reflect.get(value, propertyKey)"
+        );
+        expect(mainUiElectronApiSource).toContain(
+            "function isMainUiElectronApiCandidate("
+        );
+        expect(mainUiElectronApiSource).not.toContain(
+            "type MainUiApiCandidate<"
+        );
+        expect(mainUiElectronApiSource).not.toContain(
+            "readonly [K in keyof TApi]?: unknown;"
+        );
+        expect(mainUiElectronApiSource).not.toContain("value as MainUi");
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
         expect(mainUiStartupSource).toContain("mainUiBrowserRuntime.js");
         expect(mainUiStartupSource).toContain(
