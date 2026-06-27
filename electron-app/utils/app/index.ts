@@ -57,23 +57,7 @@ export type {
 export { registerChartResizeListener } from "./lifecycle/listenersResize.js";
 export { registerMenuIpcListeners } from "./lifecycle/menuIpcListeners.js";
 export { attachRecentFilesContextMenu } from "./lifecycle/recentFilesContextMenu.js";
-export {
-    addShutdownHook,
-    cleanupAll,
-    cleanup as cleanupResources,
-    getStats,
-    list,
-    register,
-    registerChart,
-    registerInterval,
-    registerMap,
-    registerObserver,
-    registerTimer,
-    registerWorker,
-    resourceManager,
-    shutdown,
-    unregister,
-} from "./lifecycle/resourceManager.js";
+export { resourceManager } from "./lifecycle/resourceManager.js";
 export * from "./menu/index.js";
 
 export default {

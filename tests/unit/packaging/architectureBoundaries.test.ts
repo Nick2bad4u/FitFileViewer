@@ -14548,8 +14548,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(46);
+        expect.assertions(51);
 
+        const appIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/index.ts")
+        );
         const resourceManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/resourceManager.ts"
@@ -14575,6 +14578,17 @@ describe("architecture boundaries", () => {
         expect(resourceManagerSource).not.toContain("Date.now");
         expect(resourceManagerSource).not.toContain("Reflect.get(");
         expect(resourceManagerSource).not.toContain("hasFunctionProperty");
+        expect(resourceManagerSource).not.toContain(
+            "Bound resource manager helpers"
+        );
+        expect(resourceManagerSource).not.toMatch(
+            /\bexport const (?:addShutdownHook|cleanup|cleanupAll|getStats|list|register|registerChart|registerInterval|registerMap|registerObserver|registerTimer|registerWorker|shutdown|unregister)\b/u
+        );
+        expect(appIndexSource).toContain("resourceManager");
+        expect(appIndexSource).not.toContain("cleanupResources");
+        expect(appIndexSource).not.toMatch(
+            /\b(?:addShutdownHook|cleanupAll|getStats|registerChart|registerInterval|registerMap|registerObserver|registerTimer|registerWorker|shutdown|unregister)\b/u
+        );
         expect(resourceManagerSource).toContain("DestroyableChartCandidate");
         expect(resourceManagerSource).toContain("RemovableMapCandidate");
         expect(resourceManagerSource).toContain(

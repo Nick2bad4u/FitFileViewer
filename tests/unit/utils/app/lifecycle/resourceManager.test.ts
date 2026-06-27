@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-    cleanupAll,
-    getStats,
-    register,
-    resourceManager,
-} from "../../../../../electron-app/utils/app/lifecycle/resourceManager.js";
+import { resourceManager } from "../../../../../electron-app/utils/app/lifecycle/resourceManager.js";
 
 function cleanupFixture(): void {
     resourceManager.cleanupAll();
@@ -104,7 +99,7 @@ describe("resourceManager", () => {
         }
     });
 
-    it("cleans all resources in reverse registration order through bound exports", () => {
+    it("cleans all resources in reverse registration order through the singleton", () => {
         expect.assertions(3);
 
         setupFixture();
@@ -112,16 +107,16 @@ describe("resourceManager", () => {
         try {
             const calls: string[] = [];
 
-            register("other", () => {
+            resourceManager.register("other", () => {
                 calls.push("first");
             });
-            register("other", () => {
+            resourceManager.register("other", () => {
                 calls.push("second");
             });
 
-            expect(cleanupAll()).toBe(2);
+            expect(resourceManager.cleanupAll()).toBe(2);
             expect(calls).toStrictEqual(["second", "first"]);
-            expect(getStats()).toStrictEqual({
+            expect(resourceManager.getStats()).toStrictEqual({
                 byOwner: {},
                 byType: {
                     chart: 0,
