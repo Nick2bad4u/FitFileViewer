@@ -159,6 +159,8 @@ app-menu creation, menu event handling, and browser/info IPC handlers off direct
 instead of a source-level `Reflect.get` probe.
 The main lifecycle setup boundary now uses a named source export instead of a source-level `module.exports`
 wrapper, and method validation now uses typed indexed access instead of a source-level `Reflect.get` probe.
+The main test-environment priming boundary now reads Electron mock properties through typed indexed access instead
+of a source-level `Reflect.get` probe while preserving its guarded fallback behavior.
 The main development-helper boundary now uses a named source export and imports app-state helpers natively
 instead of requiring the app-state source file.
 The window bootstrap/initialization boundaries now use named source exports, and `initializeApplication.ts`

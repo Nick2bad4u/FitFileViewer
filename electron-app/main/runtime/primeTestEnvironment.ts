@@ -44,12 +44,12 @@ type PrimeTestMainWindowLike = {
     const PROBE_EVENT = "__test_probe__";
     const PROBE_INSTALLED_APPS = new WeakSet<object>();
 
-    function asReflectTarget(value: unknown): object | null {
+    function asReflectTarget(value: unknown): Record<string, unknown> | null {
         if (
             value &&
             (typeof value === "object" || typeof value === "function")
         ) {
-            return value;
+            return value as Record<string, unknown>;
         }
         return null;
     }
@@ -58,7 +58,7 @@ type PrimeTestMainWindowLike = {
         const record = asReflectTarget(value);
         if (!record) return undefined;
         try {
-            return Reflect.get(record, key);
+            return record[key];
         } catch {
             return undefined;
         }
