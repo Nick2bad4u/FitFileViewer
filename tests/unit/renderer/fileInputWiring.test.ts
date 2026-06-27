@@ -126,6 +126,47 @@ describe("renderer file input wiring", () => {
         expect(asyncHandleOpenFile).not.toHaveBeenCalled();
     });
 
+    it("uses default-exported handleOpenFile test overrides", () => {
+        expect.assertions(2);
+
+        const { file, input } = createFileInput("fileInput");
+        const overrideHandleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const asyncHandleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const utils = createWiring({
+            ensureCoreModules: async () =>
+                createCoreModules(asyncHandleOpenFile),
+            getFileInput: () => input,
+            resolveExactRendererCoreTestOverride: (testId) =>
+                testId === "../../utils/files/import/handleOpenFile.js"
+                    ? { default: { handleOpenFile: overrideHandleOpenFile } }
+                    : null,
+        });
+
+        utils.registerDelegatedFileInputChangeListener(document, window);
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+
+        expect(overrideHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
+        expect(asyncHandleOpenFile).not.toHaveBeenCalled();
+    });
+
+    it("falls back to async handleOpenFile for malformed test overrides", async () => {
+        expect.assertions(1);
+
+        const { file, input } = createFileInput("fileInput");
+        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const utils = createWiring({
+            ensureCoreModules: async () => createCoreModules(handleOpenFile),
+            getFileInput: () => input,
+            resolveExactRendererCoreTestOverride: () => "not-a-module",
+        });
+
+        utils.registerDelegatedFileInputChangeListener(document, window);
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await flushFileInputHandlers();
+
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
+    });
+
     it("falls back to async handleOpenFile when no test override resolves", async () => {
         expect.assertions(1);
 
