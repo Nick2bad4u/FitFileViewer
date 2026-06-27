@@ -96,6 +96,26 @@ export function getMainWindow(): MainAppStateValueByPath["mainWindow"] {
 }
 
 /**
+ * Returns the currently stored Gyazo OAuth callback server.
+ *
+ * @returns Stored Gyazo server instance, or null when none is active.
+ */
+export function getGyazoServer(): MainAppStateValueByPath["gyazoServer"] {
+    return getAppState("gyazoServer");
+}
+
+/**
+ * Returns the port used by the active Gyazo OAuth callback server.
+ *
+ * @returns Stored Gyazo server port, or null when none is active.
+ */
+export function getGyazoServerPort(): MainAppStateValueByPath[
+    "gyazoServerPort"
+] {
+    return getAppState("gyazoServerPort");
+}
+
+/**
  * Returns whether the main process is currently quitting.
  *
  * @returns True once the app shutdown lifecycle has started.
@@ -125,6 +145,15 @@ export function isAutoUpdaterUpdateDownloaded(): MainAppStateValueByPath[
     "autoUpdater.updateDownloaded"
 ] {
     return getAppState("autoUpdater.updateDownloaded");
+}
+
+/**
+ * Returns whether a Gyazo OAuth callback server is currently tracked.
+ *
+ * @returns True when a server instance is stored.
+ */
+export function hasGyazoServer(): boolean {
+    return Boolean(getGyazoServer());
 }
 
 /**
@@ -234,14 +263,43 @@ export function setAutoUpdaterState(
     setAppState("autoUpdater.updateDownloaded", updateDownloaded, options);
 }
 
+/**
+ * Sets the active Gyazo OAuth callback server and port together.
+ *
+ * @param server - Active Gyazo OAuth server instance.
+ * @param port - Local callback port used by the server.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setGyazoServerState(
+    server: MainAppStateValueByPath["gyazoServer"],
+    port: MainAppStateValueByPath["gyazoServerPort"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("gyazoServer", server, options);
+    setAppState("gyazoServerPort", port, options);
+}
+
+/**
+ * Clears the active Gyazo OAuth callback server and port.
+ *
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function clearGyazoServerState(options?: StateUpdateOptions): void {
+    setGyazoServerState(null, null, options);
+}
+
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 
 export default {
     cleanupEventHandlers,
+    clearGyazoServerState,
     getAutoUpdaterStatus,
     getAppState,
+    getGyazoServer,
+    getGyazoServerPort,
     getLoadedFitFilePath,
     getMainWindow,
+    hasGyazoServer,
     isAppQuitting,
     isAutoUpdaterInitialized,
     isAutoUpdaterUpdateDownloaded,
@@ -251,6 +309,7 @@ export default {
     setAppState,
     setAutoUpdaterInitialized,
     setAutoUpdaterState,
+    setGyazoServerState,
     setLoadedFitFilePath,
     setMainWindow,
 };

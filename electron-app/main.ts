@@ -29,15 +29,20 @@ export { ensureFitParserStateIntegration } from "./main/runtime/fitParserIntegra
 export { initializeApplication } from "./main/runtime/initializeApplication.js";
 export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 export {
+    clearGyazoServerState,
     getAppState,
     getAutoUpdaterStatus,
+    getGyazoServer,
+    getGyazoServerPort,
     getLoadedFitFilePath,
     getMainWindow,
+    hasGyazoServer,
     isAutoUpdaterInitialized,
     isAutoUpdaterUpdateDownloaded,
     setAppState,
     setAutoUpdaterInitialized,
     setAutoUpdaterState,
+    setGyazoServerState,
     setLoadedFitFilePath,
     setMainWindow,
 } from "./main/state/appState.js";

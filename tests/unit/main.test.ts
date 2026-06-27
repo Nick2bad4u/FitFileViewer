@@ -332,13 +332,17 @@ vi.mock(import("../../electron-app/utils/files/recentFiles.js"), () => ({
 
 const expectedMainExportKeys = [
     "CONSTANTS",
+    "clearGyazoServerState",
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
     "getAppState",
     "getAutoUpdaterStatus",
+    "getGyazoServer",
+    "getGyazoServerPort",
     "getLoadedFitFilePath",
     "getMainWindow",
     "getPersistedThemePreference",
+    "hasGyazoServer",
     "initializeApplication",
     "isAutoUpdaterInitialized",
     "isAutoUpdaterUpdateDownloaded",
@@ -349,6 +353,7 @@ const expectedMainExportKeys = [
     "setAppState",
     "setAutoUpdaterInitialized",
     "setAutoUpdaterState",
+    "setGyazoServerState",
     "setLoadedFitFilePath",
     "setMainWindow",
     "setupApplicationEventHandlers",
@@ -369,18 +374,23 @@ type MainModule = {
     exposeDevHelpers: () => DevHelpers;
     getAppState: (key: string) => unknown;
     getAutoUpdaterStatus: () => string;
+    getGyazoServer: () => unknown;
+    getGyazoServerPort: () => null | number;
     getLoadedFitFilePath: () => null | string;
     getMainWindow: () => unknown;
+    hasGyazoServer: () => boolean;
     initializeApplication: (...args: unknown[]) => unknown;
     isAutoUpdaterInitialized: () => boolean;
     isAutoUpdaterUpdateDownloaded: () => boolean;
     isWindowUsable: (window: unknown) => boolean;
+    clearGyazoServerState: () => void;
     setAppState: (key: string, value: unknown) => void;
     setAutoUpdaterInitialized: (isInitialized: boolean) => void;
     setAutoUpdaterState: (
         status: string,
         updateDownloaded: boolean
     ) => void;
+    setGyazoServerState: (server: unknown, port: null | number) => void;
     setLoadedFitFilePath: (filePath: null | string) => void;
     setMainWindow: (mainWindow: unknown) => void;
     setupAutoUpdater: (window: unknown, updater: unknown) => void;
@@ -712,7 +722,7 @@ describe("main.js - Electron Main Process", () => {
                 message: "No server was running",
                 success: true,
             });
-            expect(mainModule.getAppState("gyazoServer")).toBeNull();
+            expect(mainModule.getGyazoServer()).toBeNull();
         });
     });
 

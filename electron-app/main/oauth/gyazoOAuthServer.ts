@@ -2,9 +2,10 @@ import { sendToRenderer } from "../ipc/sendToRenderer.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { httpRef } from "../runtime/nodeModules.js";
 import {
-    getAppState,
+    clearGyazoServerState,
+    getGyazoServer,
     getMainWindow,
-    setAppState,
+    setGyazoServerState,
 } from "../state/appState.js";
 
 type GyazoServerStartResult = import("../../shared/ipc").GyazoServerStartResult;
@@ -174,7 +175,7 @@ function writeInvalidOAuthRequestPage(res: ServerResponse): void {
 export async function startGyazoOAuthServer(
     port = 3000
 ): Promise<GyazoServerStartResult> {
-    const existingServer = getAppState("gyazoServer");
+    const existingServer = getGyazoServer();
     if (existingServer) {
         await stopGyazoOAuthServer();
     }
@@ -252,8 +253,7 @@ export async function startGyazoOAuthServer(
             });
 
             server.listen(port, "localhost", () => {
-                setAppState("gyazoServer", server);
-                setAppState("gyazoServerPort", port);
+                setGyazoServerState(server, port);
                 logWithContext(
                     "info",
                     `Gyazo OAuth callback server started on http://localhost:${port}`
@@ -282,7 +282,7 @@ export async function startGyazoOAuthServer(
  */
 export async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
     return new Promise<GyazoServerStopResult>((resolve) => {
-        const gyazoServer = asOAuthServer(getAppState("gyazoServer"));
+        const gyazoServer = asOAuthServer(getGyazoServer());
         if (gyazoServer) {
             try {
                 gyazoServer.close(() => {
@@ -290,8 +290,7 @@ export async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
                         "info",
                         "Gyazo OAuth callback server stopped"
                     );
-                    setAppState("gyazoServer", null);
-                    setAppState("gyazoServerPort", null);
+                    clearGyazoServerState();
                     resolve({
                         message: "OAuth callback server stopped",
                         success: true,
@@ -305,8 +304,7 @@ export async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
                         error: getErrorMessage(error),
                     }
                 );
-                setAppState("gyazoServer", null);
-                setAppState("gyazoServerPort", null);
+                clearGyazoServerState();
                 resolve({
                     message: "Failed to stop OAuth callback server",
                     success: false,

@@ -147,8 +147,8 @@ function getServerStateSnapshot(): {
     gyazoServerPort: unknown;
 } {
     return {
-        gyazoServer: appState.getAppState("gyazoServer"),
-        gyazoServerPort: appState.getAppState("gyazoServerPort"),
+        gyazoServer: appState.getGyazoServer(),
+        gyazoServerPort: appState.getGyazoServerPort(),
     };
 }
 
@@ -173,8 +173,7 @@ describe("gyazoOAuthServer", () => {
         );
         appState =
             await import("../../../../electron-app/main/state/appState.js");
-        appState.setAppState("gyazoServer", null);
-        appState.setAppState("gyazoServerPort", null);
+        appState.clearGyazoServerState();
         appState.setMainWindow(null);
         // The module under test is imported natively; mocks follow the same
         // source import paths as its migrated dependencies.

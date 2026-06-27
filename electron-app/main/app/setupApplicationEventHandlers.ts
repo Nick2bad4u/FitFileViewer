@@ -19,6 +19,7 @@ import {
     getAppState,
     getLoadedFitFilePath,
     getMainWindow,
+    hasGyazoServer,
     setAppIsQuitting,
     setAppState,
 } from "../state/appState.js";
@@ -642,8 +643,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         registerAppListener("before-quit", (event) => {
             void (async (): Promise<void> => {
                 setAppIsQuitting(true);
-                const gyazoServer = getAppState("gyazoServer");
-                if (gyazoServer) {
+                if (hasGyazoServer()) {
                     (event as PreventableEvent).preventDefault?.();
                     try {
                         await stopGyazoOAuthServer();
@@ -734,8 +734,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
             rememberStartupTimer(
                 setTimeout(() => {
                     try {
-                        const hasServer = Boolean(getAppState("gyazoServer"));
-                        if (hasServer) {
+                        if (hasGyazoServer()) {
                             const http = httpRef();
                             if (
                                 http &&

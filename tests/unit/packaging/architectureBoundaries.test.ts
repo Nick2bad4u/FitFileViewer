@@ -3310,7 +3310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(333);
+        expect.assertions(349);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3842,6 +3842,32 @@ describe("architecture boundaries", () => {
         expect(setupAutoUpdaterSource).not.toContain(
             'setAppState("autoUpdater.updateDownloaded"'
         );
+        expect(appStateSource).toContain("function getGyazoServer");
+        expect(appStateSource).toContain("function getGyazoServerPort");
+        expect(appStateSource).toContain("function hasGyazoServer");
+        expect(appStateSource).toContain("function setGyazoServerState");
+        expect(appStateSource).toContain("function clearGyazoServerState");
+        expect(gyazoOAuthServerSource).toContain("getGyazoServer");
+        expect(gyazoOAuthServerSource).toContain("setGyazoServerState");
+        expect(gyazoOAuthServerSource).toContain("clearGyazoServerState");
+        expect(gyazoOAuthServerSource).not.toContain(
+            'getAppState("gyazoServer")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'setAppState("gyazoServer"'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'setAppState("gyazoServerPort"'
+        );
+        expect(setupApplicationEventHandlersSource).toContain(
+            "hasGyazoServer"
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'getAppState("gyazoServer")'
+        );
+        expect(mainSource).toContain("getGyazoServer");
+        expect(mainSource).toContain("getGyazoServerPort");
+        expect(mainSource).toContain("clearGyazoServerState");
         expect(appStateSource).toContain("function isAppQuitting");
         expect(appStateSource).toContain("function setAppIsQuitting");
         expect(windowValidationSource).toContain("isAppQuitting");
