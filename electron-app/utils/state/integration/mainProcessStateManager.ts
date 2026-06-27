@@ -184,6 +184,16 @@ type MainElectronLike = {
     shell?: unknown;
 };
 
+type MainBrowserWindowCandidate = {
+    isDestroyed: unknown;
+    webContents: unknown;
+};
+
+type MainWebContentsCandidate = {
+    isDestroyed: unknown;
+    send: unknown;
+};
+
 class MainProcessState {
     data: MainProcessStateData;
 
@@ -818,8 +828,7 @@ class MainProcessState {
         handlerId?: string
     ): string {
         const id =
-            handlerId ||
-            `${emitter.constructor.name}:${event}:${dateNowMs()}`;
+            handlerId || `${emitter.constructor.name}:${event}:${dateNowMs()}`;
 
         emitter.on?.(event, handler);
 
@@ -1538,14 +1547,21 @@ function validateWindow(win: unknown): win is MainBrowserWindowLike {
         return false;
     }
 
-    const candidate = win as Partial<MainBrowserWindowLike>;
-    const webContents = candidate.webContents;
+    if (!hasBrowserWindowProperties(win)) {
+        console.warn(
+            "[mainProcessStateManager] Window is not usable or destroyed"
+        );
+        return false;
+    }
+
+    const { isDestroyed, webContents } = win;
     if (
-        typeof candidate.isDestroyed !== "function" ||
-        candidate.isDestroyed() ||
-        !webContents ||
+        typeof isDestroyed !== "function" ||
+        isDestroyed() ||
+        !hasWebContentsProperties(webContents) ||
         typeof webContents.isDestroyed !== "function" ||
-        webContents.isDestroyed()
+        webContents.isDestroyed() ||
+        typeof webContents.send !== "function"
     ) {
         console.warn(
             "[mainProcessStateManager] Window is not usable or destroyed"
@@ -1553,6 +1569,22 @@ function validateWindow(win: unknown): win is MainBrowserWindowLike {
         return false;
     }
     return true;
+}
+
+function hasBrowserWindowProperties(
+    win: object
+): win is MainBrowserWindowCandidate {
+    return "isDestroyed" in win && "webContents" in win;
+}
+
+function hasWebContentsProperties(
+    webContents: unknown
+): webContents is MainWebContentsCandidate {
+    return (
+        isObjectRecord(webContents) &&
+        "isDestroyed" in webContents &&
+        "send" in webContents
+    );
 }
 
 // Create and export singleton instance

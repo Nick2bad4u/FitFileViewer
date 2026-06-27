@@ -10,6 +10,7 @@ type MainProcessStateManagerModule =
 type BrowserWindowLike = {
     isDestroyed?: () => boolean;
     webContents?: {
+        isDestroyed?: () => boolean;
         send: (...args: unknown[]) => void;
     };
 };
@@ -593,6 +594,41 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
                         test: "data",
                     });
                 }).not.toThrow();
+            });
+
+            it("should reject windows with malformed webContents send handlers", () => {
+                expect.assertions(3);
+
+                const warnSpy = vi
+                    .spyOn(console, "warn")
+                    .mockImplementation(() => {});
+                const mockWindow = {
+                    isDestroyed: vi.fn<IsDestroyed>().mockReturnValue(false),
+                    webContents: {
+                        isDestroyed: vi
+                            .fn<IsDestroyed>()
+                            .mockReturnValue(false),
+                        send: "not-callable",
+                    },
+                };
+
+                mockBrowserWindow.getAllWindows.mockReturnValue([
+                    mockWindow as unknown as BrowserWindowLike,
+                ]);
+
+                expect(() => {
+                    stateInstance.notifyRenderers("test-channel", {
+                        test: "data",
+                    });
+                }).not.toThrow();
+                expect(
+                    mockWindow.webContents.isDestroyed
+                ).toHaveBeenCalledWith();
+                expect(warnSpy).toHaveBeenCalledWith(
+                    "[mainProcessStateManager] Window is not usable or destroyed"
+                );
+
+                warnSpy.mockRestore();
             });
 
             it("should handle IPC send errors", () => {
