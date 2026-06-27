@@ -21,16 +21,15 @@ export type StateChangeEvent = MainStateChange & {
     oldValue?: MainStateIpcValue;
 };
 
-type MainStateElectronAPI = Pick<
-    ElectronMainStateApi,
-    | "getErrors"
-    | "getMainState"
-    | "getMetrics"
-    | "getOperation"
-    | "getOperations"
-    | "listenToMainState"
-    | "setMainState"
->;
+type MainStateElectronAPI = {
+    readonly getErrors: ElectronMainStateApi["getErrors"];
+    readonly getMainState: ElectronMainStateApi["getMainState"];
+    readonly getMetrics: ElectronMainStateApi["getMetrics"];
+    readonly getOperation: ElectronMainStateApi["getOperation"];
+    readonly getOperations: ElectronMainStateApi["getOperations"];
+    readonly listenToMainState: ElectronMainStateApi["listenToMainState"];
+    readonly setMainState: ElectronMainStateApi["setMainState"];
+};
 
 type MainProcessStateClientOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
