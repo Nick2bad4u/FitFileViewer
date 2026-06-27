@@ -237,7 +237,7 @@ describe("rendererStateIntegration", () => {
     });
 
     it("initializeRendererWithNewStateSystem wires subscriptions and responds to changes", async () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const tabContentSummary = document.createElement("div");
         tabContentSummary.className = "tab-content";
@@ -343,7 +343,7 @@ describe("rendererStateIntegration", () => {
         );
 
         setStateMock.mockClear();
-        requiredComponentHandler("table");
+        requiredComponentHandler("data");
         expect(setStateMock).toHaveBeenCalledWith(
             "isLoading",
             true,
@@ -363,6 +363,15 @@ describe("rendererStateIntegration", () => {
         }).toEqual({
             chartDisplay: "block",
             summaryDisplay: "none",
+        });
+
+        requiredReactiveHandler("table");
+        expect({
+            chartDisplay: tabContentChart.style.display,
+            summaryDisplay: tabContentSummary.style.display,
+        }).toEqual({
+            chartDisplay: "none",
+            summaryDisplay: "block",
         });
 
         const themeHandlers = getHandlers("ui.theme");

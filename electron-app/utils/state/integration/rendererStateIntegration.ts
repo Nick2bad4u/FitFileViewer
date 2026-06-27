@@ -11,6 +11,7 @@ import { getState, setState, subscribe } from "../core/stateManager.js";
 import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
+import { normalizeRendererActiveTab } from "../domain/rendererActiveTabState.js";
 import { UIActions } from "../domain/uiStateManager.js";
 import {
     getRendererElectronApi,
@@ -124,9 +125,7 @@ export function exampleStateUsage(): Unsubscribe {
 
     // Subscribing to changes
     const unsubscribe = subscribe("ui.activeTab", (newTab) => {
-        if (typeof newTab === "string") {
-            console.log(`Tab changed to: ${newTab}`);
-        }
+        console.log(`Tab changed to: ${normalizeRendererActiveTab(newTab)}`);
     });
 
     // Later, clean up the subscription
@@ -194,32 +193,33 @@ export function migrateExistingRenderer(): void {
 /**
  * Handle tab changes with state awareness
  */
-function handleTabChange(activeTab: string): void {
+function handleTabChange(activeTab: unknown): void {
+    const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
     const hasData = AppSelectors.hasData();
 
-    if (!hasData && activeTab !== "summary") {
+    if (!hasData && normalizedActiveTab !== "summary") {
         // If no data is loaded, switch back to summary
         AppActions.switchTab("summary");
         return;
     }
 
     // Load tab content based on current state
-    switch (activeTab) {
+    switch (normalizedActiveTab) {
         case "chart": {
             if (!AppSelectors.areChartsRendered()) {
                 void loadChartTab();
             }
             break;
         }
-        case "map": {
-            if (!AppSelectors.isMapRendered()) {
-                void loadMapTab();
+        case "data": {
+            if (!AppSelectors.areTablesRendered()) {
+                void loadTableTab();
             }
             break;
         }
-        case "table": {
-            if (!AppSelectors.areTablesRendered()) {
-                void loadTableTab();
+        case "map": {
+            if (!AppSelectors.isMapRendered()) {
+                void loadMapTab();
             }
             break;
         }
@@ -240,12 +240,10 @@ function initializeComponentsWithState(): void {
 
     // Subscribe to active tab changes
     subscribeRendererState("ui.activeTab", (activeTab) => {
-        if (typeof activeTab !== "string") {
-            return;
-        }
+        const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
 
-        console.log(`[Renderer] Active tab changed to: ${activeTab}`);
-        handleTabChange(activeTab);
+        console.log(`[Renderer] Active tab changed to: ${normalizedActiveTab}`);
+        handleTabChange(normalizedActiveTab);
     });
 
     // Subscribe to chart rendering state
@@ -350,16 +348,14 @@ function setupReactiveUI(): void {
 
     // Update tab visibility when active tab changes
     subscribeRendererState("ui.activeTab", (activeTab) => {
-        if (typeof activeTab !== "string") {
-            return;
-        }
+        const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
 
         const tabContents = documentRef.querySelectorAll(".tab-content");
         for (const content of tabContents) {
             if (rendererStateIntegrationRuntime().isHTMLElement(content)) {
                 const tabName = content.dataset["tabContent"];
                 content.style.display =
-                    tabName === activeTab ? "block" : "none";
+                    tabName === normalizedActiveTab ? "block" : "none";
             }
         }
     });
@@ -467,8 +463,8 @@ function updateAllComponents(newData: unknown): void {
     updateSummaryTab(newData);
 
     // Other tabs will be loaded when switched to
-    const activeTab = getState("ui.activeTab");
-    if (typeof activeTab === "string" && activeTab !== "summary") {
+    const activeTab = normalizeRendererActiveTab(getState("ui.activeTab"));
+    if (activeTab !== "summary") {
         handleTabChange(activeTab);
     }
 }

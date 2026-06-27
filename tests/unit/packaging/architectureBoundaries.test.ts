@@ -13884,7 +13884,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(67);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -13929,6 +13929,13 @@ describe("architecture boundaries", () => {
         expect(rendererStateIntegrationSource).toContain(
             "ElectronPreloadEventApi"
         );
+        expect(rendererStateIntegrationSource).toContain(
+            "rendererActiveTabState.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "normalizeRendererActiveTab"
+        );
+        expect(rendererStateIntegrationSource).not.toContain('case "table"');
         expect(rendererStateIntegrationSource).not.toContain(
             "interface RendererElectronAPI"
         );
