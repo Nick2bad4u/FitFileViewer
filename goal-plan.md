@@ -1724,6 +1724,9 @@ iterating method-name strings through `Reflect.get`, with architecture coverage 
 returning.
 Menu IPC preload API candidate validation now checks explicit optional method properties directly instead of iterating
 menu method names through `Reflect.get`, with architecture coverage blocking that generic probe from returning.
+Version-info preload API candidate validation now checks explicit optional method properties directly instead of
+iterating app-info method names through `Reflect.get`, with architecture coverage blocking that generic probe from
+returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

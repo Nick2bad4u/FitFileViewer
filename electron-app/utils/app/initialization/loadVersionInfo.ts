@@ -18,6 +18,10 @@ type VersionSystemInfo = Record<SystemInfoField, string>;
 
 type VersionInfoElectronAPI = Partial<ElectronAppInfoApi>;
 
+type VersionInfoElectronApiCandidate = {
+    readonly [K in keyof VersionInfoElectronAPI]?: unknown;
+};
+
 type VersionInfoSource = "electronAPI" | "fallback";
 
 type LoadVersionInfoOptions = {
@@ -238,19 +242,17 @@ function isVersionInfoElectronAPI(
         return false;
     }
 
-    return [
-        "getAppVersion",
-        "getChromeVersion",
-        "getElectronVersion",
-        "getLicenseInfo",
-        "getNodeVersion",
-        "getPlatformInfo",
-    ].every((methodName) => {
-        if (!(methodName in value)) {
-            return true;
-        }
+    const api = value as VersionInfoElectronApiCandidate;
+    return (
+        hasOptionalFunction(api.getAppVersion) &&
+        hasOptionalFunction(api.getChromeVersion) &&
+        hasOptionalFunction(api.getElectronVersion) &&
+        hasOptionalFunction(api.getLicenseInfo) &&
+        hasOptionalFunction(api.getNodeVersion) &&
+        hasOptionalFunction(api.getPlatformInfo)
+    );
+}
 
-        const method = Reflect.get(value, methodName);
-        return method === undefined || typeof method === "function";
-    });
+function hasOptionalFunction(value: unknown): boolean {
+    return value === undefined || typeof value === "function";
 }
