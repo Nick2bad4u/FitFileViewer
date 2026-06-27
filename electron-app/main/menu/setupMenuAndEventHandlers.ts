@@ -10,7 +10,11 @@ import {
 import { createElectronConf } from "../runtime/electronConfAccess.js";
 import { fs } from "../runtime/nodeModules.js";
 import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
-import { getAppState, getLoadedFitFilePath } from "../state/appState.js";
+import {
+    getLoadedFitFilePath,
+    isAutoUpdaterInitialized,
+    isAutoUpdaterUpdateDownloaded,
+} from "../state/appState.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import {
     resolveFocusedMainWindow,
@@ -173,14 +177,6 @@ function logUpdaterError(message: string, error: unknown): void {
     });
 }
 
-function isAutoUpdaterInitialized(): boolean {
-    return getAppState("autoUpdaterInitialized");
-}
-
-function isUpdateDownloaded(): boolean {
-    return getAppState("autoUpdater.updateDownloaded");
-}
-
 function notifyUpdaterUnavailable(event: IpcEventLike, message: string): void {
     const win = getBrowserWindowFromEvent(event);
     if (win) {
@@ -218,7 +214,7 @@ export function setupMenuAndEventHandlers(): void {
     const updateHandlers: Record<MenuUpdateEventChannel, IpcCallback> = {
         "install-update": (event) => {
             const ipcEvent = event as IpcEventLike;
-            if (!isUpdateDownloaded()) {
+            if (!isAutoUpdaterUpdateDownloaded()) {
                 notifyUpdaterUnavailable(
                     ipcEvent,
                     "Update install is not available yet."
@@ -265,7 +261,7 @@ export function setupMenuAndEventHandlers(): void {
         },
         "menu-restart-update": (event) => {
             const ipcEvent = event as IpcEventLike;
-            if (!isUpdateDownloaded()) {
+            if (!isAutoUpdaterUpdateDownloaded()) {
                 notifyUpdaterUnavailable(
                     ipcEvent,
                     "Update install is not available yet."

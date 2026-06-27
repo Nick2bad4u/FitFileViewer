@@ -28,13 +28,10 @@ interface MainWindowLike {
 type BrowserWindowApi = MainWindowBrowserWindowApi<MainWindowLike>;
 type BrowserWindowConstructor =
     MainWindowBrowserWindowConstructor<MainWindowLike>;
-type InitializeMainWindowGetAppState = (
-    key: "autoUpdaterInitialized"
-) => boolean;
+type InitializeMainWindowIsAutoUpdaterInitialized = () => boolean;
 type InitializeMainWindowGetLoadedFitFilePath = () => null | string;
-type InitializeMainWindowSetAppState = (
-    key: "autoUpdaterInitialized",
-    value: boolean
+type InitializeMainWindowSetAutoUpdaterInitialized = (
+    isInitialized: boolean
 ) => void;
 type InitializeMainWindowSetMainWindow = (
     mainWindow: MainAppStateWindowLike
@@ -57,9 +54,9 @@ interface InitializeMainWindowOptions {
         | null
         | undefined;
     CONSTANTS: { DEFAULT_THEME: string };
-    getAppState: InitializeMainWindowGetAppState;
     getLoadedFitFilePath: InitializeMainWindowGetLoadedFitFilePath;
     getPersistedThemePreference: () => Promise<string>;
+    isAutoUpdaterInitialized: InitializeMainWindowIsAutoUpdaterInitialized;
     logWithContext: LogWithContext;
     resolveAutoUpdater: () => Promise<AutoUpdaterLike | null>;
     safeCreateAppMenu: (
@@ -72,7 +69,7 @@ interface InitializeMainWindowOptions {
         channel: RendererIpcEventChannel,
         ...args: unknown[]
     ) => void;
-    setAppState: InitializeMainWindowSetAppState;
+    setAutoUpdaterInitialized: InitializeMainWindowSetAutoUpdaterInitialized;
     setMainWindow: InitializeMainWindowSetMainWindow;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
@@ -100,9 +97,9 @@ function createFallbackWindow(): MainWindowLike {
  */
 export function initializeMainWindow({
     browserWindowRef,
-    getAppState,
     getLoadedFitFilePath,
-    setAppState,
+    isAutoUpdaterInitialized,
+    setAutoUpdaterInitialized,
     setMainWindow,
     safeCreateAppMenu,
     CONSTANTS,
@@ -149,7 +146,7 @@ export function initializeMainWindow({
                 "did-finish-load event fired, syncing theme"
             );
 
-            if (!getAppState("autoUpdaterInitialized")) {
+            if (!isAutoUpdaterInitialized()) {
                 try {
                     const autoUpdater = await resolveAutoUpdater();
                     setupAutoUpdater(mainWindow, autoUpdater);
@@ -159,7 +156,7 @@ export function initializeMainWindow({
                             "function"
                     ) {
                         await autoUpdater.checkForUpdatesAndNotify();
-                        setAppState("autoUpdaterInitialized", true);
+                        setAutoUpdaterInitialized(true);
                     }
                 } catch (error) {
                     logWithContext("error", "Failed to setup auto-updater:", {

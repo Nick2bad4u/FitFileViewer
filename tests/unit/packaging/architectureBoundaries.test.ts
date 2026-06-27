@@ -3310,7 +3310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(311);
+        expect.assertions(333);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3783,6 +3783,64 @@ describe("architecture boundaries", () => {
         );
         expect(setupMenuAndEventHandlersSource).toContain(
             "getLoadedFitFilePath"
+        );
+        expect(appStateSource).toContain("function getAutoUpdaterStatus");
+        expect(appStateSource).toContain("function isAutoUpdaterInitialized");
+        expect(appStateSource).toContain(
+            "function isAutoUpdaterUpdateDownloaded"
+        );
+        expect(appStateSource).toContain(
+            "function setAutoUpdaterInitialized"
+        );
+        expect(appStateSource).toContain("function setAutoUpdaterState");
+        expect(initializeApplicationSource).toContain(
+            "isAutoUpdaterInitialized"
+        );
+        expect(initializeApplicationSource).toContain(
+            "setAutoUpdaterInitialized"
+        );
+        expect(bootstrapMainWindowSource).toContain(
+            "isAutoUpdaterInitialized"
+        );
+        expect(bootstrapMainWindowSource).toContain(
+            "setAutoUpdaterInitialized"
+        );
+        expect(bootstrapMainWindowSource).not.toContain(
+            'getAppState("autoUpdaterInitialized")'
+        );
+        expect(bootstrapMainWindowSource).not.toContain(
+            'setAppState("autoUpdaterInitialized"'
+        );
+        expect(initializeMainWindowSource).toContain(
+            "isAutoUpdaterInitialized"
+        );
+        expect(initializeMainWindowSource).toContain(
+            "setAutoUpdaterInitialized"
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            'getAppState("autoUpdaterInitialized")'
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            'setAppState("autoUpdaterInitialized"'
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "isAutoUpdaterInitialized"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "isAutoUpdaterUpdateDownloaded"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'getAppState("autoUpdaterInitialized")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'getAppState("autoUpdater.updateDownloaded")'
+        );
+        expect(setupAutoUpdaterSource).toContain("setAutoUpdaterState");
+        expect(setupAutoUpdaterSource).not.toContain(
+            'setAppState("autoUpdater.status"'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'setAppState("autoUpdater.updateDownloaded"'
         );
         expect(appStateSource).toContain("function isAppQuitting");
         expect(appStateSource).toContain("function setAppIsQuitting");

@@ -643,7 +643,7 @@ describe("main.js strict handlers and events", () => {
         );
         expect(updaterCheck[0]).toBe("menu-check-for-updates");
         updater.checkForUpdates.mockClear();
-        mainModule.setAppState("autoUpdaterInitialized", false);
+        mainModule.setAutoUpdaterInitialized(false);
         getRequiredHandler(updaterCheck)({
             sender: mockMainWindow.webContents,
         });
@@ -653,7 +653,7 @@ describe("main.js strict handlers and events", () => {
             "Update checker is not ready yet.",
             "error"
         );
-        mainModule.setAppState("autoUpdaterInitialized", true);
+        mainModule.setAutoUpdaterInitialized(true);
         await getRequiredHandler(updaterCheck)({
             sender: mockMainWindow.webContents,
         });
@@ -670,7 +670,7 @@ describe("main.js strict handlers and events", () => {
             );
             expect(install[0]).toBe("install-update");
             updater.quitAndInstall.mockClear();
-            mainModule.setAppState("autoUpdater.updateDownloaded", false);
+            mainModule.setAutoUpdaterState("idle", false);
             await getRequiredHandler(install)({
                 sender: mockMainWindow.webContents,
             });
@@ -680,7 +680,7 @@ describe("main.js strict handlers and events", () => {
                 "Update install is not available yet.",
                 "error"
             );
-            mainModule.setAppState("autoUpdater.updateDownloaded", true);
+            mainModule.setAutoUpdaterState("downloaded", true);
             await getRequiredHandler(install)({
                 sender: mockMainWindow.webContents,
             });

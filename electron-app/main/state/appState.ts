@@ -32,6 +32,8 @@ export type MainAppStateValueByPath = {
 };
 
 export type MainAppStateKnownPath = keyof MainAppStateValueByPath;
+export type MainAppAutoUpdaterStatus =
+    MainAppStateValueByPath["autoUpdater.status"];
 
 interface FitParserSettingsConf {
     get: (key: string) => unknown;
@@ -76,6 +78,15 @@ export function getLoadedFitFilePath(): MainAppStateValueByPath[
 }
 
 /**
+ * Returns the current auto-updater status.
+ *
+ * @returns Auto-updater lifecycle status.
+ */
+export function getAutoUpdaterStatus(): MainAppAutoUpdaterStatus {
+    return getAppState("autoUpdater.status");
+}
+
+/**
  * Returns the BrowserWindow tracked by the main process.
  *
  * @returns Current main window, or null when none has been stored.
@@ -91,6 +102,29 @@ export function getMainWindow(): MainAppStateValueByPath["mainWindow"] {
  */
 export function isAppQuitting(): MainAppStateValueByPath["appIsQuitting"] {
     return getAppState("appIsQuitting");
+}
+
+/**
+ * Returns whether the auto-updater has been initialized for the current
+ * window lifecycle.
+ *
+ * @returns True once auto-updater setup completed.
+ */
+export function isAutoUpdaterInitialized(): MainAppStateValueByPath[
+    "autoUpdaterInitialized"
+] {
+    return getAppState("autoUpdaterInitialized");
+}
+
+/**
+ * Returns whether an update has been downloaded and is ready to install.
+ *
+ * @returns True when the updater has a downloaded update.
+ */
+export function isAutoUpdaterUpdateDownloaded(): MainAppStateValueByPath[
+    "autoUpdater.updateDownloaded"
+] {
+    return getAppState("autoUpdater.updateDownloaded");
 }
 
 /**
@@ -170,18 +204,53 @@ export function setAppIsQuitting(
     setAppState("appIsQuitting", isQuitting, options);
 }
 
+/**
+ * Sets whether the auto-updater has been initialized for the current window
+ * lifecycle.
+ *
+ * @param isInitialized - True after setup and update checks have started.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setAutoUpdaterInitialized(
+    isInitialized: MainAppStateValueByPath["autoUpdaterInitialized"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("autoUpdaterInitialized", isInitialized, options);
+}
+
+/**
+ * Updates the paired auto-updater status and downloaded flag.
+ *
+ * @param status - Auto-updater lifecycle status.
+ * @param updateDownloaded - True when an update is ready to install.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setAutoUpdaterState(
+    status: MainAppAutoUpdaterStatus,
+    updateDownloaded: MainAppStateValueByPath["autoUpdater.updateDownloaded"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("autoUpdater.status", status, options);
+    setAppState("autoUpdater.updateDownloaded", updateDownloaded, options);
+}
+
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 
 export default {
     cleanupEventHandlers,
+    getAutoUpdaterStatus,
     getAppState,
     getLoadedFitFilePath,
     getMainWindow,
     isAppQuitting,
+    isAutoUpdaterInitialized,
+    isAutoUpdaterUpdateDownloaded,
     mainProcessState: runtimeMainProcessState,
     resolveFitParserSettingsConf,
     setAppIsQuitting,
     setAppState,
+    setAutoUpdaterInitialized,
+    setAutoUpdaterState,
     setLoadedFitFilePath,
     setMainWindow,
 };

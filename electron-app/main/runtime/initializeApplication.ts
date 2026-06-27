@@ -4,10 +4,10 @@ import { logWithContext } from "../logging/logWithContext.js";
 import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
 import { browserWindowRef } from "../runtime/electronAccess.js";
 import {
-    getAppState,
     getLoadedFitFilePath,
+    isAutoUpdaterInitialized,
+    setAutoUpdaterInitialized,
     setMainWindow,
-    setAppState,
 } from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
@@ -23,14 +23,14 @@ export async function initializeApplication(): Promise<unknown> {
     return bootstrapMainWindow({
         browserWindowRef,
         CONSTANTS,
-        getAppState,
         getLoadedFitFilePath,
+        isAutoUpdaterInitialized,
         getPersistedThemePreference,
         logWithContext,
         resolveAutoUpdaterAsync,
         safeCreateAppMenu,
         sendToRenderer,
-        setAppState,
+        setAutoUpdaterInitialized,
         setMainWindow,
         setupAutoUpdater,
     });

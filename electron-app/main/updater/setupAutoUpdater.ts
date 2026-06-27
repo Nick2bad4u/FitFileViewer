@@ -2,7 +2,10 @@ import { CONSTANTS } from "../constants.js";
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { menuRef } from "../runtime/electronAccess.js";
-import { mainProcessState, setAppState } from "../state/appState.js";
+import {
+    mainProcessState,
+    setAutoUpdaterState,
+} from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
 import electronLog from "electron-log";
 
@@ -209,13 +212,11 @@ export function setupAutoUpdater(
 
     const updateEventHandlers: Record<string, (...args: unknown[]) => void> = {
         "checking-for-update": () => {
-            setAppState("autoUpdater.status", "checking");
-            setAppState("autoUpdater.updateDownloaded", false);
+            setAutoUpdaterState("checking", false);
             sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.CHECKING);
         },
         "download-progress": (progressObj: unknown) => {
-            setAppState("autoUpdater.status", "downloading");
-            setAppState("autoUpdater.updateDownloaded", false);
+            setAutoUpdaterState("downloading", false);
             sendToRenderer(
                 mainWindow,
                 CONSTANTS.UPDATE_EVENTS.DOWNLOAD_PROGRESS,
@@ -224,8 +225,7 @@ export function setupAutoUpdater(
         },
         error: (err: unknown) => {
             const errorMessage = getErrorMessage(err);
-            setAppState("autoUpdater.status", "error");
-            setAppState("autoUpdater.updateDownloaded", false);
+            setAutoUpdaterState("error", false);
             updater.logger?.error?.(`AutoUpdater Error: ${errorMessage}`);
             sendToRenderer(
                 mainWindow,
@@ -234,13 +234,11 @@ export function setupAutoUpdater(
             );
         },
         "update-available": (info: unknown) => {
-            setAppState("autoUpdater.status", "available");
-            setAppState("autoUpdater.updateDownloaded", false);
+            setAutoUpdaterState("available", false);
             sendToRenderer(mainWindow, CONSTANTS.UPDATE_EVENTS.AVAILABLE, info);
         },
         "update-downloaded": (info: unknown) => {
-            setAppState("autoUpdater.status", "downloaded");
-            setAppState("autoUpdater.updateDownloaded", true);
+            setAutoUpdaterState("downloaded", true);
             sendToRenderer(
                 mainWindow,
                 CONSTANTS.UPDATE_EVENTS.DOWNLOADED,
@@ -249,8 +247,7 @@ export function setupAutoUpdater(
             enableRestartMenuItem();
         },
         "update-not-available": (info: unknown) => {
-            setAppState("autoUpdater.status", "idle");
-            setAppState("autoUpdater.updateDownloaded", false);
+            setAutoUpdaterState("idle", false);
             sendToRenderer(
                 mainWindow,
                 CONSTANTS.UPDATE_EVENTS.NOT_AVAILABLE,

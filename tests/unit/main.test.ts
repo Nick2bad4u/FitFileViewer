@@ -335,15 +335,20 @@ const expectedMainExportKeys = [
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
     "getAppState",
+    "getAutoUpdaterStatus",
     "getLoadedFitFilePath",
     "getMainWindow",
     "getPersistedThemePreference",
     "initializeApplication",
+    "isAutoUpdaterInitialized",
+    "isAutoUpdaterUpdateDownloaded",
     "isWindowUsable",
     "logWithContext",
     "resolveAutoUpdaterAsync",
     "sendToRenderer",
     "setAppState",
+    "setAutoUpdaterInitialized",
+    "setAutoUpdaterState",
     "setLoadedFitFilePath",
     "setMainWindow",
     "setupApplicationEventHandlers",
@@ -363,11 +368,19 @@ type MainModule = {
     };
     exposeDevHelpers: () => DevHelpers;
     getAppState: (key: string) => unknown;
+    getAutoUpdaterStatus: () => string;
     getLoadedFitFilePath: () => null | string;
     getMainWindow: () => unknown;
     initializeApplication: (...args: unknown[]) => unknown;
+    isAutoUpdaterInitialized: () => boolean;
+    isAutoUpdaterUpdateDownloaded: () => boolean;
     isWindowUsable: (window: unknown) => boolean;
     setAppState: (key: string, value: unknown) => void;
+    setAutoUpdaterInitialized: (isInitialized: boolean) => void;
+    setAutoUpdaterState: (
+        status: string,
+        updateDownloaded: boolean
+    ) => void;
     setLoadedFitFilePath: (filePath: null | string) => void;
     setMainWindow: (mainWindow: unknown) => void;
     setupAutoUpdater: (window: unknown, updater: unknown) => void;
@@ -603,17 +616,25 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle state management during early sync path", async () => {
-            expect.assertions(2);
+            expect.assertions(6);
 
             const mainModule = await importMainModule();
 
             mainModule.setLoadedFitFilePath("/activities/test.fit");
+            mainModule.setAutoUpdaterInitialized(true);
+            mainModule.setAutoUpdaterState("downloaded", true);
 
             expect(mainModule.getLoadedFitFilePath()).toBe(
                 "/activities/test.fit"
             );
+            expect(mainModule.isAutoUpdaterInitialized()).toBe(true);
+            expect(mainModule.getAutoUpdaterStatus()).toBe("downloaded");
+            expect(mainModule.isAutoUpdaterUpdateDownloaded()).toBe(true);
+            mainModule.setAutoUpdaterInitialized(false);
             mainModule.setLoadedFitFilePath(null);
+            mainModule.setAutoUpdaterState("idle", false);
             expect(mainModule.getLoadedFitFilePath()).toBeNull();
+            expect(mainModule.isAutoUpdaterUpdateDownloaded()).toBe(false);
         });
 
         it("should complete early sync path when window exists", async () => {

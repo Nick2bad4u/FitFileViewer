@@ -30,9 +30,14 @@ export { initializeApplication } from "./main/runtime/initializeApplication.js";
 export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 export {
     getAppState,
+    getAutoUpdaterStatus,
     getLoadedFitFilePath,
     getMainWindow,
+    isAutoUpdaterInitialized,
+    isAutoUpdaterUpdateDownloaded,
     setAppState,
+    setAutoUpdaterInitialized,
+    setAutoUpdaterState,
     setLoadedFitFilePath,
     setMainWindow,
 } from "./main/state/appState.js";
