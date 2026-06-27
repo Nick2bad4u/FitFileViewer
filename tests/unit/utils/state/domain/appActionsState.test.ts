@@ -72,4 +72,27 @@ describe("appActionsState lifecycle facade", () => {
         expect(getRendererMapState()).toStrictEqual({});
         expect(getRendererPerformanceMetrics()).toStrictEqual({});
     });
+
+    it("stores normalized render flags through direct state writes", () => {
+        expect.assertions(4);
+
+        setState("map.measurementMode", "true", { source: "test" });
+        expect(getState("map.measurementMode")).toBe(false);
+
+        setState("map.measurementMode", true, { source: "test" });
+        expect(isRendererMapMeasurementModeEnabled()).toBe(true);
+
+        setState("tables.isRendered", "true", { source: "test" });
+        expect(getState("tables.isRendered")).toBe(false);
+
+        setState(
+            "tables",
+            { currentPage: 2, isRendered: true },
+            { source: "test" }
+        );
+        expect(getState("tables")).toMatchObject({
+            currentPage: 2,
+            isRendered: true,
+        });
+    });
 });

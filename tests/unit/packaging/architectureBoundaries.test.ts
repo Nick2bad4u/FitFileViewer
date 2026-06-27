@@ -11872,6 +11872,61 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer render-flag state normalization on the shared contract", () => {
+        expect.assertions(12);
+
+        const rendererChartRenderStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererChartRenderState.ts"
+            )
+        );
+        const rendererMapRenderStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererMapRenderState.ts"
+            )
+        );
+        const appActionsStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/appActionsState.ts"
+            )
+        );
+        const rendererRenderStateContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererRenderStateContract.ts"
+            )
+        );
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+
+        expect(rendererChartRenderStateSource).toContain(
+            "rendererRenderStateContract.js"
+        );
+        expect(rendererChartRenderStateSource).not.toContain(
+            "function normalizeRendererChartsRendered"
+        );
+        expect(rendererMapRenderStateSource).toContain(
+            "rendererRenderStateContract.js"
+        );
+        expect(appActionsStateSource).toContain(
+            "rendererRenderStateContract.js"
+        );
+        expect(rendererRenderStateContractSource).toContain(
+            "normalizeRendererChartRenderStateBranch"
+        );
+        expect(rendererRenderStateContractSource).toContain(
+            "normalizeRendererMapRenderStateBranch"
+        );
+        expect(rendererRenderStateContractSource).toContain(
+            "normalizeRendererTableRenderStateBranch"
+        );
+        expect(stateManagerSource).toContain("charts.isRendered");
+        expect(stateManagerSource).toContain("charts.isRendering");
+        expect(stateManagerSource).toContain("charts.tabActive");
+        expect(stateManagerSource).toContain("map.measurementMode");
+        expect(stateManagerSource).toContain("tables.isRendered");
+    });
+
     it("keeps map base-layer persistence on the map base-layer state facade", () => {
         expect.assertions(6);
 

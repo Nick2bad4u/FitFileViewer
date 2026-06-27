@@ -3,19 +3,26 @@ import {
     setState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
+import { normalizeRendererRenderFlag } from "./rendererRenderStateContract.js";
 
 const RENDERER_MAP_RENDERED_STATE_PATH = "map.isRendered";
 
 export function isRendererMapRendered(): boolean {
-    return getState(RENDERER_MAP_RENDERED_STATE_PATH) === true;
+    return normalizeRendererRenderFlag(
+        getState(RENDERER_MAP_RENDERED_STATE_PATH)
+    );
 }
 
 export function setRendererMapRendered(
     isRendered: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_MAP_RENDERED_STATE_PATH, isRendered, {
-        source: "rendererMapRenderState.set",
-        ...options,
-    });
+    setState(
+        RENDERER_MAP_RENDERED_STATE_PATH,
+        normalizeRendererRenderFlag(isRendered),
+        {
+            source: "rendererMapRenderState.set",
+            ...options,
+        }
+    );
 }

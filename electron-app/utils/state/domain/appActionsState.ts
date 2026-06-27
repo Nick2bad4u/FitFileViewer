@@ -4,6 +4,7 @@ import {
     type StateUpdateOptions,
     updateState,
 } from "../core/stateManager.js";
+import { normalizeRendererRenderFlag } from "./rendererRenderStateContract.js";
 
 export type AppActionMapCenter = [number, number];
 export type AppActionTableState = Record<string, unknown>;
@@ -20,7 +21,7 @@ const APP_INITIALIZED_STATE_PATH = "app.initialized";
 const WINDOW_STATE_PATH = "ui.windowState";
 
 export function areRendererTablesRendered(): boolean {
-    return getState(TABLES_RENDERED_STATE_PATH) === true;
+    return normalizeRendererRenderFlag(getState(TABLES_RENDERED_STATE_PATH));
 }
 
 export function getRendererMapState(): Record<string, unknown> {
@@ -34,7 +35,9 @@ export function getRendererPerformanceMetrics(): Record<string, unknown> {
 }
 
 export function isRendererMapMeasurementModeEnabled(): boolean {
-    return getState(MAP_MEASUREMENT_MODE_STATE_PATH) === true;
+    return normalizeRendererRenderFlag(
+        getState(MAP_MEASUREMENT_MODE_STATE_PATH)
+    );
 }
 
 export function setAppInitialized(
@@ -61,10 +64,14 @@ export function setMapMeasurementMode(
     measurementMode: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(MAP_MEASUREMENT_MODE_STATE_PATH, measurementMode, {
-        source: "appActionsState.setMapMeasurementMode",
-        ...options,
-    });
+    setState(
+        MAP_MEASUREMENT_MODE_STATE_PATH,
+        normalizeRendererRenderFlag(measurementMode),
+        {
+            source: "appActionsState.setMapMeasurementMode",
+            ...options,
+        }
+    );
 }
 
 export function setMapSelectedLap(
@@ -91,10 +98,14 @@ export function setRendererTablesRendered(
     isRendered: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(TABLES_RENDERED_STATE_PATH, isRendered, {
-        source: "appActionsState.setTablesRendered",
-        ...options,
-    });
+    setState(
+        TABLES_RENDERED_STATE_PATH,
+        normalizeRendererRenderFlag(isRendered),
+        {
+            source: "appActionsState.setTablesRendered",
+            ...options,
+        }
+    );
 }
 
 export function updateAppActionWindowState(

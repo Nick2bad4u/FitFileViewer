@@ -343,6 +343,52 @@ describe("state manager core", () => {
         });
     });
 
+    it("normalizes renderer render flags at the core state boundary", () => {
+        expect.assertions(9);
+
+        resetStateManager();
+
+        setState("charts.isRendered", "true");
+        expect(getState("charts.isRendered")).toBe(false);
+
+        setState("charts.isRendering", true);
+        expect(getState("charts.isRendering")).toBe(true);
+
+        setState("charts.tabActive", "yes");
+        expect(getState("charts.tabActive")).toBe(false);
+
+        setState("charts", {
+            controlsVisible: undefined,
+            isRendered: true,
+            isRendering: "true",
+            tabActive: true,
+        });
+        expect(getState("charts")).toMatchObject({
+            isRendered: true,
+            isRendering: false,
+            tabActive: true,
+        });
+        expect(getState("charts.controlsVisible")).toBeUndefined();
+
+        setState("map.isRendered", "true");
+        expect(getState("map.isRendered")).toBe(false);
+
+        setState("map", { isRendered: true, measurementMode: "true" });
+        expect(getState("map")).toMatchObject({
+            isRendered: true,
+            measurementMode: false,
+        });
+
+        setState("tables.isRendered", "true");
+        expect(getState("tables.isRendered")).toBe(false);
+
+        setState("tables", { currentPage: 3, isRendered: true });
+        expect(getState("tables")).toMatchObject({
+            currentPage: 3,
+            isRendered: true,
+        });
+    });
+
     it("normalizes FIT-file loading lifecycle writes at the core state boundary", () => {
         expect.assertions(3);
 

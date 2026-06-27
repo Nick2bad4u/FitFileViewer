@@ -39,6 +39,38 @@ describe("rendererChartRenderState", () => {
         expect(normalizeRendererChartsRendered("true")).toBe(false);
     });
 
+    it("stores normalized chart render flags through direct state writes", () => {
+        expect.assertions(5);
+
+        stateManager.setState("charts.isRendered", "true", { source: "test" });
+        expect(stateManager.getState("charts.isRendered")).toBe(false);
+
+        stateManager.setState("charts.isRendering", "true", {
+            source: "test",
+        });
+        expect(stateManager.getState("charts.isRendering")).toBe(false);
+
+        stateManager.setState("charts.tabActive", true, { source: "test" });
+        expect(stateManager.getState("charts.tabActive")).toBe(true);
+
+        stateManager.setState(
+            "charts",
+            {
+                controlsVisible: undefined,
+                isRendered: true,
+                isRendering: "true",
+                tabActive: "yes",
+            },
+            { source: "test" }
+        );
+        expect(stateManager.getState("charts")).toMatchObject({
+            isRendered: true,
+            isRendering: false,
+            tabActive: false,
+        });
+        expect(stateManager.getState("charts.controlsVisible")).toBeUndefined();
+    });
+
     it("reads and updates the aggregate renderer chart state", () => {
         expect.assertions(2);
 

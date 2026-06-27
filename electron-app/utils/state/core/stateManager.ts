@@ -52,6 +52,12 @@ import {
 } from "../domain/rendererDragDropContract.js";
 import { normalizeRendererLoading } from "../domain/rendererLoadingContract.js";
 import {
+    normalizeRendererChartRenderStateBranch,
+    normalizeRendererMapRenderStateBranch,
+    normalizeRendererRenderFlag,
+    normalizeRendererTableRenderStateBranch,
+} from "../domain/rendererRenderStateContract.js";
+import {
     normalizeRendererTheme,
     normalizeRendererThemeUiBranch,
 } from "../domain/rendererThemeContract.js";
@@ -126,6 +132,14 @@ const BROWSER_STATE_PATH_NORMALIZERS = new Map<
     ["browser.scan", normalizeBrowserScanState],
     ["browser.view", normalizeBrowserView],
 ]);
+const CHART_STATE_PATH_NORMALIZERS = new Map<
+    string,
+    (value: unknown) => unknown
+>([
+    ["charts.isRendered", normalizeRendererRenderFlag],
+    ["charts.isRendering", normalizeRendererRenderFlag],
+    ["charts.tabActive", normalizeRendererRenderFlag],
+]);
 const FIT_FILE_STATE_PATH_NORMALIZERS = new Map<
     string,
     (value: unknown) => unknown
@@ -136,8 +150,16 @@ const FIT_FILE_STATE_PATH_NORMALIZERS = new Map<
     ["fitFile.loadingState", normalizeFitFileLoadingState],
 ]);
 const MAP_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>(
-    [["map.baseLayer", normalizeMapBaseLayer]]
+    [
+        ["map.baseLayer", normalizeMapBaseLayer],
+        ["map.isRendered", normalizeRendererRenderFlag],
+        ["map.measurementMode", normalizeRendererRenderFlag],
+    ]
 );
+const TABLE_STATE_PATH_NORMALIZERS = new Map<
+    string,
+    (value: unknown) => unknown
+>([["tables.isRendered", normalizeRendererRenderFlag]]);
 
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
@@ -175,6 +197,15 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
         return normalizeBrowserStateBranch(value);
     }
 
+    const chartNormalizer = CHART_STATE_PATH_NORMALIZERS.get(path);
+    if (chartNormalizer) {
+        return chartNormalizer(value);
+    }
+
+    if (path === "charts" && isRecord(value)) {
+        return normalizeRendererChartRenderStateBranch(value);
+    }
+
     const fitFileNormalizer = FIT_FILE_STATE_PATH_NORMALIZERS.get(path);
     if (fitFileNormalizer) {
         return fitFileNormalizer(value);
@@ -193,7 +224,17 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
     }
 
     if (path === "map" && isRecord(value)) {
-        return normalizeMapStateBranch(value);
+        const baseLayerNormalizedBranch = normalizeMapStateBranch(value);
+        return normalizeRendererMapRenderStateBranch(baseLayerNormalizedBranch);
+    }
+
+    const tableNormalizer = TABLE_STATE_PATH_NORMALIZERS.get(path);
+    if (tableNormalizer) {
+        return tableNormalizer(value);
+    }
+
+    if (path === "tables" && isRecord(value)) {
+        return normalizeRendererTableRenderStateBranch(value);
     }
 
     if (RENDERER_ACTIVE_TAB_STATE_PATHS.has(path)) {

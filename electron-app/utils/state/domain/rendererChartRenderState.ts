@@ -6,6 +6,8 @@ import {
     updateState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
+export { normalizeRendererRenderFlag as normalizeRendererChartsRendered } from "./rendererRenderStateContract.js";
+import { normalizeRendererRenderFlag } from "./rendererRenderStateContract.js";
 
 const RENDERER_CHART_STATE_PATH = "charts";
 const RENDERER_CHARTS_RENDERED_STATE_PATH = "charts.isRendered";
@@ -22,7 +24,7 @@ export type RendererChartPreviousState = {
 };
 
 export function areRendererChartsRendered(): boolean {
-    return normalizeRendererChartsRendered(
+    return normalizeRendererRenderFlag(
         getState(RENDERER_CHARTS_RENDERED_STATE_PATH)
     );
 }
@@ -46,20 +48,28 @@ export function setRendererChartRendering(
     rendering: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_CHART_RENDERING_STATE_PATH, rendering, {
-        source: "rendererChartRenderState.setRendering",
-        ...options,
-    });
+    setState(
+        RENDERER_CHART_RENDERING_STATE_PATH,
+        normalizeRendererRenderFlag(rendering),
+        {
+            source: "rendererChartRenderState.setRendering",
+            ...options,
+        }
+    );
 }
 
 export function setRendererChartTabActive(
     active: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_CHART_TAB_ACTIVE_STATE_PATH, active, {
-        source: "rendererChartRenderState.setTabActive",
-        ...options,
-    });
+    setState(
+        RENDERER_CHART_TAB_ACTIVE_STATE_PATH,
+        normalizeRendererRenderFlag(active),
+        {
+            source: "rendererChartRenderState.setTabActive",
+            ...options,
+        }
+    );
 }
 
 export function setRendererChartsRendered(
@@ -68,7 +78,7 @@ export function setRendererChartsRendered(
 ): void {
     setState(
         RENDERER_CHARTS_RENDERED_STATE_PATH,
-        normalizeRendererChartsRendered(rendered),
+        normalizeRendererRenderFlag(rendered),
         {
             source: "rendererChartRenderState.setRendered",
             ...options,
@@ -100,10 +110,6 @@ export function setRendererChartPreviousState(
         source: "rendererChartRenderState.setPreviousState",
         ...options,
     });
-}
-
-export function normalizeRendererChartsRendered(value: unknown): boolean {
-    return value === true;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
