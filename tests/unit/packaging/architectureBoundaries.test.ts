@@ -3401,7 +3401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(384);
+        expect.assertions(393);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3497,6 +3497,11 @@ describe("architecture boundaries", () => {
         const setupMenuAndEventHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/setupMenuAndEventHandlers.ts"
+            )
+        );
+        const registerDevtoolsInjectMenuHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerDevtoolsInjectMenuHandler.ts"
             )
         );
         const registerFullscreenHandlerSource = stripComments(
@@ -4098,6 +4103,33 @@ describe("architecture boundaries", () => {
         );
         expect(registerThemeChangedHandlerSource).toContain(
             "createElectronConf"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "registerIpcHandle"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            '"devtools-inject-menu"'
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "validateDevtoolsInjectMenuPayload"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "isDevtoolsMenuInjectionAllowed"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).not.toContain(
+            "export default"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'registerIpcHandle("devtools-inject-menu"'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            "validateDevtoolsInjectMenuPayload"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "registerDevtoolsInjectMenuHandler"
         );
         expect(registerFullscreenHandlerSource).toContain(
             'registerIpcListener("set-fullscreen"'
