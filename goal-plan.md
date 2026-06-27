@@ -1601,7 +1601,8 @@ instead of the retired broad global-scope handoff, with architecture coverage bl
 and "Global-like object to inspect" wording from returning.
 Main updater access now resolves Vitest import-mock globals through `autoUpdaterAccessRuntime.ts` instead of probing
 `globalThis` inside the updater resolver, with focused coverage and architecture coverage blocking that resolver-level
-global probe from returning.
+global probe from returning. The updater module property reader now uses typed indexed access inside its guarded
+try/catch instead of a source-level `Reflect.get` probe while preserving lazy-getter fallback behavior.
 That updater-access runtime now reuses the shared `getBrowserGlobalProperty` boundary instead of carrying a local
 `Reflect.get(globalThis, "vi")` helper, with focused coverage and architecture coverage blocking the local helper from
 returning.

@@ -32,7 +32,13 @@ describe("autoUpdaterAccess", () => {
             checkForUpdatesAndNotify: vi.fn(),
             on: vi.fn(),
         };
-        const importMock = vi.fn(async () => ({ autoUpdater }));
+        const updaterModule = { autoUpdater };
+        Object.defineProperty(updaterModule, "default", {
+            get: () => {
+                throw new Error("lazy default unavailable");
+            },
+        });
+        const importMock = vi.fn(async () => updaterModule);
         const runtime: AutoUpdaterAccessRuntime = {
             getVitestImportMockCandidate: () => ({ importMock }),
         };
@@ -40,9 +46,7 @@ describe("autoUpdaterAccess", () => {
         const resolved = await resolveAutoUpdaterAsync(runtime);
 
         expect(resolved).toBe(autoUpdater);
-        expect(importMock).toHaveBeenCalledExactlyOnceWith(
-            "electron-updater"
-        );
+        expect(importMock).toHaveBeenCalledExactlyOnceWith("electron-updater");
         expect(resolved?.checkForUpdatesAndNotify).toBe(
             autoUpdater.checkForUpdatesAndNotify
         );

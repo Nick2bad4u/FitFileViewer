@@ -122,7 +122,8 @@ function asObjectProperty(value: unknown, property: string): unknown {
     }
 
     try {
-        return Reflect.get(value, property);
+        const candidate = value as Record<string, unknown>;
+        return candidate[property];
     } catch {
         return undefined;
     }
