@@ -76,6 +76,10 @@ let centerMainAttempts = 0;
 let centerRetryHandle: MapActionButtonTimer | null = null;
 let centerStatusNotified = 0;
 let mainPolylineHighlightToken = 0;
+let activeFileNameAfterUpdateCleanup: (() => void) | null = null;
+let activeFileNameDomReadyCleanup: (() => void) | null = null;
+let activeFileNameObservedParent: ParentNode | null = null;
+let activeFileNameObserver: MutationObserver | null = null;
 
 function isMapLayer(value: unknown): value is MapLayer {
     return typeof value === "object" && value !== null;
@@ -144,6 +148,22 @@ function clearActiveMapActionTimers(): void {
     activeTimers.clear();
 }
 
+function cleanupActiveFileNameObserver(): void {
+    activeFileNameObserver?.disconnect();
+    activeFileNameObserver = null;
+    activeFileNameObservedParent = null;
+}
+
+function cleanupActiveFileNameDomReadyListener(): void {
+    activeFileNameDomReadyCleanup?.();
+    activeFileNameDomReadyCleanup = null;
+}
+
+function cleanupActiveFileNameAfterUpdateListener(): void {
+    activeFileNameAfterUpdateCleanup?.();
+    activeFileNameAfterUpdateCleanup = null;
+}
+
 function cleanupActiveFileNameMapActions(activeFileName: HTMLElement): void {
     const existingCleanup = activeFileNameCleanupCallbacks.get(activeFileName);
     if (!existingCleanup) {
@@ -160,6 +180,9 @@ export function resetMapActionButtonStateForTests(): void {
         cleanupActiveFileNameMapActions(activeFileName);
     }
     trackedActiveFileNameElements.clear();
+    cleanupActiveFileNameObserver();
+    cleanupActiveFileNameDomReadyListener();
+    cleanupActiveFileNameAfterUpdateListener();
     clearActiveMapActionTimers();
     resetCenterMapState();
     mainPolylineHighlightToken = 0;
@@ -469,8 +492,7 @@ export function setupActiveFileNameMapActions(): void {
     }
 }
 
-// Initialize active filename functionality with mutation observer
-(function initializeActiveFileName(): void {
+function installActiveFileNameObserver(): void {
     try {
         const runtime = getMapActionButtonsRuntime();
         const runtimeDocument = runtime.getDocument();
@@ -486,27 +508,39 @@ export function setupActiveFileNameMapActions(): void {
             );
             // Try again after DOM loads
             if (runtimeDocument.readyState === "loading") {
-                addEventListenerWithCleanup(
+                cleanupActiveFileNameDomReadyListener();
+                activeFileNameDomReadyCleanup = addEventListenerWithCleanup(
                     runtimeDocument,
                     "DOMContentLoaded",
-                    () => {
-                        initializeActiveFileName();
-                    },
+                    installActiveFileNameObserver,
                     { once: true }
                 );
             }
             return;
         }
 
+        cleanupActiveFileNameDomReadyListener();
+
+        if (activeFileNameObserver && activeFileNameObservedParent === parent) {
+            setupActiveFileNameMapActions();
+            return;
+        }
+
+        cleanupActiveFileNameObserver();
+
         // Set up mutation observer to handle dynamic content changes
-        const observer = runtime.createMutationObserver(() => {
+        activeFileNameObserver = runtime.createMutationObserver(() => {
             console.log(
                 "[mapActionButtons] Active filename element changed, reapplying setup"
             );
             setupActiveFileNameMapActions();
         });
+        activeFileNameObservedParent = parent;
 
-        observer.observe(parent, { childList: true, subtree: false });
+        activeFileNameObserver.observe(parent, {
+            childList: true,
+            subtree: false,
+        });
 
         // Initial setup
         setupActiveFileNameMapActions();
@@ -516,14 +550,22 @@ export function setupActiveFileNameMapActions(): void {
             error
         );
     }
-})();
+}
 
-registerShownFilesListAfterUpdate(() => {
-    console.log(
-        "[mapActionButtons] Files list updated, reapplying active filename setup"
-    );
-    setupActiveFileNameMapActions();
-});
+export function initializeActiveFileNameMapActions(): void {
+    installActiveFileNameObserver();
+
+    if (activeFileNameAfterUpdateCleanup) {
+        return;
+    }
+
+    activeFileNameAfterUpdateCleanup = registerShownFilesListAfterUpdate(() => {
+        console.log(
+            "[mapActionButtons] Files list updated, reapplying active filename setup"
+        );
+        setupActiveFileNameMapActions();
+    });
+}
 
 /**
  * Creates the map theme toggle control used by the map toolbar.

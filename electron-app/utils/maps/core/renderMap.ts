@@ -57,7 +57,10 @@ import { createElevationProfileButton } from "../../ui/controls/createElevationP
 import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
 import { createPowerEstimationButton } from "../../ui/controls/createPowerEstimationButton.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
-import { createMapThemeToggle } from "../controls/mapActionButtons.js";
+import {
+    createMapThemeToggle,
+    initializeActiveFileNameMapActions,
+} from "../controls/mapActionButtons.js";
 import {
     addLeafletDrawPluginControl,
     addLeafletFullscreenPluginControl,
@@ -1181,6 +1184,8 @@ export function renderMap(): void {
             }
             updateShownFilesList();
         }
+
+        initializeActiveFileNameMapActions();
     }
 
     // --- Fullscreen button (custom, styled, top left) ---

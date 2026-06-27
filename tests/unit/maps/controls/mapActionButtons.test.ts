@@ -147,7 +147,10 @@ describe("mapActionButtons", () => {
 
             const mapActionButtons =
                 await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
-            const { setupActiveFileNameMapActions } = mapActionButtons;
+            const {
+                initializeActiveFileNameMapActions,
+                setupActiveFileNameMapActions,
+            } = mapActionButtons;
             resetMapActionButtonStateForTests =
                 mapActionButtons.resetMapActionButtonStateForTests;
             const { setRegisteredLeafletMapInstance } =
@@ -157,6 +160,7 @@ describe("mapActionButtons", () => {
             const listUpdater = vi.fn<() => void>();
             const disposeListUpdater = setShownFilesListUpdater(listUpdater);
             setRegisteredLeafletMapInstance(mapInstance);
+            initializeActiveFileNameMapActions();
 
             expect(activeFileName.style.cursor).toBe("pointer");
             expect(activeFileName.title).toBe(

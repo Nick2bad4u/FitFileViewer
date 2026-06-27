@@ -27,6 +27,13 @@ async function getShowNotificationMock() {
     return vi.mocked(notificationModule.showNotification);
 }
 
+async function initializeMapActionButtons(): Promise<void> {
+    const { initializeActiveFileNameMapActions } =
+        await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+
+    initializeActiveFileNameMapActions();
+}
+
 function getActiveFileName(): HTMLElement {
     const activeFileName = document.getElementById("activeFileName");
 
@@ -57,6 +64,9 @@ describe("mapActionButtons", () => {
     });
 
     afterEach(async () => {
+        const { resetMapActionButtonStateForTests } =
+            await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        resetMapActionButtonStateForTests();
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
         const { resetMapPolylineRegistryForTests } =
@@ -67,10 +77,25 @@ describe("mapActionButtons", () => {
         document.body.replaceChildren();
     });
 
-    it("attaches click listener and shows notification when map not ready", async () => {
+    it("does not wire active filename actions on module import", async () => {
         expect.assertions(4);
 
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        const showNotificationMock = await getShowNotificationMock();
+        const name = getActiveFileName();
+
+        name.dispatchEvent(new Event("click"));
+        await vi.advanceTimersByTimeAsync(100);
+
+        expect(name.title).toBe("");
+        expect(name.style.cursor).toBe("");
+        expect(showNotificationMock).not.toHaveBeenCalled();
+    });
+
+    it("attaches click listener and shows notification when map not ready", async () => {
+        expect.assertions(4);
+
+        await initializeMapActionButtons();
         const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
 
@@ -106,7 +131,7 @@ describe("mapActionButtons", () => {
             getElement: () => polylineElement,
         } as any;
         registerOverlayMapPolyline(0, poly);
-        await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        await initializeMapActionButtons();
         const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
 
@@ -143,7 +168,7 @@ describe("mapActionButtons", () => {
             await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
         registerOverlayMapPolyline(0, poly);
 
-        await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        await initializeMapActionButtons();
         const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
 
@@ -202,7 +227,7 @@ describe("mapActionButtons", () => {
         } as any;
 
         registerOverlayMapPolyline(0, poly);
-        await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+        await initializeMapActionButtons();
         const name = getActiveFileName();
         name.dispatchEvent(new Event("click"));
         await vi.advanceTimersByTimeAsync(100);
@@ -226,7 +251,7 @@ describe("mapActionButtons", () => {
         });
 
         try {
-            await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+            await initializeMapActionButtons();
 
             updateShownFilesList();
 

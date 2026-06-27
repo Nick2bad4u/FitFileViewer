@@ -75,12 +75,14 @@ function setActiveFitTestData(data: Record<string, unknown>): void {
 
 const {
     mockCreateTables,
+    mockInitializeActiveFileNameMapActions,
     mockInvalidateChartRenderCache,
     mockPowerEstimationButtonOptions,
     mockRenderChartJS,
     mockRenderSummary,
 } = vi.hoisted(() => ({
     mockCreateTables: vi.fn<(data: Record<string, unknown>) => void>(),
+    mockInitializeActiveFileNameMapActions: vi.fn<() => void>(),
     mockInvalidateChartRenderCache: vi.fn<(reason: string) => void>(),
     mockPowerEstimationButtonOptions: {
         current: null as null | PowerEstimationButtonOptions,
@@ -158,6 +160,8 @@ vi.mock(
         createMapThemeToggle: vi.fn<DomFactory>(() =>
             createButton("mock-map-theme-toggle")
         ),
+        initializeActiveFileNameMapActions:
+            mockInitializeActiveFileNameMapActions,
     })
 );
 vi.mock(
@@ -326,6 +330,7 @@ describe("renderMap core", () => {
         setActiveFitTestData({ recordMesgs: [] });
         setLoadedFitFiles([], "test");
         mockCreateTables.mockReset();
+        mockInitializeActiveFileNameMapActions.mockReset();
         mockInvalidateChartRenderCache.mockReset();
         mockRenderChartJS.mockReset();
         mockRenderChartJS.mockResolvedValue(true);
@@ -344,13 +349,15 @@ describe("renderMap core", () => {
     });
 
     it("creates map structure and UI controls, sets up zoom slider and layers button", async () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const { L, map, handlers } = makeLeafletStub();
         setLeafletRuntime(L);
 
         const { renderMap } = await importSUT();
         renderMap();
+
+        expect(mockInitializeActiveFileNameMapActions).toHaveBeenCalledOnce();
 
         // DOM pieces created
         const mapDiv = document.getElementById("leaflet-map");
