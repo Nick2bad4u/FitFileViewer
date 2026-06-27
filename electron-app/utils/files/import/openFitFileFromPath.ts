@@ -41,6 +41,12 @@ type FitFileElectronAPI = {
     readonly readFile: ElectronFileApi["readFile"];
 };
 
+type FitFileElectronApiCandidate = {
+    readonly notifyFitFileLoaded?: unknown;
+    readonly parseFitFile?: unknown;
+    readonly readFile?: unknown;
+};
+
 type ShowNotification = (
     message: string,
     type: string,
@@ -173,7 +179,7 @@ function isFitFileElectronAPI(value: unknown): value is FitFileElectronAPI {
         return false;
     }
 
-    const api = value as Partial<FitFileElectronAPI>;
+    const api = value as FitFileElectronApiCandidate;
     return (
         typeof api.readFile === "function" &&
         typeof api.parseFitFile === "function" &&

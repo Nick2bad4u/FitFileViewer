@@ -17100,7 +17100,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(44);
+        expect.assertions(45);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -17244,6 +17244,9 @@ describe("architecture boundaries", () => {
         );
         expect(openFitFileFromPathSource).not.toContain(
             "interface FitFileElectronAPI"
+        );
+        expect(openFitFileFromPathSource).not.toContain(
+            "value as Partial<FitFileElectronAPI>"
         );
         expect(openFitFileFromPathSource).not.toContain("Pick<ElectronAPI");
         expect(openFileSelectorSource).toContain("ElectronDialogApi");
