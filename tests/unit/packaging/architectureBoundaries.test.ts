@@ -1468,9 +1468,9 @@ const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
 const directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|document|HTMLElement|setTimeout)\b|\bscope:\s*EnsureChartSettingsDropdownsRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultEnsureChartSettingsDropdownsRuntimeScope:\s*EnsureChartSettingsDropdownsRuntimeScope\s*=\s*globalThis\b/u;
 const directCreateSettingsHeaderRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|head|setTimeout)\b|\bnew\s+(?:AbortController|Event)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|head|setTimeout)\b|\bURL\.createObjectURL\b|\bnew\s+(?:AbortController|Event)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:Event|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:Event|URL|clearTimeout|setTimeout)\b|\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
@@ -7687,7 +7687,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(64);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -7733,6 +7733,9 @@ describe("architecture boundaries", () => {
             "createSettingsHeaderRuntime().appendToHead"
         );
         expect(settingsHeaderSource).toContain(
+            "createSettingsHeaderRuntime().createObjectURL"
+        );
+        expect(settingsHeaderSource).toContain(
             "../../logging/loggingTimestampRuntime.js"
         );
         expect(settingsHeaderSource).toContain(
@@ -7743,6 +7746,7 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderSource).not.toContain("document.createElement");
         expect(settingsHeaderSource).not.toContain("document.body");
         expect(settingsHeaderSource).not.toContain("document.head");
+        expect(settingsHeaderSource).not.toContain("URL.createObjectURL");
         expect(settingsHeaderSource).not.toContain('new Event("change")');
         expect(settingsHeaderRuntimeSource).not.toMatch(
             directCreateSettingsHeaderRuntimeAmbientFallbackPattern
@@ -7773,6 +7777,7 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(settingsHeaderRuntimeSource).not.toContain("readonly URL?:");
         expect(settingsHeaderRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -7783,6 +7788,7 @@ describe("architecture boundaries", () => {
         );
         expect(settingsHeaderRuntimeSource).not.toContain("scope.Event");
         expect(settingsHeaderRuntimeSource).not.toContain("scope.setTimeout");
+        expect(settingsHeaderRuntimeSource).not.toContain("scope.URL");
         expect(settingsHeaderRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
         );
@@ -7819,8 +7825,12 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderRuntimeSource).toContain(
             "getEvent: getBrowserEvent"
         );
+        expect(settingsHeaderRuntimeSource).toContain("getURL: getBrowserURL");
         expect(settingsHeaderRuntimeSource).not.toContain(
             "getEvent: () => globalThis.Event"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "getURL: () => globalThis.URL"
         );
         expect(settingsHeaderRuntimeSource).toContain(
             "createSettingsHeader requires a document runtime"
@@ -7832,6 +7842,9 @@ describe("architecture boundaries", () => {
             "createSettingsHeader requires an Event runtime"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "createSettingsHeader requires a URL runtime"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
             "getDocument(scope).body.append(node)"
         );
         expect(settingsHeaderRuntimeSource).toContain(
@@ -7839,6 +7852,9 @@ describe("architecture boundaries", () => {
         );
         expect(settingsHeaderRuntimeSource).toContain(
             "getDocument(scope).createElement(tagName)"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "return getURLRuntime(scope).createObjectURL(blob)"
         );
         expect(settingsHeaderRuntimeSource).toContain(
             'new (getEventConstructor(scope))("change")'

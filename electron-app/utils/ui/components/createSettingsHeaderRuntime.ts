@@ -4,14 +4,20 @@ import {
     type BrowserEventConstructor,
     type BrowserSetTimeout,
     type BrowserTimerHandle,
+    type BrowserURLConstructor,
     getBrowserAbortController,
     getBrowserClearTimeout,
     getBrowserDocument,
     getBrowserEvent,
     getBrowserSetTimeout,
+    getBrowserURL,
 } from "../../runtime/browserRuntime.js";
 
 export type CreateSettingsHeaderTimer = BrowserTimerHandle;
+type CreateSettingsHeaderURLRuntime = Pick<
+    BrowserURLConstructor,
+    "createObjectURL"
+>;
 
 export interface CreateSettingsHeaderRuntimeScope {
     readonly getAbortController?:
@@ -23,8 +29,9 @@ export interface CreateSettingsHeaderRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
+    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getURL?:
+        | (() => CreateSettingsHeaderURLRuntime | undefined)
         | undefined;
 }
 
@@ -43,6 +50,7 @@ export interface CreateSettingsHeaderRuntime {
     readonly createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
+    readonly createObjectURL: (blob: Blob) => string;
     readonly setTimeout: (
         callback: () => void,
         delayMs: number
@@ -93,6 +101,17 @@ function getSetTimeout(
     return scope.getSetTimeout?.();
 }
 
+function getURLRuntime(
+    scope: CreateSettingsHeaderRuntimeScope
+): CreateSettingsHeaderURLRuntime {
+    const urlRuntime = scope.getURL?.();
+    if (typeof urlRuntime?.createObjectURL !== "function") {
+        throw new TypeError("createSettingsHeader requires a URL runtime");
+    }
+
+    return urlRuntime;
+}
+
 const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
@@ -100,6 +119,7 @@ const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope 
         getDocument: getBrowserDocument,
         getEvent: getBrowserEvent,
         getSetTimeout: getBrowserSetTimeout,
+        getURL: getBrowserURL,
     };
 
 export function getCreateSettingsHeaderRuntime(
@@ -152,6 +172,9 @@ export function getCreateSettingsHeaderRuntime(
         },
         createElement(tagName) {
             return getDocument(scope).createElement(tagName);
+        },
+        createObjectURL(blob): string {
+            return getURLRuntime(scope).createObjectURL(blob);
         },
         setTimeout(callback, delayMs): CreateSettingsHeaderTimer {
             const setTimeoutRef = getSetTimeout(scope);

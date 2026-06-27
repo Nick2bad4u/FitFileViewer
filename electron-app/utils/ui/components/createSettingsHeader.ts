@@ -333,7 +333,8 @@ export function createExportSection(wrapper: HTMLElement): void {
                                 createSettingsHeaderRuntime().createElement(
                                     "a"
                                 );
-                        link.href = URL.createObjectURL(blob);
+                        link.href =
+                            createSettingsHeaderRuntime().createObjectURL(blob);
                         link.download = "combined-charts-data.json";
                         createSettingsHeaderRuntime().appendToBody(link);
                         link.click();

@@ -5,6 +5,7 @@ import type {
     BrowserClearTimeout,
     BrowserSetTimeout,
     BrowserTimerHandle,
+    BrowserURLConstructor,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getCreateSettingsHeaderRuntime", () => {
@@ -90,8 +91,28 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(event.bubbles).toBe(false);
     });
 
+    it("creates object URLs through the injected URL runtime", () => {
+        expect.assertions(3);
+
+        const blob = new Blob(["settings"]);
+        const createObjectURL = vi.fn<(blob: Blob) => string>(
+            () => "blob:settings"
+        );
+        const runtime = getCreateSettingsHeaderRuntime({
+            getURL: () =>
+                ({ createObjectURL }) as Pick<
+                    BrowserURLConstructor,
+                    "createObjectURL"
+                >,
+        });
+
+        expect(runtime.createObjectURL(blob)).toBe("blob:settings");
+        expect(createObjectURL).toHaveBeenCalledWith(blob);
+        expect(createObjectURL).toHaveBeenCalledOnce();
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const runtime = getCreateSettingsHeaderRuntime({});
 
@@ -117,6 +138,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         ).toThrow("createSettingsHeader requires a document runtime");
         expect(() => runtime.createChangeEvent()).toThrow(
             "createSettingsHeader requires an Event runtime"
+        );
+        expect(() => runtime.createObjectURL(new Blob(["settings"]))).toThrow(
+            "createSettingsHeader requires a URL runtime"
         );
     });
 
@@ -187,6 +211,21 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(bodyAppend).toHaveBeenCalledWith(div);
         expect(headAppend).toHaveBeenCalledWith(style);
         expect(document.body.contains(div)).toBe(true);
+    });
+
+    it("uses browser runtime providers for production URL defaults", () => {
+        expect.assertions(2);
+
+        const blob = new Blob(["settings"]);
+        const createObjectURL = vi.fn<(blob: Blob) => string>(
+            () => "blob:settings"
+        );
+        vi.stubGlobal("URL", { createObjectURL });
+
+        const runtime = getCreateSettingsHeaderRuntime();
+
+        expect(runtime.createObjectURL(blob)).toBe("blob:settings");
+        expect(createObjectURL).toHaveBeenCalledWith(blob);
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
@@ -260,7 +299,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
     });
 
     it("routes all defaults through provider functions", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const callback = vi.fn<() => void>();
         let keydownCount = 0;
@@ -298,6 +337,17 @@ describe("getCreateSettingsHeaderRuntime", () => {
         }
         const getEvent = vi.fn(() => TestEvent);
         const getSetTimeout = vi.fn(() => scheduleTimeout);
+        const blob = new Blob(["settings"]);
+        const createObjectURL = vi.fn<(blob: Blob) => string>(
+            () => "blob:settings"
+        );
+        const getURL = vi.fn(
+            () =>
+                ({ createObjectURL }) as Pick<
+                    BrowserURLConstructor,
+                    "createObjectURL"
+                >
+        );
         const runtime = getCreateSettingsHeaderRuntime({
             getAbortController,
             getClearTimeout,
@@ -305,6 +355,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
             getDocumentEventTarget,
             getEvent,
             getSetTimeout,
+            getURL,
         });
 
         const div = runtime.createElement("div");
@@ -318,6 +369,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         });
         documentEventTarget.dispatchEvent(new KeyboardEvent("keydown"));
         const changeEvent = runtime.createChangeEvent();
+        expect(runtime.createObjectURL(blob)).toBe("blob:settings");
         expect(runtime.createAbortController()).toBe(controller);
 
         expect(getSetTimeout).toHaveBeenCalledOnce();
@@ -326,6 +378,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(getDocumentEventTarget).toHaveBeenCalledOnce();
         expect(getEvent).toHaveBeenCalledOnce();
         expect(getAbortController).toHaveBeenCalledOnce();
+        expect(getURL).toHaveBeenCalledOnce();
         expect(changeEvent).toBeInstanceOf(TestEvent);
         expect(changeEvent.type).toBe("test:change");
         expect(createElement).toHaveBeenCalledWith("div");
@@ -334,11 +387,12 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(headAppend).toHaveBeenCalledWith(style);
         expect(scheduleTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearScheduledTimeout).toHaveBeenCalledWith(timer);
+        expect(createObjectURL).toHaveBeenCalledWith(blob);
         expect(keydownCount).toBe(1);
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(17);
+        expect.assertions(19);
 
         const callback = vi.fn<() => void>();
         const timer = 71 as BrowserTimerHandle;
@@ -358,10 +412,14 @@ describe("getCreateSettingsHeaderRuntime", () => {
         const EventConstructor = vi.fn(function FakeEvent() {
             return new Event("legacy");
         });
+        const createObjectURL = vi.fn<(blob: Blob) => string>(
+            () => "blob:legacy"
+        );
         const runtime = getCreateSettingsHeaderRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
             Event: EventConstructor as unknown as typeof Event,
+            URL: { createObjectURL },
             clearTimeout,
             document: documentRef,
             documentEventTarget,
@@ -392,12 +450,16 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(() =>
             runtime.appendToHead(document.createElement("style"))
         ).toThrow("createSettingsHeader requires a document runtime");
+        expect(() => runtime.createObjectURL(new Blob(["settings"]))).toThrow(
+            "createSettingsHeader requires a URL runtime"
+        );
 
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(listener).not.toHaveBeenCalled();
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(EventConstructor).not.toHaveBeenCalled();
+        expect(createObjectURL).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
         expect(documentEventTarget.body.childElementCount).toBe(0);
         expect(documentRef.body.childElementCount).toBe(0);
