@@ -14,12 +14,26 @@ type SetState = (
 type SubscriptionCallback = (newValue: unknown) => void;
 type Subscribe = (path: string, callback: SubscriptionCallback) => () => void;
 
+const { mockGetState, mockSetState, mockSubscribe } = vi.hoisted(() => ({
+    mockGetState: vi.fn<GetState>(),
+    mockSetState: vi.fn<SetState>(),
+    mockSubscribe: vi.fn<Subscribe>(),
+}));
+
 vi.mock(
-    import("../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../electron-app/utils/state/domain/rendererStateManagerAccess.js"),
     () => ({
-        getState: undefined,
-        setState: undefined,
-        subscribe: undefined,
+        getRendererCoreStateManager: vi.fn(() => ({
+            getState: mockGetState,
+            setState: mockSetState,
+            subscribe: mockSubscribe,
+        })),
+        getRendererCoreSubscribeSingleton: vi.fn(() => undefined),
+        getRequiredRendererCoreStateManager: vi.fn(() => ({
+            getState: mockGetState,
+            setState: mockSetState,
+            subscribe: mockSubscribe,
+        })),
     })
 );
 
@@ -29,13 +43,6 @@ import {
     initializeActiveTabState,
     updateActiveTab,
 } from "../../../electron-app/utils/ui/tabs/updateActiveTab.js";
-import { setTabTestEnvironmentForTests } from "../../../electron-app/utils/ui/tabs/tabTestEnvironment.js";
-
-const { mockGetState, mockSetState, mockSubscribe } = vi.hoisted(() => ({
-    mockGetState: vi.fn<GetState>(),
-    mockSetState: vi.fn<SetState>(),
-    mockSubscribe: vi.fn<Subscribe>(),
-}));
 
 type TabElement = HTMLButtonElement | HTMLDivElement;
 
@@ -146,14 +153,6 @@ describe("updateActiveTab state behavior", () => {
 
         mockGetState.mockReturnValue("summary");
         mockSubscribe.mockReturnValue(() => undefined);
-        setTabTestEnvironmentForTests({
-            stateManager: {
-                getState: mockGetState,
-                setState: mockSetState,
-                subscribe: mockSubscribe,
-            },
-        });
-
         vi.spyOn(console, "warn").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -162,7 +161,6 @@ describe("updateActiveTab state behavior", () => {
     afterEach(() => {
         cleanupActiveTabState();
         testContainer.remove();
-        setTabTestEnvironmentForTests(null);
         vi.restoreAllMocks();
         vi.resetAllMocks();
     });

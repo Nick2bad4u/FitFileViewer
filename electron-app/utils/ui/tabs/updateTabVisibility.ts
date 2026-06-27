@@ -9,7 +9,6 @@ import { getRendererLoadingFromState } from "../../state/domain/rendererLoadingS
 import {
     getRendererCoreStateManager,
     getRequiredRendererCoreStateManager,
-    toRendererStateManagerAccess,
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
 import {
@@ -24,10 +23,6 @@ import {
     extractTabNameFromContentId,
     getContentIdFromTabName,
 } from "./tabIdUtils.js";
-import {
-    getTabTestDocumentForTests,
-    getTabTestStateManagerForTests,
-} from "./tabTestEnvironment.js";
 import { TAB_CONTENT_IDS } from "./tabStateManagerConfig.js";
 import {
     getUpdateTabVisibilityRuntime,
@@ -63,10 +58,6 @@ function canUseDocument(candidate: unknown): candidate is Document {
     );
 }
 
-function getEffectiveDocument(): Document | undefined {
-    return getTabTestDocumentForTests();
-}
-
 function getDoc(): Document {
     let runtimeDocument: Document | undefined;
     try {
@@ -75,12 +66,8 @@ function getDoc(): Document {
         runtimeDocument = undefined;
     }
 
-    const candidates = [runtimeDocument, getEffectiveDocument()];
-
-    for (const candidate of candidates) {
-        if (canUseDocument(candidate)) {
-            return candidate;
-        }
+    if (canUseDocument(runtimeDocument)) {
+        return runtimeDocument;
     }
 
     throw new Error("updateTabVisibility requires a document-like runtime");
@@ -89,17 +76,6 @@ function getDoc(): Document {
 function getStateMgr(): RendererStateManagerAccess {
     try {
         const stateManager = getRendererCoreStateManager();
-        if (stateManager) {
-            return stateManager;
-        }
-    } catch {
-        /* Ignore errors */
-    }
-
-    try {
-        const stateManager = toRendererStateManagerAccess(
-            getTabTestStateManagerForTests()
-        );
         if (stateManager) {
             return stateManager;
         }

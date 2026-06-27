@@ -14,14 +14,14 @@ type StateManagerShim = {
     subscribe: ReturnType<typeof vi.fn<(path: string) => () => void>>;
 };
 
-async function setTabTestEnvironment(
-    environment: Parameters<
-        typeof import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js").setTabTestEnvironmentForTests
-    >[0]
-): Promise<void> {
-    const { setTabTestEnvironmentForTests } =
-        await import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
-    setTabTestEnvironmentForTests(environment);
+function mockRendererStateAccess(stateManager: StateManagerShim): void {
+    vi.doMock(
+        import("../../../electron-app/utils/state/domain/rendererStateManagerAccess.js"),
+        () => ({
+            getRendererCoreStateManager: vi.fn(() => stateManager),
+            getRequiredRendererCoreStateManager: vi.fn(() => stateManager),
+        })
+    );
 }
 
 describe("updateTabVisibility - additional branches", () => {
@@ -68,8 +68,7 @@ describe("updateTabVisibility - additional branches", () => {
         );
     });
 
-    afterEach(async () => {
-        await setTabTestEnvironment(null);
+    afterEach(() => {
         vi.restoreAllMocks();
     });
 
@@ -87,14 +86,7 @@ describe("updateTabVisibility - additional branches", () => {
             >();
         const getState = vi.fn<(path?: string) => unknown>();
         const subscribe = vi.fn<(path: string) => () => void>();
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({
-                setState,
-                getState,
-                subscribe,
-            })
-        );
+        mockRendererStateAccess({ getState, setState, subscribe });
 
         const { updateTabVisibility } =
             await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
@@ -128,14 +120,7 @@ describe("updateTabVisibility - additional branches", () => {
             >();
         const getState = vi.fn<(path?: string) => unknown>();
         const subscribe = vi.fn<(path: string) => () => void>();
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({
-                setState,
-                getState,
-                subscribe,
-            })
-        );
+        mockRendererStateAccess({ getState, setState, subscribe });
 
         const { updateTabVisibility } =
             await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
@@ -151,14 +136,8 @@ describe("updateTabVisibility - additional branches", () => {
         }
     });
 
-    it("falls back to the tab test state manager when module exports are unavailable", async () => {
+    it("uses typed renderer state-manager access", async () => {
         expect.assertions(3);
-
-        // Mock module with missing methods to fail the primary branch
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({})
-        );
 
         const effSet =
             vi.fn<
@@ -170,12 +149,10 @@ describe("updateTabVisibility - additional branches", () => {
             >();
         const effGet = vi.fn<(path?: string) => unknown>();
         const effSub = vi.fn<(path: string) => () => void>();
-        await setTabTestEnvironment({
-            stateManager: {
-                setState: effSet,
-                getState: effGet,
-                subscribe: effSub,
-            },
+        mockRendererStateAccess({
+            getState: effGet,
+            setState: effSet,
+            subscribe: effSub,
         });
 
         const { updateTabVisibility } =

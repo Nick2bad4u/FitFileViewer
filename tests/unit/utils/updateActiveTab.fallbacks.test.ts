@@ -25,53 +25,18 @@ type TabButtonState = {
     classes: string[];
     id: string;
 };
-type TestGlobalProperty = "document";
-
-const originalGlobalDescriptors = new Map<
-    TestGlobalProperty,
-    PropertyDescriptor
->();
 
 // Utility to cleanly reset modules between environment permutations
 const resetAll = async () => {
     vi.clearAllMocks();
+    vi.doUnmock(
+        "../../../electron-app/utils/state/domain/rendererStateManagerAccess.js"
+    );
+    vi.doUnmock(
+        "../../../electron-app/utils/ui/tabs/updateActiveTabRuntime.js"
+    );
     vi.resetModules();
 };
-
-function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
-    if (!originalGlobalDescriptors.has(name)) {
-        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
-        if (!descriptor) {
-            throw new Error(`Expected globalThis.${name} to exist`);
-        }
-        originalGlobalDescriptors.set(name, descriptor);
-    }
-
-    Object.defineProperty(globalThis, name, {
-        configurable: true,
-        value,
-        writable: true,
-    });
-}
-
-function restoreTestGlobals(): void {
-    for (const [name, descriptor] of [
-        ...originalGlobalDescriptors.entries(),
-    ].reverse()) {
-        Object.defineProperty(globalThis, name, descriptor);
-    }
-    originalGlobalDescriptors.clear();
-}
-
-async function setTabTestEnvironment(
-    environment: Parameters<
-        typeof import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js").setTabTestEnvironmentForTests
-    >[0]
-): Promise<void> {
-    const { setTabTestEnvironmentForTests } =
-        await import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
-    setTabTestEnvironmentForTests(environment);
-}
 
 function getRequiredSubscriptionCall(
     calls: SubscriptionCall[],
@@ -136,50 +101,75 @@ function getTabButtonState(
     };
 }
 
+function mockRendererStateAccess({
+    getState,
+    setState,
+    subscribe,
+}: {
+    getState: GetState;
+    setState: SetState;
+    subscribe: Subscribe;
+}): void {
+    vi.doMock(
+        import("../../../electron-app/utils/state/domain/rendererStateManagerAccess.js"),
+        () => ({
+            getRendererCoreStateManager: vi.fn(() => ({
+                getState,
+                setState,
+                subscribe,
+            })),
+            getRendererCoreSubscribeSingleton: vi.fn(() => undefined),
+            getRequiredRendererCoreStateManager: vi.fn(() => ({
+                getState,
+                setState,
+                subscribe,
+            })),
+        })
+    );
+}
+
+function mockActiveTabRuntime(documentRef: Document | undefined): void {
+    vi.doMock(
+        import("../../../electron-app/utils/ui/tabs/updateActiveTabRuntime.js"),
+        () => ({
+            getUpdateActiveTabRuntime: vi.fn(() => ({
+                getDocument: () => documentRef,
+                isKeyboardEvent: (value: unknown): value is KeyboardEvent =>
+                    value instanceof KeyboardEvent,
+            })),
+        })
+    );
+}
+
 describe("updateActiveTab.js - environment fallbacks", () => {
     beforeEach(async () => {
         await resetAll();
     });
 
     afterEach(async () => {
-        await setTabTestEnvironment(null);
-        restoreTestGlobals();
         await resetAll();
     });
 
-    it("uses the tab test state manager when module functions are unavailable", async () => {
+    it("uses typed renderer state-manager access", async () => {
         expect.assertions(3);
 
-        // Arrange a normal JSDOM document for DOM operations
         document.body.replaceChildren();
         appendTabButton({ id: "tab-summary", label: "Summary" });
 
-        // Provide an effective state manager override with distinct spies.
         const effSetState = vi.fn<SetState>();
         const effGetState = vi.fn<GetState>().mockReturnValue("summary");
         const effSubscribe = vi.fn<Subscribe>();
-        await setTabTestEnvironment({
-            stateManager: {
-                setState: effSetState,
-                getState: effGetState,
-                subscribe: effSubscribe,
-            },
+        mockRendererStateAccess({
+            getState: effGetState,
+            setState: effSetState,
+            subscribe: effSubscribe,
         });
-
-        // Mock the module path used within updateActiveTab.js to export no functions,
-        // forcing getStateMgr() to pick up the tab test state manager.
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({})
-        );
 
         const { updateActiveTab } =
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
 
-        // Act
         const ok = updateActiveTab("tab-summary");
 
-        // Assert
         expect(ok).toStrictEqual(true);
         expect(effSetState).toHaveBeenCalledWith("ui.activeTab", "summary", {
             source: "updateActiveTab",
@@ -187,30 +177,18 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         expect(effSubscribe).not.toHaveBeenCalled();
     });
 
-    it("falls back to the tab test document when document is unavailable", async () => {
+    it("uses the active-tab runtime document provider", async () => {
         expect.assertions(3);
 
-        // Create a separate JSDOM to act as the effective document
         const effDom = new JSDOM(
             '<!doctype html><html><body><button id="tab-chart" class="tab-button">Chart</button></body></html>'
         );
-        await setTabTestEnvironment({ document: effDom.window.document });
+        mockActiveTabRuntime(effDom.window.document);
 
-        // Invalidate the standard document so getDoc() prefers the effective document.
-        setTestGlobal("document", undefined);
-
-        // Provide a minimal viable state manager to satisfy calls
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("chart");
         const subscribe = vi.fn<Subscribe>();
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({
-                setState,
-                getState,
-                subscribe,
-            })
-        );
+        mockRendererStateAccess({ getState, setState, subscribe });
 
         const { updateActiveTab } =
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
@@ -236,20 +214,12 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         appendTabButton({ id: "tab-win", label: "Win" });
         const fallbackDocument = document;
 
-        // Invalidate document without providing a tab-test document override.
-        setTestGlobal("document", undefined);
+        mockActiveTabRuntime(undefined);
 
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("win");
         const subscribe = vi.fn<Subscribe>();
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({
-                setState,
-                getState,
-                subscribe,
-            })
-        );
+        mockRendererStateAccess({ getState, setState, subscribe });
 
         const { updateActiveTab } =
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
@@ -289,14 +259,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("summary");
         const subscribe = vi.fn<Subscribe>();
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({
-                setState,
-                getState,
-                subscribe,
-            })
-        );
+        mockRendererStateAccess({ getState, setState, subscribe });
 
         const { initializeActiveTabState } =
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
@@ -355,14 +318,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("summary");
         const subscribe = vi.fn<Subscribe>();
-        vi.doMock(
-            import("../../../electron-app/utils/state/core/stateManager.js"),
-            () => ({
-                setState,
-                getState,
-                subscribe,
-            })
-        );
+        mockRendererStateAccess({ getState, setState, subscribe });
 
         const { initializeActiveTabState } =
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");

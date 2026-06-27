@@ -3,7 +3,6 @@ import {
     getRendererCoreStateManager,
     getRendererCoreSubscribeSingleton,
     getRequiredRendererCoreStateManager,
-    toRendererStateManagerAccess,
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
 import {
@@ -13,10 +12,6 @@ import {
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { extractTabNameFromButtonId } from "./tabIdUtils.js";
-import {
-    getTabTestDocumentForTests,
-    getTabTestStateManagerForTests,
-} from "./tabTestEnvironment.js";
 import {
     getUpdateActiveTabRuntime,
     type UpdateActiveTabRuntime,
@@ -39,23 +34,12 @@ function activeTabRuntime(): UpdateActiveTabRuntime {
 }
 
 function getDoc(): Document | undefined {
-    return activeTabRuntime().getDocument(getTabTestDocumentForTests());
+    return activeTabRuntime().getDocument();
 }
 
 function getStateMgr(): RendererStateManagerAccess {
     try {
         const stateManager = getRendererCoreStateManager();
-        if (stateManager) {
-            return stateManager;
-        }
-    } catch {
-        /* Ignore errors */
-    }
-
-    try {
-        const stateManager = toRendererStateManagerAccess(
-            getTabTestStateManagerForTests()
-        );
         if (stateManager) {
             return stateManager;
         }
