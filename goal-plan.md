@@ -1749,9 +1749,9 @@ lookup from returning.
 The unused public `getBrowserGlobalProperty` reader has been removed from `browserRuntime.ts`; remaining compatibility
 reads must use named providers, with browser-runtime and architecture coverage blocking the generic reader from
 returning.
-The generic `setBrowserGlobalProperty` writer is now private inside `browserRuntime.ts`; runtime process writes must
-route through `setBrowserProcessCandidate`, with browser-runtime and architecture coverage blocking the public generic
-setter from returning.
+The generic `setBrowserGlobalProperty` writer has been removed from `browserRuntime.ts`; runtime process writes route
+through `setBrowserProcessCandidate` and a private process-specific setter, with browser-runtime and architecture
+coverage blocking the generic setter from returning.
 Temporary Leaflet package alias cleanup now routes through the named `deleteBrowserLeafletGlobals` provider instead of
 exporting a generic browser-global delete helper, with renderer-vendor-map and architecture coverage blocking the broad
 delete provider from returning.

@@ -1887,7 +1887,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps process runtime get and set behind an explicit browser-runtime provider", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1899,11 +1899,11 @@ describe("architecture boundaries", () => {
         );
 
         expect(browserRuntimeSource).toContain(
-            "function setBrowserGlobalProperty("
+            "function setBrowserProcessGlobal("
         );
-        expect(browserRuntimeSource).not.toContain(
-            "export function setBrowserGlobalProperty("
-        );
+        expect(browserRuntimeSource).not.toContain("setBrowserGlobalProperty");
+        expect(browserRuntimeSource).not.toContain("BrowserGlobalProperty");
+        expect(browserRuntimeSource).not.toContain("getBrowserGlobalRecord");
         expect(browserRuntimeSource).toContain(
             "export function getBrowserProcessCandidate(): unknown"
         );
@@ -1914,7 +1914,7 @@ describe("architecture boundaries", () => {
             "export function setBrowserProcessCandidate(processValue: unknown): void"
         );
         expect(browserRuntimeSource).toContain(
-            'setBrowserGlobalProperty("process", processValue);'
+            "setBrowserProcessGlobal(processValue);"
         );
         expect(processEnvironmentSource).toContain(
             "getBrowserProcessCandidate"
@@ -27688,9 +27688,7 @@ describe("architecture boundaries", () => {
             'return getBrowserGlobalProperty("electronAPI");'
         );
         expect(browserRuntimeSource).not.toContain("Reflect.get(");
-        expect(browserRuntimeSource).toContain(
-            "const globals = getBrowserGlobalRecord();"
-        );
+        expect(browserRuntimeSource).not.toContain("getBrowserGlobalRecord");
         expect(electronApiRuntimeSource).not.toContain("scope.electronAPI");
         expect(electronApiRuntimeSource).not.toContain(
             "getWindow: () => globalThis.window"

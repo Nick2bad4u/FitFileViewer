@@ -58,21 +58,20 @@ interface BrowserProcessGlobal {
     readonly process?: unknown;
 }
 
+interface BrowserProcessMutableGlobal {
+    process?: unknown;
+}
+
 interface BrowserVitestGlobal {
     readonly vi?: unknown;
 }
 
-type BrowserGlobalPropertyRecord = Record<PropertyKey, unknown>;
-type BrowserGlobalPropertySetResult = "blocked" | "fallback" | "set";
+type BrowserProcessSetResult = "blocked" | "fallback" | "set";
 
-function getBrowserGlobalRecord(): BrowserGlobalPropertyRecord {
-    return globalThis;
-}
-
-function hasBrowserGlobalSetter(propertyKey: PropertyKey): boolean {
+function hasBrowserProcessSetter(): boolean {
     let target: object | null = globalThis;
     while (target !== null) {
-        const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey);
+        const descriptor = Object.getOwnPropertyDescriptor(target, "process");
         if (descriptor !== undefined) {
             return "set" in descriptor && typeof descriptor.set === "function";
         }
@@ -81,16 +80,13 @@ function hasBrowserGlobalSetter(propertyKey: PropertyKey): boolean {
     return false;
 }
 
-function trySetBrowserGlobalProperty(
-    propertyKey: PropertyKey,
-    value: unknown
-): BrowserGlobalPropertySetResult {
+function trySetBrowserProcess(processValue: unknown): BrowserProcessSetResult {
     try {
-        const globals = getBrowserGlobalRecord();
-        globals[propertyKey] = value;
-        return Object.is(globals[propertyKey], value) ? "set" : "fallback";
+        const globals = globalThis as BrowserProcessMutableGlobal;
+        globals.process = processValue;
+        return Object.is(globals.process, processValue) ? "set" : "fallback";
     } catch {
-        return hasBrowserGlobalSetter(propertyKey) ? "blocked" : "fallback";
+        return hasBrowserProcessSetter() ? "blocked" : "fallback";
     }
 }
 
@@ -177,18 +173,15 @@ export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
 }
 
-function setBrowserGlobalProperty(
-    propertyKey: PropertyKey,
-    value: unknown
-): void {
+function setBrowserProcessGlobal(processValue: unknown): void {
     try {
-        const setResult = trySetBrowserGlobalProperty(propertyKey, value);
+        const setResult = trySetBrowserProcess(processValue);
         if (setResult === "set" || setResult === "blocked") {
             return;
         }
-        Object.defineProperty(globalThis, propertyKey, {
+        Object.defineProperty(globalThis, "process", {
             configurable: true,
-            value,
+            value: processValue,
             writable: true,
         });
     } catch {
@@ -209,7 +202,7 @@ export function getBrowserProcessCandidate(): unknown {
 }
 
 export function setBrowserProcessCandidate(processValue: unknown): void {
-    setBrowserGlobalProperty("process", processValue);
+    setBrowserProcessGlobal(processValue);
 }
 
 export function getBrowserVitestImportMockCandidate(): unknown {
