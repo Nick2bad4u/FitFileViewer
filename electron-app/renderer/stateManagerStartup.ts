@@ -22,6 +22,9 @@ interface RendererStateStartupOptions {
 type RendererStateManager = {
     initialize: () => Promise<unknown> | unknown;
 };
+type RendererStateManagerCandidate = Readonly<{
+    initialize?: unknown;
+}>;
 
 interface RendererStateStartup {
     initializeStateManager: () => Promise<void>;
@@ -136,12 +139,14 @@ export function setRendererFileOpeningState(
 function toRendererStateManager(
     value: unknown
 ): RendererStateManager | undefined {
+    return isRendererStateManager(value) ? value : undefined;
+}
+
+function isRendererStateManager(value: unknown): value is RendererStateManager {
     if (value === null || typeof value !== "object") {
-        return undefined;
+        return false;
     }
 
-    const candidate = value as Partial<RendererStateManager>;
-    return typeof candidate.initialize === "function"
-        ? (candidate as RendererStateManager)
-        : undefined;
+    const candidate = value as RendererStateManagerCandidate;
+    return typeof candidate.initialize === "function";
 }

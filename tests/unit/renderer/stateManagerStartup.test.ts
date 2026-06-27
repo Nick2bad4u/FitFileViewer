@@ -58,6 +58,26 @@ describe("renderer state manager startup", () => {
         expect(utils.isOpeningFileRef.value).toBe(false);
     });
 
+    it("rejects malformed state managers with a non-function initializer", async () => {
+        expect.assertions(2);
+
+        const utils = createRendererStateStartup({
+            ensureCoreModules: async () => ({
+                masterStateManager: {
+                    initialize: true,
+                },
+                subscribeToAppOpeningFile: vi.fn(),
+            }),
+            logRenderer: vi.fn(),
+        });
+
+        await expect(utils.initializeStateManager()).rejects.toThrow(
+            "masterStateManager.initialize missing"
+        );
+
+        expect(utils.isOpeningFileRef.value).toBe(false);
+    });
+
     it("requires the app-opening subscription facade", async () => {
         expect.assertions(2);
 
