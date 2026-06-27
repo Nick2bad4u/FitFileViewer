@@ -696,22 +696,22 @@ function getSummaryRows(data: FitSummaryData): SummaryRecord[] {
         try {
             const table = arquero.from(data.recordMesgs);
             const stats: SummaryStats = {
-                end_time: table.get(table.numRows() - 1, "timestamp"),
-                start_time: table.get(0, "timestamp"),
+                end_time: table.get("timestamp", table.numRows() - 1),
+                start_time: table.get("timestamp", 0),
                 total_records: table.numRows(),
             };
             if (table.columnNames().includes("distance")) {
                 stats.total_distance = table.get(
-                    table.numRows() - 1,
-                    "distance"
+                    "distance",
+                    table.numRows() - 1
                 );
             }
             if (table.columnNames().includes("timestamp")) {
                 const endTimestamp = table.get(
-                    table.numRows() - 1,
-                    "timestamp"
+                    "timestamp",
+                    table.numRows() - 1
                 );
-                const startTimestamp = table.get(0, "timestamp");
+                const startTimestamp = table.get("timestamp", 0);
                 if (isDateInput(endTimestamp) && isDateInput(startTimestamp)) {
                     const endTs = new Date(endTimestamp).getTime(),
                         startTs = new Date(startTimestamp).getTime();
@@ -722,12 +722,10 @@ function getSummaryRows(data: FitSummaryData): SummaryRecord[] {
                 }
             }
             if (table.columnNames().includes("speed")) {
-                const speeds = table
-                    .array("speed")
-                    .filter(
-                        (value): value is number =>
-                            typeof value === "number" && Number.isFinite(value)
-                    );
+                const speeds = Array.from(table.array("speed")).filter(
+                    (value): value is number =>
+                        typeof value === "number" && Number.isFinite(value)
+                );
                 if (speeds.length > 0) {
                     const total = speeds.reduce((a, b) => a + b, 0);
                     stats.avg_speed = total / speeds.length;
@@ -735,12 +733,10 @@ function getSummaryRows(data: FitSummaryData): SummaryRecord[] {
                 }
             }
             if (table.columnNames().includes("altitude")) {
-                const alts = table
-                    .array("altitude")
-                    .filter(
-                        (value): value is number =>
-                            typeof value === "number" && Number.isFinite(value)
-                    );
+                const alts = Array.from(table.array("altitude")).filter(
+                    (value): value is number =>
+                        typeof value === "number" && Number.isFinite(value)
+                );
                 if (alts.length > 0) {
                     stats.min_altitude_ft = Math.min(...alts);
                     stats.max_altitude_ft = Math.max(...alts);

@@ -329,11 +329,26 @@ describe("renderer vendor bundle loader", () => {
     it("registers core runtime payloads from the split core vendor event", async () => {
         expect.assertions(5);
 
-        const arqueroRuntime = { from() {} };
-        const domPurifyRuntime = {
-            sanitize: vi.fn<(value: string) => string>(),
+        const arqueroRuntime = {
+            from: () => ({
+                array: () => [],
+                columnNames: () => [],
+                get: (_columnName: string, _rowIndex = 0) => undefined,
+                numRows: () => 0,
+            }),
         };
-        class ExportZipRuntime {}
+        const domPurifyRuntime = {
+            sanitize: vi.fn(() => document.createDocumentFragment()),
+        };
+        class ExportZipRuntime {
+            public file(): this {
+                return this;
+            }
+
+            public async generateAsync(): Promise<Blob> {
+                return new Blob();
+            }
+        }
         const screenfullRuntime = {
             isEnabled: true,
             isFullscreen: false,

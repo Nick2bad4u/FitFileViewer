@@ -1,9 +1,23 @@
 import type { SummaryRecord } from "./renderSummaryHelpers.js";
 
+export type ArqueroColumnArray =
+    | readonly unknown[]
+    | BigInt64Array
+    | BigUint64Array
+    | Float32Array
+    | Float64Array
+    | Int16Array
+    | Int32Array
+    | Int8Array
+    | Uint16Array
+    | Uint32Array
+    | Uint8Array
+    | Uint8ClampedArray;
+
 export type ArqueroTable = {
-    array: (columnName: string) => unknown[];
+    array: (columnName: string) => ArqueroColumnArray;
     columnNames: () => string[];
-    get: (rowIndex: number, columnName: string) => unknown;
+    get: (columnName: string, rowIndex?: number) => unknown;
     numRows: () => number;
 };
 

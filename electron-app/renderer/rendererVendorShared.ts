@@ -3,6 +3,10 @@ import {
     getRendererVendorSharedRuntime,
     type RendererVendorSharedRuntime,
 } from "./rendererVendorSharedRuntime.js";
+import type { DomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
+import type { ExportZipConstructor } from "../utils/files/export/exportZipRuntime.js";
+import type { ArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
+import type { ScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
@@ -32,10 +36,10 @@ export type RendererVendorRuntimePayload = Readonly<{
 }>;
 
 export type RendererVendorCoreRuntimePayload = Readonly<{
-    arqueroRuntime: unknown;
-    domPurifyRuntime: unknown;
-    exportZipRuntime: unknown;
-    screenfullRuntime: unknown;
+    arqueroRuntime: ArqueroRuntime;
+    domPurifyRuntime: DomPurifyRuntime;
+    exportZipRuntime: ExportZipConstructor;
+    screenfullRuntime: ScreenfullRuntime;
 }>;
 
 export type RendererVendorMapRuntimePayload = Readonly<{

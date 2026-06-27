@@ -33,7 +33,7 @@ describe("renderTable behavior", () => {
                 const data = [...arr];
                 return {
                     numRows: () => data.length,
-                    get: (idx: number, col: string) => data[idx]?.[col],
+                    get: (col: string, idx = 0) => data[idx]?.[col],
                     columnNames: () =>
                         data.length ? Object.keys(data[0]) : [],
                     array: (col: string) =>

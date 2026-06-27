@@ -16140,7 +16140,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(27);
+        expect.assertions(36);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -16182,6 +16182,33 @@ describe("architecture boundaries", () => {
         expect(rendererVendorSharedSource).not.toContain("globalThis &");
         expect(rendererVendorSharedSource).not.toContain(
             "rendererVendorRuntimePayloads"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type { DomPurifyRuntime }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type { ExportZipConstructor }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type { ArqueroRuntime }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type { ScreenfullRuntime }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "arqueroRuntime: ArqueroRuntime;"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "domPurifyRuntime: DomPurifyRuntime;"
+        );
+        expect(rendererVendorSharedSource).not.toContain(
+            "arqueroRuntime: unknown;"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "exportZipRuntime: ExportZipConstructor;"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "screenfullRuntime: ScreenfullRuntime;"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
             "function getDefaultRendererVendorSharedRuntimeScope()"
