@@ -767,14 +767,14 @@ describe("tabStateManager.behavior", () => {
         expect(info.contentElement).toBe(content);
     });
 
-    it("getActiveTabInfo handles unknown activeTab gracefully", () => {
+    it("getActiveTabInfo normalizes unknown activeTab values", () => {
         expect.assertions(4);
         mockGetState.mockImplementationOnce((/* @type {any} */ key) =>
             key === "ui.activeTab" ? "unknown" : null
         );
         const info = /* @type {any} */ tabStateManager.getActiveTabInfo();
-        expect(info.name).toBe("unknown");
-        expect(info.config).toBeUndefined();
+        expect(info.name).toBe("summary");
+        expect(info.config).toBe(TAB_CONFIG.summary);
         expect(info.element).toBeNull();
         expect(info.contentElement).toBeNull();
     });
@@ -923,7 +923,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("initializeSubscriptions callbacks invoke handlers when state changes", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
         // Re-initialize subscriptions after resetting mocks so calls are captured
         tabStateManager.initializeSubscriptions();
         // Retrieve the callbacks from the mock
@@ -954,6 +954,9 @@ describe("tabStateManager.behavior", () => {
         const activeTabCallback = /* @type {Function} */ activeTabCall[1];
         activeTabCallback("map", "summary");
         expect(changeSpy).toHaveBeenCalledWith("map", "summary");
+
+        activeTabCallback("unknown", "map");
+        expect(changeSpy).toHaveBeenLastCalledWith("summary", "map");
         changeSpy.mockRestore();
 
         // Invoke raw FIT data callback to hit updateTabAvailability call

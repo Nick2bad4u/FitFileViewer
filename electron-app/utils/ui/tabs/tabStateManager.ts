@@ -6,6 +6,10 @@ import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
+import {
+    isRendererTabName,
+    normalizeRendererActiveTab,
+} from "../../state/domain/rendererActiveTabState.js";
 import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import {
@@ -45,7 +49,7 @@ export type ActiveTabInfo = {
     config: TabDef | undefined;
     contentElement: HTMLElement | null;
     element: HTMLElement | null;
-    name: unknown;
+    name: string;
     previous: null | string;
 };
 
@@ -217,9 +221,10 @@ export class TabStateManager {
      * @returns Active tab information.
      */
     getActiveTabInfo(): ActiveTabInfo {
-        const activeTab = getStateMgr().getState("ui.activeTab");
-        const config =
-            typeof activeTab === "string" ? getTabConfig(activeTab) : undefined;
+        const activeTab = normalizeRendererActiveTab(
+            getStateMgr().getState("ui.activeTab")
+        );
+        const config = getTabConfig(activeTab);
 
         return {
             config,
@@ -502,11 +507,10 @@ export class TabStateManager {
         const unsubActive = getStateMgr().subscribe(
             "ui.activeTab",
             (newTab: unknown, oldTab: unknown) => {
-                if (typeof newTab === "string" && newTab !== oldTab) {
-                    this.handleTabChange(
-                        newTab,
-                        typeof oldTab === "string" ? oldTab : null
-                    );
+                const nextTab = normalizeRendererActiveTab(newTab);
+                const previousTab = isRendererTabName(oldTab) ? oldTab : null;
+                if (nextTab !== previousTab) {
+                    this.handleTabChange(nextTab, previousTab);
                 }
             }
         );
