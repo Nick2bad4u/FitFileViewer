@@ -18621,7 +18621,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(30);
+        expect.assertions(37);
 
         const wiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
@@ -18648,20 +18648,35 @@ describe("architecture boundaries", () => {
         expect(startupHooksSource).toContain(
             'export type RendererElectronMenuAction = "about" | "open-file";'
         );
-        expect(startupHooksSource).toContain("RecentFilesListResponse");
+        expect(startupHooksSource).toContain("ElectronFileApi");
+        expect(startupHooksSource).toContain("ElectronMenuEventApi");
+        expect(startupHooksSource).not.toContain(
+            'import type { ElectronAPI } from "../shared/preloadApi.js";'
+        );
+        expect(startupHooksSource).not.toContain("RecentFilesListResponse");
+        expect(startupHooksSource).toContain(
+            'type RendererCheckForUpdates = ElectronMenuEventApi["checkForUpdates"];'
+        );
+        expect(startupHooksSource).toContain(
+            'type RendererRecentFilesLoader = ElectronFileApi["recentFiles"];'
+        );
         expect(startupHooksSource).toContain(
             "export type RendererElectronHookRegistrationResult ="
         );
         expect(startupHooksSource).toContain("RendererElectronHookUnsubscribe");
         expect(startupHooksSource).toContain(
-            "checkForUpdates: (() => void) | undefined;"
+            "checkForUpdates: RendererCheckForUpdates | undefined;"
         );
         expect(startupHooksSource).toContain(
-            "isDevelopment: (() => Promise<boolean>) | undefined;"
+            "isDevelopment: RendererDevelopmentModeProbe | undefined;"
         );
         expect(startupHooksSource).toContain(
-            "recentFiles: (() => Promise<RecentFilesListResponse>) | undefined;"
+            "recentFiles: RendererRecentFilesLoader | undefined;"
         );
+        expect(startupHooksSource).not.toContain(
+            "readonly checkForUpdates?: unknown;"
+        );
+        expect(startupHooksSource).not.toContain("readonly recentFiles?: unknown;");
         expect(startupHooksSource).not.toContain("Promise<unknown>");
         expect(startupHooksSource).not.toContain("(() => unknown) | undefined");
         expect(startupHooksSource).not.toContain(") => unknown)");

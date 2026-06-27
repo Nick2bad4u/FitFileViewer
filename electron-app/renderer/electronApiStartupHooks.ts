@@ -2,7 +2,10 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../utils/runtime/electronApiRuntime.js";
-import type { RecentFilesListResponse } from "../shared/ipc.js";
+import type {
+    ElectronFileApi,
+    ElectronMenuEventApi,
+} from "../shared/preloadApiDomains.js";
 
 export type RendererApplyTheme = (
     theme: string,
@@ -13,29 +16,30 @@ export type RendererElectronHookUnsubscribe = () => void;
 export type RendererElectronHookRegistrationResult =
     | RendererElectronHookUnsubscribe
     | void;
+type RendererCheckForUpdates = ElectronMenuEventApi["checkForUpdates"];
+type RendererDevelopmentModeProbe = () => Promise<boolean>;
+type RendererMenuActionRegistration = (
+    callback: (action: RendererElectronMenuAction) => void
+) => RendererElectronHookRegistrationResult;
+type RendererThemeChangeRegistration = (
+    callback: (theme: string) => void
+) => RendererElectronHookRegistrationResult;
+type RendererRecentFilesLoader = ElectronFileApi["recentFiles"];
 
 export interface ElectronApiStartupHooks {
-    checkForUpdates: (() => void) | undefined;
-    isDevelopment: (() => Promise<boolean>) | undefined;
-    onMenuAction:
-        | ((
-              callback: (action: RendererElectronMenuAction) => void
-          ) => RendererElectronHookRegistrationResult)
-        | undefined;
-    onThemeChanged:
-        | ((
-              callback: (theme: string) => void
-          ) => RendererElectronHookRegistrationResult)
-        | undefined;
-    recentFiles: (() => Promise<RecentFilesListResponse>) | undefined;
+    checkForUpdates: RendererCheckForUpdates | undefined;
+    isDevelopment: RendererDevelopmentModeProbe | undefined;
+    onMenuAction: RendererMenuActionRegistration | undefined;
+    onThemeChanged: RendererThemeChangeRegistration | undefined;
+    recentFiles: RendererRecentFilesLoader | undefined;
 }
 
 type ElectronApiStartupHookSource = {
-    readonly checkForUpdates?: unknown;
-    readonly isDevelopment?: unknown;
-    readonly onMenuAction?: unknown;
-    readonly onThemeChanged?: unknown;
-    readonly recentFiles?: unknown;
+    readonly checkForUpdates?: RendererCheckForUpdates | undefined;
+    readonly isDevelopment?: RendererDevelopmentModeProbe | undefined;
+    readonly onMenuAction?: RendererMenuActionRegistration | undefined;
+    readonly onThemeChanged?: RendererThemeChangeRegistration | undefined;
+    readonly recentFiles?: RendererRecentFilesLoader | undefined;
 };
 
 export interface ElectronApiStartupHooksScope {
@@ -58,27 +62,23 @@ export function getElectronApiHooksFromValue(
     return {
         checkForUpdates:
             typeof apiValue.checkForUpdates === "function"
-                ? (apiValue.checkForUpdates as () => void)
+                ? apiValue.checkForUpdates
                 : undefined,
         isDevelopment:
             typeof apiValue.isDevelopment === "function"
-                ? (apiValue.isDevelopment as () => Promise<boolean>)
+                ? apiValue.isDevelopment
                 : undefined,
         onMenuAction:
             typeof apiValue.onMenuAction === "function"
-                ? (apiValue.onMenuAction as (
-                      callback: (action: RendererElectronMenuAction) => void
-                  ) => RendererElectronHookRegistrationResult)
+                ? apiValue.onMenuAction
                 : undefined,
         onThemeChanged:
             typeof apiValue.onThemeChanged === "function"
-                ? (apiValue.onThemeChanged as (
-                      callback: (theme: string) => void
-                  ) => RendererElectronHookRegistrationResult)
+                ? apiValue.onThemeChanged
                 : undefined,
         recentFiles:
             typeof apiValue.recentFiles === "function"
-                ? (apiValue.recentFiles as () => Promise<RecentFilesListResponse>)
+                ? apiValue.recentFiles
                 : undefined,
     };
 }
