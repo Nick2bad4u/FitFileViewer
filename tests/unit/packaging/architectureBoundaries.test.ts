@@ -13338,19 +13338,34 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated utility category barrels on named exports", () => {
-        expect.assertions(4);
+        expect.assertions(10);
 
+        const dataIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/data/index.ts")
+        );
+        const debugIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/index.ts")
+        );
         const filesIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/files/index.ts")
         );
         const formattingIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/formatting/index.ts")
         );
+        const renderingIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/rendering/index.ts")
+        );
 
+        expect(dataIndexSource).not.toContain("export default");
+        expect(dataIndexSource).not.toContain("import * as");
+        expect(debugIndexSource).not.toContain("export default");
+        expect(debugIndexSource).not.toContain("import * as");
         expect(filesIndexSource).not.toContain("export default");
         expect(filesIndexSource).not.toContain("import * as");
         expect(formattingIndexSource).not.toContain("export default");
         expect(formattingIndexSource).not.toContain("import * as");
+        expect(renderingIndexSource).not.toContain("export default");
+        expect(renderingIndexSource).not.toContain("import * as");
     });
 
     it("keeps strict renderer startup tests off renderer dev globals", () => {
