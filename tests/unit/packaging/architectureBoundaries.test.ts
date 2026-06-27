@@ -6729,7 +6729,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(172);
+        expect.assertions(178);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7008,6 +7008,24 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleCleanupSource).toContain(
             "readonly setInitialized: typeof AppActions.setInitialized;"
+        );
+        expect(lifecycleCleanupSource).toContain(
+            "type RendererCleanupMethod = (this: unknown) => void;"
+        );
+        expect(lifecycleCleanupSource).toContain(
+            "readonly cleanup?: RendererCleanupMethod | undefined;"
+        );
+        expect(lifecycleCleanupSource).toContain(
+            "readonly isInitialized: boolean;"
+        );
+        expect(lifecycleCleanupSource).not.toContain(
+            "readonly cleanup?: unknown;"
+        );
+        expect(lifecycleCleanupSource).not.toContain(
+            "readonly isInitialized?: unknown;"
+        );
+        expect(lifecycleCleanupSource).not.toContain(
+            "cleanupStateManagerFn.call(masterStateManager)"
         );
         expect(lifecycleCleanupSource).not.toContain(
             "typeof globalThis.removeEventListener"

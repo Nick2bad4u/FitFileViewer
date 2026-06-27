@@ -29,9 +29,11 @@ type RendererCleanupAppActions = {
     readonly setInitialized: typeof AppActions.setInitialized;
 };
 
+type RendererCleanupMethod = (this: unknown) => void;
+
 type RendererCleanupMasterStateManager = {
-    readonly cleanup?: unknown;
-    readonly isInitialized?: unknown;
+    readonly cleanup?: RendererCleanupMethod | undefined;
+    readonly isInitialized: boolean;
 };
 
 export function createRendererLifecycleCleanup(
@@ -60,14 +62,8 @@ export async function cleanupRendererStateManagerState(
 
         const masterStateManagerRecord =
             toCleanupMasterStateManager(masterStateManager);
-        if (masterStateManagerRecord.isInitialized === true) {
-            const cleanupStateManager = masterStateManagerRecord.cleanup;
-            if (typeof cleanupStateManager === "function") {
-                const cleanupStateManagerFn = cleanupStateManager as (
-                    this: unknown
-                ) => unknown;
-                cleanupStateManagerFn.call(masterStateManager);
-            }
+        if (masterStateManagerRecord?.isInitialized === true) {
+            masterStateManagerRecord.cleanup?.call(masterStateManager);
             return;
         }
 
@@ -98,6 +94,19 @@ function removeRendererErrorEventListeners(
 
 function toCleanupMasterStateManager(
     value: unknown
-): RendererCleanupMasterStateManager {
-    return typeof value === "object" && value !== null ? value : {};
+): RendererCleanupMasterStateManager | undefined {
+    if (
+        typeof value !== "object" ||
+        value === null ||
+        !("isInitialized" in value) ||
+        typeof value.isInitialized !== "boolean"
+    ) {
+        return undefined;
+    }
+
+    if ("cleanup" in value && typeof value.cleanup !== "function") {
+        return undefined;
+    }
+
+    return value as RendererCleanupMasterStateManager;
 }

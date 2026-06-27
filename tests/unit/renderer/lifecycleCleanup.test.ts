@@ -102,6 +102,41 @@ describe("renderer lifecycle cleanup", () => {
         expect(isOpeningFileRef.value).toBe(false);
     });
 
+    it("resets lifecycle state through actions when initialized cleanup is malformed", async () => {
+        expect.assertions(2);
+
+        const actions: Array<[string, boolean]> = [];
+        const isOpeningFileRef = { value: true };
+
+        await cleanupRendererStateManagerState({
+            errorHandlers: createErrorHandlers(),
+            getCoreModules: () =>
+                Promise.resolve({
+                    AppActions: {
+                        setFileOpening(value: boolean): void {
+                            actions.push(["setFileOpening", value]);
+                        },
+                        setInitialized(value: boolean): void {
+                            actions.push(["setInitialized", value]);
+                        },
+                    },
+                    masterStateManager: {
+                        cleanup: "not cleanup",
+                        isInitialized: true,
+                    },
+                }),
+            isOpeningFileRef,
+            logRenderer: () => {},
+            removeEventListener: () => {},
+        });
+
+        expect(actions).toStrictEqual([
+            ["setInitialized", false],
+            ["setFileOpening", false],
+        ]);
+        expect(isOpeningFileRef.value).toBe(false);
+    });
+
     it("resets local opening state when core module cleanup fails", async () => {
         expect.assertions(1);
 
