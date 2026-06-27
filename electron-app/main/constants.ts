@@ -86,5 +86,3 @@ export const CONSTANTS: MainProcessConstants = Object.freeze({
         NOT_AVAILABLE: "update-not-available",
     }),
 });
-
-export default { CONSTANTS };

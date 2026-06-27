@@ -13,8 +13,3 @@ export function getFileAccessPolicyState(): FileAccessPolicyState {
 export function resetFileAccessPolicyState(): void {
     fileAccessPolicyState.approved.clear();
 }
-
-export default {
-    getFileAccessPolicyState,
-    resetFileAccessPolicyState,
-};

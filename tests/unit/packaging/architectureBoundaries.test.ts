@@ -2920,7 +2920,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(27);
+        expect.assertions(30);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2948,6 +2948,7 @@ describe("architecture boundaries", () => {
         );
 
         expect(appStateSource).not.toContain("module.exports");
+        expect(appStateSource).not.toContain("export default");
         expect(appStateSource).not.toContain(
             'require("../../utils/state/integration/mainProcessStateManager")'
         );
@@ -2961,7 +2962,9 @@ describe("architecture boundaries", () => {
         );
         expect(appStateSource).not.toContain("statePath: string");
         expect(constantsSource).not.toContain("module.exports");
+        expect(constantsSource).not.toContain("export default");
         expect(gyazoStartupTimerSource).not.toContain("module.exports");
+        expect(gyazoStartupTimerSource).not.toContain("export default");
         expect(primeTestEnvironmentSource).not.toContain("module.exports");
         expect(primeTestEnvironmentSource).not.toContain("process.env");
         expect(primeTestEnvironmentSource).not.toContain("Reflect.get(");
@@ -2997,7 +3000,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(84);
+        expect.assertions(86);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3072,6 +3075,8 @@ describe("architecture boundaries", () => {
         expect(fitIpcPayloadSource).not.toContain("export default");
         expect(fileAccessPolicySource).not.toContain("module.exports");
         expect(fileAccessPolicyStateSource).not.toContain("module.exports");
+        expect(fileAccessPolicySource).not.toContain("export default");
+        expect(fileAccessPolicyStateSource).not.toContain("export default");
         expect(fileAccessPolicySource).not.toContain("process.env");
         expect(fileAccessPolicySource).toContain("isNodeEnvironment");
         expect(fileAccessPolicySource).not.toContain(
@@ -3365,7 +3370,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(373);
+        expect.assertions(374);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3727,6 +3732,7 @@ describe("architecture boundaries", () => {
         expect(initializeApplicationSource).not.toContain("export default");
         expect(setupIpcHandlersSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
+        expect(gyazoOAuthServerSource).not.toContain("export default");
         expect(gyazoOAuthServerSource).not.toContain("Reflect.get(");
         expect(gyazoOAuthServerSource).not.toContain(
             'Reflect.get(error, "code")'

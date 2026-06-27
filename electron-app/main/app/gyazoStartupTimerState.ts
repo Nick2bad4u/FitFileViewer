@@ -22,9 +22,3 @@ export function clearGyazoStartupTimer(): void {
         gyazoStartupTimer = undefined;
     }
 }
-
-export default {
-    clearGyazoStartupTimer,
-    getGyazoStartupTimer,
-    setGyazoStartupTimer,
-};

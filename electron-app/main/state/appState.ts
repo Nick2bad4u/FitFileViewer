@@ -342,30 +342,3 @@ export function clearGeolocationPermissionAllowed(
 }
 
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
-
-export default {
-    cleanupEventHandlers,
-    clearGeolocationPermissionAllowed,
-    clearGyazoServerState,
-    getAutoUpdaterStatus,
-    getAppState,
-    getGeolocationPermissionAllowed,
-    getGyazoServer,
-    getGyazoServerPort,
-    getLoadedFitFilePath,
-    getMainWindow,
-    hasGyazoServer,
-    isAppQuitting,
-    isAutoUpdaterInitialized,
-    isAutoUpdaterUpdateDownloaded,
-    mainProcessState: runtimeMainProcessState,
-    resolveFitParserSettingsConf,
-    setAppIsQuitting,
-    setAppState,
-    setAutoUpdaterInitialized,
-    setAutoUpdaterState,
-    setGeolocationPermissionAllowed,
-    setGyazoServerState,
-    setLoadedFitFilePath,
-    setMainWindow,
-};

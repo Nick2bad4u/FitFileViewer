@@ -318,8 +318,3 @@ export async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
         }
     });
 }
-
-export default {
-    startGyazoOAuthServer,
-    stopGyazoOAuthServer,
-};

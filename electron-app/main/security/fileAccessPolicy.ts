@@ -172,12 +172,3 @@ function normalizeKey(filePath: string): string {
 
     return isWindowsStylePath(filePath) ? canonical.toLowerCase() : canonical;
 }
-
-export default {
-    __resetForTests,
-    approveFilePath,
-    approveFilePaths,
-    assertFileReadAllowed,
-    isApprovedFilePath,
-    isValidFitFilePathCandidate,
-};
