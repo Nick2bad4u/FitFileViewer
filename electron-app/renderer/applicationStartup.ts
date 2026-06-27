@@ -45,8 +45,12 @@ export interface RendererDependencies {
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
+export type RendererApplicationStartupActions = Readonly<{
+    readonly setInitialized?: ((initialized: boolean) => unknown) | undefined;
+}>;
+
 export type RendererApplicationStartupCoreModules = Readonly<{
-    readonly AppActions: Record<string, unknown> | undefined;
+    readonly AppActions: RendererApplicationStartupActions | undefined;
     readonly applyTheme: ApplyTheme | undefined;
     readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
@@ -410,12 +414,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function markApplicationInitialized(
-    appActions: Record<string, unknown> | undefined
+    appActions: RendererApplicationStartupActions | undefined
 ): void {
-    const setInitialized = appActions?.["setInitialized"];
-    if (typeof setInitialized === "function") {
-        const setInitializedFn =
-            /** @type {(initialized: boolean) => unknown} */ setInitialized;
-        setInitializedFn(true);
-    }
+    appActions?.setInitialized?.(true);
 }
