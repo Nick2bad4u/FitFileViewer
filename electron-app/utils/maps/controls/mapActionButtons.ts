@@ -8,7 +8,6 @@
  * - Elevation profile modal with theme-aware styling
  * - FIT file overlay management with drag-and-drop support
  * - Marker count selector for performance optimization
- * - Loading overlays with progress tracking
  * - CSS-based theming that integrates with the application's theme system
  *
  * All components use CSS custom properties and classes for theming, ensuring
@@ -19,7 +18,6 @@
 
 import { registerShownFilesListAfterUpdate } from "../../rendering/components/shownFilesListUpdater.js";
 import { createMapThemeToggle as createMapThemeToggleImplementation } from "../../theming/specific/createMapThemeToggle.js";
-import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
@@ -292,24 +290,6 @@ function fitMapToMainPolyline(
 
     console.warn("[mapActionButtons] No valid bounds found for main polyline");
     void showNotification("Could not determine track bounds", "warning");
-}
-
-/**
- * Hides the global map loading overlay.
- */
-export function hideLoadingOverlay(): void {
-    LoadingOverlay.hide();
-}
-
-// Export loading functions for backward compatibility
-/**
- * Show a global loading overlay on the map.
- *
- * @param progressText - Overlay progress message.
- * @param fileName - Optional file name to show in the overlay.
- */
-export function showLoadingOverlay(progressText: string, fileName = ""): void {
-    LoadingOverlay.show(progressText, fileName);
 }
 
 // Export map theme toggle for map controls

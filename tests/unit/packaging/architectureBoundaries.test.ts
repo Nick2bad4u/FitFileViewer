@@ -18585,7 +18585,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {
-        expect.assertions(53);
+        expect.assertions(56);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -18623,6 +18623,9 @@ describe("architecture boundaries", () => {
         expect(mapActionButtonsSource).toContain("runtime.isHTMLElement");
         expect(mapActionButtonsSource).not.toContain("document");
         expect(mapActionButtonsSource).not.toContain("Date.now");
+        expect(mapActionButtonsSource).not.toContain("hideLoadingOverlay");
+        expect(mapActionButtonsSource).not.toContain("showLoadingOverlay");
+        expect(mapActionButtonsSource).not.toContain("backward compatibility");
         expect(mapActionButtonsSource).toContain(
             "getMapActionButtonsRuntime().dateNow()"
         );
