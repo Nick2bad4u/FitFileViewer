@@ -346,6 +346,14 @@ function seedActiveFitRawData() {
     };
 }
 
+function seedMalformedActiveFitRawData() {
+    state["fitFile.rawData"] = {
+        eventMesgs: { type: "pause" },
+        recordMesgs: "not-record-messages",
+        timeInZoneMesgs: "not-zone-messages",
+    };
+}
+
 function seedCharts(count = 2): ChartInstanceMock[] {
     const chartInstances = Array.from({ length: count }, (_, i) => ({
         data: {
@@ -564,6 +572,27 @@ describe("ensureChartSettingsDropdowns integration", () => {
             'input[type="color"]'
         );
         expect(hasPicker).toBeNull();
+    });
+
+    it("field toggles ignore malformed active FIT message collections", () => {
+        expect.assertions(4);
+
+        setupDOM(true);
+        seedMalformedActiveFitRawData();
+        ensureChartSettingsDropdowns("chartjs-chart-container");
+
+        const wrapper = document.getElementById("chartjs-settings-wrapper")!;
+
+        expect(wrapper.querySelector("#field-toggle-speed")).toBeInstanceOf(
+            HTMLInputElement
+        );
+        expect(
+            wrapper.querySelector("#field-toggle-event_messages")
+        ).toBeNull();
+        expect(wrapper.querySelector("#field-toggle-dev_field1")).toBeNull();
+        expect(
+            wrapper.querySelector("#field-toggle-hr_lap_zone_stacked")
+        ).toBeNull();
     });
 
     it("toggle all buttons update all fields and notify", () => {

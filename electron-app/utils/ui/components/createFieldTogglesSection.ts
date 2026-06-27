@@ -48,13 +48,28 @@ type FieldToggleFitData = {
     timeInZoneMesgs: ZoneMessage[];
 };
 
+function isLooseRecord(value: unknown): value is LooseRecord {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeFieldToggleMessages<TMessage extends LooseRecord>(
+    messages: unknown
+): TMessage[] {
+    return Array.isArray(messages)
+        ? messages.filter((message): message is TMessage =>
+              isLooseRecord(message)
+          )
+        : [];
+}
+
 function getManagedFieldToggleFitData(): FieldToggleFitData {
-    const activityData =
-        getActiveFitActivityData() as Partial<FieldToggleFitData>;
+    const activityData = getActiveFitActivityData();
     return {
-        eventMesgs: activityData.eventMesgs ?? [],
-        recordMesgs: activityData.recordMesgs ?? [],
-        timeInZoneMesgs: activityData.timeInZoneMesgs ?? [],
+        eventMesgs: normalizeFieldToggleMessages(activityData.eventMesgs),
+        recordMesgs: normalizeFieldToggleMessages(activityData.recordMesgs),
+        timeInZoneMesgs: normalizeFieldToggleMessages(
+            activityData.timeInZoneMesgs
+        ),
     };
 }
 
@@ -288,11 +303,12 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     fieldsGrid.append(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
-    if (getManagedFieldToggleFitData().timeInZoneMesgs) {
-        const { timeInZoneMesgs } = getManagedFieldToggleFitData(),
-            lapZoneMsgs = timeInZoneMesgs.filter(
-                (msg) => msg.referenceMesg === "lap"
-            );
+    const managedFitData = getManagedFieldToggleFitData();
+
+    if (managedFitData.timeInZoneMesgs.length > 0) {
+        const lapZoneMsgs = managedFitData.timeInZoneMesgs.filter(
+            (msg) => msg.referenceMesg === "lap"
+        );
 
         if (lapZoneMsgs.length > 0) {
             // Check for HR lap zone data
@@ -332,10 +348,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     }
 
     // Add event messages toggle if data exists
-    if (
-        Array.isArray(getManagedFieldToggleFitData().eventMesgs) &&
-        getManagedFieldToggleFitData().eventMesgs.length > 0
-    ) {
+    if (managedFitData.eventMesgs.length > 0) {
         const eventMessagesToggle = createFieldToggle(
             "event_messages",
             runtime
@@ -344,9 +357,9 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     }
 
     // Add developer fields toggles if data exists
-    if (getManagedFieldToggleFitData().recordMesgs) {
+    if (managedFitData.recordMesgs.length > 0) {
         const devFields = extractDeveloperFieldsList(
-            getManagedFieldToggleFitData().recordMesgs
+            managedFitData.recordMesgs
         );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field, runtime);
@@ -630,9 +643,10 @@ function toggleAllFields(
             visibility = enable ? "visible" : "hidden";
 
         // Add developer fields if they exist
-        if (getManagedFieldToggleFitData().recordMesgs) {
+        const managedFitData = getManagedFieldToggleFitData();
+        if (managedFitData.recordMesgs.length > 0) {
             const devFields = extractDeveloperFieldsList(
-                getManagedFieldToggleFitData().recordMesgs
+                managedFitData.recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields
