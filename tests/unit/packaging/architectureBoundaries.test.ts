@@ -18747,7 +18747,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input startup off the generic function bridge", () => {
-        expect.assertions(14);
+        expect.assertions(19);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -18774,6 +18774,21 @@ describe("architecture boundaries", () => {
         expect(fileInputWiringSource).toContain("RendererFileOpenHandler");
         expect(fileInputWiringSource).toContain(
             "type RendererFileInputHandleOpenFileOverrideModule = Readonly<{"
+        );
+        expect(fileInputWiringSource).toContain(
+            "type RendererFileInputHandleOpenFileDefaultExport = Readonly<{"
+        );
+        expect(fileInputWiringSource).toContain(
+            "readonly default?:\n        | RendererFileInputHandleOpenFileDefaultExport\n        | undefined;"
+        );
+        expect(fileInputWiringSource).toContain(
+            "readonly handleOpenFile?: RendererFileOpenHandler | undefined;"
+        );
+        expect(fileInputWiringSource).not.toContain(
+            "readonly default?: unknown;"
+        );
+        expect(fileInputWiringSource).not.toContain(
+            "readonly handleOpenFile?: unknown;"
         );
         expect(fileInputWiringSource).toContain(
             "toRendererFileInputHandleOpenFileOverrideModule("

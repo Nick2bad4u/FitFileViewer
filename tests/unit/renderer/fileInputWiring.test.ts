@@ -167,6 +167,27 @@ describe("renderer file input wiring", () => {
         expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
 
+    it("falls back to async handleOpenFile for malformed handler exports", async () => {
+        expect.assertions(1);
+
+        const { file, input } = createFileInput("fileInput");
+        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const utils = createWiring({
+            ensureCoreModules: async () => createCoreModules(handleOpenFile),
+            getFileInput: () => input,
+            resolveExactRendererCoreTestOverride: () => ({
+                default: { handleOpenFile: "not-a-handler" },
+                handleOpenFile: "not-a-handler",
+            }),
+        });
+
+        utils.registerDelegatedFileInputChangeListener(document, window);
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await flushFileInputHandlers();
+
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
+    });
+
     it("falls back to async handleOpenFile when no test override resolves", async () => {
         expect.assertions(1);
 

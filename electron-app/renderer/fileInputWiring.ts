@@ -48,9 +48,15 @@ type RendererFileInputWiring = {
     ) => void;
 };
 
+type RendererFileInputHandleOpenFileDefaultExport = Readonly<{
+    readonly handleOpenFile?: RendererFileOpenHandler | undefined;
+}>;
+
 type RendererFileInputHandleOpenFileOverrideModule = Readonly<{
-    readonly default?: unknown;
-    readonly handleOpenFile?: unknown;
+    readonly default?:
+        | RendererFileInputHandleOpenFileDefaultExport
+        | undefined;
+    readonly handleOpenFile?: RendererFileOpenHandler | undefined;
 }>;
 
 export function createRendererFileInputWiring(
@@ -111,13 +117,10 @@ function resolveOverrideHandleOpenFile(
                 "/utils/files/import/handleOpenFile.js"
             )
     );
-    const defaultModule = toRendererFileInputHandleOpenFileOverrideModule(
-        resolvedModule.default
-    );
 
     return (
-        toRendererFileOpenHandler(resolvedModule.handleOpenFile) ??
-        toRendererFileOpenHandler(defaultModule.handleOpenFile)
+        resolvedModule?.handleOpenFile ??
+        resolvedModule?.default?.handleOpenFile
     );
 }
 
@@ -131,13 +134,52 @@ async function getFileInputHandleOpenFile(
 function toRendererFileOpenHandler(
     value: unknown
 ): RendererFileOpenHandler | undefined {
-    return typeof value === "function"
-        ? (value as RendererHandleOpenFile)
-        : undefined;
+    return isRendererFileOpenHandler(value) ? value : undefined;
+}
+
+function isRendererFileOpenHandler(
+    value: unknown
+): value is RendererFileOpenHandler {
+    return typeof value === "function";
 }
 
 function toRendererFileInputHandleOpenFileOverrideModule(
     value: unknown
-): RendererFileInputHandleOpenFileOverrideModule {
-    return typeof value === "object" && value !== null ? value : {};
+): RendererFileInputHandleOpenFileOverrideModule | undefined {
+    if (typeof value !== "object" || value === null) {
+        return undefined;
+    }
+
+    const defaultExport =
+        "default" in value
+            ? toRendererFileInputHandleOpenFileDefaultExport(value.default)
+            : undefined;
+    const handleOpenFile =
+        "handleOpenFile" in value
+            ? toRendererFileOpenHandler(value.handleOpenFile)
+            : undefined;
+
+    if (defaultExport === undefined && handleOpenFile === undefined) {
+        return undefined;
+    }
+
+    return {
+        default: defaultExport,
+        handleOpenFile,
+    };
+}
+
+function toRendererFileInputHandleOpenFileDefaultExport(
+    value: unknown
+): RendererFileInputHandleOpenFileDefaultExport | undefined {
+    if (
+        typeof value !== "object" ||
+        value === null ||
+        !("handleOpenFile" in value)
+    ) {
+        return undefined;
+    }
+
+    const handleOpenFile = toRendererFileOpenHandler(value.handleOpenFile);
+    return handleOpenFile === undefined ? undefined : { handleOpenFile };
 }
