@@ -936,6 +936,23 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect(result.currentTheme).toBe("auto");
                 expect(result.isDarkTheme).toStrictEqual(true); // Based on mock matchMedia
             });
+
+            it("normalizes active tab names in the UI state summary", () => {
+                expect.assertions(2);
+                initializeCommonComputedValues();
+
+                mockStateManager.setState("ui.activeTab", "map");
+                computedStateManager.invalidateComputed("uiStateSummary");
+                expect(getComputed("uiStateSummary")).toMatchObject({
+                    activeTab: "map",
+                });
+
+                mockStateManager.setState("ui.activeTab", "charts");
+                computedStateManager.invalidateComputed("uiStateSummary");
+                expect(getComputed("uiStateSummary")).toMatchObject({
+                    activeTab: "summary",
+                });
+            });
         });
 
         describe("cleanupCommonComputedValues", () => {

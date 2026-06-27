@@ -1,5 +1,6 @@
 import { getState, subscribe } from "./stateManager.js";
 import type { AppStateShape } from "./stateManagerDefaults.js";
+import { normalizeRendererActiveTab } from "../domain/rendererActiveTabState.js";
 import {
     getComputedStateManagerRuntime,
     type ComputedStateManagerRuntime,
@@ -196,8 +197,7 @@ class ComputedStateManager {
         this.isComputing.add(key);
 
         try {
-            const startTime =
-                computedStateManagerRuntime().nowPerformance();
+            const startTime = computedStateManagerRuntime().nowPerformance();
             const state = getComputedStateInput();
             const newValue = computed.computeFn(state);
             const duration =
@@ -501,7 +501,7 @@ export function initializeCommonComputedValues(): void {
     addComputed(
         "uiStateSummary",
         (state) => ({
-            activeTab: state.ui?.activeTab ?? "summary",
+            activeTab: normalizeRendererActiveTab(state.ui?.activeTab),
             controlsEnabled: state.ui?.controlsEnabled ?? false,
             loadingState: state.ui?.loading ?? false,
             notificationCount: state.ui?.notifications?.length ?? 0,

@@ -13470,7 +13470,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps computed state manager theme and timing reads behind the runtime adapter", () => {
-        expect.assertions(34);
+        expect.assertions(36);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -13485,6 +13485,12 @@ describe("architecture boundaries", () => {
 
         expect(computedStateManagerSource).toContain(
             "computedStateManagerRuntime.js"
+        );
+        expect(computedStateManagerSource).toContain(
+            "rendererActiveTabState.js"
+        );
+        expect(computedStateManagerSource).toContain(
+            "normalizeRendererActiveTab"
         );
         expect(computedStateManagerSource).toContain(
             "type ComputedStateManagerRuntime"
