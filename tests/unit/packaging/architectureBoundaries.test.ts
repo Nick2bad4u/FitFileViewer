@@ -3401,7 +3401,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(406);
+        expect.assertions(419);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3502,6 +3502,11 @@ describe("architecture boundaries", () => {
         const registerDevtoolsInjectMenuHandlerSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/registerDevtoolsInjectMenuHandler.ts"
+            )
+        );
+        const registerFileMenuHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerFileMenuHandlers.ts"
             )
         );
         const registerFullscreenHandlerSource = stripComments(
@@ -3910,7 +3915,7 @@ describe("architecture boundaries", () => {
         expect(setupApplicationEventHandlersSource).toContain(
             "getLoadedFitFilePath"
         );
-        expect(setupMenuAndEventHandlersSource).toContain(
+        expect(registerFileMenuHandlersSource).toContain(
             "getLoadedFitFilePath"
         );
         expect(appStateSource).toContain("function getAutoUpdaterStatus");
@@ -4135,6 +4140,25 @@ describe("architecture boundaries", () => {
         );
         expect(setupMenuAndEventHandlersSource).toContain(
             "registerDevtoolsInjectMenuHandler"
+        );
+        expect(registerFileMenuHandlersSource).toContain("registerIpcListener");
+        expect(registerFileMenuHandlersSource).toContain('"menu-export"');
+        expect(registerFileMenuHandlersSource).toContain('"menu-save-as"');
+        expect(registerFileMenuHandlersSource).toContain("showSaveDialog");
+        expect(registerFileMenuHandlersSource).toContain("copyFile");
+        expect(registerFileMenuHandlersSource).toContain("isApprovedFilePath");
+        expect(registerFileMenuHandlersSource).toContain(
+            "getLoadedFitFilePath"
+        );
+        expect(registerFileMenuHandlersSource).not.toContain("module.exports");
+        expect(registerFileMenuHandlersSource).not.toContain("export default");
+        expect(setupMenuAndEventHandlersSource).not.toContain('"menu-export"');
+        expect(setupMenuAndEventHandlersSource).not.toContain('"menu-save-as"');
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            "isApprovedFilePath"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "registerFileMenuHandlers"
         );
         expect(registerFullscreenHandlerSource).toContain(
             'registerIpcListener("set-fullscreen"'
