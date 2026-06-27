@@ -29,8 +29,8 @@ describe("rendererThemeState", () => {
 
         expect(getRendererPreviousTheme()).toBeUndefined();
 
-        setRendererPreviousTheme("light", { source: "test" });
-        expect(getRendererPreviousTheme()).toBe("light");
+        setRendererPreviousTheme("auto", { source: "test" });
+        expect(getRendererPreviousTheme()).toBe("system");
     });
 
     it("subscribes to renderer theme changes", () => {
@@ -49,12 +49,14 @@ describe("rendererThemeState", () => {
         expect(changes).toStrictEqual(["dark"]);
     });
 
-    it("normalizes empty values to system", () => {
-        expect.assertions(4);
+    it("normalizes non-renderer theme values to system", () => {
+        expect.assertions(6);
 
+        expect(normalizeRendererTheme("dark")).toBe("dark");
         expect(normalizeRendererTheme("light")).toBe("light");
+        expect(normalizeRendererTheme("system")).toBe("system");
+        expect(normalizeRendererTheme("auto")).toBe("system");
         expect(normalizeRendererTheme("")).toBe("system");
-        expect(normalizeRendererTheme("   ")).toBe("system");
-        expect(normalizeRendererTheme(undefined)).toBe("system");
+        expect(normalizeRendererTheme("solarized")).toBe("system");
     });
 });

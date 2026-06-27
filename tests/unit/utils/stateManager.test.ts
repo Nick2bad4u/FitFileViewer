@@ -113,7 +113,7 @@ describe("state manager core", () => {
     });
 
     it("normalizes active-tab values when replacing the UI state branch", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         resetStateManager();
 
@@ -121,11 +121,33 @@ describe("state manager core", () => {
             activeTab: "charts",
             activeTabContent: "table",
             controlsEnabled: true,
+            previousTheme: "auto",
+            theme: "solarized",
         });
 
         expect(getState("ui.activeTab")).toBe("summary");
         expect(getState("ui.activeTabContent")).toBe("summary");
         expect(getState("ui.controlsEnabled")).toBe(true);
+        expect(getState("ui.previousTheme")).toBe("system");
+        expect(getState("ui.theme")).toBe("system");
+    });
+
+    it("normalizes renderer theme writes at the core state boundary", () => {
+        expect.assertions(4);
+
+        resetStateManager();
+
+        setState("ui.theme", "dark");
+        expect(getState("ui.theme")).toBe("dark");
+
+        setState("ui.theme", "auto");
+        expect(getState("ui.theme")).toBe("system");
+
+        setState("ui.theme", "solarized");
+        expect(getState("ui.theme")).toBe("system");
+
+        setState("ui.previousTheme", "light");
+        expect(getState("ui.previousTheme")).toBe("light");
     });
 
     it("normalizes browser lifecycle writes at the core state boundary", () => {

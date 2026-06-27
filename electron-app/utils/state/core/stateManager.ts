@@ -34,6 +34,10 @@ import {
     normalizeMapStateBranch,
 } from "../domain/mapBaseLayerContract.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
+import {
+    normalizeRendererTheme,
+    normalizeRendererThemeUiBranch,
+} from "../domain/rendererThemeContract.js";
 
 /** Listener invoked when a subscribed state path changes. */
 export type StateListener = (
@@ -84,6 +88,10 @@ const RENDERER_ACTIVE_TAB_STATE_PATHS = new Set([
     "ui.activeTabContent",
 ]);
 const RENDERER_ACTIVE_TAB_UI_KEYS = ["activeTab", "activeTabContent"] as const;
+const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
+    ["ui.previousTheme", normalizeRendererTheme],
+    ["ui.theme", normalizeRendererTheme],
+]);
 const BROWSER_STATE_PATH_NORMALIZERS = new Map<
     string,
     (value: unknown) => unknown
@@ -121,6 +129,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeStateWriteValue(path: string, value: unknown): unknown {
+    const uiNormalizer = UI_STATE_PATH_NORMALIZERS.get(path);
+    if (uiNormalizer) {
+        return uiNormalizer(value);
+    }
+
     const browserNormalizer = BROWSER_STATE_PATH_NORMALIZERS.get(path);
     if (browserNormalizer) {
         return browserNormalizer(value);
@@ -160,6 +173,13 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
                 normalizedBranch ??= { ...value };
                 normalizedBranch[key] = normalizeRendererActiveTab(value[key]);
             }
+        }
+
+        const themeNormalizedBranch = normalizeRendererThemeUiBranch(
+            normalizedBranch ?? value
+        );
+        if (themeNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = themeNormalizedBranch;
         }
 
         if (normalizedBranch) {
