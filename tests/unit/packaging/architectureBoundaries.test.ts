@@ -3310,7 +3310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(349);
+        expect.assertions(359);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3868,6 +3868,30 @@ describe("architecture boundaries", () => {
         expect(mainSource).toContain("getGyazoServer");
         expect(mainSource).toContain("getGyazoServerPort");
         expect(mainSource).toContain("clearGyazoServerState");
+        expect(appStateSource).toContain(
+            "function getGeolocationPermissionAllowed"
+        );
+        expect(appStateSource).toContain(
+            "function setGeolocationPermissionAllowed"
+        );
+        expect(appStateSource).toContain(
+            "function clearGeolocationPermissionAllowed"
+        );
+        expect(setupApplicationEventHandlersSource).toContain(
+            "getGeolocationPermissionAllowed"
+        );
+        expect(setupApplicationEventHandlersSource).toContain(
+            "setGeolocationPermissionAllowed"
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'getAppState("permissions.geolocation.allowed")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'setAppState("permissions.geolocation.allowed"'
+        );
+        expect(mainSource).toContain("getGeolocationPermissionAllowed");
+        expect(mainSource).toContain("setGeolocationPermissionAllowed");
+        expect(mainSource).toContain("clearGeolocationPermissionAllowed");
         expect(appStateSource).toContain("function isAppQuitting");
         expect(appStateSource).toContain("function setAppIsQuitting");
         expect(windowValidationSource).toContain("isAppQuitting");

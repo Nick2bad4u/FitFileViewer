@@ -38,7 +38,8 @@ type SetupHandlersModule = {
     setupApplicationEventHandlers: () => void;
 };
 type AppStateModule = {
-    setAppState: (key: string, value: unknown) => void;
+    clearGeolocationPermissionAllowed: () => void;
+    setGeolocationPermissionAllowed: (allowed: boolean | null) => void;
 };
 type WebContentsCreatedHandler = (
     event: unknown,
@@ -108,10 +109,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         const { setupApplicationEventHandlers } = await importSetupHandlers();
         setupApplicationEventHandlers();
-        (await importAppState()).setAppState(
-            "permissions.geolocation.allowed",
-            null
-        );
+        (await importAppState()).clearGeolocationPermissionAllowed();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
         assertFunction<WebContentsCreatedHandler>(
@@ -235,10 +233,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             })
         ).toBe(false);
 
-        (await importAppState()).setAppState(
-            "permissions.geolocation.allowed",
-            true
-        );
+        (await importAppState()).setGeolocationPermissionAllowed(true);
         expect(
             checkHandler({}, "geolocation", "about:blank", {
                 requestingUrl: "about:blank",

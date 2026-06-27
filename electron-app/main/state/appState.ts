@@ -28,7 +28,7 @@ export type MainAppStateValueByPath = {
     gyazoServerPort: null | number;
     loadedFitFilePath: null | string;
     mainWindow: MainAppStateWindowLike | null;
-    "permissions.geolocation.allowed": boolean;
+    "permissions.geolocation.allowed": boolean | null;
 };
 
 export type MainAppStateKnownPath = keyof MainAppStateValueByPath;
@@ -113,6 +113,17 @@ export function getGyazoServerPort(): MainAppStateValueByPath[
     "gyazoServerPort"
 ] {
     return getAppState("gyazoServerPort");
+}
+
+/**
+ * Returns the cached geolocation permission decision for this app session.
+ *
+ * @returns Cached allow/deny decision, or null when no decision is cached.
+ */
+export function getGeolocationPermissionAllowed(): MainAppStateValueByPath[
+    "permissions.geolocation.allowed"
+] {
+    return getAppState("permissions.geolocation.allowed");
 }
 
 /**
@@ -288,13 +299,39 @@ export function clearGyazoServerState(options?: StateUpdateOptions): void {
     setGyazoServerState(null, null, options);
 }
 
+/**
+ * Caches the geolocation permission decision for this app session.
+ *
+ * @param allowed - Allow/deny decision, or null to clear the cached decision.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setGeolocationPermissionAllowed(
+    allowed: MainAppStateValueByPath["permissions.geolocation.allowed"],
+    options?: StateUpdateOptions
+): void {
+    setAppState("permissions.geolocation.allowed", allowed, options);
+}
+
+/**
+ * Clears the cached geolocation permission decision.
+ *
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function clearGeolocationPermissionAllowed(
+    options?: StateUpdateOptions
+): void {
+    setGeolocationPermissionAllowed(null, options);
+}
+
 export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 
 export default {
     cleanupEventHandlers,
+    clearGeolocationPermissionAllowed,
     clearGyazoServerState,
     getAutoUpdaterStatus,
     getAppState,
+    getGeolocationPermissionAllowed,
     getGyazoServer,
     getGyazoServerPort,
     getLoadedFitFilePath,
@@ -309,6 +346,7 @@ export default {
     setAppState,
     setAutoUpdaterInitialized,
     setAutoUpdaterState,
+    setGeolocationPermissionAllowed,
     setGyazoServerState,
     setLoadedFitFilePath,
     setMainWindow,

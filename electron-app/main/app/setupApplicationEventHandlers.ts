@@ -16,12 +16,12 @@ import {
 } from "../runtime/electronAccess.js";
 import { httpRef, path } from "../runtime/nodeModules.js";
 import {
-    getAppState,
+    getGeolocationPermissionAllowed,
     getLoadedFitFilePath,
     getMainWindow,
     hasGyazoServer,
     setAppIsQuitting,
-    setAppState,
+    setGeolocationPermissionAllowed,
 } from "../state/appState.js";
 import { getPersistedThemePreference } from "../theme/getPersistedThemePreference.js";
 import {
@@ -260,7 +260,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         details: PermissionDetailsLike
     ): Promise<boolean> {
         try {
-            const cached = getAppState("permissions.geolocation.allowed");
+            const cached = getGeolocationPermissionAllowed();
             if (typeof cached === "boolean") {
                 return cached;
             }
@@ -270,7 +270,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
         if (isTestMode()) {
             try {
-                setAppState("permissions.geolocation.allowed", true, {
+                setGeolocationPermissionAllowed(true, {
                     source: "permissions.test",
                 });
             } catch {
@@ -321,7 +321,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         }
 
         try {
-            setAppState("permissions.geolocation.allowed", allow, {
+            setGeolocationPermissionAllowed(allow, {
                 source: "permissions.geolocation",
             });
         } catch {
@@ -354,11 +354,9 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
                         if (isTestMode()) {
                             try {
-                                setAppState(
-                                    "permissions.geolocation.allowed",
-                                    true,
-                                    { source: "permissions.test" }
-                                );
+                                setGeolocationPermissionAllowed(true, {
+                                    source: "permissions.test",
+                                });
                             } catch {
                                 /* ignore */
                             }
@@ -404,8 +402,8 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                         }
 
                         try {
-                            return getAppState(
-                                "permissions.geolocation.allowed"
+                            return (
+                                getGeolocationPermissionAllowed() === true
                             );
                         } catch {
                             return false;

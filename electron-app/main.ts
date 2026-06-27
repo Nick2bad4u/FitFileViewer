@@ -29,9 +29,11 @@ export { ensureFitParserStateIntegration } from "./main/runtime/fitParserIntegra
 export { initializeApplication } from "./main/runtime/initializeApplication.js";
 export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 export {
+    clearGeolocationPermissionAllowed,
     clearGyazoServerState,
     getAppState,
     getAutoUpdaterStatus,
+    getGeolocationPermissionAllowed,
     getGyazoServer,
     getGyazoServerPort,
     getLoadedFitFilePath,
@@ -42,6 +44,7 @@ export {
     setAppState,
     setAutoUpdaterInitialized,
     setAutoUpdaterState,
+    setGeolocationPermissionAllowed,
     setGyazoServerState,
     setLoadedFitFilePath,
     setMainWindow,

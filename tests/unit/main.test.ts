@@ -332,11 +332,13 @@ vi.mock(import("../../electron-app/utils/files/recentFiles.js"), () => ({
 
 const expectedMainExportKeys = [
     "CONSTANTS",
+    "clearGeolocationPermissionAllowed",
     "clearGyazoServerState",
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
     "getAppState",
     "getAutoUpdaterStatus",
+    "getGeolocationPermissionAllowed",
     "getGyazoServer",
     "getGyazoServerPort",
     "getLoadedFitFilePath",
@@ -353,6 +355,7 @@ const expectedMainExportKeys = [
     "setAppState",
     "setAutoUpdaterInitialized",
     "setAutoUpdaterState",
+    "setGeolocationPermissionAllowed",
     "setGyazoServerState",
     "setLoadedFitFilePath",
     "setMainWindow",
@@ -372,8 +375,10 @@ type MainModule = {
         PLATFORMS: Record<string, string>;
     };
     exposeDevHelpers: () => DevHelpers;
+    clearGeolocationPermissionAllowed: () => void;
     getAppState: (key: string) => unknown;
     getAutoUpdaterStatus: () => string;
+    getGeolocationPermissionAllowed: () => boolean | null;
     getGyazoServer: () => unknown;
     getGyazoServerPort: () => null | number;
     getLoadedFitFilePath: () => null | string;
@@ -390,6 +395,7 @@ type MainModule = {
         status: string,
         updateDownloaded: boolean
     ) => void;
+    setGeolocationPermissionAllowed: (allowed: boolean | null) => void;
     setGyazoServerState: (server: unknown, port: null | number) => void;
     setLoadedFitFilePath: (filePath: null | string) => void;
     setMainWindow: (mainWindow: unknown) => void;
