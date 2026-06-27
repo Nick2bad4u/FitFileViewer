@@ -1136,7 +1136,7 @@ casting the candidate preload API to a generic record.
 Scoped master-state manager Electron API validation now uses explicit optional-function and development-mode
 property guards instead of casting the candidate preload API to a generic record, and master-state preload candidate
 typing now uses explicit optional method aliases backed by shared app-info and dialog API-domain contracts instead of
-deriving a local `Partial<Pick>` bridge from `ElectronAPIWithDevFlags`.
+deriving a local dev-flag bridge from the shared preload API contract.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.

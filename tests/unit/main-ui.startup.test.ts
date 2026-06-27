@@ -2,7 +2,7 @@
 import "../vitest/shims/nodeWebStorage";
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import type { Mock } from "vitest";
-import type { ElectronAPIWithDevFlags } from "../../electron-app/shared/preloadApi.js";
+import type { ElectronAPI } from "../../electron-app/shared/preloadApi.js";
 
 type DragDropInstance = {
     dispose: Mock<() => void>;
@@ -15,7 +15,7 @@ type ExternalLinkOptions = {
 
 type MainUiElectronApi = Partial<
     Pick<
-        ElectronAPIWithDevFlags,
+        ElectronAPI,
         | "notifyFitFileLoaded"
         | "onOpenSummaryColumnSelector"
         | "onSetTheme"

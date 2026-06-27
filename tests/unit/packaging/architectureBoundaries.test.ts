@@ -2042,7 +2042,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload API domain contracts in the shared preload API module", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const localDomainContracts = preloadDomainContractFiles
             .filter((relativeFile) =>
@@ -2072,6 +2072,10 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).toContain(
             "export type ElectronDialogApi"
         );
+        expect(sharedPreloadApiSource).not.toContain(
+            "ElectronAPIWithDevFlags"
+        );
+        expect(sharedPreloadApiSource).not.toContain("__devMode");
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {

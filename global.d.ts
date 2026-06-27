@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/require-module-specifiers -- The preload API contract uses a repository-local type import. */
-import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
+import type { ElectronAPI } from "./electron-app/shared/preloadApi";
 
 /*
  Global ambient type augmentation for values injected via the Electron preload script.
@@ -11,8 +11,8 @@ import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
 
 declare global {
     interface Window {
-        /* Core preload API (optionally extended with internal dev flags) */
-        electronAPI: ElectronAPIWithDevFlags;
+        /* Core preload API exposed by the Electron preload script. */
+        electronAPI: ElectronAPI;
     }
 }
 

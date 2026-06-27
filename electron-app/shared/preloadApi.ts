@@ -312,9 +312,3 @@ export type ElectronMenuEventApi = Pick<
 >;
 
 export type ElectronThemeApi = Pick<ElectronAPI, "getTheme">;
-
-/** Internal flags attached during migration and development diagnostics. */
-export type ElectronAPIWithDevFlags = ElectronAPI & {
-    _summaryColListenerAdded?: boolean;
-    __devMode?: boolean;
-};
