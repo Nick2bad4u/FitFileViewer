@@ -113,7 +113,7 @@ describe("state manager core", () => {
     });
 
     it("normalizes active-tab values when replacing the UI state branch", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         resetStateManager();
 
@@ -129,8 +129,14 @@ describe("state manager core", () => {
             dropOverlay: {
                 visible: "visible",
             },
+            fileInfo: {
+                displayName: "bad.fit",
+                hasFile: "yes",
+                title: 123,
+            },
             previousTheme: "auto",
             theme: "solarized",
+            unloadButtonVisible: "true",
         });
 
         expect(getState("ui.activeTab")).toBe("summary");
@@ -139,8 +145,14 @@ describe("state manager core", () => {
         expect(getState("ui.currentNotification")).toBeNull();
         expect(getState("ui.dragCounter")).toBe(0);
         expect(getState("ui.dropOverlay.visible")).toBe(true);
+        expect(getState("ui.fileInfo")).toStrictEqual({
+            displayName: "bad.fit",
+            hasFile: false,
+            title: "",
+        });
         expect(getState("ui.previousTheme")).toBe("system");
         expect(getState("ui.theme")).toBe("system");
+        expect(getState("ui.unloadButtonVisible")).toBe(false);
     });
 
     it("normalizes renderer loading and drag/drop writes at the core state boundary", () => {
@@ -198,6 +210,44 @@ describe("state manager core", () => {
             type: "fatal",
         });
         expect(getState("ui.currentNotification")).toBeNull();
+    });
+
+    it("normalizes renderer active-file writes at the core state boundary", () => {
+        expect.assertions(6);
+
+        resetStateManager();
+
+        setState("ui.fileInfo", {
+            displayName: "activity.fit",
+            hasFile: "yes",
+            title: 123,
+        });
+        expect(getState("ui.fileInfo")).toStrictEqual({
+            displayName: "activity.fit",
+            hasFile: false,
+            title: "",
+        });
+
+        setState("ui.unloadButtonVisible", true);
+        expect(getState("ui.unloadButtonVisible")).toBe(true);
+
+        setState("ui.unloadButtonVisible", "true");
+        expect(getState("ui.unloadButtonVisible")).toBe(false);
+
+        setState("fitFile.currentFile", "");
+        expect(getState("fitFile.currentFile")).toBeNull();
+
+        setState("fitFile.currentFile", 123);
+        expect(getState("fitFile.currentFile")).toBeNull();
+
+        setState("fitFile", {
+            currentFile: "C:/rides/current.fit",
+            loadingProgress: "88",
+        });
+        expect(getState("fitFile")).toMatchObject({
+            currentFile: "C:/rides/current.fit",
+            loadingProgress: 88,
+        });
     });
 
     it("normalizes renderer theme writes at the core state boundary", () => {

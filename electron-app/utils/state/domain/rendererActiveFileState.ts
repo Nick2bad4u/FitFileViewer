@@ -3,23 +3,20 @@ import {
     setState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
-
-export type RendererFileInfoState = {
-    displayName: string;
-    hasFile: boolean;
-    title: string;
-};
-type RendererFileInfoStateCandidate = Readonly<{
-    displayName?: unknown;
-    hasFile?: unknown;
-    title?: unknown;
-}>;
-
-export const DEFAULT_RENDERER_FILE_INFO: RendererFileInfoState = {
-    displayName: "",
-    hasFile: false,
-    title: "",
-};
+export {
+    DEFAULT_RENDERER_FILE_INFO,
+    normalizeRendererCurrentFile,
+    normalizeRendererFileInfo,
+    normalizeRendererUnloadButtonVisible,
+    type RendererFileInfoState,
+} from "./rendererActiveFileContract.js";
+import {
+    DEFAULT_RENDERER_FILE_INFO,
+    normalizeRendererCurrentFile,
+    normalizeRendererFileInfo,
+    normalizeRendererUnloadButtonVisible,
+    type RendererFileInfoState,
+} from "./rendererActiveFileContract.js";
 
 const RENDERER_FILE_INFO_STATE_PATH = "ui.fileInfo";
 const RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH = "ui.unloadButtonVisible";
@@ -44,34 +41,43 @@ export function setRendererFileInfo(
 }
 
 export function isRendererUnloadButtonVisible(): boolean {
-    return getState(RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH) === true;
+    return normalizeRendererUnloadButtonVisible(
+        getState(RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH)
+    );
 }
 
 export function setRendererUnloadButtonVisible(
     visible: boolean,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH, visible, {
-        source: "rendererActiveFileState.setUnloadButtonVisible",
-        ...options,
-    });
+    setState(
+        RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH,
+        normalizeRendererUnloadButtonVisible(visible),
+        {
+            source: "rendererActiveFileState.setUnloadButtonVisible",
+            ...options,
+        }
+    );
 }
 
 export function getRendererCurrentFile(): null | string {
-    const currentFile = getState(RENDERER_CURRENT_FILE_STATE_PATH);
-    return typeof currentFile === "string" && currentFile.length > 0
-        ? currentFile
-        : null;
+    return normalizeRendererCurrentFile(
+        getState(RENDERER_CURRENT_FILE_STATE_PATH)
+    );
 }
 
 export function setRendererCurrentFile(
     filePath: null | string,
     options: StateUpdateOptions = {}
 ): void {
-    setState(RENDERER_CURRENT_FILE_STATE_PATH, filePath, {
-        source: "rendererActiveFileState.setCurrentFile",
-        ...options,
-    });
+    setState(
+        RENDERER_CURRENT_FILE_STATE_PATH,
+        normalizeRendererCurrentFile(filePath),
+        {
+            source: "rendererActiveFileState.setCurrentFile",
+            ...options,
+        }
+    );
 }
 
 export function clearRendererActiveFileState(
@@ -80,20 +86,4 @@ export function clearRendererActiveFileState(
     setRendererFileInfo(DEFAULT_RENDERER_FILE_INFO, options);
     setRendererUnloadButtonVisible(false, options);
     setRendererCurrentFile(null, options);
-}
-
-export function normalizeRendererFileInfo(
-    value: Partial<RendererFileInfoState> | unknown
-): RendererFileInfoState {
-    if (value === null || typeof value !== "object") {
-        return { ...DEFAULT_RENDERER_FILE_INFO };
-    }
-
-    const record = value as RendererFileInfoStateCandidate;
-    return {
-        displayName:
-            typeof record.displayName === "string" ? record.displayName : "",
-        hasFile: record.hasFile === true,
-        title: typeof record.title === "string" ? record.title : "",
-    };
 }

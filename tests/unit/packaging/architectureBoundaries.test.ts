@@ -11832,6 +11832,46 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer active-file state normalization on the shared contract", () => {
+        expect.assertions(9);
+
+        const rendererActiveFileStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererActiveFileState.ts"
+            )
+        );
+        const rendererActiveFileContractSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererActiveFileContract.ts"
+            )
+        );
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+
+        expect(rendererActiveFileStateSource).toContain(
+            "rendererActiveFileContract.js"
+        );
+        expect(rendererActiveFileStateSource).not.toContain(
+            "type RendererFileInfoStateCandidate"
+        );
+        expect(rendererActiveFileContractSource).toContain(
+            "normalizeRendererActiveFileUiBranch"
+        );
+        expect(rendererActiveFileContractSource).toContain(
+            "normalizeRendererActiveFileFitFileBranch"
+        );
+        expect(stateManagerSource).toContain("fitFile.currentFile");
+        expect(stateManagerSource).toContain("ui.fileInfo");
+        expect(stateManagerSource).toContain("ui.unloadButtonVisible");
+        expect(stateManagerSource).toContain(
+            "normalizeRendererActiveFileUiBranch"
+        );
+        expect(stateManagerSource).toContain(
+            "normalizeRendererActiveFileFitFileBranch"
+        );
+    });
+
     it("keeps map base-layer persistence on the map base-layer state facade", () => {
         expect.assertions(6);
 

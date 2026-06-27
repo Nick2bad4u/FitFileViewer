@@ -35,6 +35,13 @@ import {
 } from "../domain/mapBaseLayerContract.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabContract.js";
 import {
+    normalizeRendererActiveFileFitFileBranch,
+    normalizeRendererActiveFileUiBranch,
+    normalizeRendererCurrentFile,
+    normalizeRendererFileInfo,
+    normalizeRendererUnloadButtonVisible,
+} from "../domain/rendererActiveFileContract.js";
+import {
     normalizeRendererNotification,
     normalizeRendererNotificationUiBranch,
 } from "../domain/rendererNotificationContract.js";
@@ -106,8 +113,10 @@ const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
     ["ui.currentNotification", normalizeRendererNotification],
     ["ui.dragCounter", normalizeDragCounter],
     ["ui.dropOverlay.visible", normalizeDropOverlayVisible],
+    ["ui.fileInfo", normalizeRendererFileInfo],
     ["ui.previousTheme", normalizeRendererTheme],
     ["ui.theme", normalizeRendererTheme],
+    ["ui.unloadButtonVisible", normalizeRendererUnloadButtonVisible],
 ]);
 const BROWSER_STATE_PATH_NORMALIZERS = new Map<
     string,
@@ -121,6 +130,7 @@ const FIT_FILE_STATE_PATH_NORMALIZERS = new Map<
     string,
     (value: unknown) => unknown
 >([
+    ["fitFile.currentFile", normalizeRendererCurrentFile],
     ["fitFile.loadingPhase", normalizeFitFileLoadingPhase],
     ["fitFile.loadingProgress", normalizeFitFileLoadingProgress],
     ["fitFile.loadingState", normalizeFitFileLoadingState],
@@ -171,7 +181,10 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
     }
 
     if (path === "fitFile" && isRecord(value)) {
-        return normalizeFitFileStateBranch(value);
+        const loadingNormalizedBranch = normalizeFitFileStateBranch(value);
+        return normalizeRendererActiveFileFitFileBranch(
+            loadingNormalizedBranch
+        );
     }
 
     const mapNormalizer = MAP_STATE_PATH_NORMALIZERS.get(path);
@@ -215,6 +228,13 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
         );
         if (dragDropNormalizedBranch !== (normalizedBranch ?? value)) {
             normalizedBranch = dragDropNormalizedBranch;
+        }
+
+        const activeFileNormalizedBranch = normalizeRendererActiveFileUiBranch(
+            normalizedBranch ?? value
+        );
+        if (activeFileNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = activeFileNormalizedBranch;
         }
 
         if (normalizedBranch) {

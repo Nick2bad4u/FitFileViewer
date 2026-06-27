@@ -6,7 +6,9 @@ import {
     getRendererCurrentFile,
     getRendererFileInfo,
     isRendererUnloadButtonVisible,
+    normalizeRendererCurrentFile,
     normalizeRendererFileInfo,
+    normalizeRendererUnloadButtonVisible,
     setRendererCurrentFile,
     setRendererFileInfo,
     setRendererUnloadButtonVisible,
@@ -45,7 +47,7 @@ describe("rendererActiveFileState", () => {
     });
 
     it("reads current file state from the fit-file domain path", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         expect(getRendererCurrentFile()).toBeNull();
 
@@ -54,6 +56,9 @@ describe("rendererActiveFileState", () => {
         expect(stateManager.getState("fitFile.currentFile")).toBe(
             "C:/rides/activity.fit"
         );
+
+        setRendererCurrentFile("");
+        expect(stateManager.getState("fitFile.currentFile")).toBeNull();
     });
 
     it("does not read or overwrite stale legacy currentFile state", () => {
@@ -70,8 +75,16 @@ describe("rendererActiveFileState", () => {
         expect(stateManager.getState("currentFile")).toBe("C:/rides/stale.fit");
     });
 
-    it("normalizes file info values", () => {
-        expect.assertions(4);
+    it("normalizes active file values", () => {
+        expect.assertions(9);
+
+        expect(normalizeRendererCurrentFile("C:/rides/race.fit")).toBe(
+            "C:/rides/race.fit"
+        );
+        expect(normalizeRendererCurrentFile("")).toBeNull();
+        expect(normalizeRendererCurrentFile(123)).toBeNull();
+        expect(normalizeRendererUnloadButtonVisible(true)).toBe(true);
+        expect(normalizeRendererUnloadButtonVisible("true")).toBe(false);
 
         expect(normalizeRendererFileInfo(null)).toStrictEqual({
             displayName: "",
@@ -105,5 +118,39 @@ describe("rendererActiveFileState", () => {
             hasFile: true,
             title: "Race",
         });
+    });
+
+    it("stores normalized active file values through direct state writes", () => {
+        expect.assertions(4);
+
+        stateManager.setState(
+            "ui.fileInfo",
+            {
+                displayName: "race.fit",
+                hasFile: "yes",
+                title: 123,
+            },
+            { source: "test" }
+        );
+        expect(stateManager.getState("ui.fileInfo")).toStrictEqual({
+            displayName: "race.fit",
+            hasFile: false,
+            title: "",
+        });
+
+        stateManager.setState("ui.unloadButtonVisible", "true", {
+            source: "test",
+        });
+        expect(stateManager.getState("ui.unloadButtonVisible")).toBe(false);
+
+        stateManager.setState("fitFile.currentFile", "", { source: "test" });
+        expect(stateManager.getState("fitFile.currentFile")).toBeNull();
+
+        stateManager.setState("fitFile.currentFile", "C:/rides/current.fit", {
+            source: "test",
+        });
+        expect(stateManager.getState("fitFile.currentFile")).toBe(
+            "C:/rides/current.fit"
+        );
     });
 });
