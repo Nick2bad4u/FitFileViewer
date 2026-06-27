@@ -10,6 +10,13 @@ interface ChartLifecycleActions {
     startRendering?: () => void;
 }
 
+export type ChartClearStatePatch = Readonly<{
+    readonly chartData: null;
+    readonly isRendered: false;
+    readonly renderedCount: 0;
+}> &
+    Record<string, unknown>;
+
 interface StartChartRenderingDependencies {
     getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
@@ -18,7 +25,11 @@ interface StartChartRenderingDependencies {
 
 interface ClearExistingChartsDependencies {
     getChartLifecycleActions(): ChartLifecycleActions | null;
-    updateState(path: string, value: unknown, options: unknown): void;
+    updateState(
+        path: string,
+        value: ChartClearStatePatch,
+        options: unknown
+    ): void;
 }
 
 interface CompleteChartRenderingDependencies {

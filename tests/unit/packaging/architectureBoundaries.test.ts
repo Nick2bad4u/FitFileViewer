@@ -8460,10 +8460,20 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart render helpers on the chart state access boundary", () => {
-        expect.assertions(2);
+        expect.assertions(7);
 
         const chartCoreStateAccessFile =
             "electron-app/utils/charts/core/renderChartStateAccess.ts";
+        const chartLifecycleSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartLifecycle.ts"
+            )
+        );
+        const renderChartSessionStartSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartSessionStart.ts"
+            )
+        );
         const directChartCoreStateImports = collectSourceFiles(
             "electron-app/utils/charts/core"
         )
@@ -8479,6 +8489,21 @@ describe("architecture boundaries", () => {
         expect(
             stripComments(readRepositoryFile(chartCoreStateAccessFile))
         ).toContain("state/core/stateManager.js");
+        expect(chartLifecycleSource).toContain(
+            "export type ChartClearStatePatch"
+        );
+        expect(renderChartSessionStartSource).toContain(
+            "type ChartClearStatePatch"
+        );
+        expect(renderChartSessionStartSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
+        expect(renderChartSessionStartSource).not.toContain(
+            "value: Record<string, unknown>"
+        );
+        expect(renderChartSessionStartSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
+        );
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {

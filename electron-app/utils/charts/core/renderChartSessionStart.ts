@@ -3,6 +3,7 @@ import { touchStringTargetContainer } from "./renderChartPreflight.js";
 import {
     clearExistingCharts,
     startChartRendering,
+    type ChartClearStatePatch,
 } from "./renderChartLifecycle.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
@@ -13,7 +14,7 @@ type SetStateFunction = (
 ) => void;
 type UpdateStateFunction = (
     path: string,
-    value: Record<string, unknown>,
+    value: ChartClearStatePatch,
     options?: ChartStateUpdateOptions
 ) => void;
 
@@ -81,7 +82,7 @@ export async function beginChartRenderSession(
         updateState: (path, value, options) =>
             dependencies.updateState(
                 path,
-                value as Record<string, unknown>,
+                value,
                 options as ChartStateUpdateOptions | undefined
             ),
     });

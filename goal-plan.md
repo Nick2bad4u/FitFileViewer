@@ -1152,8 +1152,11 @@ constructing `AbortController` directly in `listenersResize.ts`, with focused ru
 coverage blocking direct resize-listener abort-controller construction from returning. Explicit resize-listener
 runtime scopes must now provide timer primitives instead of falling back to `globalThis`, and resize-listener
 controller, element, canvas, timer, and animation-frame contracts reuse shared browser-runtime aliases instead of
-direct ambient type spellings, with focused runtime coverage and architecture coverage blocking those fallbacks from
-returning.
+direct ambient constructor or timer type spellings, with focused runtime coverage and architecture coverage blocking
+those fallbacks from returning. Chart render session startup now routes the lifecycle fallback clear-state update
+through a named `ChartClearStatePatch` contract instead of casting the update payload back to a broad
+`Record<string, unknown>`, with focused unit and architecture coverage blocking that generic session-start bucket
+from returning.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
