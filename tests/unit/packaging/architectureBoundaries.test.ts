@@ -90,7 +90,7 @@ const scopedRendererElectronApiRegressionTests = [
     "tests/unit/files/import/openFitFileFromPath.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/exportUtils.chartExport.test.ts",
-    "electron-app/utils/files/export/exportUtils.test.ts",
+    "tests/unit/utils/files/export/exportUtils.colocated.test.ts",
     "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/export/exportUtils.oauthState.test.ts",
     "tests/unit/utils/files/export/exportUtils.test.ts",
@@ -114,7 +114,7 @@ const scopedRendererElectronApiRegressionTests = [
 ] as const;
 const exportUtilityWindowFixtureTestFiles = [
     "tests/unit/utils/exportUtils.chartExport.test.ts",
-    "electron-app/utils/files/export/exportUtils.test.ts",
+    "tests/unit/utils/files/export/exportUtils.colocated.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
@@ -27990,19 +27990,12 @@ describe("architecture boundaries", () => {
         expect(directRetiredRendererTestGlobals).toStrictEqual([]);
     });
 
-    it("keeps runtime source mostly free of colocated tests", () => {
+    it("keeps runtime source free of colocated tests", () => {
         expect.assertions(1);
 
-        const allowedColocatedRuntimeTests = new Set([
-            "electron-app/utils/files/export/exportUtils.test.ts",
-        ]);
         const colocatedRuntimeTests = sourceRoots
             .flatMap(collectSourceFiles)
-            .filter(
-                (relativeFile) =>
-                    /\.test\.[cm]?[jt]s$/u.test(relativeFile) &&
-                    !allowedColocatedRuntimeTests.has(relativeFile)
-            )
+            .filter((relativeFile) => /\.test\.[cm]?[jt]s$/u.test(relativeFile))
             .sort();
 
         expect(colocatedRuntimeTests).toStrictEqual([]);

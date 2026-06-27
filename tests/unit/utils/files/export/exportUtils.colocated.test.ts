@@ -1,24 +1,33 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { exportUtils } from "./exportUtils.js";
+import { exportUtils } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 import {
     clearExportZipRuntimeForTests,
     setExportZipRuntime,
-} from "./exportZipRuntime.js";
-import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
+} from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
+import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 // Mock dependencies
-vi.mock("../../charts/theming/chartThemeUtils.js", () => ({
-    detectCurrentTheme: vi.fn(() => "light"),
-}));
+vi.mock(
+    "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js",
+    () => ({
+        detectCurrentTheme: vi.fn(() => "light"),
+    })
+);
 
-vi.mock("../../ui/notifications/showNotification.js", () => ({
-    showNotification: vi.fn(),
-}));
+vi.mock(
+    "../../../../../electron-app/utils/ui/notifications/showNotification.js",
+    () => ({
+        showNotification: vi.fn(),
+    })
+);
 
-vi.mock("../../ui/components/createSettingsHeader.js", () => ({
-    showChartSelectionModal: vi.fn(),
-}));
+vi.mock(
+    "../../../../../electron-app/utils/ui/components/createSettingsHeader.js",
+    () => ({
+        showChartSelectionModal: vi.fn(),
+    })
+);
 
 // Mock Chart.js
 vi.mock("chart.js/auto", () => ({
@@ -564,7 +573,7 @@ describe("exportUtils", () => {
 
             expect(createdAnchors).toHaveLength(0);
             const notifMod =
-                await import("../../ui/notifications/showNotification.js");
+                await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
             expect(notifMod.showNotification).toHaveBeenCalledWith(
                 "Failed to export chart as PNG",
                 "error"
@@ -589,7 +598,7 @@ describe("exportUtils", () => {
             await exportUtils.exportAllAsZip(mockCharts);
             // Assert a ZIP was generated and a user notification occurred
             const notifMod =
-                await import("../../ui/notifications/showNotification.js");
+                await import("../../../../../electron-app/utils/ui/notifications/showNotification.js");
             expect(notifMod.showNotification).toHaveBeenCalled();
             expect(URL.createObjectURL).toHaveBeenCalled();
             const zipBlob = vi
