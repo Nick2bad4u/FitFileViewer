@@ -35,5 +35,3 @@ export async function getPersistedThemePreference(): Promise<string> {
         return CONSTANTS.DEFAULT_THEME;
     }
 }
-
-export default { getPersistedThemePreference };

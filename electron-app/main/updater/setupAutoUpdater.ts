@@ -2,10 +2,7 @@ import { CONSTANTS } from "../constants.js";
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { menuRef } from "../runtime/electronAccess.js";
-import {
-    mainProcessState,
-    setAutoUpdaterState,
-} from "../state/appState.js";
+import { mainProcessState, setAutoUpdaterState } from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
 import electronLog from "electron-log";
 
@@ -271,5 +268,3 @@ export function setupAutoUpdater(
         }
     }
 }
-
-export default { setupAutoUpdater };

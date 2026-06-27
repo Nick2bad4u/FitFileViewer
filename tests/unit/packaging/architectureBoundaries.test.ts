@@ -3365,7 +3365,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(368);
+        expect.assertions(373);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3515,6 +3515,7 @@ describe("architecture boundaries", () => {
         expect(mainSource).not.toContain("setAppState,");
         expect(logWithContextSource).not.toContain("module.exports");
         expect(safeCreateAppMenuSource).not.toContain("module.exports");
+        expect(safeCreateAppMenuSource).not.toContain("export default");
         expect(createAppMenuSource).not.toContain(
             'Reflect.get(globalThis, "process")'
         );
@@ -3624,6 +3625,7 @@ describe("architecture boundaries", () => {
             "../../utils/runtime/processEnvironment.js"
         );
         expect(setupBlockedRequestsSource).not.toContain("module.exports");
+        expect(setupBlockedRequestsSource).not.toContain("export default");
         expect(setupBlockedRequestsSource).not.toContain("Reflect.get(");
         expect(setupBlockedRequestsSource).not.toContain(
             'Reflect.get(value, "onBeforeRequest")'
@@ -3640,7 +3642,11 @@ describe("architecture boundaries", () => {
         expect(getPersistedThemePreferenceSource).not.toContain(
             "module.exports"
         );
+        expect(getPersistedThemePreferenceSource).not.toContain(
+            "export default"
+        );
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
+        expect(setupAutoUpdaterSource).not.toContain("export default");
         expect(autoUpdaterAccessSource).not.toContain("module.exports");
         expect(autoUpdaterAccessSource).not.toContain("export default");
         expect(autoUpdaterAccessSource).not.toContain("process.env");
@@ -3718,6 +3724,7 @@ describe("architecture boundaries", () => {
             'await import("electron-updater")'
         );
         expect(initializeApplicationSource).not.toContain("module.exports");
+        expect(initializeApplicationSource).not.toContain("export default");
         expect(setupIpcHandlersSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("Reflect.get(");

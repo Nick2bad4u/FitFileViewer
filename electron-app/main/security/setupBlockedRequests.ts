@@ -68,5 +68,3 @@ export function setupBlockedRequests(): void {
         /* ignore */
     }
 }
-
-export default { setupBlockedRequests };

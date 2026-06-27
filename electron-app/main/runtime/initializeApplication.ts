@@ -35,4 +35,3 @@ export async function initializeApplication(): Promise<unknown> {
         setupAutoUpdater,
     });
 }
-export default { initializeApplication };

@@ -48,5 +48,3 @@ export function safeCreateAppMenu(
         );
     }
 }
-
-export default { safeCreateAppMenu };
