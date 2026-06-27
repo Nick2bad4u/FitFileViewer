@@ -16209,7 +16209,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(27);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -16258,6 +16258,8 @@ describe("architecture boundaries", () => {
         expect(copyTableAsCSVSource).toContain(
             "copyTableAsCSVRuntime().copyTextUsingLegacyExecCommand"
         );
+        expect(copyTableAsCSVSource).not.toContain("objects: () =>");
+        expect(copyTableAsCSVSource).not.toContain(".objects()");
         expect(copyTableAsCSVRuntimeSource).toContain(
             "defaultCopyTableAsCSVRuntimeScope"
         );

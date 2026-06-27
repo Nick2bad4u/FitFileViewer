@@ -20,7 +20,8 @@ const CSV_CONFIG = {
         FALLBACK_ERROR: "Failed to copy CSV using fallback:",
         FALLBACK_SUCCESS: "Copied CSV to clipboard using fallback!",
         FALLBACK_WARNING: "Clipboard write fell back to legacy copy.",
-        INVALID_TABLE: "Invalid table object: missing objects method",
+        INVALID_TABLE:
+            "Invalid table object: expected row array or rows property",
         SUCCESS: "Copied CSV to clipboard!",
     },
     TEXTAREA_STYLES: {
@@ -36,10 +37,6 @@ type TableRow = Record<string, unknown>;
 
 type RowsTable = {
     rows: TableRow[];
-};
-
-type ObjectsTable = {
-    objects: () => TableRow[];
 };
 
 type ClipboardElectronAPI = {
@@ -291,16 +288,6 @@ function normalizeTableRows(table: unknown): TableRow[] {
         return table.rows;
     }
 
-    if (isObjectsTable(table)) {
-        // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
-        try {
-            return table.objects();
-        } catch (error) {
-            console.error("[copyTableAsCSV] Failed to copy table:", error);
-            throw error;
-        }
-    }
-
     console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.INVALID_TABLE}`);
     throw new Error(CSV_CONFIG.MESSAGES.INVALID_TABLE);
 }
@@ -312,15 +299,6 @@ function isRowsTable(table: unknown): table is RowsTable {
 
     const { rows } = table as { rows?: unknown };
     return isTableRowArray(rows);
-}
-
-function isObjectsTable(table: unknown): table is ObjectsTable {
-    if (!table || typeof table !== "object") {
-        return false;
-    }
-
-    const { objects } = table as { objects?: unknown };
-    return typeof objects === "function";
 }
 
 function isTableRow(value: unknown): value is TableRow {

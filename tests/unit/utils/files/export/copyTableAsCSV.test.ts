@@ -52,7 +52,7 @@ describe(copyTableAsCSV, () => {
         );
     });
 
-    it("supports legacy objects table inputs without unsafe casts", async () => {
+    it("serializes rows-table objects without invoking compatibility methods", async () => {
         expect.assertions(1);
 
         let clipboardText = "";
@@ -65,7 +65,10 @@ describe(copyTableAsCSV, () => {
 
         await copyTableAsCSV(
             {
-                objects: () => [
+                objects: () => {
+                    throw new Error("objects() should not be called");
+                },
+                rows: [
                     {
                         cadence: 90,
                         speed: 10,
@@ -82,7 +85,7 @@ describe(copyTableAsCSV, () => {
         expect.assertions(1);
 
         await expect(copyTableAsCSV(null)).rejects.toThrow(
-            "Invalid table object: missing objects method"
+            "Invalid table object: expected row array or rows property"
         );
     });
 });
