@@ -49,7 +49,7 @@ const mocks = vi.hoisted(() => ({
         vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
     setupExternalLinkHandlers: vi.fn<(options: ExternalLinkOptions) => void>(),
     setupFullscreenListeners: vi.fn<() => void>(),
-    setupWindow: vi.fn<() => void>(),
+    setupWindow: vi.fn<(options?: unknown) => void>(),
     showTab: vi.fn<(tabId: string) => void>(),
     showFitData: vi.fn<(fitData: unknown, filePath?: string) => void>(),
     showNotification: vi.fn<(message: string, type?: string) => void>(),
@@ -336,7 +336,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("initializes UI side effects when loaded", async () => {
-        expect.assertions(20);
+        expect.assertions(21);
 
         const notifyFitFileLoaded =
             vi.fn<MainUiElectronApi["notifyFitFileLoaded"]>();
@@ -369,7 +369,18 @@ describe("main-ui.js - UI Controller and State Management", () => {
         await vi.waitFor(() => {
             expect(mocks.setupFullscreenListeners).toHaveBeenCalledOnce();
         });
-        expect(mocks.setupWindow).toHaveBeenCalledOnce();
+        expect(mocks.setupWindow).toHaveBeenCalledWith({
+            electronApiScope: expect.objectContaining({
+                getElectronAPI: expect.any(Function),
+            }),
+        });
+        const [setupWindowOptions] = mocks.setupWindow.mock.calls[0] ?? [];
+        const setupWindowElectronApiScope = setupWindowOptions as
+            | { electronApiScope?: { getElectronAPI?: () => unknown } }
+            | undefined;
+        expect(
+            setupWindowElectronApiScope?.electronApiScope?.getElectronAPI?.()
+        ).toBe(mocks.mainUiElectronApiCandidate);
         expect(mocks.setupExternalLinkHandlers).toHaveBeenCalledOnce();
         const [externalLinkOptions] =
             mocks.setupExternalLinkHandlers.mock.calls[0] ?? [];

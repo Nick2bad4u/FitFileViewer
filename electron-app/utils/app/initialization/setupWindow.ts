@@ -9,6 +9,11 @@ import { setupTheme } from "../../theming/core/setupTheme.js";
 import { applyTheme, listenForThemeChange } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
+import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
+
+export type SetupWindowOptions = Readonly<{
+    readonly electronApiScope?: RendererElectronApiScope | undefined;
+}>;
 
 /**
  * Clean up resources on window close.
@@ -29,14 +34,18 @@ export function cleanup(): void {
  *
  * @throws Re-throws initialization errors after showing a notification.
  */
-export async function setupWindow(): Promise<void> {
+export async function setupWindow({
+    electronApiScope,
+}: SetupWindowOptions = {}): Promise<void> {
     try {
         console.log(
             "[setupWindow] Initializing with modern state management..."
         );
 
         // Initialize theme system first
-        await setupTheme(applyTheme, listenForThemeChange);
+        await setupTheme(applyTheme, listenForThemeChange, {
+            electronApiScope,
+        });
 
         // Initialize state managers in proper order
         // TabStateManager and chartStateManager are initialized automatically via constructors

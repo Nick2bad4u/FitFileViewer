@@ -3,7 +3,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 type Cleanup = () => void;
 type SetupTheme = (
     applyTheme: (theme: string) => void,
-    listenForThemeChange?: (callback: (theme: unknown) => void) => void
+    listenForThemeChange?: (callback: (theme: unknown) => void) => void,
+    options?: unknown
 ) => Promise<"auto" | "dark" | "light">;
 type ShowNotification = (
     message: string,
@@ -127,7 +128,7 @@ describe("setupWindow", () => {
     });
 
     it("initializes window successfully", async () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const lifecycleEvents: Array<{
             args?: unknown[];
@@ -161,8 +162,11 @@ describe("setupWindow", () => {
                 lifecycleEvents.push({ args, event: "console.log" });
             });
         const { setupWindow } = await loadModule();
+        const electronApiScope = {
+            getElectronAPI: vi.fn(),
+        };
 
-        await setupWindow();
+        await setupWindow({ electronApiScope });
 
         expect(lifecycleEvents).toStrictEqual([
             {
@@ -194,6 +198,11 @@ describe("setupWindow", () => {
                 event: "console.log",
             },
         ]);
+        expect(setupThemeMock).toHaveBeenCalledWith(
+            applyThemeMock,
+            listenForThemeChangeMock,
+            { electronApiScope }
+        );
 
         logSpy.mockRestore();
     });

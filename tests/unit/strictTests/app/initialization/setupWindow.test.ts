@@ -10,7 +10,13 @@ const mocks = vi.hoisted(() => ({
     chartTabInitialize: vi.fn<() => void>(),
     listenForThemeChange:
         vi.fn<(onThemeChange: (theme: string) => void) => void>(),
-    setupTheme: vi.fn<() => Promise<"dark">>(() => Promise.resolve("dark")),
+    setupTheme: vi.fn<
+        (
+            applyTheme: unknown,
+            listenForThemeChange?: unknown,
+            options?: unknown
+        ) => Promise<"dark">
+    >(() => Promise.resolve("dark")),
     showNotification:
         vi.fn<(message: string, type: string, duration?: number) => void>(),
     tabStateCleanup: vi.fn<() => void>(),
@@ -75,12 +81,16 @@ describe("setupWindow", () => {
         resetTestState();
 
         const { setupWindow } = await importSetupWindow();
-        const result = await setupWindow();
+        const electronApiScope = {
+            getElectronAPI: vi.fn(),
+        };
+        const result = await setupWindow({ electronApiScope });
 
         expect(result).toBeUndefined();
         expect(mocks.setupTheme).toHaveBeenCalledWith(
             mocks.applyTheme,
-            mocks.listenForThemeChange
+            mocks.listenForThemeChange,
+            { electronApiScope }
         );
         expect(mocks.chartTabInitialize).toHaveBeenCalledOnce();
         expect(mocks.tabSwitchToTab).toHaveBeenCalledWith("summary");

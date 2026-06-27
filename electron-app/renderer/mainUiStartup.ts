@@ -65,7 +65,9 @@ function createMainUiLogger(consoleRef: Console) {
 }
 
 function getDefaultMainUiRuntimeEnvironment(): MainUiRuntimeEnvironment {
-    return getMainUiRuntimeEnvironment(getBrowserMainUiRuntimeEnvironmentScope());
+    return getMainUiRuntimeEnvironment(
+        getBrowserMainUiRuntimeEnvironmentScope()
+    );
 }
 
 export async function initializeMainUiStartup({
@@ -120,7 +122,7 @@ export async function initializeMainUiStartup({
         electronApiScope,
     });
 
-    void setupWindow();
+    void setupWindow({ electronApiScope });
 
     const externalLinks = createMainUiExternalLinkLifecycle({
         documentRef,
