@@ -29,6 +29,7 @@ import {
 import {
     getRendererActiveTab,
     isRendererActiveTab,
+    isRendererTabName,
     setRendererActiveTab,
 } from "../../state/domain/rendererActiveTabState.js";
 import { toggleRendererChartControlsVisibleFromStoredState } from "../../state/domain/rendererChartControlsState.js";
@@ -372,14 +373,7 @@ export const AppActions = {
      * @param tabName - Name of the tab to switch to.
      */
     switchTab(tabName: string) {
-        const validTabs = [
-            "summary",
-            "chart",
-            "map",
-            "table",
-        ];
-
-        if (!validTabs.includes(tabName)) {
+        if (!isRendererTabName(tabName)) {
             console.warn(`[AppActions] Invalid tab name: ${tabName}`);
             return;
         }

@@ -357,16 +357,34 @@ describe("appActions", () => {
         );
     });
 
-    it("switchTab validates values and sets state when valid", () => {
-        expect.assertions(5);
+    it("switchTab validates known renderer tab names and sets state when valid", () => {
+        expect.assertions(12);
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        expect(AppActions.switchTab("chart")).toBeUndefined();
-        expect(h.mockSetState).toHaveBeenCalledWith(
-            "ui.activeTab",
+        for (const tabName of [
+            "altfit",
+            "browser",
             "chart",
-            expect.any(Object)
-        );
+            "chartjs",
+            "data",
+            "map",
+            "summary",
+            "zwift",
+        ]) {
+            expect(AppActions.switchTab(tabName)).toBeUndefined();
+        }
+        expect(
+            h.mockSetState.mock.calls.map(([path, tabName]) => [path, tabName])
+        ).toStrictEqual([
+            ["ui.activeTab", "altfit"],
+            ["ui.activeTab", "browser"],
+            ["ui.activeTab", "chart"],
+            ["ui.activeTab", "chartjs"],
+            ["ui.activeTab", "data"],
+            ["ui.activeTab", "map"],
+            ["ui.activeTab", "summary"],
+            ["ui.activeTab", "zwift"],
+        ]);
         h.mockSetState.mockClear();
         expect(AppActions.switchTab("not-a-tab")).toBeUndefined();
         expect(h.mockSetState).not.toHaveBeenCalled();

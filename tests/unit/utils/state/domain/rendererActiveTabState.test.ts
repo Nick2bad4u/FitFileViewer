@@ -4,7 +4,9 @@ import * as stateManager from "../../../../../electron-app/utils/state/core/stat
 import {
     getRendererActiveTab,
     isRendererActiveTab,
+    isRendererTabName,
     normalizeRendererActiveTab,
+    RENDERER_TAB_NAMES,
     replaceRendererActiveTab,
     setRendererActiveTab,
     subscribeToRendererActiveTab as subscribeToActiveTab,
@@ -56,10 +58,28 @@ describe("rendererActiveTabState", () => {
     });
 
     it("normalizes empty or non-string active-tab values", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         expect(normalizeRendererActiveTab("data")).toBe("data");
+        expect(normalizeRendererActiveTab("table")).toBe("summary");
         expect(normalizeRendererActiveTab("")).toBe("summary");
         expect(normalizeRendererActiveTab(null)).toBe("summary");
+    });
+
+    it("exports the known renderer tab names used by tab state callers", () => {
+        expect.assertions(3);
+
+        expect(RENDERER_TAB_NAMES).toStrictEqual([
+            "altfit",
+            "browser",
+            "chart",
+            "chartjs",
+            "data",
+            "map",
+            "summary",
+            "zwift",
+        ]);
+        expect(isRendererTabName("zwift")).toBe(true);
+        expect(isRendererTabName("table")).toBe(false);
     });
 });
