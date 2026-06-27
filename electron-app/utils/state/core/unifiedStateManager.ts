@@ -26,12 +26,18 @@ type UnifiedStateSnapshot = {
 
 type Unsubscribe = () => void;
 
-type RetiredStateRootPath = "globalData";
+export const RETIRED_STATE_ROOT_PATHS = ["globalData"] as const;
 
-const RETIRED_STATE_ROOT_PATHS = new Set<RetiredStateRootPath>(["globalData"]);
+export type RetiredStateRootPath = (typeof RETIRED_STATE_ROOT_PATHS)[number];
 
-function isRetiredStateRootPath(path: string): path is RetiredStateRootPath {
-    return RETIRED_STATE_ROOT_PATHS.has(path as RetiredStateRootPath);
+const RETIRED_STATE_ROOT_PATH_SET = new Set<string>(RETIRED_STATE_ROOT_PATHS);
+
+export function isRetiredStatePath(path: string): boolean {
+    const [rootPath] = path.split(".");
+    return (
+        typeof rootPath === "string" &&
+        RETIRED_STATE_ROOT_PATH_SET.has(rootPath)
+    );
 }
 
 function unifiedStateManagerRuntime(): UnifiedStateManagerRuntime {
@@ -60,7 +66,7 @@ export class UnifiedStateManager {
     /** Gets a state value through the unified routing facade. */
     public get(path: string, defaultValue?: unknown): unknown {
         try {
-            if (this.isBlockedStatePath(path)) {
+            if (isRetiredStatePath(path)) {
                 this.warnBlockedStatePathOnce(path, "Accessing");
                 return defaultValue;
             }
@@ -104,7 +110,7 @@ export class UnifiedStateManager {
         } satisfies Required<UnifiedStateOptions>;
 
         try {
-            if (this.isBlockedStatePath(path)) {
+            if (isRetiredStatePath(path)) {
                 this.warnBlockedStatePathOnce(path, "Setting");
                 return;
             }
@@ -134,7 +140,7 @@ export class UnifiedStateManager {
         path: string,
         callback: (newValue: unknown, oldValue: unknown, path: string) => void
     ): Unsubscribe {
-        if (this.isBlockedStatePath(path)) {
+        if (isRetiredStatePath(path)) {
             this.warnBlockedStatePathOnce(path, "Subscribing to");
             return () => {
                 // Retired state paths are intentionally unsupported.
@@ -142,11 +148,6 @@ export class UnifiedStateManager {
         }
 
         return subscribeNew(path, callback);
-    }
-
-    private isBlockedStatePath(path: string): boolean {
-        const [rootPath] = path.split(".");
-        return typeof rootPath === "string" && isRetiredStateRootPath(rootPath);
     }
 
     private warnBlockedStatePathOnce(

@@ -11649,7 +11649,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const globalDataStorePath =
             "electron-app/utils/state/core/globalDataStore.ts";
@@ -11684,10 +11684,13 @@ describe("architecture boundaries", () => {
         expect(stateManagerDefaultsSource).toContain("rawData: null");
         expect(stateManagerDefaultsSource).not.toContain("globalData: null");
         expect(unifiedStateManagerSource).toContain(
-            'type RetiredStateRootPath = "globalData";'
+            'export const RETIRED_STATE_ROOT_PATHS = ["globalData"] as const'
         );
         expect(unifiedStateManagerSource).toContain(
-            "const RETIRED_STATE_ROOT_PATHS = new Set<RetiredStateRootPath>"
+            "export type RetiredStateRootPath = (typeof RETIRED_STATE_ROOT_PATHS)[number]"
+        );
+        expect(unifiedStateManagerSource).toContain(
+            "export function isRetiredStatePath"
         );
         expect(unifiedStateManagerSource).not.toContain("BLOCKED_STATE_PATHS");
         expect(unifiedStateManagerSource).not.toContain(

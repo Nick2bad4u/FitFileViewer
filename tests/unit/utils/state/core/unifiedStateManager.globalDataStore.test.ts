@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
     get,
+    isRetiredStatePath,
+    RETIRED_STATE_ROOT_PATHS,
     set,
     subscribe,
     unifiedState,
@@ -42,6 +44,16 @@ describe("unifiedStateManager retired globalData path", () => {
         expect(getState("globalData")).toBeUndefined();
         expect(getState("globalData.recordMesgs")).toBeUndefined();
         expect(get("globalData", fallback)).toBe(fallback);
+    });
+
+    it("exposes a typed retired state path policy", () => {
+        expect.assertions(5);
+
+        expect(RETIRED_STATE_ROOT_PATHS).toStrictEqual(["globalData"]);
+        expect(isRetiredStatePath("globalData")).toBe(true);
+        expect(isRetiredStatePath("globalData.recordMesgs")).toBe(true);
+        expect(isRetiredStatePath("fitFile.rawData")).toBe(false);
+        expect(isRetiredStatePath("loadedFitFilePath")).toBe(false);
     });
 
     it("does not expose legacy path routing or synchronization state", () => {
