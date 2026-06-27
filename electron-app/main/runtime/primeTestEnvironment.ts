@@ -41,21 +41,29 @@ type PrimeTestMainWindowLike = {
         getAllWindows?: () => PrimeTestMainWindowLike[];
     };
 
+    type PrimeTestPropertyCandidate = PrimeTestElectronLike &
+        PrimeTestAppLike &
+        PrimeTestBrowserWindowLike & {
+            readonly [property: string]: unknown;
+        };
+
     const PROBE_EVENT = "__test_probe__";
     const PROBE_INSTALLED_APPS = new WeakSet<object>();
 
-    function asReflectTarget(value: unknown): Record<string, unknown> | null {
+    function asPropertyCandidate(
+        value: unknown
+    ): PrimeTestPropertyCandidate | null {
         if (
             value &&
             (typeof value === "object" || typeof value === "function")
         ) {
-            return value as Record<string, unknown>;
+            return value as PrimeTestPropertyCandidate;
         }
         return null;
     }
 
     function getProperty(value: unknown, key: string): unknown {
-        const record = asReflectTarget(value);
+        const record = asPropertyCandidate(value);
         if (!record) return undefined;
         try {
             return record[key];
@@ -65,13 +73,13 @@ type PrimeTestMainWindowLike = {
     }
 
     function asElectronLike(value: unknown): PrimeTestElectronLike | null {
-        const record = asReflectTarget(value);
+        const record = asPropertyCandidate(value);
         return record || null;
     }
 
     function hasElectronApis(value: unknown): value is PrimeTestElectronLike {
         return Boolean(
-            asReflectTarget(value) &&
+            asPropertyCandidate(value) &&
             (getProperty(value, "app") || getProperty(value, "BrowserWindow"))
         );
     }
@@ -92,14 +100,14 @@ type PrimeTestMainWindowLike = {
     }
 
     function asAppLike(value: unknown): PrimeTestAppLike | null {
-        const record = asReflectTarget(value);
+        const record = asPropertyCandidate(value);
         return record || null;
     }
 
     function asBrowserWindowLike(
         value: unknown
     ): PrimeTestBrowserWindowLike | null {
-        const record = asReflectTarget(value);
+        const record = asPropertyCandidate(value);
         return record || null;
     }
 
@@ -182,7 +190,7 @@ type PrimeTestMainWindowLike = {
     }
 
     function markProbeInstalled(app: unknown): void {
-        const record = asReflectTarget(app);
+        const record = asPropertyCandidate(app);
         if (!record) return;
         PROBE_INSTALLED_APPS.add(record);
     }

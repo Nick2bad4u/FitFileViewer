@@ -2818,7 +2818,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(23);
+        expect.assertions(25);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2864,7 +2864,13 @@ describe("architecture boundaries", () => {
         expect(primeTestEnvironmentSource).not.toContain(
             "return Reflect.get(record, key);"
         );
+        expect(primeTestEnvironmentSource).not.toContain(
+            "value as Record<string, unknown>"
+        );
         expect(primeTestEnvironmentSource).toContain("return record[key];");
+        expect(primeTestEnvironmentSource).toContain(
+            "PrimeTestPropertyCandidate"
+        );
         expect(primeTestEnvironmentSource).toContain(
             "isRuntimeTestEnvironment"
         );
