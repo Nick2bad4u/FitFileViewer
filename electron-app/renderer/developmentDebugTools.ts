@@ -1,4 +1,5 @@
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
+import type { AppActions } from "../utils/app/lifecycle/appActions.js";
 import {
     isRendererDebugLoggingEnabled,
     setRendererDebugLoggingEnabled,
@@ -37,8 +38,11 @@ type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDevelopmentDebugFunctionModules = {
     readonly [Name in DevelopmentDebugCoreFunctionName]?: unknown;
 };
+type RendererDevelopmentDebugAppActions = Readonly<{
+    readonly setInitialized: typeof AppActions.setInitialized;
+}>;
 type RendererDevelopmentDebugStateModules = {
-    readonly AppActions?: Record<string, unknown> | undefined;
+    readonly AppActions?: RendererDevelopmentDebugAppActions | undefined;
     readonly masterStateManager?: unknown;
     readonly uiStateManager?: unknown;
 };
@@ -60,7 +64,7 @@ type RendererDebugToolsView = {
 type RendererDebugUtilityGroup = Record<string, unknown>;
 type RendererDevToolsView = {
     APP_INFO: typeof APP_INFO;
-    AppActions?: Record<string, unknown>;
+    AppActions?: RendererDevelopmentDebugAppActions;
     cleanup: () => void;
     chartDebug: boolean;
     chartDebugVerbose: boolean;

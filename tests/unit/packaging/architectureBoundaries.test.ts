@@ -5899,7 +5899,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(21);
+        expect.assertions(26);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -5927,6 +5927,21 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDevelopmentDebugStateModules = {"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "type RendererDevelopmentDebugAppActions = Readonly<{"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "readonly setInitialized: typeof AppActions.setInitialized;"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "readonly AppActions?: RendererDevelopmentDebugAppActions | undefined;"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "AppActions?: RendererDevelopmentDebugAppActions;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "AppActions?: Record<string, unknown>"
         );
         expect(developmentDebugToolsSource).toContain(
             "export type RendererDevelopmentDebugCoreModules = Readonly<"
