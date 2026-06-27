@@ -3,12 +3,7 @@ import {
     createMainUiMenuInjectionRequester,
 } from "./mainUiDevelopmentActions.js";
 import { createMainUiDragDropHandler } from "./mainUiDragDropStartup.js";
-import {
-    getMainUiMenuInjectionElectronApi,
-    getMainUiSummarySelectorElectronApi,
-    getMainUiThemeSyncElectronApi,
-    getMainUiUnloadElectronApi,
-} from "./mainUiElectronApi.js";
+import { createMainUiElectronApiBindings } from "./mainUiElectronApiBindings.js";
 import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
 import { createMainUiExternalLinkLifecycle } from "./mainUiExternalLinks.js";
 import {
@@ -26,7 +21,6 @@ import {
 import { initializeMainUiVendorStartup } from "./mainUiVendorStartup.js";
 import { setupWindow } from "../utils/app/initialization/setupWindow.js";
 import { UI_CONSTANTS } from "../utils/config/constants.js";
-import { createRendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 type MainUiLogLevel = "error" | "info" | "warn";
 
@@ -74,15 +68,13 @@ export async function initializeMainUiStartup({
     runtimeEnvironment = getDefaultMainUiRuntimeEnvironment(),
 }: MainUiStartupOptions = {}): Promise<MainUiStartupHandles> {
     const logMainUi = createMainUiLogger(runtimeEnvironment.consoleRef);
-    const electronApiScope = createRendererElectronApiScope(
-        () => runtimeEnvironment.electronApiCandidate
-    );
-    const getMenuInjectionElectronAPI = () =>
-        getMainUiMenuInjectionElectronApi(electronApiScope);
-    const getThemeSyncElectronAPI = () =>
-        getMainUiThemeSyncElectronApi(electronApiScope);
-    const getUnloadElectronAPI = () =>
-        getMainUiUnloadElectronApi(electronApiScope);
+    const {
+        electronApiScope,
+        getMenuInjectionElectronAPI,
+        getSummarySelectorElectronAPI,
+        getThemeSyncElectronAPI,
+        getUnloadElectronAPI,
+    } = createMainUiElectronApiBindings(runtimeEnvironment);
     const documentRef = runtimeEnvironment.documentRef;
     const unloadFitFile = createMainUiUnloadFitFile({
         contentIds: [
@@ -102,8 +94,7 @@ export async function initializeMainUiStartup({
         logMainUi,
     });
 
-    const summaryElectronAPI =
-        getMainUiSummarySelectorElectronApi(electronApiScope);
+    const summaryElectronAPI = getSummarySelectorElectronAPI();
     const unloadElectronAPI = getUnloadElectronAPI();
     registerMainUiSummaryColumnSelector({
         delay: MAIN_UI_CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
