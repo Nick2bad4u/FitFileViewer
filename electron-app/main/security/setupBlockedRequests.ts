@@ -31,7 +31,8 @@ function isWebRequestLike(value: unknown): value is WebRequestLike {
         return false;
     }
 
-    return typeof Reflect.get(value, "onBeforeRequest") === "function";
+    const candidate = value as { readonly onBeforeRequest?: unknown };
+    return typeof candidate.onBeforeRequest === "function";
 }
 
 function shouldBlockRequest(details: WebRequestDetails): boolean {

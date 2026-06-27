@@ -3189,7 +3189,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(267);
+        expect.assertions(270);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3432,6 +3432,13 @@ describe("architecture boundaries", () => {
             "../../utils/runtime/processEnvironment.js"
         );
         expect(setupBlockedRequestsSource).not.toContain("module.exports");
+        expect(setupBlockedRequestsSource).not.toContain("Reflect.get(");
+        expect(setupBlockedRequestsSource).not.toContain(
+            'Reflect.get(value, "onBeforeRequest")'
+        );
+        expect(setupBlockedRequestsSource).toContain(
+            "const candidate = value as { readonly onBeforeRequest?: unknown };"
+        );
         expect(electronAccessSource).not.toContain("module.exports");
         expect(electronAccessSource).not.toContain("export default");
         expect(sendToRendererSource).not.toContain("module.exports");

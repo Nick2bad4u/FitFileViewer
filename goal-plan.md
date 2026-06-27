@@ -128,6 +128,8 @@ Main logging, menu-creation, Electron access, and blocked-request support helper
 `safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
 files. Main logging now resolves console methods through typed indexed access instead of `Reflect.get(console, level)`.
+Blocked-request webRequest validation now checks a typed optional `onBeforeRequest` property instead of probing the
+candidate with `Reflect.get`.
 Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly,
 and `electronAccess.ts` now imports the Electron package natively through the main build's external package
 boundary instead of owning a direct package `require("electron")` or `loadNodeModule("electron")` call; its
