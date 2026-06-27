@@ -4700,15 +4700,30 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps dependency validation on the scheduled release gate", () => {
-        expect.assertions(9);
+        expect.assertions(18);
 
         const dependencyValidationWorkflow = readRepositoryFile(
             ".github/workflows/dependency-validation.yml"
         );
 
         expect(dependencyValidationWorkflow).toContain("schedule:");
+        expect(dependencyValidationWorkflow).toContain('cron: "23 9 * * 1"');
         expect(dependencyValidationWorkflow).toContain("pull_request:");
         expect(dependencyValidationWorkflow).toContain("merge_group:");
+        expect(dependencyValidationWorkflow).toContain("workflow_dispatch:");
+        expect(dependencyValidationWorkflow).toContain("permissions:");
+        expect(dependencyValidationWorkflow).toContain("contents: read");
+        expect(dependencyValidationWorkflow).toContain('"package.json"');
+        expect(dependencyValidationWorkflow).toContain('"package-lock.json"');
+        expect(dependencyValidationWorkflow).toContain(
+            '"docusaurus/package.json"'
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            '"docusaurus/package-lock.json"'
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            '".github/dependabot.yml"'
+        );
         expect(dependencyValidationWorkflow).toContain(
             "npm ci --no-audit --no-fund"
         );
