@@ -12,7 +12,7 @@ function createBootstrap(
     overrides: Partial<RendererImportTimeBootstrap> = {}
 ): RendererImportTimeBootstrap {
     return {
-        scheduleAppDomainStateCoverageTouch: vi.fn(),
+        scheduleAppDomainStateTouch: vi.fn(),
         scheduleImportTimeListenersSetup: vi.fn(),
         scheduleImportTimeStateInitialization: vi.fn(),
         scheduleImportTimeThemeSetup: vi.fn(),
@@ -73,7 +73,7 @@ describe("renderer import-time bootstrap", () => {
             },
         });
         const {
-            scheduleAppDomainStateCoverageTouch,
+            scheduleAppDomainStateTouch,
             scheduleImportTimeListenersSetup,
             scheduleImportTimeStateInitialization,
             scheduleImportTimeThemeSetup,
@@ -94,7 +94,7 @@ describe("renderer import-time bootstrap", () => {
         scheduleImportTimeThemeSetup();
         scheduleImportTimeListenersSetup();
         scheduleImportTimeStateInitialization();
-        scheduleAppDomainStateCoverageTouch();
+        scheduleAppDomainStateTouch();
         await flushImportTimeWork();
 
         expect(coreModules.setupTheme).toHaveBeenCalledWith(
@@ -194,13 +194,13 @@ describe("renderer import-time bootstrap", () => {
         expect(initializeStateManager).toHaveBeenCalledOnce();
     });
 
-    it("runs import-time setup and coverage touches in renderer order", () => {
+    it("runs import-time setup and state touch in renderer order", () => {
         expect.assertions(1);
 
         const calls: string[] = [];
         const controller = createBootstrap({
-            scheduleAppDomainStateCoverageTouch: vi.fn(() => {
-                calls.push("coverage");
+            scheduleAppDomainStateTouch: vi.fn(() => {
+                calls.push("state-touch");
             }),
             scheduleImportTimeListenersSetup: vi.fn(() => {
                 calls.push("listeners");
@@ -219,8 +219,7 @@ describe("renderer import-time bootstrap", () => {
             "theme",
             "state",
             "listeners",
-            "coverage",
-            "coverage",
+            "state-touch",
         ]);
     });
 
@@ -247,8 +246,6 @@ describe("renderer import-time bootstrap", () => {
         expect(
             controller.scheduleImportTimeStateInitialization
         ).toHaveBeenCalledOnce();
-        expect(
-            controller.scheduleAppDomainStateCoverageTouch
-        ).toHaveBeenCalledTimes(2);
+        expect(controller.scheduleAppDomainStateTouch).toHaveBeenCalledOnce();
     });
 });

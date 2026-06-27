@@ -41,7 +41,7 @@ interface RendererImportTimeBootstrapOptions {
 }
 
 export interface RendererImportTimeBootstrap {
-    scheduleAppDomainStateCoverageTouch: () => void;
+    scheduleAppDomainStateTouch: () => void;
     scheduleImportTimeListenersSetup: () => void;
     scheduleImportTimeStateInitialization: () => void;
     scheduleImportTimeThemeSetup: () => void;
@@ -102,8 +102,8 @@ export function createRendererImportTimeBootstrap({
         );
     }
 
-    function scheduleAppDomainStateCoverageTouch(): void {
-        void touchAppDomainStateForCoverage();
+    function scheduleAppDomainStateTouch(): void {
+        void touchAppDomainState();
     }
 
     function scheduleImportTimeListenersSetup(): void {
@@ -154,7 +154,7 @@ export function createRendererImportTimeBootstrap({
         setupThemeFn?.(applyThemeFn, listenForThemeChangeFn);
     }
 
-    async function touchAppDomainStateForCoverage(): Promise<void> {
+    async function touchAppDomainState(): Promise<void> {
         try {
             const { getAppStartTime, subscribeToAppStartTime } =
                 await ensureCoreModules();
@@ -176,7 +176,7 @@ export function createRendererImportTimeBootstrap({
     }
 
     return {
-        scheduleAppDomainStateCoverageTouch,
+        scheduleAppDomainStateTouch,
         scheduleImportTimeListenersSetup,
         scheduleImportTimeStateInitialization,
         scheduleImportTimeThemeSetup,
@@ -281,17 +281,7 @@ export function runRendererImportTimeBootstrap(
     }
 
     try {
-        bootstrap.scheduleAppDomainStateCoverageTouch();
-
-        try {
-            try {
-                bootstrap.scheduleAppDomainStateCoverageTouch();
-            } catch {
-                /* Ignore errors */
-            }
-        } catch {
-            /* Ignore errors */
-        }
+        bootstrap.scheduleAppDomainStateTouch();
     } catch {
         /* Ignore errors */
     }
