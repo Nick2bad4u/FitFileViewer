@@ -1132,6 +1132,9 @@ or helper-level document, direct document, timer, or frame properties, with focu
 blocking those legacy runtime shapes from returning.
 Tab-state manager regression tests now pass `rawFitData` table fixtures into `updateTabAvailability` instead of
 retired `globalData` entries, with architecture coverage blocking that stale regression vocabulary.
+Active FIT raw-data message-array access now reads through an own-property helper after explicit raw-data narrowing
+instead of casting the raw-data payload to a broad `Record<string, unknown>`, with unit and architecture coverage
+blocking that generic active-data bucket from returning.
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state
 slot instead of carrying a retired `globalData` fixture slot, with architecture coverage blocking that stale
 integration fixture shape.

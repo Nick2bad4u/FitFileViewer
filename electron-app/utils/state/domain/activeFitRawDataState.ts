@@ -53,20 +53,21 @@ export function getActiveFitMessageArray<
     const rawData =
         sourceData === undefined ? getActiveFitRawData() : sourceData;
 
-    if (
-        rawData === null ||
-        typeof rawData !== "object" ||
-        Array.isArray(rawData)
-    ) {
+    const activeRawData = normalizeActiveFitRawData(rawData);
+    if (activeRawData === null) {
         return [];
     }
 
-    const messages = (rawData as Record<string, unknown>)[key];
+    const messages = getActiveFitRawDataProperty(activeRawData, key);
     return Array.isArray(messages)
         ? messages.filter((message): message is T =>
               isFitMessageRecord(message)
           )
         : [];
+}
+
+function getActiveFitRawDataProperty(data: RawFitData, key: string): unknown {
+    return Object.getOwnPropertyDescriptor(data, key)?.value;
 }
 
 function isFitMessageRecord<T extends ActiveFitMessageRecord>(
@@ -76,7 +77,9 @@ function isFitMessageRecord<T extends ActiveFitMessageRecord>(
 }
 
 function normalizeActiveFitRawData(value: unknown): RawFitData | null {
-    return value !== null && typeof value === "object" && !Array.isArray(value)
-        ? (value as RawFitData)
-        : null;
+    return isActiveFitRawData(value) ? value : null;
+}
+
+function isActiveFitRawData(value: unknown): value is RawFitData {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
 }

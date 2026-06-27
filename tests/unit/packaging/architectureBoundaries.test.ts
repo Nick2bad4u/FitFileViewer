@@ -11328,7 +11328,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         const globalDataStorePath =
             "electron-app/utils/state/core/globalDataStore.ts";
@@ -11350,6 +11350,15 @@ describe("architecture boundaries", () => {
         );
         expect(activeFitRawDataStateSource).toContain(
             "setState(ACTIVE_FIT_RAW_DATA_PATH"
+        );
+        expect(activeFitRawDataStateSource).toContain(
+            "getActiveFitRawDataProperty"
+        );
+        expect(activeFitRawDataStateSource).not.toContain(
+            "rawData as Record<string, unknown>"
+        );
+        expect(activeFitRawDataStateSource).not.toContain(
+            "value as RawFitData"
         );
         expect(stateManagerDefaultsSource).toContain("rawData: null");
         expect(stateManagerDefaultsSource).not.toContain("globalData: null");

@@ -66,6 +66,30 @@ describe("activeFitRawDataState", () => {
         ]);
     });
 
+    it("reads message arrays from own raw-data properties only", () => {
+        expect.assertions(2);
+
+        const inheritedRecord = { timestamp: 1 };
+        const validRecord = { timestamp: 2 };
+        const source = Object.create({
+            recordMesgs: [inheritedRecord],
+        }) as { recordMesgs?: unknown };
+
+        source.recordMesgs = [validRecord];
+
+        expect(getActiveFitMessageArray("recordMesgs", source)).toStrictEqual([
+            validRecord,
+        ]);
+        expect(
+            getActiveFitMessageArray(
+                "recordMesgs",
+                Object.create({
+                    recordMesgs: [inheritedRecord],
+                })
+            )
+        ).toStrictEqual([]);
+    });
+
     it("returns empty arrays for missing, primitive, or array sources", () => {
         expect.assertions(4);
 
