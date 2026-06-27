@@ -1753,6 +1753,9 @@ returning.
 Export utility Electron API candidate validation, Imgur upload response parsing, and export runtime crypto/storage
 candidate checks now use explicit typed property reads instead of generic `Reflect.get` probes, with focused malformed
 shape coverage and architecture coverage blocking those reflective export utility probes from returning.
+Render-table DataTables constructor validation now checks the explicit `isDataTable` candidate property directly
+instead of using a generic `Reflect.get` probe, with existing malformed-marker coverage and architecture coverage
+blocking that renderer dependency reflection from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

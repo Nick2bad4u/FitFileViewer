@@ -511,6 +511,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - CommonJS-in-ESM mock-guide status: the obsolete `docs/MOCK_COMMONJS_IN_ESM.md` guide has been removed because it documented the retired global `require()` override and `cjsMockInterop` patterns; architecture coverage now treats that guide as a deleted compatibility file.
 - App-code docs migration status: FIT parser migration and preload IPC documentation now show ESM-style imports instead of `require(...)` app-code examples, while `.cjs` build-configuration examples stay documented as intentional configuration boundaries.
 - Export utility reflection migration status: export Electron API candidate validation, Imgur upload response parsing, and export runtime crypto/storage candidate checks now use explicit typed property reads instead of generic `Reflect.get` probes; malformed response/runtime method shapes fail closed, and architecture coverage blocks those reflective export utility probes from returning.
+- Render-table DataTables migration status: `renderTable.ts` now validates the DataTables constructor through an explicit `isDataTable` candidate property read instead of a generic `Reflect.get` probe; malformed static markers still skip enhancement, and architecture coverage blocks that renderer dependency reflection from returning.
 - Next removal step: keep CommonJS compatibility isolated to generated `dist/` output until the Electron main/preload launch path can consume native ESM output directly
 - Verification gates:
   - `npm run build:runtime-ts`

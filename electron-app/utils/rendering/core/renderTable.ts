@@ -54,12 +54,15 @@ type DataTableConstructor = {
     new (selector: string, options?: DataTableOptions): DataTableInstance;
 };
 
-function isDataTableConstructor(
-    value: unknown
-): value is DataTableConstructor {
+type DataTableConstructorCandidate = Readonly<{
+    isDataTable?: unknown;
+}>;
+
+function isDataTableConstructor(value: unknown): value is DataTableConstructor {
+    const candidate = value as DataTableConstructorCandidate;
     return (
         typeof value === "function" &&
-        typeof Reflect.get(value, "isDataTable") === "function"
+        typeof candidate.isDataTable === "function"
     );
 }
 
@@ -268,8 +271,7 @@ export function renderTable(
     };
 
     addEventListenerWithCleanup(header, "click", () => {
-        const isHidden =
-            runtime.getComputedStyle(content)?.display === "none";
+        const isHidden = runtime.getComputedStyle(content)?.display === "none";
         content.style.display = isHidden ? "block" : "none";
         icon.textContent = isHidden ? "➖" : "➕";
 

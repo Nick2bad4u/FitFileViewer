@@ -14440,7 +14440,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(50);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -14472,6 +14472,15 @@ describe("architecture boundaries", () => {
         expect(renderTableSource).toContain("renderTableRuntime.js");
         expect(renderTableSource).not.toContain(
             "value as Partial<DataTableConstructor>"
+        );
+        expect(renderTableSource).toContain(
+            "type DataTableConstructorCandidate"
+        );
+        expect(renderTableSource).toContain(
+            'typeof candidate.isDataTable === "function"'
+        );
+        expect(renderTableSource).not.toContain(
+            'Reflect.get(value, "isDataTable")'
         );
         expect(renderTableRuntimeSource).not.toMatch(
             directRenderTableRuntimeAmbientTimerFallbackPattern
