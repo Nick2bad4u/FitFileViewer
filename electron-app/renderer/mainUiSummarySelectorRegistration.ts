@@ -1,11 +1,11 @@
-import type { MainUiElectronApi } from "./mainUiElectronApi.js";
+import type { MainUiSummarySelectorElectronApi } from "./mainUiElectronApi.js";
 
 import { createMainUiSummaryColumnSelectorHandler } from "./mainUiSummaryColumnSelector.js";
 import { resourceManager } from "../utils/app/lifecycle/resourceManager.js";
 
 export interface MainUiSummarySelectorRegistrationOptions {
     readonly delay: number;
-    readonly electronAPI: MainUiElectronApi | null;
+    readonly electronAPI: MainUiSummarySelectorElectronApi | null;
     readonly gearButtonSelector: string;
     readonly logMainUi: (
         level: "error" | "warn",

@@ -3,7 +3,12 @@ import {
     createMainUiMenuInjectionRequester,
 } from "./mainUiDevelopmentActions.js";
 import { createMainUiDragDropHandler } from "./mainUiDragDropStartup.js";
-import { getMainUiElectronApi } from "./mainUiElectronApi.js";
+import {
+    getMainUiMenuInjectionElectronApi,
+    getMainUiSummarySelectorElectronApi,
+    getMainUiThemeSyncElectronApi,
+    getMainUiUnloadElectronApi,
+} from "./mainUiElectronApi.js";
 import { getBrowserMainUiRuntimeEnvironmentScope } from "./mainUiBrowserRuntime.js";
 import { createMainUiExternalLinkLifecycle } from "./mainUiExternalLinks.js";
 import {
@@ -69,7 +74,12 @@ export async function initializeMainUiStartup({
     const electronApiScope = {
         getElectronAPI: () => runtimeEnvironment.electronApiCandidate,
     };
-    const getElectronAPI = () => getMainUiElectronApi(electronApiScope);
+    const getMenuInjectionElectronAPI = () =>
+        getMainUiMenuInjectionElectronApi(electronApiScope);
+    const getThemeSyncElectronAPI = () =>
+        getMainUiThemeSyncElectronApi(electronApiScope);
+    const getUnloadElectronAPI = () =>
+        getMainUiUnloadElectronApi(electronApiScope);
     const documentRef = runtimeEnvironment.documentRef;
     const unloadFitFile = createMainUiUnloadFitFile({
         contentIds: [
@@ -80,22 +90,27 @@ export async function initializeMainUiStartup({
         ],
         dateNow: runtimeEnvironment.dateNow,
         documentRef,
-        getElectronAPI,
+        getElectronAPI: getUnloadElectronAPI,
         logMainUi,
     });
 
-    initializeMainUiThemeSync({ getElectronAPI, logMainUi });
+    initializeMainUiThemeSync({
+        getElectronAPI: getThemeSyncElectronAPI,
+        logMainUi,
+    });
 
-    const electronAPI = getElectronAPI();
+    const summaryElectronAPI =
+        getMainUiSummarySelectorElectronApi(electronApiScope);
+    const unloadElectronAPI = getUnloadElectronAPI();
     registerMainUiSummaryColumnSelector({
         delay: MAIN_UI_CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
-        electronAPI,
+        electronAPI: summaryElectronAPI,
         gearButtonSelector: ".summary-gear-btn",
         logMainUi,
         summaryTabId: MAIN_UI_CONSTANTS.DOM_IDS.TAB_SUMMARY,
     });
     registerMainUiUnloadHandlers({
-        electronAPI,
+        electronAPI: unloadElectronAPI,
         unloadButtonId: MAIN_UI_CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN,
         unloadFitFile,
     });
@@ -117,7 +132,7 @@ export async function initializeMainUiStartup({
     externalLinks.install();
 
     const requestMainUiMenuInjection = createMainUiMenuInjectionRequester({
-        getElectronAPI,
+        getElectronAPI: getMenuInjectionElectronAPI,
         logMainUi,
     });
     const runMainUiDevelopmentCleanup = createMainUiDevelopmentCleanup({

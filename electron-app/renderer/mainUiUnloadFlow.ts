@@ -1,4 +1,4 @@
-import type { MainUiElectronApi } from "./mainUiElectronApi.js";
+import type { MainUiUnloadElectronApi } from "./mainUiElectronApi.js";
 
 import { AppActions } from "../utils/app/lifecycle/appActions.js";
 import { performanceMonitor } from "../utils/debug/stateDevTools.js";
@@ -22,7 +22,7 @@ export interface MainUiUnloadFlowOptions {
     readonly contentIds: readonly string[];
     readonly dateNow: () => number;
     readonly documentRef: Document;
-    readonly getElectronAPI: () => MainUiElectronApi | null;
+    readonly getElectronAPI: () => MainUiUnloadElectronApi | null;
     readonly logMainUi: (
         level: "error" | "info" | "warn",
         message: string,
@@ -31,7 +31,7 @@ export interface MainUiUnloadFlowOptions {
 }
 
 export interface MainUiUnloadRegistrationOptions {
-    readonly electronAPI: MainUiElectronApi | null;
+    readonly electronAPI: MainUiUnloadElectronApi | null;
     readonly unloadButtonId: string;
     readonly unloadFitFile: () => void;
 }

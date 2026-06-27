@@ -6181,7 +6181,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(147);
+        expect.assertions(154);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6457,6 +6457,18 @@ describe("architecture boundaries", () => {
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiElectronApiSource).toContain(
+            "export interface MainUiMenuInjectionElectronApi"
+        );
+        expect(mainUiElectronApiSource).toContain(
+            "export interface MainUiSummarySelectorElectronApi"
+        );
+        expect(mainUiElectronApiSource).toContain(
+            "export interface MainUiThemeSyncElectronApi"
+        );
+        expect(mainUiElectronApiSource).toContain(
+            "export interface MainUiUnloadElectronApi"
+        );
+        expect(mainUiElectronApiSource).not.toContain(
             "export interface MainUiElectronApi"
         );
         expect(mainUiElectronApiSource).toContain("ElectronMenuEventApi");
@@ -6481,7 +6493,16 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiStartupSource).toContain("const electronApiScope =");
         expect(mainUiStartupSource).toContain(
-            "getMainUiElectronApi(electronApiScope)"
+            "getMainUiMenuInjectionElectronApi(electronApiScope)"
+        );
+        expect(mainUiStartupSource).toContain(
+            "getMainUiSummarySelectorElectronApi(electronApiScope)"
+        );
+        expect(mainUiStartupSource).toContain(
+            "getMainUiThemeSyncElectronApi(electronApiScope)"
+        );
+        expect(mainUiStartupSource).toContain(
+            "getMainUiUnloadElectronApi(electronApiScope)"
         );
         expect(mainUiStartupSource).toContain("createMainUiDragDropHandler({");
         expect(mainUiStartupSource).toContain("electronApiScope,");

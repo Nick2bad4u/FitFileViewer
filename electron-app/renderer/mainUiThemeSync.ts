@@ -1,4 +1,4 @@
-import type { MainUiElectronApi } from "./mainUiElectronApi.js";
+import type { MainUiThemeSyncElectronApi } from "./mainUiElectronApi.js";
 
 import { UIActions } from "../utils/state/domain/uiStateManager.js";
 import {
@@ -8,7 +8,7 @@ import {
 } from "../utils/theming/core/theme.js";
 
 export interface MainUiThemeSyncOptions {
-    readonly getElectronAPI: () => MainUiElectronApi | null;
+    readonly getElectronAPI: () => MainUiThemeSyncElectronApi | null;
     readonly logMainUi: (
         level: "info",
         message: string,

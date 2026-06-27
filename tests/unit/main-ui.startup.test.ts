@@ -313,12 +313,15 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect("devCleanup" in globalThis).toBe(false);
     });
 
-    it("rejects malformed main UI Electron API candidates", async () => {
-        expect.assertions(4);
+    it("isolates malformed main UI Electron API domains", async () => {
+        expect.assertions(5);
 
+        const onOpenSummaryColumnSelector =
+            vi.fn<MainUiElectronApi["onOpenSummaryColumnSelector"]>();
         const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
         const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
         mocks.mainUiElectronApiCandidate = {
+            onOpenSummaryColumnSelector,
             onSetTheme,
             onUnloadFitFile: "not callable",
         };
@@ -327,6 +330,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
 
         expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
         expect(mocks.loadTheme).toHaveBeenCalledOnce();
+        expect(onOpenSummaryColumnSelector).toHaveBeenCalledOnce();
         expect(onSetTheme).not.toHaveBeenCalled();
         expect(onUnloadFitFile).not.toHaveBeenCalled();
     });

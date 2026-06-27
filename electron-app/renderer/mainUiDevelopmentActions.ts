@@ -1,4 +1,4 @@
-import type { MainUiElectronApi } from "./mainUiElectronApi.js";
+import type { MainUiMenuInjectionElectronApi } from "./mainUiElectronApi.js";
 
 import { AppActions } from "../utils/app/lifecycle/appActions.js";
 import { resourceManager } from "../utils/app/lifecycle/resourceManager.js";
@@ -8,7 +8,7 @@ import { setRendererDragCounter } from "../utils/state/domain/rendererDragDropSt
 import { cleanupEventListeners } from "../utils/ui/mainUiDomUtils.js";
 
 export interface MainUiDevelopmentActionsOptions {
-    readonly getElectronAPI: () => MainUiElectronApi | null;
+    readonly getElectronAPI: () => MainUiMenuInjectionElectronApi | null;
     readonly logMainUi: (
         level: "error" | "info" | "warn",
         message: string,
