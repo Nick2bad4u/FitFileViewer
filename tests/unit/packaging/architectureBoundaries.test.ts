@@ -11192,7 +11192,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(183);
+        expect.assertions(185);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11253,6 +11253,8 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
         expect(uiStateManagerSource).toContain("getSystemThemeMediaQuery");
+        expect(uiStateManagerSource).toContain("normalizeNotificationInput");
+        expect(uiStateManagerSource).not.toContain("backward compatibility");
         expect(uiStateManagerSource).not.toContain(
             'classList.toggle("app-has-file"'
         );

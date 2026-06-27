@@ -26,6 +26,12 @@ type NotificationInput =
           type?: string;
       };
 
+type NormalizedNotification = {
+    duration: number;
+    message: string;
+    type: string;
+};
+
 type FileInfoState = {
     displayName?: string;
     hasFile?: boolean;
@@ -51,6 +57,28 @@ function getNotificationMessage(notification: NotificationInput): string {
     return typeof notification === "string"
         ? notification
         : notification.message || "No message provided";
+}
+
+function normalizeNotificationInput(
+    notification: NotificationInput
+): NormalizedNotification | null {
+    if (typeof notification === "string") {
+        return {
+            duration: 3000,
+            message: notification,
+            type: "info",
+        };
+    }
+
+    if (typeof notification === "object" && notification !== null) {
+        return {
+            duration: notification.duration || 3000,
+            message: notification.message || "No message provided",
+            type: notification.type || "info",
+        };
+    }
+
+    return null;
 }
 
 function uiStateManagerRuntime(): UIStateManagerRuntime {
@@ -356,27 +384,19 @@ export class UIStateManager {
      */
     showNotification(notification: NotificationInput) {
         try {
-            // Handle both object and string parameters for backward compatibility
-            let duration, message, type;
+            const normalizedNotification =
+                normalizeNotificationInput(notification);
 
-            if (typeof notification === "string") {
-                message = notification;
-                type = "info";
-                duration = 3000;
-            } else if (
-                typeof notification === "object" &&
-                notification !== null
-            ) {
-                message = notification.message || "No message provided";
-                type = notification.type || "info";
-                duration = notification.duration || 3000;
-            } else {
+            if (normalizedNotification === null) {
                 console.warn(
                     "[UIStateManager] Invalid notification parameter:",
                     notification
                 );
                 return;
-            } // Use the imported showNotification utility
+            }
+
+            const { duration, message, type } = normalizedNotification;
+
             try {
                 showNotification(message, type, duration);
             } catch {
