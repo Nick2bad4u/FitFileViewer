@@ -2,6 +2,7 @@
     "use strict";
 
     const BLOCKED_HOSTNAMES = new Set(["ua.harryonline.net"]);
+    const blockedRequests = new WeakSet();
 
     function isBlockedUrl(url) {
         try {
@@ -71,19 +72,20 @@
                     url,
                     ...rest
                 ) {
+                    blockedRequests.delete(this);
                     try {
                         const urlString =
                             typeof url === "string" ? url : String(url);
-                        this.__ffvBlocked = Boolean(
-                            urlString && isBlockedUrl(urlString)
-                        );
+                        if (urlString && isBlockedUrl(urlString)) {
+                            blockedRequests.add(this);
+                        }
                     } catch {
-                        this.__ffvBlocked = false;
+                        blockedRequests.delete(this);
                     }
                     return originalOpen.call(this, method, url, ...rest);
                 };
                 XMLHttpRequest.prototype.send = function send(body) {
-                    if (this.__ffvBlocked) {
+                    if (blockedRequests.has(this)) {
                         try {
                             this.abort();
                         } catch {

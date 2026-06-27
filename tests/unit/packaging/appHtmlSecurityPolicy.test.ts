@@ -50,6 +50,17 @@ function readAltFitBridge(): string {
     );
 }
 
+function readAltFitAnalyticsBlocker(): string {
+    return readFileSync(
+        path.join(
+            process.cwd(),
+            rootAlternativeFitViewPath,
+            "electron-analytics-blocker.js"
+        ),
+        "utf8"
+    );
+}
+
 function readAltFitHtml(): string {
     return readFileSync(
         path.join(process.cwd(), rootAlternativeFitViewIndexPath),
@@ -282,6 +293,19 @@ describe("root app HTML security policy", () => {
         expect(bridge).not.toContain("fitfile-received");
         expect(bridge).not.toContain("window.electronAPI");
         expect(bridge).not.toContain("innerHTML");
+    });
+
+    it("keeps embedded AltFit analytics blocking state off browser request objects", () => {
+        expect.assertions(4);
+
+        const analyticsBlocker = readAltFitAnalyticsBlocker();
+
+        expect(analyticsBlocker).toContain(
+            "const blockedRequests = new WeakSet();"
+        );
+        expect(analyticsBlocker).toContain("blockedRequests.add(this);");
+        expect(analyticsBlocker).toContain("blockedRequests.has(this)");
+        expect(analyticsBlocker).not.toContain("__ffvBlocked");
     });
 
     it("keeps the generated AltFit bundle free of automation bridge globals", () => {
