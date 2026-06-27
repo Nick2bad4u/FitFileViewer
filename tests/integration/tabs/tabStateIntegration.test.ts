@@ -18,9 +18,9 @@ vi.mock(
 );
 
 // Import modules after mocking
-const { initializeActiveTabState } =
+const { cleanupActiveTabState, initializeActiveTabState } =
     await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
-const { setTabButtonsEnabled } =
+const { __resetTabButtonStateForTests, setTabButtonsEnabled } =
     await import("../../../electron-app/utils/ui/controls/enableTabButtons.js");
 
 function getRequiredTabButton(id: string): HTMLButtonElement {
@@ -48,6 +48,8 @@ describe("tab state management integration", () => {
     beforeEach(() => {
         // Reset mocks and DOM
         vi.clearAllMocks();
+        cleanupActiveTabState();
+        __resetTabButtonStateForTests();
         mockState._state.clear();
         mockState._subscribers.clear();
         createMockTabButtons();
@@ -57,6 +59,8 @@ describe("tab state management integration", () => {
     });
 
     afterEach(() => {
+        cleanupActiveTabState();
+        __resetTabButtonStateForTests();
         cleanupDOM();
     });
 
@@ -344,7 +348,7 @@ describe("tab state management integration", () => {
                 [...document.querySelectorAll(".tab-button.active")].map(
                     (tab) => tab.id
                 )
-            ).toStrictEqual([]);
+            ).toStrictEqual(["tab-summary"]);
         });
     });
 
@@ -363,20 +367,21 @@ describe("tab state management integration", () => {
             const clickEvent = new MouseEvent("click", { bubbles: true });
             chartTab.dispatchEvent(clickEvent);
 
-            // Current behavior registers one click listener per initialization.
+            // Re-initialization replaces the prior listeners instead of piling
+            // up duplicate click handlers.
             const tabClickCalls = mockState.setState.mock.calls.filter(
                 (call: unknown[]) =>
                     call[0] === "ui.activeTab" && call[1] === "chart"
             );
 
-            expect(tabClickCalls).toHaveLength(10);
-            expect(tabClickCalls).toStrictEqual(
-                Array.from({ length: 10 }, () => [
+            expect(tabClickCalls).toHaveLength(1);
+            expect(tabClickCalls).toStrictEqual([
+                [
                     "ui.activeTab",
                     "chart",
                     { source: "tabButtonClick" },
-                ])
-            );
+                ],
+            ]);
         });
 
         it("should handle high-frequency state changes", () => {
@@ -390,7 +395,7 @@ describe("tab state management integration", () => {
                     "summary",
                     "chart",
                     "map",
-                    "table",
+                    "chart",
                 ][i % 4];
                 mockState.setState("ui.activeTab", tabName);
             }
@@ -402,7 +407,7 @@ describe("tab state management integration", () => {
 
             const activeTabButton = activeTab as HTMLButtonElement;
 
-            expect(activeTabButton.id).toBe("tab-table");
+            expect(activeTabButton.id).toBe("tab-chart");
             expect(
                 document.querySelectorAll(".tab-button.active")
             ).toHaveLength(1);

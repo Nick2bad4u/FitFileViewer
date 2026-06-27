@@ -141,8 +141,9 @@ describe("renderTable", () => {
     it("skips DataTables enhancement for malformed constructor markers", async () => {
         expect.assertions(2);
 
-        (dataTableModuleMock.DataTable as { isDataTable?: unknown }).isDataTable =
-            "not a static marker";
+        (
+            dataTableModuleMock.DataTable as { isDataTable?: unknown }
+        ).isDataTable = "not a static marker";
 
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;

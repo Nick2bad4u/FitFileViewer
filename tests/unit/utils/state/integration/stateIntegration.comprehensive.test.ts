@@ -56,31 +56,29 @@ function restoreTestGlobals(): void {
 }
 
 // Setup comprehensive mocks
+const mockStateManager = vi.hoisted(() => ({
+    getState: vi.fn<(path: string) => unknown>(),
+    initializeStateManager: vi.fn<() => void>(),
+    setState:
+        vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+    subscribe: vi.fn<
+        (path: string, callback: StateSubscriber) => StateUnsubscribe
+    >(() => () => {}),
+}));
+const mockUIStateManager = vi.hoisted(() => ({
+    initialize: vi.fn<() => void>(),
+}));
+
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
-    () => ({
-        getState: vi.fn<(path: string) => unknown>(),
-        setState:
-            vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
-        subscribe: vi.fn<
-            (path: string, callback: StateSubscriber) => StateUnsubscribe
-        >(() => () => {}),
-        initializeStateManager: vi.fn<() => void>(),
-    })
+    () => mockStateManager
 );
 vi.mock(
     import("../../../../../electron-app/utils/state/domain/uiStateManager.js"),
     () => ({
-        uiStateManager: { initialize: vi.fn<() => void>() },
+        uiStateManager: mockUIStateManager,
     })
 );
-// Get references to the mocked functions
-const mockStateManager = vi.mocked(
-    await import("../../../../../electron-app/utils/state/core/stateManager.js")
-);
-const mockUIStateManager = vi.mocked(
-    await import("../../../../../electron-app/utils/state/domain/uiStateManager.js")
-).uiStateManager;
 
 import { initializeCompleteStateSystem } from "../../../../../electron-app/utils/state/integration/stateIntegration.js";
 

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import { createExportGPXButton } from "../../../../../electron-app/utils/files/export/createExportGPXButton.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import {
@@ -8,18 +7,22 @@ import {
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
+const showNotificationMock = vi.hoisted(() =>
+    vi.fn<(message: string, type: string, duration?: number) => void>()
+);
+
 vi.mock(
     import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification:
-            vi.fn<(message: string, type: string, duration?: number) => void>(),
+        showNotification: showNotificationMock,
     })
 );
 
-const showNotificationMock = vi.mocked(showNotification);
-
 function cleanupTestGlobals(): void {
     __resetStateManagerForTests();
+    localStorage.clear();
+    sessionStorage.clear();
+    setActiveFitRawData(null);
     document.body.replaceChildren();
     vi.useRealTimers();
     vi.unstubAllGlobals();

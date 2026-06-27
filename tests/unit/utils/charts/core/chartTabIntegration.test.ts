@@ -35,6 +35,11 @@ const getRendererActiveTabMock = vi.hoisted(() =>
         return typeof activeTab === "string" ? activeTab : "summary";
     })
 );
+const isRendererChartTabMock = vi.hoisted(() =>
+    vi.fn<(tabName: unknown) => boolean>(
+        (tabName) => tabName === "chart" || tabName === "chartjs"
+    )
+);
 const subscribeToActiveFitRawDataChangeMock = vi.hoisted(() =>
     vi.fn<
         (callback: (data: unknown, previousData: unknown) => void) => () => void
@@ -74,6 +79,7 @@ vi.mock(
     import("../../../../../electron-app/utils/state/domain/rendererActiveTabState.js"),
     () => ({
         getRendererActiveTab: getRendererActiveTabMock,
+        isRendererChartTab: isRendererChartTabMock,
     })
 );
 
@@ -129,6 +135,7 @@ function resetState(): void {
     showNotificationMock.mockClear();
     getRawDataMock.mockClear();
     getRendererActiveTabMock.mockClear();
+    isRendererChartTabMock.mockClear();
     subscribeToActiveFitRawDataChangeMock.mockClear();
     subscribeToAppOpeningFileMock.mockClear();
     getRawDataMock.mockImplementation(() => stateValues.get("fitFile.rawData"));
@@ -136,6 +143,9 @@ function resetState(): void {
         const activeTab = stateValues.get("ui.activeTab");
         return typeof activeTab === "string" ? activeTab : "summary";
     });
+    isRendererChartTabMock.mockImplementation(
+        (tabName) => tabName === "chart" || tabName === "chartjs"
+    );
     document.body.replaceChildren();
 }
 

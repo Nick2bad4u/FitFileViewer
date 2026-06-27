@@ -2,14 +2,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CONSTANTS } from "../../../../electron-app/main/constants.js";
-import { createElectronConf } from "../../../../electron-app/main/runtime/electronConfAccess.js";
 import { getPersistedThemePreference } from "../../../../electron-app/main/theme/getPersistedThemePreference.js";
 
-vi.mock("../../../../electron-app/main/runtime/electronConfAccess.js", () => ({
-    createElectronConf: vi.fn(),
-}));
+const createElectronConfMock = vi.hoisted(() =>
+    vi.fn<(options?: { name?: string }) => unknown>()
+);
 
-const createElectronConfMock = vi.mocked(createElectronConf);
+vi.mock("../../../../electron-app/main/runtime/electronConfAccess.js", () => ({
+    createElectronConf: createElectronConfMock,
+}));
 
 describe("getPersistedThemePreference", () => {
     let consoleErrorSpy: ReturnType<typeof vi.spyOn>;

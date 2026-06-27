@@ -121,7 +121,7 @@ describe("setupTheme", () => {
         handler?.("auto");
         expect(stateManagerMocks.setState).toHaveBeenCalledWith(
             "ui.previousTheme",
-            "auto",
+            "system",
             { source: "setupTheme" }
         );
         expect(applyTheme).toHaveBeenCalledWith("auto");

@@ -121,8 +121,8 @@ describe("renderer application lifecycle wiring", () => {
         expect(lifecycleState.initialized).toBe(true);
         expect(cleanup).not.toHaveBeenCalled();
 
-        const onBeforeUnload = vi.mocked(eventTarget.addEventListener)
-            .mock.calls[0]?.[1] as () => void;
+        const onBeforeUnload = vi.mocked(eventTarget.addEventListener).mock
+            .calls[0]?.[1] as () => void;
         onBeforeUnload();
 
         expect(cleanup).toHaveBeenCalledOnce();
@@ -192,8 +192,8 @@ describe("renderer application lifecycle wiring", () => {
             runtime: lifecycleWiringAdapter,
             setTimeout: vi.fn<typeof globalThis.setTimeout>(),
         });
-        const onBeforeUnload = vi.mocked(eventTarget.addEventListener)
-            .mock.calls[0]?.[1] as () => void;
+        const onBeforeUnload = vi.mocked(eventTarget.addEventListener).mock
+            .calls[0]?.[1] as () => void;
         onBeforeUnload();
 
         expect(
