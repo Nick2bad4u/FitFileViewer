@@ -14089,13 +14089,18 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(36);
+        expect.assertions(39);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
         );
         const tabIdUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/tabIdUtils.ts")
+        );
+        const updateTabVisibilitySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateTabVisibility.ts"
+            )
         );
         const tabStateManagerConfigSource = stripComments(
             readRepositoryFile(
@@ -14131,6 +14136,11 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerConfigSource).toContain("isRendererTabName");
         expect(tabStateManagerConfigSource).toContain("getConfiguredTab");
+        expect(tabStateManagerConfigSource).toContain("TAB_CONTENT_IDS");
+        expect(updateTabVisibilitySource).toContain("TAB_CONTENT_IDS");
+        expect(updateTabVisibilitySource).not.toContain(
+            "const TAB_CONTENT_IDS = ["
+        );
         expect(rendererActiveTabStateSource).toContain("RENDERER_TAB_NAMES");
         expect(rendererActiveTabStateSource).toContain("isRendererTabName");
         expect(appActionsSource).toContain(

@@ -24,6 +24,7 @@ import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
+import { TAB_CONTENT_IDS } from "./tabStateManagerConfig.js";
 import {
     getUpdateTabVisibilityRuntime,
     type UpdateTabVisibilityTimerHandle,
@@ -38,16 +39,6 @@ type LeafletMapInstance = {
 };
 
 type StateUnsubscribe = () => void;
-
-const TAB_CONTENT_IDS = [
-    "content_data",
-    "content_chartjs",
-    "content_browser",
-    "content_map",
-    "content_summary",
-    "content_altfit",
-    "content_zwift",
-] as const;
 
 const DISPLAY_FLEX = "flex";
 const DISPLAY_NONE = "none";

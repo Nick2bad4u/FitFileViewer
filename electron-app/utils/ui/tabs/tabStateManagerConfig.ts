@@ -75,6 +75,10 @@ const TAB_CONFIG: Record<RendererTabName, TabDef> = {
     },
 };
 
+export const TAB_CONTENT_IDS = [
+    ...new Set(Object.values(TAB_CONFIG).map(({ contentId }) => contentId)),
+] as const;
+
 export function getConfiguredTab(tabName: unknown): TabDef | undefined {
     return isRendererTabName(tabName) ? TAB_CONFIG[tabName] : undefined;
 }
