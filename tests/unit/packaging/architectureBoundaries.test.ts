@@ -18568,7 +18568,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(28);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -18614,13 +18614,22 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "scope.document"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "defaultView?.AbortController"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "defaultView?.HTMLElement"
         );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
@@ -18655,10 +18664,16 @@ describe("architecture boundaries", () => {
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
     });
 
     it("keeps exit-fullscreen overlay removal browser APIs behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(19);
 
         const violations = migratedRemoveExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -18695,7 +18710,13 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
             "scope.document"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
+            "scope.HTMLElement"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
@@ -18710,7 +18731,16 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "runtimeDocument: Readonly<Document>"
+            "return scope.getHTMLElement?.();"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
+            "defaultView?.HTMLElement"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
+            "getHTMLElement: getBrowserHTMLElement"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
             "): typeof HTMLElement | undefined"

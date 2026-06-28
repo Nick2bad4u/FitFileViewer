@@ -12,16 +12,21 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
 
         const runtime = getRemoveExitFullscreenOverlayRuntime({
             getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
         expect(runtime.isHTMLElement({})).toBe(false);
     });
 
-    it("does not borrow ambient element constructors for explicit documents", () => {
+    it("does not borrow document-window element constructors for explicit documents", () => {
         expect.assertions(1);
 
-        const scopedDocument = { defaultView: undefined } as Document;
+        const scopedDocument = {
+            defaultView: {
+                HTMLElement,
+            },
+        } as Document;
         const runtime = getRemoveExitFullscreenOverlayRuntime({
             getDocument: () => scopedDocument,
         });
@@ -67,5 +72,17 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
         expect(() => runtime.isHTMLElement({})).toThrow(
             "removeExitFullscreenOverlay requires a document runtime"
         );
+    });
+
+    it("uses the explicit element constructor provider for scoped element checks", () => {
+        expect.assertions(2);
+
+        const runtime = getRemoveExitFullscreenOverlayRuntime({
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+        });
+
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
+        expect(runtime.isHTMLElement({})).toBe(false);
     });
 });

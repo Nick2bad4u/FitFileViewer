@@ -3,6 +3,7 @@ import {
     type BrowserHTMLElementConstructor,
     getBrowserAbortController,
     getBrowserDocument,
+    getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
@@ -12,6 +13,9 @@ export interface AddExitFullscreenOverlayRuntimeScope {
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => BrowserHTMLElementConstructor | undefined)
+        | undefined;
 }
 
 export interface AddExitFullscreenOverlayRuntime {
@@ -32,6 +36,7 @@ const defaultAddExitFullscreenOverlayRuntimeScope: AddExitFullscreenOverlayRunti
     {
         getAbortController: getBrowserAbortController,
         getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getScopeDocument(
@@ -65,9 +70,9 @@ function getDocument(scope: AddExitFullscreenOverlayRuntimeScope): Document {
 }
 
 function getHTMLElementConstructor(
-    runtimeDocument: Readonly<Document>
+    scope: AddExitFullscreenOverlayRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return runtimeDocument.defaultView?.HTMLElement;
+    return scope.getHTMLElement?.();
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
@@ -107,9 +112,8 @@ export function getAddExitFullscreenOverlayRuntime(
             return getDocument(scope).fullscreenElement;
         },
         isHTMLElement(value: unknown): value is HTMLElement {
-            const runtimeDocument = getDocument(scope);
-            const HTMLElementConstructor =
-                getHTMLElementConstructor(runtimeDocument);
+            getDocument(scope);
+            const HTMLElementConstructor = getHTMLElementConstructor(scope);
 
             return (
                 typeof HTMLElementConstructor === "function" &&

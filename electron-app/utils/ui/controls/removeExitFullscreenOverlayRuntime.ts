@@ -1,10 +1,14 @@
 import {
     type BrowserHTMLElementConstructor,
     getBrowserDocument,
+    getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
 
 export interface RemoveExitFullscreenOverlayRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => BrowserHTMLElementConstructor | undefined)
+        | undefined;
 }
 
 export interface RemoveExitFullscreenOverlayRuntime {
@@ -14,6 +18,7 @@ export interface RemoveExitFullscreenOverlayRuntime {
 const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverlayRuntimeScope =
     {
         getDocument: getBrowserDocument,
+        getHTMLElement: getBrowserHTMLElement,
     };
 
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
@@ -28,9 +33,9 @@ function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
 }
 
 function getHTMLElementConstructor(
-    runtimeDocument: Readonly<Document>
+    scope: RemoveExitFullscreenOverlayRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return runtimeDocument.defaultView?.HTMLElement;
+    return scope.getHTMLElement?.();
 }
 
 export function getRemoveExitFullscreenOverlayRuntime(
@@ -38,9 +43,8 @@ export function getRemoveExitFullscreenOverlayRuntime(
 ): RemoveExitFullscreenOverlayRuntime {
     return {
         isHTMLElement(value: unknown): value is HTMLElement {
-            const runtimeDocument = getDocument(scope);
-            const HTMLElementConstructor =
-                getHTMLElementConstructor(runtimeDocument);
+            getDocument(scope);
+            const HTMLElementConstructor = getHTMLElementConstructor(scope);
 
             return (
                 typeof HTMLElementConstructor === "function" &&
