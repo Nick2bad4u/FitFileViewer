@@ -20490,19 +20490,41 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer error message extraction on a focused error shape", () => {
-        expect.assertions(4);
+        expect.assertions(11);
 
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
         const rendererErrorHandlingSource = stripComments(
             readRepositoryFile("electron-app/renderer/errorHandling.ts")
         );
 
         expect(rendererErrorHandlingSource).toContain("type RendererErrorLike");
         expect(rendererErrorHandlingSource).toContain("toRendererErrorLike");
+        expect(rendererErrorHandlingSource).toContain(
+            "showNotification: RendererShowNotification;"
+        );
+        expect(rendererErrorHandlingSource).toContain(
+            "await options.showNotification("
+        );
+        expect(rendererErrorHandlingSource).not.toContain("getCoreModules");
+        expect(rendererErrorHandlingSource).not.toContain(
+            "RendererErrorCoreModules"
+        );
+        expect(rendererErrorHandlingSource).not.toContain(
+            "showNotification?: RendererShowNotification | unknown"
+        );
         expect(rendererErrorHandlingSource).not.toContain(
             "errorLike as Record<string, unknown>"
         );
         expect(rendererErrorHandlingSource).not.toContain(
             "value as Record<string, unknown>"
+        );
+        expect(rendererEntrypointSource).toContain(
+            'import { showNotification } from "./utils/ui/notifications/showNotification.js";'
+        );
+        expect(rendererEntrypointSource).toContain(
+            "createRendererErrorEventHandlers({\n    logRenderer,\n    showNotification,\n});"
         );
     });
 

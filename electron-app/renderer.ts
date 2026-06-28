@@ -24,6 +24,7 @@
 import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
 import { applyTheme } from "./utils/theming/core/theme.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
+import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { masterStateManager } from "./utils/state/core/masterStateManager.js";
 import { subscribeToAppOpeningFile } from "./utils/state/domain/appDomainState.js";
 import {
@@ -129,8 +130,8 @@ const testOnlyBootstrapOptions = {
 // ==========================================
 
 const rendererErrorHandlers = createRendererErrorEventHandlers({
-    getCoreModules: ensureCoreModules,
     logRenderer,
+    showNotification,
 });
 
 // ==========================================

@@ -4,15 +4,11 @@ type RendererShowNotification = (
     message: string,
     type?: string,
     timeout?: number
-) => unknown;
-
-interface RendererErrorCoreModules {
-    showNotification?: RendererShowNotification | unknown;
-}
+) => Promise<unknown> | unknown;
 
 interface RendererErrorHandlingOptions {
-    getCoreModules: () => Promise<RendererErrorCoreModules>;
     logRenderer: RendererErrorLogger;
+    showNotification: RendererShowNotification;
 }
 
 type RendererErrorLike = Readonly<{
@@ -33,16 +29,11 @@ export function createRendererErrorEventHandlers(
         options.logRenderer("error", "[Renderer] Uncaught error:", event.error);
 
         try {
-            const coreModules = await options.getCoreModules();
-            const { showNotification } = coreModules;
-
-            if (typeof showNotification === "function") {
-                showNotification(
-                    `Critical error: ${getRendererErrorMessage(event.error)}`,
-                    "error",
-                    7000
-                );
-            }
+            await options.showNotification(
+                `Critical error: ${getRendererErrorMessage(event.error)}`,
+                "error",
+                7000
+            );
         } catch (notifyError) {
             options.logRenderer(
                 "error",
@@ -62,16 +53,11 @@ export function createRendererErrorEventHandlers(
         );
 
         try {
-            const coreModules = await options.getCoreModules();
-            const { showNotification } = coreModules;
-
-            if (typeof showNotification === "function") {
-                showNotification(
-                    `Application error: ${getRendererErrorMessage(event.reason)}`,
-                    "error",
-                    5000
-                );
-            }
+            await options.showNotification(
+                `Application error: ${getRendererErrorMessage(event.reason)}`,
+                "error",
+                5000
+            );
         } catch (notifyError) {
             options.logRenderer(
                 "error",

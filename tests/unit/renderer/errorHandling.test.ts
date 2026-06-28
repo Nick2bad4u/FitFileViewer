@@ -24,14 +24,11 @@ describe("renderer error handling", () => {
         const logs: unknown[][] = [];
         const notifications: unknown[][] = [];
         const { handleUncaughtError } = createRendererErrorEventHandlers({
-            getCoreModules: () =>
-                Promise.resolve({
-                    showNotification: (...args: unknown[]) => {
-                        notifications.push(args);
-                    },
-                }),
             logRenderer: (...args: unknown[]) => {
                 logs.push(args);
+            },
+            showNotification: (...args: unknown[]) => {
+                notifications.push(args);
             },
         });
 
@@ -62,14 +59,11 @@ describe("renderer error handling", () => {
         const logs: unknown[][] = [];
         const notifications: unknown[][] = [];
         const { handleUnhandledRejection } = createRendererErrorEventHandlers({
-            getCoreModules: () =>
-                Promise.resolve({
-                    showNotification: (...args: unknown[]) => {
-                        notifications.push(args);
-                    },
-                }),
             logRenderer: (...args: unknown[]) => {
                 logs.push(args);
+            },
+            showNotification: (...args: unknown[]) => {
+                notifications.push(args);
             },
         });
 
@@ -103,9 +97,11 @@ describe("renderer error handling", () => {
         const notifyError = new Error("notification unavailable");
         const logs: unknown[][] = [];
         const { handleUncaughtError } = createRendererErrorEventHandlers({
-            getCoreModules: () => Promise.reject(notifyError),
             logRenderer: (...args: unknown[]) => {
                 logs.push(args);
+            },
+            showNotification: async () => {
+                throw notifyError;
             },
         });
 
@@ -126,13 +122,10 @@ describe("renderer error handling", () => {
         const notifications: unknown[][] = [];
         const { onUncaughtErrorEvent, onUnhandledRejectionEvent } =
             createRendererErrorEventHandlers({
-                getCoreModules: () =>
-                    Promise.resolve({
-                        showNotification: (...args: unknown[]) => {
-                            notifications.push(args);
-                        },
-                    }),
                 logRenderer: vi.fn(),
+                showNotification: (...args: unknown[]) => {
+                    notifications.push(args);
+                },
             });
 
         onUncaughtErrorEvent({
