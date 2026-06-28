@@ -12,8 +12,10 @@ import {
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
 import {
+    getRendererActiveTabFromState,
     isRendererTabName,
     normalizeRendererActiveTab,
+    setRendererActiveTabInState,
 } from "../../state/domain/rendererActiveTabState.js";
 import {
     buildIdVariants,
@@ -255,14 +257,16 @@ export function initializeTabVisibilityState(): void {
                 const isLoading = getRendererLoadingFromState(
                     stateManager.getState
                 );
-                const latestTab = normalizeRendererActiveTab(
-                    getStringState("ui.activeTab")
+                const latestTab = getRendererActiveTabFromState(
+                    stateManager.getState
                 );
 
                 if (stillNoData && !isLoading && latestTab !== "summary") {
-                    stateManager.setState("ui.activeTab", "summary", {
-                        source: "initializeTabVisibilityState",
-                    });
+                    setRendererActiveTabInState(
+                        stateManager.setState,
+                        "summary",
+                        { source: "initializeTabVisibilityState" }
+                    );
                 }
             }, 250);
         })
