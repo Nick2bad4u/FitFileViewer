@@ -104,7 +104,6 @@ export type ValidateMainStatePathInput = (
     value: unknown,
     options?: { allowUndefined?: boolean }
 ) => string | undefined;
-export type PreloadApiFactory<Api> = (options: Record<string, unknown>) => Api;
 export type CreateMainStateApi = (
     options: CreateMainStateApiOptions
 ) => ElectronMainStateApi;

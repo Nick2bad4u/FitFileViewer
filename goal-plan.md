@@ -66,6 +66,8 @@ Preload Electron API exposure diagnostics now classify API methods/properties wi
 of casting the public API through `unknown` to a generic record.
 Preload IPC main-state payload serialization now uses an explicit plain-object guard before recursive value
 inspection instead of casting unknown payload objects to a generic record.
+The unused generic `PreloadApiFactory<Api>` alias has been removed from `preloadModuleTypes.ts`, so preload leaf
+factories rely on concrete option/result contracts instead of a broad `Record<string, unknown>` factory helper.
 The remaining preload API assembly, runtime, bootstrap, and module-loader files now use named source exports;
 `electron-app/preload/*.ts` no longer contains source-level `module.exports` wrappers.
 The preload runtime environment, bootstrap, entrypoint, and preload source tests no longer carry a generic
