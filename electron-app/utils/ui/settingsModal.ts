@@ -36,6 +36,11 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 type SettingsModalElectronApi = {
     readonly sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
 };
+
+type SettingsModalElectronApiMethods = Readonly<{
+    readonly sendThemeChanged?: ElectronMenuEventApi["sendThemeChanged"];
+}>;
+
 type SettingsModalOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -83,27 +88,46 @@ function restoreLastFocusedElement(): void {
 function getSettingsModalElectronApi(
     electronApiScope?: RendererElectronApiScope
 ): SettingsModalElectronApi | null {
-    return getRendererElectronApi(
+    const electronAPI = getRendererElectronApi(
         isSettingsModalElectronApi,
         electronApiScope
     );
+    if (!electronAPI) {
+        return null;
+    }
+
+    const sendThemeChanged = readElectronApiValue(
+        () => electronAPI.sendThemeChanged
+    );
+
+    return typeof sendThemeChanged === "function" ? { sendThemeChanged } : {};
 }
 
 function isSettingsModalElectronApi(
     value: unknown
 ): value is SettingsModalElectronApi {
-    if (!isRecord(value)) {
+    if (!isSettingsModalElectronApiMethods(value)) {
         return false;
     }
 
+    const sendThemeChanged = readElectronApiValue(() => value.sendThemeChanged);
     return (
-        !("sendThemeChanged" in value) ||
-        typeof value["sendThemeChanged"] === "function"
+        sendThemeChanged === undefined || typeof sendThemeChanged === "function"
     );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isSettingsModalElectronApiMethods(
+    value: unknown
+): value is SettingsModalElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue<T>(readValue: () => T): T | undefined {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 /**

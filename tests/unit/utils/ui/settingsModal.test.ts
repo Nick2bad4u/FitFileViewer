@@ -328,4 +328,34 @@ describe("settingsModal", () => {
             cleanupFixture();
         }
     });
+
+    it("ignores inaccessible Electron API theme-change properties when syncing theme changes", async () => {
+        expect.assertions(2);
+
+        resetFixture();
+        const electronApiScope = createElectronApiScope(
+            Object.defineProperty({}, "sendThemeChanged", {
+                get() {
+                    throw new Error("blocked theme property");
+                },
+            })
+        );
+
+        try {
+            await showSettingsModal({ electronApiScope });
+            await vi.dynamicImportSettled();
+
+            const themeSelect =
+                getRequiredElement<HTMLSelectElement>("#theme-select");
+            themeSelect.value = "light";
+            change(themeSelect);
+
+            expect(themeSelect.value).toBe("light");
+            expect(mocks.setRendererTheme).toHaveBeenCalledWith("light", {
+                source: "settingsModal:theme-select",
+            });
+        } finally {
+            cleanupFixture();
+        }
+    });
 });

@@ -9977,7 +9977,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings modal theme writes on the renderer theme state facade", () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const settingsModalSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
@@ -10010,10 +10010,17 @@ describe("architecture boundaries", () => {
             "value as SettingsModalElectronApi"
         );
         expect(settingsModalSource).toContain(
-            'typeof value["sendThemeChanged"] === "function"'
+            "type SettingsModalElectronApiMethods = Readonly<{"
         );
-        expect(settingsModalSource).toContain("function isRecord(");
+        expect(settingsModalSource).toContain(
+            "function isSettingsModalElectronApiMethods("
+        );
+        expect(settingsModalSource).toContain(
+            "function readElectronApiValue<T>("
+        );
+        expect(settingsModalSource).toContain("value.sendThemeChanged");
         expect(settingsModalSource).toContain("!Array.isArray(value)");
+        expect(settingsModalSource).not.toContain('value["sendThemeChanged"]');
         expect(settingsModalSource).not.toContain("import type { ElectronAPI");
         expect(settingsModalSource).not.toContain("Pick<ElectronAPI");
         expect(settingsModalSource).not.toContain("activeElectronApiScope");
