@@ -31,9 +31,7 @@ function getScopeDocument(
 function getAbortControllerConstructor(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerEstimationButton requires an AbortController runtime"

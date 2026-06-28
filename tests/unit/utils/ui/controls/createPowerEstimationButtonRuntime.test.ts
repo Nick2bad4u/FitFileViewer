@@ -45,7 +45,12 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         const runtime = getCreatePowerEstimationButtonRuntime({});
         const runtimeWithoutAbortController =
             getCreatePowerEstimationButtonRuntime({
-                getDocument: () => ({ defaultView: undefined }) as Document,
+                getDocument: () =>
+                    ({
+                        defaultView: {
+                            AbortController,
+                        },
+                    }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getCreatePowerEstimationButtonRuntime({
