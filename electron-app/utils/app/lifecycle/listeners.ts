@@ -121,10 +121,6 @@ type LifecycleElectronAPI = {
     readonly readFile?: ElectronFileApi["readFile"];
 };
 
-type LifecycleElectronApiCandidate = {
-    readonly [K in keyof LifecycleElectronAPI]?: unknown;
-};
-
 const LIFECYCLE_ELECTRON_API_METHODS = [
     "addRecentFile",
     "checkForUpdates",
@@ -192,10 +188,10 @@ const HIGH_CONTRAST_BODY_CLASSES = [
 ] as const;
 
 function hasOptionalLifecycleElectronFunction(
-    value: LifecycleElectronApiCandidate,
+    value: object,
     key: keyof LifecycleElectronAPI
 ): boolean {
-    const candidate = value[key];
+    const candidate = Reflect.get(value, key);
     return candidate === undefined || typeof candidate === "function";
 }
 
@@ -204,10 +200,8 @@ function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
         return false;
     }
 
-    const api = value as LifecycleElectronApiCandidate;
-
     return LIFECYCLE_ELECTRON_API_METHODS.every((key) =>
-        hasOptionalLifecycleElectronFunction(api, key)
+        hasOptionalLifecycleElectronFunction(value, key)
     );
 }
 

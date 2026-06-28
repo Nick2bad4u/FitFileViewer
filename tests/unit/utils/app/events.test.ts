@@ -368,6 +368,46 @@ describe(setupListeners, () => {
         expect(updateHandlers.size).toBe(0);
     });
 
+    it("ignores primitive scoped lifecycle Electron APIs", () => {
+        expect.assertions(5);
+
+        vi.clearAllMocks();
+        menuOpenHandler = null;
+        recentOpenHandler = null;
+        updateHandlers.clear();
+        handleOpenFile.mockImplementationOnce(({ openFileBtn }) => {
+            openFileBtn.dataset.openHandled = "true";
+        });
+
+        setupListeners({
+            electronApiScope: createElectronApiScope("not an api"),
+            openFileBtn: openButton,
+            isOpeningFileRef,
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        const clickEvent = new MouseEvent("click", { cancelable: true });
+        const dispatchResult = openButton.dispatchEvent(clickEvent);
+
+        expect({
+            defaultPrevented: clickEvent.defaultPrevented,
+            dispatchResult,
+            openHandled: openButton.dataset.openHandled,
+        }).toStrictEqual({
+            defaultPrevented: false,
+            dispatchResult: true,
+            openHandled: "true",
+        });
+        expect(menuOpenHandler).toBeNull();
+        expect(recentOpenHandler).toBeNull();
+        expect(updateHandlers.size).toBe(0);
+        expect(showUpdateNotification).not.toHaveBeenCalled();
+    });
+
     it("shows info notification when no recent files exist", async () => {
         expect.assertions(2);
         electronAPI.recentFiles.mockResolvedValueOnce([]);
