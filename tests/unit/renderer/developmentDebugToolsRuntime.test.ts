@@ -82,6 +82,33 @@ describe("renderer development debug tools runtime", () => {
         expect(view.getPerformanceMemorySnapshot()).toStrictEqual({});
     });
 
+    it("rejects array-shaped runtime metadata snapshots", () => {
+        expect.assertions(3);
+
+        const location = Object.assign([], { protocol: "https:" });
+        const navigator = Object.assign([], {
+            cookieEnabled: true,
+            hardwareConcurrency: 8,
+            language: "en-US",
+        });
+        const performance = {
+            memory: Object.assign([], {
+                jsHeapSizeLimit: 300,
+                totalJSHeapSize: 200,
+                usedJSHeapSize: 100,
+            }),
+        };
+        const view = getRendererDevelopmentDebugToolsRuntime({
+            getLocation: () => location,
+            getNavigator: () => navigator,
+            getPerformance: () => performance,
+        });
+
+        expect(view.getLocationSnapshot()).toStrictEqual({});
+        expect(view.getNavigatorSnapshot()).toStrictEqual({});
+        expect(view.getPerformanceMemorySnapshot()).toStrictEqual({});
+    });
+
     it("isolates throwing runtime metadata accessors", () => {
         expect.assertions(3);
 

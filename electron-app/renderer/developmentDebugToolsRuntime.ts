@@ -43,42 +43,46 @@ function readScopeValue(getValue: (() => unknown) | undefined): unknown {
     }
 }
 
-function isObject(value: unknown): value is object {
-    return typeof value === "object" && value !== null;
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function getStringProperty(value: object, key: string): string | undefined {
-    const property = (value as { readonly [propertyName: string]: unknown })[
-        key
-    ];
+function getStringProperty(
+    value: Readonly<Record<string, unknown>>,
+    key: string
+): string | undefined {
+    const property = value[key];
     return typeof property === "string" ? property : undefined;
 }
 
-function getNumberProperty(value: object, key: string): number | undefined {
-    const property = (value as { readonly [propertyName: string]: unknown })[
-        key
-    ];
+function getNumberProperty(
+    value: Readonly<Record<string, unknown>>,
+    key: string
+): number | undefined {
+    const property = value[key];
     return typeof property === "number" ? property : undefined;
 }
 
-function getBooleanProperty(value: object, key: string): boolean | undefined {
-    const property = (value as { readonly [propertyName: string]: unknown })[
-        key
-    ];
+function getBooleanProperty(
+    value: Readonly<Record<string, unknown>>,
+    key: string
+): boolean | undefined {
+    const property = value[key];
     return typeof property === "boolean" ? property : undefined;
 }
 
-function getObjectProperty(value: object, key: string): object | undefined {
-    const property = (value as { readonly [propertyName: string]: unknown })[
-        key
-    ];
-    return isObject(property) ? property : undefined;
+function getObjectProperty(
+    value: Readonly<Record<string, unknown>>,
+    key: string
+): Readonly<Record<string, unknown>> | undefined {
+    const property = value[key];
+    return isRecord(property) ? property : undefined;
 }
 
 function toLocationSnapshot(
     value: unknown
 ): RendererDevelopmentLocationSnapshot {
-    if (!isObject(value)) {
+    if (!isRecord(value)) {
         return {};
     }
 
@@ -90,7 +94,7 @@ function toLocationSnapshot(
 function toNavigatorSnapshot(
     value: unknown
 ): RendererDevelopmentNavigatorSnapshot {
-    if (!isObject(value)) {
+    if (!isRecord(value)) {
         return {};
     }
 
@@ -114,7 +118,7 @@ function toNavigatorSnapshot(
 function toPerformanceMemorySnapshot(
     value: unknown
 ): RendererDevelopmentPerformanceMemorySnapshot {
-    if (!isObject(value)) {
+    if (!isRecord(value)) {
         return {};
     }
 

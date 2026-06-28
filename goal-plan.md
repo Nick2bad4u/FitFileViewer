@@ -994,7 +994,9 @@ through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` direct
 metadata lookups from returning. Renderer development debug production defaults now live in an explicit provider
 object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of direct
 metadata properties. The runtime now exposes narrow typed snapshot contracts instead of converting browser
-metadata objects to generic records and reading string keys back out in `developmentDebugTools.ts`.
+metadata objects to generic records and reading string keys back out in `developmentDebugTools.ts`. Runtime metadata
+snapshot readers now use a non-array record guard and direct indexed reads instead of accepting array-shaped
+compatibility objects or repeating broad indexer casts.
 Development debug state-manager method extraction now validates optional `getState`, `getHistory`, and
 `getSubscriptions` methods through direct typed property reads instead of looping method names through
 `Reflect.get(value, methodName)`, with architecture coverage blocking that reflective helper from returning.
