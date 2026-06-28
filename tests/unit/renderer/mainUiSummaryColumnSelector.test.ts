@@ -218,6 +218,7 @@ describe("main UI summary column selector", () => {
         const runtime = getMainUiSummaryColumnSelectorRuntime({
             getDocument: () => document,
             getHTMLElement: () => HTMLElement,
+            getSetTimeout: () => undefined,
         });
 
         expect(() => {
@@ -225,8 +226,8 @@ describe("main UI summary column selector", () => {
         }).toThrow("main UI summary selector requires setTimeout");
     });
 
-    it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+    it("rejects legacy direct runtime scope properties", () => {
+        expect.assertions(2);
 
         const summaryTab = document.createElement("button");
         summaryTab.id = "tab-summary";
@@ -239,15 +240,35 @@ describe("main UI summary column selector", () => {
             HTMLElement,
             setTimeout,
         } as unknown as MainUiSummaryColumnSelectorRuntimeScope;
-        const runtime = getMainUiSummaryColumnSelectorRuntime(legacyScope);
 
-        expect(runtime.getSummaryTab("tab-summary")).toBeNull();
-        expect(runtime.getSummaryGearButton(".summary-gear-btn")).toBeNull();
-        expect(() => runtime.setTimeout(() => {}, 250)).toThrow(
-            "main UI summary selector requires setTimeout"
-        );
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime(legacyScope)
+        ).toThrow("main UI summary selector requires a document provider");
         expect(document.getElementById("tab-summary")).toBe(summaryTab);
 
         document.body.replaceChildren();
+    });
+
+    it("fails clearly when browser runtime providers are omitted", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime(
+                {} as unknown as MainUiSummaryColumnSelectorRuntimeScope
+            )
+        ).toThrow("main UI summary selector requires a document provider");
+
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime({
+                getDocument: () => document,
+            } as unknown as MainUiSummaryColumnSelectorRuntimeScope)
+        ).toThrow("main UI summary selector requires an HTMLElement provider");
+
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime({
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+            } as unknown as MainUiSummaryColumnSelectorRuntimeScope)
+        ).toThrow("main UI summary selector requires a setTimeout provider");
     });
 });

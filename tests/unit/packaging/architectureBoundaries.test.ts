@@ -7868,7 +7868,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(34);
 
         const violations = migratedMainUiSummarySelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -7909,9 +7909,30 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("readonly document?:");
         expect(runtimeSource).not.toContain("readonly HTMLElement?:");
         expect(runtimeSource).not.toContain("readonly setTimeout?:");
+        expect(runtimeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeSource).not.toContain("readonly getHTMLElement?:");
+        expect(runtimeSource).not.toContain("readonly getSetTimeout?:");
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).not.toContain("scope.setTimeout");
+        expect(runtimeSource).not.toContain("scope.getDocument?.()");
+        expect(runtimeSource).not.toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).not.toContain("scope.getSetTimeout?.()");
+        expect(runtimeSource).toContain("scope.getDocument()");
+        expect(runtimeSource).toContain("scope.getHTMLElement()");
+        expect(runtimeSource).toContain("scope.getSetTimeout()");
+        expect(runtimeSource).toContain(
+            "main UI summary selector requires a document provider"
+        );
+        expect(runtimeSource).toContain(
+            "main UI summary selector requires an HTMLElement provider"
+        );
+        expect(runtimeSource).toContain(
+            "main UI summary selector requires a setTimeout provider"
+        );
+        expect(runtimeSource).toContain(
+            "main UI summary selector requires setTimeout"
+        );
         expect(runtimeSource).toContain("../utils/runtime/browserRuntime.js");
         expect(runtimeSource).toContain("getDocument: getBrowserDocument");
         expect(runtimeSource).toContain(
