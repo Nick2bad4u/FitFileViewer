@@ -9,6 +9,25 @@ type LeafletRuntimeRegistry = {
     runtime?: unknown;
 };
 
+type LeafletControlFactory =
+    | ((...args: never[]) => unknown)
+    | Readonly<Record<string, unknown>>;
+type LeafletLayerConstructor = new (...args: never[]) => unknown;
+
+export type RegisteredLeafletRuntime = Readonly<{
+    control: LeafletControlFactory;
+    Layer: LeafletLayerConstructor;
+    map: (...args: never[]) => unknown;
+    tileLayer: (...args: never[]) => unknown;
+}>;
+
+type LeafletRuntimeCandidate = Readonly<{
+    control?: unknown;
+    Layer?: unknown;
+    map?: unknown;
+    tileLayer?: unknown;
+}>;
+
 export type LeafletRuntimeTimeoutHandle = BrowserTimerHandle;
 type LeafletRuntimeClearTimeout = (handle: LeafletRuntimeTimeoutHandle) => void;
 type LeafletRuntimeSetTimeout = (
@@ -45,8 +64,8 @@ export function setLeafletRuntime(runtime: unknown): void {
 
 export function isRegisteredLeafletRuntime(
     value: unknown
-): value is Record<string, unknown> {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+): value is RegisteredLeafletRuntime {
+    if (!isLeafletRuntimeCandidate(value)) {
         return false;
     }
 
@@ -141,6 +160,12 @@ function hasFunctionProperty(
     }
 
     return typeof value[key as keyof typeof value] === "function";
+}
+
+function isLeafletRuntimeCandidate(
+    value: unknown
+): value is LeafletRuntimeCandidate {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function getRequiredClearTimeout(

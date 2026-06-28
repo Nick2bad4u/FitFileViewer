@@ -3,9 +3,15 @@ import {
     getRendererVendorSharedRuntime,
     type RendererVendorSharedRuntime,
 } from "./rendererVendorSharedRuntime.js";
+import type {
+    RegisteredChartRuntime,
+    RegisteredChartZoomPlugin,
+} from "../utils/charts/core/chartRuntime.js";
 import type { DomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
 import type { ExportZipConstructor } from "../utils/files/export/exportZipRuntime.js";
+import type { RegisteredLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 import type { ArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
+import type { RegisteredDataTableRuntime } from "../utils/rendering/core/dataTableRuntime.js";
 import type { ScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
@@ -24,9 +30,9 @@ export type RendererVendorEntryLoadedEventDetail = Readonly<{
 }>;
 
 export type RendererVendorChartDataRuntimePayload = Readonly<{
-    chartRuntime: unknown;
-    chartZoomPlugin: unknown;
-    dataTableRuntime: unknown;
+    chartRuntime: RegisteredChartRuntime;
+    chartZoomPlugin: RegisteredChartZoomPlugin;
+    dataTableRuntime: RegisteredDataTableRuntime;
 }>;
 
 export type RendererVendorRuntimePayload = Readonly<{
@@ -43,7 +49,7 @@ export type RendererVendorCoreRuntimePayload = Readonly<{
 }>;
 
 export type RendererVendorMapRuntimePayload = Readonly<{
-    leafletRuntime: unknown;
+    leafletRuntime: RegisteredLeafletRuntime;
 }>;
 
 export const rendererVendorEntryLoadedEventName =

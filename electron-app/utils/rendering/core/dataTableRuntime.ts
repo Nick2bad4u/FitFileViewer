@@ -2,7 +2,7 @@ type DataTableRuntimeRegistry = {
     runtime?: unknown;
 };
 
-export type RegisteredDataTableRuntime = ((...args: unknown[]) => unknown) &
+export type RegisteredDataTableRuntime = ((...args: never[]) => unknown) &
     Readonly<{
         isDataTable: (selector: string) => boolean;
     }>;

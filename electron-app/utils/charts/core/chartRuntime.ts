@@ -4,7 +4,7 @@ type ChartRuntimeRegistry = {
 };
 
 export type RegisteredChartRuntime = Readonly<{
-    register: (...items: unknown[]) => unknown;
+    register: (...items: never[]) => unknown;
 }>;
 
 export type RegisteredChartZoomPlugin = Readonly<{

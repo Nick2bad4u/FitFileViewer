@@ -17692,7 +17692,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(42);
+        expect.assertions(49);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -17758,6 +17758,27 @@ describe("architecture boundaries", () => {
         );
         expect(rendererVendorSharedSource).toContain(
             "import type { ScreenfullRuntime }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type {\n    RegisteredChartRuntime"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type { RegisteredDataTableRuntime }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "import type { RegisteredLeafletRuntime }"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "chartRuntime: RegisteredChartRuntime;"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "dataTableRuntime: RegisteredDataTableRuntime;"
+        );
+        expect(rendererVendorSharedSource).toContain(
+            "leafletRuntime: RegisteredLeafletRuntime;"
+        );
+        expect(rendererVendorSharedSource).not.toContain(
+            "chartRuntime: unknown;"
         );
         expect(rendererVendorSharedSource).toContain(
             "arqueroRuntime: ArqueroRuntime;"
