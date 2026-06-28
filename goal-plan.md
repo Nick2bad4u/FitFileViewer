@@ -948,12 +948,13 @@ with architecture coverage keeping that startup test on the typed renderer devel
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
 `__renderer_dev`, `__sensorDebug`, or `__debugChartFormatting`; their coverage now checks absence without
 mutating those names, and architecture coverage blocks those mutations from returning.
-Renderer development debug runtime metadata now resolves location, navigator, and performance-memory records
+Renderer development debug runtime metadata now resolves location, navigator, and performance-memory snapshots
 through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` directly inside
 `developmentDebugTools.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 metadata lookups from returning. Renderer development debug production defaults now live in an explicit provider
 object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of direct
-metadata properties.
+metadata properties. The runtime now exposes narrow typed snapshot contracts instead of converting browser
+metadata objects to generic records and reading string keys back out in `developmentDebugTools.ts`.
 Development debug state-manager method extraction now validates optional `getState`, `getHistory`, and
 `getSubscriptions` methods through direct typed property reads instead of looping method names through
 `Reflect.get(value, methodName)`, with architecture coverage blocking that reflective helper from returning.

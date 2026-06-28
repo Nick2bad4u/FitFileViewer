@@ -258,8 +258,8 @@ describe("renderer development debug tools", () => {
         expect.assertions(1);
 
         const utils: RendererDevelopmentDebugToolsRuntime = {
-            getLocationRecord: vi.fn(() => ({ protocol: "https:" })),
-            getNavigatorRecord: vi.fn(() => ({
+            getLocationSnapshot: vi.fn(() => ({ protocol: "https:" })),
+            getNavigatorSnapshot: vi.fn(() => ({
                 cookieEnabled: true,
                 hardwareConcurrency: 16,
                 language: "en-US",
@@ -267,7 +267,7 @@ describe("renderer development debug tools", () => {
                 platform: "test-platform",
                 userAgent: "fitfileviewer-test",
             })),
-            getPerformanceMemoryRecord: vi.fn(() => ({
+            getPerformanceMemorySnapshot: vi.fn(() => ({
                 jsHeapSizeLimit: 300,
                 totalJSHeapSize: 200,
                 usedJSHeapSize: 100,

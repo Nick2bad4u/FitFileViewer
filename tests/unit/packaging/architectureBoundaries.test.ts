@@ -15922,7 +15922,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(27);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -15952,6 +15952,27 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
             "defaultRendererDevelopmentDebugToolsRuntimeScope"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "RendererDevelopmentLocationSnapshot"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "RendererDevelopmentNavigatorSnapshot"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "RendererDevelopmentPerformanceMemorySnapshot"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getLocationSnapshot"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getNavigatorSnapshot"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getPerformanceMemorySnapshot"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "toRuntimeRecord"
         );
         expect(developmentDebugToolsRuntimeSource).not.toMatch(
             directRendererDevelopmentDebugToolsRuntimeAmbientGetterPattern

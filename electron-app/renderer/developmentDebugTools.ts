@@ -15,6 +15,7 @@ import {
 import {
     getRendererDevelopmentDebugToolsRuntime,
     type RendererDevelopmentDebugToolsRuntime,
+    type RendererDevelopmentPerformanceMemorySnapshot,
 } from "./developmentDebugToolsRuntime.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
@@ -437,82 +438,52 @@ function isDevelopmentStateManagerMethod(
     return typeof value === "function";
 }
 
-function getRecordBoolean(
-    record: Record<string, unknown>,
-    key: string
-): boolean | undefined {
-    const value = record[key];
-    return typeof value === "boolean" ? value : undefined;
-}
-
-function getRecordNumber(
-    record: Record<string, unknown>,
-    key: string
-): number | undefined {
-    const value = record[key];
-    return typeof value === "number" ? value : undefined;
-}
-
-function getRecordString(
-    record: Record<string, unknown>,
-    key: string
-): string | undefined {
-    const value = record[key];
-    return typeof value === "string" ? value : undefined;
-}
-
 export function getRendererDevelopmentRuntimeInfo(
     runtime: RendererDevelopmentDebugToolsRuntime = getRendererDevelopmentDebugToolsRuntime()
 ): RendererDevelopmentRuntimeInfo {
     let cookieAvailability = false;
     try {
-        const locationRecord = runtime.getLocationRecord();
-        const protocol = getRecordString(locationRecord, "protocol") ?? "";
+        const locationSnapshot = runtime.getLocationSnapshot();
+        const protocol = locationSnapshot.protocol ?? "";
 
         if (protocol === "http:" || protocol === "https:") {
-            const navigatorRecord = runtime.getNavigatorRecord();
-            const cookieEnabled = getRecordBoolean(
-                navigatorRecord,
-                "cookieEnabled"
-            );
+            const navigatorSnapshot = runtime.getNavigatorSnapshot();
+            const cookieEnabled = navigatorSnapshot.cookieEnabled;
             cookieAvailability = cookieEnabled ?? false;
         }
     } catch {
         cookieAvailability = false;
     }
 
-    const navigatorRecord = runtime.getNavigatorRecord();
-    const memoryRecord = runtime.getPerformanceMemoryRecord();
-    const memoryUsage =
-        Object.keys(memoryRecord).length > 0
-            ? {
-                  jsHeapSizeLimit: getRecordNumber(
-                      memoryRecord,
-                      "jsHeapSizeLimit"
-                  ),
-                  totalJSHeapSize: getRecordNumber(
-                      memoryRecord,
-                      "totalJSHeapSize"
-                  ),
-                  usedJSHeapSize: getRecordNumber(
-                      memoryRecord,
-                      "usedJSHeapSize"
-                  ),
-              }
-            : null;
+    const navigatorSnapshot = runtime.getNavigatorSnapshot();
+    const memorySnapshot = runtime.getPerformanceMemorySnapshot();
+    const memoryUsage = hasDevelopmentRuntimeMemory(memorySnapshot)
+        ? {
+              jsHeapSizeLimit: memorySnapshot.jsHeapSizeLimit,
+              totalJSHeapSize: memorySnapshot.totalJSHeapSize,
+              usedJSHeapSize: memorySnapshot.usedJSHeapSize,
+          }
+        : null;
 
     return {
         cookieEnabled: cookieAvailability,
-        hardwareConcurrency: getRecordNumber(
-            navigatorRecord,
-            "hardwareConcurrency"
-        ),
-        language: getRecordString(navigatorRecord, "language"),
+        hardwareConcurrency: navigatorSnapshot.hardwareConcurrency,
+        language: navigatorSnapshot.language,
         memoryUsage,
-        onLine: getRecordBoolean(navigatorRecord, "onLine"),
-        platform: getRecordString(navigatorRecord, "platform"),
-        userAgent: getRecordString(navigatorRecord, "userAgent"),
+        onLine: navigatorSnapshot.onLine,
+        platform: navigatorSnapshot.platform,
+        userAgent: navigatorSnapshot.userAgent,
     };
+}
+
+function hasDevelopmentRuntimeMemory(
+    memorySnapshot: RendererDevelopmentPerformanceMemorySnapshot
+): boolean {
+    return (
+        memorySnapshot.jsHeapSizeLimit !== undefined ||
+        memorySnapshot.totalJSHeapSize !== undefined ||
+        memorySnapshot.usedJSHeapSize !== undefined
+    );
 }
 
 function logDevelopmentDebugCommands(
