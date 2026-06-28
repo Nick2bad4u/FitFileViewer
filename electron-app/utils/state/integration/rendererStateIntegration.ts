@@ -7,7 +7,7 @@
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Corrected path: state manager utilities live in ../core directory
-import { setState, subscribe } from "../core/stateManager.js";
+import { subscribe } from "../core/stateManager.js";
 import { subscribeToActiveFitRawData } from "../domain/activeFitRawDataState.js";
 import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
@@ -23,7 +23,11 @@ import {
     subscribeToRendererLoading,
 } from "../domain/rendererLoadingState.js";
 import { resetRendererRenderLifecycle } from "../domain/rendererRenderLifecycleState.js";
-import { getRendererTheme } from "../domain/rendererThemeState.js";
+import {
+    getRendererTheme,
+    setRendererTheme,
+    subscribeToRendererTheme,
+} from "../domain/rendererThemeState.js";
 import { UIActions } from "../domain/uiStateManager.js";
 import {
     getRendererElectronApi,
@@ -121,7 +125,7 @@ export function exampleStateUsage(): Unsubscribe {
     console.log("Current state:", { activeTab, currentTheme, isLoading });
 
     // Setting state
-    setState("ui.theme", "dark", { silent: false, source: "exampleFunction" });
+    setRendererTheme("dark", { silent: false, source: "exampleFunction" });
     setRendererLoading(true, {
         silent: false,
         source: "exampleFunction",
@@ -389,11 +393,13 @@ function setupReactiveUI(): void {
     });
 
     // Update theme when it changes
-    subscribeRendererState("ui.theme", (theme) => {
-        if (typeof theme === "string" && theme) {
-            documentRef.documentElement.dataset["theme"] = theme;
-        }
-    });
+    trackRendererStateSubscription(
+        subscribeToRendererTheme((theme) => {
+            if (typeof theme === "string" && theme) {
+                documentRef.documentElement.dataset["theme"] = theme;
+            }
+        })
+    );
 
     // Update chart controls visibility
     subscribeRendererState("charts.controlsVisible", (isVisible) => {

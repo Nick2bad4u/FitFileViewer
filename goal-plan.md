@@ -2058,6 +2058,9 @@ direct loading path writes from returning to those chart lifecycle helpers.
 Renderer state integration loading writes and subscriptions now also route through `setRendererLoading` and
 `subscribeToRendererLoading`, with architecture checks blocking direct `isLoading` path writes/subscriptions from
 returning there.
+Renderer state integration theme writes and subscriptions now route through `setRendererTheme` and
+`subscribeToRendererTheme`, with architecture checks blocking direct `ui.theme` path writes/subscriptions from
+returning there.
 Chart action completion now writes performance render times through the app-actions state facade instead of a generic
 `updateState("performance.renderTimes", ...)` dependency, with focused action/app-actions tests and architecture checks
 blocking direct performance render-time path writes from returning to chart actions.
