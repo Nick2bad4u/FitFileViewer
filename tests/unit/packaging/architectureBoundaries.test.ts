@@ -20021,7 +20021,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(89);
+        expect.assertions(97);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -20245,10 +20245,30 @@ describe("architecture boundaries", () => {
         expect(openFitFileFromPathSource).not.toContain(
             "const api = value as FitFileElectronAPI"
         );
-        expect(openFitFileFromPathSource).toContain("function isRecord(");
+        expect(openFitFileFromPathSource).toContain(
+            "type FitFileElectronApiMethods = Readonly<{"
+        );
+        expect(openFitFileFromPathSource).toContain(
+            "function isFitFileElectronApiMethods("
+        );
         expect(openFitFileFromPathSource).toContain("!Array.isArray(value)");
         expect(openFitFileFromPathSource).toContain(
-            'typeof value["readFile"] === "function"'
+            "function readElectronApiValue("
+        );
+        expect(openFitFileFromPathSource).toContain("value.readFile");
+        expect(openFitFileFromPathSource).toContain("value.parseFitFile");
+        expect(openFitFileFromPathSource).toContain(
+            "value.notifyFitFileLoaded"
+        );
+        expect(openFitFileFromPathSource).not.toContain('value["readFile"]');
+        expect(openFitFileFromPathSource).not.toContain(
+            'value["parseFitFile"]'
+        );
+        expect(openFitFileFromPathSource).not.toContain(
+            'value["notifyFitFileLoaded"]'
+        );
+        expect(openFitFileFromPathSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
         );
         expect(openFitFileFromPathSource).not.toContain(
             "readonly readFile?: unknown;"

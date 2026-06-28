@@ -41,6 +41,12 @@ type FitFileElectronAPI = {
     readonly readFile: ElectronFileApi["readFile"];
 };
 
+type FitFileElectronApiMethods = Readonly<{
+    readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+    readonly parseFitFile?: ElectronFileApi["parseFitFile"];
+    readonly readFile?: ElectronFileApi["readFile"];
+}>;
+
 type ShowNotification = (
     message: string,
     type: string,
@@ -169,19 +175,35 @@ function resolveFitFileElectronAPI(
 }
 
 function isFitFileElectronAPI(value: unknown): value is FitFileElectronAPI {
-    if (!isRecord(value)) {
+    if (!isFitFileElectronApiMethods(value)) {
         return false;
     }
 
+    const readFile = readElectronApiValue(() => value.readFile);
+    const parseFitFile = readElectronApiValue(() => value.parseFitFile);
+    const notifyFitFileLoaded = readElectronApiValue(
+        () => value.notifyFitFileLoaded
+    );
+
     return (
-        typeof value["readFile"] === "function" &&
-        typeof value["parseFitFile"] === "function" &&
-        hasOptionalFunction(value["notifyFitFileLoaded"])
+        typeof readFile === "function" &&
+        typeof parseFitFile === "function" &&
+        hasOptionalFunction(notifyFitFileLoaded)
     );
 }
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isFitFileElectronApiMethods(
+    value: unknown
+): value is FitFileElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function hasOptionalFunction(value: unknown): boolean {

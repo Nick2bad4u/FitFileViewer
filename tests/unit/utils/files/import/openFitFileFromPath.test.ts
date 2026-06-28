@@ -164,6 +164,45 @@ describe(openFitFileFromPath, () => {
         }
     });
 
+    it("reports when scoped Electron file API methods cannot be inspected", async () => {
+        expect.assertions(2);
+
+        cleanupFixture();
+
+        try {
+            const showNotification = vi.fn<ShowNotification>();
+            const electronApiScope: RendererElectronApiScope = {
+                getElectronAPI: () =>
+                    new Proxy(
+                        {},
+                        {
+                            get(_target, propertyKey) {
+                                if (propertyKey === "readFile") {
+                                    throw new Error("readFile unavailable");
+                                }
+
+                                return undefined;
+                            },
+                        }
+                    ),
+            };
+
+            const result = await openFitFileFromPath({
+                electronApiScope,
+                filePath: "C:\\activities\\ride.fit",
+                showNotification,
+            });
+
+            expect({ result }).toStrictEqual({ result: false });
+            expect(showNotification).toHaveBeenCalledWith(
+                "Electron file API unavailable.",
+                "error"
+            );
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("reads, parses, renders, forwards, and notifies for a valid FIT file path", async () => {
         expect.assertions(11);
 
