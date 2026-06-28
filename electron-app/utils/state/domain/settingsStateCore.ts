@@ -50,6 +50,10 @@ function asRecord(value: unknown): Record<string, unknown> {
     return isRecord(value) ? value : {};
 }
 
+function isSettingCategory(value: string): value is SettingCategory {
+    return Object.hasOwn(settingsSchema, value);
+}
+
 function getSettingsStorage(): Storage | undefined {
     return settingsStateCoreRuntime().getLocalStorage();
 }
@@ -229,29 +233,24 @@ class SettingsStateManager {
      */
     importSettings(settingsData: unknown): boolean {
         try {
-            if (!settingsData || typeof settingsData !== "object") {
+            if (!isRecord(settingsData)) {
                 return false;
             }
 
-            const payload = settingsData as {
-                settings?: Record<string, unknown>;
-            };
-            const nextSettings = payload.settings;
-
-            if (!nextSettings || typeof nextSettings !== "object") {
+            const nextSettings = settingsData["settings"];
+            if (!isRecord(nextSettings)) {
                 return false;
             }
 
             let allOk = true;
 
             for (const [rawCategory, value] of Object.entries(nextSettings)) {
-                const category = rawCategory as SettingCategory;
-                if (!settingsSchema[category]) {
+                if (!isSettingCategory(rawCategory)) {
                     // Ignore unknown categories to allow forward-compatible imports.
                     continue;
                 }
 
-                const ok = this.setSetting(category, value);
+                const ok = this.setSetting(rawCategory, value);
                 if (!ok) {
                     allOk = false;
                 }

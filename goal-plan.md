@@ -61,6 +61,8 @@ Preload before-exit listener tracking now stays in module-local `WeakMap`/`WeakS
 listener wrappers with symbol marker properties.
 GPX export now consumes explicit route-state records and guarded loaded-file descriptors instead of asserting raw FIT
 route data to export-specific shapes before download generation.
+Settings import now narrows exported settings payloads and category names through explicit guards instead of asserting
+unknown import data into settings-state shapes.
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.

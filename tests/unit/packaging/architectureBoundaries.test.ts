@@ -28366,7 +28366,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(48);
+        expect.assertions(50);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -28409,6 +28409,10 @@ describe("architecture boundaries", () => {
         );
         expect(settingsStateCoreSource).toContain("getLocalStorage");
         expect(settingsStateCoreSource).not.toContain("Date.now");
+        expect(settingsStateCoreSource).not.toContain("settingsData as");
+        expect(settingsStateCoreSource).not.toContain(
+            "rawCategory as SettingCategory"
+        );
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime.js");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime");
         expect(settingsStateHelpersSource).toContain(

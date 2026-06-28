@@ -626,6 +626,41 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
                 expect(result).toStrictEqual(false);
             });
+
+            it("should reject import payloads without an object settings branch", () => {
+                expect.assertions(3);
+
+                expect(
+                    settingsStateManager.importSettings({ settings: null })
+                ).toStrictEqual(false);
+                expect(
+                    settingsStateManager.importSettings({ settings: [] })
+                ).toStrictEqual(false);
+                expect(mockShowNotification).not.toHaveBeenCalled();
+            });
+
+            it("should ignore unknown import categories while applying known settings", () => {
+                expect.assertions(3);
+
+                const result = settingsStateManager.importSettings({
+                    settings: {
+                        futureCategory: { enabled: true },
+                        theme: "light",
+                    },
+                    timestamp: Date.now(),
+                    version: "1.0.0",
+                });
+
+                expect(result).toStrictEqual(true);
+                expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+                    "ffv-theme",
+                    '"light"'
+                );
+                expect(mockLocalStorage.setItem).not.toHaveBeenCalledWith(
+                    "futureCategory",
+                    expect.anything()
+                );
+            });
         });
 
         describe("setupLocalStorageSync", () => {
