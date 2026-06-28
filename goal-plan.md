@@ -1939,6 +1939,9 @@ architecture guardrails blocking that bridge cast from returning.
 Window-state and shared DOM helper candidate validation now use property-existence narrowing for `isDestroyed` and
 `nodeType` reads instead of local structural bridge casts, with focused window validation coverage and architecture
 guardrails blocking those casts from returning.
+Tab-button state and debug timer bookkeeping now stores handles as shared `BrowserTimerHandle` values instead of
+spelling `ReturnType<typeof setTimeout>` in the source modules, with architecture guardrails blocking those ambient
+timer-handle type spellings from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

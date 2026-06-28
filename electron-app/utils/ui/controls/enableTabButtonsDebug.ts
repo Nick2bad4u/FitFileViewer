@@ -1,4 +1,5 @@
 import { isHTMLElement } from "../../dom/index.js";
+import type { BrowserTimerHandle } from "../../runtime/browserRuntime.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { isRendererLoading } from "../../state/domain/rendererLoadingState.js";
@@ -18,7 +19,7 @@ type TestClickRegistration = {
     readonly abortController: AbortController;
     readonly button: HTMLElement;
     readonly handler: (event: MouseEvent) => void;
-    readonly timer: ReturnType<typeof setTimeout>;
+    readonly timer: BrowserTimerHandle;
 };
 
 const testClickRegistrations = new Set<TestClickRegistration>();

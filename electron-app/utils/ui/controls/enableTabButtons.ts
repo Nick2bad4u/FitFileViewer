@@ -1,4 +1,5 @@
 import { isHTMLElement } from "../../dom/index.js";
+import type { BrowserTimerHandle } from "../../runtime/browserRuntime.js";
 import { subscribeToActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 import {
     areRendererTabButtonsEnabled,
@@ -38,7 +39,7 @@ type TabButtonElement = HTMLElement & {
 };
 
 const TAB_DISABLED_CLASS = "tab-disabled";
-const finalStateLogTimers = new Set<ReturnType<typeof setTimeout>>();
+const finalStateLogTimers = new Set<BrowserTimerHandle>();
 let tabButtonsCurrentlyEnabled: boolean | undefined;
 let tabButtonObserver: TabButtonObserver | undefined;
 let activeFitRawDataUnsubscribe: (() => void) | null = null;

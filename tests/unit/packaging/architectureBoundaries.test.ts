@@ -24561,7 +24561,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(41);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -24593,6 +24593,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsDebugSource).toContain(
             "enableTabButtonsDebugRuntime.js"
+        );
+        expect(enableTabButtonsDebugSource).toContain(
+            'import type { BrowserTimerHandle } from "../../runtime/browserRuntime.js";'
+        );
+        expect(enableTabButtonsDebugSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
         );
         expect(enableTabButtonsDebugRuntimeSource).not.toMatch(
             directEnableTabButtonsDebugRuntimeAmbientFallbackPattern
@@ -24706,7 +24712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(41);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -24737,6 +24743,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsSource).toContain("enableTabButtonsRuntime.js");
+        expect(enableTabButtonsSource).toContain(
+            'import type { BrowserTimerHandle } from "../../runtime/browserRuntime.js";'
+        );
+        expect(enableTabButtonsSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
+        );
         expect(enableTabButtonsRuntimeSource).not.toMatch(
             directEnableTabButtonsRuntimeAmbientTimerFallbackPattern
         );
