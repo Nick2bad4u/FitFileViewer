@@ -63,16 +63,14 @@ describe("renderer application lifecycle wiring", () => {
                 /* Test double */
             }
         }
-        const utils = getRendererApplicationLifecycleWiringRuntime({
-            AbortController: LegacyAbortController,
-        } as unknown as Parameters<
-            typeof getRendererApplicationLifecycleWiringRuntime
-        >[0]);
-
-        expect(() => {
-            utils.createAbortController();
-        }).toThrow(
-            "renderer application lifecycle wiring requires an AbortController runtime"
+        expect(() =>
+            getRendererApplicationLifecycleWiringRuntime({
+                AbortController: LegacyAbortController,
+            } as unknown as Parameters<
+                typeof getRendererApplicationLifecycleWiringRuntime
+            >[0])
+        ).toThrow(
+            "renderer application lifecycle wiring requires an AbortController provider"
         );
     });
 
@@ -204,10 +202,26 @@ describe("renderer application lifecycle wiring", () => {
         expect(abortController.signal.aborted).toBe(true);
     });
 
+    it("fails clearly when the AbortController provider is omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getRendererApplicationLifecycleWiringRuntime(
+                {} as unknown as Parameters<
+                    typeof getRendererApplicationLifecycleWiringRuntime
+                >[0]
+            )
+        ).toThrow(
+            "renderer application lifecycle wiring requires an AbortController provider"
+        );
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRendererApplicationLifecycleWiringRuntime({});
+        const utils = getRendererApplicationLifecycleWiringRuntime({
+            getAbortController: () => undefined,
+        });
 
         expect(() => {
             utils.createAbortController();
