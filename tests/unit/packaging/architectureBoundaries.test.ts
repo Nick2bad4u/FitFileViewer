@@ -2891,7 +2891,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
-        expect.assertions(17);
+        expect.assertions(18);
 
         const parserSource = stripComments(
             readRepositoryFile("electron-app/fitParser.ts")
@@ -2926,6 +2926,7 @@ describe("architecture boundaries", () => {
         );
         expect(parserFacadeSource).not.toContain("module.exports");
         expect(parserFacadeSource).not.toContain('require("../../fitParser")');
+        expect(parserFacadeSource).not.toContain("fitParserExports as unknown");
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {

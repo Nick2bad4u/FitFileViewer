@@ -174,7 +174,9 @@ instead of requiring the app-state source file.
 The window bootstrap/initialization boundaries now use named source exports, and `initializeApplication.ts`
 imports `bootstrapMainWindow` natively instead of requiring that source file.
 The FIT parser integration boundary now uses named source exports and imports constants/logging natively;
-`setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file.
+`setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file. The FIT parser
+facade now imports the typed default parser module directly instead of coercing the full parser namespace through
+`fitParserExports as unknown`.
 FIT parser integration duration timing and last-result timestamps now route through
 `fitParserIntegrationRuntime.ts` instead of probing ambient `performance.now` or calling `Date.now` directly inside
 `fitParserIntegration.ts`, with focused runtime coverage and architecture guardrails blocking legacy direct runtime
