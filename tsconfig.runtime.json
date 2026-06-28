@@ -42,6 +42,7 @@
         "electron-app/preload/electronApiDeveloperDomain.ts",
         "electron-app/preload/electronApiDiagnosticsDomain.ts",
         "electron-app/preload/electronApiDialogDomain.ts",
+        "electron-app/preload/electronApiDomainComposition.ts",
         "electron-app/preload/electronApiExternalDomain.ts",
         "electron-app/preload/electronApiFactoryOptions.ts",
         "electron-app/preload/electronApiFileDomain.ts",

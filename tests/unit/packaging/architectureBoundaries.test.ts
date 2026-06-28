@@ -2204,7 +2204,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {
-        expect.assertions(64);
+        expect.assertions(74);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -2217,6 +2217,11 @@ describe("architecture boundaries", () => {
         );
         const electronApiFactorySource = stripComments(
             readRepositoryFile("electron-app/preload/electronApiFactory.ts")
+        );
+        const electronApiDomainCompositionSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/electronApiDomainComposition.ts"
+            )
         );
         const electronApiAppInfoDomainSource = stripComments(
             readRepositoryFile(
@@ -2316,11 +2321,41 @@ describe("architecture boundaries", () => {
         expect(electronApiFactorySource).toContain(
             "electronApiFactoryOptions.js"
         );
+        expect(electronApiFactorySource).toContain(
+            "electronApiDomainComposition.js"
+        );
         expect(electronApiFactorySource).toContain("electronApiFileDomain.js");
         expect(electronApiFactorySource).toContain("electronApiMenuDomain.js");
         expect(electronApiFactorySource).toContain("electronApiStateDomain.js");
         expect(electronApiFactorySource).not.toContain(
             "function createElectronApiExternalDomain"
+        );
+        expect(electronApiFactorySource).toContain(
+            "composeElectronApiDomains({"
+        );
+        expect(electronApiFactorySource).not.toContain(
+            "addRecentFile: fileDomain.addRecentFile"
+        );
+        expect(electronApiFactorySource).not.toContain(
+            "writeClipboardText: clipboardDomain.writeClipboardText"
+        );
+        expect(electronApiDomainCompositionSource).toContain(
+            "export interface ElectronApiDomains"
+        );
+        expect(electronApiDomainCompositionSource).toContain(
+            "export function composeElectronApiDomains"
+        );
+        expect(electronApiDomainCompositionSource).toContain(
+            "addRecentFile: fileDomain.addRecentFile"
+        );
+        expect(electronApiDomainCompositionSource).toContain(
+            "openExternal: externalDomain.openExternal"
+        );
+        expect(electronApiDomainCompositionSource).toContain(
+            "writeClipboardText: clipboardDomain.writeClipboardText"
+        );
+        expect(electronApiDomainCompositionSource).not.toContain(
+            "Object.assign("
         );
         expect(electronApiAppInfoDomainSource).toContain(
             "createElectronApiAppInfoDomain"
@@ -2616,6 +2651,11 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/electronApiFactory.ts",
                 "createElectronApi",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomainComposition.ts",
+                "composeElectronApiDomains",
                 "function",
             ],
             [
