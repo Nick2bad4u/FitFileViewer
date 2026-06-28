@@ -2047,6 +2047,9 @@ blocking those direct paths from returning.
 UI state-manager last-notification, sidebar collapsed, and window-state updates now route through typed notification,
 layout, and app-actions state facades. `uiStateManager.ts` no longer imports the core state manager for direct `ui.*`
 path reads or writes, with focused helper tests and architecture checks blocking those raw paths from returning.
+Chart cache prewarm now checks chart rendered/rendering status through `rendererChartRenderState.ts` instead of reading
+the aggregate `charts` branch through `renderChartStateAccess.ts`, with focused prewarm/domain tests and architecture
+checks blocking direct aggregate chart-state reads from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

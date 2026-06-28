@@ -81,6 +81,10 @@ export function isRendererChartRendering(): boolean {
     );
 }
 
+export function isRendererChartRenderBusy(): boolean {
+    return areRendererChartsRendered() || isRendererChartRendering();
+}
+
 export function getRendererChartState(): Record<string, unknown> | undefined {
     const chartState = getState(RENDERER_CHART_STATE_PATH);
     return isRecord(chartState) ? chartState : undefined;

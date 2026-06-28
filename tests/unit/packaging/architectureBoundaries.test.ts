@@ -24809,7 +24809,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(44);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -24868,8 +24868,20 @@ describe("architecture boundaries", () => {
         expect(renderChartCachePrewarmSource).toContain(
             "getRendererActiveTab"
         );
+        expect(renderChartCachePrewarmSource).toContain(
+            "rendererChartRenderState.js"
+        );
+        expect(renderChartCachePrewarmSource).toContain(
+            "isRendererChartRenderBusy"
+        );
         expect(renderChartCachePrewarmSource).not.toContain(
             'stateManager.getState("ui.activeTab")'
+        );
+        expect(renderChartCachePrewarmSource).not.toContain(
+            'getState("charts")'
+        );
+        expect(renderChartCachePrewarmSource).not.toContain(
+            "renderChartStateAccess.js"
         );
         expect(renderChartTimingSource).toContain(
             "const now = runtime.dateNow();"

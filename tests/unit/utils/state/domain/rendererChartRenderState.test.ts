@@ -14,6 +14,7 @@ import {
     getRendererChartState,
     getRendererSelectedChart,
     initializeRendererChartRenderState,
+    isRendererChartRenderBusy,
     isRendererChartRendering,
     normalizeRendererChartsRendered,
     resetRendererChartRenderStateForDataChange,
@@ -251,17 +252,23 @@ describe("rendererChartRenderState", () => {
     });
 
     it("writes chart rendering lifecycle flags", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         expect(isRendererChartRendering()).toBe(false);
+        expect(isRendererChartRenderBusy()).toBe(false);
         setRendererChartRendering(true, { source: "test" });
         setRendererChartTabActive(true, { source: "test" });
         setRendererChartLastRenderTime(1234, { source: "test" });
 
         expect(isRendererChartRendering()).toBe(true);
+        expect(isRendererChartRenderBusy()).toBe(true);
         expect(stateManager.getState("charts.isRendering")).toBe(true);
         expect(stateManager.getState("charts.tabActive")).toBe(true);
         expect(stateManager.getState("charts.lastRenderTime")).toBe(1234);
+
+        setRendererChartRendering(false, { source: "test" });
+        setRendererChartsRendered(true, { source: "test" });
+        expect(isRendererChartRenderBusy()).toBe(true);
     });
 
     it("subscribes to selected chart changes", () => {

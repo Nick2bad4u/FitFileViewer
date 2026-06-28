@@ -13,12 +13,12 @@ import {
     getNotificationSuppressed,
     setNotificationSuppressed,
 } from "./renderChartNotificationHelpers.js";
+import { isRendererChartRenderBusy } from "../../state/domain/rendererChartRenderState.js";
 import { normalizeMaxPointsValue } from "./renderChartPointUtils.js";
 import {
     getCachedSeriesForSettings,
     getFieldSeriesEntry,
 } from "./renderChartSeriesCache.js";
-import { getStateManagerSafe } from "./renderChartStateAccess.js";
 import {
     getConvertersSafe,
     getFormatChartFieldsSafe,
@@ -207,18 +207,11 @@ export async function prewarmChartRenderCaches(
         return { processedFields: 0, skipped: true };
     }
 
-    const stateManager = getStateManagerSafe();
-    const getState = (path: string): unknown => stateManager.getState(path);
     if (isRendererChartTab(getRendererActiveTab())) {
         return { processedFields: 0, skipped: true };
     }
 
-    const chartsState = getState("charts");
-    if (
-        isObjectRecord(chartsState) &&
-        (getRecordValue(chartsState, "isRendered") === true ||
-            getRecordValue(chartsState, "isRendering") === true)
-    ) {
+    if (isRendererChartRenderBusy()) {
         return { processedFields: 0, skipped: true };
     }
 

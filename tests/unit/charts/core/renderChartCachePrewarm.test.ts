@@ -4,7 +4,7 @@ import type { RenderChartTimerRuntime } from "../../../../electron-app/utils/cha
 
 const mocks = vi.hoisted(() => ({
     activeTab: "summary" as unknown,
-    chartsState: { isRendered: false, isRendering: false } as unknown,
+    chartRenderBusy: false,
     convertValueToUserUnits: vi.fn((value: number) => value),
     formatChartFields: ["speed", "heart_rate"],
 }));
@@ -33,16 +33,9 @@ vi.mock(
 );
 
 vi.mock(
-    "../../../../electron-app/utils/charts/core/renderChartStateAccess.js",
+    "../../../../electron-app/utils/state/domain/rendererChartRenderState.js",
     () => ({
-        getStateManagerSafe: () => ({
-            getState: (path: string) => {
-                if (path === "charts") {
-                    return mocks.chartsState;
-                }
-                return undefined;
-            },
-        }),
+        isRendererChartRenderBusy: vi.fn(() => mocks.chartRenderBusy),
     })
 );
 
@@ -52,7 +45,7 @@ const { prewarmChartRenderCaches } =
 describe("prewarmChartRenderCaches", () => {
     beforeEach(() => {
         mocks.activeTab = "summary";
-        mocks.chartsState = { isRendered: false, isRendering: false };
+        mocks.chartRenderBusy = false;
         mocks.convertValueToUserUnits.mockClear();
         mocks.formatChartFields = ["speed", "heart_rate"];
     });
@@ -100,6 +93,27 @@ describe("prewarmChartRenderCaches", () => {
         expect.assertions(2);
 
         mocks.activeTab = "chartjs";
+
+        await expect(
+            prewarmChartRenderCaches(
+                {
+                    recordMesgs: [{ heart_rate: 120, speed: 5, timestamp: 0 }],
+                    startTime: 0,
+                },
+                {
+                    getFieldVisibility: () => "visible",
+                    getSettings: () => ({ maxpoints: "all" }),
+                    invalidateChartRenderCache: vi.fn(),
+                }
+            )
+        ).resolves.toStrictEqual({ processedFields: 0, skipped: true });
+        expect(mocks.convertValueToUserUnits).not.toHaveBeenCalled();
+    });
+
+    it("skips prewarming while chart rendering state is busy", async () => {
+        expect.assertions(2);
+
+        mocks.chartRenderBusy = true;
 
         await expect(
             prewarmChartRenderCaches(
