@@ -20289,8 +20289,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(39);
+        expect.assertions(46);
 
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
         const wiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
         );
@@ -20391,18 +20394,35 @@ describe("architecture boundaries", () => {
         expect(menuActionSource).not.toContain(
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
-        expect(menuActionSource).toContain(
-            "export type RendererElectronMenuCoreModules = Readonly<"
+        expect(menuActionSource).not.toContain(
+            "RendererElectronMenuCoreModules"
         );
-        expect(wiringSource).toContain("RendererElectronMenuCoreModules");
-        expect(menuActionSource).toContain("applyTheme?.(theme)");
-        expect(menuActionSource).toContain("showAboutModal?.()");
+        expect(wiringSource).not.toContain("RendererElectronMenuCoreModules");
+        expect(wiringSource).not.toContain("ensureCoreModules");
+        expect(menuActionSource).not.toContain("ensureCoreModules");
+        expect(menuActionSource).toContain("options.applyTheme(theme)");
+        expect(menuActionSource).toContain("options.showAboutModal()");
         expect(wiringSource).not.toContain("RendererElectronApiCoreModules");
         expect(menuActionSource).toContain(
-            "readonly applyTheme?: RendererApplyTheme | undefined;"
+            "readonly applyTheme: RendererApplyTheme;"
         );
         expect(menuActionSource).toContain(
-            "readonly showAboutModal?: ((html?: string) => void) | undefined;"
+            "readonly showAboutModal: RendererElectronMenuAboutModal;"
+        );
+        expect(wiringSource).toContain(
+            "readonly applyTheme: RendererApplyTheme;"
+        );
+        expect(wiringSource).toContain(
+            "readonly showAboutModal: RendererElectronApiAboutModal;"
+        );
+        expect(rendererEntrypointSource).toContain(
+            'import { applyTheme } from "./utils/theming/core/theme.js";'
+        );
+        expect(rendererEntrypointSource).toContain(
+            'import { showAboutModal } from "./utils/ui/modals/aboutModal.js";'
+        );
+        expect(rendererEntrypointSource).toContain(
+            "installRendererElectronApiWiring({\n    applyTheme,\n    electronApiScope: runtimeEnvironment.electronApiScope,\n    getFileInput: fileInputWiring.getFileInput,\n    logRenderer,\n    scheduleStateInitialization: scheduleImportTimeStateInitialization,\n    showAboutModal,\n});"
         );
     });
 

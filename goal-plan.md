@@ -2070,6 +2070,8 @@ The Zwift Playwright smoke now also asserts the selected FIT activity state surv
 covering the tab-preserved-loaded-state regression path for the previously blank external map tab.
 Renderer state startup now receives typed `masterStateManager` and `subscribeToAppOpeningFile` services directly from
 the renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
+Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
+renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Chart action completion now writes performance render times through the app-actions state facade instead of a generic
 `updateState("performance.renderTimes", ...)` dependency, with focused action/app-actions tests and architecture checks
 blocking direct performance render-time path writes from returning to chart actions.

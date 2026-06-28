@@ -1,9 +1,7 @@
 import { installRendererElectronApiRegistration } from "./electronApiRegistration.js";
 import { getElectronApiStartupHooks } from "./electronApiStartupHooks.js";
-import {
-    createRendererElectronMenuActionHandlers,
-    type RendererElectronMenuCoreModules,
-} from "./electronMenuActionHandlers.js";
+import { createRendererElectronMenuActionHandlers } from "./electronMenuActionHandlers.js";
+import type { RendererApplyTheme } from "./electronApiStartupHooks.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 type RendererElectronApiWiringLogger = (
@@ -11,12 +9,15 @@ type RendererElectronApiWiringLogger = (
     ...args: unknown[]
 ) => void;
 
+type RendererElectronApiAboutModal = (html?: string) => void;
+
 type RendererElectronApiWiringOptions = {
+    readonly applyTheme: RendererApplyTheme;
     readonly electronApiScope: RendererElectronApiScope;
-    readonly ensureCoreModules: () => Promise<RendererElectronMenuCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronApiWiringLogger;
     readonly scheduleStateInitialization: () => void;
+    readonly showAboutModal: RendererElectronApiAboutModal;
 };
 
 export function installRendererElectronApiWiring(
@@ -24,9 +25,10 @@ export function installRendererElectronApiWiring(
 ): void {
     const electronMenuActionHandlers = createRendererElectronMenuActionHandlers(
         {
-            ensureCoreModules: options.ensureCoreModules,
+            applyTheme: options.applyTheme,
             getFileInput: options.getFileInput,
             logRenderer: options.logRenderer,
+            showAboutModal: options.showAboutModal,
         }
     );
 

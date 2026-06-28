@@ -46,11 +46,12 @@ describe("renderer Electron API wiring", () => {
         const scheduleStateInitialization = vi.fn();
 
         installRendererElectronApiWiring({
+            applyTheme,
             electronApiScope: { getElectronAPI: () => api },
-            ensureCoreModules: async () => ({ applyTheme }),
             getFileInput: () => fileInput,
             logRenderer: vi.fn(),
             scheduleStateInitialization,
+            showAboutModal: vi.fn<() => void>(),
         });
 
         emitMenuAction("open-file");
@@ -71,13 +72,14 @@ describe("renderer Electron API wiring", () => {
         };
 
         installRendererElectronApiWiring({
+            applyTheme: vi.fn<(theme: string) => void>(),
             electronApiScope: { getElectronAPI: () => "not electron api" },
-            ensureCoreModules: async () => ({ applyTheme: vi.fn() }),
             getFileInput: () => null,
             logRenderer: vi.fn(),
             scheduleStateInitialization: () => {
                 state.scheduled = true;
             },
+            showAboutModal: vi.fn<() => void>(),
         });
 
         expect(state.scheduled).toBe(false);

@@ -10,15 +10,13 @@ type RendererElectronMenuLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererElectronMenuCoreModules = Readonly<{
-    readonly applyTheme?: RendererApplyTheme | undefined;
-    readonly showAboutModal?: ((html?: string) => void) | undefined;
-}>;
+type RendererElectronMenuAboutModal = (html?: string) => void;
 
 type RendererElectronMenuActionHandlersOptions = {
-    readonly ensureCoreModules: () => Promise<RendererElectronMenuCoreModules>;
+    readonly applyTheme: RendererApplyTheme;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronMenuLogger;
+    readonly showAboutModal: RendererElectronMenuAboutModal;
 };
 
 type RendererElectronMenuActionHandlers = {
@@ -45,8 +43,7 @@ async function applyElectronThemeChange(
     options: RendererElectronMenuActionHandlersOptions
 ): Promise<void> {
     try {
-        const { applyTheme } = await options.ensureCoreModules();
-        applyTheme?.(theme);
+        options.applyTheme(theme);
     } catch (error) {
         options.logRenderer("warn", "[Renderer] Failed to apply theme:", error);
     }
@@ -71,8 +68,7 @@ async function showElectronAboutModal(
     options: RendererElectronMenuActionHandlersOptions
 ): Promise<void> {
     try {
-        const { showAboutModal } = await options.ensureCoreModules();
-        showAboutModal?.();
+        options.showAboutModal();
     } catch (error) {
         options.logRenderer(
             "warn",

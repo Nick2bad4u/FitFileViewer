@@ -22,6 +22,8 @@
 // ==========================================
 
 import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
+import { applyTheme } from "./utils/theming/core/theme.js";
+import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { masterStateManager } from "./utils/state/core/masterStateManager.js";
 import { subscribeToAppOpeningFile } from "./utils/state/domain/appDomainState.js";
 import {
@@ -206,11 +208,12 @@ fileInputWiring.registerImportTimeFileInputChangeHandler(
 );
 
 installRendererElectronApiWiring({
+    applyTheme,
     electronApiScope: runtimeEnvironment.electronApiScope,
-    ensureCoreModules,
     getFileInput: fileInputWiring.getFileInput,
     logRenderer,
     scheduleStateInitialization: scheduleImportTimeStateInitialization,
+    showAboutModal,
 });
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {

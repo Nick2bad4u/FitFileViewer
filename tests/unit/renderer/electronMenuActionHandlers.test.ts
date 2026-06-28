@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    createRendererElectronMenuActionHandlers,
-    type RendererElectronMenuCoreModules,
-} from "../../../electron-app/renderer/electronMenuActionHandlers.js";
+import { createRendererElectronMenuActionHandlers } from "../../../electron-app/renderer/electronMenuActionHandlers.js";
 
 describe("electronMenuActionHandlers", () => {
     it("clicks the file input for open-file menu actions", () => {
@@ -13,12 +10,13 @@ describe("electronMenuActionHandlers", () => {
         } as unknown as HTMLInputElement;
         const { onMenuAction, onThemeChanged } =
             createRendererElectronMenuActionHandlers({
-                ensureCoreModules: vi.fn(async () => ({})),
+                applyTheme: vi.fn<(theme: string) => void>(),
                 getFileInput: vi.fn<() => HTMLInputElement | null>(
                     () => fileInput
                 ),
                 logRenderer:
                     vi.fn<(level: "warn", ...args: unknown[]) => void>(),
+                showAboutModal: vi.fn<() => void>(),
             });
 
         onMenuAction("open-file");
@@ -34,9 +32,10 @@ describe("electronMenuActionHandlers", () => {
             aboutModalOpened = true;
         };
         const { onMenuAction } = createRendererElectronMenuActionHandlers({
-            ensureCoreModules: vi.fn(async () => ({ showAboutModal })),
+            applyTheme: vi.fn<(theme: string) => void>(),
             getFileInput: vi.fn<() => HTMLInputElement | null>(() => null),
             logRenderer: vi.fn<(level: "warn", ...args: unknown[]) => void>(),
+            showAboutModal,
         });
 
         onMenuAction("about");
@@ -52,9 +51,10 @@ describe("electronMenuActionHandlers", () => {
             appliedTheme = theme;
         };
         const { onThemeChanged } = createRendererElectronMenuActionHandlers({
-            ensureCoreModules: vi.fn(async () => ({ applyTheme })),
+            applyTheme,
             getFileInput: vi.fn<() => HTMLInputElement | null>(() => null),
             logRenderer: vi.fn<(level: "warn", ...args: unknown[]) => void>(),
+            showAboutModal: vi.fn<() => void>(),
         });
 
         onThemeChanged("dark");
@@ -70,15 +70,18 @@ describe("electronMenuActionHandlers", () => {
         const logRenderer = (_level: "warn", message: unknown): void => {
             warningMessages.push(String(message));
         };
+        const applyTheme = (): void => {
+            throw error;
+        };
+        const showAboutModal = (): void => {
+            throw error;
+        };
         const { onMenuAction, onThemeChanged } =
             createRendererElectronMenuActionHandlers({
-                ensureCoreModules: vi.fn<
-                    () => Promise<RendererElectronMenuCoreModules>
-                >(async () => {
-                    throw error;
-                }),
+                applyTheme,
                 getFileInput: vi.fn<() => HTMLInputElement | null>(() => null),
                 logRenderer,
+                showAboutModal,
             });
 
         onThemeChanged("dark");
