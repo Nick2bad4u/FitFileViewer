@@ -104,7 +104,7 @@ describe("electronApiRuntime", () => {
         ).toBeNull();
     });
 
-    it("reads the preload-exposed API through the centralized default provider", () => {
+    it("does not read ambient preload globals without an explicit provider scope", () => {
         expect.assertions(1);
 
         const api = {
@@ -112,6 +112,6 @@ describe("electronApiRuntime", () => {
         };
         vi.stubGlobal("electronAPI", api);
 
-        expect(getRendererElectronApi(isExternalOpenApi)).toBe(api);
+        expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
     });
 });

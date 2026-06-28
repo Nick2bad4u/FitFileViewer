@@ -1,10 +1,7 @@
-import { getBrowserElectronApiCandidate } from "./browserRuntime.js";
-
 export type RendererElectronApiScope = {
     readonly getElectronAPI?: (() => unknown) | undefined;
 };
 
-export type RendererElectronApiCandidate = object;
 export type RendererElectronApiProvider = () => unknown;
 
 export function createRendererElectronApiScope(
@@ -16,9 +13,7 @@ export function createRendererElectronApiScope(
 /**
  * Resolves the preload-exposed Electron API through a single typed boundary.
  */
-export function getRendererElectronApi<
-    T extends RendererElectronApiCandidate = RendererElectronApiCandidate,
->(
+export function getRendererElectronApi<T extends object = object>(
     isExpectedApi: (value: unknown) => value is T,
     scope?: RendererElectronApiScope
 ): T | null {
@@ -34,5 +29,5 @@ export function getRendererElectronApi<
 function getScopeElectronApi(
     scope: RendererElectronApiScope | undefined
 ): unknown {
-    return scope?.getElectronAPI?.() ?? getBrowserElectronApiCandidate();
+    return scope?.getElectronAPI?.();
 }
