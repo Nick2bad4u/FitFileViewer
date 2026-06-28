@@ -1438,6 +1438,8 @@ The chart state view now receives typed rendered/rendering selectors from `rende
 with architecture coverage blocking raw `charts.isRendered`/`charts.isRendering` reads inside the view.
 Chart export availability now reads rendered state through the chart render-state selector,
 with architecture coverage blocking raw `charts.isRendered` reads in `renderChartExportState.ts`.
+Chart rendering start paths now receive an explicit `setChartRendering` dependency wired to
+`setRendererChartRendering`, with coverage blocking raw `charts.isRendering` writes in those modules.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.

@@ -34,6 +34,7 @@ import { normalizeRendererActiveTab } from "../../state/domain/rendererActiveTab
 import {
     areRendererChartsRendered,
     isRendererChartRendering,
+    setRendererChartRendering,
 } from "../../state/domain/rendererChartRenderState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
@@ -275,6 +276,7 @@ export const chartActions = createChartActions({
     isLoadingStateSuppressed,
     isRendered: () => chartState.isRendered,
     notifyChartRenderComplete,
+    setChartRendering: setRendererChartRendering,
     setState: callSetState,
     updateState: callUpdateState,
 });
@@ -374,6 +376,7 @@ export async function renderChartJS(
                 getChartLifecycleActions,
                 isLoadingStateSuppressed,
                 now: renderChartRuntime().nowPerformance,
+                setChartRendering: setRendererChartRendering,
                 setState: callSetState,
                 updateState: callUpdateState,
                 waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),

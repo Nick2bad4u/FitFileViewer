@@ -12650,7 +12650,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(45);
+        expect.assertions(52);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12680,9 +12680,19 @@ describe("architecture boundaries", () => {
         const renderChartJSSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/renderChartJS.ts")
         );
+        const renderChartActionsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartActions.ts"
+            )
+        );
         const renderChartExportStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartExportState.ts"
+            )
+        );
+        const renderChartLifecycleSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartLifecycle.ts"
             )
         );
         const renderChartStateViewSource = stripComments(
@@ -12749,6 +12759,17 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartJSSource).toContain(
             "isChartRendering: isRendererChartRendering"
+        );
+        expect(renderChartJSSource).toContain(
+            "setChartRendering: setRendererChartRendering"
+        );
+        expect(renderChartActionsSource).toContain("setChartRendering");
+        expect(renderChartActionsSource).not.toContain("charts.isRendering");
+        expect(renderChartLifecycleSource).toContain("setChartRendering");
+        expect(renderChartLifecycleSource).not.toContain("charts.isRendering");
+        expect(renderChartJSSource).toContain("setRendererChartRendering");
+        expect(renderChartJSSource).not.toContain(
+            'setState("charts.isRendering"'
         );
         expect(renderChartExportStateSource).not.toContain(
             "charts.isRendered"

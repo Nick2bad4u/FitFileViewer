@@ -25,6 +25,9 @@ function createDependencies() {
         isLoadingStateSuppressed: vi.fn(() => false),
         isRendered: vi.fn(() => false),
         notifyChartRenderComplete: vi.fn(),
+        setChartRendering: vi.fn((rendering: boolean) => {
+            state.charts.isRendering = rendering;
+        }),
         setState: vi.fn((path: string, value: unknown) => {
             if (path === "isLoading") {
                 state.isLoading = Boolean(value);
@@ -127,5 +130,28 @@ describe("createChartActions", () => {
             { silent: false, source: "chartActions.completeRendering" }
         );
         expect(dependencies.notifyChartRenderComplete).not.toHaveBeenCalled();
+    });
+
+    it("starts rendering through the chart render-state dependency", () => {
+        expect.assertions(4);
+
+        const { dependencies, state } = createDependencies();
+        state.charts.isRendering = false;
+        state.isLoading = false;
+        const actions = createChartActions(dependencies);
+
+        actions.startRendering();
+
+        expect(state.charts.isRendering).toBe(true);
+        expect(state.isLoading).toBe(true);
+        expect(dependencies.setChartRendering).toHaveBeenCalledWith(true, {
+            silent: false,
+            source: "chartActions.startRendering",
+        });
+        expect(dependencies.setState).not.toHaveBeenCalledWith(
+            "charts.isRendering",
+            true,
+            expect.any(Object)
+        );
     });
 });

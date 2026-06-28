@@ -6,8 +6,12 @@ import type { ChartStateUpdateOptions } from "../../../../../electron-app/utils/
 
 describe("renderChartSessionStart", () => {
     it("starts rendering and clears chart state through typed fallback patches", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
+        const setChartRendering =
+            vi.fn<
+                (rendering: boolean, options?: ChartStateUpdateOptions) => void
+            >();
         const setState =
             vi.fn<
                 (
@@ -32,6 +36,7 @@ describe("renderChartSessionStart", () => {
                 getChartLifecycleActions: () => null,
                 isLoadingStateSuppressed: () => false,
                 now: () => 1234,
+                setChartRendering,
                 setState,
                 updateState,
                 waitIfRapidRender,
@@ -40,7 +45,11 @@ describe("renderChartSessionStart", () => {
         );
 
         expect(waitIfRapidRender).toHaveBeenCalledOnce();
-        expect(setState).toHaveBeenCalledWith("charts.isRendering", true, {
+        expect(setChartRendering).toHaveBeenCalledWith(true, {
+            silent: false,
+            source: "renderChartJS.start",
+        });
+        expect(setState).toHaveBeenCalledWith("isLoading", true, {
             silent: false,
             source: "renderChartJS.start",
         });

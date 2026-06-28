@@ -19,6 +19,7 @@ interface CreateChartActionsDependencies {
     isLoadingStateSuppressed(): boolean;
     isRendered(): boolean;
     notifyChartRenderComplete(appActions: unknown, chartCount: number): void;
+    setChartRendering(rendering: boolean, options: unknown): unknown;
     setState(path: string, value: unknown, options: unknown): unknown;
     updateState(path: string, value: unknown, options: unknown): unknown;
 }
@@ -145,7 +146,7 @@ export function createChartActions(
         },
 
         startRendering() {
-            dependencies.setState("charts.isRendering", true, {
+            dependencies.setChartRendering(true, {
                 silent: false,
                 source: "chartActions.startRendering",
             });

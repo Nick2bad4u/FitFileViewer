@@ -12,6 +12,10 @@ type SetStateFunction = (
     value: unknown,
     options?: ChartStateUpdateOptions
 ) => void;
+type SetChartRenderingFunction = (
+    rendering: boolean,
+    options?: ChartStateUpdateOptions
+) => void;
 type UpdateStateFunction = (
     path: string,
     value: ChartClearStatePatch,
@@ -28,6 +32,7 @@ interface ChartRenderSessionStartDependencies {
     getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
     now(): number;
+    setChartRendering: SetChartRenderingFunction;
     setState: SetStateFunction;
     updateState: UpdateStateFunction;
     waitIfRapidRender(): Promise<void>;
@@ -63,6 +68,11 @@ export async function beginChartRenderSession(
     startChartRendering({
         getChartLifecycleActions: () => dependencies.getChartLifecycleActions(),
         isLoadingStateSuppressed: () => dependencies.isLoadingStateSuppressed(),
+        setChartRendering: (rendering, options) =>
+            dependencies.setChartRendering(
+                rendering,
+                options as ChartStateUpdateOptions | undefined
+            ),
         setState: (path, value, options) =>
             dependencies.setState(
                 path,

@@ -20,6 +20,7 @@ export type ChartClearStatePatch = Readonly<{
 interface StartChartRenderingDependencies {
     getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
+    setChartRendering(rendering: boolean, options: unknown): void;
     setState(path: string, value: unknown, options: unknown): void;
 }
 
@@ -47,7 +48,7 @@ export function startChartRendering(
         return;
     }
 
-    dependencies.setState("charts.isRendering", true, {
+    dependencies.setChartRendering(true, {
         silent: false,
         source: "renderChartJS.start",
     });
