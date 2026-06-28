@@ -15008,7 +15008,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer logging timestamps behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(17);
 
         const loggingIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/logging/index.ts")
@@ -15048,7 +15048,16 @@ describe("architecture boundaries", () => {
         expect(loggingTimestampRuntimeSource).toContain(
             "loggingTimestampRuntime requires a date constructor"
         );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "loggingTimestampRuntime requires a date constructor provider"
+        );
         expect(loggingTimestampRuntimeSource).not.toContain("readonly Date?:");
+        expect(loggingTimestampRuntimeSource).not.toContain(
+            "readonly getDateConstructor?:"
+        );
+        expect(loggingTimestampRuntimeSource).not.toContain(
+            "scope.getDateConstructor?.()"
+        );
         expect(loggingTimestampRuntimeSource).not.toContain("scope.Date");
         expect(loggingTimestampRuntimeSource).not.toContain(
             "LoggingTimestampRuntimeScope = globalThis"

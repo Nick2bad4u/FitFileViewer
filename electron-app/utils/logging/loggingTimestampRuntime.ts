@@ -1,8 +1,8 @@
 type LoggingTimestampDateConstructor = new () => { toISOString: () => string };
 
 export interface LoggingTimestampRuntimeScope {
-    readonly getDateConstructor?:
-        | (() => LoggingTimestampDateConstructor | undefined)
+    readonly getDateConstructor: () =>
+        | LoggingTimestampDateConstructor
         | undefined;
 }
 
@@ -17,7 +17,13 @@ const defaultLoggingTimestampRuntimeScope: LoggingTimestampRuntimeScope = {
 function getRequiredDateConstructor(
     scope: LoggingTimestampRuntimeScope
 ): LoggingTimestampDateConstructor {
-    const DateConstructor = scope.getDateConstructor?.();
+    if (typeof scope.getDateConstructor !== "function") {
+        throw new TypeError(
+            "loggingTimestampRuntime requires a date constructor provider"
+        );
+    }
+
+    const DateConstructor = scope.getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }

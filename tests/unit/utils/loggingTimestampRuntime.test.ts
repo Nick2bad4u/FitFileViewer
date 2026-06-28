@@ -1,6 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { loggingTimestampRuntime } from "../../../electron-app/utils/logging/loggingTimestampRuntime.js";
+import {
+    loggingTimestampRuntime,
+    type LoggingTimestampRuntimeScope,
+} from "../../../electron-app/utils/logging/loggingTimestampRuntime.js";
+
+function createLoggingTimestampRuntimeScope(
+    overrides: Partial<LoggingTimestampRuntimeScope> = {}
+): LoggingTimestampRuntimeScope {
+    return {
+        getDateConstructor: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("loggingTimestampRuntime", () => {
     it("builds ISO timestamps through the injected date constructor", () => {
@@ -21,9 +33,11 @@ describe("loggingTimestampRuntime", () => {
             }
         }
 
-        const utils = loggingTimestampRuntime({
-            getDateConstructor: () => DateConstructor,
-        });
+        const utils = loggingTimestampRuntime(
+            createLoggingTimestampRuntimeScope({
+                getDateConstructor: () => DateConstructor,
+            })
+        );
 
         expect(utils.isoNow()).toBe("2024-01-02T03:04:05.000Z");
         expect(constructedCount).toBe(1);
@@ -48,7 +62,9 @@ describe("loggingTimestampRuntime", () => {
     it("fails clearly when date construction is unavailable", () => {
         expect.assertions(1);
 
-        const utils = loggingTimestampRuntime({});
+        const utils = loggingTimestampRuntime(
+            createLoggingTimestampRuntimeScope()
+        );
 
         expect(() => utils.isoNow()).toThrow(
             "loggingTimestampRuntime requires a date constructor"
@@ -75,7 +91,7 @@ describe("loggingTimestampRuntime", () => {
         } as unknown as Parameters<typeof loggingTimestampRuntime>[0]);
 
         expect(() => utils.isoNow()).toThrow(
-            "loggingTimestampRuntime requires a date constructor"
+            "loggingTimestampRuntime requires a date constructor provider"
         );
         expect(constructedCount).toBe(0);
     });
