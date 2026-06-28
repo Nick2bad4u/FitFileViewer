@@ -23,6 +23,12 @@ export type RendererChartPreviousState = {
     visibleFields: number;
 };
 
+export type RendererChartRenderClearState = {
+    chartData: null;
+    isRendered: false;
+    renderedCount: 0;
+};
+
 export function areRendererChartsRendered(): boolean {
     return normalizeRendererRenderFlag(
         getState(RENDERER_CHARTS_RENDERED_STATE_PATH)
@@ -112,6 +118,22 @@ export function updateRendererChartState(
         source: "rendererChartRenderState.update",
         ...options,
     });
+}
+
+export function clearRendererChartRenderState(
+    options: StateUpdateOptions = {}
+): void {
+    updateRendererChartState(
+        {
+            chartData: null,
+            isRendered: false,
+            renderedCount: 0,
+        },
+        {
+            source: "rendererChartRenderState.clearRenderState",
+            ...options,
+        }
+    );
 }
 
 export function setRendererChartPreviousState(

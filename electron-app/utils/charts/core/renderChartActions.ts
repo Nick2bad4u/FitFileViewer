@@ -11,6 +11,7 @@ interface PanelVisibilityManager {
 
 interface CreateChartActionsDependencies {
     appActions: unknown;
+    clearChartRenderState(options: unknown): unknown;
     dateNow(): number;
     debouncedDirectRerender(reason: string): void;
     getControlsVisible(): boolean;
@@ -73,15 +74,10 @@ export function createChartActions(
                 );
             });
 
-            dependencies.updateState(
-                "charts",
-                {
-                    chartData: null,
-                    isRendered: false,
-                    renderedCount: 0,
-                },
-                { silent: false, source: "chartActions.clearCharts" }
-            );
+            dependencies.clearChartRenderState({
+                silent: false,
+                source: "chartActions.clearCharts",
+            });
         },
 
         completeRendering(success, chartCount = 0, renderTime = 0) {

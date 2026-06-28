@@ -9703,7 +9703,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart render helpers on the chart state access boundary", () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const chartCoreStateAccessFile =
             "electron-app/utils/charts/core/renderChartStateAccess.ts";
@@ -9732,11 +9732,16 @@ describe("architecture boundaries", () => {
         expect(
             stripComments(readRepositoryFile(chartCoreStateAccessFile))
         ).toContain("state/core/stateManager.js");
-        expect(chartLifecycleSource).toContain(
-            "export type ChartClearStatePatch"
-        );
+        expect(chartLifecycleSource).toContain("clearChartRenderState");
+        expect(chartLifecycleSource).not.toContain("ChartClearStatePatch");
         expect(renderChartSessionStartSource).toContain(
-            "type ChartClearStatePatch"
+            "clearChartRenderState"
+        );
+        expect(renderChartSessionStartSource).not.toContain(
+            "ChartClearStatePatch"
+        );
+        expect(renderChartSessionStartSource).not.toContain(
+            "updateState: UpdateStateFunction"
         );
         expect(renderChartSessionStartSource).not.toContain(
             "value as Record<string, unknown>"
@@ -12650,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(52);
+        expect.assertions(59);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12695,6 +12700,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartLifecycle.ts"
             )
         );
+        const renderChartSessionStartSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartSessionStart.ts"
+            )
+        );
         const renderChartStateViewSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartStateView.ts"
@@ -12725,6 +12735,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererChartRenderStateSource).toContain(
             "isRendererChartRendering"
+        );
+        expect(rendererChartRenderStateSource).toContain(
+            "clearRendererChartRenderState"
         );
         expect(rendererChartRenderStateSource).not.toContain(
             "function normalizeRendererChartsRendered"
@@ -12763,10 +12776,24 @@ describe("architecture boundaries", () => {
         expect(renderChartJSSource).toContain(
             "setChartRendering: setRendererChartRendering"
         );
+        expect(renderChartJSSource).toContain(
+            "clearChartRenderState: clearRendererChartRenderState"
+        );
         expect(renderChartActionsSource).toContain("setChartRendering");
+        expect(renderChartActionsSource).toContain("clearChartRenderState");
+        expect(renderChartActionsSource).not.toContain(
+            'updateState("charts"'
+        );
         expect(renderChartActionsSource).not.toContain("charts.isRendering");
         expect(renderChartLifecycleSource).toContain("setChartRendering");
+        expect(renderChartLifecycleSource).toContain("clearChartRenderState");
+        expect(renderChartLifecycleSource).not.toContain(
+            'updateState("charts"'
+        );
         expect(renderChartLifecycleSource).not.toContain("charts.isRendering");
+        expect(renderChartSessionStartSource).not.toContain(
+            "updateState: UpdateStateFunction"
+        );
         expect(renderChartJSSource).toContain("setRendererChartRendering");
         expect(renderChartJSSource).not.toContain(
             'setState("charts.isRendering"'

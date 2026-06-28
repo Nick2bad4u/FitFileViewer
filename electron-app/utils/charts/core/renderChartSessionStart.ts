@@ -3,7 +3,6 @@ import { touchStringTargetContainer } from "./renderChartPreflight.js";
 import {
     clearExistingCharts,
     startChartRendering,
-    type ChartClearStatePatch,
 } from "./renderChartLifecycle.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
@@ -16,9 +15,7 @@ type SetChartRenderingFunction = (
     rendering: boolean,
     options?: ChartStateUpdateOptions
 ) => void;
-type UpdateStateFunction = (
-    path: string,
-    value: ChartClearStatePatch,
+type ClearChartRenderStateFunction = (
     options?: ChartStateUpdateOptions
 ) => void;
 
@@ -28,13 +25,13 @@ interface ChartLifecycleActions {
 }
 
 interface ChartRenderSessionStartDependencies {
+    clearChartRenderState: ClearChartRenderStateFunction;
     doc: Document;
     getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
     now(): number;
     setChartRendering: SetChartRenderingFunction;
     setState: SetStateFunction;
-    updateState: UpdateStateFunction;
     waitIfRapidRender(): Promise<void>;
 }
 
@@ -88,13 +85,11 @@ export async function beginChartRenderSession(
     getRegisteredChartInstances();
 
     clearExistingCharts({
-        getChartLifecycleActions: () => dependencies.getChartLifecycleActions(),
-        updateState: (path, value, options) =>
-            dependencies.updateState(
-                path,
-                value,
+        clearChartRenderState: (options) =>
+            dependencies.clearChartRenderState(
                 options as ChartStateUpdateOptions | undefined
             ),
+        getChartLifecycleActions: () => dependencies.getChartLifecycleActions(),
     });
 
     return { performanceStart, ready: true };

@@ -33,6 +33,7 @@ import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { normalizeRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import {
     areRendererChartsRendered,
+    clearRendererChartRenderState,
     isRendererChartRendering,
     setRendererChartRendering,
 } from "../../state/domain/rendererChartRenderState.js";
@@ -268,6 +269,7 @@ export const chartState = createChartStateView({
 /** State-backed chart action handlers exposed to chart integrations. */
 export const chartActions = createChartActions({
     appActions: AppActions,
+    clearChartRenderState: clearRendererChartRenderState,
     dateNow: renderChartRuntime().now,
     debouncedDirectRerender,
     getControlsVisible: () => chartState.controlsVisible,
@@ -372,13 +374,13 @@ export async function renderChartJS(
     try {
         const renderSession = await beginChartRenderSession(
             {
+                clearChartRenderState: clearRendererChartRenderState,
                 doc: document,
                 getChartLifecycleActions,
                 isLoadingStateSuppressed,
                 now: renderChartRuntime().nowPerformance,
                 setChartRendering: setRendererChartRendering,
                 setState: callSetState,
-                updateState: callUpdateState,
                 waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
             },
             { targetContainer }

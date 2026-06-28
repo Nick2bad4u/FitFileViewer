@@ -10,13 +10,6 @@ interface ChartLifecycleActions {
     startRendering?: () => void;
 }
 
-export type ChartClearStatePatch = Readonly<{
-    readonly chartData: null;
-    readonly isRendered: false;
-    readonly renderedCount: 0;
-}> &
-    Record<string, unknown>;
-
 interface StartChartRenderingDependencies {
     getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
@@ -25,12 +18,8 @@ interface StartChartRenderingDependencies {
 }
 
 interface ClearExistingChartsDependencies {
+    clearChartRenderState(options: unknown): void;
     getChartLifecycleActions(): ChartLifecycleActions | null;
-    updateState(
-        path: string,
-        value: ChartClearStatePatch,
-        options: unknown
-    ): void;
 }
 
 interface CompleteChartRenderingDependencies {
@@ -78,11 +67,10 @@ export function clearExistingCharts(
         console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
     });
 
-    dependencies.updateState(
-        "charts",
-        { chartData: null, isRendered: false, renderedCount: 0 },
-        { silent: false, source: "renderChartJS.clear" }
-    );
+    dependencies.clearChartRenderState({
+        silent: false,
+        source: "renderChartJS.clear",
+    });
 }
 
 /** Completes chart rendering through registered actions or the safe fallback. */

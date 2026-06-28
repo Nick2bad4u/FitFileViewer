@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     areRendererChartsRendered,
+    clearRendererChartRenderState,
     getRendererChartState,
     isRendererChartRendering,
     normalizeRendererChartsRendered,
@@ -91,6 +92,27 @@ describe("rendererChartRenderState", () => {
             chartData: null,
             isRendered: false,
             tabActive: false,
+        });
+    });
+
+    it("clears chart render state through the typed helper", () => {
+        expect.assertions(1);
+
+        updateRendererChartState(
+            {
+                chartData: { rows: [1] },
+                isRendered: true,
+                renderedCount: 4,
+            },
+            { source: "test" }
+        );
+
+        clearRendererChartRenderState({ source: "test.clear" });
+
+        expect(getRendererChartState()).toMatchObject({
+            chartData: null,
+            isRendered: false,
+            renderedCount: 0,
         });
     });
 

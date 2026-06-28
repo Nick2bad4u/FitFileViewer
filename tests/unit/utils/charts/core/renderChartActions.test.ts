@@ -17,6 +17,13 @@ function createDependencies() {
     };
     const dependencies = {
         appActions: {},
+        clearChartRenderState: vi.fn(() => {
+            Object.assign(state.charts, {
+                chartData: null,
+                isRendered: false,
+                renderedCount: 0,
+            });
+        }),
         dateNow: vi.fn(() => 1_717_249_600_000),
         debouncedDirectRerender: vi.fn(),
         getControlsVisible: vi.fn(() => true),
@@ -52,6 +59,36 @@ function createDependencies() {
 }
 
 describe("createChartActions", () => {
+    it("clears chart render state through the chart render-state dependency", () => {
+        expect.assertions(4);
+
+        const { dependencies, state } = createDependencies();
+        state.charts.isRendered = true;
+        state.charts.renderedCount = 5;
+        const actions = createChartActions(dependencies);
+
+        actions.clearCharts();
+
+        expect(state.charts).toMatchObject({
+            isRendered: false,
+            renderedCount: 0,
+        });
+        expect(dependencies.clearChartRenderState).toHaveBeenCalledWith({
+            silent: false,
+            source: "chartActions.clearCharts",
+        });
+        expect(dependencies.updateState).not.toHaveBeenCalledWith(
+            "charts",
+            expect.objectContaining({ isRendered: false }),
+            expect.any(Object)
+        );
+        expect(dependencies.updateState).not.toHaveBeenCalledWith(
+            "charts",
+            expect.objectContaining({ renderedCount: 0 }),
+            expect.any(Object)
+        );
+    });
+
     it("records successful render timestamps through the injected clock", () => {
         expect.assertions(6);
 

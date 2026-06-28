@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { beginChartRenderSession } from "../../../../../electron-app/utils/charts/core/renderChartSessionStart.js";
-import type { ChartClearStatePatch } from "../../../../../electron-app/utils/charts/core/renderChartLifecycle.js";
 import type { ChartStateUpdateOptions } from "../../../../../electron-app/utils/charts/core/renderChartStateAccess.js";
 
 describe("renderChartSessionStart", () => {
     it("starts rendering and clears chart state through typed fallback patches", async () => {
         expect.assertions(5);
 
+        const clearChartRenderState =
+            vi.fn<(options?: ChartStateUpdateOptions) => void>();
         const setChartRendering =
             vi.fn<
                 (rendering: boolean, options?: ChartStateUpdateOptions) => void
@@ -20,25 +21,17 @@ describe("renderChartSessionStart", () => {
                     options?: ChartStateUpdateOptions
                 ) => void
             >();
-        const updateState =
-            vi.fn<
-                (
-                    path: string,
-                    value: ChartClearStatePatch,
-                    options?: ChartStateUpdateOptions
-                ) => void
-            >();
         const waitIfRapidRender = vi.fn(async () => undefined);
 
         const { performanceStart, ready } = await beginChartRenderSession(
             {
+                clearChartRenderState,
                 doc: document,
                 getChartLifecycleActions: () => null,
                 isLoadingStateSuppressed: () => false,
                 now: () => 1234,
                 setChartRendering,
                 setState,
-                updateState,
                 waitIfRapidRender,
             },
             { targetContainer: document.createElement("div") }
@@ -53,11 +46,10 @@ describe("renderChartSessionStart", () => {
             silent: false,
             source: "renderChartJS.start",
         });
-        expect(updateState).toHaveBeenCalledWith(
-            "charts",
-            { chartData: null, isRendered: false, renderedCount: 0 },
-            { silent: false, source: "renderChartJS.clear" }
-        );
+        expect(clearChartRenderState).toHaveBeenCalledWith({
+            silent: false,
+            source: "renderChartJS.clear",
+        });
         expect({ performanceStart, ready }).toStrictEqual({
             performanceStart: 1234,
             ready: true,

@@ -1440,6 +1440,8 @@ Chart export availability now reads rendered state through the chart render-stat
 with architecture coverage blocking raw `charts.isRendered` reads in `renderChartExportState.ts`.
 Chart rendering start paths now receive an explicit `setChartRendering` dependency wired to
 `setRendererChartRendering`, with coverage blocking raw `charts.isRendering` writes in those modules.
+Chart clear paths now receive an explicit `clearChartRenderState` dependency wired to
+`clearRendererChartRenderState`, with coverage blocking raw aggregate chart clear patches in those modules.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.
