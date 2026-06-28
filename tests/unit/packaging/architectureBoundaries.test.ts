@@ -29623,7 +29623,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -29639,6 +29639,15 @@ describe("architecture boundaries", () => {
         expect(mainUiDomUtilsSource).toContain("ElectronFileApi");
         expect(mainUiDomUtilsSource).not.toContain(
             "interface ElectronApiCandidate"
+        );
+        expect(mainUiDomUtilsSource).not.toContain(
+            "type MainUiDomElectronApiCandidate"
+        );
+        expect(mainUiDomUtilsSource).not.toContain(
+            "value as MainUiDomElectronApiCandidate"
+        );
+        expect(mainUiDomUtilsSource).toContain(
+            'Reflect.get(value, "decodeFitFile")'
         );
         expect(mainUiDomUtilsSource).not.toContain("import type { ElectronAPI");
         expect(mainUiDomUtilsSource).not.toContain("Pick<ElectronAPI");

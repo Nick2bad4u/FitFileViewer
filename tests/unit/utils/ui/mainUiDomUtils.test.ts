@@ -149,6 +149,20 @@ describe("mainUiDomUtils", () => {
         resetTestState();
     });
 
+    it("rejects primitive scoped electron API values", () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        const electronApiScope = createElectronApiScope("not an api");
+
+        expect({
+            isValid: validateElectronAPI(electronApiScope),
+        }).toStrictEqual({ isValid: false });
+
+        resetTestState();
+    });
+
     it("accepts an electron API with a FIT decoder function", () => {
         expect.assertions(1);
 

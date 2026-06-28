@@ -13,8 +13,8 @@ import {
 } from "../runtime/electronApiRuntime.js";
 import type { ElectronFileApi } from "../../shared/preloadApi.js";
 
-type MainUiDomElectronApiCandidate = {
-    readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
+type MainUiDomElectronApi = {
+    readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
 };
 
 type EventListenerEntry = {
@@ -83,17 +83,12 @@ export function validateElectronAPI(
     );
 }
 
-function isDecodeFitFileApi(
-    value: unknown
-): value is MainUiDomElectronApiCandidate {
+function isDecodeFitFileApi(value: unknown): value is MainUiDomElectronApi {
     if (value === null || typeof value !== "object") {
         return false;
     }
 
-    return (
-        typeof (value as MainUiDomElectronApiCandidate).decodeFitFile ===
-        "function"
-    );
+    return typeof Reflect.get(value, "decodeFitFile") === "function";
 }
 
 /**
