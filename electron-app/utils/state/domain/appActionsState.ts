@@ -36,6 +36,10 @@ export function getRendererPerformanceMetrics(): Record<string, unknown> {
     return isRecord(performanceMetrics) ? performanceMetrics : {};
 }
 
+export function getRendererPerformanceRenderTime(key: string): unknown {
+    return getState(`${PERFORMANCE_RENDER_TIMES_STATE_PATH}.${key}`);
+}
+
 export function isRendererMapMeasurementModeEnabled(): boolean {
     return normalizeRendererRenderFlag(
         getState(MAP_MEASUREMENT_MODE_STATE_PATH)

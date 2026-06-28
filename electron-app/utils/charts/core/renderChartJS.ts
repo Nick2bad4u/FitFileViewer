@@ -30,7 +30,10 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
-import { updateRendererPerformanceRenderTimes } from "../../state/domain/appActionsState.js";
+import {
+    getRendererPerformanceRenderTime,
+    updateRendererPerformanceRenderTimes,
+} from "../../state/domain/appActionsState.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import {
     areRendererChartsRendered,
@@ -336,8 +339,8 @@ export function getChartStatus() {
         chartState,
         getChartOptions: getRendererChartOptions,
         getLastRenderTime: getRendererChartLastRenderTime,
+        getPerformanceRenderTime: getRendererPerformanceRenderTime,
         getRenderedCount: getRendererChartRenderedCount,
-        getState: callGetState,
     });
 }
 

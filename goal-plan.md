@@ -2056,6 +2056,9 @@ direct loading path writes from returning to those chart lifecycle helpers.
 Chart action completion now writes performance render times through the app-actions state facade instead of a generic
 `updateState("performance.renderTimes", ...)` dependency, with focused action/app-actions tests and architecture checks
 blocking direct performance render-time path writes from returning to chart actions.
+Chart status snapshots now read chart render-time performance through the app-actions state facade instead of a generic
+`getState("performance.renderTimes.chart")` dependency, with focused status/state API tests and architecture checks
+blocking direct performance render-time path reads from returning to chart status.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

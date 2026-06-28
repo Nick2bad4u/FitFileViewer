@@ -11,8 +11,8 @@ interface GetChartStatusDependencies {
     chartState: ChartStatusStateView;
     getChartOptions(): unknown;
     getLastRenderTime(): unknown;
+    getPerformanceRenderTime(key: string): unknown;
     getRenderedCount(): unknown;
-    getState(path: string): unknown;
 }
 
 /** Public chart rendering status snapshot. */
@@ -46,7 +46,7 @@ export function getChartStatus(
         isRendered: dependencies.chartState.isRendered,
         isRendering: dependencies.chartState.isRendering,
         lastRenderTime: dependencies.getLastRenderTime(),
-        performance: dependencies.getState("performance.renderTimes.chart"),
+        performance: dependencies.getPerformanceRenderTime("chart"),
         renderableFields: dependencies.chartState.renderableFields,
         renderedCount: dependencies.getRenderedCount(),
         selectedChart: dependencies.chartState.selectedChart,

@@ -6,8 +6,8 @@ describe("getChartStatus", () => {
     it("reads chart status values through typed chart dependencies", () => {
         expect.assertions(2);
 
-        const getState = vi.fn((path: string) =>
-            path === "performance.renderTimes.chart" ? 250 : undefined
+        const getPerformanceRenderTime = vi.fn((key: string) =>
+            key === "chart" ? 250 : undefined
         );
 
         const status = getChartStatus({
@@ -24,8 +24,8 @@ describe("getChartStatus", () => {
             },
             getChartOptions: vi.fn(() => ({ responsive: true })),
             getLastRenderTime: vi.fn(() => 1234),
+            getPerformanceRenderTime,
             getRenderedCount: vi.fn(() => 7),
-            getState,
         });
 
         expect(status).toStrictEqual({
@@ -43,8 +43,8 @@ describe("getChartStatus", () => {
             renderedCount: 7,
             selectedChart: "power",
         });
-        expect(getState).toHaveBeenCalledExactlyOnceWith(
-            "performance.renderTimes.chart"
+        expect(getPerformanceRenderTime).toHaveBeenCalledExactlyOnceWith(
+            "chart"
         );
     });
 });

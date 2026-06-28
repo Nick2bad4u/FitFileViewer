@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(146);
+        expect.assertions(150);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12985,6 +12985,9 @@ describe("architecture boundaries", () => {
             "updatePerformanceRenderTimes: updateRendererPerformanceRenderTimes"
         );
         expect(renderChartJSSource).toContain(
+            "getPerformanceRenderTime: getRendererPerformanceRenderTime"
+        );
+        expect(renderChartJSSource).toContain(
             "clearChartRenderState: clearRendererChartRenderState"
         );
         expect(renderChartJSSource).toContain(
@@ -13138,6 +13141,10 @@ describe("architecture boundaries", () => {
         expect(renderChartStatusSource).not.toContain("charts.chartOptions");
         expect(renderChartStatusSource).not.toContain("charts.lastRenderTime");
         expect(renderChartStatusSource).not.toContain("charts.renderedCount");
+        expect(renderChartStatusSource).not.toContain(
+            '"performance.renderTimes.chart"'
+        );
+        expect(renderChartStatusSource).not.toContain("getState(path: string)");
         expect(renderChartStatusSource).toContain(
             "dependencies.getChartOptions()"
         );
@@ -13146,6 +13153,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartStatusSource).toContain(
             "dependencies.getRenderedCount()"
+        );
+        expect(renderChartStatusSource).toContain(
+            'dependencies.getPerformanceRenderTime("chart")'
         );
         expect(renderChartRenderedEventSource).not.toContain(
             "charts.chartOptions"

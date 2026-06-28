@@ -4,6 +4,7 @@ import {
     areRendererTablesRendered,
     getRendererMapState,
     getRendererPerformanceMetrics,
+    getRendererPerformanceRenderTime,
     isRendererMapMeasurementModeEnabled,
     setAppInitialized,
     setAppIsOpeningFile,
@@ -30,7 +31,7 @@ describe("appActionsState lifecycle facade", () => {
     });
 
     it("writes app lifecycle, map, table, and performance paths", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         setAppInitialized(true, { source: "test" });
         setAppIsOpeningFile(true, { source: "test" });
@@ -56,6 +57,7 @@ describe("appActionsState lifecycle facade", () => {
         expect(getState("performance.renderTimes")).toMatchObject({
             chart: 12,
         });
+        expect(getRendererPerformanceRenderTime("chart")).toBe(12);
         expect(getState("tables")).toMatchObject({ currentPage: 3 });
         expect(getRendererMapState()).toMatchObject({
             center: [1, 2],
