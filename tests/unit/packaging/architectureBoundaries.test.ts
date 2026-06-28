@@ -15841,7 +15841,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(82);
+        expect.assertions(85);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -15909,11 +15909,20 @@ describe("architecture boundaries", () => {
         expect(rendererStateIntegrationSource).toContain(
             "getRendererActiveTab"
         );
+        expect(rendererStateIntegrationSource).toContain(
+            "subscribeToRendererActiveTab"
+        );
         expect(rendererStateIntegrationSource).not.toContain(
             'normalizeRendererActiveTab(getState("ui.activeTab"))'
         );
         expect(rendererStateIntegrationSource).not.toContain(
             'const activeTab = getState("ui.activeTab")'
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'subscribe("ui.activeTab"'
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'subscribeRendererState("ui.activeTab"'
         );
         expect(rendererStateIntegrationSource).not.toContain(
             'currentTheme = getState("ui.theme")'

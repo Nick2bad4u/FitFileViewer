@@ -15,6 +15,7 @@ import { getActiveFitTableData } from "../domain/fitTableDataState.js";
 import {
     getRendererActiveTab,
     normalizeRendererActiveTab,
+    subscribeToRendererActiveTab,
 } from "../domain/rendererActiveTabState.js";
 import { subscribeToRendererChartsRendered } from "../domain/rendererChartRenderState.js";
 import {
@@ -146,7 +147,7 @@ export function exampleStateUsage(): Unsubscribe {
     }
 
     // Subscribing to changes
-    const unsubscribe = subscribe("ui.activeTab", (newTab) => {
+    const unsubscribe = subscribeToRendererActiveTab((newTab) => {
         console.log(`Tab changed to: ${normalizeRendererActiveTab(newTab)}`);
     });
 
@@ -265,12 +266,16 @@ function initializeComponentsWithState(): void {
     );
 
     // Subscribe to active tab changes
-    subscribeRendererState("ui.activeTab", (activeTab) => {
-        const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
+    trackRendererStateSubscription(
+        subscribeToRendererActiveTab((activeTab) => {
+            const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
 
-        console.log(`[Renderer] Active tab changed to: ${normalizedActiveTab}`);
-        handleTabChange(normalizedActiveTab);
-    });
+            console.log(
+                `[Renderer] Active tab changed to: ${normalizedActiveTab}`
+            );
+            handleTabChange(normalizedActiveTab);
+        })
+    );
 
     // Subscribe to chart rendering state
     trackRendererStateSubscription(
@@ -379,18 +384,20 @@ function setupReactiveUI(): void {
     const documentRef = rendererStateIntegrationRuntime().getDocument();
 
     // Update tab visibility when active tab changes
-    subscribeRendererState("ui.activeTab", (activeTab) => {
-        const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
+    trackRendererStateSubscription(
+        subscribeToRendererActiveTab((activeTab) => {
+            const normalizedActiveTab = normalizeRendererActiveTab(activeTab);
 
-        const tabContents = documentRef.querySelectorAll(".tab-content");
-        for (const content of tabContents) {
-            if (rendererStateIntegrationRuntime().isHTMLElement(content)) {
-                const tabName = content.dataset["tabContent"];
-                content.style.display =
-                    tabName === normalizedActiveTab ? "block" : "none";
+            const tabContents = documentRef.querySelectorAll(".tab-content");
+            for (const content of tabContents) {
+                if (rendererStateIntegrationRuntime().isHTMLElement(content)) {
+                    const tabName = content.dataset["tabContent"];
+                    content.style.display =
+                        tabName === normalizedActiveTab ? "block" : "none";
+                }
             }
-        }
-    });
+        })
+    );
 
     // Update theme when it changes
     trackRendererStateSubscription(
