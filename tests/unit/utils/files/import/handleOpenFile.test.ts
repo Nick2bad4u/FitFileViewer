@@ -244,6 +244,21 @@ describe("handleOpenFile.js", () => {
             expect(result).toBe(false);
         });
 
+        it("should return false when scoped Electron API is array-shaped", () => {
+            const { validateElectronAPI } = handleOpenFileModule;
+            const malformedElectronApi = Object.assign([], {
+                openFile: vi.fn<() => Promise<null | string | string[]>>(),
+                parseFitFile: vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>(),
+                readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
+            });
+
+            const result = validateElectronAPI({
+                getElectronAPI: () => malformedElectronApi,
+            });
+
+            expect(result).toBe(false);
+        });
+
         it("should return false when methods are not functions", () => {
             currentElectronApi = {
                 openFile: "not a function",

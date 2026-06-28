@@ -90,16 +90,19 @@ const FILE_OPEN_CONSTANTS = {
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
 
 function isFileOpenElectronAPI(value: unknown): value is FileOpenElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as FileOpenElectronAPI;
     return (
-        typeof api.openFile === "function" &&
-        typeof api.parseFitFile === "function" &&
-        typeof api.readFile === "function"
+        typeof value["openFile"] === "function" &&
+        typeof value["parseFitFile"] === "function" &&
+        typeof value["readFile"] === "function"
     );
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function isMissingFileError(error: unknown): boolean {
