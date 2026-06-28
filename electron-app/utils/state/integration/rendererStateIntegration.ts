@@ -6,8 +6,6 @@
 
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
-// Corrected path: state manager utilities live in ../core directory
-import { subscribe } from "../core/stateManager.js";
 import { subscribeToActiveFitRawData } from "../domain/activeFitRawDataState.js";
 import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
@@ -17,6 +15,7 @@ import {
     normalizeRendererActiveTab,
     subscribeToRendererActiveTab,
 } from "../domain/rendererActiveTabState.js";
+import { subscribeToRendererChartControlsVisible } from "../domain/rendererChartControlsState.js";
 import { subscribeToRendererChartsRendered } from "../domain/rendererChartRenderState.js";
 import {
     isRendererLoading,
@@ -100,13 +99,6 @@ function cleanupStateAwareEventHandlers(): void {
 function trackRendererStateSubscription(unsubscribe: Unsubscribe): Unsubscribe {
     rendererStateIntegrationUnsubscribes.push(unsubscribe);
     return unsubscribe;
-}
-
-function subscribeRendererState(
-    path: string,
-    handler: Parameters<typeof subscribe>[1]
-): Unsubscribe {
-    return trackRendererStateSubscription(subscribe(path, handler));
 }
 
 export function cleanupRendererStateIntegration(): void {
@@ -409,12 +401,14 @@ function setupReactiveUI(): void {
     );
 
     // Update chart controls visibility
-    subscribeRendererState("charts.controlsVisible", (isVisible) => {
-        const wrapper = getChartSettingsWrapper(documentRef);
-        if (wrapper) {
-            wrapper.style.display = isVisible ? "block" : "none";
-        }
-    });
+    trackRendererStateSubscription(
+        subscribeToRendererChartControlsVisible((isVisible) => {
+            const wrapper = getChartSettingsWrapper(documentRef);
+            if (wrapper) {
+                wrapper.style.display = isVisible ? "block" : "none";
+            }
+        })
+    );
 }
 
 /**
