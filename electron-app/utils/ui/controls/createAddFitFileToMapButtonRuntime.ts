@@ -39,9 +39,7 @@ function getScopeDocument(
 function getAbortControllerConstructor(
     scope: CreateAddFitFileToMapButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createAddFitFileToMapButton requires an AbortController runtime"

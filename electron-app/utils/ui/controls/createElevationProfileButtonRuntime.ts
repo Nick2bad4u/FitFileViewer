@@ -60,9 +60,7 @@ const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileBut
 function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createElevationProfileButton requires an AbortController runtime"

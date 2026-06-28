@@ -169,7 +169,12 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         const runtime = getCreateElevationProfileButtonRuntime({});
         const runtimeWithoutAbortController =
             getCreateElevationProfileButtonRuntime({
-                getDocument: () => ({ defaultView: undefined }) as Document,
+                getDocument: () =>
+                    ({
+                        defaultView: {
+                            AbortController,
+                        },
+                    }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getCreateElevationProfileButtonRuntime({

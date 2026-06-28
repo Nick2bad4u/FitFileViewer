@@ -18487,7 +18487,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(19);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -18534,6 +18534,9 @@ describe("architecture boundaries", () => {
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.document"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "defaultView?.AbortController"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
@@ -22565,7 +22568,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(42);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -22684,6 +22687,9 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "scope.open"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "defaultView?.AbortController"
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
             "return scope.getDocument?.();"

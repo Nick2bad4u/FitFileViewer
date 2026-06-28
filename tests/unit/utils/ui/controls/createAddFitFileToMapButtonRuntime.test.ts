@@ -65,7 +65,12 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         const runtime = getCreateAddFitFileToMapButtonRuntime({});
         const runtimeWithoutAbortController =
             getCreateAddFitFileToMapButtonRuntime({
-                getDocument: () => ({ defaultView: undefined }) as Document,
+                getDocument: () =>
+                    ({
+                        defaultView: {
+                            AbortController,
+                        },
+                    }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getCreateAddFitFileToMapButtonRuntime({
