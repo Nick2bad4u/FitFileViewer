@@ -75,7 +75,11 @@ describe("renderer development debug tools runtime", () => {
     it("returns empty snapshots when runtime metadata is missing", () => {
         expect.assertions(3);
 
-        const view = getRendererDevelopmentDebugToolsRuntime({});
+        const view = getRendererDevelopmentDebugToolsRuntime({
+            getLocation: () => undefined,
+            getNavigator: () => undefined,
+            getPerformance: () => undefined,
+        });
 
         expect(view.getLocationSnapshot()).toStrictEqual({});
         expect(view.getNavigatorSnapshot()).toStrictEqual({});
@@ -129,8 +133,8 @@ describe("renderer development debug tools runtime", () => {
         expect(view.getPerformanceMemorySnapshot()).toStrictEqual({});
     });
 
-    it("ignores legacy direct runtime metadata properties", () => {
-        expect.assertions(3);
+    it("rejects legacy direct runtime metadata properties", () => {
+        expect.assertions(1);
 
         const scope = {};
         Object.defineProperties(scope, {
@@ -150,12 +154,41 @@ describe("renderer development debug tools runtime", () => {
                 },
             },
         });
-        const view = getRendererDevelopmentDebugToolsRuntime(
-            scope as RendererDevelopmentDebugToolsRuntimeScope
+        expect(() =>
+            getRendererDevelopmentDebugToolsRuntime(
+                scope as RendererDevelopmentDebugToolsRuntimeScope
+            )
+        ).toThrow(
+            "renderer development debug tools require a location provider"
+        );
+    });
+
+    it("fails clearly when runtime metadata providers are omitted", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getRendererDevelopmentDebugToolsRuntime(
+                {} as unknown as RendererDevelopmentDebugToolsRuntimeScope
+            )
+        ).toThrow(
+            "renderer development debug tools require a location provider"
         );
 
-        expect(view.getLocationSnapshot()).toStrictEqual({});
-        expect(view.getNavigatorSnapshot()).toStrictEqual({});
-        expect(view.getPerformanceMemorySnapshot()).toStrictEqual({});
+        expect(() =>
+            getRendererDevelopmentDebugToolsRuntime({
+                getLocation: () => undefined,
+            } as unknown as RendererDevelopmentDebugToolsRuntimeScope)
+        ).toThrow(
+            "renderer development debug tools require a navigator provider"
+        );
+
+        expect(() =>
+            getRendererDevelopmentDebugToolsRuntime({
+                getLocation: () => undefined,
+                getNavigator: () => undefined,
+            } as unknown as RendererDevelopmentDebugToolsRuntimeScope)
+        ).toThrow(
+            "renderer development debug tools require a performance provider"
+        );
     });
 });

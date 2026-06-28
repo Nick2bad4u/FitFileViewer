@@ -17327,7 +17327,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(40);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -17407,6 +17407,15 @@ describe("architecture boundaries", () => {
             "readonly performance?:"
         );
         expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "readonly getLocation?:"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "readonly getNavigator?:"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
             "scope.location"
         );
         expect(developmentDebugToolsRuntimeSource).not.toContain(
@@ -17414,6 +17423,19 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsRuntimeSource).not.toContain(
             "scope.performance"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "getValue?.()"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain("getValue()");
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "renderer development debug tools require a location provider"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "renderer development debug tools require a navigator provider"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "renderer development debug tools require a performance provider"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
             "../utils/runtime/browserRuntime.js"

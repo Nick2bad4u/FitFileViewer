@@ -5,9 +5,9 @@ import {
 } from "../utils/runtime/browserRuntime.js";
 
 export interface RendererDevelopmentDebugToolsRuntimeScope {
-    readonly getLocation?: (() => unknown) | undefined;
-    readonly getNavigator?: (() => unknown) | undefined;
-    readonly getPerformance?: (() => unknown) | undefined;
+    readonly getLocation: () => unknown;
+    readonly getNavigator: () => unknown;
+    readonly getPerformance: () => unknown;
 }
 
 export type RendererDevelopmentLocationSnapshot = Readonly<{
@@ -58,9 +58,9 @@ type RendererDevelopmentPerformanceMemoryCandidate = Readonly<{
     readonly usedJSHeapSize?: unknown;
 }>;
 
-function readScopeValue(getValue: (() => unknown) | undefined): unknown {
+function readScopeValue(getValue: () => unknown): unknown {
     try {
-        return getValue?.();
+        return getValue();
     } catch {
         return undefined;
     }
@@ -180,6 +180,22 @@ const defaultRendererDevelopmentDebugToolsRuntimeScope: RendererDevelopmentDebug
 export function getRendererDevelopmentDebugToolsRuntime(
     scope: RendererDevelopmentDebugToolsRuntimeScope = defaultRendererDevelopmentDebugToolsRuntimeScope
 ): RendererDevelopmentDebugToolsRuntime {
+    if (typeof scope.getLocation !== "function") {
+        throw new TypeError(
+            "renderer development debug tools require a location provider"
+        );
+    }
+    if (typeof scope.getNavigator !== "function") {
+        throw new TypeError(
+            "renderer development debug tools require a navigator provider"
+        );
+    }
+    if (typeof scope.getPerformance !== "function") {
+        throw new TypeError(
+            "renderer development debug tools require a performance provider"
+        );
+    }
+
     return {
         getLocationSnapshot(): RendererDevelopmentLocationSnapshot {
             return toLocationSnapshot(readScopeValue(scope.getLocation));
