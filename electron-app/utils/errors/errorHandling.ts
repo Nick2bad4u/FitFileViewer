@@ -101,6 +101,10 @@ export type Validator<T = unknown> = (
 
 type MaybePromise<T> = Promise<T> | T;
 
+type PromiseLikeCandidate = Readonly<{
+    readonly then?: unknown;
+}>;
+
 let globalErrorListenerAbortController: AbortController | undefined;
 
 function errorHandlingRuntime(): ErrorHandlingRuntime {
@@ -115,20 +119,32 @@ function isValidationObject<T>(value: unknown): value is ValidatorResult<T> {
     return typeof value === "object" && value !== null && "isValid" in value;
 }
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isObjectCandidate(value: unknown): value is object {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isPromiseCandidate(
+function toPromiseLikeCandidate(
     value: unknown
-): value is
-    | (((...args: unknown[]) => unknown) & { readonly then?: unknown })
-    | Readonly<Record<string, unknown>> {
-    return (typeof value === "function" || isRecord(value)) && "then" in value;
+): PromiseLikeCandidate | undefined {
+    return typeof value === "function" || isObjectCandidate(value)
+        ? value
+        : undefined;
+}
+
+function readRuntimeValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
-    return isPromiseCandidate(value) && typeof value["then"] === "function";
+    const runtime = toPromiseLikeCandidate(value);
+    return (
+        runtime !== undefined &&
+        typeof readRuntimeValue(() => runtime.then) === "function"
+    );
 }
 
 /**

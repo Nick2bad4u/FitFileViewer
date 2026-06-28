@@ -14385,7 +14385,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(64);
+        expect.assertions(67);
 
         const errorsIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/index.ts")
@@ -14422,10 +14422,15 @@ describe("architecture boundaries", () => {
         expect(errorHandlingSource).not.toContain("Reflect.get(");
         expect(errorHandlingSource).not.toContain('Reflect.get(value, "then")');
         expect(errorHandlingSource).toContain(
-            "Readonly<Record<string, unknown>>"
+            "type PromiseLikeCandidate = Readonly<{"
         );
         expect(errorHandlingSource).toContain("!Array.isArray(value)");
-        expect(errorHandlingSource).toContain('typeof value["then"]');
+        expect(errorHandlingSource).toContain("function readRuntimeValue(");
+        expect(errorHandlingSource).toContain("runtime.then");
+        expect(errorHandlingSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(errorHandlingSource).not.toContain('value["then"]');
         expect(errorHandlingSource).not.toContain(
             "value as { readonly then?: unknown }"
         );

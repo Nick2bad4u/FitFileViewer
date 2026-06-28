@@ -183,6 +183,31 @@ describe("error handling utilities", () => {
             expect(thenMock).not.toHaveBeenCalled();
         });
 
+        it("does not throw while inspecting inaccessible then reads", () => {
+            expect.assertions(1);
+
+            const thenPropertyName = ["th", "en"].join("");
+            const throwingThenResult = new Proxy(
+                { value: "not a promise" },
+                {
+                    get(target, propertyKey, receiver) {
+                        if (propertyKey === thenPropertyName) {
+                            throw new Error("then unavailable");
+                        }
+
+                        return Reflect.get(target, propertyKey, receiver);
+                    },
+                }
+            );
+            const wrapped = withErrorHandling(() => throwingThenResult, {
+                failSafe: true,
+                fallback: "fallback",
+                logLevel: "warn",
+            });
+
+            expect(wrapped()).toBe(throwingThenResult);
+        });
+
         it("creates safe wrappers that return null without logging when requested", () => {
             expect.assertions(2);
 
