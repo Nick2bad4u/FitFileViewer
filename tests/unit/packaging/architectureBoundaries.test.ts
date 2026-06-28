@@ -31441,7 +31441,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron API startup and registration off ambient fallbacks", () => {
-        expect.assertions(10);
+        expect.assertions(14);
 
         const directElectronApiGlobals = rendererElectronApiRuntimeSourceFiles
             .filter((relativeFile) =>
@@ -31480,6 +31480,18 @@ describe("architecture boundaries", () => {
         );
         expect(electronApiStartupHooksSource).not.toContain(
             "getElectronApiScope: () => globalThis"
+        );
+        expect(electronApiStartupHooksSource).toContain(
+            "readonly getElectronApiScope: () => RendererElectronApiScope"
+        );
+        expect(electronApiStartupHooksSource).toContain(
+            "scope: ElectronApiStartupHooksScope"
+        );
+        expect(electronApiStartupHooksSource).toContain(
+            "renderer Electron API startup hooks require an electron API scope provider"
+        );
+        expect(electronApiStartupHooksSource).not.toContain(
+            "scope?.getElectronApiScope?.()"
         );
         expect(electronApiStartupHooksSource).not.toContain("?? scope");
         expect(electronApiStartupHooksSource).not.toContain(

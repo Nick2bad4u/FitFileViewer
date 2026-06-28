@@ -14,8 +14,7 @@ export type RendererApplyTheme = (
 export type RendererElectronMenuAction = "about" | "open-file";
 export type RendererElectronHookUnsubscribe = () => void;
 export type RendererElectronHookRegistrationResult =
-    | RendererElectronHookUnsubscribe
-    | void;
+    RendererElectronHookUnsubscribe | void;
 type RendererCheckForUpdates = ElectronMenuEventApi["checkForUpdates"];
 type RendererDevelopmentModeProbe = () => Promise<boolean>;
 type RendererMenuActionRegistration = (
@@ -43,9 +42,7 @@ type ElectronApiStartupHookSource = {
 };
 
 export interface ElectronApiStartupHooksScope {
-    readonly getElectronApiScope?:
-        | (() => RendererElectronApiScope | undefined)
-        | undefined;
+    readonly getElectronApiScope: () => RendererElectronApiScope;
 }
 
 export function getElectronApiHooksFromValue(
@@ -84,16 +81,17 @@ export function getElectronApiHooksFromValue(
 }
 
 export function getElectronApiStartupHooks(
-    scope?: ElectronApiStartupHooksScope
+    scope: ElectronApiStartupHooksScope
 ): ElectronApiStartupHooks | null {
-    const electronApiScope = scope?.getElectronApiScope?.();
-    if (electronApiScope === undefined) {
-        return null;
+    if (typeof scope.getElectronApiScope !== "function") {
+        throw new TypeError(
+            "renderer Electron API startup hooks require an electron API scope provider"
+        );
     }
 
     const electronApi = getRendererElectronApi(
         isElectronApiStartupHookSource,
-        electronApiScope
+        scope.getElectronApiScope()
     );
 
     return getElectronApiHooksFromValue(electronApi);
