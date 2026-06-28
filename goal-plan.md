@@ -1945,6 +1945,9 @@ timer-handle type spellings from returning.
 Inline zone selector delayed-update bookkeeping now stores handles as the selector runtime's
 `CreateInlineZoneColorSelectorTimerHandle` alias instead of spelling `ReturnType<typeof setTimeout>` in the source
 module, with architecture guardrails blocking that ambient timer-handle type spelling from returning.
+Field-toggle delayed status-update bookkeeping now stores handles as the field-toggle runtime's
+`CreateFieldTogglesSectionTimerHandle` alias instead of spelling `ReturnType<typeof setTimeout>` in the source module,
+with architecture guardrails blocking that ambient timer-handle type spelling from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

@@ -8382,7 +8382,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(44);
+        expect.assertions(47);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -8405,6 +8405,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(fieldTogglesSource).toContain(
             "createFieldTogglesSectionRuntime.js"
+        );
+        expect(fieldTogglesSource).toContain(
+            "type CreateFieldTogglesSectionTimerHandle"
+        );
+        expect(fieldTogglesSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
         );
         expect(fieldTogglesSource).toContain("chartStateManagerRegistry.js");
         expect(fieldTogglesSource).toContain("getRegisteredChartStateManager");
@@ -8433,6 +8439,9 @@ describe("architecture boundaries", () => {
         );
         expect(fieldTogglesRuntimeSource).toContain("type BrowserSetTimeout");
         expect(fieldTogglesRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(fieldTogglesRuntimeSource).toContain(
+            "CreateFieldTogglesSectionTimerHandle = BrowserTimerHandle"
+        );
         expect(fieldTogglesRuntimeSource).not.toContain("typeof globalThis.");
         expect(fieldTogglesRuntimeSource).not.toContain(
             "scope: CreateFieldTogglesSectionRuntimeScope = globalThis"

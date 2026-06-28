@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { CreateFieldTogglesSectionRuntimeScope } from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
+import type {
+    CreateFieldTogglesSectionRuntimeScope,
+    CreateFieldTogglesSectionTimerHandle,
+} from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
 import { getCreateFieldTogglesSectionRuntime } from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
 
 describe("getCreateFieldTogglesSectionRuntime", () => {
@@ -79,7 +82,7 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
 
         const timer = Symbol(
             "field-toggle-production-timer"
-        ) as unknown as ReturnType<typeof setTimeout>;
+        ) as unknown as CreateFieldTogglesSectionTimerHandle;
         const timeoutMs = Number("120");
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);

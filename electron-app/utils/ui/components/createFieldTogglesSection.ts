@@ -20,6 +20,7 @@ import { showNotification } from "../notifications/showNotification.js";
 import {
     getCreateFieldTogglesSectionRuntime,
     type CreateFieldTogglesSectionRuntime,
+    type CreateFieldTogglesSectionTimerHandle,
 } from "./createFieldTogglesSectionRuntime.js";
 
 type LooseRecord = Record<string, unknown>;
@@ -562,7 +563,7 @@ function createFieldToggle(
         container.append(label);
         container.append(colorPicker);
     } // Event listeners for toggle
-    let statusUpdateTimer: ReturnType<typeof setTimeout> | undefined;
+    let statusUpdateTimer: CreateFieldTogglesSectionTimerHandle | undefined;
     toggle.addEventListener(
         "change",
         () => {

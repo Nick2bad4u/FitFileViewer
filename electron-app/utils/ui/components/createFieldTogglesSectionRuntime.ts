@@ -14,6 +14,8 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
+export type CreateFieldTogglesSectionTimerHandle = BrowserTimerHandle;
+
 export interface CreateFieldTogglesSectionRuntimeScope {
     readonly getAbortController?:
         | (() => BrowserAbortControllerConstructor | undefined)
