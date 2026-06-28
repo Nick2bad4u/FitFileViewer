@@ -2,13 +2,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type {
     BrowserAbortControllerConstructor,
+    BrowserClearInterval,
     BrowserClearTimeout,
+    BrowserIntervalHandle,
     BrowserTimerHandle,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
+    clearResourceManagerInterval,
     clearResourceManagerTimer,
     getResourceManagerDateNow,
     registerResourceManagerUnloadCleanup,
+    type ResourceManagerInterval,
     type ResourceManagerTimer,
 } from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
 
@@ -34,12 +38,36 @@ describe("resourceManagerRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
+    it("clears intervals through the injected runtime scope", () => {
+        expect.assertions(1);
+
+        const interval = 18 as ResourceManagerInterval;
+        let clearedInterval: unknown;
+        const clearInterval: BrowserClearInterval = (handle) => {
+            clearedInterval = handle;
+        };
+
+        clearResourceManagerInterval(interval, {
+            getClearInterval: () => clearInterval,
+        });
+
+        expect(clearedInterval).toBe(interval);
+    });
+
     it("fails clearly when the timer cleanup runtime is unavailable", () => {
         expect.assertions(1);
 
         expect(() => {
             clearResourceManagerTimer(17 as BrowserTimerHandle, {});
         }).toThrow("resourceManager requires clearTimeout");
+    });
+
+    it("fails clearly when the interval cleanup runtime is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => {
+            clearResourceManagerInterval(18 as BrowserIntervalHandle, {});
+        }).toThrow("resourceManager requires clearInterval");
     });
 
     it("reads registration timestamps through the injected runtime scope", () => {
@@ -147,17 +175,23 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("uses browser runtime providers for production timer and clock defaults", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
+        const interval = 32 as BrowserIntervalHandle;
         const timer = 31 as BrowserTimerHandle;
+        const clearIntervalMock = vi.fn<BrowserClearInterval>();
         const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const dateNowMock = vi.spyOn(Date, "now").mockReturnValue(987_654);
 
+        vi.stubGlobal("clearInterval", clearIntervalMock);
         vi.stubGlobal("clearTimeout", clearTimeoutMock);
 
+        clearResourceManagerInterval(interval);
         clearResourceManagerTimer(timer);
 
         expect(getResourceManagerDateNow()).toBe(987_654);
+        expect(clearIntervalMock).toHaveBeenCalledWith(interval);
+        expect(clearIntervalMock).toHaveBeenCalledOnce();
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
         expect(clearTimeoutMock).toHaveBeenCalledOnce();
         expect(dateNowMock).toHaveBeenCalledOnce();
@@ -205,14 +239,17 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const cleanup = vi.fn();
+        const interval = 20 as BrowserIntervalHandle;
         const timer = 19 as BrowserTimerHandle;
+        const clearInterval = vi.fn();
         const clearTimeout = vi.fn();
         const addEventListener = vi.fn();
         const removeEventListener = vi.fn();
         const dateNow = vi.fn(() => 654_321);
+        const getClearInterval = vi.fn(() => clearInterval);
         const getClearTimeout = vi.fn(() => clearTimeout);
         const getDateNow = vi.fn(() => dateNow);
         const getEventTarget = vi.fn(() => ({
@@ -220,6 +257,7 @@ describe("resourceManagerRuntime", () => {
             removeEventListener,
         }));
 
+        clearResourceManagerInterval(interval, { getClearInterval });
         clearResourceManagerTimer(timer, { getClearTimeout });
         expect(getResourceManagerDateNow({ getDateNow })).toBe(654_321);
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
@@ -228,6 +266,8 @@ describe("resourceManagerRuntime", () => {
         expect(typeof unregister).toBe("function");
         unregister?.();
 
+        expect(getClearInterval).toHaveBeenCalledOnce();
+        expect(clearInterval).toHaveBeenCalledWith(interval);
         expect(getClearTimeout).toHaveBeenCalledOnce();
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(getDateNow).toHaveBeenCalledOnce();
@@ -245,10 +285,12 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const cleanup = vi.fn();
+        const interval = 24 as BrowserIntervalHandle;
         const timer = 23 as BrowserTimerHandle;
+        const clearInterval = vi.fn();
         const clearTimeout = vi.fn();
         const addEventListener = vi.fn();
         const removeEventListener = vi.fn();
@@ -263,11 +305,15 @@ describe("resourceManagerRuntime", () => {
         const legacyScope = {
             AbortController:
                 AbortControllerFixture as unknown as BrowserAbortControllerConstructor,
+            clearInterval,
             clearTimeout,
             dateNow: vi.fn(() => 1),
             eventTarget: { addEventListener, removeEventListener },
         } as unknown as Parameters<typeof clearResourceManagerTimer>[1];
 
+        expect(() =>
+            clearResourceManagerInterval(interval, legacyScope)
+        ).toThrow("resourceManager requires clearInterval");
         expect(() => clearResourceManagerTimer(timer, legacyScope)).toThrow(
             "resourceManager requires clearTimeout"
         );
@@ -277,6 +323,7 @@ describe("resourceManagerRuntime", () => {
         expect(
             registerResourceManagerUnloadCleanup(cleanup, legacyScope)
         ).toBeNull();
+        expect(clearInterval).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
     });

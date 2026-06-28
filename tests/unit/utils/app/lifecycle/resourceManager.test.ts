@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { resourceManager } from "../../../../../electron-app/utils/app/lifecycle/resourceManager.js";
+import type {
+    BrowserIntervalHandle,
+    BrowserTimerHandle,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 function cleanupFixture(): void {
     resourceManager.cleanupAll();
@@ -136,40 +140,56 @@ describe("resourceManager", () => {
     });
 
     it("cleans up specialized resource wrappers", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         setupFixture();
 
         try {
+            const clearIntervalSpy = vi
+                .spyOn(globalThis, "clearInterval")
+                .mockImplementation(() => {});
+            const clearTimeoutSpy = vi
+                .spyOn(globalThis, "clearTimeout")
+                .mockImplementation(() => {});
             const destroy = vi.fn<() => void>();
             const disconnect = vi.fn<() => void>();
+            const interval = 42 as BrowserIntervalHandle;
             const remove = vi.fn<() => void>();
+            const timer = 43 as BrowserTimerHandle;
             const terminate = vi.fn<() => void>();
 
             const chartId = resourceManager.registerChart({ destroy });
+            const intervalId = resourceManager.registerInterval(interval);
             const observerId = resourceManager.registerObserver({
                 disconnect,
             });
             const mapId = resourceManager.registerMap({ remove });
+            const timerId = resourceManager.registerTimer(timer);
             const workerId = resourceManager.registerWorker({ terminate });
 
             expect([
                 chartId,
+                intervalId,
                 observerId,
                 mapId,
+                timerId,
                 workerId,
             ]).toStrictEqual([
                 expect.stringMatching(/^resource-chart-\d+$/u),
+                expect.stringMatching(/^resource-interval-\d+$/u),
                 expect.stringMatching(/^resource-observer-\d+$/u),
                 expect.stringMatching(/^resource-map-\d+$/u),
+                expect.stringMatching(/^resource-timer-\d+$/u),
                 expect.stringMatching(/^resource-worker-\d+$/u),
             ]);
 
             resourceManager.cleanupAll();
 
             expect(destroy).toHaveBeenCalledOnce();
+            expect(clearIntervalSpy).toHaveBeenCalledWith(interval);
             expect(disconnect).toHaveBeenCalledOnce();
             expect(remove).toHaveBeenCalledOnce();
+            expect(clearTimeoutSpy).toHaveBeenCalledWith(timer);
             expect(terminate).toHaveBeenCalledOnce();
         } finally {
             cleanupFixture();

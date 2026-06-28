@@ -1146,11 +1146,11 @@ Master state manager performance-monitor interval scheduling, interval cleanup, 
 `masterStateRuntime.ts` instead of calling timer globals or reading `performance.memory` directly inside
 `masterStateManager.ts`, with focused runtime coverage and architecture guardrails blocking direct interval and
 performance-memory access from returning.
-Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
+Resource-manager unload cleanup listener registration plus registered timer and interval cleanup now go through the scoped
 `resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,
-constructing `AbortController`, or calling `clearTimeout` directly inside `resourceManager.ts`, with focused
+constructing `AbortController`, or calling `clearTimeout`/`clearInterval` directly inside `resourceManager.ts`, with focused
 runtime coverage and architecture guardrails blocking those direct operations from returning. Explicit resource
-manager runtime scopes must now provide timer cleanup primitives instead of falling back to `globalThis`, with
+manager runtime scopes must now provide timer and interval cleanup primitives instead of falling back to `globalThis`, with
 focused runtime coverage and architecture coverage blocking that fallback from returning.
 Resource-manager specialized chart/map/observer/worker cleanup validation now checks explicit cleanup-method
 candidate properties directly instead of routing known method names through a generic `Reflect.get` helper, with

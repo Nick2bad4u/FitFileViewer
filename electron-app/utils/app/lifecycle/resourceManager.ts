@@ -1,8 +1,10 @@
 import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
 import {
+    clearResourceManagerInterval,
     clearResourceManagerTimer,
     getResourceManagerDateNow,
     registerResourceManagerUnloadCleanup,
+    type ResourceManagerInterval,
     type ResourceManagerTimer,
 } from "./resourceManagerRuntime.js";
 
@@ -61,7 +63,7 @@ type RemovableMapCandidate = Readonly<{ remove?: unknown }>;
 type TerminableWorker = { terminate: () => unknown };
 type TerminableWorkerCandidate = Readonly<{ terminate?: unknown }>;
 type TimerHandle = ResourceManagerTimer;
-type IntervalHandle = ReturnType<typeof setInterval>;
+type IntervalHandle = ResourceManagerInterval;
 
 function isDestroyableChart(value: unknown): value is DestroyableChart {
     const candidate = value as DestroyableChartCandidate;
@@ -350,7 +352,7 @@ class ResourceManager {
         return this.register(
             "interval",
             () => {
-                clearInterval(intervalId);
+                clearResourceManagerInterval(intervalId);
             },
             { ...options, instance: intervalId }
         );

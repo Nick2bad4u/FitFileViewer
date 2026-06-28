@@ -15339,7 +15339,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(51);
+        expect.assertions(63);
 
         const appIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/app/index.ts")
@@ -15355,18 +15355,24 @@ describe("architecture boundaries", () => {
             )
         );
         const directResourceManagerRuntimeGlobalPattern =
-            /\b(?:globalThis|window)\.(?:clearTimeout|addEventListener)\b|(?:^|[^\w.])(?:clearTimeout|Date\.now)\(/u;
+            /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|addEventListener)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|Date\.now)\(/u;
         const directResourceManagerRuntimeAmbientTimerFallbackPattern =
-            /\bscope\.clearTimeout\s*\?\?\s*globalThis\.clearTimeout\b|\bglobalThis\.clearTimeout\s*\(/u;
+            /\bscope\.(?:clearInterval|clearTimeout)\s*\?\?\s*globalThis\.(?:clearInterval|clearTimeout)\b|\bglobalThis\.(?:clearInterval|clearTimeout)\s*\(/u;
 
         expect(resourceManagerSource).toContain("resourceManagerRuntime.js");
         expect(resourceManagerSource).toContain(
             "timestamp: getResourceManagerDateNow()"
         );
+        expect(resourceManagerSource).toContain("clearResourceManagerInterval");
+        expect(resourceManagerSource).toContain("clearResourceManagerTimer");
         expect(resourceManagerSource).not.toContain("globalThis.window");
         expect(resourceManagerSource).not.toContain("window.addEventListener");
         expect(resourceManagerSource).not.toContain("AbortController");
         expect(resourceManagerSource).not.toContain("Date.now");
+        expect(resourceManagerSource).not.toContain(
+            "ReturnType<typeof setInterval>"
+        );
+        expect(resourceManagerSource).not.toContain("clearInterval(");
         expect(resourceManagerSource).not.toContain("Reflect.get(");
         expect(resourceManagerSource).not.toContain("hasFunctionProperty");
         expect(resourceManagerSource).not.toContain(
@@ -15407,7 +15413,13 @@ describe("architecture boundaries", () => {
             "type BrowserAbortControllerConstructor"
         );
         expect(resourceManagerRuntimeSource).toContain(
+            "type BrowserClearInterval"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
             "type BrowserClearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "type BrowserIntervalHandle"
         );
         expect(resourceManagerRuntimeSource).toContain(
             "type BrowserTimerHandle"
@@ -15430,6 +15442,12 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getClearInterval: getBrowserClearInterval"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
+            "getClearInterval: () => globalThis.clearInterval"
+        );
         expect(resourceManagerRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
         );
@@ -15441,6 +15459,9 @@ describe("architecture boundaries", () => {
         );
         expect(resourceManagerRuntimeSource).toContain(
             "getBrowserClearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getBrowserClearInterval"
         );
         expect(resourceManagerRuntimeSource).toContain("getBrowserDateNow");
         expect(resourceManagerRuntimeSource).toContain("getBrowserEventTarget");
@@ -15454,6 +15475,9 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(resourceManagerRuntimeSource).not.toContain(
+            "readonly clearInterval?:"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
             "readonly dateNow?:"
         );
         expect(resourceManagerRuntimeSource).not.toContain(
@@ -15464,6 +15488,9 @@ describe("architecture boundaries", () => {
         );
         expect(resourceManagerRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
+            "scope.clearInterval"
         );
         expect(resourceManagerRuntimeSource).not.toContain("scope.dateNow");
         expect(resourceManagerRuntimeSource).not.toContain("scope.eventTarget");
@@ -15476,6 +15503,9 @@ describe("architecture boundaries", () => {
         );
         expect(resourceManagerRuntimeSource).toContain(
             "resourceManager requires clearTimeout"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "resourceManager requires clearInterval"
         );
         expect(resourceManagerRuntimeSource).toContain(
             "resourceManager requires dateNow"

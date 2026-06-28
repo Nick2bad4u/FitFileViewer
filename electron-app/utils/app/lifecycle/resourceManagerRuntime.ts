@@ -1,8 +1,11 @@
 import {
     type BrowserAbortControllerConstructor,
+    type BrowserClearInterval,
     type BrowserClearTimeout,
+    type BrowserIntervalHandle,
     type BrowserTimerHandle,
     getBrowserAbortController,
+    getBrowserClearInterval,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserEventTarget,
@@ -17,6 +20,9 @@ export interface ResourceManagerRuntimeScope {
     readonly getAbortController?:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
+    readonly getClearInterval?:
+        | (() => BrowserClearInterval | undefined)
+        | undefined;
     readonly getClearTimeout?:
         | (() => BrowserClearTimeout | undefined)
         | undefined;
@@ -26,10 +32,12 @@ export interface ResourceManagerRuntimeScope {
         | undefined;
 }
 
+export type ResourceManagerInterval = BrowserIntervalHandle;
 export type ResourceManagerTimer = BrowserTimerHandle;
 
 const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
     getAbortController: getBrowserAbortController,
+    getClearInterval: getBrowserClearInterval,
     getClearTimeout: getBrowserClearTimeout,
     getDateNow: getBrowserDateNow,
     getEventTarget: getBrowserEventTarget,
@@ -47,6 +55,12 @@ function getClearTimeout(
     return scope.getClearTimeout?.();
 }
 
+function getClearInterval(
+    scope: ResourceManagerRuntimeScope
+): BrowserClearInterval | undefined {
+    return scope.getClearInterval?.();
+}
+
 function getRequiredDateNow(scope: ResourceManagerRuntimeScope): () => number {
     const dateNow = scope.getDateNow?.();
     if (typeof dateNow !== "function") {
@@ -60,6 +74,18 @@ function getEventTarget(
     scope: ResourceManagerRuntimeScope
 ): ResourceManagerEventTarget | undefined {
     return scope.getEventTarget?.();
+}
+
+export function clearResourceManagerInterval(
+    intervalId: ResourceManagerInterval,
+    scope: ResourceManagerRuntimeScope = defaultResourceManagerRuntimeScope
+): void {
+    const clearIntervalRef = getClearInterval(scope);
+    if (typeof clearIntervalRef !== "function") {
+        throw new TypeError("resourceManager requires clearInterval");
+    }
+
+    clearIntervalRef(intervalId);
 }
 
 export function clearResourceManagerTimer(
