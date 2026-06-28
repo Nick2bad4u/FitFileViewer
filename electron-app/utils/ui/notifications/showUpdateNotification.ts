@@ -23,6 +23,10 @@ type ElectronUpdateAPI = {
     readonly installUpdate?: ElectronMenuEventApi["installUpdate"];
 };
 
+type ElectronUpdateApiMethods = Readonly<{
+    readonly installUpdate?: ElectronMenuEventApi["installUpdate"];
+}>;
+
 type ShowUpdateNotificationOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
     readonly notificationRuntime?: ShowUpdateNotificationRuntime | undefined;
@@ -54,10 +58,6 @@ const activeAutoHideTimerRuntimes = new WeakMap<
     HTMLElement,
     NotificationTimerRuntime
 >();
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
 
 /**
  * Shows update notifications with enhanced features and error handling.
@@ -350,25 +350,40 @@ function validateElectronAPI(
 function getInstallUpdate(
     electronApiScope: RendererElectronApiScope | undefined
 ): (() => void) | null {
-    const installUpdate = getRendererElectronApi(
+    const electronAPI = getRendererElectronApi(
         isElectronUpdateApi,
         electronApiScope
-    )?.installUpdate;
+    );
+    if (!electronAPI) {
+        return null;
+    }
+
+    const installUpdate = readElectronApiValue(() => electronAPI.installUpdate);
 
     return typeof installUpdate === "function" ? installUpdate : null;
 }
 
 function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
-    if (!isRecord(value)) {
+    if (!isElectronUpdateApiMethods(value)) {
         return false;
     }
 
-    return hasOptionalInstallUpdate(value);
+    const candidate = readElectronApiValue(() => value.installUpdate);
+    return candidate === undefined || typeof candidate === "function";
 }
 
-function hasOptionalInstallUpdate(value: Record<string, unknown>): boolean {
-    const candidate = value["installUpdate"];
-    return candidate === undefined || typeof candidate === "function";
+function isElectronUpdateApiMethods(
+    value: unknown
+): value is ElectronUpdateApiMethods {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue<T>(readValue: () => T): T | undefined {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function clearAutoHideTimer(
