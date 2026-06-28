@@ -20,21 +20,6 @@ describe("getOverlayFileName", () => {
         expect(() => getOverlayFileName(NaN as any)).toThrow(TypeError);
     });
 
-    it("returns empty string when loadedFitFiles is not an array", async () => {
-        expect.assertions(1);
-
-        vi.doMock(
-            import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
-            () => ({
-                getLoadedFitFiles: vi.fn<() => unknown>(() => ({
-                    nope: true,
-                })),
-            })
-        );
-        const { getOverlayFileName } = await importGetOverlayFileName();
-        expect(getOverlayFileName(0)).toBe("");
-    });
-
     it("returns empty string when item missing or invalid filePath", async () => {
         expect.assertions(3);
 

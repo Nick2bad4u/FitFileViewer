@@ -2,7 +2,6 @@ import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 
 const ERROR_MESSAGES = {
     INVALID_INDEX: "Index must be a non-negative integer",
-    INVALID_LOADED_FILES: "Loaded FIT files data is not an array",
     STATE_ACCESS_ERROR: "Failed to access overlay file state:",
 } as const;
 
@@ -41,14 +40,6 @@ export function getOverlayFileName(idx: number): string {
 
     try {
         const loadedFitFiles = getLoadedFitFiles();
-
-        if (!Array.isArray(loadedFitFiles)) {
-            console.warn(
-                `[getOverlayFileName] ${ERROR_MESSAGES.INVALID_LOADED_FILES}`
-            );
-            return "";
-        }
-
         return getLoadedFitFilePath(loadedFitFiles[idx]);
     } catch (error) {
         console.error(

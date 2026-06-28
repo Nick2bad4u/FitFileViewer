@@ -22375,7 +22375,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay filename lookup behind loaded-file entry guards", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const getOverlayFileNameSource = stripComments(
             readRepositoryFile(
@@ -22384,6 +22384,10 @@ describe("architecture boundaries", () => {
         );
 
         expect(getOverlayFileNameSource).not.toContain("as LoadedFitFile");
+        expect(getOverlayFileNameSource).toContain("getLoadedFitFiles()");
+        expect(getOverlayFileNameSource).not.toContain(
+            "Array.isArray(loadedFitFiles)"
+        );
         expect(getOverlayFileNameSource).not.toContain(
             "const fileData = loadedFitFiles[idx]"
         );
