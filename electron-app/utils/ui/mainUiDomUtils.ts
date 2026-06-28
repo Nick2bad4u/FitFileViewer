@@ -17,6 +17,10 @@ type MainUiDomElectronApi = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
 };
 
+type MainUiDomElectronApiMethods = Readonly<{
+    readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
+}>;
+
 type EventListenerEntry = {
     readonly abortController: AbortController;
     readonly element: EventTarget;
@@ -84,15 +88,27 @@ export function validateElectronAPI(
 }
 
 function isDecodeFitFileApi(value: unknown): value is MainUiDomElectronApi {
-    if (!isRecord(value)) {
+    if (!isMainUiDomElectronApiMethods(value)) {
         return false;
     }
 
-    return typeof value["decodeFitFile"] === "function";
+    return (
+        typeof readElectronApiValue(() => value.decodeFitFile) === "function"
+    );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isMainUiDomElectronApiMethods(
+    value: unknown
+): value is MainUiDomElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 /**

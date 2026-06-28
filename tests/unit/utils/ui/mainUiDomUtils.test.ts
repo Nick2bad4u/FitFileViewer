@@ -179,6 +179,25 @@ describe("mainUiDomUtils", () => {
         resetTestState();
     });
 
+    it("rejects inaccessible scoped electron API decoder properties", () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        const api = Object.defineProperty({}, "decodeFitFile", {
+            get() {
+                throw new Error("blocked decoder property");
+            },
+        });
+        const electronApiScope = createElectronApiScope(api);
+
+        expect({
+            isValid: validateElectronAPI(electronApiScope),
+        }).toStrictEqual({ isValid: false });
+
+        resetTestState();
+    });
+
     it("accepts an electron API with a FIT decoder function", () => {
         expect.assertions(1);
 
