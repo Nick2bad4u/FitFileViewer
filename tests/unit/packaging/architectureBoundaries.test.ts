@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(116);
+        expect.assertions(117);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12723,6 +12723,11 @@ describe("architecture boundaries", () => {
         const renderChartRenderSettingsSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartRenderSettings.ts"
+            )
+        );
+        const renderChartRuntimeDependenciesSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRuntimeDependencies.ts"
             )
         );
         const renderChartRenderedEventSource = stripComments(
@@ -12917,6 +12922,7 @@ describe("architecture boundaries", () => {
         expect(renderChartRenderSettingsSource).toContain(
             "dependencies.setChartOptionsState("
         );
+        expect(renderChartRuntimeDependenciesSource).not.toContain("ss_rcwd");
         expect(renderChartStateManagementApiSource).toContain(
             "initializeChartRenderState"
         );

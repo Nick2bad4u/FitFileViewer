@@ -1985,6 +1985,8 @@ Computed chart-summary count/time reads and rendered-event chart-options reads n
 state-domain helpers instead of direct chart state-path reads.
 Chart data and chart-options writes now route through renderer chart state-domain helpers instead of passing direct chart
 state paths through chart-core preparation and settings helpers.
+The chart runtime dependency resolver no longer exposes the generic `ss_rcwd` set-state alias; chart render code must use
+typed state-domain setters instead of carrying a generic chart state setter through render dependencies.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.

@@ -39,7 +39,6 @@ export interface ResolvedChartRuntimeDependencies {
     readonly renderPerformanceAnalysisChartsSafe: ChartRendererModules["renderPerformanceAnalysisCharts"];
     readonly renderTimeInZoneChartsSafe: ChartRendererModules["renderTimeInZoneCharts"];
     readonly showRenderNotificationSafe: ShowRenderNotificationFunction;
-    readonly ss_rcwd: ChartStateManagerAccess["setState"];
     readonly themeConfig: unknown;
     readonly us_rcwd: ChartStateManagerAccess["updateState"];
 }
@@ -89,8 +88,6 @@ export async function resolveChartRuntimeDependencies(
         renderPerformanceAnalysisChartsSafe,
         renderTimeInZoneChartsSafe,
         showRenderNotificationSafe,
-        ss_rcwd: (path, value, options) =>
-            stateManager.setState(path, value, options),
         themeConfig,
         us_rcwd: (path, value, options) =>
             stateManager.updateState(path, value, options),
