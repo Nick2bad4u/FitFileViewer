@@ -11168,7 +11168,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update notification DOM access behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(26);
 
         const violations = migratedShowUpdateNotificationDomRuntimeFiles
             .filter((relativeFile) =>
@@ -11204,6 +11204,18 @@ describe("architecture boundaries", () => {
         expect(showUpdateNotificationSource).toContain("ElectronMenuEventApi");
         expect(showUpdateNotificationSource).not.toContain(
             "interface ElectronUpdateAPI"
+        );
+        expect(showUpdateNotificationSource).toContain(
+            "Reflect.get(value, \"installUpdate\")"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "type ElectronUpdateApiCandidate"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "readonly [K in keyof ElectronUpdateAPI]?: unknown;"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "value.installUpdate"
         );
         expect(showUpdateNotificationSource).not.toContain(
             "import type { ElectronAPI"
@@ -18465,7 +18477,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(63);
+        expect.assertions(66);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -18559,6 +18571,15 @@ describe("architecture boundaries", () => {
         );
         expect(showUpdateNotificationSource).not.toContain(
             "value as Record<string, unknown>"
+        );
+        expect(showUpdateNotificationSource).toContain(
+            'Reflect.get(value, "installUpdate")'
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "type ElectronUpdateApiCandidate"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "readonly [K in keyof ElectronUpdateAPI]?: unknown;"
         );
         expect(setupThemeSource).not.toContain(
             "value as Record<string, unknown>"

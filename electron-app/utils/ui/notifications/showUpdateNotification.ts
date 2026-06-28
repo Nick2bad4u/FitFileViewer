@@ -23,10 +23,6 @@ type ElectronUpdateAPI = {
     readonly installUpdate?: ElectronMenuEventApi["installUpdate"];
 };
 
-type ElectronUpdateApiCandidate = {
-    readonly [K in keyof ElectronUpdateAPI]?: unknown;
-};
-
 type ShowUpdateNotificationOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
     readonly notificationRuntime?: ShowUpdateNotificationRuntime | undefined;
@@ -366,8 +362,8 @@ function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
     return hasOptionalInstallUpdate(value);
 }
 
-function hasOptionalInstallUpdate(value: ElectronUpdateApiCandidate): boolean {
-    const candidate = value.installUpdate;
+function hasOptionalInstallUpdate(value: object): boolean {
+    const candidate = Reflect.get(value, "installUpdate");
     return candidate === undefined || typeof candidate === "function";
 }
 

@@ -267,4 +267,47 @@ describe("showUpdateNotification", () => {
             "ShowUpdateNotification: Cannot install update - electronAPI not available",
         ]);
     });
+
+    it("rejects primitive scoped update APIs without invoking install", async () => {
+        expect.assertions(5);
+
+        const host = createNotificationHost();
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        const getElectronAPI = vi.fn<() => unknown>(() => "not an api");
+        const electronApiScope: RendererElectronApiScope = {
+            getElectronAPI,
+        };
+
+        const { showUpdateNotification } =
+            await import("../../../../../electron-app/utils/ui/notifications/showUpdateNotification.js");
+
+        showUpdateNotification("Try primitive update", "info", 0, true, {
+            electronApiScope,
+        });
+        getRequiredNotificationButton(
+            getNotificationButtons(host),
+            "Restart & Update"
+        ).click();
+
+        expect(host.style.display).toBe("block");
+        expect(getNotificationButtons(host)).toHaveLength(1);
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(
+            warnSpy.mock.calls.map(([message]) =>
+                stripRendererLogPrefix(message)
+            )
+        ).toStrictEqual([
+            "ShowUpdateNotification: electronAPI.installUpdate not available",
+        ]);
+        expect(
+            errorSpy.mock.calls.map(([message]) =>
+                stripRendererLogPrefix(message)
+            )
+        ).toStrictEqual([
+            "ShowUpdateNotification: Cannot install update - electronAPI not available",
+        ]);
+    });
 });
