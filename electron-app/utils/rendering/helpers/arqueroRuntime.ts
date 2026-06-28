@@ -25,14 +25,32 @@ export type ArqueroRuntime = {
     from: (records: readonly SummaryRecord[]) => ArqueroTable;
 };
 
+type ArqueroRuntimeCandidate = Readonly<{
+    readonly from?: unknown;
+}>;
+
 type ArqueroRuntimeRegistry = {
     runtime?: unknown;
 };
 
 const arqueroRuntimeRegistry: ArqueroRuntimeRegistry = {};
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isObjectCandidate(value: unknown): value is object {
     return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toArqueroRuntimeCandidate(
+    value: unknown
+): ArqueroRuntimeCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
+}
+
+function readRuntimeValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 export function setArqueroRuntime(runtime: unknown): void {
@@ -49,7 +67,9 @@ export function resolveArqueroRuntime(): ArqueroRuntime | undefined {
 }
 
 export function isArqueroRuntime(value: unknown): value is ArqueroRuntime {
+    const runtime = toArqueroRuntimeCandidate(value);
     return (
-        isRecord(value) && typeof value["from"] === "function"
+        runtime !== undefined &&
+        typeof readRuntimeValue(() => runtime.from) === "function"
     );
 }

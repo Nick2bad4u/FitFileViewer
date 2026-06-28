@@ -39,4 +39,19 @@ describe("arqueroRuntime", () => {
         expect(isArqueroRuntime([() => undefined])).toBe(false);
         expect(resolveArqueroRuntime()).toBeUndefined();
     });
+
+    it("ignores runtimes with throwing from accessors", () => {
+        expect.assertions(2);
+
+        const runtime = Object.defineProperty({}, "from", {
+            get() {
+                throw new Error("arquero unavailable");
+            },
+        });
+
+        setArqueroRuntime(runtime);
+
+        expect(isArqueroRuntime(runtime)).toBe(false);
+        expect(resolveArqueroRuntime()).toBeUndefined();
+    });
 });

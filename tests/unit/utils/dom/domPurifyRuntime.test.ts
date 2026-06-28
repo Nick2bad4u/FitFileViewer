@@ -33,4 +33,19 @@ describe("domPurifyRuntime", () => {
         expect(isDomPurifyRuntime([vi.fn()])).toBe(false);
         expect(resolveDomPurifyRuntime()).toBeUndefined();
     });
+
+    it("ignores runtimes with throwing sanitize accessors", () => {
+        expect.assertions(2);
+
+        const runtime = Object.defineProperty({}, "sanitize", {
+            get() {
+                throw new Error("sanitize unavailable");
+            },
+        });
+
+        setDomPurifyRuntime(runtime);
+
+        expect(isDomPurifyRuntime(runtime)).toBe(false);
+        expect(resolveDomPurifyRuntime()).toBeUndefined();
+    });
 });

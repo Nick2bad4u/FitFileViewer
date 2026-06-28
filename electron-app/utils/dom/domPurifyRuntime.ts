@@ -12,10 +12,28 @@ export interface DomPurifyRuntime {
     ): DocumentFragment;
 }
 
+type DomPurifyRuntimeCandidate = Readonly<{
+    readonly sanitize?: unknown;
+}>;
+
 let registeredDomPurifyRuntime: DomPurifyRuntime | undefined;
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isObjectCandidate(value: unknown): value is object {
     return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toDomPurifyRuntimeCandidate(
+    value: unknown
+): DomPurifyRuntimeCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
+}
+
+function readRuntimeValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 export function setDomPurifyRuntime(runtime: unknown): void {
@@ -33,7 +51,9 @@ export function resolveDomPurifyRuntime(): DomPurifyRuntime | undefined {
 }
 
 export function isDomPurifyRuntime(value: unknown): value is DomPurifyRuntime {
+    const runtime = toDomPurifyRuntimeCandidate(value);
     return (
-        isRecord(value) && typeof value["sanitize"] === "function"
+        runtime !== undefined &&
+        typeof readRuntimeValue(() => runtime.sanitize) === "function"
     );
 }

@@ -17806,7 +17806,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core vendor runtime adapters off global symbol registries", () => {
-        expect.assertions(18);
+        expect.assertions(22);
 
         const coreRuntimeSources = [
             "electron-app/utils/dom/domPurifyRuntime.ts",
@@ -17830,23 +17830,31 @@ describe("architecture boundaries", () => {
             expect(source).not.toContain("globalThis");
         }
         expect(domPurifyRuntimeSource).toContain(
-            "Readonly<Record<string, unknown>>"
+            "type DomPurifyRuntimeCandidate = Readonly<{"
         );
         expect(domPurifyRuntimeSource).toContain("!Array.isArray(value)");
-        expect(domPurifyRuntimeSource).toContain('typeof value["sanitize"]');
+        expect(domPurifyRuntimeSource).toContain("function readRuntimeValue(");
+        expect(domPurifyRuntimeSource).toContain("runtime.sanitize");
+        expect(domPurifyRuntimeSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(domPurifyRuntimeSource).not.toContain('value["sanitize"]');
         expect(domPurifyRuntimeSource).not.toContain(
             "value as { sanitize?: unknown }"
         );
-        expect(domPurifyRuntimeSource).not.toContain(".sanitize");
         expect(arqueroRuntimeSource).toContain(
-            "Readonly<Record<string, unknown>>"
+            "type ArqueroRuntimeCandidate = Readonly<{"
         );
         expect(arqueroRuntimeSource).toContain("!Array.isArray(value)");
-        expect(arqueroRuntimeSource).toContain('typeof value["from"]');
+        expect(arqueroRuntimeSource).toContain("function readRuntimeValue(");
+        expect(arqueroRuntimeSource).toContain("runtime.from");
+        expect(arqueroRuntimeSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(arqueroRuntimeSource).not.toContain('value["from"]');
         expect(arqueroRuntimeSource).not.toContain(
             "value as { from?: unknown }"
         );
-        expect(arqueroRuntimeSource).not.toContain(".from");
     });
 
     it("keeps migrated DOM sanitizers on the DOMPurify runtime adapter", () => {
