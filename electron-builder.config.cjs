@@ -28,6 +28,23 @@ const shouldCodeSign = isEnvironmentFlagEnabled(
 );
 
 /**
+ * Apply Electron fuses during electron-builder's afterPack lifecycle so signed
+ * builds mutate the executable before signing/artifact creation, not after.
+ *
+ * @param {unknown} context
+ *
+ * @returns {Promise<void>}
+ */
+async function applyElectronFusesAfterPack(context) {
+    const { applyElectronFuses, getElectronBuilderAfterPackExecutablePath } =
+        await import("./scripts/apply-electron-fuses.mjs");
+
+    await applyElectronFuses({
+        executablePaths: [getElectronBuilderAfterPackExecutablePath(context)],
+    });
+}
+
+/**
  * @param {string} exportName
  *
  * @returns {string}
@@ -80,6 +97,7 @@ module.exports = {
     copyright: appPackage.copyright,
     forceCodeSigning: shouldCodeSign,
     artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
+    afterPack: applyElectronFusesAfterPack,
     asar: true,
     publish: [
         {

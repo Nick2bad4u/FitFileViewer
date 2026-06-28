@@ -3,7 +3,6 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
-    applyElectronFusesScriptPath,
     buildRuntimeScriptPath,
     repositoryRoot,
     runElectronBuilderScriptPath,
@@ -18,10 +17,6 @@ export function buildPackageSteps(argv = process.argv.slice(2)) {
         {
             args: [runElectronBuilderScriptPath, ...argv],
             label: "run electron-builder",
-        },
-        {
-            args: [applyElectronFusesScriptPath],
-            label: "apply electron fuses",
         },
     ];
 }

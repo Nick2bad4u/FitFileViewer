@@ -433,6 +433,9 @@ missing variable.
 - Use `npm run package:signed` for a signed current-platform release package.
   It runs the required signing preflight, then starts electron-builder with
   `REQUIRE_CODE_SIGNING=true`.
+- Electron fuses are applied from the electron-builder `afterPack` hook. That
+  keeps fuse mutation before signing and artifact creation, so signed builds are
+  not modified by a separate post-packaging step.
 - Use `npm run verify:release:signed` when signing credentials are available
   and you want the full signed release path in one command: fast verification,
   docs build, audit, Playwright smoke, signed packaging, signature artifact

@@ -8,7 +8,6 @@ import {
     runBuildPackage,
 } from "../../../scripts/build-package.mjs";
 import {
-    applyElectronFusesScriptPath,
     buildRuntimeScriptPath,
     runElectronBuilderScriptPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -46,7 +45,6 @@ describe("build-package script", () => {
         expect(steps.map((step) => step.label)).toStrictEqual([
             "build runtime",
             "run electron-builder",
-            "apply electron fuses",
         ]);
         expect(steps.map((step) => step.args)).toStrictEqual([
             [buildRuntimeScriptPath],
@@ -56,7 +54,6 @@ describe("build-package script", () => {
                 "production",
                 "--dir",
             ],
-            [applyElectronFusesScriptPath],
         ]);
     });
 
@@ -74,8 +71,8 @@ describe("build-package script", () => {
             loggerCalls: logger.mock.calls.length,
             status,
         }).toStrictEqual({
-            commandCalls: 3,
-            loggerCalls: 3,
+            commandCalls: 2,
+            loggerCalls: 2,
             status: 0,
         });
 
@@ -97,7 +94,6 @@ describe("build-package script", () => {
         expect(logger.mock.calls).toStrictEqual([
             ["[build-package] build runtime"],
             ["[build-package] run electron-builder"],
-            ["[build-package] apply electron fuses"],
         ]);
     });
 

@@ -14,6 +14,7 @@ type AppPackage = {
 };
 
 type ElectronBuilderConfig = {
+    afterPack?: unknown;
     appId: string;
     copyright: string;
     forceCodeSigning: boolean;
@@ -104,5 +105,26 @@ describe("electron-builder config", () => {
 
         expect(builderConfig.forceCodeSigning).toBe(true);
         expect(builderConfig.win.signExecutable).toBe(true);
+    });
+
+    it("applies Electron fuses through afterPack before signing", async () => {
+        expect.assertions(3);
+
+        const imported =
+            (await import("../../../electron-builder.config.cjs")) as {
+                default: ElectronBuilderConfig;
+            };
+        const configSource = readFileSync(
+            path.join(process.cwd(), "electron-builder.config.cjs"),
+            "utf8"
+        );
+
+        expect(typeof imported.default.afterPack).toBe("function");
+        expect(configSource).toContain(
+            "afterPack: applyElectronFusesAfterPack"
+        );
+        expect(configSource).toContain(
+            "before signing/artifact creation, not after"
+        );
     });
 });

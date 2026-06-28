@@ -6,6 +6,7 @@ import {
     applyElectronFuses,
     electronFuseConfig,
     expectedElectronFuseStates,
+    getElectronBuilderAfterPackExecutablePath,
     getPackagedElectronExecutableCandidates,
 } from "../../../scripts/apply-electron-fuses.mjs";
 
@@ -153,6 +154,60 @@ describe("apply-electron-fuses script", () => {
                 getCurrentFuseWireImpl: vi.fn(),
             })
         ).rejects.toThrow("No unpacked Electron executable found");
+    });
+
+    it("resolves electron-builder afterPack executable paths before signing", () => {
+        expect.assertions(4);
+
+        expect(
+            getElectronBuilderAfterPackExecutablePath({
+                appOutDir: path.join("release-dist", "win-unpacked"),
+                electronPlatformName: "win32",
+                packager: {
+                    appInfo: {
+                        productFilename: "Fit File Viewer",
+                    },
+                },
+            })
+        ).toBe(
+            path.join("release-dist", "win-unpacked", "Fit File Viewer.exe")
+        );
+        expect(
+            getElectronBuilderAfterPackExecutablePath({
+                appOutDir: path.join("release-dist", "linux-unpacked"),
+                electronPlatformName: "linux",
+                packager: {
+                    appInfo: {
+                        productFilename: "Fit File Viewer",
+                    },
+                },
+            })
+        ).toBe(path.join("release-dist", "linux-unpacked", "Fit File Viewer"));
+        expect(
+            getElectronBuilderAfterPackExecutablePath({
+                appOutDir: path.join("release-dist", "mac"),
+                electronPlatformName: "darwin",
+                packager: {
+                    appInfo: {
+                        productFilename: "Fit File Viewer",
+                    },
+                },
+            })
+        ).toBe(
+            path.join(
+                "release-dist",
+                "mac",
+                "Fit File Viewer.app",
+                "Contents",
+                "MacOS",
+                "Fit File Viewer"
+            )
+        );
+        expect(() =>
+            getElectronBuilderAfterPackExecutablePath({
+                appOutDir: "",
+            })
+        ).toThrow("electron-builder afterPack context is missing appOutDir");
     });
 
     it("rejects fuse verification drift", async () => {

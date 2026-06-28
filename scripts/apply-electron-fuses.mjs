@@ -56,6 +56,19 @@ const unpackedBuildDirectoryNames = [
 ];
 
 /**
+ * @typedef {object} ElectronBuilderAfterPackContext
+ *
+ * @property {string} appOutDir
+ * @property {string} [electronPlatformName]
+ * @property {{
+ *     appInfo?: {
+ *         productFilename?: string;
+ *         productName?: string;
+ *     };
+ * }} [packager]
+ */
+
+/**
  * @typedef {(message: string) => void} Logger
  *
  * @typedef {(
@@ -162,6 +175,67 @@ export function getPackagedElectronExecutableCandidates({
             ),
         ];
     });
+}
+
+/**
+ * @param {ElectronBuilderAfterPackContext} context
+ *
+ * @returns {string}
+ */
+export function getElectronBuilderAfterPackExecutablePath(context) {
+    if (
+        !context ||
+        typeof context !== "object" ||
+        typeof context.appOutDir !== "string" ||
+        context.appOutDir.length === 0
+    ) {
+        throw new TypeError(
+            "electron-builder afterPack context is missing appOutDir"
+        );
+    }
+
+    const productExecutableName =
+        context.packager?.appInfo?.productFilename ??
+        context.packager?.appInfo?.productName ??
+        fallbackProductName;
+    const platform =
+        context.electronPlatformName ??
+        inferElectronBuilderPlatformFromAppOutDir(context.appOutDir);
+
+    if (platform === "win32") {
+        return path.join(context.appOutDir, `${productExecutableName}.exe`);
+    }
+
+    if (platform === "linux") {
+        return path.join(context.appOutDir, productExecutableName);
+    }
+
+    return path.join(
+        context.appOutDir,
+        `${productExecutableName}.app`,
+        "Contents",
+        "MacOS",
+        productExecutableName
+    );
+}
+
+/**
+ * @param {string} appOutDir
+ *
+ * @returns {"darwin" | "linux" | "win32"}
+ */
+function inferElectronBuilderPlatformFromAppOutDir(appOutDir) {
+    const directoryName = path.basename(appOutDir);
+
+    if (directoryName.startsWith("win-")) {
+        return "win32";
+    }
+
+    if (directoryName.startsWith("linux-")) {
+        return "linux";
+    }
+
+    return "darwin";
 }
 
 /**
