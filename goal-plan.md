@@ -2016,6 +2016,9 @@ Chart render preflight active-tab checks now also route through `getRendererActi
 longer accepts a generic state-manager dependency just to read `ui.activeTab`.
 Renderer state integration example active-tab, theme, and loading reads now route through typed renderer state
 selectors instead of direct state-path reads, with architecture guardrails blocking those sample reads from returning.
+The tab UI `getActiveTab()` helper now routes state-manager reads through `getRendererActiveTabFromState`, keeping
+active-tab path normalization in the typed renderer active-tab state module while preserving the existing state-manager
+access seam.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

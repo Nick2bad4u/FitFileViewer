@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     getRendererActiveTab,
+    getRendererActiveTabFromState,
     isRendererActiveTab,
     isRendererChartTab,
     isRendererTabName,
@@ -28,6 +29,20 @@ describe("rendererActiveTabState", () => {
         expect(getRendererActiveTab()).toBe("browser");
         expect(isRendererActiveTab("browser")).toBe(true);
         expect(isRendererActiveTab("map")).toBe(false);
+    });
+
+    it("reads active tab values through an explicit state reader", () => {
+        expect.assertions(3);
+
+        const reads: string[] = [];
+        const readState = (path: string): unknown => {
+            reads.push(path);
+            return "chartjs";
+        };
+
+        expect(getRendererActiveTabFromState(readState)).toBe("chartjs");
+        expect(reads).toStrictEqual(["ui.activeTab"]);
+        expect(getRendererActiveTabFromState(() => "unknown")).toBe("summary");
     });
 
     it("replaces the active renderer tab only when the expected tab is active", () => {

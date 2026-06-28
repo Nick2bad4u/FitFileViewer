@@ -16,8 +16,16 @@ import { normalizeRendererActiveTab } from "./rendererActiveTabContract.js";
 
 const RENDERER_ACTIVE_TAB_STATE_PATH = "ui.activeTab";
 
+type RendererActiveTabStateReader = (path: string) => unknown;
+
 export function getRendererActiveTab(): string {
     return normalizeRendererActiveTab(getState(RENDERER_ACTIVE_TAB_STATE_PATH));
+}
+
+export function getRendererActiveTabFromState(
+    readState: RendererActiveTabStateReader
+): string {
+    return normalizeRendererActiveTab(readState(RENDERER_ACTIVE_TAB_STATE_PATH));
 }
 
 export function isRendererActiveTab(tabName: string): boolean {

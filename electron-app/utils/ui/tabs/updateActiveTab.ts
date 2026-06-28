@@ -6,6 +6,7 @@ import {
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
 import {
+    getRendererActiveTabFromState,
     isRendererTabName,
     normalizeRendererActiveTab,
 } from "../../state/domain/rendererActiveTabState.js";
@@ -210,9 +211,7 @@ function handleTabKeyboardNavigation(
  * @returns Currently active tab name.
  */
 export function getActiveTab(): string {
-    const activeTab = getStateMgr().getState("ui.activeTab");
-
-    return normalizeRendererActiveTab(activeTab);
+    return getRendererActiveTabFromState(getStateMgr().getState);
 }
 
 /**
