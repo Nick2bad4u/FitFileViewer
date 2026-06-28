@@ -5,9 +5,7 @@ import {
 
 export interface RendererVendorMapRuntimeScope {
     readonly deleteTemporaryLeafletGlobals?: (() => void) | undefined;
-    readonly getDocument?:
-        | (() => Pick<Document, "documentElement"> | undefined)
-        | undefined;
+    readonly getDocument: () => Pick<Document, "documentElement"> | undefined;
 }
 
 export interface RendererVendorMapRuntime {
@@ -24,12 +22,18 @@ const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
 function getDocument(
     scope: RendererVendorMapRuntimeScope
 ): Pick<Document, "documentElement"> | undefined {
-    return scope.getDocument?.();
+    return scope.getDocument();
 }
 
 export function getRendererVendorMapRuntime(
     scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "rendererVendorMapRuntime requires a document provider"
+        );
+    }
+
     return {
         hasDocumentElement(): boolean {
             return getDocument(scope)?.documentElement !== undefined;

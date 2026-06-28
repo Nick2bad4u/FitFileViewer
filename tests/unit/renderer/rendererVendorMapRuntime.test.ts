@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRendererVendorMapRuntime } from "../../../electron-app/renderer/rendererVendorMapRuntime.js";
+import {
+    getRendererVendorMapRuntime,
+    type RendererVendorMapRuntimeScope,
+} from "../../../electron-app/renderer/rendererVendorMapRuntime.js";
 
 describe("rendererVendorMapRuntime", () => {
     afterEach(() => {
@@ -61,6 +64,7 @@ describe("rendererVendorMapRuntime", () => {
             }),
             utils = getRendererVendorMapRuntime({
                 deleteTemporaryLeafletGlobals,
+                getDocument: () => undefined,
             });
 
         utils.removeTemporaryLeafletGlobals();
@@ -73,7 +77,9 @@ describe("rendererVendorMapRuntime", () => {
     it("does nothing when a document element is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRendererVendorMapRuntime({});
+        const utils = getRendererVendorMapRuntime({
+            getDocument: () => undefined,
+        });
 
         expect(utils.hasDocumentElement()).toBe(false);
         utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
@@ -88,21 +94,29 @@ describe("rendererVendorMapRuntime", () => {
             L: {},
             Leaflet: {},
         };
-        const utils = getRendererVendorMapRuntime({
-            document: {
-                documentElement: {
-                    style: { setProperty },
-                } as unknown as HTMLElement,
-            },
-            globalScope,
-        } as unknown as Parameters<typeof getRendererVendorMapRuntime>[0]);
 
-        expect(utils.hasDocumentElement()).toBe(false);
-        utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
-        utils.removeTemporaryLeafletGlobals();
-
+        expect(() =>
+            getRendererVendorMapRuntime({
+                document: {
+                    documentElement: {
+                        style: { setProperty },
+                    } as unknown as HTMLElement,
+                },
+                globalScope,
+            } as unknown as RendererVendorMapRuntimeScope)
+        ).toThrow("rendererVendorMapRuntime requires a document provider");
         expect(setProperty).not.toHaveBeenCalled();
         expect(Reflect.has(globalScope, "L")).toBe(true);
         expect(Reflect.has(globalScope, "Leaflet")).toBe(true);
+    });
+
+    it("fails clearly when the document provider is omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getRendererVendorMapRuntime(
+                {} as unknown as RendererVendorMapRuntimeScope
+            )
+        ).toThrow("rendererVendorMapRuntime requires a document provider");
     });
 });
