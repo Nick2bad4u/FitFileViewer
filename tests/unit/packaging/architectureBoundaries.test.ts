@@ -16283,7 +16283,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(76);
+        expect.assertions(78);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -16441,9 +16441,10 @@ describe("architecture boundaries", () => {
         expect(rendererActiveTabStateSource).toContain(
             "subscribeToRendererActiveTabSingletonInState"
         );
-        expect(appActionsSource).toContain(
-            "setPerformanceLastLoadTime(appActionsRuntime().dateNow(), {"
-        );
+        expect(appActionsSource).toContain("fitFileStateManager");
+        expect(appActionsSource).toContain("getFitFileLoadManager");
+        expect(appActionsSource).not.toContain("setPerformanceLastLoadTime");
+        expect(appActionsSource).not.toContain("File loaded successfully");
         expect(appActionsSource).toContain(
             "const startTime = runtime.performanceNow();"
         );
@@ -16460,11 +16461,10 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(appActionsRuntimeSource).toContain(
-            "getDateNow: getBrowserDateNow"
-        );
-        expect(appActionsRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
         );
+        expect(appActionsRuntimeSource).not.toContain("getBrowserDateNow");
+        expect(appActionsRuntimeSource).not.toContain("dateNow(): number");
         expect(appActionsRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
@@ -16472,13 +16472,7 @@ describe("architecture boundaries", () => {
             "getPerformance: () => globalThis.performance"
         );
         expect(appActionsRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
-        );
-        expect(appActionsRuntimeSource).toContain(
             "const performance = scope.getPerformance?.();"
-        );
-        expect(appActionsRuntimeSource).toContain(
-            "AppActions requires dateNow"
         );
         expect(appActionsRuntimeSource).toContain(
             "AppActions requires performance.now"

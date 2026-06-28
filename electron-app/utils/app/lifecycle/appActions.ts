@@ -13,7 +13,6 @@ import {
     setAppIsOpeningFile,
     setMapMeasurementMode,
     setMapSelectedLap,
-    setPerformanceLastLoadTime,
     setRendererTablesRendered,
     updateAppActionWindowState,
     updateRendererMapState,
@@ -82,6 +81,8 @@ type ClearDataOptions = {
     notificationMessage?: string;
     notify?: boolean;
 };
+type FitFileLoadManager = FitFileStateManagerLike &
+    Required<Pick<FitFileStateManagerLike, "handleFileLoaded">>;
 
 const fitFileStateManagerLike = fitFileStateManager as
     | FitFileStateManagerLike
@@ -94,6 +95,17 @@ function toError(value: unknown): Error {
 
 function appActionsRuntime(): AppActionsRuntime {
     return getAppActionsRuntime();
+}
+
+function getFitFileLoadManager(): FitFileLoadManager {
+    if (
+        fitFileStateManagerLike &&
+        typeof fitFileStateManagerLike.handleFileLoaded === "function"
+    ) {
+        return fitFileStateManagerLike as FitFileLoadManager;
+    }
+
+    throw new Error("FIT file state manager is unavailable");
 }
 
 /**
@@ -144,17 +156,8 @@ export const AppActions = {
      * @param filePath - Path to the loaded file.
      */
     loadFile(fileData: unknown, filePath: string | null): Promise<void> {
-        const manager =
-            fitFileStateManagerLike &&
-            typeof fitFileStateManagerLike.handleFileLoaded === "function"
-                ? fitFileStateManagerLike
-                : null;
-
-        if (manager) {
-            const handleFileLoaded = manager.handleFileLoaded;
-            if (typeof handleFileLoaded !== "function") {
-                return Promise.resolve();
-            }
+        try {
+            const manager = getFitFileLoadManager();
             const normalizedPath =
                 typeof filePath === "string" && filePath.length > 0
                     ? filePath
@@ -176,62 +179,18 @@ export const AppActions = {
                 }
             }
 
-            try {
-                handleFileLoaded(fileData, {
-                    filePath: normalizedPath,
-                    source: "AppActions.loadFile",
-                });
-            } catch (error) {
-                console.error(
-                    "[AppActions] Error delegating file load to fitFileStateManager",
-                    error
-                );
-                void showNotification("Failed to load file", "error");
-                setRendererLoading(false, { source: "AppActions.loadFile" });
-                return Promise.reject(toError(error));
-            }
-
-            return Promise.resolve();
-        }
-
-        try {
-            setRendererLoading(true, { source: "AppActions.loadFile" });
-
-            // Update file-related state
-            setActiveFitRawData(
-                fileData as Parameters<typeof setActiveFitRawData>[0],
-                {
-                    source: "AppActions.loadFile",
-                }
-            );
-            setRendererCurrentFile(filePath, {
+            manager.handleFileLoaded(fileData, {
+                filePath: normalizedPath,
                 source: "AppActions.loadFile",
             });
-
-            // Reset component states
-            setRendererChartsRendered(false, {
-                source: "AppActions.loadFile",
-            });
-            setRendererMapRendered(false, {
-                source: "AppActions.loadFile",
-            });
-            setRendererTablesRendered(false, {
-                source: "AppActions.loadFile",
-            });
-
-            // Update performance metrics
-            setPerformanceLastLoadTime(appActionsRuntime().dateNow(), {
-                source: "AppActions.loadFile",
-            });
-
-            void showNotification("File loaded successfully", "success");
-            console.log("[AppActions] File loaded:", filePath);
         } catch (error) {
-            console.error("[AppActions] Error loading file:", error);
+            console.error(
+                "[AppActions] Error delegating file load to fitFileStateManager",
+                error
+            );
             void showNotification("Failed to load file", "error");
-            return Promise.reject(toError(error));
-        } finally {
             setRendererLoading(false, { source: "AppActions.loadFile" });
+            return Promise.reject(toError(error));
         }
 
         return Promise.resolve();
