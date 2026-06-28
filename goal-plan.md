@@ -2076,6 +2076,9 @@ focused devtools coverage and architecture checks blocking the generic diagnosti
 Chart render notification completion now records the last success notification through `rendererNotificationState.ts`
 instead of passing a generic `updateState("ui", ...)` dependency through chart completion helpers, with focused
 notification-flow coverage and architecture checks blocking that generic UI write bridge from returning.
+The chart state-access helper now exposes only the state-update option alias and the devtools state-history reader;
+unused generic `getState`, `setState`, `subscribe`, and `updateState` wrapper exports have been removed and are covered
+by architecture checks.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

@@ -9705,10 +9705,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart render helpers on the chart state access boundary", () => {
-        expect.assertions(10);
+        expect.assertions(21);
 
         const chartCoreStateAccessFile =
             "electron-app/utils/charts/core/renderChartStateAccess.ts";
+        const chartStateAccessSource = stripComments(
+            readRepositoryFile(chartCoreStateAccessFile)
+        );
         const chartLifecycleSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartLifecycle.ts"
@@ -9731,9 +9734,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directChartCoreStateImports).toStrictEqual([]);
-        expect(
-            stripComments(readRepositoryFile(chartCoreStateAccessFile))
-        ).toContain("state/core/stateManager.js");
+        expect(chartStateAccessSource).toContain("state/core/stateManager.js");
+        expect(chartStateAccessSource).toContain(
+            "export type ChartStateUpdateOptions = StateUpdateOptions"
+        );
+        expect(chartStateAccessSource).toContain("getStateHistory");
+        expect(chartStateAccessSource).toContain("callGetStateHistory");
+        expect(chartStateAccessSource).not.toContain("getState,");
+        expect(chartStateAccessSource).not.toContain("setState,");
+        expect(chartStateAccessSource).not.toContain("subscribe,");
+        expect(chartStateAccessSource).not.toContain("updateState,");
+        expect(chartStateAccessSource).not.toContain("callGetState(");
+        expect(chartStateAccessSource).not.toContain("callSetState(");
+        expect(chartStateAccessSource).not.toContain("callSubscribe(");
+        expect(chartStateAccessSource).not.toContain("callUpdateState(");
         expect(chartLifecycleSource).toContain("clearChartRenderState");
         expect(chartLifecycleSource).not.toContain("ChartClearStatePatch");
         expect(renderChartSessionStartSource).toContain(
