@@ -1,5 +1,5 @@
 export type RendererElectronApiScope = {
-    readonly getElectronAPI?: (() => unknown) | undefined;
+    readonly getElectronAPI: () => unknown;
 };
 
 export type RendererElectronApiProvider = () => unknown;
@@ -30,5 +30,5 @@ export function getRendererElectronApi<T extends object = object>(
 function getScopeElectronApi(
     scope: RendererElectronApiScope | undefined
 ): unknown {
-    return scope?.getElectronAPI?.();
+    return scope?.getElectronAPI();
 }

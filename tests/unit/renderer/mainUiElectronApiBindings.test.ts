@@ -16,7 +16,7 @@ describe("main UI Electron API bindings", () => {
             electronApiScope: { getElectronAPI: () => api },
         });
 
-        expect(bindings.electronApiScope.getElectronAPI?.()).toBe(api);
+        expect(bindings.electronApiScope.getElectronAPI()).toBe(api);
         expect(bindings.getMenuInjectionElectronAPI()).toBe(api);
         expect(bindings.getSummarySelectorElectronAPI()).toBe(api);
         expect(bindings.getThemeSyncElectronAPI()).toBe(api);

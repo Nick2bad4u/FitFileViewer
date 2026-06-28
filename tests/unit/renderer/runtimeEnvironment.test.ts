@@ -33,7 +33,7 @@ describe("renderer runtime environment", () => {
             getBrowserRendererRuntimeEnvironmentScope()
         );
 
-        expect(environment.electronApiScope.getElectronAPI?.()).toBe(
+        expect(environment.electronApiScope.getElectronAPI()).toBe(
             electronApiFixture
         );
         expect(environment.rendererEventTarget).toBe(globalThis);
@@ -102,13 +102,13 @@ describe("renderer runtime environment", () => {
 
         expect(environment.console).toBe(console);
         expect(environment.documentTarget).toBe(document);
-        expect(environment.electronApiScope.getElectronAPI?.()).toBe(
+        expect(environment.electronApiScope.getElectronAPI()).toBe(
             electronApiFixture
         );
-        expect(environment.electronApiScope.getElectronAPI?.()).not.toBe(
+        expect(environment.electronApiScope.getElectronAPI()).not.toBe(
             legacyRendererGlobalElectronApi
         );
-        expect(environment.electronApiScope.getElectronAPI?.()).not.toBe(
+        expect(environment.electronApiScope.getElectronAPI()).not.toBe(
             replacementElectronApiFixture
         );
         expect(environment.rendererEventTarget).toBe(rendererGlobal);
@@ -133,7 +133,7 @@ describe("renderer runtime environment", () => {
     });
 
     it("throws when required runtime providers are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         expect(() => createRuntimeEnvironment({})).toThrow(
             "renderer runtime environment requires addEventListener"
@@ -144,12 +144,27 @@ describe("renderer runtime environment", () => {
                 getClearInterval: () => vi.fn(),
                 getConsole: () => console,
                 getDocument: () => document,
+                getElectronAPI: () => undefined,
                 getRemoveEventListener: () => vi.fn(),
                 getSetInterval: () => vi.fn(),
                 getSetTimeout: () => vi.fn(),
             })
         ).toThrow(
             "renderer runtime environment requires a renderer event target"
+        );
+        expect(() =>
+            createRuntimeEnvironment({
+                getAddEventListener: () => vi.fn(),
+                getClearInterval: () => vi.fn(),
+                getConsole: () => console,
+                getDocument: () => document,
+                getRemoveEventListener: () => vi.fn(),
+                getRendererEventTarget: () => globalThis,
+                getSetInterval: () => vi.fn(),
+                getSetTimeout: () => vi.fn(),
+            } as unknown as Parameters<typeof createRuntimeEnvironment>[0])
+        ).toThrow(
+            "renderer runtime environment requires an electron API provider"
         );
     });
 
@@ -236,13 +251,13 @@ describe("renderer runtime environment", () => {
         expect(rendererGlobal.setTimeout).toHaveBeenCalledOnce();
         expect(rendererGlobal.setInterval).toHaveBeenCalledOnce();
         expect(rendererGlobal.clearInterval).toHaveBeenCalledOnce();
-        expect(environment.electronApiScope.getElectronAPI?.()).toBe(
+        expect(environment.electronApiScope.getElectronAPI()).toBe(
             electronApiFixture
         );
-        expect(environment.electronApiScope.getElectronAPI?.()).not.toBe(
+        expect(environment.electronApiScope.getElectronAPI()).not.toBe(
             legacyDirectElectronApi
         );
-        expect(environment.electronApiScope.getElectronAPI?.()).not.toBe(
+        expect(environment.electronApiScope.getElectronAPI()).not.toBe(
             legacyRendererGlobalElectronApi
         );
         listenerController.abort();

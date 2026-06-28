@@ -42,7 +42,7 @@ export type RendererRuntimeEnvironmentScope = {
         | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getElectronAPI?: (() => unknown) | undefined;
+    readonly getElectronAPI: () => unknown;
     readonly getRemoveEventListener?:
         | (() => RendererRemoveEventListener | undefined)
         | undefined;
@@ -84,7 +84,10 @@ export function createRendererRuntimeEnvironment(
             "renderer runtime environment requires a document reference"
         ),
         electronApiScope: createRendererElectronApiScope(
-            () => scope.getElectronAPI?.()
+            getRequiredRuntimeValue(
+                scope.getElectronAPI,
+                "renderer runtime environment requires an electron API provider"
+            )
         ),
         removeEventListener: getRequiredRuntimeValue(
             scope.getRemoveEventListener?.(),

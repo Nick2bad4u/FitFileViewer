@@ -24,7 +24,7 @@ describe("main UI runtime environment", () => {
         expect(runtimeEnvironment.consoleRef).toBe(console);
         expect(runtimeEnvironment.documentRef).toBe(document);
         expect(
-            runtimeEnvironment.electronApiScope.getElectronAPI?.()
+            runtimeEnvironment.electronApiScope.getElectronAPI()
         ).toBeUndefined();
         expect(runtimeNow).toBeGreaterThanOrEqual(before);
         expect(runtimeNow).toBeLessThanOrEqual(after + 1000);
@@ -41,7 +41,7 @@ describe("main UI runtime environment", () => {
             getBrowserMainUiRuntimeEnvironmentScope()
         );
 
-        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBe(
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI()).toBe(
             electronApiFixture
         );
     });
@@ -71,17 +71,17 @@ describe("main UI runtime environment", () => {
         expect(runtimeEnvironment.consoleRef).toBe(runtimeConsole);
         expect(runtimeEnvironment.dateNow()).toBe(1234);
         expect(runtimeEnvironment.documentRef).toBe(documentRef);
-        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBe(
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI()).toBe(
             electronApiFixture
         );
-        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).not.toBe(
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI()).not.toBe(
             replacementElectronApiFixture
         );
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when an explicit runtime scope omits required primitives", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         expect(() => getMainUiRuntimeEnvironment({ dateNow: () => 1 })).toThrow(
             "main UI runtime environment requires a console reference"
@@ -95,6 +95,15 @@ describe("main UI runtime environment", () => {
                 getConsole: () => console,
             })
         ).toThrow("main UI runtime environment requires a document reference");
+        expect(() =>
+            getMainUiRuntimeEnvironment({
+                dateNow: () => 1,
+                getConsole: () => console,
+                getDocument: () => document,
+            } as unknown as MainUiRuntimeEnvironmentScope)
+        ).toThrow(
+            "main UI runtime environment requires an electron API provider"
+        );
     });
 
     it("ignores legacy direct console runtime properties", () => {

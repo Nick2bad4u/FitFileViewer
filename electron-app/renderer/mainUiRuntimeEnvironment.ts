@@ -14,7 +14,7 @@ export interface MainUiRuntimeEnvironmentScope {
     readonly dateNow?: (() => number) | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getElectronAPI?: (() => unknown) | undefined;
+    readonly getElectronAPI: () => unknown;
 }
 
 function getScopeConsole(scope: MainUiRuntimeEnvironmentScope): Console {
@@ -47,6 +47,18 @@ function getScopeDocument(scope: MainUiRuntimeEnvironmentScope): Document {
     return documentRef;
 }
 
+function getScopeElectronApiProvider(
+    scope: MainUiRuntimeEnvironmentScope
+): () => unknown {
+    if (scope.getElectronAPI === undefined) {
+        throw new TypeError(
+            "main UI runtime environment requires an electron API provider"
+        );
+    }
+
+    return scope.getElectronAPI;
+}
+
 export function getMainUiRuntimeEnvironment(
     scope: MainUiRuntimeEnvironmentScope
 ): MainUiRuntimeEnvironment {
@@ -59,7 +71,7 @@ export function getMainUiRuntimeEnvironment(
         },
         documentRef: getScopeDocument(scope),
         electronApiScope: createRendererElectronApiScope(
-            () => scope.getElectronAPI?.()
+            getScopeElectronApiProvider(scope)
         ),
     };
 }

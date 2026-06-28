@@ -47,7 +47,7 @@ describe("renderer application startup", () => {
         );
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const performance = createPerformanceMonitor();
-        const electronApiScope = {};
+        const electronApiScope = { getElectronAPI: () => undefined };
         const appActions = {
             setInitialized: vi.fn(),
         };
@@ -225,7 +225,7 @@ describe("renderer application startup", () => {
                 onUncaughtErrorEvent: vi.fn(),
                 onUnhandledRejectionEvent: vi.fn(),
             },
-            getElectronApiScope: () => ({}),
+            getElectronApiScope: () => ({ getElectronAPI: () => undefined }),
             getAppStartTime: vi.fn(),
             handleOpenFile: vi.fn(),
             getOpenFileButton: () => null,

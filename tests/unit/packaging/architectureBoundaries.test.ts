@@ -7035,7 +7035,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(201);
+        expect.assertions(202);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7172,7 +7172,7 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "readonly getElectronAPI?:"
+            "readonly getElectronAPI: () => unknown"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "getRendererEventTarget"
@@ -7199,7 +7199,7 @@ describe("architecture boundaries", () => {
             "electronApiScope: createRendererElectronApiScope("
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "() => scope.getElectronAPI?.()"
+            "renderer runtime environment requires an electron API provider"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getRemoveEventListener: () =>"
@@ -7590,7 +7590,10 @@ describe("architecture boundaries", () => {
             "electronApiScope: createRendererElectronApiScope("
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
-            "() => scope.getElectronAPI?.()"
+            "getScopeElectronApiProvider(scope)"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "main UI runtime environment requires an electron API provider"
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "const consoleRef = scope.getConsole?.();"
@@ -31541,7 +31544,7 @@ describe("architecture boundaries", () => {
             'from "./browserRuntime.js"'
         );
         expect(electronApiRuntimeSource).toContain(
-            "return scope?.getElectronAPI?.();"
+            "return scope?.getElectronAPI();"
         );
         expect(electronApiRuntimeSource).toContain(
             "const electronAPI = getElectronAPI();"
