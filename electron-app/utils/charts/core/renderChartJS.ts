@@ -34,6 +34,7 @@ import { normalizeRendererActiveTab } from "../../state/domain/rendererActiveTab
 import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
+    completeRendererChartRenderState,
     isRendererChartRendering,
     setRendererChartRendering,
 } from "../../state/domain/rendererChartRenderState.js";
@@ -270,6 +271,7 @@ export const chartState = createChartStateView({
 export const chartActions = createChartActions({
     appActions: AppActions,
     clearChartRenderState: clearRendererChartRenderState,
+    completeChartRenderLifecycleState: completeRendererChartRenderState,
     dateNow: renderChartRuntime().now,
     debouncedDirectRerender,
     getControlsVisible: () => chartState.controlsVisible,

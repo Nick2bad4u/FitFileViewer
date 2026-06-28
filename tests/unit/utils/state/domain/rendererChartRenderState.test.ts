@@ -4,6 +4,7 @@ import * as stateManager from "../../../../../electron-app/utils/state/core/stat
 import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
+    completeRendererChartRenderState,
     getRendererChartState,
     isRendererChartRendering,
     normalizeRendererChartsRendered,
@@ -113,6 +114,51 @@ describe("rendererChartRenderState", () => {
             chartData: null,
             isRendered: false,
             renderedCount: 0,
+        });
+    });
+
+    it("completes successful chart render state through the typed helper", () => {
+        expect.assertions(1);
+
+        completeRendererChartRenderState(
+            {
+                isRendered: true,
+                lastRenderTime: 1234,
+                renderedCount: 5,
+            },
+            { source: "test.complete" }
+        );
+
+        expect(getRendererChartState()).toMatchObject({
+            isRendered: true,
+            isRendering: false,
+            lastRenderTime: 1234,
+            renderedCount: 5,
+        });
+    });
+
+    it("completes failed chart render state without changing success counters", () => {
+        expect.assertions(1);
+
+        updateRendererChartState(
+            {
+                isRendered: true,
+                lastRenderTime: 1234,
+                renderedCount: 5,
+            },
+            { source: "test" }
+        );
+
+        completeRendererChartRenderState(
+            { isRendered: false },
+            { source: "test.failed" }
+        );
+
+        expect(getRendererChartState()).toMatchObject({
+            isRendered: false,
+            isRendering: false,
+            lastRenderTime: 1234,
+            renderedCount: 5,
         });
     });
 

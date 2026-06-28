@@ -24,6 +24,17 @@ function createDependencies() {
                 renderedCount: 0,
             });
         }),
+        completeChartRenderLifecycleState: vi.fn((renderState: unknown) => {
+            if (typeof renderState !== "object" || renderState === null) {
+                return;
+            }
+
+            Object.assign(state.charts, {
+                isRendered: false,
+                isRendering: false,
+                ...renderState,
+            });
+        }),
         dateNow: vi.fn(() => 1_717_249_600_000),
         debouncedDirectRerender: vi.fn(),
         getControlsVisible: vi.fn(() => true),
@@ -110,12 +121,11 @@ describe("createChartActions", () => {
             },
         });
         expect(dependencies.dateNow).toHaveBeenCalledOnce();
-        expect(dependencies.updateState).toHaveBeenNthCalledWith(
-            1,
-            "charts",
+        expect(
+            dependencies.completeChartRenderLifecycleState
+        ).toHaveBeenCalledWith(
             {
                 isRendered: true,
-                isRendering: false,
                 lastRenderTime: 1_717_249_600_000,
                 renderedCount: 5,
             },
@@ -125,8 +135,7 @@ describe("createChartActions", () => {
             silent: false,
             source: "chartActions.completeRendering",
         });
-        expect(dependencies.updateState).toHaveBeenNthCalledWith(
-            2,
+        expect(dependencies.updateState).toHaveBeenCalledWith(
             "performance.renderTimes",
             { chart: 250 },
             { silent: false, source: "chartActions.completeRendering" }
@@ -158,12 +167,10 @@ describe("createChartActions", () => {
             },
         });
         expect(dependencies.dateNow).not.toHaveBeenCalled();
-        expect(dependencies.updateState).toHaveBeenCalledWith(
-            "charts",
-            {
-                isRendered: false,
-                isRendering: false,
-            },
+        expect(
+            dependencies.completeChartRenderLifecycleState
+        ).toHaveBeenCalledWith(
+            { isRendered: false },
             { silent: false, source: "chartActions.completeRendering" }
         );
         expect(dependencies.notifyChartRenderComplete).not.toHaveBeenCalled();

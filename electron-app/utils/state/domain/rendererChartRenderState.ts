@@ -29,6 +29,16 @@ export type RendererChartRenderClearState = {
     renderedCount: 0;
 };
 
+export type RendererChartRenderCompleteState =
+    | {
+          isRendered: false;
+      }
+    | {
+          isRendered: true;
+          lastRenderTime: number;
+          renderedCount: number;
+      };
+
 export function areRendererChartsRendered(): boolean {
     return normalizeRendererRenderFlag(
         getState(RENDERER_CHARTS_RENDERED_STATE_PATH)
@@ -131,6 +141,26 @@ export function clearRendererChartRenderState(
         },
         {
             source: "rendererChartRenderState.clearRenderState",
+            ...options,
+        }
+    );
+}
+
+export function completeRendererChartRenderState(
+    renderState: RendererChartRenderCompleteState,
+    options: StateUpdateOptions = {}
+): void {
+    updateRendererChartState(
+        {
+            isRendered: normalizeRendererRenderFlag(renderState.isRendered),
+            isRendering: false,
+            ...(renderState.isRendered && {
+                lastRenderTime: renderState.lastRenderTime,
+                renderedCount: renderState.renderedCount,
+            }),
+        },
+        {
+            source: "rendererChartRenderState.completeRenderState",
             ...options,
         }
     );

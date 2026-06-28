@@ -1967,6 +1967,8 @@ Registered chart candidate validation in the chart settings header, inline zone 
 non-array readonly record guards plus guarded chart-data/dataset records instead of casting arbitrary registered chart
 values into local chart shapes, with malformed array-shaped candidate coverage and architecture guardrails blocking those
 casts from returning.
+Chart action completion state now routes through `completeRendererChartRenderState`, so render completion no longer
+patches the aggregate `charts` branch directly from chart action code.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.

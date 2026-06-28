@@ -9,9 +9,23 @@ interface PanelVisibilityManager {
     updatePanelVisibility(panelId: string, visible: boolean): void;
 }
 
+type ChartRenderCompletionState =
+    | {
+          isRendered: false;
+      }
+    | {
+          isRendered: true;
+          lastRenderTime: number;
+          renderedCount: number;
+      };
+
 interface CreateChartActionsDependencies {
     appActions: unknown;
     clearChartRenderState(options: unknown): unknown;
+    completeChartRenderLifecycleState(
+        renderState: ChartRenderCompletionState,
+        options: unknown
+    ): unknown;
     dateNow(): number;
     debouncedDirectRerender(reason: string): void;
     getControlsVisible(): boolean;
@@ -81,18 +95,18 @@ export function createChartActions(
         },
 
         completeRendering(success, chartCount = 0, renderTime = 0) {
-            dependencies.updateState(
-                "charts",
-                {
-                    isRendered: success,
-                    isRendering: false,
-                    ...(success && {
-                        lastRenderTime: dependencies.dateNow(),
-                        renderedCount: chartCount,
-                    }),
-                },
-                { silent: false, source: "chartActions.completeRendering" }
-            );
+            const completionState: ChartRenderCompletionState = success
+                ? {
+                      isRendered: true,
+                      lastRenderTime: dependencies.dateNow(),
+                      renderedCount: chartCount,
+                  }
+                : { isRendered: false };
+
+            dependencies.completeChartRenderLifecycleState(completionState, {
+                silent: false,
+                source: "chartActions.completeRendering",
+            });
 
             if (!dependencies.isLoadingStateSuppressed()) {
                 dependencies.setState("isLoading", false, {
