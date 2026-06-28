@@ -85,6 +85,10 @@ type ShowFitDataElectronApi = {
     readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
 };
 
+type ShowFitDataElectronApiMethods = Readonly<{
+    readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
+}>;
+
 type FitFileStateManagerLike = {
     handleFileLoaded: (
         data: FitDataObject,
@@ -105,19 +109,31 @@ function getShowFitDataElectronApi(
 function isShowFitDataElectronApi(
     value: unknown
 ): value is ShowFitDataElectronApi {
-    if (!isRecord(value)) {
+    if (!isShowFitDataElectronApiMethods(value)) {
         return false;
     }
 
-    const notifyFitFileLoaded = value["notifyFitFileLoaded"];
+    const notifyFitFileLoaded = readElectronApiValue(
+        () => value.notifyFitFileLoaded
+    );
     return (
         notifyFitFileLoaded === undefined ||
         typeof notifyFitFileLoaded === "function"
     );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isShowFitDataElectronApiMethods(
+    value: unknown
+): value is ShowFitDataElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 /**
