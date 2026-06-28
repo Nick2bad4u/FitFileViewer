@@ -469,7 +469,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
   - Renderer bootstrap modules import the specific utility they need.
   - Tests mock typed module imports instead of mutating a shared utility object.
   - Renderer-adjacent import graphs stay out of main-process-only modules.
-  - The deleted root `utils.ts` and `electron-app/utils/legacy/` bridge files stay absent.
+- The deleted root `utils.ts`, `electron-app/renderer/vendorGlobals.ts`, and `electron-app/utils/legacy/` bridge files stay absent.
 
 ## Vendor Runtime Adapters
 

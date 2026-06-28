@@ -359,8 +359,8 @@ than merely shrinking. The remaining work is narrower: keep moving feature-scope
 toward typed services/scoped adapters while guarding the deleted `rendererUtils`, `FitFileViewerUtils`,
 `mainUiGlobals`, and `utils/legacy` surfaces from returning.
 Architecture coverage now keeps the deleted renderer/global bridge file list explicit instead of filtering it away
-before assertion, so reintroducing `globalApiExposure.ts`, `mainUiGlobals.ts`, `utils.ts`, or `utils/legacy` bridge
-modules fails directly.
+before assertion, so reintroducing `globalApiExposure.ts`, `vendorGlobals.ts`, `mainUiGlobals.ts`, `utils.ts`, or
+`utils/legacy` bridge modules fails directly.
 
 Long-term target: feature modules should import concrete services, runtime adapters, state selectors, or
 event APIs directly. Avoid generic “helper bags,” registry-like modules, broad resolver functions, or test-

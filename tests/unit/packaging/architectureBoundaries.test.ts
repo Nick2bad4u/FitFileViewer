@@ -28289,6 +28289,7 @@ describe("architecture boundaries", () => {
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/rendererVendor.ts",
+            "electron-app/renderer/vendorGlobals.ts",
             "electron-app/utils.ts",
             "electron-app/utils/app/initialization/rendererUtils.ts",
             "electron-app/utils/ui/mainUiGlobals.ts",
