@@ -10640,7 +10640,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(53);
+        expect.assertions(57);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -10679,6 +10679,14 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).not.toContain(
             "type UnknownDragDropElectronApiCandidate"
         );
+        expect(dragDropHandlerSource).not.toContain(
+            "value as DragDropElectronApi"
+        );
+        expect(dragDropHandlerSource).toContain(
+            'typeof value["decodeFitFile"] === "function"'
+        );
+        expect(dragDropHandlerSource).toContain("function isRecord(");
+        expect(dragDropHandlerSource).toContain("!Array.isArray(value)");
         expect(dragDropHandlerSource).not.toContain(
             'Reflect.get(value, "decodeFitFile")'
         );

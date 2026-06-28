@@ -230,4 +230,37 @@ describe(DragDropHandler, () => {
         expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
         expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
     });
+
+    it("rejects array-shaped scoped Electron APIs without decoding dropped files", async () => {
+        expect.assertions(7);
+
+        resetHarnessMocks();
+
+        const decodeFitFile = vi.fn<DecodeFitFile>();
+        const api = [] as unknown[] & Record<string, unknown>;
+        api["decodeFitFile"] = decodeFitFile;
+        const handler = new DragDropHandler({
+            electronApiScope: {
+                getElectronAPI: () => api,
+            },
+        });
+        vi.spyOn(handler, "readFileAsArrayBuffer").mockResolvedValue(
+            new ArrayBuffer(16)
+        );
+
+        const outcome = await handler.processDroppedFile(
+            createDroppedFile("array-api.fit")
+        );
+
+        expect({ outcome }).toStrictEqual({ outcome: undefined });
+        expect(decodeFitFile).not.toHaveBeenCalled();
+        expect(mocks.renderDecodedFitData).not.toHaveBeenCalled();
+        expect(mocks.handleFileLoadingError).not.toHaveBeenCalled();
+        expect(mocks.showNotification).toHaveBeenCalledWith(
+            "FIT file decoding is not supported in this environment.",
+            "error"
+        );
+        expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
+        expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
+    });
 });

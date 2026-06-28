@@ -54,11 +54,15 @@ function getDragDropElectronApi(
 }
 
 function isDragDropElectronApi(value: unknown): value is DragDropElectronApi {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    return typeof (value as DragDropElectronApi).decodeFitFile === "function";
+    return typeof value["decodeFitFile"] === "function";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {

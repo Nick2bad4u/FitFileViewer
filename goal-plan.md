@@ -1560,6 +1560,9 @@ contract instead of deriving from the monolithic `ElectronAPI` type or carrying 
 candidate validation now narrows through an unknown-valued candidate shape instead of casting to
 `Partial<DragDropElectronApiCandidate>`. FIT data file-loaded notification candidate typing likewise uses a named
 readonly alias backed by the shared preload-event API-domain contract instead of a generic local interface.
+Drag/drop FIT decoder API validation now reads `decodeFitFile` from an unknown-valued plain record instead of casting
+the preload candidate to `DragDropElectronApi`, with array-shaped malformed API coverage and architecture coverage
+blocking that cast from returning.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning. Leaflet runtime production clock and polling-timer defaults now reuse shared browser runtime
