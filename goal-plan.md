@@ -2087,6 +2087,8 @@ broad core-module aggregate.
 Renderer application startup and import-time bootstrap now also receive `handleOpenFile`, `setupListeners`, and
 `setupTheme` directly from the renderer entrypoint, so those startup paths no longer call `ensureCoreModules` and the
 broad resolver no longer imports the lifecycle listener module for startup setup.
+Renderer development diagnostics now receive explicit debug function and state-module bags from the renderer entrypoint,
+and the old dynamic `ensureCoreModules` aggregate has been removed from `coreModuleResolution.ts`.
 Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
 renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Renderer error handling now receives the typed `showNotification` service directly from the renderer entrypoint instead

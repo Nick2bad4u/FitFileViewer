@@ -43,7 +43,7 @@ Launcher → main.ts → BrowserWindow preload:dist/preload.js → renderer dist
 
 1. **Main process (`main.ts`)** builds application state, creates the BrowserWindow via `windowStateUtils`, instantiates menus, registers IPC handlers, and configures auto updates.
 2. **Preload (`preload.ts`)** is emitted by the root build as `dist/preload.js`, delegates to compiled modules under `dist/preload/`, and exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
-3. **Renderer (`renderer.ts`)** is compiled by the root runtime build, lazily resolves modules through `ensureCoreModules()`, initializes the master state manager, wires legacy compatibility proxies, registers DOM listeners, and orchestrates charts, maps, and notifications.
+3. **Renderer (`renderer.ts`)** is compiled by the root runtime build, initializes the master state manager, receives startup services through typed imports, registers DOM listeners, and orchestrates charts, maps, and notifications.
 4. **State management** is centralized in `utils/state/core/stateManager.js`, while domain-specific managers (e.g., `fitFileStateManager`, `uiStateManager`, `settingsStateManager`) sit under `utils/state/domain/`.
 
 ## Main Process Responsibilities
@@ -77,7 +77,7 @@ runtime renderer output:
 
 1. **State manager boot:** `masterStateManager.initialize()` hydrates state, exposing proxies so legacy consumers still reference `appState`.
 2. **DOM validation:** Ensures critical containers (`#openFileBtn`, `#notification`, etc.) exist; warns if running in minimal test DOM.
-3. **Module resolution:** `ensureCoreModules()` dynamically imports UI and data modules, accommodating Vitest manual mocks.
+3. **Startup services:** The renderer entrypoint wires typed imports for file opening, lifecycle listeners, theme setup, notifications, and diagnostics instead of resolving those services through a dynamic core-module aggregate.
 4. **UI setup:** Registers drag/drop, menu, and tab listeners (`utils/app/lifecycle/listeners.js`), sets up theme toggles (`utils/theming/core/theme.js`), and initialises charts & maps as needed.
 5. **Electron API wiring:** Hooks menu and theme callbacks, queries development mode, and primes state spies.
 6. **Performance monitoring:** `PerformanceMonitor` collects timings for startup and component initialization.

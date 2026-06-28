@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-    ensureCoreModules,
     resetRendererCoreModuleTestOverrides,
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
@@ -42,57 +41,5 @@ describe("renderer core module resolution", () => {
             resolveRendererCoreTestOverride("/utils/theming/core/theme.js")
         ).toStrictEqual(suffixMock);
         expect(resolveRendererCoreTestOverride("/utils/missing.js")).toBeNull();
-    });
-
-    it("builds the core module facade from test overrides", async () => {
-        expect.assertions(5);
-
-        const handleOpenFile = vi.fn();
-        const setupTheme = vi.fn();
-        const showAboutModal = vi.fn();
-        const showNotification = vi.fn();
-        const showUpdateNotification = vi.fn();
-        const AppActions = {
-            setFileOpening: vi.fn(),
-            setInitialized: vi.fn(),
-        };
-        const masterStateManager = { initialize: vi.fn() };
-        const uiStateManager = { ready: true };
-
-        setTestOverrideRegistry(
-            new Map<string, unknown>([
-                [
-                    "../../utils/ui/notifications/showNotification.js",
-                    { showNotification },
-                ],
-                [
-                    "../../utils/files/import/handleOpenFile.js",
-                    { handleOpenFile },
-                ],
-                ["../../utils/theming/core/setupTheme.js", { setupTheme }],
-                [
-                    "../../utils/ui/notifications/showUpdateNotification.js",
-                    { showUpdateNotification },
-                ],
-                ["../../utils/ui/modals/aboutModal.js", { showAboutModal }],
-                [
-                    "../../utils/state/core/masterStateManager.js",
-                    { masterStateManager },
-                ],
-                ["../../utils/app/lifecycle/appActions.js", { AppActions }],
-                [
-                    "../../utils/state/domain/uiStateManager.js",
-                    { uiStateManager },
-                ],
-            ])
-        );
-
-        const coreModules = await ensureCoreModules();
-
-        expect(coreModules.AppActions).toBe(AppActions);
-        expect(coreModules.handleOpenFile).toBe(handleOpenFile);
-        expect(coreModules.masterStateManager).toBe(masterStateManager);
-        expect(coreModules.showNotification).toBe(showNotification);
-        expect(coreModules.uiStateManager).toBe(uiStateManager);
     });
 });

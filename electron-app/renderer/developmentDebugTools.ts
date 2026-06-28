@@ -41,9 +41,9 @@ type RendererDevelopmentDebugStateManager = Readonly<
     >
 >;
 
-type RendererDebugCoreFunction = (...args: never[]) => unknown;
+export type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;
-type RendererDevelopmentDebugFunctionModules = {
+export type RendererDevelopmentDebugFunctionModules = {
     readonly [Name in DevelopmentDebugCoreFunctionName]?:
         | RendererDebugCoreFunction
         | undefined;
@@ -51,7 +51,7 @@ type RendererDevelopmentDebugFunctionModules = {
 type RendererDevelopmentDebugAppActions = Readonly<{
     readonly setInitialized: typeof AppActions.setInitialized;
 }>;
-type RendererDevelopmentDebugStateModules = {
+export type RendererDevelopmentDebugStateModules = {
     readonly AppActions?: RendererDevelopmentDebugAppActions | undefined;
     readonly masterStateManager?: unknown;
     readonly uiStateManager?: unknown;
@@ -74,12 +74,6 @@ type RendererDevelopmentDebugStateManagerCandidate = {
     readonly getState?: unknown;
     readonly getSubscriptions?: unknown;
 };
-export type RendererDevelopmentDebugCoreModules = Readonly<
-    RendererDevelopmentDebugFunctionModules &
-        RendererDevelopmentDebugStateModules
->;
-type DevelopmentCoreModuleResolver =
-    () => Promise<RendererDevelopmentDebugCoreModules>;
 type RendererDebugToolCall = (...args: unknown[]) => Promise<unknown>;
 type RendererDebugToolsView = {
     readonly handleOpenFile: RendererDebugToolCall;
@@ -131,12 +125,13 @@ type RendererDevelopmentDebugTools = {
 
 interface RendererDevelopmentDebugToolsOptions {
     cleanup: () => void;
-    ensureCoreModules: DevelopmentCoreModuleResolver;
+    debugFunctions: RendererDevelopmentDebugFunctionModules;
     initializeApplication: () => Promise<void>;
     isDevelopmentMode: () => boolean;
     isOpeningFileRef: RendererFileOpeningStateRef;
     logRenderer: DevelopmentDebugLogger;
     performanceMonitor: RendererPerformanceMonitor;
+    stateModules: RendererDevelopmentDebugStateModules;
     validateDOMElements: () => boolean;
 }
 
@@ -260,8 +255,10 @@ async function callDebugCoreFunction(
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
-        const coreModules = await options.ensureCoreModules();
-        const debugFunction = getDebugCoreFunction(coreModules, exportName);
+        const debugFunction = getDebugCoreFunction(
+            options.debugFunctions,
+            exportName
+        );
         if (debugFunction !== undefined) {
             return debugFunction(...args);
         }
@@ -276,8 +273,7 @@ async function getRendererStateManagerForDev(
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
-        const coreModules = await options.ensureCoreModules();
-        return coreModules["masterStateManager"];
+        return options.stateModules.masterStateManager;
     } catch {
         /* Ignore state manager access errors */
     }
@@ -290,9 +286,8 @@ async function getRendererStateRecord(
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
-        const coreModules = await options.ensureCoreModules();
         return callStateManagerMethod(
-            coreModules.masterStateManager,
+            options.stateModules.masterStateManager,
             methodName
         );
     } catch {
@@ -306,16 +301,12 @@ async function loadDevelopmentDebugUtilities(
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<void> {
     try {
-        try {
-            const coreModules = await options.ensureCoreModules();
-            if (coreModules.AppActions !== undefined) {
-                rendererDevTools.AppActions = coreModules.AppActions;
-            }
-            if (coreModules.uiStateManager !== undefined) {
-                rendererDevTools.uiStateManager = coreModules.uiStateManager;
-            }
-        } catch {
-            /* Ignore errors */
+        if (options.stateModules.AppActions !== undefined) {
+            rendererDevTools.AppActions = options.stateModules.AppActions;
+        }
+        if (options.stateModules.uiStateManager !== undefined) {
+            rendererDevTools.uiStateManager =
+                options.stateModules.uiStateManager;
         }
 
         const {
@@ -358,24 +349,21 @@ async function logRendererDebugState(
     options: RendererDevelopmentDebugToolsOptions
 ): Promise<void> {
     try {
-        const coreModules = await options.ensureCoreModules();
+        const stateManager = options.stateModules.masterStateManager;
         options.logRenderer(
             "log",
             "Current State:",
-            callStateManagerMethod(coreModules.masterStateManager, "getState")
+            callStateManagerMethod(stateManager, "getState")
         );
         options.logRenderer(
             "log",
             "State History:",
-            callStateManagerMethod(coreModules.masterStateManager, "getHistory")
+            callStateManagerMethod(stateManager, "getHistory")
         );
         options.logRenderer(
             "log",
             "Active Subscriptions:",
-            callStateManagerMethod(
-                coreModules.masterStateManager,
-                "getSubscriptions"
-            )
+            callStateManagerMethod(stateManager, "getSubscriptions")
         );
     } catch {
         /* Ignore errors */
@@ -395,7 +383,7 @@ function callStateManagerMethod(
 }
 
 function getDebugCoreFunction(
-    coreModules: RendererDevelopmentDebugCoreModules,
+    coreModules: RendererDevelopmentDebugFunctionModules,
     exportName: DevelopmentDebugCoreFunctionName
 ): RendererDebugCoreFunctionCaller | undefined {
     const debugFunction = coreModules[exportName];

@@ -6080,7 +6080,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(41);
+        expect.assertions(48);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -6098,7 +6098,7 @@ describe("architecture boundaries", () => {
             'from "./coreModuleResolution.js"'
         );
         expect(developmentDebugToolsSource).toContain(
-            "type RendererDebugCoreFunction = (...args: never[]) => unknown;"
+            "type RendererDebugCoreFunction = (...args: unknown[]) => unknown;"
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;"
@@ -6160,9 +6160,16 @@ describe("architecture boundaries", () => {
         expect(developmentDebugToolsSource).not.toContain(
             "AppActions?: Record<string, unknown>"
         );
-        expect(developmentDebugToolsSource).toContain(
-            "export type RendererDevelopmentDebugCoreModules = Readonly<"
+        expect(developmentDebugToolsSource).not.toContain(
+            "RendererDevelopmentDebugCoreModules"
         );
+        expect(developmentDebugToolsSource).toContain(
+            "debugFunctions: RendererDevelopmentDebugFunctionModules;"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "stateModules: RendererDevelopmentDebugStateModules;"
+        );
+        expect(developmentDebugToolsSource).not.toContain("ensureCoreModules");
         expect(developmentDebugToolsSource).not.toContain("Pick<");
         expect(developmentDebugToolsSource).toContain('"handleOpenFile"');
         expect(developmentDebugToolsSource).toContain('"setupTheme"');
@@ -6171,8 +6178,12 @@ describe("architecture boundaries", () => {
         expect(developmentDebugToolsSource).toContain(
             '"showUpdateNotification"'
         );
-        expect(developmentDebugToolsSource).toContain('"masterStateManager"');
-        expect(developmentDebugToolsSource).toContain("uiStateManager");
+        expect(developmentDebugToolsSource).toContain(
+            "readonly masterStateManager?: unknown;"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "readonly uiStateManager?: unknown;"
+        );
         expect(developmentDebugToolsSource).not.toContain(
             "type DevelopmentCoreModuleResolver = () => Promise<Record<string, unknown>>"
         );
@@ -6196,15 +6207,25 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsSource).not.toContain("toModuleRecord");
         expect(diagnosticsWiringSource).toContain(
-            "RendererDevelopmentDebugCoreModules"
+            "RendererDevelopmentDebugFunctionModules"
         );
+        expect(diagnosticsWiringSource).toContain(
+            "RendererDevelopmentDebugStateModules"
+        );
+        expect(diagnosticsWiringSource).toContain(
+            "debugFunctions: options.debugFunctions"
+        );
+        expect(diagnosticsWiringSource).toContain(
+            "stateModules: options.stateModules"
+        );
+        expect(diagnosticsWiringSource).not.toContain("ensureCoreModules");
         expect(diagnosticsWiringSource).not.toContain(
             "ensureCoreModules: () => Promise<Record<string, unknown>>"
         );
     });
 
     it("keeps renderer core module resolution off app-domain state services", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -6213,8 +6234,15 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             "state/domain/appDomainState.js"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "type ResolvedRendererCoreModules = Readonly<{"
+        );
+        expect(coreModuleResolutionSource).not.toContain("ensureCoreModules");
+        expect(coreModuleResolutionSource).not.toContain(
+            "importRendererModule"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "Unsupported renderer module import"
         );
         expect(coreModuleResolutionSource).not.toContain(
             "export interface RendererCoreModules"
@@ -20651,13 +20679,13 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer.ts")
         );
 
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "handleOpenFile: RendererHandleOpenFile | undefined"
         );
         expect(coreModuleResolutionSource).not.toContain(
             "setupListeners: RendererSetupListeners | undefined"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "setupTheme: RendererSetupTheme | undefined"
         );
         expect(coreModuleResolutionSource).not.toContain(
@@ -20672,27 +20700,27 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             "SetupListenersOptions"
         );
-        expect(coreModuleResolutionSource).toContain("RendererSetupTheme");
+        expect(coreModuleResolutionSource).not.toContain("RendererSetupTheme");
         expect(applicationStartupSource).not.toContain(
             "export type RendererApplicationStartupCoreModules = Readonly<{"
         );
         expect(applicationStartupSource).not.toContain("ensureCoreModules");
         expect(applicationStartupSource).not.toContain("RendererCoreModules");
         expect(applicationStartupSource).not.toContain("Pick<");
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "export type RendererAppCleanupActions = Pick<"
         );
-        expect(coreModuleResolutionSource).toContain("typeof AppActions,");
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain("typeof AppActions,");
+        expect(coreModuleResolutionSource).not.toContain(
             '"setFileOpening" | "setInitialized"'
         );
         expect(coreModuleResolutionSource).not.toContain(
             "export type RendererAppInitializationActions"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "readonly AppActions: RendererAppCleanupActions | undefined;"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "): RendererAppCleanupActions | undefined {"
         );
         expect(applicationStartupSource).toContain(
@@ -21012,7 +21040,7 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             '"../utils/theming/core/theme.js"'
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "export async function ensureCoreModules()"
         );
     });

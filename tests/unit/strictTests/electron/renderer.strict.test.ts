@@ -81,7 +81,7 @@ const importRendererFresh = async () => {
     };
     (window as any).electronAPI = api;
 
-    // Test overrides for all modules dynamically resolved via ensureCoreModules()
+    // Test overrides for renderer modules that still support focused override registries.
     const showNotification = vi.fn<(...args: unknown[]) => void>();
     const handleOpenFile = vi.fn<(...args: unknown[]) => void>();
     const setupTheme = vi.fn<(...args: unknown[]) => void>();

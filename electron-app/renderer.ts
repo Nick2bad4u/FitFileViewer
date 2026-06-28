@@ -39,12 +39,12 @@ import {
     subscribeToAppOpeningFile,
     subscribeToAppStartTime,
 } from "./utils/state/domain/appDomainState.js";
+import { uiStateManager } from "./utils/state/domain/uiStateManager.js";
 import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
 } from "./renderer/startupPerformanceMonitor.js";
 import {
-    ensureCoreModules,
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
 } from "./renderer/coreModuleResolution.js";
@@ -174,6 +174,19 @@ const PerformanceMonitor: RendererPerformanceMonitor =
         logRenderer,
     });
 
+const rendererDevelopmentDebugFunctions = {
+    handleOpenFile: (...args: unknown[]) =>
+        Reflect.apply(openFitFileFromDialog, undefined, args),
+    setupTheme: (...args: unknown[]) =>
+        Reflect.apply(setupTheme, undefined, args),
+    showAboutModal: (...args: unknown[]) =>
+        Reflect.apply(showAboutModal, undefined, args),
+    showNotification: (...args: unknown[]) =>
+        Reflect.apply(showNotification, undefined, args),
+    showUpdateNotification: (...args: unknown[]) =>
+        Reflect.apply(showUpdateNotification, undefined, args),
+};
+
 const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
     appActions: AppActions,
@@ -231,11 +244,16 @@ registerRendererApplicationLifecycle({
 
 initializeRendererDiagnostics({
     cleanup,
-    ensureCoreModules,
+    debugFunctions: rendererDevelopmentDebugFunctions,
     initializeApplication,
     isOpeningFileRef,
     logRenderer,
     performanceMonitor: PerformanceMonitor,
+    stateModules: {
+        AppActions,
+        masterStateManager,
+        uiStateManager,
+    },
     validateDOMElements: domAccess.validateDOMElements,
 });
 

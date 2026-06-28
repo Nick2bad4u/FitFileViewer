@@ -5,7 +5,8 @@ import {
 import {
     APP_INFO,
     createRendererDevelopmentDebugTools,
-    type RendererDevelopmentDebugCoreModules,
+    type RendererDevelopmentDebugFunctionModules,
+    type RendererDevelopmentDebugStateModules,
 } from "./developmentDebugTools.js";
 import { logRendererStartupInfo } from "./rendererStartupInfo.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
@@ -20,11 +21,12 @@ type RendererDiagnosticsLogger = (
 
 type RendererDiagnosticsOptions = {
     readonly cleanup: () => void;
-    readonly ensureCoreModules: () => Promise<RendererDevelopmentDebugCoreModules>;
+    readonly debugFunctions: RendererDevelopmentDebugFunctionModules;
     readonly initializeApplication: () => Promise<void>;
     readonly isOpeningFileRef: RendererFileOpeningStateRef;
     readonly logRenderer: RendererDiagnosticsLogger;
     readonly performanceMonitor: RendererPerformanceMonitor;
+    readonly stateModules: RendererDevelopmentDebugStateModules;
     readonly validateDOMElements: () => boolean;
 };
 
@@ -39,12 +41,13 @@ export function initializeRendererDiagnostics(
 
     createRendererDevelopmentDebugTools({
         cleanup: options.cleanup,
-        ensureCoreModules: options.ensureCoreModules,
+        debugFunctions: options.debugFunctions,
         initializeApplication: options.initializeApplication,
         isDevelopmentMode,
         isOpeningFileRef: options.isOpeningFileRef,
         logRenderer: options.logRenderer,
         performanceMonitor: options.performanceMonitor,
+        stateModules: options.stateModules,
         validateDOMElements: options.validateDOMElements,
     });
 }

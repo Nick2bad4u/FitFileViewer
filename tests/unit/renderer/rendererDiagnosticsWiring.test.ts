@@ -37,11 +37,12 @@ describe("renderer diagnostics wiring", () => {
             >();
         initializeRendererDiagnostics({
             cleanup: vi.fn(),
-            ensureCoreModules: async () => ({}),
+            debugFunctions: {},
             initializeApplication: async () => undefined,
             isOpeningFileRef: { value: false },
             logRenderer,
             performanceMonitor: createPerformanceMonitor(),
+            stateModules: {},
             validateDOMElements: () => true,
         });
 

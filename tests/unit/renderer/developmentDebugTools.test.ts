@@ -85,12 +85,13 @@ describe("renderer development debug tools", () => {
         expect(
             createRendererDevelopmentDebugTools({
                 cleanup: vi.fn(),
-                ensureCoreModules: async () => ({}),
+                debugFunctions: {},
                 initializeApplication: async () => {},
                 isDevelopmentMode: () => false,
                 isOpeningFileRef: { value: false },
                 logRenderer: vi.fn(),
                 performanceMonitor: createPerformanceMonitor(),
+                stateModules: {},
                 validateDOMElements: () => true,
             })
         ).toBeNull();
@@ -114,12 +115,14 @@ describe("renderer development debug tools", () => {
 
         const view = createRendererDevelopmentDebugTools({
             cleanup: vi.fn(),
-            ensureCoreModules: async () => ({
-                AppActions: { setInitialized: vi.fn() },
+            debugFunctions: {
                 handleOpenFile,
+            },
+            stateModules: {
+                AppActions: { setInitialized: vi.fn() },
                 masterStateManager,
                 uiStateManager: { ready: true },
-            }),
+            },
             initializeApplication: async () => {},
             isDevelopmentMode: () => true,
             isOpeningFileRef: { value: false },
@@ -204,13 +207,14 @@ describe("renderer development debug tools", () => {
 
         const view = createRendererDevelopmentDebugTools({
             cleanup: vi.fn(),
-            ensureCoreModules: async () => ({
+            debugFunctions: {},
+            stateModules: {
                 masterStateManager: {
                     getHistory: "not history",
                     getState: "not state",
                     getSubscriptions: "not subscriptions",
                 },
-            }),
+            },
             initializeApplication: async () => {},
             isDevelopmentMode: () => true,
             isOpeningFileRef: { value: false },
@@ -239,14 +243,15 @@ describe("renderer development debug tools", () => {
 
         const view = createRendererDevelopmentDebugTools({
             cleanup: vi.fn(),
-            ensureCoreModules: async () => ({
+            debugFunctions: {
                 handleOpenFile: "not a handler" as never,
-            }),
+            },
             initializeApplication: async () => {},
             isDevelopmentMode: () => true,
             isOpeningFileRef: { value: false },
             logRenderer: vi.fn(),
             performanceMonitor: createPerformanceMonitor(),
+            stateModules: {},
             validateDOMElements: () => true,
         });
 
