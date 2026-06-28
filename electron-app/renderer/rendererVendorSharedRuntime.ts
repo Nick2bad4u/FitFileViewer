@@ -7,12 +7,8 @@ import {
 type RendererVendorEventTarget = Pick<EventTarget, "dispatchEvent">;
 
 export interface RendererVendorSharedRuntimeScope {
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getEventTarget?:
-        | (() => RendererVendorEventTarget | undefined)
-        | undefined;
+    readonly getCustomEvent: () => BrowserCustomEventConstructor | undefined;
+    readonly getEventTarget: () => RendererVendorEventTarget | undefined;
 }
 
 export interface RendererVendorSharedRuntime {
@@ -32,10 +28,21 @@ function getDefaultRendererVendorSharedRuntimeScope(): RendererVendorSharedRunti
 export function getRendererVendorSharedRuntime(
     scope: RendererVendorSharedRuntimeScope = getDefaultRendererVendorSharedRuntimeScope()
 ): RendererVendorSharedRuntime {
+    if (typeof scope.getCustomEvent !== "function") {
+        throw new TypeError(
+            "rendererVendorSharedRuntime requires a CustomEvent provider"
+        );
+    }
+    if (typeof scope.getEventTarget !== "function") {
+        throw new TypeError(
+            "rendererVendorSharedRuntime requires an event target provider"
+        );
+    }
+
     return {
         dispatchRendererVendorEntryLoadedEvent(eventName, detail): boolean {
-            const CustomEventConstructor = scope.getCustomEvent?.();
-            const eventTarget = scope.getEventTarget?.();
+            const CustomEventConstructor = scope.getCustomEvent();
+            const eventTarget = scope.getEventTarget();
             if (
                 typeof CustomEventConstructor !== "function" ||
                 eventTarget === undefined

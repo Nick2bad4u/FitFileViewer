@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRendererVendorSharedRuntime } from "../../../electron-app/renderer/rendererVendorSharedRuntime.js";
+import {
+    getRendererVendorSharedRuntime,
+    type RendererVendorSharedRuntimeScope,
+} from "../../../electron-app/renderer/rendererVendorSharedRuntime.js";
 
 describe("rendererVendorSharedRuntime", () => {
     it("dispatches renderer vendor readiness events through renderer browser runtime providers", () => {
@@ -74,20 +77,40 @@ describe("rendererVendorSharedRuntime", () => {
         ).toBe(false);
     });
 
-    it("ignores legacy direct CustomEvent and event target scope properties", () => {
+    it("rejects legacy direct CustomEvent and event target scope properties", () => {
         expect.assertions(2);
 
         const eventTarget = new EventTarget();
         const dispatchEvent = vi.spyOn(eventTarget, "dispatchEvent");
 
-        const utils = getRendererVendorSharedRuntime({
-            CustomEvent,
-            eventTarget,
-        } as unknown as Parameters<typeof getRendererVendorSharedRuntime>[0]);
-
-        expect(
-            utils.dispatchRendererVendorEntryLoadedEvent("vendor-ready", {})
-        ).toBe(false);
+        expect(() =>
+            getRendererVendorSharedRuntime({
+                CustomEvent,
+                eventTarget,
+            } as unknown as RendererVendorSharedRuntimeScope)
+        ).toThrow(
+            "rendererVendorSharedRuntime requires a CustomEvent provider"
+        );
         expect(dispatchEvent).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when browser runtime providers are omitted", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getRendererVendorSharedRuntime(
+                {} as unknown as RendererVendorSharedRuntimeScope
+            )
+        ).toThrow(
+            "rendererVendorSharedRuntime requires a CustomEvent provider"
+        );
+
+        expect(() =>
+            getRendererVendorSharedRuntime({
+                getCustomEvent: () => CustomEvent,
+            } as unknown as RendererVendorSharedRuntimeScope)
+        ).toThrow(
+            "rendererVendorSharedRuntime requires an event target provider"
+        );
     });
 });
