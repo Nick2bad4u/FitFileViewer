@@ -17,7 +17,11 @@ import {
     normalizeRendererActiveTab,
 } from "../domain/rendererActiveTabState.js";
 import { subscribeToRendererChartsRendered } from "../domain/rendererChartRenderState.js";
-import { isRendererLoading } from "../domain/rendererLoadingState.js";
+import {
+    isRendererLoading,
+    setRendererLoading,
+    subscribeToRendererLoading,
+} from "../domain/rendererLoadingState.js";
 import { resetRendererRenderLifecycle } from "../domain/rendererRenderLifecycleState.js";
 import { getRendererTheme } from "../domain/rendererThemeState.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -118,7 +122,10 @@ export function exampleStateUsage(): Unsubscribe {
 
     // Setting state
     setState("ui.theme", "dark", { silent: false, source: "exampleFunction" });
-    setState("isLoading", true, { silent: false, source: "exampleFunction" });
+    setRendererLoading(true, {
+        silent: false,
+        source: "exampleFunction",
+    });
 
     // Using actions
     AppActions.switchTab("chart");
@@ -273,10 +280,12 @@ function initializeComponentsWithState(): void {
     );
 
     // Subscribe to loading state
-    subscribeRendererState("isLoading", (isLoading) => {
-        console.log(`[Renderer] Loading state: ${isLoading}`);
-        // Update UI loading indicators
-    });
+    trackRendererStateSubscription(
+        subscribeToRendererLoading((isLoading) => {
+            console.log(`[Renderer] Loading state: ${isLoading}`);
+            // Update UI loading indicators
+        })
+    );
 }
 
 /**
@@ -289,7 +298,7 @@ async function loadChartTab(): Promise<void> {
     }
 
     try {
-        setState("isLoading", true, { silent: false, source: "loadChartTab" });
+        setRendererLoading(true, { silent: false, source: "loadChartTab" });
 
         // Your existing chart rendering logic here
         // Const chartData = await processChartData(rawFitData);
@@ -301,7 +310,7 @@ async function loadChartTab(): Promise<void> {
     } catch (error) {
         console.error("[Renderer] Error loading chart tab:", error);
     } finally {
-        setState("isLoading", false, { silent: false, source: "loadChartTab" });
+        setRendererLoading(false, { silent: false, source: "loadChartTab" });
     }
 }
 
@@ -315,7 +324,7 @@ async function loadMapTab(): Promise<void> {
     }
 
     try {
-        setState("isLoading", true, { silent: false, source: "loadMapTab" });
+        setRendererLoading(true, { silent: false, source: "loadMapTab" });
 
         // Your existing map rendering logic here
         // Const mapCenter = calculateMapCenter(rawFitData);
@@ -327,7 +336,7 @@ async function loadMapTab(): Promise<void> {
     } catch (error) {
         console.error("[Renderer] Error loading map tab:", error);
     } finally {
-        setState("isLoading", false, { silent: false, source: "loadMapTab" });
+        setRendererLoading(false, { silent: false, source: "loadMapTab" });
     }
 }
 
@@ -341,7 +350,7 @@ async function loadTableTab(): Promise<void> {
     }
 
     try {
-        setState("isLoading", true, { silent: false, source: "loadTableTab" });
+        setRendererLoading(true, { silent: false, source: "loadTableTab" });
 
         // Your existing table rendering logic here
         // Const tableConfig = {
@@ -355,7 +364,7 @@ async function loadTableTab(): Promise<void> {
     } catch (error) {
         console.error("[Renderer] Error loading table tab:", error);
     } finally {
-        setState("isLoading", false, { silent: false, source: "loadTableTab" });
+        setRendererLoading(false, { silent: false, source: "loadTableTab" });
     }
 }
 

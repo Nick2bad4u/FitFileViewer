@@ -15841,7 +15841,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(74);
+        expect.assertions(78);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -15892,6 +15892,10 @@ describe("architecture boundaries", () => {
         expect(rendererStateIntegrationSource).toContain(
             "rendererLoadingState.js"
         );
+        expect(rendererStateIntegrationSource).toContain("setRendererLoading");
+        expect(rendererStateIntegrationSource).toContain(
+            "subscribeToRendererLoading"
+        );
         expect(rendererStateIntegrationSource).toContain(
             "rendererThemeState.js"
         );
@@ -15912,6 +15916,12 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationSource).not.toContain(
             'isLoading = getState("isLoading")'
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'setState("isLoading"'
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'subscribeRendererState("isLoading"'
         );
         expect(rendererStateIntegrationSource).not.toContain('case "table"');
         expect(rendererStateIntegrationSource).not.toContain(
