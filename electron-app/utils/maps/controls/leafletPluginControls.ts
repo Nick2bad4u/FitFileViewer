@@ -23,6 +23,9 @@ export type LeafletDrawnItemsLayerGroup = Leaflet.FeatureGroup & {
 };
 
 type LeafletControlFactory = (...args: unknown[]) => LeafletPluginControlHandle;
+type LeafletDrawCreatedEvent = {
+    readonly layer?: unknown;
+};
 
 export type LeafletPluginControlRuntime = {
     Control?: {
@@ -63,6 +66,16 @@ export function hasLeafletMeasurePluginControl(
     leaflet: LeafletPluginControlRuntime
 ): boolean {
     return typeof leaflet.control.measure === "function";
+}
+
+function isLeafletDrawCreatedEvent(
+    event: unknown
+): event is LeafletDrawCreatedEvent {
+    return (
+        event !== null &&
+        (typeof event === "object" || typeof event === "function") &&
+        "layer" in event
+    );
 }
 
 export function addLeafletMeasurePluginControl(
@@ -241,9 +254,8 @@ export function addLeafletDrawPluginControl({
             ? leaflet.Draw.Event.CREATED
             : "draw:created";
     map.on(createdEventName, (event) => {
-        const { layer } = event as unknown as { layer?: unknown };
-        if (layer) {
-            onLayerCreated(layer, drawnItems);
+        if (isLeafletDrawCreatedEvent(event) && event.layer) {
+            onLayerCreated(event.layer, drawnItems);
         }
     });
 

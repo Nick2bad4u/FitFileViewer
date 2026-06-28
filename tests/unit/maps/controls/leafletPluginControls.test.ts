@@ -179,7 +179,7 @@ describe("leafletPluginControls.js", () => {
     });
 
     it("adds the draw plugin control and forwards created layers", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const map = createMap();
         const onLayerCreated = vi.fn();
@@ -215,7 +215,14 @@ describe("leafletPluginControls.js", () => {
             expect.any(Function)
         );
 
-        vi.mocked(map.on).mock.calls[0]?.[1]?.({
+        const onDrawCreated = vi.mocked(map.on).mock.calls[0]?.[1];
+        onDrawCreated?.({
+            target: map,
+            type: "draw:created:test",
+        });
+        expect(onLayerCreated).not.toHaveBeenCalled();
+
+        onDrawCreated?.({
             layer: drawnLayer,
             target: map,
             type: "draw:created:test",

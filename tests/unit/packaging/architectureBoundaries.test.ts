@@ -26774,6 +26774,23 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps Leaflet draw created-event handling behind an explicit guard", () => {
+        expect.assertions(2);
+
+        const leafletPluginControlsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/leafletPluginControls.ts"
+            )
+        );
+
+        expect(leafletPluginControlsSource).toContain(
+            "function isLeafletDrawCreatedEvent"
+        );
+        expect(leafletPluginControlsSource).not.toContain(
+            "event as unknown as { layer?: unknown }"
+        );
+    });
+
     it("keeps direct Leaflet global lookups out of runtime source", () => {
         expect.assertions(1);
 
