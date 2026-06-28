@@ -130,7 +130,7 @@ import {
     getShowRenderNotificationSafe,
     getUIStateManagerMaybe,
 } from "./renderChartDependencyAccessors.js";
-import { callGetStateHistory } from "./renderChartStateAccess.js";
+import { getDebugStateHistory } from "../../state/domain/debugStateAccess.js";
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartStateManagementApi } from "./renderChartStateManagementApi.js";
 import { createChartActions } from "./renderChartActions.js";
@@ -706,7 +706,7 @@ exposeChartDevTools({
     getChartRenderState: getRendererChartState,
     getChartStatus,
     getComputedStateManager: getComputedStateManagerSafe,
-    getStateHistory: callGetStateHistory,
+    getStateHistory: getDebugStateHistory,
     getPerformanceMetrics: getRendererPerformanceMetrics,
     initializeChartStateManagement,
     isWindowAvailable: renderChartRuntime().isWindowAvailable(),

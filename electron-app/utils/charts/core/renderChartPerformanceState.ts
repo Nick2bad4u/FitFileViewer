@@ -1,8 +1,8 @@
-import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
+import type { RendererStateUpdateOptions } from "../../state/domain/rendererStateUpdateOptions.js";
 
 type UpdatePerformanceSummaryFunction = (
     summary: { chartsRendered: number; lastChartRender: number },
-    options?: ChartStateUpdateOptions
+    options?: RendererStateUpdateOptions
 ) => void;
 
 interface ChartRenderPerformanceStateDependencies {

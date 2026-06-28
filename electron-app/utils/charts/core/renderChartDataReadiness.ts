@@ -6,11 +6,11 @@ import {
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
-import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 import {
     getActiveFitChartData,
     type FitChartActivityStartTime,
 } from "../../state/domain/fitChartDataState.js";
+import type { RendererStateUpdateOptions } from "../../state/domain/rendererStateUpdateOptions.js";
 
 type UnitConverter = (value: number, field: string) => unknown;
 type NotifyFunction = (message: string, type: "info" | "warning") => unknown;
@@ -25,7 +25,7 @@ interface ChartRenderDataReadinessDependencies {
     getThemeConfig(): unknown;
     notify: NotifyFunction;
     safeCompleteRendering(success: boolean): void;
-    setChartData(value: unknown, options?: ChartStateUpdateOptions): void;
+    setChartData(value: unknown, options?: RendererStateUpdateOptions): void;
 }
 
 interface ChartRenderDataReadinessInput {

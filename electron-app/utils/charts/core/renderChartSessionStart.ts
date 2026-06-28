@@ -4,18 +4,18 @@ import {
     clearExistingCharts,
     startChartRendering,
 } from "./renderChartLifecycle.js";
-import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
+import type { RendererStateUpdateOptions } from "../../state/domain/rendererStateUpdateOptions.js";
 
 type SetStateFunction = (
     loading: boolean,
-    options?: ChartStateUpdateOptions
+    options?: RendererStateUpdateOptions
 ) => void;
 type SetChartRenderingFunction = (
     rendering: boolean,
-    options?: ChartStateUpdateOptions
+    options?: RendererStateUpdateOptions
 ) => void;
 type ClearChartRenderStateFunction = (
-    options?: ChartStateUpdateOptions
+    options?: RendererStateUpdateOptions
 ) => void;
 
 interface ChartLifecycleActions {
@@ -67,12 +67,12 @@ export async function beginChartRenderSession(
         setChartRendering: (rendering, options) =>
             dependencies.setChartRendering(
                 rendering,
-                options as ChartStateUpdateOptions | undefined
+                options as RendererStateUpdateOptions | undefined
             ),
         setLoadingState: (loading, options) =>
             dependencies.setLoadingState(
                 loading,
-                options as ChartStateUpdateOptions | undefined
+                options as RendererStateUpdateOptions | undefined
             ),
     });
 
@@ -85,7 +85,7 @@ export async function beginChartRenderSession(
     clearExistingCharts({
         clearChartRenderState: (options) =>
             dependencies.clearChartRenderState(
-                options as ChartStateUpdateOptions | undefined
+                options as RendererStateUpdateOptions | undefined
             ),
         getChartLifecycleActions: () => dependencies.getChartLifecycleActions(),
     });

@@ -10,9 +10,15 @@ export function getDebugStateRoot(): unknown {
 }
 
 export function getDebugStateHistory(): unknown[] {
-    return getStateHistory();
+    try {
+        return getStateHistory();
+    } catch {
+        return [];
+    }
 }
 
-export function subscribeToDebugStateChanges(listener: StateListener): () => void {
+export function subscribeToDebugStateChanges(
+    listener: StateListener
+): () => void {
     return subscribe("*", listener);
 }

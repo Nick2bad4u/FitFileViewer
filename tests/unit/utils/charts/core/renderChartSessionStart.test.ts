@@ -1,24 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { beginChartRenderSession } from "../../../../../electron-app/utils/charts/core/renderChartSessionStart.js";
-import type { ChartStateUpdateOptions } from "../../../../../electron-app/utils/charts/core/renderChartStateAccess.js";
+import type { RendererStateUpdateOptions } from "../../../../../electron-app/utils/state/domain/rendererStateUpdateOptions.js";
 
 describe("renderChartSessionStart", () => {
     it("starts rendering and clears chart state through typed fallback patches", async () => {
         expect.assertions(5);
 
         const clearChartRenderState =
-            vi.fn<(options?: ChartStateUpdateOptions) => void>();
+            vi.fn<(options?: RendererStateUpdateOptions) => void>();
         const setChartRendering =
             vi.fn<
-                (rendering: boolean, options?: ChartStateUpdateOptions) => void
+                (
+                    rendering: boolean,
+                    options?: RendererStateUpdateOptions
+                ) => void
             >();
         const setLoadingState =
             vi.fn<
-                (
-                    loading: boolean,
-                    options?: ChartStateUpdateOptions
-                ) => void
+                (loading: boolean, options?: RendererStateUpdateOptions) => void
             >();
         const waitIfRapidRender = vi.fn(async () => undefined);
 

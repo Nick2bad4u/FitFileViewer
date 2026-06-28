@@ -26,6 +26,16 @@ describe("debugStateAccess", () => {
         expect(getDebugStateHistory()).not.toHaveLength(0);
     });
 
+    it("returns an empty debug history after state history reset", () => {
+        expect.assertions(2);
+
+        stateManager.setState("ui.activeTab", "map", { source: "test" });
+        expect(getDebugStateHistory()).not.toHaveLength(0);
+
+        stateManager.clearStateHistory();
+        expect(getDebugStateHistory()).toStrictEqual([]);
+    });
+
     it("subscribes to wildcard state changes", () => {
         expect.assertions(2);
 

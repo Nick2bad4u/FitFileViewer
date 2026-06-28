@@ -9571,7 +9571,7 @@ describe("architecture boundaries", () => {
             )
         );
 
-        expect(renderChartSource).toContain("renderChartStateAccess.js");
+        expect(renderChartSource).toContain("debugStateAccess.js");
         expect(renderChartSource).toContain(
             "renderChartNotificationStateAccess.js"
         );
@@ -9704,14 +9704,9 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps chart render helpers on the chart state access boundary", () => {
-        expect.assertions(21);
+    it("keeps chart render helpers off the core state manager boundary", () => {
+        expect.assertions(10);
 
-        const chartCoreStateAccessFile =
-            "electron-app/utils/charts/core/renderChartStateAccess.ts";
-        const chartStateAccessSource = stripComments(
-            readRepositoryFile(chartCoreStateAccessFile)
-        );
         const chartLifecycleSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartLifecycle.ts"
@@ -9725,7 +9720,6 @@ describe("architecture boundaries", () => {
         const directChartCoreStateImports = collectSourceFiles(
             "electron-app/utils/charts/core"
         )
-            .filter((relativeFile) => relativeFile !== chartCoreStateAccessFile)
             .filter((relativeFile) =>
                 stripComments(readRepositoryFile(relativeFile)).includes(
                     "state/core/stateManager.js"
@@ -9734,20 +9728,14 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directChartCoreStateImports).toStrictEqual([]);
-        expect(chartStateAccessSource).toContain("state/core/stateManager.js");
-        expect(chartStateAccessSource).toContain(
-            "export type ChartStateUpdateOptions = StateUpdateOptions"
-        );
-        expect(chartStateAccessSource).toContain("getStateHistory");
-        expect(chartStateAccessSource).toContain("callGetStateHistory");
-        expect(chartStateAccessSource).not.toContain("getState,");
-        expect(chartStateAccessSource).not.toContain("setState,");
-        expect(chartStateAccessSource).not.toContain("subscribe,");
-        expect(chartStateAccessSource).not.toContain("updateState,");
-        expect(chartStateAccessSource).not.toContain("callGetState(");
-        expect(chartStateAccessSource).not.toContain("callSetState(");
-        expect(chartStateAccessSource).not.toContain("callSubscribe(");
-        expect(chartStateAccessSource).not.toContain("callUpdateState(");
+        expect(
+            existsSync(
+                path.join(
+                    process.cwd(),
+                    "electron-app/utils/charts/core/renderChartStateAccess.ts"
+                )
+            )
+        ).toBe(false);
         expect(chartLifecycleSource).toContain("clearChartRenderState");
         expect(chartLifecycleSource).not.toContain("ChartClearStatePatch");
         expect(renderChartSessionStartSource).toContain(

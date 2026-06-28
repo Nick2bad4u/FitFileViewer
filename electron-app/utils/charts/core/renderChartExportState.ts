@@ -1,5 +1,5 @@
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
-import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
+import type { RendererStateUpdateOptions } from "../../state/domain/rendererStateUpdateOptions.js";
 
 interface CreateExportChartsWithStateDependencies {
     areChartsRendered(): boolean;
@@ -10,7 +10,7 @@ interface CreateExportChartsWithStateDependencies {
     ): unknown;
     setExportingState(
         exporting: boolean,
-        options?: ChartStateUpdateOptions
+        options?: RendererStateUpdateOptions
     ): unknown;
 }
 
