@@ -954,6 +954,9 @@ through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` direct
 metadata lookups from returning. Renderer development debug production defaults now live in an explicit provider
 object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of direct
 metadata properties.
+Development debug state-manager method extraction now validates optional `getState`, `getHistory`, and
+`getSubscriptions` methods through direct typed property reads instead of looping method names through
+`Reflect.get(value, methodName)`, with architecture coverage blocking that reflective helper from returning.
 Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and global
 error-listener abort-controller creation now routes through `errorHandlingRuntime.ts` instead of constructing
 `AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary

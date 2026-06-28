@@ -55,6 +55,11 @@ type RendererDevelopmentDebugStateModules = {
     readonly masterStateManager?: unknown;
     readonly uiStateManager?: unknown;
 };
+type RendererDevelopmentDebugStateManagerCandidate = {
+    readonly getHistory?: unknown;
+    readonly getState?: unknown;
+    readonly getSubscriptions?: unknown;
+};
 export type RendererDevelopmentDebugCoreModules = Readonly<
     RendererDevelopmentDebugFunctionModules &
         RendererDevelopmentDebugStateModules
@@ -409,21 +414,27 @@ function toRendererDevelopmentDebugStateManager(
         return undefined;
     }
 
+    const candidate = value as RendererDevelopmentDebugStateManagerCandidate;
     const stateManager: Partial<
         Record<DevelopmentStateManagerMethodName, DevelopmentStateManagerMethod>
     > = {};
-    for (const methodName of [
-        "getHistory",
-        "getState",
-        "getSubscriptions",
-    ] as const) {
-        const method = Reflect.get(value, methodName);
-        if (typeof method === "function") {
-            stateManager[methodName] = method;
-        }
+    if (isDevelopmentStateManagerMethod(candidate.getHistory)) {
+        stateManager.getHistory = candidate.getHistory;
+    }
+    if (isDevelopmentStateManagerMethod(candidate.getState)) {
+        stateManager.getState = candidate.getState;
+    }
+    if (isDevelopmentStateManagerMethod(candidate.getSubscriptions)) {
+        stateManager.getSubscriptions = candidate.getSubscriptions;
     }
 
     return Object.keys(stateManager).length === 0 ? undefined : stateManager;
+}
+
+function isDevelopmentStateManagerMethod(
+    value: unknown
+): value is DevelopmentStateManagerMethod {
+    return typeof value === "function";
 }
 
 function getRecordBoolean(

@@ -5962,8 +5962,8 @@ describe("architecture boundaries", () => {
         expect(developmentDebugToolsSource).toContain(
             "function toRendererDevelopmentDebugStateManager("
         );
-        expect(developmentDebugToolsSource).toContain(
-            "stateManager[methodName] = method;"
+        expect(developmentDebugToolsSource).not.toContain(
+            "Reflect.get(value, methodName)"
         );
         expect(developmentDebugToolsSource).not.toContain(
             "const methodFn = method as (this: unknown) => unknown;"
