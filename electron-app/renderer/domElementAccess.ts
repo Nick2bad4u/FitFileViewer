@@ -14,7 +14,7 @@ type RendererDomAccessOptions = {
 
 type RendererDomAccess = {
     readonly getFileInput: () => HTMLInputElement | null;
-    readonly getOpenFileButton: () => HTMLElement | null;
+    readonly getOpenFileButton: () => HTMLButtonElement | null;
     readonly validateDOMElements: () => boolean;
 };
 
@@ -28,7 +28,10 @@ export function createRendererDomAccess(
                 "#file_input"
             ) as HTMLInputElement | null,
         getOpenFileButton: () =>
-            querySelectorByIdFlexible(options.documentTarget, "#open_file_btn"),
+            querySelectorByIdFlexible(
+                options.documentTarget,
+                "#open_file_btn"
+            ) as HTMLButtonElement | null,
         validateDOMElements: () =>
             validateRendererDomElements(
                 options.documentTarget,

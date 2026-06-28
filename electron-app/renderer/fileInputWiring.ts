@@ -1,4 +1,3 @@
-import type { RendererHandleOpenFile } from "./coreModuleResolution.js";
 import {
     createDelegatedFileInputChangeHandler,
     registerDelegatedFileInputChangeListener,
@@ -12,13 +11,9 @@ type RendererFileInputWiringLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererFileInputCoreModules = Readonly<{
-    readonly handleOpenFile: RendererHandleOpenFile | undefined;
-}>;
-
 type RendererFileInputWiringOptions = {
-    readonly ensureCoreModules: () => Promise<RendererFileInputCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
+    readonly handleOpenFile: RendererFileOpenHandler;
     readonly logRenderer: RendererFileInputWiringLogger;
     readonly resolveExactRendererCoreTestOverride: (
         testId: string
@@ -53,9 +48,7 @@ type RendererFileInputHandleOpenFileDefaultExport = Readonly<{
 }>;
 
 type RendererFileInputHandleOpenFileOverrideModule = Readonly<{
-    readonly default?:
-        | RendererFileInputHandleOpenFileDefaultExport
-        | undefined;
+    readonly default?: RendererFileInputHandleOpenFileDefaultExport | undefined;
     readonly handleOpenFile?: RendererFileOpenHandler | undefined;
 }>;
 
@@ -63,7 +56,7 @@ export function createRendererFileInputWiring(
     options: RendererFileInputWiringOptions
 ): RendererFileInputWiring {
     const startupOptions: RendererFileInputStartupOptions = {
-        getHandleOpenFile: async () => getFileInputHandleOpenFile(options),
+        getHandleOpenFile: async () => options.handleOpenFile,
         getOverrideHandleOpenFile: () => resolveOverrideHandleOpenFile(options),
         logRenderer: options.logRenderer,
     };
@@ -122,13 +115,6 @@ function resolveOverrideHandleOpenFile(
         resolvedModule?.handleOpenFile ??
         resolvedModule?.default?.handleOpenFile
     );
-}
-
-async function getFileInputHandleOpenFile(
-    options: RendererFileInputWiringOptions
-): Promise<RendererFileOpenHandler | undefined> {
-    const { handleOpenFile } = await options.ensureCoreModules();
-    return handleOpenFile;
 }
 
 function toRendererFileOpenHandler(

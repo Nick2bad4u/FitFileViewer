@@ -1,18 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-    createRendererFileInputWiring,
-    type RendererFileInputCoreModules,
-} from "../../../electron-app/renderer/fileInputWiring.js";
-import type { RendererHandleOpenFile } from "../../../electron-app/renderer/coreModuleResolution.js";
-
-function createCoreModules(
-    handleOpenFile: RendererHandleOpenFile
-): RendererFileInputCoreModules {
-    return {
-        handleOpenFile,
-    };
-}
+import { createRendererFileInputWiring } from "../../../electron-app/renderer/fileInputWiring.js";
+import type { RendererFileOpenHandler } from "../../../electron-app/renderer/fileInputStartup.js";
 
 function createFileInput(id: string): {
     readonly file: File;
@@ -36,8 +25,8 @@ function createFileInput(id: string): {
 }
 
 function createWiring(overrides: {
-    readonly ensureCoreModules?: () => Promise<RendererFileInputCoreModules>;
     readonly getFileInput?: () => HTMLInputElement | null;
+    readonly handleOpenFile?: RendererFileOpenHandler;
     readonly resolveExactRendererCoreTestOverride?: (
         testId: string
     ) => null | unknown;
@@ -46,10 +35,8 @@ function createWiring(overrides: {
     ) => null | unknown;
 }) {
     return createRendererFileInputWiring({
-        ensureCoreModules:
-            overrides.ensureCoreModules ??
-            (async () => createCoreModules(vi.fn())),
         getFileInput: overrides.getFileInput ?? (() => null),
+        handleOpenFile: overrides.handleOpenFile ?? vi.fn(),
         logRenderer: vi.fn(),
         resolveExactRendererCoreTestOverride:
             overrides.resolveExactRendererCoreTestOverride ?? (() => null),
@@ -75,10 +62,10 @@ describe("renderer file input wiring", () => {
         expect.assertions(2);
 
         const { file, input } = createFileInput("file_input");
-        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const handleOpenFile = vi.fn<RendererFileOpenHandler>();
         const utils = createWiring({
-            ensureCoreModules: async () => createCoreModules(handleOpenFile),
             getFileInput: () => input,
+            handleOpenFile,
         });
 
         utils.registerImportTimeFileInputChangeHandler(window);
@@ -99,13 +86,12 @@ describe("renderer file input wiring", () => {
         expect.assertions(3);
 
         const { file, input } = createFileInput("fileInput");
-        const exactOverrideHandleOpenFile = vi.fn<RendererHandleOpenFile>();
-        const suffixOverrideHandleOpenFile = vi.fn<RendererHandleOpenFile>();
-        const asyncHandleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const exactOverrideHandleOpenFile = vi.fn<RendererFileOpenHandler>();
+        const suffixOverrideHandleOpenFile = vi.fn<RendererFileOpenHandler>();
+        const directHandleOpenFile = vi.fn<RendererFileOpenHandler>();
         const utils = createWiring({
-            ensureCoreModules: async () =>
-                createCoreModules(asyncHandleOpenFile),
             getFileInput: () => input,
+            handleOpenFile: directHandleOpenFile,
             resolveExactRendererCoreTestOverride: (testId) =>
                 testId === "../../utils/files/import/handleOpenFile.js"
                     ? { handleOpenFile: exactOverrideHandleOpenFile }
@@ -123,19 +109,18 @@ describe("renderer file input wiring", () => {
             file
         );
         expect(suffixOverrideHandleOpenFile).not.toHaveBeenCalled();
-        expect(asyncHandleOpenFile).not.toHaveBeenCalled();
+        expect(directHandleOpenFile).not.toHaveBeenCalled();
     });
 
     it("uses default-exported handleOpenFile test overrides", () => {
         expect.assertions(2);
 
         const { file, input } = createFileInput("fileInput");
-        const overrideHandleOpenFile = vi.fn<RendererHandleOpenFile>();
-        const asyncHandleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const overrideHandleOpenFile = vi.fn<RendererFileOpenHandler>();
+        const directHandleOpenFile = vi.fn<RendererFileOpenHandler>();
         const utils = createWiring({
-            ensureCoreModules: async () =>
-                createCoreModules(asyncHandleOpenFile),
             getFileInput: () => input,
+            handleOpenFile: directHandleOpenFile,
             resolveExactRendererCoreTestOverride: (testId) =>
                 testId === "../../utils/files/import/handleOpenFile.js"
                     ? { default: { handleOpenFile: overrideHandleOpenFile } }
@@ -146,17 +131,17 @@ describe("renderer file input wiring", () => {
         input.dispatchEvent(new Event("change", { bubbles: true }));
 
         expect(overrideHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
-        expect(asyncHandleOpenFile).not.toHaveBeenCalled();
+        expect(directHandleOpenFile).not.toHaveBeenCalled();
     });
 
-    it("falls back to async handleOpenFile for malformed test overrides", async () => {
+    it("falls back to the direct handleOpenFile for malformed test overrides", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput("fileInput");
-        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const handleOpenFile = vi.fn<RendererFileOpenHandler>();
         const utils = createWiring({
-            ensureCoreModules: async () => createCoreModules(handleOpenFile),
             getFileInput: () => input,
+            handleOpenFile,
             resolveExactRendererCoreTestOverride: () => "not-a-module",
         });
 
@@ -167,14 +152,14 @@ describe("renderer file input wiring", () => {
         expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
 
-    it("falls back to async handleOpenFile for malformed handler exports", async () => {
+    it("falls back to the direct handleOpenFile for malformed handler exports", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput("fileInput");
-        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const handleOpenFile = vi.fn<RendererFileOpenHandler>();
         const utils = createWiring({
-            ensureCoreModules: async () => createCoreModules(handleOpenFile),
             getFileInput: () => input,
+            handleOpenFile,
             resolveExactRendererCoreTestOverride: () => ({
                 default: { handleOpenFile: "not-a-handler" },
                 handleOpenFile: "not-a-handler",
@@ -188,14 +173,14 @@ describe("renderer file input wiring", () => {
         expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
 
-    it("falls back to async handleOpenFile when no test override resolves", async () => {
+    it("falls back to the direct handleOpenFile when no test override resolves", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput("fileInput");
-        const handleOpenFile = vi.fn<RendererHandleOpenFile>();
+        const handleOpenFile = vi.fn<RendererFileOpenHandler>();
         const utils = createWiring({
-            ensureCoreModules: async () => createCoreModules(handleOpenFile),
             getFileInput: () => input,
+            handleOpenFile,
         });
 
         utils.registerDelegatedFileInputChangeListener(document, window);

@@ -26,6 +26,7 @@ import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { applyTheme } from "./utils/theming/core/theme.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
+import { handleOpenFile as openFitFileFromDialog } from "./utils/files/import/handleOpenFile.js";
 import { masterStateManager } from "./utils/state/core/masterStateManager.js";
 import {
     getAppStartTime,
@@ -116,8 +117,17 @@ const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
     importTimeBootstrap;
 
 const fileInputWiring = createRendererFileInputWiring({
-    ensureCoreModules,
     getFileInput: domAccess.getFileInput,
+    handleOpenFile: () =>
+        openFitFileFromDialog(
+            {
+                isOpeningFileRef,
+                openFileBtn: domAccess.getOpenFileButton(),
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope: getRendererElectronApiScope() }
+        ),
     logRenderer,
     resolveExactRendererCoreTestOverride,
     resolveRendererCoreTestOverride,
