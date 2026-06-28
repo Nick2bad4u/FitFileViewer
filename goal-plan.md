@@ -1905,6 +1905,9 @@ instead of using a generic `Reflect.get` probe, with existing malformed-marker c
 blocking that renderer dependency reflection from returning.
 Dependency validation workflow coverage now locks the scheduled dependency rehearsal to read-only permissions,
 dependency path filters, app/docs installs, `release:verify`, unsigned package artifact checks, and diagnostics upload.
+Release rehearsal signing preflight now receives the same platform-specific Windows and macOS signing secret names as
+the release workflow while the package rehearsal remains forced unsigned, with focused workflow/package-boundary
+coverage and development-guide notes keeping that split explicit.
 Overlay filename lookup now narrows unknown loaded-file entries through local record and `filePath` guards instead of
 asserting `loadedFitFiles[idx]` to an object shape, with malformed-entry coverage and architecture coverage blocking
 that cast from returning.

@@ -481,9 +481,11 @@ electron-builder starts. Keep this separate from signed release packaging; use
 the signing preflight to prove credentials are present, then build rehearsal
 artifacts unsigned.
 
-Use `require-code-signing=true` only when the required signing secrets are
-expected to be present. Leave `fail-fast=false` when you want every platform to
-complete and report its own readiness result.
+Use `require-code-signing=true` only when the required platform signing secrets
+are configured; the preflight receives the same Windows and macOS secret names
+as the release workflow, but the rehearsal package step still forces unsigned
+artifacts. Leave `fail-fast=false` when you want every platform to complete and
+report its own readiness result.
 
 ### Dependency Validation
 

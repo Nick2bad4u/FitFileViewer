@@ -536,7 +536,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release rehearsal manual and unsigned", () => {
-        expect.assertions(19);
+        expect.assertions(31);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseRehearsalWorkflow = readFileSync(
@@ -552,6 +552,42 @@ describe("workspace package boundaries", () => {
         expect(releaseRehearsalWorkflow).toContain("require-code-signing:");
         expect(releaseRehearsalWorkflow).toContain(
             "npm run release:check-signing"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_API_ISSUER: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_API_KEY: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_API_KEY_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_ID || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_KEYCHAIN_PROFILE: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_KEYCHAIN_PROFILE || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "APPLE_TEAM_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "CSC_INSTALLER_KEY_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_INSTALLER_KEY_PASSWORD || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "CSC_INSTALLER_LINK: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_INSTALLER_LINK || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "CSC_KEY_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_KEY_PASSWORD || matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_KEY_PASSWORD || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "CSC_LINK: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "WIN_CSC_LINK: ${{ matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}"
         );
         expect(releaseRehearsalWorkflow).toContain("npm run release:verify");
         expect(releaseRehearsalWorkflow).toContain(

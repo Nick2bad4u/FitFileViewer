@@ -84,6 +84,18 @@ jobs:
               env:
                   REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
                   RUNNER_OS: ${{ matrix.runner-os }}
+                  APPLE_API_ISSUER: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
+                  APPLE_API_KEY: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY || '' }}
+                  APPLE_API_KEY_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
+                  APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+                  APPLE_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_ID || '' }}
+                  APPLE_KEYCHAIN_PROFILE: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_KEYCHAIN_PROFILE || '' }}
+                  APPLE_TEAM_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+                  CSC_INSTALLER_KEY_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_INSTALLER_KEY_PASSWORD || '' }}
+                  CSC_INSTALLER_LINK: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_INSTALLER_LINK || '' }}
+                  CSC_KEY_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_KEY_PASSWORD || matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_KEY_PASSWORD || '' }}
+                  CSC_LINK: ${{ matrix.runner-os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
+                  WIN_CSC_LINK: ${{ matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
 
             - name: Run release verification and packaged smoke
               run: ${{ matrix.release-verify-command }}
