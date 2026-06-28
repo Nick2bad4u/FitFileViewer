@@ -176,6 +176,29 @@ describe("fileBrowserTab accessibility", () => {
         });
     });
 
+    it("rejects primitive Browser Electron API values", async () => {
+        expect.assertions(3);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        await renderFileBrowserTab({
+            electronApiScope: createElectronApiScope("not an api"),
+        });
+
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("Browser unavailable (Electron API missing)");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            "Browser unavailable."
+        );
+        expect(getBrowserListingState()).toMatchObject({
+            error: "Electron Browser API is unavailable.",
+            status: "error",
+        });
+    });
+
     it("uses the latest scoped Electron API after rerendering the Browser tab", async () => {
         expect.assertions(4);
 

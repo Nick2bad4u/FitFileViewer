@@ -64,14 +64,6 @@ type FitBrowserElectronAPI = {
     readonly readFile?: ElectronFileApi["readFile"];
 };
 
-type FitBrowserElectronApiCandidate = {
-    readonly decodeFitFile?: unknown;
-    readonly getFitBrowserFolder?: unknown;
-    readonly listFitBrowserFolder?: unknown;
-    readonly openFolderDialog?: unknown;
-    readonly readFile?: unknown;
-};
-
 type FitBrowserDecodeApi = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
     readonly readFile: ElectronFileApi["readFile"];
@@ -83,6 +75,14 @@ type FileBrowserTabOptions = {
 type FitBrowserListApi = {
     readonly listFitBrowserFolder: ElectronFitBrowserApi["listFitBrowserFolder"];
 };
+
+const FIT_BROWSER_ELECTRON_API_METHODS = [
+    "decodeFitFile",
+    "getFitBrowserFolder",
+    "listFitBrowserFolder",
+    "openFolderDialog",
+    "readFile",
+] as const satisfies readonly (keyof FitBrowserElectronAPI)[];
 
 type FitLibraryCachePayload = FitBrowserLibraryCachePayload<FitLibraryItem>;
 
@@ -592,13 +592,8 @@ function isFitBrowserElectronApi(
         return false;
     }
 
-    const api = value as FitBrowserElectronApiCandidate;
-    return (
-        hasOptionalFunction(api.decodeFitFile) &&
-        hasOptionalFunction(api.getFitBrowserFolder) &&
-        hasOptionalFunction(api.listFitBrowserFolder) &&
-        hasOptionalFunction(api.openFolderDialog) &&
-        hasOptionalFunction(api.readFile)
+    return FIT_BROWSER_ELECTRON_API_METHODS.every((methodName) =>
+        hasOptionalFunction(Reflect.get(value, methodName))
     );
 }
 

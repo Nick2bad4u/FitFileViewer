@@ -7704,7 +7704,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(90);
+        expect.assertions(93);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -7742,7 +7742,16 @@ describe("architecture boundaries", () => {
             "const api = value as Record<string, unknown>"
         );
         expect(browserTabSource).not.toContain(
-            "Reflect.get(value, methodName)"
+            "value as FitBrowserElectronApiCandidate"
+        );
+        expect(browserTabSource).toContain(
+            "const FIT_BROWSER_ELECTRON_API_METHODS ="
+        );
+        expect(browserTabSource).not.toContain(
+            "type FitBrowserElectronApiCandidate"
+        );
+        expect(browserTabSource).toContain(
+            "hasOptionalFunction(Reflect.get(value, methodName))"
         );
         expect(browserTabSource).not.toContain("activeElectronApiScope");
         expect(browserTabSource).toContain(
@@ -18517,7 +18526,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(66);
+        expect.assertions(69);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -18741,6 +18750,15 @@ describe("architecture boundaries", () => {
         );
         expect(fileBrowserTabSource).not.toContain(
             "Pick<FitBrowserElectronAPI"
+        );
+        expect(fileBrowserTabSource).not.toContain(
+            "type FitBrowserElectronApiCandidate"
+        );
+        expect(fileBrowserTabSource).toContain(
+            "const FIT_BROWSER_ELECTRON_API_METHODS ="
+        );
+        expect(fileBrowserTabSource).toContain(
+            "hasOptionalFunction(Reflect.get(value, methodName))"
         );
         expect(fileBrowserTabSource).not.toContain("Pick<ElectronAPI");
     });
