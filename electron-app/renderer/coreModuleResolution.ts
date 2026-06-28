@@ -1,5 +1,4 @@
 import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks.js";
-import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type { AppActions } from "../utils/app/lifecycle/appActions.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
@@ -22,9 +21,6 @@ export type ShowUpdateNotification = (
 ) => void;
 
 export type RendererHandleOpenFile = (payload: unknown) => unknown;
-export type RendererSetupListeners = (
-    options: SetupListenersOptions
-) => unknown;
 export type RendererSetupTheme = (
     applyTheme: ApplyTheme | undefined,
     listenForThemeChange: ListenForThemeChange | undefined,
@@ -39,7 +35,6 @@ type ResolvedRendererCoreModules = Readonly<{
     readonly AppActions: RendererAppCleanupActions | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly masterStateManager: unknown;
-    readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
     readonly showAboutModal: ((html?: string) => void) | undefined;
     readonly showNotification: ShowNotification | undefined;
@@ -72,10 +67,6 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         "../../utils/ui/notifications/showUpdateNotification.js",
         "../utils/ui/notifications/showUpdateNotification.js"
     );
-    const listenersMod = await resolveCoreModule(
-        "../../utils/app/lifecycle/listeners.js",
-        "../utils/app/lifecycle/listeners.js"
-    );
     const aboutMod = await resolveCoreModule(
         "../../utils/ui/modals/aboutModal.js",
         "../utils/ui/modals/aboutModal.js"
@@ -99,9 +90,6 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         handleOpenFile: toRendererHandleOpenFile(openFileMod["handleOpenFile"]),
         masterStateManager:
             resolveDefaultableExport(msmMod, "masterStateManager") ?? msmMod,
-        setupListeners: toRendererSetupListeners(
-            listenersMod["setupListeners"]
-        ),
         setupTheme: toRendererSetupTheme(setupThemeMod["setupTheme"]),
         showAboutModal: toShowAboutModal(aboutMod["showAboutModal"]),
         showNotification: toShowNotification(notifMod["showNotification"]),
@@ -191,9 +179,6 @@ async function importRendererModule(realPath: string): Promise<unknown> {
         case "../utils/app/lifecycle/appActions.js": {
             return /** @type {Promise<unknown>} */ import("../utils/app/lifecycle/appActions.js");
         }
-        case "../utils/app/lifecycle/listeners.js": {
-            return /** @type {Promise<unknown>} */ import("../utils/app/lifecycle/listeners.js");
-        }
         case "../utils/files/import/handleOpenFile.js": {
             return /** @type {Promise<unknown>} */ import("../utils/files/import/handleOpenFile.js");
         }
@@ -278,14 +263,6 @@ function toRendererHandleOpenFile(
 ): RendererHandleOpenFile | undefined {
     return typeof value === "function"
         ? (value as RendererHandleOpenFile)
-        : undefined;
-}
-
-function toRendererSetupListeners(
-    value: unknown
-): RendererSetupListeners | undefined {
-    return typeof value === "function"
-        ? (value as RendererSetupListeners)
         : undefined;
 }
 

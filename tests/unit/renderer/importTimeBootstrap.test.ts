@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
-    type RendererImportTimeCoreModules,
     type RendererImportTimeBootstrap,
 } from "../../../electron-app/renderer/importTimeBootstrap.js";
 import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
@@ -16,17 +15,6 @@ function createBootstrap(
         scheduleImportTimeListenersSetup: vi.fn(),
         scheduleImportTimeStateInitialization: vi.fn(),
         scheduleImportTimeThemeSetup: vi.fn(),
-        ...overrides,
-    };
-}
-
-function createCoreModules(
-    overrides: Partial<RendererImportTimeCoreModules> = {}
-): RendererImportTimeCoreModules {
-    return {
-        handleOpenFile: vi.fn(),
-        setupListeners: vi.fn(),
-        setupTheme: vi.fn(),
         ...overrides,
     };
 }
@@ -51,6 +39,7 @@ describe("renderer import-time bootstrap", () => {
         const getElectronApiScope = vi.fn(() => electronApiScope);
         const applyTheme = vi.fn();
         const getAppStartTime = vi.fn();
+        const handleOpenFile = vi.fn();
         const listenForThemeChange = vi.fn();
         const showAboutModal = vi.fn();
         const showNotification = vi.fn();
@@ -72,11 +61,10 @@ describe("renderer import-time bootstrap", () => {
         );
         const subscribeToAppStartTime = vi.fn();
         let setupListenersOptions: SetupListenersOptions | undefined;
-        const coreModules = createCoreModules({
-            setupListeners: vi.fn((options: SetupListenersOptions) => {
-                setupListenersOptions = options;
-            }),
+        const setupListeners = vi.fn((options: SetupListenersOptions) => {
+            setupListenersOptions = options;
         });
+        const setupTheme = vi.fn();
         const {
             scheduleAppDomainStateTouch,
             scheduleImportTimeListenersSetup,
@@ -84,9 +72,9 @@ describe("renderer import-time bootstrap", () => {
             scheduleImportTimeThemeSetup,
         } = createRendererImportTimeBootstrap({
             applyTheme,
-            ensureCoreModules: async () => coreModules,
             getElectronApiScope,
             getAppStartTime,
+            handleOpenFile,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isOpeningFileRef,
@@ -95,6 +83,8 @@ describe("renderer import-time bootstrap", () => {
             showAboutModal,
             showNotification,
             showUpdateNotification,
+            setupListeners,
+            setupTheme,
             subscribeToAppStartTime,
         });
 
@@ -104,14 +94,14 @@ describe("renderer import-time bootstrap", () => {
         scheduleAppDomainStateTouch();
         await flushImportTimeWork();
 
-        expect(coreModules.setupTheme).toHaveBeenCalledWith(
+        expect(setupTheme).toHaveBeenCalledWith(
             applyTheme,
             listenForThemeChange,
             { electronApiScope }
         );
-        expect(coreModules.setupListeners).toHaveBeenCalledWith(
+        expect(setupListeners).toHaveBeenCalledWith(
             expect.objectContaining({
-                handleOpenFile: coreModules.handleOpenFile,
+                handleOpenFile,
                 electronApiScope,
                 isOpeningFileRef,
                 openFileBtn: openFileButton,
@@ -152,9 +142,9 @@ describe("renderer import-time bootstrap", () => {
         const { scheduleImportTimeStateInitialization } =
             createRendererImportTimeBootstrap({
                 applyTheme: vi.fn(),
-                ensureCoreModules: async () => createCoreModules(),
                 getElectronApiScope: () => ({ getElectronAPI: () => null }),
                 getAppStartTime: vi.fn(),
+                handleOpenFile: vi.fn(),
                 getOpenFileButton: () => null,
                 initializeStateManager,
                 isOpeningFileRef: { value: false },
@@ -163,6 +153,8 @@ describe("renderer import-time bootstrap", () => {
                 showAboutModal: vi.fn(),
                 showNotification: vi.fn(),
                 showUpdateNotification: vi.fn(),
+                setupListeners: vi.fn(),
+                setupTheme: vi.fn(),
                 subscribeToAppStartTime: vi.fn(),
             });
 

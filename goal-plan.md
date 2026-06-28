@@ -2084,6 +2084,9 @@ just to expose those callbacks.
 Renderer application startup and import-time listener setup now receive `showAboutModal`, `showNotification`, and
 `showUpdateNotification` services directly from the renderer entrypoint instead of resolving those callbacks through the
 broad core-module aggregate.
+Renderer application startup and import-time bootstrap now also receive `handleOpenFile`, `setupListeners`, and
+`setupTheme` directly from the renderer entrypoint, so those startup paths no longer call `ensureCoreModules` and the
+broad resolver no longer imports the lifecycle listener module for startup setup.
 Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
 renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Renderer error handling now receives the typed `showNotification` service directly from the renderer entrypoint instead

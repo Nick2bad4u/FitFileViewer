@@ -45,10 +45,9 @@ describe("renderer core module resolution", () => {
     });
 
     it("builds the core module facade from test overrides", async () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         const handleOpenFile = vi.fn();
-        const setupListeners = vi.fn();
         const setupTheme = vi.fn();
         const showAboutModal = vi.fn();
         const showNotification = vi.fn();
@@ -75,7 +74,6 @@ describe("renderer core module resolution", () => {
                     "../../utils/ui/notifications/showUpdateNotification.js",
                     { showUpdateNotification },
                 ],
-                ["../../utils/app/lifecycle/listeners.js", { setupListeners }],
                 ["../../utils/ui/modals/aboutModal.js", { showAboutModal }],
                 [
                     "../../utils/state/core/masterStateManager.js",
@@ -94,7 +92,6 @@ describe("renderer core module resolution", () => {
         expect(coreModules.AppActions).toBe(AppActions);
         expect(coreModules.handleOpenFile).toBe(handleOpenFile);
         expect(coreModules.masterStateManager).toBe(masterStateManager);
-        expect(coreModules.setupListeners).toBe(setupListeners);
         expect(coreModules.showNotification).toBe(showNotification);
         expect(coreModules.uiStateManager).toBe(uiStateManager);
     });

@@ -20636,7 +20636,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(68);
+        expect.assertions(78);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -20654,7 +20654,7 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).toContain(
             "handleOpenFile: RendererHandleOpenFile | undefined"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "setupListeners: RendererSetupListeners | undefined"
         );
         expect(coreModuleResolutionSource).toContain(
@@ -20669,11 +20669,14 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             "setupTheme: undefined | UnknownRendererFunction"
         );
-        expect(coreModuleResolutionSource).toContain("SetupListenersOptions");
+        expect(coreModuleResolutionSource).not.toContain(
+            "SetupListenersOptions"
+        );
         expect(coreModuleResolutionSource).toContain("RendererSetupTheme");
-        expect(applicationStartupSource).toContain(
+        expect(applicationStartupSource).not.toContain(
             "export type RendererApplicationStartupCoreModules = Readonly<{"
         );
+        expect(applicationStartupSource).not.toContain("ensureCoreModules");
         expect(applicationStartupSource).not.toContain("RendererCoreModules");
         expect(applicationStartupSource).not.toContain("Pick<");
         expect(coreModuleResolutionSource).toContain(
@@ -20736,6 +20739,15 @@ describe("architecture boundaries", () => {
             "getAppStartTime: AppStartTimeGetter;"
         );
         expect(applicationStartupSource).toContain(
+            "handleOpenFile: RendererHandleOpenFile;"
+        );
+        expect(applicationStartupSource).toContain(
+            "setupListeners: RendererSetupListeners;"
+        );
+        expect(applicationStartupSource).toContain(
+            "setupTheme: RendererSetupTheme;"
+        );
+        expect(applicationStartupSource).toContain(
             "options.getAppStartTime();"
         );
         expect(applicationStartupSource).toContain(
@@ -20766,22 +20778,21 @@ describe("architecture boundaries", () => {
         expect(applicationStartupSource).not.toContain(
             "readonly showAboutModal: ((html?: string) => void) | undefined;"
         );
-        expect(applicationStartupSource).toContain(
+        expect(applicationStartupSource).not.toContain(
             "ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>"
         );
         expect(applicationStartupSource).not.toContain(
             "ensureCoreModules: () => Promise<RendererCoreModules>"
         );
-        expect(applicationStartupTestSource).toContain(
+        expect(applicationStartupTestSource).not.toContain(
             "RendererApplicationStartupCoreModules"
         );
         expect(applicationStartupTestSource).not.toContain(
             "RendererCoreModules"
         );
         expect(applicationStartupSource).not.toContain("callUnknownFunction");
-        expect(applicationStartupSource).toContain(
-            "setupThemeDyn?.(\n                dependencies.applyTheme,"
-        );
+        expect(applicationStartupSource).not.toContain("setupThemeDyn");
+        expect(applicationStartupSource).toContain("options.setupTheme(");
         expect(applicationStartupSource).toContain(
             "dependencies.listenForThemeChange,\n                { electronApiScope: dependencies.electronApiScope }"
         );
@@ -20790,9 +20801,10 @@ describe("architecture boundaries", () => {
             "createSetupListenersOptions(dependencies)"
         );
         expect(applicationStartupSource).toContain(
-            "setupListenersDyn?.(setupListenerDependencies)"
+            "options.setupListeners(setupListenerDependencies)"
         );
-        expect(applicationStartupSource).toContain(
+        expect(applicationStartupSource).not.toContain("setupListenersDyn");
+        expect(applicationStartupSource).not.toContain(
             "setupListeners?.(setupListenerDependencies)"
         );
         expect(applicationStartupSource).toContain(
@@ -20804,10 +20816,18 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("appActions: AppActions,");
         expect(rendererEntrypointSource).toContain("applyTheme,");
         expect(rendererEntrypointSource).toContain("getAppStartTime,");
+        expect(rendererEntrypointSource).toContain(
+            "handleOpenFile: openFitFileFromDialog"
+        );
         expect(rendererEntrypointSource).toContain("listenForThemeChange,");
         expect(rendererEntrypointSource).toContain("showAboutModal,");
         expect(rendererEntrypointSource).toContain("showNotification,");
         expect(rendererEntrypointSource).toContain("showUpdateNotification,");
+        expect(rendererEntrypointSource).toContain("setupListeners,");
+        expect(rendererEntrypointSource).toContain("setupTheme,");
+        expect(coreModuleResolutionSource).not.toContain(
+            '"../utils/app/lifecycle/listeners.js"'
+        );
         expect(coreModuleResolutionSource).not.toContain(
             "readonly applyTheme: ApplyTheme | undefined;"
         );
@@ -20824,7 +20844,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(57);
+        expect.assertions(64);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -20843,13 +20863,14 @@ describe("architecture boundaries", () => {
 
         expect(coreModuleResolutionSource).not.toContain("callUnknownFunction");
         expect(importTimeBootstrapSource).not.toContain("callUnknownFunction");
-        expect(importTimeBootstrapSource).toContain(
+        expect(importTimeBootstrapSource).not.toContain(
             "export type RendererImportTimeCoreModules = Readonly<{"
         );
+        expect(importTimeBootstrapSource).not.toContain("ensureCoreModules");
         expect(importTimeBootstrapSource).not.toContain("RendererCoreModules");
         expect(importTimeBootstrapSource).not.toContain("Pick<");
         expect(importTimeBootstrapSource).toContain(
-            "readonly handleOpenFile: RendererHandleOpenFile | undefined;"
+            "handleOpenFile: RendererHandleOpenFile;"
         );
         expect(importTimeBootstrapSource).not.toContain(
             "readonly showAboutModal: ((html?: string) => void) | undefined;"
@@ -20892,12 +20913,18 @@ describe("architecture boundaries", () => {
             "showUpdateNotification: ShowUpdateNotification | undefined;"
         );
         expect(importTimeBootstrapSource).toContain(
+            "setupListeners: RendererSetupListeners;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "setupTheme: RendererSetupTheme;"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
             "ensureCoreModules: () => Promise<RendererImportTimeCoreModules>"
         );
         expect(importTimeBootstrapSource).not.toContain(
             "ensureCoreModules: () => Promise<RendererCoreModules>"
         );
-        expect(importTimeBootstrapTestSource).toContain(
+        expect(importTimeBootstrapTestSource).not.toContain(
             "RendererImportTimeCoreModules"
         );
         expect(importTimeBootstrapTestSource).not.toContain(
@@ -20907,9 +20934,9 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).not.toContain(
             'getAppDomainState?.("app.startTime")'
         );
-        expect(importTimeBootstrapSource).toContain("setupListenersFn?.(deps)");
+        expect(importTimeBootstrapSource).toContain("setupListeners(deps)");
         expect(importTimeBootstrapSource).toContain(
-            "setupThemeFn?.(applyTheme, listenForThemeChange,"
+            "setupTheme(applyTheme, listenForThemeChange,"
         );
         expect(importTimeBootstrapSource).toContain(
             "electronApiScope: getElectronApiScope()"
@@ -20968,11 +20995,19 @@ describe("architecture boundaries", () => {
         );
         expect(rendererEntrypointSource).toContain("getAppStartTime,");
         expect(rendererEntrypointSource).toContain("applyTheme,");
+        expect(rendererEntrypointSource).toContain(
+            "handleOpenFile: openFitFileFromDialog"
+        );
         expect(rendererEntrypointSource).toContain("listenForThemeChange,");
         expect(rendererEntrypointSource).toContain("showAboutModal,");
         expect(rendererEntrypointSource).toContain("showNotification,");
         expect(rendererEntrypointSource).toContain("showUpdateNotification,");
+        expect(rendererEntrypointSource).toContain("setupListeners,");
+        expect(rendererEntrypointSource).toContain("setupTheme,");
         expect(rendererEntrypointSource).toContain("subscribeToAppStartTime,");
+        expect(coreModuleResolutionSource).not.toContain(
+            '"../utils/app/lifecycle/listeners.js"'
+        );
         expect(coreModuleResolutionSource).not.toContain("const themeMod");
         expect(coreModuleResolutionSource).not.toContain(
             '"../utils/theming/core/theme.js"'

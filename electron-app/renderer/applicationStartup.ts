@@ -16,13 +16,11 @@ import type { RendererAddEventListener } from "./runtimeEnvironment.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     ListenForThemeChange,
-    RendererHandleOpenFile,
-    RendererSetupListeners,
-    RendererSetupTheme,
     ShowNotification,
     ShowUpdateNotification,
 } from "./coreModuleResolution.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
+import type { SetupThemeOptions } from "../utils/theming/core/setupTheme.js";
 import type { AppStartTimeGetter } from "../utils/state/domain/appDomainState.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
@@ -32,10 +30,18 @@ type RendererStartupLogger = (
     ...args: unknown[]
 ) => void;
 
+type RendererHandleOpenFile = SetupListenersOptions["handleOpenFile"];
+type RendererSetupListeners = (options: SetupListenersOptions) => unknown;
+type RendererSetupTheme = (
+    applyTheme: ApplyTheme,
+    listenForThemeChange: ListenForThemeChange,
+    options?: SetupThemeOptions
+) => unknown;
+
 export interface RendererDependencies {
     applyTheme: ApplyTheme;
     electronApiScope: RendererElectronApiScope;
-    handleOpenFile: RendererHandleOpenFile | undefined;
+    handleOpenFile: RendererHandleOpenFile;
     isOpeningFileRef: RendererFileOpeningStateRef;
     listenForThemeChange: ListenForThemeChange;
     openFileBtn: HTMLElement | null;
@@ -49,20 +55,14 @@ export type RendererApplicationStartupActions = Readonly<{
     readonly setInitialized: (initialized: boolean) => void;
 }>;
 
-export type RendererApplicationStartupCoreModules = Readonly<{
-    readonly handleOpenFile: RendererHandleOpenFile | undefined;
-    readonly setupListeners: RendererSetupListeners | undefined;
-    readonly setupTheme: RendererSetupTheme | undefined;
-}>;
-
 interface RendererApplicationStartupOptions {
     addEventListener: RendererAddEventListener;
     appActions: RendererApplicationStartupActions;
     applyTheme: ApplyTheme;
-    ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
     getElectronApiScope: () => RendererElectronApiScope;
     getAppStartTime: AppStartTimeGetter;
+    handleOpenFile: RendererHandleOpenFile;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isDevelopmentMode: () => boolean;
@@ -75,6 +75,8 @@ interface RendererApplicationStartupOptions {
     showAboutModal: ((html?: string) => void) | undefined;
     showNotification: ShowNotification;
     showUpdateNotification: ShowUpdateNotification | undefined;
+    setupListeners: RendererSetupListeners;
+    setupTheme: RendererSetupTheme;
     setupCreditsMarquee: () => void;
     validateDOMElements: () => boolean;
 }
@@ -112,9 +114,7 @@ export function createRendererApplicationStartup(
                 { signal: startupListenerController.signal }
             );
 
-            const coreModules = await options.ensureCoreModules();
             const dependencies = createRendererDependencies(
-                coreModules,
                 openFileBtn,
                 options
             );
@@ -254,9 +254,7 @@ async function initializeComponents(
         options.performanceMonitor.start("theme_setup");
         options.logRenderer("log", "[Renderer] Setting up theme system...");
         try {
-            const { setupTheme: setupThemeDyn } =
-                await options.ensureCoreModules();
-            setupThemeDyn?.(
+            options.setupTheme(
                 dependencies.applyTheme,
                 dependencies.listenForThemeChange,
                 { electronApiScope: dependencies.electronApiScope }
@@ -279,28 +277,17 @@ async function initializeComponents(
         options.performanceMonitor.start("listeners_setup");
         options.logRenderer("log", "[Renderer] Setting up event listeners...");
         try {
-            const { setupListeners: setupListenersDyn } =
-                await options.ensureCoreModules();
             const setupListenerDependencies =
                 createSetupListenersOptions(dependencies);
             if (setupListenerDependencies !== undefined) {
-                setupListenersDyn?.(setupListenerDependencies);
+                options.setupListeners(setupListenerDependencies);
             }
-        } catch {
-            try {
-                const { setupListeners } = await options.ensureCoreModules();
-                const setupListenerDependencies =
-                    createSetupListenersOptions(dependencies);
-                if (setupListenerDependencies !== undefined) {
-                    setupListeners?.(setupListenerDependencies);
-                }
-            } catch (error) {
-                options.logRenderer(
-                    "warn",
-                    "[Renderer] Listener setup skipped or failed:",
-                    getErrorMessage(error)
-                );
-            }
+        } catch (error) {
+            options.logRenderer(
+                "warn",
+                "[Renderer] Listener setup skipped or failed:",
+                getErrorMessage(error)
+            );
         }
         options.performanceMonitor.end("listeners_setup");
 
@@ -331,14 +318,13 @@ async function initializeComponents(
 }
 
 function createRendererDependencies(
-    coreModules: RendererApplicationStartupCoreModules,
     openFileBtn: HTMLElement | null,
     options: RendererApplicationStartupOptions
 ): RendererDependencies {
     return {
         applyTheme: options.applyTheme,
         electronApiScope: options.getElectronApiScope(),
-        handleOpenFile: coreModules.handleOpenFile,
+        handleOpenFile: options.handleOpenFile,
         isOpeningFileRef: options.isOpeningFileRef,
         listenForThemeChange: options.listenForThemeChange,
         openFileBtn,
@@ -360,7 +346,6 @@ function createSetupListenersOptions(
         showUpdateNotification,
     } = dependencies;
     if (
-        handleOpenFile === undefined ||
         showAboutModal === undefined ||
         showNotification === undefined ||
         showUpdateNotification === undefined

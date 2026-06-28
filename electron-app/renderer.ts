@@ -27,6 +27,8 @@ import {
     applyTheme,
     listenForThemeChange,
 } from "./utils/theming/core/theme.js";
+import { setupTheme } from "./utils/theming/core/setupTheme.js";
+import { setupListeners } from "./utils/app/lifecycle/listeners.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { showUpdateNotification } from "./utils/ui/notifications/showUpdateNotification.js";
@@ -109,9 +111,9 @@ const getRendererElectronApiScope = () => runtimeEnvironment.electronApiScope;
 
 const importTimeBootstrap = createRendererImportTimeBootstrap({
     applyTheme,
-    ensureCoreModules,
     getElectronApiScope: getRendererElectronApiScope,
     getAppStartTime,
+    handleOpenFile: openFitFileFromDialog,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
@@ -120,6 +122,8 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     showAboutModal,
     showNotification,
     showUpdateNotification,
+    setupListeners,
+    setupTheme,
     subscribeToAppStartTime,
 });
 const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
@@ -174,10 +178,10 @@ const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
     appActions: AppActions,
     applyTheme,
-    ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
     getElectronApiScope: getRendererElectronApiScope,
     getAppStartTime,
+    handleOpenFile: openFitFileFromDialog,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isDevelopmentMode,
@@ -189,6 +193,8 @@ const initializeApplication = createRendererApplicationStartup({
     showAboutModal,
     showNotification,
     showUpdateNotification,
+    setupListeners,
+    setupTheme,
     setupCreditsMarquee,
     validateDOMElements: domAccess.validateDOMElements,
 });
