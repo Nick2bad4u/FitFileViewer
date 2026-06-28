@@ -43,6 +43,10 @@ type OverlayElectronAPI = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
 };
 
+type OverlayElectronApiMethods = Readonly<{
+    readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
+}>;
+
 type OverlayFileLike = {
     arrayBuffer?: () => Promise<ArrayBuffer>;
     name?: unknown;
@@ -175,15 +179,27 @@ function resolveOverlayElectronAPI(
 }
 
 function isOverlayElectronAPI(value: unknown): value is OverlayElectronAPI {
-    if (!isRecord(value)) {
+    if (!isOverlayElectronApiMethods(value)) {
         return false;
     }
 
-    return typeof value["decodeFitFile"] === "function";
+    return (
+        typeof readElectronApiValue(() => value.decodeFitFile) === "function"
+    );
 }
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isOverlayElectronApiMethods(
+    value: unknown
+): value is OverlayElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 async function readOverlayArrayBuffer(

@@ -118,6 +118,42 @@ describe(loadSingleOverlayFile, () => {
         expect(decodeFitFile).not.toHaveBeenCalled();
     });
 
+    it("reports a missing decoder when bridge methods cannot be inspected", async () => {
+        expect.assertions(2);
+
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+
+        try {
+            const result = await loadSingleOverlayFile(makeFitFile(), {
+                electronApiScope: {
+                    getElectronAPI: () =>
+                        new Proxy(
+                            {},
+                            {
+                                get(_target, propertyKey) {
+                                    if (propertyKey === "decodeFitFile") {
+                                        throw new Error("decoder unavailable");
+                                    }
+
+                                    return undefined;
+                                },
+                            }
+                        ),
+                },
+            });
+
+            expect(result).toStrictEqual({
+                error: "No file data or decoder not available",
+                success: false,
+            });
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
+        } finally {
+            consoleErrorSpy.mockRestore();
+        }
+    });
+
     it("returns parser errors from decoded FIT data", async () => {
         expect.assertions(1);
 

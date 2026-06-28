@@ -22286,7 +22286,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(51);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -22342,10 +22342,22 @@ describe("architecture boundaries", () => {
         expect(loadSingleOverlayFileSource).not.toContain(
             "(value as OverlayElectronAPI)"
         );
-        expect(loadSingleOverlayFileSource).toContain("function isRecord(");
+        expect(loadSingleOverlayFileSource).toContain(
+            "type OverlayElectronApiMethods = Readonly<{"
+        );
+        expect(loadSingleOverlayFileSource).toContain(
+            "function isOverlayElectronApiMethods("
+        );
         expect(loadSingleOverlayFileSource).toContain("!Array.isArray(value)");
         expect(loadSingleOverlayFileSource).toContain(
-            'typeof value["decodeFitFile"] === "function"'
+            "function readElectronApiValue("
+        );
+        expect(loadSingleOverlayFileSource).toContain("value.decodeFitFile");
+        expect(loadSingleOverlayFileSource).not.toContain(
+            'value["decodeFitFile"]'
+        );
+        expect(loadSingleOverlayFileSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
         );
         expect(loadSingleOverlayFileSource).not.toContain(
             "import type { ElectronAPI"
