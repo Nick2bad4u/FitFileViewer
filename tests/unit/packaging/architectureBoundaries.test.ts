@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(142);
+        expect.assertions(146);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12982,6 +12982,9 @@ describe("architecture boundaries", () => {
             "setChartControlsVisible: setRendererChartControlsVisible"
         );
         expect(renderChartJSSource).toContain(
+            "updatePerformanceRenderTimes: updateRendererPerformanceRenderTimes"
+        );
+        expect(renderChartJSSource).toContain(
             "clearChartRenderState: clearRendererChartRenderState"
         );
         expect(renderChartJSSource).toContain(
@@ -13054,6 +13057,9 @@ describe("architecture boundaries", () => {
         expect(renderChartActionsSource).toContain("setLoadingState");
         expect(renderChartActionsSource).toContain("setSelectedChart");
         expect(renderChartActionsSource).toContain("setChartControlsVisible");
+        expect(renderChartActionsSource).toContain(
+            "updatePerformanceRenderTimes"
+        );
         expect(renderChartActionsSource).toContain("clearChartRenderState");
         expect(renderChartActionsSource).toContain(
             "completeChartRenderLifecycleState"
@@ -13064,6 +13070,7 @@ describe("architecture boundaries", () => {
         expect(renderChartActionsSource).not.toContain(
             'dependencies.updateState(\n                "charts"'
         );
+        expect(renderChartActionsSource).not.toContain("dependencies.updateState");
         expect(renderChartActionsSource).not.toContain(
             '"charts.selectedChart"'
         );
@@ -13072,6 +13079,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartActionsSource).not.toContain("charts.isRendering");
         expect(renderChartActionsSource).not.toContain('"isLoading"');
+        expect(renderChartActionsSource).not.toContain(
+            '"performance.renderTimes"'
+        );
         expect(renderChartLifecycleSource).toContain("setChartRendering");
         expect(renderChartLifecycleSource).toContain("setLoadingState");
         expect(renderChartLifecycleSource).toContain("clearChartRenderState");

@@ -30,6 +30,7 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
+import { updateRendererPerformanceRenderTimes } from "../../state/domain/appActionsState.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import {
     areRendererChartsRendered,
@@ -302,7 +303,7 @@ export const chartActions = createChartActions({
     setChartRendering: setRendererChartRendering,
     setLoadingState: setRendererLoading,
     setSelectedChart: setRendererSelectedChart,
-    updateState: callUpdateState,
+    updatePerformanceRenderTimes: updateRendererPerformanceRenderTimes,
 });
 registerChartActions(chartActions);
 

@@ -38,7 +38,10 @@ interface CreateChartActionsDependencies {
     setChartRendering(rendering: boolean, options: unknown): unknown;
     setLoadingState(loading: boolean, options: unknown): unknown;
     setSelectedChart(chartType: string, options: unknown): unknown;
-    updateState(path: string, value: unknown, options: unknown): unknown;
+    updatePerformanceRenderTimes(
+        renderTimes: Record<string, number>,
+        options: unknown
+    ): unknown;
 }
 
 /** State-backed actions used by chart rendering integrations. */
@@ -118,8 +121,7 @@ export function createChartActions(
             }
 
             if (success) {
-                dependencies.updateState(
-                    "performance.renderTimes",
+                dependencies.updatePerformanceRenderTimes(
                     {
                         chart: renderTime,
                     },

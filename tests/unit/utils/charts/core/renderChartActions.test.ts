@@ -57,18 +57,12 @@ function createDependencies() {
         setSelectedChart: vi.fn((chartType: string) => {
             state.charts.selectedChart = chartType;
         }),
-        updateState: vi.fn((path: string, value: unknown) => {
+        updatePerformanceRenderTimes: vi.fn((value: unknown) => {
             if (typeof value !== "object" || value === null) {
                 return;
             }
 
-            if (path === "charts") {
-                Object.assign(state.charts, value);
-            }
-
-            if (path === "performance.renderTimes") {
-                Object.assign(state.performanceRenderTimes, value);
-            }
+            Object.assign(state.performanceRenderTimes, value);
         }),
     };
 
@@ -77,7 +71,7 @@ function createDependencies() {
 
 describe("createChartActions", () => {
     it("clears chart render state through the chart render-state dependency", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const { dependencies, state } = createDependencies();
         state.charts.isRendered = true;
@@ -94,16 +88,7 @@ describe("createChartActions", () => {
             silent: false,
             source: "chartActions.clearCharts",
         });
-        expect(dependencies.updateState).not.toHaveBeenCalledWith(
-            "charts",
-            expect.objectContaining({ isRendered: false }),
-            expect.any(Object)
-        );
-        expect(dependencies.updateState).not.toHaveBeenCalledWith(
-            "charts",
-            expect.objectContaining({ renderedCount: 0 }),
-            expect.any(Object)
-        );
+        expect(dependencies.updatePerformanceRenderTimes).not.toHaveBeenCalled();
     });
 
     it("records successful render timestamps through the injected clock", () => {
@@ -143,8 +128,7 @@ describe("createChartActions", () => {
             silent: false,
             source: "chartActions.completeRendering",
         });
-        expect(dependencies.updateState).toHaveBeenCalledWith(
-            "performance.renderTimes",
+        expect(dependencies.updatePerformanceRenderTimes).toHaveBeenCalledWith(
             { chart: 250 },
             { silent: false, source: "chartActions.completeRendering" }
         );
