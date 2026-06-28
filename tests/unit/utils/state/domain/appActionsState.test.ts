@@ -11,6 +11,7 @@ import {
     setMapSelectedLap,
     setPerformanceLastLoadTime,
     setRendererTablesRendered,
+    subscribeToRendererMapMeasurementMode,
     updateAppActionWindowState,
     updateRendererMapState,
     updateRendererPerformanceRenderTimes,
@@ -94,5 +95,28 @@ describe("appActionsState lifecycle facade", () => {
             currentPage: 2,
             isRendered: true,
         });
+    });
+
+    it("subscribes with normalized map measurement mode values", () => {
+        expect.assertions(2);
+
+        const received: boolean[] = [];
+        const subscriptionCleanups: Array<() => void> = [];
+        subscriptionCleanups.push(
+            subscribeToRendererMapMeasurementMode((enabled) => {
+                received.push(enabled);
+            })
+        );
+
+        setMapMeasurementMode(true, { source: "test" });
+        setState("map.measurementMode", "true", { source: "test" });
+
+        expect(received).toStrictEqual([true, false]);
+
+        for (const cleanup of subscriptionCleanups) {
+            cleanup();
+        }
+        setMapMeasurementMode(true, { source: "test" });
+        expect(received).toStrictEqual([true, false]);
     });
 });

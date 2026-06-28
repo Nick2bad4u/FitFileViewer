@@ -50,7 +50,11 @@ import {
     normalizeDropOverlayVisible,
     normalizeRendererDragDropUiBranch,
 } from "../domain/rendererDragDropContract.js";
-import { normalizeRendererLoading } from "../domain/rendererLoadingContract.js";
+import {
+    normalizeRendererLoading,
+    normalizeRendererLoadingIndicator,
+    normalizeRendererLoadingUiBranch,
+} from "../domain/rendererLoadingContract.js";
 import {
     normalizeRendererChartRenderStateBranch,
     normalizeRendererMapRenderStateBranch,
@@ -120,6 +124,7 @@ const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
     ["ui.dragCounter", normalizeDragCounter],
     ["ui.dropOverlay.visible", normalizeDropOverlayVisible],
     ["ui.fileInfo", normalizeRendererFileInfo],
+    ["ui.loadingIndicator", normalizeRendererLoadingIndicator],
     ["ui.previousTheme", normalizeRendererTheme],
     ["ui.theme", normalizeRendererTheme],
     ["ui.unloadButtonVisible", normalizeRendererUnloadButtonVisible],
@@ -276,6 +281,13 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
         );
         if (activeFileNormalizedBranch !== (normalizedBranch ?? value)) {
             normalizedBranch = activeFileNormalizedBranch;
+        }
+
+        const loadingNormalizedBranch = normalizeRendererLoadingUiBranch(
+            normalizedBranch ?? value
+        );
+        if (loadingNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = loadingNormalizedBranch;
         }
 
         if (normalizedBranch) {

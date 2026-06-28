@@ -1,6 +1,8 @@
 import {
     getState,
     setState,
+    subscribe,
+    type StateListener,
     type StateUpdateOptions,
     updateState,
 } from "../core/stateManager.js";
@@ -72,6 +74,20 @@ export function setMapMeasurementMode(
             ...options,
         }
     );
+}
+
+export function subscribeToRendererMapMeasurementMode(
+    listener: (enabled: boolean) => void
+): () => void {
+    return subscribe(MAP_MEASUREMENT_MODE_STATE_PATH, (measurementMode) => {
+        listener(normalizeRendererRenderFlag(measurementMode));
+    });
+}
+
+export function subscribeToRendererMapMeasurementModeState(
+    listener: StateListener
+): () => void {
+    return subscribe(MAP_MEASUREMENT_MODE_STATE_PATH, listener);
 }
 
 export function setMapSelectedLap(

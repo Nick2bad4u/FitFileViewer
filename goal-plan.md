@@ -2040,6 +2040,10 @@ UI state-manager active-tab, theme, active-file, unload-button, loading, chart-c
 plus startup reads now route through typed renderer state-domain helpers instead of direct raw state-path subscriptions
 or reads inside `uiStateManager.ts`, with focused domain-helper tests and architecture guardrails blocking those direct
 paths from returning.
+Loading-indicator progress now normalizes through `rendererLoadingContract.ts` and writes through
+`rendererLoadingState.ts`; UI state-manager loading-indicator and map measurement-mode subscriptions now consume typed
+facades instead of direct raw state-path subscriptions, with focused helper coverage and architecture guardrails
+blocking those direct paths from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

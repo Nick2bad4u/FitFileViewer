@@ -23,6 +23,7 @@ import {
     getFitFileStateRuntime,
     type FitFileStateRuntime,
 } from "./fitFileStateRuntime.js";
+import { updateRendererLoadingIndicator } from "./rendererLoadingState.js";
 import { resetRendererRenderLifecycle } from "./rendererRenderLifecycleState.js";
 
 type DataRecord = Record<string, unknown>;
@@ -834,7 +835,7 @@ export class FitFileStateManager {
             progress,
         };
 
-        updateState("ui.loadingIndicator", indicatorState, {
+        updateRendererLoadingIndicator(indicatorState, {
             source: "FitFileStateManager.updateLoadingProgress",
         });
 

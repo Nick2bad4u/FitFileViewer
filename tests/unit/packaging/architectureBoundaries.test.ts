@@ -9970,7 +9970,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer loading and drag/drop state normalization on shared contracts", () => {
-        expect.assertions(10);
+        expect.assertions(15);
 
         const rendererLoadingStateSource = stripComments(
             readRepositoryFile(
@@ -9999,6 +9999,9 @@ describe("architecture boundaries", () => {
         expect(rendererLoadingStateSource).toContain(
             "rendererLoadingContract.js"
         );
+        expect(rendererLoadingStateSource).toContain(
+            "subscribeToRendererLoadingIndicator"
+        );
         expect(rendererLoadingStateSource).not.toContain(
             "function normalizeRendererLoading"
         );
@@ -10011,12 +10014,22 @@ describe("architecture boundaries", () => {
         expect(rendererLoadingContractSource).toContain(
             "normalizeRendererLoading"
         );
+        expect(rendererLoadingContractSource).toContain(
+            "normalizeRendererLoadingIndicator"
+        );
+        expect(rendererLoadingContractSource).toContain(
+            "normalizeRendererLoadingUiBranch"
+        );
         expect(rendererDragDropContractSource).toContain(
             "normalizeRendererDragDropUiBranch"
         );
         expect(stateManagerSource).toContain("isLoading");
+        expect(stateManagerSource).toContain("ui.loadingIndicator");
         expect(stateManagerSource).toContain("ui.dragCounter");
         expect(stateManagerSource).toContain("ui.dropOverlay.visible");
+        expect(stateManagerSource).toContain(
+            "normalizeRendererLoadingUiBranch"
+        );
         expect(stateManagerSource).toContain(
             "normalizeRendererDragDropUiBranch"
         );
@@ -11935,7 +11948,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(211);
+        expect.assertions(218);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11950,6 +11963,7 @@ describe("architecture boundaries", () => {
 
         expect(uiStateManagerSource).toContain("uiStateManagerRuntime.js");
         expect(uiStateManagerSource).toContain("type UIStateManagerRuntime");
+        expect(uiStateManagerSource).toContain("appActionsState.js");
         expect(uiStateManagerSource).toContain("rendererActiveTabState.js");
         expect(uiStateManagerSource).toContain("normalizeRendererActiveTab");
         expect(uiStateManagerSource).toContain("rendererActiveFileState.js");
@@ -11964,6 +11978,12 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("subscribeToRendererFileInfo");
         expect(uiStateManagerSource).toContain("subscribeToRendererLoading");
         expect(uiStateManagerSource).toContain(
+            "subscribeToRendererLoadingIndicator"
+        );
+        expect(uiStateManagerSource).toContain(
+            "subscribeToRendererMapMeasurementMode"
+        );
+        expect(uiStateManagerSource).toContain(
             "subscribeToRendererChartControlsVisible"
         );
         expect(uiStateManagerSource).toContain(
@@ -11973,6 +11993,7 @@ describe("architecture boundaries", () => {
             "isRendererUnloadButtonVisible"
         );
         expect(uiStateManagerSource).toContain("getRendererFileInfo");
+        expect(uiStateManagerSource).toContain("getRendererLoadingIndicator");
         expect(uiStateManagerSource).toContain("isRendererLoading");
         expect(uiStateManagerSource).toContain("isRendererDropOverlayVisible");
         expect(uiStateManagerSource).not.toContain('subscribe("ui.activeTab"');
@@ -11986,6 +12007,12 @@ describe("architecture boundaries", () => {
             'subscribe("charts.controlsVisible"'
         );
         expect(uiStateManagerSource).not.toContain(
+            'subscribe("ui.loadingIndicator"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'subscribe("map.measurementMode"'
+        );
+        expect(uiStateManagerSource).not.toContain(
             'subscribe("ui.dropOverlay.visible"'
         );
         expect(uiStateManagerSource).not.toContain(
@@ -11993,6 +12020,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerSource).not.toContain('getState("ui.fileInfo")');
         expect(uiStateManagerSource).not.toContain('getState("isLoading")');
+        expect(uiStateManagerSource).not.toContain(
+            'getState("ui.loadingIndicator")'
+        );
         expect(uiStateManagerSource).not.toContain(
             'getState("ui.dropOverlay.visible")'
         );

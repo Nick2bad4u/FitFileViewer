@@ -8,10 +8,10 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
     getState,
     setState,
-    subscribe,
     updateState,
 } from "../core/stateManager.js";
 import { getActiveFitRawData } from "./activeFitRawDataState.js";
+import { subscribeToRendererMapMeasurementMode } from "./appActionsState.js";
 import {
     normalizeRendererActiveTab,
     subscribeToRendererActiveTab,
@@ -30,8 +30,11 @@ import {
     subscribeToRendererDropOverlayVisible,
 } from "./rendererDragDropState.js";
 import {
+    getRendererLoadingIndicator,
     isRendererLoading,
+    subscribeToRendererLoadingIndicator,
     subscribeToRendererLoading,
+    type RendererLoadingIndicatorState,
 } from "./rendererLoadingState.js";
 import { subscribeToRendererTheme } from "./rendererThemeState.js";
 import {
@@ -51,11 +54,6 @@ type NormalizedNotification = {
     duration: number;
     message: string;
     type: string;
-};
-
-type LoadingIndicatorState = {
-    active?: boolean;
-    progress?: number;
 };
 
 const DEFAULT_DOCUMENT_TITLE = "Fit File Viewer";
@@ -267,10 +265,8 @@ export class UIStateManager {
         });
 
         // Subscribe to loading indicator progress
-        subscribe("ui.loadingIndicator", (indicator) => {
-            this.updateLoadingProgressUI(
-                indicator as LoadingIndicatorState | null | undefined
-            );
+        subscribeToRendererLoadingIndicator((indicator) => {
+            this.updateLoadingProgressUI(indicator);
         });
 
         // Subscribe to loading state changes
@@ -284,8 +280,8 @@ export class UIStateManager {
         });
 
         // Subscribe to measurement mode changes
-        subscribe("map.measurementMode", (isActive) => {
-            this.updateMeasurementModeUI(Boolean(isActive));
+        subscribeToRendererMapMeasurementMode((isActive) => {
+            this.updateMeasurementModeUI(isActive);
         });
 
         // Subscribe to drop overlay visibility changes
@@ -296,12 +292,7 @@ export class UIStateManager {
         // Apply persisted states on startup
         this.updateUnloadButtonVisibility(isRendererUnloadButtonVisible());
         this.updateFileDisplayUI(getRendererFileInfo());
-        this.updateLoadingProgressUI(
-            getState("ui.loadingIndicator") as
-                | LoadingIndicatorState
-                | null
-                | undefined
-        );
+        this.updateLoadingProgressUI(getRendererLoadingIndicator());
         this.updateLoadingIndicator(isRendererLoading());
         this.updateDropOverlayVisibility(isRendererDropOverlayVisible());
     }
@@ -662,7 +653,7 @@ export class UIStateManager {
      * Loading indicator state
      */
     updateLoadingProgressUI(
-        indicator: LoadingIndicatorState | null | undefined
+        indicator: RendererLoadingIndicatorState | null | undefined
     ) {
         const progressValue =
                 typeof indicator?.progress === "number"
