@@ -127,7 +127,9 @@ describe("renderer process environment policy", () => {
             path.join(process.cwd(), RENDERER_DEVELOPMENT_DEBUG_GLOBALS),
             "utf8"
         );
-        const cookieAccessIndex = metadataSource.indexOf('"cookieEnabled"');
+        const cookieAccessIndex = metadataSource.indexOf(
+            "navigatorSnapshot.cookieEnabled"
+        );
         const httpProtocolGuardIndex = metadataSource.indexOf(
             'protocol === "http:"'
         );
