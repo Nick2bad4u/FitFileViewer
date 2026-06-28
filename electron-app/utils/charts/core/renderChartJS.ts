@@ -36,7 +36,10 @@ import {
     clearRendererChartRenderState,
     completeRendererChartRenderState,
     getRendererChartData,
+    getRendererChartLastRenderTime,
     getRendererChartOptions,
+    getRendererChartOptionsOrDefault,
+    getRendererChartRenderedCount,
     getRendererSelectedChart,
     initializeRendererChartRenderState,
     isRendererChartRendering,
@@ -271,7 +274,7 @@ export const chartState = createChartStateView({
     areChartControlsVisible: areRendererChartControlsVisible,
     areChartsRendered: areRendererChartsRendered,
     getChartData: getRendererChartData,
-    getChartOptions: getRendererChartOptions,
+    getChartOptions: getRendererChartOptionsOrDefault,
     getFieldVisibility: (field) =>
         chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
@@ -324,7 +327,13 @@ export const exportChartsWithState = createExportChartsWithState({
 
 /** Returns the current public chart-rendering status snapshot. */
 export function getChartStatus() {
-    return getChartStatusSnapshot({ chartState, getState: callGetState });
+    return getChartStatusSnapshot({
+        chartState,
+        getChartOptions: getRendererChartOptions,
+        getLastRenderTime: getRendererChartLastRenderTime,
+        getRenderedCount: getRendererChartRenderedCount,
+        getState: callGetState,
+    });
 }
 
 /**

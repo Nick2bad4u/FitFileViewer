@@ -16,6 +16,7 @@ const RENDERER_CHARTS_RENDERED_STATE_PATH = "charts.isRendered";
 const RENDERER_CHART_PREVIOUS_STATE_PATH = "charts.previousState";
 const RENDERER_CHART_RENDERING_STATE_PATH = "charts.isRendering";
 const RENDERER_CHART_LAST_RENDER_TIME_STATE_PATH = "charts.lastRenderTime";
+const RENDERER_CHART_RENDERED_COUNT_STATE_PATH = "charts.renderedCount";
 const RENDERER_CHART_SELECTED_STATE_PATH = "charts.selectedChart";
 const RENDERER_CHART_TAB_ACTIVE_STATE_PATH = "charts.tabActive";
 
@@ -80,7 +81,19 @@ export function getRendererChartData(): unknown {
 }
 
 export function getRendererChartOptions(): unknown {
-    return getState(RENDERER_CHART_OPTIONS_STATE_PATH) || {};
+    return getState(RENDERER_CHART_OPTIONS_STATE_PATH);
+}
+
+export function getRendererChartOptionsOrDefault(): unknown {
+    return getRendererChartOptions() || {};
+}
+
+export function getRendererChartLastRenderTime(): unknown {
+    return getState(RENDERER_CHART_LAST_RENDER_TIME_STATE_PATH);
+}
+
+export function getRendererChartRenderedCount(): unknown {
+    return getState(RENDERER_CHART_RENDERED_COUNT_STATE_PATH) || 0;
 }
 
 export function setRendererChartLastRenderTime(

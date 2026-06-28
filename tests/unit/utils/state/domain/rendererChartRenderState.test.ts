@@ -6,7 +6,10 @@ import {
     clearRendererChartRenderState,
     completeRendererChartRenderState,
     getRendererChartData,
+    getRendererChartLastRenderTime,
     getRendererChartOptions,
+    getRendererChartOptionsOrDefault,
+    getRendererChartRenderedCount,
     getRendererChartState,
     getRendererSelectedChart,
     initializeRendererChartRenderState,
@@ -82,15 +85,18 @@ describe("rendererChartRenderState", () => {
     });
 
     it("reads and updates the aggregate renderer chart state", () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         expect(getRendererChartState()).toBeDefined();
+        expect(getRendererChartOptionsOrDefault()).toStrictEqual({});
 
         updateRendererChartState(
             {
                 chartData: null,
                 chartOptions: { responsive: true },
                 isRendered: false,
+                lastRenderTime: 1234,
+                renderedCount: 9,
                 tabActive: false,
             },
             { source: "test" }
@@ -100,10 +106,17 @@ describe("rendererChartRenderState", () => {
             chartData: null,
             chartOptions: { responsive: true },
             isRendered: false,
+            lastRenderTime: 1234,
+            renderedCount: 9,
             tabActive: false,
         });
         expect(getRendererChartData()).toBeNull();
         expect(getRendererChartOptions()).toStrictEqual({ responsive: true });
+        expect(getRendererChartOptionsOrDefault()).toStrictEqual({
+            responsive: true,
+        });
+        expect(getRendererChartLastRenderTime()).toBe(1234);
+        expect(getRendererChartRenderedCount()).toBe(9);
     });
 
     it("initializes chart render state through the typed helper", () => {

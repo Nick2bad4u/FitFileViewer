@@ -9,6 +9,9 @@ interface ChartStatusStateView {
 
 interface GetChartStatusDependencies {
     chartState: ChartStatusStateView;
+    getChartOptions(): unknown;
+    getLastRenderTime(): unknown;
+    getRenderedCount(): unknown;
     getState(path: string): unknown;
 }
 
@@ -37,15 +40,15 @@ export function getChartStatus(
     dependencies: GetChartStatusDependencies
 ): ChartStatus {
     return {
-        chartOptions: dependencies.getState("charts.chartOptions"),
+        chartOptions: dependencies.getChartOptions(),
         controlsVisible: dependencies.chartState.controlsVisible,
         hasData: dependencies.chartState.hasValidData,
         isRendered: dependencies.chartState.isRendered,
         isRendering: dependencies.chartState.isRendering,
-        lastRenderTime: dependencies.getState("charts.lastRenderTime"),
+        lastRenderTime: dependencies.getLastRenderTime(),
         performance: dependencies.getState("performance.renderTimes.chart"),
         renderableFields: dependencies.chartState.renderableFields,
-        renderedCount: dependencies.getState("charts.renderedCount") || 0,
+        renderedCount: dependencies.getRenderedCount(),
         selectedChart: dependencies.chartState.selectedChart,
     };
 }

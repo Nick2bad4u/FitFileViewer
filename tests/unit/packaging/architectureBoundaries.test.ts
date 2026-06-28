@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(89);
+        expect.assertions(98);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12723,6 +12723,11 @@ describe("architecture boundaries", () => {
         const renderChartStateViewSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartStateView.ts"
+            )
+        );
+        const renderChartStatusSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartStatus.ts"
             )
         );
         const fitFileStateSource = stripComments(
@@ -12804,7 +12809,16 @@ describe("architecture boundaries", () => {
             "getChartData: getRendererChartData"
         );
         expect(renderChartJSSource).toContain(
+            "getChartOptions: getRendererChartOptionsOrDefault"
+        );
+        expect(renderChartJSSource).toContain(
             "getChartOptions: getRendererChartOptions"
+        );
+        expect(renderChartJSSource).toContain(
+            "getLastRenderTime: getRendererChartLastRenderTime"
+        );
+        expect(renderChartJSSource).toContain(
+            "getRenderedCount: getRendererChartRenderedCount"
         );
         expect(renderChartJSSource).toContain(
             "isChartRendering: isRendererChartRendering"
@@ -12908,6 +12922,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartStateViewSource).toContain(
             "dependencies.getChartOptions()"
+        );
+        expect(renderChartStatusSource).not.toContain("charts.chartOptions");
+        expect(renderChartStatusSource).not.toContain("charts.lastRenderTime");
+        expect(renderChartStatusSource).not.toContain("charts.renderedCount");
+        expect(renderChartStatusSource).toContain(
+            "dependencies.getChartOptions()"
+        );
+        expect(renderChartStatusSource).toContain(
+            "dependencies.getLastRenderTime()"
+        );
+        expect(renderChartStatusSource).toContain(
+            "dependencies.getRenderedCount()"
         );
         expect(stateManagerSource).toContain("charts.isRendered");
         expect(stateManagerSource).toContain("charts.isRendering");
