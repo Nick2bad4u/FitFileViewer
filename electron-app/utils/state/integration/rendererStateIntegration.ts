@@ -8,6 +8,7 @@ import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Corrected path: state manager utilities live in ../core directory
 import { setState, subscribe } from "../core/stateManager.js";
+import { subscribeToActiveFitRawData } from "../domain/activeFitRawDataState.js";
 import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
@@ -241,12 +242,16 @@ function handleTabChange(activeTab: unknown): void {
  */
 function initializeComponentsWithState(): void {
     // Subscribe to data loading events
-    subscribeRendererState("fitFile.rawData", (newData) => {
-        if (newData) {
-            console.log("[Renderer] New data loaded, updating components...");
-            updateAllComponents(newData);
-        }
-    });
+    trackRendererStateSubscription(
+        subscribeToActiveFitRawData((newData) => {
+            if (newData) {
+                console.log(
+                    "[Renderer] New data loaded, updating components..."
+                );
+                updateAllComponents(newData);
+            }
+        })
+    );
 
     // Subscribe to active tab changes
     subscribeRendererState("ui.activeTab", (activeTab) => {
