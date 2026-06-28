@@ -18225,7 +18225,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(34);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -18265,10 +18265,19 @@ describe("architecture boundaries", () => {
         expect(copyTableAsCSVSource).not.toContain(
             "value as ClipboardElectronAPI"
         );
-        expect(copyTableAsCSVSource).toContain("function isRecord(");
-        expect(copyTableAsCSVSource).toContain("!Array.isArray(value)");
         expect(copyTableAsCSVSource).toContain(
-            'typeof value["writeClipboardText"] === "function"'
+            "type ClipboardElectronApiMethods = Readonly<{"
+        );
+        expect(copyTableAsCSVSource).toContain(
+            "function isClipboardElectronApiMethods("
+        );
+        expect(copyTableAsCSVSource).toContain(
+            "function readElectronApiValue("
+        );
+        expect(copyTableAsCSVSource).toContain("value.writeClipboardText");
+        expect(copyTableAsCSVSource).toContain("!Array.isArray(value)");
+        expect(copyTableAsCSVSource).not.toContain(
+            'value["writeClipboardText"]'
         );
         expect(copyTableAsCSVSource).toContain(
             "return getCopyTableAsCSVRuntime();"

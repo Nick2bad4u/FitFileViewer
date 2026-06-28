@@ -33,10 +33,6 @@ function copyTableAsCSVRuntime(): CopyTableAsCSVRuntime {
     return getCopyTableAsCSVRuntime();
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
 type TableRow = Record<string, unknown>;
 
 type RowsTable = {
@@ -46,6 +42,10 @@ type RowsTable = {
 type ClipboardElectronAPI = {
     readonly writeClipboardText: ElectronClipboardApi["writeClipboardText"];
 };
+
+type ClipboardElectronApiMethods = Readonly<{
+    readonly writeClipboardText?: ElectronClipboardApi["writeClipboardText"];
+}>;
 
 type CopyTableAsCSVOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
@@ -274,11 +274,28 @@ function getCopyCsvElectronAPI(
 }
 
 function isClipboardElectronAPI(value: unknown): value is ClipboardElectronAPI {
-    if (!isRecord(value)) {
+    if (!isClipboardElectronApiMethods(value)) {
         return false;
     }
 
-    return typeof value["writeClipboardText"] === "function";
+    return (
+        typeof readElectronApiValue(() => value.writeClipboardText) ===
+        "function"
+    );
+}
+
+function isClipboardElectronApiMethods(
+    value: unknown
+): value is ClipboardElectronApiMethods {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function normalizeTableRows(table: unknown): TableRow[] {

@@ -131,6 +131,27 @@ describe(copyTableAsCSV, () => {
         expect(writeText).toHaveBeenCalledOnce();
     });
 
+    it("falls back to browser clipboard when scoped Electron API clipboard properties are inaccessible", async () => {
+        expect.assertions(3);
+
+        const writeText = vi.fn<(text: string) => Promise<void>>();
+        installClipboard({ writeText });
+
+        const api = Object.defineProperty({}, "writeClipboardText", {
+            get() {
+                throw new Error("blocked clipboard property");
+            },
+        });
+        const electronApiScope = createClipboardApiScope(api);
+
+        await expect(
+            copyTableAsCSV([{ name: "A" }], { electronApiScope })
+        ).resolves.toBeUndefined();
+
+        expect(writeText).toHaveBeenCalledWith("name\r\nA");
+        expect(writeText).toHaveBeenCalledOnce();
+    });
+
     it("rejects unsupported table inputs", async () => {
         expect.assertions(1);
 
