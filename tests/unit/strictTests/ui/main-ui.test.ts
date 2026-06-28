@@ -21,7 +21,7 @@ const processEnvironmentMock = vi.hoisted(() => ({
 }));
 
 const mainUiRuntimeEnvironmentMock = vi.hoisted(() => ({
-    electronApiCandidate: undefined as unknown,
+    electronApi: undefined as unknown,
 }));
 
 vi.mock(
@@ -36,8 +36,9 @@ vi.mock(
             consoleRef: console,
             dateNow: () => Date.now(),
             documentRef: document,
-            electronApiCandidate:
-                mainUiRuntimeEnvironmentMock.electronApiCandidate,
+            electronApiScope: {
+                getElectronAPI: () => mainUiRuntimeEnvironmentMock.electronApi,
+            },
         }),
     })
 );
@@ -371,7 +372,7 @@ function createElectronAPI() {
 
 function installElectronAPI() {
     currentElectronAPI = createElectronAPI();
-    mainUiRuntimeEnvironmentMock.electronApiCandidate = currentElectronAPI;
+    mainUiRuntimeEnvironmentMock.electronApi = currentElectronAPI;
     return currentElectronAPI;
 }
 
@@ -450,7 +451,7 @@ describe("main-ui.js core flows", () => {
         vi.useFakeTimers();
         vi.resetModules();
         vi.clearAllMocks();
-        mainUiRuntimeEnvironmentMock.electronApiCandidate = undefined;
+        mainUiRuntimeEnvironmentMock.electronApi = undefined;
         ensureRendererVendorBundle.mockResolvedValue(undefined);
         processEnvironmentMock.isDevelopmentEnvironment.mockReturnValue(false);
         processEnvironmentMock.isTestEnvironment.mockReturnValue(true);
@@ -468,7 +469,7 @@ describe("main-ui.js core flows", () => {
 
     afterEach(() => {
         vi.useRealTimers();
-        mainUiRuntimeEnvironmentMock.electronApiCandidate = undefined;
+        mainUiRuntimeEnvironmentMock.electronApi = undefined;
         currentElectronAPI = undefined;
         document.body.replaceChildren();
     });

@@ -43,7 +43,7 @@ const mocks = vi.hoisted(() => ({
         ) => void
     >(),
     loadTheme: vi.fn<() => string>().mockReturnValue("dark"),
-    mainUiElectronApiCandidate: undefined as unknown,
+    mainUiElectronApi: undefined as unknown,
     mark: vi.fn<(name: string) => void>(),
     measure: vi.fn<(name: string) => void>(),
     registerTimer:
@@ -73,7 +73,9 @@ vi.mock(
             consoleRef: console,
             dateNow: () => Date.now(),
             documentRef: document,
-            electronApiCandidate: mocks.mainUiElectronApiCandidate,
+            electronApiScope: {
+                getElectronAPI: () => mocks.mainUiElectronApi,
+            },
         }),
     })
 );
@@ -296,14 +298,14 @@ describe("main-ui.js - UI Controller and State Management", () => {
     beforeEach(async () => {
         setupMainUiDom();
         vi.clearAllMocks();
-        mocks.mainUiElectronApiCandidate = undefined;
+        mocks.mainUiElectronApi = undefined;
         mocks.ensureRendererVendorBundle.mockResolvedValue(undefined);
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
     });
 
     afterEach(async () => {
-        mocks.mainUiElectronApiCandidate = undefined;
+        mocks.mainUiElectronApi = undefined;
     });
 
     it("does not register renderer compatibility globals", async () => {
@@ -327,7 +329,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
             vi.fn<MainUiElectronApi["onOpenSummaryColumnSelector"]>();
         const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
         const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
-        mocks.mainUiElectronApiCandidate = {
+        mocks.mainUiElectronApi = {
             onOpenSummaryColumnSelector,
             onSetTheme,
             onUnloadFitFile: "not callable",
@@ -352,7 +354,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
         const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
         const sendThemeChanged = vi.fn<MainUiElectronApi["sendThemeChanged"]>();
-        mocks.mainUiElectronApiCandidate = {
+        mocks.mainUiElectronApi = {
             notifyFitFileLoaded,
             onOpenSummaryColumnSelector,
             onSetTheme,
@@ -383,7 +385,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const [, themeListenerOptions] =
             mocks.listenForThemeChange.mock.calls[0] ?? [];
         expect(themeListenerOptions?.electronApiScope?.getElectronAPI?.()).toBe(
-            mocks.mainUiElectronApiCandidate
+            mocks.mainUiElectronApi
         );
         await vi.waitFor(() => {
             expect(mocks.setupFullscreenListeners).toHaveBeenCalledOnce();
@@ -399,7 +401,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
             | undefined;
         expect(
             setupWindowElectronApiScope?.electronApiScope?.getElectronAPI?.()
-        ).toBe(mocks.mainUiElectronApiCandidate);
+        ).toBe(mocks.mainUiElectronApi);
         expect(mocks.setupExternalLinkHandlers).toHaveBeenCalledOnce();
         const [externalLinkOptions] =
             mocks.setupExternalLinkHandlers.mock.calls[0] ?? [];

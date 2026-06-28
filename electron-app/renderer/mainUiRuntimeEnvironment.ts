@@ -1,15 +1,20 @@
+import {
+    createRendererElectronApiScope,
+    type RendererElectronApiScope,
+} from "../utils/runtime/electronApiRuntime.js";
+
 export interface MainUiRuntimeEnvironment {
     readonly consoleRef: Console;
     readonly dateNow: () => number;
     readonly documentRef: Document;
-    readonly electronApiCandidate: unknown;
+    readonly electronApiScope: RendererElectronApiScope;
 }
 
 export interface MainUiRuntimeEnvironmentScope {
     readonly dateNow?: (() => number) | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getElectronApiCandidate?: (() => unknown) | undefined;
+    readonly getElectronAPI?: (() => unknown) | undefined;
 }
 
 function getScopeConsole(scope: MainUiRuntimeEnvironmentScope): Console {
@@ -53,6 +58,8 @@ export function getMainUiRuntimeEnvironment(
             return dateNow();
         },
         documentRef: getScopeDocument(scope),
-        electronApiCandidate: scope.getElectronApiCandidate?.(),
+        electronApiScope: createRendererElectronApiScope(
+            () => scope.getElectronAPI?.()
+        ),
     };
 }

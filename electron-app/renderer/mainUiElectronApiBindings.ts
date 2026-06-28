@@ -9,10 +9,7 @@ import {
     type MainUiUnloadElectronApi,
 } from "./mainUiElectronApi.js";
 import type { MainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
-import {
-    createRendererElectronApiScope,
-    type RendererElectronApiScope,
-} from "../utils/runtime/electronApiRuntime.js";
+import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 export interface MainUiElectronApiBindings {
     readonly electronApiScope: RendererElectronApiScope;
@@ -23,11 +20,9 @@ export interface MainUiElectronApiBindings {
 }
 
 export function createMainUiElectronApiBindings(
-    runtimeEnvironment: Pick<MainUiRuntimeEnvironment, "electronApiCandidate">
+    runtimeEnvironment: Pick<MainUiRuntimeEnvironment, "electronApiScope">
 ): MainUiElectronApiBindings {
-    const electronApiScope = createRendererElectronApiScope(
-        () => runtimeEnvironment.electronApiCandidate
-    );
+    const { electronApiScope } = runtimeEnvironment;
 
     return {
         electronApiScope,

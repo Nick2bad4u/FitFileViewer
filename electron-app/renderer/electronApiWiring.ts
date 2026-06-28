@@ -1,9 +1,10 @@
 import { installRendererElectronApiRegistration } from "./electronApiRegistration.js";
-import { getElectronApiHooksFromValue } from "./electronApiStartupHooks.js";
+import { getElectronApiStartupHooks } from "./electronApiStartupHooks.js";
 import {
     createRendererElectronMenuActionHandlers,
     type RendererElectronMenuCoreModules,
 } from "./electronMenuActionHandlers.js";
+import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 type RendererElectronApiWiringLogger = (
     level: "warn",
@@ -11,7 +12,7 @@ type RendererElectronApiWiringLogger = (
 ) => void;
 
 type RendererElectronApiWiringOptions = {
-    readonly electronApiCandidate: unknown;
+    readonly electronApiScope: RendererElectronApiScope;
     readonly ensureCoreModules: () => Promise<RendererElectronMenuCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronApiWiringLogger;
@@ -30,9 +31,9 @@ export function installRendererElectronApiWiring(
     );
 
     installRendererElectronApiRegistration({
-        electronApiHooks: getElectronApiHooksFromValue(
-            options.electronApiCandidate
-        ),
+        electronApiHooks: getElectronApiStartupHooks({
+            getElectronApiScope: () => options.electronApiScope,
+        }),
         onMenuAction: electronMenuActionHandlers.onMenuAction,
         onThemeChanged: electronMenuActionHandlers.onThemeChanged,
         scheduleStateInitialization: options.scheduleStateInitialization,

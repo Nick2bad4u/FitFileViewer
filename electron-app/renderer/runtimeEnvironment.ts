@@ -5,6 +5,10 @@ import type {
     BrowserSetInterval,
     BrowserSetTimeout,
 } from "../utils/runtime/browserRuntime.js";
+import {
+    createRendererElectronApiScope,
+    type RendererElectronApiScope,
+} from "../utils/runtime/electronApiRuntime.js";
 
 export type RendererRuntimeEventTarget = Pick<
     EventTarget,
@@ -22,7 +26,7 @@ export type RendererRuntimeEnvironment = {
     readonly clearInterval: RendererClearInterval;
     readonly console: Console;
     readonly documentTarget: Document;
-    readonly electronApiCandidate: unknown;
+    readonly electronApiScope: RendererElectronApiScope;
     readonly removeEventListener: RendererRemoveEventListener;
     readonly rendererEventTarget: RendererRuntimeEventTarget;
     readonly setInterval: RendererSetInterval;
@@ -38,7 +42,7 @@ export type RendererRuntimeEnvironmentScope = {
         | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getElectronApiCandidate?: (() => unknown) | undefined;
+    readonly getElectronAPI?: (() => unknown) | undefined;
     readonly getRemoveEventListener?:
         | (() => RendererRemoveEventListener | undefined)
         | undefined;
@@ -79,7 +83,9 @@ export function createRendererRuntimeEnvironment(
             scope.getDocument?.(),
             "renderer runtime environment requires a document reference"
         ),
-        electronApiCandidate: scope.getElectronApiCandidate?.(),
+        electronApiScope: createRendererElectronApiScope(
+            () => scope.getElectronAPI?.()
+        ),
         removeEventListener: getRequiredRuntimeValue(
             scope.getRemoveEventListener?.(),
             "renderer runtime environment requires removeEventListener"

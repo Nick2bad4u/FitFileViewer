@@ -46,7 +46,7 @@ describe("renderer Electron API wiring", () => {
         const scheduleStateInitialization = vi.fn();
 
         installRendererElectronApiWiring({
-            electronApiCandidate: api,
+            electronApiScope: { getElectronAPI: () => api },
             ensureCoreModules: async () => ({ applyTheme }),
             getFileInput: () => fileInput,
             logRenderer: vi.fn(),
@@ -71,7 +71,7 @@ describe("renderer Electron API wiring", () => {
         };
 
         installRendererElectronApiWiring({
-            electronApiCandidate: "not electron api",
+            electronApiScope: { getElectronAPI: () => "not electron api" },
             ensureCoreModules: async () => ({ applyTheme: vi.fn() }),
             getFileInput: () => null,
             logRenderer: vi.fn(),

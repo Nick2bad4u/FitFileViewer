@@ -17,7 +17,7 @@ export function getBrowserRendererRuntimeEnvironmentScope(): RendererRuntimeEnvi
         getClearInterval: getBrowserBoundClearInterval,
         getConsole: getBrowserConsole,
         getDocument: getBrowserDocument,
-        getElectronApiCandidate: getBrowserElectronApiCandidate,
+        getElectronAPI: getBrowserElectronApiCandidate,
         getRemoveEventListener: getBrowserRemoveEventListener,
         getRendererEventTarget: getBrowserEventTarget,
         getSetInterval: getBrowserBoundSetInterval,

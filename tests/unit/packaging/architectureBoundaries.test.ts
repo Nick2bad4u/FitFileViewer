@@ -6762,7 +6762,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(184);
+        expect.assertions(190);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6899,7 +6899,7 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "getElectronApiCandidate"
+            "readonly getElectronAPI?:"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "getRendererEventTarget"
@@ -6911,6 +6911,9 @@ describe("architecture boundaries", () => {
             'electronApiCandidate: Reflect.get(rendererGlobal, "electronAPI")'
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
+            "readonly electronApiCandidate"
+        );
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "globalThis as Record<PropertyKey, unknown>"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
@@ -6920,7 +6923,10 @@ describe("architecture boundaries", () => {
             "return rendererScope.electronAPI;"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "electronApiCandidate: scope.getElectronApiCandidate?.()"
+            "electronApiScope: createRendererElectronApiScope("
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "() => scope.getElectronAPI?.()"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "getRemoveEventListener: () =>"
@@ -6979,7 +6985,7 @@ describe("architecture boundaries", () => {
             "return rendererScope.electronAPI;"
         );
         expect(rendererBrowserRuntimeSource).toContain(
-            "getElectronApiCandidate: getBrowserElectronApiCandidate"
+            "getElectronAPI: getBrowserElectronApiCandidate"
         );
         expect(rendererBrowserRuntimeSource).toContain(
             "getRendererEventTarget: getBrowserEventTarget"
@@ -7006,7 +7012,7 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(rendererBrowserRuntimeSource).not.toContain(
-            "getElectronApiCandidate: () =>"
+            "getElectronAPI: () =>"
         );
         expect(rendererBrowserRuntimeSource).not.toContain(
             "getRemoveEventListener: () =>"
@@ -7152,11 +7158,11 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiStartupSource).toContain("createMainUiDragDropHandler({");
         expect(mainUiStartupSource).toContain("electronApiScope,");
-        expect(mainUiElectronApiBindingsSource).toContain(
+        expect(mainUiElectronApiBindingsSource).not.toContain(
             "createRendererElectronApiScope"
         );
         expect(mainUiElectronApiBindingsSource).toContain(
-            "Pick<MainUiRuntimeEnvironment, \"electronApiCandidate\">"
+            "Pick<MainUiRuntimeEnvironment, \"electronApiScope\">"
         );
         expect(mainUiElectronApiBindingsSource).toContain(
             "getMainUiMenuInjectionElectronApi(electronApiScope)"
@@ -7272,6 +7278,18 @@ describe("architecture boundaries", () => {
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             'Reflect.get(globalThis, "electronAPI")'
         );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
+            "readonly electronApiCandidate"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "readonly electronApiScope: RendererElectronApiScope"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "electronApiScope: createRendererElectronApiScope("
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "() => scope.getElectronAPI?.()"
+        );
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "const consoleRef = scope.getConsole?.();"
         );
@@ -7300,7 +7318,7 @@ describe("architecture boundaries", () => {
             "return mainUiScope.electronAPI;"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
-            "getElectronApiCandidate: getBrowserElectronApiCandidate"
+            "getElectronAPI: getBrowserElectronApiCandidate"
         );
         expect(mainUiBrowserRuntimeSource).toContain(
             "dateNow: getBrowserCurrentTimestamp"
@@ -7312,7 +7330,7 @@ describe("architecture boundaries", () => {
             "getDocument: getBrowserDocument"
         );
         expect(mainUiBrowserRuntimeSource).not.toContain(
-            "getElectronApiCandidate: () =>"
+            "getElectronAPI: () =>"
         );
         expect(mainUiBrowserRuntimeSource).not.toContain(
             "dateNow: () => Date.now()"
@@ -18724,7 +18742,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron API registration on explicit candidates only", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const registrationSource = stripComments(
             readRepositoryFile(
@@ -18752,9 +18770,15 @@ describe("architecture boundaries", () => {
         expect(registrationSource).not.toContain(
             "electronApiCandidate: unknown;"
         );
-        expect(wiringSource).toContain("getElectronApiHooksFromValue(");
+        expect(wiringSource).toContain("getElectronApiStartupHooks(");
         expect(wiringSource).toContain(
-            "electronApiHooks: getElectronApiHooksFromValue("
+            "electronApiHooks: getElectronApiStartupHooks({"
+        );
+        expect(wiringSource).toContain(
+            "getElectronApiScope: () => options.electronApiScope"
+        );
+        expect(wiringSource).not.toContain(
+            "readonly electronApiCandidate: unknown;"
         );
         expect(installerSource).not.toContain(
             'Reflect.get(options.scope, "electronAPI")'

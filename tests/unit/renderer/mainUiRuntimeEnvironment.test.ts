@@ -23,7 +23,7 @@ describe("main UI runtime environment", () => {
 
         expect(runtimeEnvironment.consoleRef).toBe(console);
         expect(runtimeEnvironment.documentRef).toBe(document);
-        expect(runtimeEnvironment.electronApiCandidate).toBeUndefined();
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBeUndefined();
         expect(runtimeNow).toBeGreaterThanOrEqual(before);
         expect(runtimeNow).toBeLessThanOrEqual(after + 1000);
     });
@@ -31,16 +31,16 @@ describe("main UI runtime environment", () => {
     it("resolves the production browser electron API from the runtime scope", () => {
         expect.assertions(1);
 
-        const electronApiCandidate = {};
-
-        vi.stubGlobal("electronAPI", electronApiCandidate);
+        const electronApiFixture = {};
 
         const runtimeEnvironment = getMainUiRuntimeEnvironment(
             getBrowserMainUiRuntimeEnvironmentScope()
         );
 
-        expect(runtimeEnvironment.electronApiCandidate).toBe(
-            electronApiCandidate
+        vi.stubGlobal("electronAPI", electronApiFixture);
+
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBe(
+            electronApiFixture
         );
     });
 
@@ -55,19 +55,19 @@ describe("main UI runtime environment", () => {
             readyState: "complete",
         } as unknown as Document;
         const dateNow = vi.fn<() => number>(() => 1234);
-        const electronApiCandidate = {};
+        const electronApiFixture = {};
         const runtimeEnvironment = getMainUiRuntimeEnvironment({
             dateNow,
             getConsole: () => runtimeConsole,
             getDocument: () => documentRef,
-            getElectronApiCandidate: () => electronApiCandidate,
+            getElectronAPI: () => electronApiFixture,
         });
 
         expect(runtimeEnvironment.consoleRef).toBe(runtimeConsole);
         expect(runtimeEnvironment.dateNow()).toBe(1234);
         expect(runtimeEnvironment.documentRef).toBe(documentRef);
-        expect(runtimeEnvironment.electronApiCandidate).toBe(
-            electronApiCandidate
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBe(
+            electronApiFixture
         );
         expect(dateNow).toHaveBeenCalledOnce();
     });

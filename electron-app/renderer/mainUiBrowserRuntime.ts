@@ -11,6 +11,6 @@ export function getBrowserMainUiRuntimeEnvironmentScope(): MainUiRuntimeEnvironm
         dateNow: getBrowserCurrentTimestamp,
         getConsole: getBrowserConsole,
         getDocument: getBrowserDocument,
-        getElectronApiCandidate: getBrowserElectronApiCandidate,
+        getElectronAPI: getBrowserElectronApiCandidate,
     };
 }

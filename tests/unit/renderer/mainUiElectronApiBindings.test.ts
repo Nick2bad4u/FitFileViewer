@@ -13,7 +13,7 @@ describe("main UI Electron API bindings", () => {
             sendThemeChanged: vi.fn(),
         };
         const bindings = createMainUiElectronApiBindings({
-            electronApiCandidate: api,
+            electronApiScope: { getElectronAPI: () => api },
         });
 
         expect(bindings.electronApiScope.getElectronAPI?.()).toBe(api);
@@ -25,11 +25,13 @@ describe("main UI Electron API bindings", () => {
 
     it("rejects malformed runtime candidates per domain", () => {
         const bindings = createMainUiElectronApiBindings({
-            electronApiCandidate: {
-                injectMenu: "not a function",
-                notifyFitFileLoaded: "not a function",
-                onOpenSummaryColumnSelector: vi.fn(),
-                onSetTheme: "not a function",
+            electronApiScope: {
+                getElectronAPI: () => ({
+                    injectMenu: "not a function",
+                    notifyFitFileLoaded: "not a function",
+                    onOpenSummaryColumnSelector: vi.fn(),
+                    onSetTheme: "not a function",
+                }),
             },
         });
 
@@ -41,7 +43,7 @@ describe("main UI Electron API bindings", () => {
 
     it("rejects primitive runtime candidates for every domain", () => {
         const bindings = createMainUiElectronApiBindings({
-            electronApiCandidate: "not an api",
+            electronApiScope: { getElectronAPI: () => "not an api" },
         });
 
         expect(bindings.getMenuInjectionElectronAPI()).toBeNull();
