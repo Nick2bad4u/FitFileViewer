@@ -3,10 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import { resolveChartRuntimeDependencies } from "../../../../../electron-app/utils/charts/core/renderChartRuntimeDependencies.js";
 
 describe("resolveChartRuntimeDependencies", () => {
-    it("does not expose the retired generic chart set-state alias", async () => {
+    it("does not expose retired generic chart state aliases", async () => {
         expect.assertions(2);
 
-        const setState = vi.fn();
         const dependencies = await resolveChartRuntimeDependencies({
             getConverters: () => vi.fn(),
             getHoverPlugins: () => ({
@@ -25,15 +24,22 @@ describe("resolveChartRuntimeDependencies", () => {
                 renderTimeInZoneCharts: vi.fn(),
             }),
             getShowRenderNotification: () => vi.fn(),
-            getStateManager: () => ({
-                getState: vi.fn(),
-                setState,
-                updateState: vi.fn(),
-            }),
             getThemeConfig: () => ({ mode: "test" }),
         });
 
-        expect(dependencies).not.toHaveProperty("ss_rcwd");
-        expect(setState).not.toHaveBeenCalled();
+        expect(dependencies).toEqual(
+            expect.not.objectContaining({
+                gs_rcwd: expect.anything(),
+                ss_rcwd: expect.anything(),
+                us_rcwd: expect.anything(),
+            })
+        );
+        expect(Object.keys(dependencies)).not.toEqual(
+            expect.arrayContaining([
+                "gs_rcwd",
+                "ss_rcwd",
+                "us_rcwd",
+            ])
+        );
     });
 });

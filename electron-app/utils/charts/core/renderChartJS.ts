@@ -30,7 +30,7 @@ import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
-import { normalizeRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
+import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
@@ -525,7 +525,6 @@ async function renderChartsWithData(
         convert,
         createChartCanvasSafe,
         createEnhancedChartSafe,
-        gs_rcwd,
         removeChartHoverEffectsSafe,
         renderEventMessagesChartSafe,
         renderGPSTimeChartSafe,
@@ -535,13 +534,11 @@ async function renderChartsWithData(
         renderTimeInZoneChartsSafe,
         showRenderNotificationSafe,
         themeConfig,
-        us_rcwd,
     } = await resolveChartRuntimeDependencies({
         getConverters: getConvertersSafe,
         getHoverPlugins: getHoverPluginsSafe,
         getRendererModules: getRendererModulesSafe,
         getShowRenderNotification: getShowRenderNotificationSafe,
-        getStateManager: getStateManagerSafe,
         getThemeConfig: getThemeConfigSafe,
     });
 
@@ -601,8 +598,7 @@ async function renderChartsWithData(
             chartContainer,
             createChartCanvas: createChartCanvasSafe,
             createEnhancedChart: createEnhancedChartSafe,
-            getActiveTab: () =>
-                normalizeRendererActiveTab(gs_rcwd("ui.activeTab")),
+            getActiveTab: getRendererActiveTab,
             getFieldVisibility: (field) =>
                 chartSettingsManager.getFieldVisibility(field),
             isDebugLoggingEnabled,
@@ -671,7 +667,7 @@ async function renderChartsWithData(
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
             getChartOptions: getRendererChartOptions,
-            getState: gs_rcwd,
+            getState: callGetState,
             getThemeConfig: getThemeConfigSafe,
             getUIStateManager: getUIStateManagerMaybe,
             isTestRuntime,
@@ -680,7 +676,7 @@ async function renderChartsWithData(
             nowPerformance: renderChartRuntime().nowPerformance,
             showRenderNotification: showRenderNotificationSafe,
             updatePreviousChartState,
-            updateState: us_rcwd,
+            updateState: callUpdateState,
         },
         {
             renderStartTime,

@@ -4,11 +4,9 @@ import type {
     getRendererModulesSafe,
     getShowRenderNotificationSafe,
 } from "./renderChartDependencyAccessors.js";
-import type { getStateManagerSafe } from "./renderChartStateAccess.js";
 
 type ChartRendererModules = ReturnType<typeof getRendererModulesSafe>;
 type ChartHoverPlugins = ReturnType<typeof getHoverPluginsSafe>;
-type ChartStateManagerAccess = ReturnType<typeof getStateManagerSafe>;
 type ShowRenderNotificationFunction = ReturnType<
     typeof getShowRenderNotificationSafe
 >;
@@ -19,7 +17,6 @@ interface ResolveChartRuntimeDependenciesInput {
     readonly getHoverPlugins: () => ChartHoverPlugins;
     readonly getRendererModules: () => ChartRendererModules;
     readonly getShowRenderNotification: () => ShowRenderNotificationFunction;
-    readonly getStateManager: () => ChartStateManagerAccess;
     readonly getThemeConfig: () => unknown;
 }
 
@@ -30,7 +27,6 @@ export interface ResolvedChartRuntimeDependencies {
     readonly convert: UnitConverter;
     readonly createChartCanvasSafe: ChartRendererModules["createChartCanvas"];
     readonly createEnhancedChartSafe: ChartRendererModules["createEnhancedChart"];
-    readonly gs_rcwd: ChartStateManagerAccess["getState"];
     readonly removeChartHoverEffectsSafe: ChartHoverPlugins["removeChartHoverEffects"];
     readonly renderEventMessagesChartSafe: ChartRendererModules["renderEventMessagesChart"];
     readonly renderGPSTimeChartSafe: ChartRendererModules["renderGPSTimeChart"];
@@ -40,7 +36,6 @@ export interface ResolvedChartRuntimeDependencies {
     readonly renderTimeInZoneChartsSafe: ChartRendererModules["renderTimeInZoneCharts"];
     readonly showRenderNotificationSafe: ShowRenderNotificationFunction;
     readonly themeConfig: unknown;
-    readonly us_rcwd: ChartStateManagerAccess["updateState"];
 }
 
 /**
@@ -71,7 +66,6 @@ export async function resolveChartRuntimeDependencies(
         removeChartHoverEffects: removeChartHoverEffectsSafe,
     } = input.getHoverPlugins();
     const showRenderNotificationSafe = input.getShowRenderNotification();
-    const stateManager = input.getStateManager();
 
     return {
         addChartHoverEffectsSafe,
@@ -79,7 +73,6 @@ export async function resolveChartRuntimeDependencies(
         convert,
         createChartCanvasSafe,
         createEnhancedChartSafe,
-        gs_rcwd: (path) => stateManager.getState(path),
         removeChartHoverEffectsSafe,
         renderEventMessagesChartSafe,
         renderGPSTimeChartSafe,
@@ -89,7 +82,5 @@ export async function resolveChartRuntimeDependencies(
         renderTimeInZoneChartsSafe,
         showRenderNotificationSafe,
         themeConfig,
-        us_rcwd: (path, value, options) =>
-            stateManager.updateState(path, value, options),
     };
 }
