@@ -35,8 +35,6 @@ interface RendererImportTimeBootstrapOptions {
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isOpeningFileRef: RendererFileOpeningStateRef;
-    resolveExactRendererCoreTestOverride: (testId: string) => null | unknown;
-    resolveRendererCoreTestOverride: (pathSuffix: string) => null | unknown;
     setLoading: (loading: boolean) => void;
 }
 
@@ -47,35 +45,12 @@ export interface RendererImportTimeBootstrap {
     scheduleImportTimeThemeSetup: () => void;
 }
 
-type ImportTimeInitializeMethod = (this: unknown) => Promise<void> | void;
-
-type ImportTimeMasterStateManagerDefaultExport = Readonly<{
-    readonly masterStateManager?:
-        | ImportTimeInitializableStateManager
-        | undefined;
-}>;
-
-type ImportTimeMasterStateManagerOverrideModule = Readonly<{
-    readonly default?:
-        | ImportTimeMasterStateManagerDefaultExport
-        | undefined;
-    readonly masterStateManager?:
-        | ImportTimeInitializableStateManager
-        | undefined;
-}>;
-
-type ImportTimeInitializableStateManager = Readonly<{
-    readonly initialize: ImportTimeInitializeMethod;
-}>;
-
 export function createRendererImportTimeBootstrap({
     ensureCoreModules,
     getElectronApiScope,
     getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
-    resolveExactRendererCoreTestOverride,
-    resolveRendererCoreTestOverride,
     setLoading,
 }: RendererImportTimeBootstrapOptions): RendererImportTimeBootstrap {
     async function initializeImportTimeStateManager(): Promise<void> {
@@ -86,31 +61,6 @@ export function createRendererImportTimeBootstrap({
         } catch {
             /* Ignore errors */
         }
-        await initializeTestOverrideMasterStateManager();
-    }
-
-    async function initializeTestOverrideMasterStateManager(): Promise<void> {
-        await resolveTestOverrideMasterStateManager()?.initialize();
-    }
-
-    function resolveTestOverrideMasterStateManager():
-        | ImportTimeInitializableStateManager
-        | undefined {
-        const resolved =
-            resolveExactRendererCoreTestOverride(
-                "../../utils/state/core/masterStateManager.js"
-            ) ??
-            resolveRendererCoreTestOverride(
-                "/utils/state/core/masterStateManager.js"
-            );
-        const resolvedModule =
-            toImportTimeMasterStateManagerOverrideModule(resolved);
-
-        return firstImportTimeInitializableStateManager(
-            resolvedModule?.masterStateManager,
-            resolvedModule?.default?.masterStateManager,
-            resolved
-        );
     }
 
     function scheduleAppDomainStateTouch(): void {
@@ -184,79 +134,6 @@ export function createRendererImportTimeBootstrap({
         scheduleImportTimeStateInitialization,
         scheduleImportTimeThemeSetup,
     };
-}
-
-function toImportTimeMasterStateManagerOverrideModule(
-    value: unknown
-): ImportTimeMasterStateManagerOverrideModule | undefined {
-    if (typeof value !== "object" || value === null) {
-        return undefined;
-    }
-
-    const defaultExport =
-        "default" in value
-            ? toImportTimeMasterStateManagerDefaultExport(value.default)
-            : undefined;
-    const masterStateManager =
-        "masterStateManager" in value
-            ? toImportTimeInitializableStateManager(value.masterStateManager)
-            : undefined;
-
-    if (defaultExport === undefined && masterStateManager === undefined) {
-        return undefined;
-    }
-
-    return {
-        default: defaultExport,
-        masterStateManager,
-    };
-}
-
-function toImportTimeMasterStateManagerDefaultExport(
-    value: unknown
-): ImportTimeMasterStateManagerDefaultExport | undefined {
-    if (
-        typeof value !== "object" ||
-        value === null ||
-        !("masterStateManager" in value)
-    ) {
-        return undefined;
-    }
-
-    const masterStateManager = toImportTimeInitializableStateManager(
-        value.masterStateManager
-    );
-    return masterStateManager === undefined
-        ? undefined
-        : { masterStateManager };
-}
-
-function firstImportTimeInitializableStateManager(
-    ...candidates: readonly unknown[]
-): ImportTimeInitializableStateManager | undefined {
-    for (const candidate of candidates) {
-        const stateManager =
-            toImportTimeInitializableStateManager(candidate);
-        if (stateManager !== undefined) {
-            return stateManager;
-        }
-    }
-    return undefined;
-}
-
-function toImportTimeInitializableStateManager(
-    value: unknown
-): ImportTimeInitializableStateManager | undefined {
-    if (
-        typeof value !== "object" ||
-        value === null ||
-        !("initialize" in value) ||
-        typeof value.initialize !== "function"
-    ) {
-        return undefined;
-    }
-
-    return value as ImportTimeInitializableStateManager;
 }
 
 function createSetupListenersOptions(dependencies: {

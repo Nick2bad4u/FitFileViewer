@@ -46,11 +46,10 @@ async function flushImportTimeWork(): Promise<void> {
 
 describe("renderer import-time bootstrap", () => {
     it("calls import-time core module functions directly", async () => {
-        expect.assertions(11);
+        expect.assertions(10);
 
         const openFileButton = document.createElement("button");
         const initializeStateManager = vi.fn(async () => undefined);
-        const masterStateManager = { initialize: vi.fn() };
         const isOpeningFileRef = { value: false };
         const setLoading = vi.fn();
         const electronApiScope = {
@@ -83,11 +82,6 @@ describe("renderer import-time bootstrap", () => {
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isOpeningFileRef,
-            resolveExactRendererCoreTestOverride: (testId) =>
-                testId === "../../utils/state/core/masterStateManager.js"
-                    ? { masterStateManager }
-                    : null,
-            resolveRendererCoreTestOverride: () => null,
             setLoading,
         });
 
@@ -113,7 +107,6 @@ describe("renderer import-time bootstrap", () => {
         );
         expect(getElectronApiScope).toHaveBeenCalledTimes(2);
         expect(initializeStateManager).toHaveBeenCalledOnce();
-        expect(masterStateManager.initialize).toHaveBeenCalledOnce();
         expect(coreModules.getAppStartTime).toHaveBeenCalled();
         expect(coreModules.subscribeToAppStartTime).toHaveBeenCalledWith(
             expect.any(Function)
@@ -136,19 +129,13 @@ describe("renderer import-time bootstrap", () => {
         expect(coreModules.showAboutModal).not.toHaveBeenCalled();
     });
 
-    it("initializes default-exported master state manager test overrides", async () => {
-        expect.assertions(4);
+    it("lets state startup own state manager initialization", async () => {
+        expect.assertions(2);
 
-        let initializedStateManager = false;
-        let initializedMasterStateManager = false;
+        let initialized = false;
         const initializeStateManager = vi.fn(async () => {
-            initializedStateManager = true;
+            initialized = true;
         });
-        const masterStateManager = {
-            initialize: vi.fn(() => {
-                initializedMasterStateManager = true;
-            }),
-        };
         const { scheduleImportTimeStateInitialization } =
             createRendererImportTimeBootstrap({
                 ensureCoreModules: async () => createCoreModules(),
@@ -156,73 +143,13 @@ describe("renderer import-time bootstrap", () => {
                 getOpenFileButton: () => null,
                 initializeStateManager,
                 isOpeningFileRef: { value: false },
-                resolveExactRendererCoreTestOverride: (testId) =>
-                    testId === "../../utils/state/core/masterStateManager.js"
-                        ? { default: { masterStateManager } }
-                        : null,
-                resolveRendererCoreTestOverride: () => null,
                 setLoading: vi.fn(),
             });
 
         scheduleImportTimeStateInitialization();
         await flushImportTimeWork();
 
-        expect(initializedStateManager).toBe(true);
-        expect(initializedMasterStateManager).toBe(true);
-        expect(initializeStateManager).toHaveBeenCalledOnce();
-        expect(masterStateManager.initialize).toHaveBeenCalledOnce();
-    });
-
-    it("ignores malformed master state manager test overrides", async () => {
-        expect.assertions(2);
-
-        const initializeStateManager = vi.fn(async () => undefined);
-        const { scheduleImportTimeStateInitialization } =
-            createRendererImportTimeBootstrap({
-                ensureCoreModules: async () => createCoreModules(),
-                getElectronApiScope: () => ({ getElectronAPI: () => null }),
-                getOpenFileButton: () => null,
-                initializeStateManager,
-                isOpeningFileRef: { value: false },
-                resolveExactRendererCoreTestOverride: () => "not-a-module",
-                resolveRendererCoreTestOverride: () => null,
-                setLoading: vi.fn(),
-            });
-
-        scheduleImportTimeStateInitialization();
-        await expect(flushImportTimeWork()).resolves.toBeUndefined();
-
-        expect(initializeStateManager).toHaveBeenCalledOnce();
-    });
-
-    it("ignores malformed named and default master state manager exports", async () => {
-        expect.assertions(2);
-
-        const initializeStateManager = vi.fn(async () => undefined);
-        const { scheduleImportTimeStateInitialization } =
-            createRendererImportTimeBootstrap({
-                ensureCoreModules: async () => createCoreModules(),
-                getElectronApiScope: () => ({ getElectronAPI: () => null }),
-                getOpenFileButton: () => null,
-                initializeStateManager,
-                isOpeningFileRef: { value: false },
-                resolveExactRendererCoreTestOverride: () => ({
-                    default: {
-                        masterStateManager: {
-                            initialize: "not initialize",
-                        },
-                    },
-                    masterStateManager: {
-                        initialize: "not initialize",
-                    },
-                }),
-                resolveRendererCoreTestOverride: () => null,
-                setLoading: vi.fn(),
-            });
-
-        scheduleImportTimeStateInitialization();
-        await expect(flushImportTimeWork()).resolves.toBeUndefined();
-
+        expect(initialized).toBe(true);
         expect(initializeStateManager).toHaveBeenCalledOnce();
     });
 

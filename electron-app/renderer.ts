@@ -97,8 +97,6 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
-    resolveExactRendererCoreTestOverride,
-    resolveRendererCoreTestOverride,
     setLoading,
 });
 const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =

@@ -20661,7 +20661,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(37);
+        expect.assertions(36);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -20728,38 +20728,35 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).not.toContain(
             "value as Record<string, unknown>"
         );
-        expect(importTimeBootstrapSource).toContain(
-            "type ImportTimeMasterStateManagerOverrideModule = Readonly<{"
-        );
-        expect(importTimeBootstrapSource).toContain(
-            "type ImportTimeMasterStateManagerDefaultExport = Readonly<{"
-        );
-        expect(importTimeBootstrapSource).toContain(
-            "readonly default?:\n        | ImportTimeMasterStateManagerDefaultExport\n        | undefined;"
-        );
-        expect(importTimeBootstrapSource).toContain(
-            "readonly masterStateManager?:\n        | ImportTimeInitializableStateManager\n        | undefined;"
+        expect(importTimeBootstrapSource).not.toContain(
+            "state/core/masterStateManager.js"
         );
         expect(importTimeBootstrapSource).not.toContain(
-            "readonly default?: unknown;"
+            "resolveExactRendererCoreTestOverride"
         );
         expect(importTimeBootstrapSource).not.toContain(
-            "readonly masterStateManager?: unknown;"
-        );
-        expect(importTimeBootstrapSource).toContain(
-            "toImportTimeMasterStateManagerDefaultExport("
-        );
-        expect(importTimeBootstrapSource).toContain(
-            "type ImportTimeInitializeMethod = (this: unknown) => Promise<void> | void;"
-        );
-        expect(importTimeBootstrapSource).toContain(
-            "readonly initialize: ImportTimeInitializeMethod;"
+            "resolveRendererCoreTestOverride"
         );
         expect(importTimeBootstrapSource).not.toContain(
-            "readonly initialize?: unknown;"
+            "ImportTimeMasterStateManagerOverrideModule"
         );
-        expect(importTimeBootstrapSource).toContain(
-            "function toImportTimeInitializableStateManager("
+        expect(importTimeBootstrapSource).not.toContain(
+            "ImportTimeMasterStateManagerDefaultExport"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "ImportTimeInitializableStateManager"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "ImportTimeInitializeMethod"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "toImportTimeMasterStateManager"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "toImportTimeInitializableStateManager"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "createRendererImportTimeBootstrap({\n    ensureCoreModules,\n    getElectronApiScope: getRendererElectronApiScope,\n    getOpenFileButton: domAccess.getOpenFileButton,\n    initializeStateManager,\n    isOpeningFileRef,\n    resolveExactRendererCoreTestOverride,"
         );
         expect(rendererEntrypointSource).not.toContain(
             "createRendererImportTimeBootstrap({\n    callUnknownFunction,"
