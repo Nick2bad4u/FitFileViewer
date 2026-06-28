@@ -1,12 +1,26 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRendererApplicationStartupRuntime } from "../../../electron-app/renderer/applicationStartupRuntime.js";
+import {
+    getRendererApplicationStartupRuntime,
+    type RendererApplicationStartupRuntimeScope,
+} from "../../../electron-app/renderer/applicationStartupRuntime.js";
 import type {
     BrowserClearTimeout,
     BrowserSetTimeout,
 } from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getRendererApplicationStartupRuntime", () => {
+    function createRuntimeScope(
+        overrides: Partial<RendererApplicationStartupRuntimeScope> = {}
+    ): RendererApplicationStartupRuntimeScope {
+        return {
+            getAbortController: () => AbortController,
+            getClearTimeout: () => vi.fn<BrowserClearTimeout>(),
+            getSetTimeout: () => vi.fn<BrowserSetTimeout>(() => 25),
+            ...overrides,
+        };
+    }
+
     it("uses renderer browser runtime providers for production defaults", () => {
         expect.assertions(2);
 
@@ -37,6 +51,7 @@ describe("getRendererApplicationStartupRuntime", () => {
             }
         }
         const utils = getRendererApplicationStartupRuntime({
+            ...createRuntimeScope(),
             getAbortController: () => TestAbortController,
         });
 
@@ -53,6 +68,7 @@ describe("getRendererApplicationStartupRuntime", () => {
         const updateCheckDelayMs = Number("5000");
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 25);
         const utils = getRendererApplicationStartupRuntime({
+            ...createRuntimeScope(),
             getSetTimeout: () => setTimeout,
         });
 
@@ -66,6 +82,7 @@ describe("getRendererApplicationStartupRuntime", () => {
 
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const utils = getRendererApplicationStartupRuntime({
+            ...createRuntimeScope(),
             getClearTimeout: () => clearTimeout,
         });
 
@@ -75,10 +92,43 @@ describe("getRendererApplicationStartupRuntime", () => {
         expect(clearTimeout.mock.contexts[0]).toBeUndefined();
     });
 
-    it("does not borrow ambient browser primitives for explicit scopes", () => {
+    it("fails clearly when explicit scopes omit runtime providers", () => {
         expect.assertions(3);
 
-        const utils = getRendererApplicationStartupRuntime({});
+        expect(() =>
+            getRendererApplicationStartupRuntime({
+                getClearTimeout: () => vi.fn<BrowserClearTimeout>(),
+                getSetTimeout: () => vi.fn<BrowserSetTimeout>(() => 25),
+            } as unknown as RendererApplicationStartupRuntimeScope)
+        ).toThrow(
+            "renderer application startup requires an AbortController provider"
+        );
+        expect(() =>
+            getRendererApplicationStartupRuntime({
+                getAbortController: () => AbortController,
+                getSetTimeout: () => vi.fn<BrowserSetTimeout>(() => 25),
+            } as unknown as RendererApplicationStartupRuntimeScope)
+        ).toThrow(
+            "renderer application startup requires a clearTimeout provider"
+        );
+        expect(() =>
+            getRendererApplicationStartupRuntime({
+                getAbortController: () => AbortController,
+                getClearTimeout: () => vi.fn<BrowserClearTimeout>(),
+            } as unknown as RendererApplicationStartupRuntimeScope)
+        ).toThrow(
+            "renderer application startup requires a setTimeout provider"
+        );
+    });
+
+    it("fails clearly when runtime providers return unavailable primitives", () => {
+        expect.assertions(3);
+
+        const utils = getRendererApplicationStartupRuntime({
+            getAbortController: () => undefined,
+            getClearTimeout: () => undefined,
+            getSetTimeout: () => undefined,
+        });
 
         expect(() => utils.createAbortController()).toThrow(
             "renderer application startup requires an AbortController"
@@ -105,22 +155,17 @@ describe("getRendererApplicationStartupRuntime", () => {
         }
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 25);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const utils = getRendererApplicationStartupRuntime({
-            AbortController: LegacyAbortController,
-            clearTimeout,
-            setTimeout,
-        } as unknown as Parameters<
-            typeof getRendererApplicationStartupRuntime
-        >[0]);
+        const utilsFactory = () =>
+            getRendererApplicationStartupRuntime({
+                AbortController: LegacyAbortController,
+                clearTimeout,
+                setTimeout,
+            } as unknown as RendererApplicationStartupRuntimeScope);
 
-        expect(() => utils.createAbortController()).toThrow(
-            "renderer application startup requires an AbortController"
+        expect(utilsFactory).toThrow(
+            "renderer application startup requires an AbortController provider"
         );
-        expect(() => utils.setTimeout(() => {}, 1)).toThrow(
-            "renderer application startup requires setTimeout"
-        );
-        expect(() => utils.clearTimeout(1)).toThrow(
-            "renderer application startup requires clearTimeout"
-        );
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
     });
 });

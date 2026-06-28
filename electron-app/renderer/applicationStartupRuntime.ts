@@ -11,15 +11,11 @@ import {
 export type RendererApplicationStartupTimerHandle = BrowserTimerHandle;
 
 export interface RendererApplicationStartupRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
+    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
 }
 
 export interface RendererApplicationStartupRuntime {
@@ -41,9 +37,25 @@ const defaultRendererApplicationStartupRuntimeScope: RendererApplicationStartupR
 export function getRendererApplicationStartupRuntime(
     scope: RendererApplicationStartupRuntimeScope = defaultRendererApplicationStartupRuntimeScope
 ): RendererApplicationStartupRuntime {
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError(
+            "renderer application startup requires an AbortController provider"
+        );
+    }
+    if (typeof scope.getClearTimeout !== "function") {
+        throw new TypeError(
+            "renderer application startup requires a clearTimeout provider"
+        );
+    }
+    if (typeof scope.getSetTimeout !== "function") {
+        throw new TypeError(
+            "renderer application startup requires a setTimeout provider"
+        );
+    }
+
     return {
         clearTimeout(handle: RendererApplicationStartupTimerHandle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = scope.getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "renderer application startup requires clearTimeout"
@@ -53,7 +65,7 @@ export function getRendererApplicationStartupRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerRef = scope.getAbortController?.();
+            const AbortControllerRef = scope.getAbortController();
             if (typeof AbortControllerRef !== "function") {
                 throw new TypeError(
                     "renderer application startup requires an AbortController"
@@ -66,7 +78,7 @@ export function getRendererApplicationStartupRuntime(
             callback: () => void,
             delay: number
         ): RendererApplicationStartupTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = scope.getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "renderer application startup requires setTimeout"

@@ -26777,7 +26777,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(32);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -26820,6 +26820,24 @@ describe("architecture boundaries", () => {
             "getClearTimeout: getBrowserClearTimeout"
         );
         expect(runtimeSource).toContain("getSetTimeout: getBrowserSetTimeout");
+        expect(runtimeSource).toContain("readonly getAbortController: () =>");
+        expect(runtimeSource).toContain("readonly getClearTimeout: () =>");
+        expect(runtimeSource).toContain("readonly getSetTimeout: () =>");
+        expect(runtimeSource).toContain(
+            "renderer application startup requires an AbortController provider"
+        );
+        expect(runtimeSource).toContain(
+            "renderer application startup requires a clearTimeout provider"
+        );
+        expect(runtimeSource).toContain(
+            "renderer application startup requires a setTimeout provider"
+        );
+        expect(runtimeSource).toContain("scope.getAbortController()");
+        expect(runtimeSource).toContain("scope.getClearTimeout()");
+        expect(runtimeSource).toContain("scope.getSetTimeout()");
+        expect(runtimeSource).not.toContain("scope.getAbortController?.()");
+        expect(runtimeSource).not.toContain("scope.getClearTimeout?.()");
+        expect(runtimeSource).not.toContain("scope.getSetTimeout?.()");
         expect(runtimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
