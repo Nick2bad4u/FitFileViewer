@@ -10,10 +10,6 @@ interface FitBrowserFeatureGateApi {
     isFitBrowserEnabled: ElectronFitBrowserApi["isFitBrowserEnabled"];
     onFitBrowserEnabledChanged?: ElectronFitBrowserApi["onFitBrowserEnabledChanged"];
 }
-type FitBrowserFeatureGateApiCandidate = Readonly<{
-    isFitBrowserEnabled?: unknown;
-    onFitBrowserEnabledChanged?: unknown;
-}>;
 type InitFitBrowserFeatureGateOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -74,15 +70,20 @@ function getElectronAPI(
 function isFitBrowserFeatureGateApi(
     api: unknown
 ): api is FitBrowserFeatureGateApi {
-    if (api === null || typeof api !== "object") {
+    if (!isRecord(api)) {
         return false;
     }
 
-    const featureGateApi = api as FitBrowserFeatureGateApiCandidate;
+    const isFitBrowserEnabled = api["isFitBrowserEnabled"];
+    const onFitBrowserEnabledChanged = api["onFitBrowserEnabledChanged"];
 
     return (
-        typeof featureGateApi.isFitBrowserEnabled === "function" &&
-        (featureGateApi.onFitBrowserEnabledChanged === undefined ||
-            typeof featureGateApi.onFitBrowserEnabledChanged === "function")
+        typeof isFitBrowserEnabled === "function" &&
+        (onFitBrowserEnabledChanged === undefined ||
+            typeof onFitBrowserEnabledChanged === "function")
     );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

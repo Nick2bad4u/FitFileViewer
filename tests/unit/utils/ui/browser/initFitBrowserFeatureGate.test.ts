@@ -112,6 +112,24 @@ describe(initFitBrowserFeatureGate, () => {
         });
     });
 
+    it("does nothing when the preload API candidate is array-shaped", async () => {
+        expect.assertions(2);
+
+        await runWithBrowserTabFixture(({ button, content }) => {
+            const api = [] as unknown[] & Record<string, unknown>;
+            api["isFitBrowserEnabled"] = vi
+                .fn<() => Promise<boolean>>()
+                .mockResolvedValue(false);
+
+            initFitBrowserFeatureGate({
+                electronApiScope: createElectronApiScope(api),
+            });
+
+            expect(button.style.display).toBe("");
+            expect(content.style.display).toBe("");
+        });
+    });
+
     it("hides the browser tab and switches active browser state away when disabled", async () => {
         expect.assertions(4);
 

@@ -476,8 +476,9 @@ Show FIT data file-loaded notification candidate typing now uses the shared prel
 of deriving from the monolithic `ElectronAPI` type.
 Renderer state integration file-opened IPC candidate typing now uses an explicit shared preload-event method alias
 instead of deriving from the monolithic `ElectronAPI` type or carrying a local Electron API interface.
-Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract instead of deriving
-from the monolithic `ElectronAPI` type.
+Fit Browser feature-gate candidate typing now uses the shared Fit Browser API-domain contract and explicit
+unknown-valued property reads instead of deriving from the monolithic `ElectronAPI` type or casting the preload
+candidate to a local shape.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document

@@ -7658,7 +7658,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(27);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -7696,6 +7696,17 @@ describe("architecture boundaries", () => {
         expect(featureGateSource).not.toContain(
             "Partial<FitBrowserFeatureGateApi>"
         );
+        expect(featureGateSource).not.toContain(
+            "FitBrowserFeatureGateApiCandidate"
+        );
+        expect(featureGateSource).not.toContain("featureGateApi = api as");
+        expect(featureGateSource).toContain(
+            'const isFitBrowserEnabled = api["isFitBrowserEnabled"];'
+        );
+        expect(featureGateSource).toContain(
+            'const onFitBrowserEnabledChanged = api["onFitBrowserEnabledChanged"];'
+        );
+        expect(featureGateSource).toContain("!Array.isArray(value)");
         expect(featureGateRuntimeSource).toContain(
             "defaultFitBrowserFeatureGateRuntimeScope"
         );
