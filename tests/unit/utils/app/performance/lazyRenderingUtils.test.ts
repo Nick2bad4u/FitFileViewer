@@ -6,6 +6,7 @@ import {
     deferUntilIdle,
     isElementVisible,
 } from "../../../../../electron-app/utils/app/performance/lazyRenderingUtils.js";
+import type { LazyRenderingTimeoutHandle } from "../../../../../electron-app/utils/app/performance/lazyRenderingRuntime.js";
 
 type IntersectionObserverInitRecord = {
     callback: IntersectionObserverCallback;
@@ -258,6 +259,43 @@ describe("lazy rendering utilities", () => {
             const [idleCallback, idleOptions] = idleCall;
             expect(idleCallback).toBeTypeOf("function");
             expect(idleOptions).toStrictEqual({ timeout: 123 });
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("falls back to the lazy rendering timer handle when idle callbacks are unavailable", () => {
+        expect.assertions(5);
+
+        try {
+            let scheduledCallback: (() => void) | undefined;
+            let callbackCount = 0;
+            const timeoutHandle = 73 as unknown as LazyRenderingTimeoutHandle;
+            const setTimeoutMock = vi.fn<
+                (
+                    callback: () => void,
+                    timeout?: number
+                ) => LazyRenderingTimeoutHandle
+            >((callback) => {
+                scheduledCallback = callback;
+                return timeoutHandle;
+            });
+            vi.stubGlobal("requestIdleCallback", undefined);
+            vi.stubGlobal("setTimeout", setTimeoutMock);
+
+            const requestId = deferUntilIdle(() => {
+                callbackCount += 1;
+            });
+
+            expect(requestId).toBe(timeoutHandle);
+            expect(setTimeoutMock).toHaveBeenCalledOnce();
+            expect(setTimeoutMock).toHaveBeenCalledWith(
+                expect.any(Function),
+                0
+            );
+            scheduledCallback?.();
+            expect({ callbackCount }).toStrictEqual({ callbackCount: 1 });
+            expect(scheduledCallback).toBeTypeOf("function");
         } finally {
             cleanupFixture();
         }

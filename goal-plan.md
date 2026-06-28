@@ -537,6 +537,9 @@ direct properties or ambient clock fallbacks.
 Lazy-rendering timeout fallback scheduling now routes through `lazyRenderingRuntime.ts`, and explicit runtime
 scopes must provide `setTimeout` instead of falling back to `globalThis`, with focused coverage blocking that
 ambient fallback from returning.
+Lazy-rendering idle fallback handles now use the runtime's `LazyRenderingTimeoutHandle` alias instead of spelling
+`ReturnType<typeof setTimeout>` in `lazyRenderingUtils.ts`, with fallback-timer coverage and architecture guardrails
+blocking that ambient timer-handle spelling from returning.
 Async cancellation token helpers now route timeout-backed token cancellation and cancellable delay scheduling
 through `cancellationTokenRuntime.ts` instead of calling timer globals directly inside `cancellationToken.ts`,
 with focused runtime/token coverage and architecture guardrails blocking those direct timer globals from returning.

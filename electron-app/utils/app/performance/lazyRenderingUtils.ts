@@ -2,7 +2,10 @@
  * Provides utilities for deferring rendering until elements are visible
  */
 
-import { getLazyRenderingRuntime } from "./lazyRenderingRuntime.js";
+import {
+    getLazyRenderingRuntime,
+    type LazyRenderingTimeoutHandle,
+} from "./lazyRenderingRuntime.js";
 
 type AsyncVoidCallback = () => Promise<void> | void;
 
@@ -176,7 +179,7 @@ export function createLazyRenderer(
 export function deferUntilIdle(
     callback: AsyncVoidCallback,
     options: IdleOptions = {}
-): number | ReturnType<typeof setTimeout> {
+): LazyRenderingTimeoutHandle {
     const { timeout = 2000 } = options;
     const runtime = getLazyRenderingRuntime();
     const idleRequestId = runtime.requestIdleCallback(

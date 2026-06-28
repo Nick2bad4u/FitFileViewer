@@ -1,6 +1,5 @@
 import {
     type BrowserHTMLElementConstructor,
-    type BrowserSetTimeout,
     type BrowserTimerHandle,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -25,7 +24,7 @@ type LazyRenderingRequestIdleCallback = (
 type LazyRenderingSetTimeout = (
     callback: () => void,
     timeout?: number
-) => ReturnType<BrowserSetTimeout> | number;
+) => LazyRenderingTimeoutHandle;
 
 export interface LazyRenderingRuntimeDocument {
     readonly documentElement?:

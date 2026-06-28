@@ -21838,7 +21838,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(54);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -21869,6 +21869,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
+        expect(lazyRenderingUtilsSource).toContain(
+            "type LazyRenderingTimeoutHandle"
+        );
+        expect(lazyRenderingUtilsSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
+        );
         expect(lazyRenderingUtilsSource).toContain(
             "Readonly<Record<string, unknown>>"
         );
@@ -21904,6 +21910,12 @@ describe("architecture boundaries", () => {
         );
         expect(lazyRenderingRuntimeSource).toContain("BrowserSetTimeout");
         expect(lazyRenderingRuntimeSource).toContain("BrowserTimerHandle");
+        expect(lazyRenderingRuntimeSource).toContain(
+            "LazyRenderingTimeoutHandle"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "ReturnType<BrowserSetTimeout>"
+        );
         expect(lazyRenderingRuntimeSource).not.toContain("typeof globalThis.");
         expect(lazyRenderingRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
