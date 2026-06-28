@@ -703,6 +703,7 @@ const legacyLoadedFitFilesStatePathPattern =
     /["']globalData\.loadedFitFiles["']/u;
 const legacyLoadedFitFilesGlobalLookupPattern =
     /\b(?:appGlobal|lifecycleGlobal|overlayGlobal|windowExt|win|window|globalThis)\.loadedFitFiles\b|Reflect\.deleteProperty\(\s*globalThis\s*,\s*["']loadedFitFiles["']\s*\)/u;
+const retiredFitFileLoadedStatePathPattern = /["']fitFile\.loaded["']/u;
 const loadedFitFilesTestGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*(?:globalThis|testGlobal)\s*,\s*["']loadedFitFiles["']\s*\)|\b(?:globalThis|testGlobal)\.loadedFitFiles\s*=/u;
 const directRendererUtilsGlobalPattern =
@@ -28939,7 +28940,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer global compatibility modules removed", () => {
-        expect.assertions(96);
+        expect.assertions(97);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const deprecationLedgerSource = readRepositoryFile(
@@ -29100,6 +29101,13 @@ describe("architecture boundaries", () => {
         const legacyLoadedFitFilesGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 legacyLoadedFitFilesGlobalLookupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const retiredFitFileLoadedStatePathUsages = scannedFiles
+            .filter((relativeFile) =>
+                retiredFitFileLoadedStatePathPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -29639,6 +29647,7 @@ describe("architecture boundaries", () => {
         expect(migratedRendererUtilityCallerViolations).toStrictEqual([]);
         expect(legacyLoadedFitFilesStatePathUsages).toStrictEqual([]);
         expect(legacyLoadedFitFilesGlobalLookups).toStrictEqual([]);
+        expect(retiredFitFileLoadedStatePathUsages).toStrictEqual([]);
         expect(directAltFitGlobalSenderLookups).toStrictEqual([]);
         expect(directOverlayHighlightGlobalLookups).toStrictEqual([]);
         expect(directShownFilesListGlobalLookups).toStrictEqual([]);

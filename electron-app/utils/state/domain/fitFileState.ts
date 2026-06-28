@@ -441,9 +441,6 @@ export class FitFileStateManager {
         setState("fitFile.processingError", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        setState("fitFile.loaded", null, {
-            source: SOURCE_CLEAR_FILE_STATE,
-        });
         setState("fitFile.loadedFiles", [], {
             source: SOURCE_CLEAR_FILE_STATE,
         });
@@ -568,7 +565,6 @@ export class FitFileStateManager {
             source,
         });
         setCurrentFileState(resolvedPath, source);
-        setState("fitFile.loaded", safeData, { source });
 
         resetRendererRenderLifecycle({ source });
 
@@ -697,18 +693,6 @@ export class FitFileStateManager {
             this.updateLoadingProgress(
                 typeof progress === "number" ? progress : 0
             );
-        });
-
-        subscribe("fitFile.loaded", (fileData) => {
-            if (fileData === null || fileData === undefined) {
-                return;
-            }
-
-            if (fileData === getState("fitFile.rawData")) {
-                return;
-            }
-
-            this.handleFileLoaded(fileData as RawFitData);
         });
 
         subscribe("fitFile.loadingError", (error) => {

@@ -8,6 +8,8 @@ import {
 } from "../../../../../electron-app/utils/state/domain/fitFileState.js";
 import * as syncRendererNotifications from "../../../../../electron-app/utils/ui/notifications/syncRendererNotifications.js";
 
+const RETIRED_FIT_FILE_LOADED_STATE_PATH = ["fitFile", "loaded"].join(".");
+
 describe("fitFileStateManager - domain logic and selectors", () => {
     beforeEach(() => {
         // Reset DOM for progress updates
@@ -177,10 +179,10 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             "fitFile.metrics",
             "fitFile.loadingError",
             "fitFile.processingError",
-            "fitFile.loaded",
             "fitFile.loadedFiles",
         ].forEach((p) => expect(calls).toContain(p));
         expect(calls).not.toContain("currentFile");
+        expect(calls).not.toContain(RETIRED_FIT_FILE_LOADED_STATE_PATH);
         expect(stateManager.getState("fitFile.loadedFiles")).toStrictEqual([]);
         expect(stateManager.getState("fitFile.currentFile")).toBeNull();
         expect(logSpy).toHaveBeenCalledWith(
@@ -253,7 +255,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("handleFileLoaded updates domain slices and notifies", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -292,6 +294,11 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         );
         expect(ss).not.toHaveBeenCalledWith(
             "currentFile",
+            expect.anything(),
+            expect.any(Object)
+        );
+        expect(ss).not.toHaveBeenCalledWith(
+            RETIRED_FIT_FILE_LOADED_STATE_PATH,
             expect.anything(),
             expect.any(Object)
         );
@@ -368,7 +375,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         });
     });
 
-    it("clearFileState does not re-handle a cleared loaded payload", () => {
+    it("clearFileState does not write the retired loaded payload mirror", () => {
         expect.assertions(6);
 
         const mgr = new FitFileStateManager();
@@ -386,7 +393,9 @@ describe("fitFileStateManager - domain logic and selectors", () => {
 
         expect(notif).not.toHaveBeenCalled();
         expect(stateManager.getState("fitFile.currentFile")).toBeNull();
-        expect(stateManager.getState("fitFile.loaded")).toBeNull();
+        expect(
+            stateManager.getState(RETIRED_FIT_FILE_LOADED_STATE_PATH)
+        ).toBeUndefined();
         expect(stateManager.getState("fitFile.rawData")).toBeNull();
         expect(stateManager.getState("fitFile.loadingPhase")).toBe("idle");
         expect(stateManager.getState("fitFile.loadingState")).toEqual(
@@ -528,7 +537,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
                 "fitFile.rawData",
                 "fitFile.processedData",
                 "fitFile.loadingProgress",
-                "fitFile.loaded",
                 "fitFile.loadingError",
             ])
         );

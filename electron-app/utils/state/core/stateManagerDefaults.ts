@@ -245,7 +245,6 @@ export type FitFileLoadingState = {
 export type FitFileState = {
     currentFile: null | string;
     isLoading: boolean;
-    loaded: unknown;
     loadedFiles: unknown[];
     loadingError: null | string;
     loadingPhase: FitFileLoadingPhase;
@@ -325,7 +324,6 @@ export function createDefaultAppState(): AppStateShape {
         fitFile: {
             currentFile: null,
             isLoading: false,
-            loaded: null,
             loadedFiles: [],
             loadingError: null,
             loadingPhase: "idle",
