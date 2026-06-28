@@ -47,12 +47,12 @@ export async function completeChartDataRender(
         notify: dependencies.notify,
         now: dependencies.now,
         nowPerformance: dependencies.nowPerformance,
+        setLastNotification: dependencies.setLastNotification,
         showRenderNotification: dependencies.showRenderNotification,
         updateChartControlsUI: (enabled) =>
             dependencies.getUIStateManager()?.updateChartControlsUI?.(enabled),
         updatePerformanceSummary: dependencies.updatePerformanceSummary,
         updatePreviousChartState: dependencies.updatePreviousChartState,
-        updateState: dependencies.updateState,
     };
     if (dependencies.addHoverEffectsToExistingCharts !== undefined) {
         completionDependencies.addHoverEffectsToExistingCharts =

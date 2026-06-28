@@ -6,7 +6,7 @@ import { updateChartRenderPerformanceState } from "./renderChartPerformanceState
 import { completeChartRenderState } from "./renderChartCompletionState.js";
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { resolveChartRenderResultState } from "./renderChartResultState.js";
-import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
+import type { NotificationType } from "../../state/domain/rendererNotificationState.js";
 
 type GetChartOptionsFunction = () => unknown;
 type NotifySuccessFunction = (
@@ -17,14 +17,18 @@ type ShowRenderNotificationFunction = (
     totalChartsRendered: number,
     visibleFieldCount: number
 ) => boolean;
-type UpdateStateFunction = (
-    path: string,
-    value: Record<string, unknown>,
-    options?: ChartStateUpdateOptions
-) => void;
+type ChartStateUpdateSourceOptions = { source?: string };
 type UpdatePerformanceSummaryFunction = (
     summary: { chartsRendered: number; lastChartRender: number },
-    options?: ChartStateUpdateOptions
+    options?: ChartStateUpdateSourceOptions
+) => void;
+type SetLastNotificationFunction = (
+    notification: {
+        message: string;
+        timestamp: number;
+        type: NotificationType;
+    },
+    options?: ChartStateUpdateSourceOptions
 ) => void;
 type AddChartHoverEffectsFunction = (
     chartContainer: HTMLElement | null | undefined,
@@ -56,6 +60,7 @@ interface SuccessfulChartRenderCompletionDependencies {
     notify: NotifySuccessFunction;
     now(): number;
     nowPerformance(): number;
+    setLastNotification: SetLastNotificationFunction;
     showRenderNotification: ShowRenderNotificationFunction;
     updateChartControlsUI?: UpdateChartControlsUIFunction;
     updatePreviousChartState(
@@ -64,7 +69,6 @@ interface SuccessfulChartRenderCompletionDependencies {
         timestamp: number
     ): unknown;
     updatePerformanceSummary: UpdatePerformanceSummaryFunction;
-    updateState: UpdateStateFunction;
 }
 
 interface SuccessfulChartRenderCompletionInput {
@@ -140,8 +144,8 @@ export async function completeSuccessfulChartRender(
         {
             isTestRuntime: dependencies.isTestRuntime,
             notify: dependencies.notify,
+            setLastNotification: dependencies.setLastNotification,
             showRenderNotification: dependencies.showRenderNotification,
-            updateState: dependencies.updateState,
         },
         {
             totalChartsRendered,

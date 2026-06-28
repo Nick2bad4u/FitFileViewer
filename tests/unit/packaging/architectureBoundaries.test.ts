@@ -1974,7 +1974,8 @@ describe("architecture boundaries", () => {
         const directBrowserGlobalAccessViolations = sourceFiles
             .filter(
                 (relativeFile) =>
-                    relativeFile !== "electron-app/utils/runtime/browserRuntime.ts"
+                    relativeFile !==
+                    "electron-app/utils/runtime/browserRuntime.ts"
             )
             .filter((relativeFile) =>
                 directBrowserGlobalPropertyPattern.test(
@@ -1995,7 +1996,8 @@ describe("architecture boundaries", () => {
             .filter(
                 (relativeFile) =>
                     relativeFile.endsWith("Runtime.ts") &&
-                    relativeFile !== "electron-app/utils/runtime/browserRuntime.ts"
+                    relativeFile !==
+                        "electron-app/utils/runtime/browserRuntime.ts"
             )
             .sort();
         const ambientFallbackViolations = utilityAdapterFiles
@@ -11971,9 +11973,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("rendererActiveTabState.js");
         expect(uiStateManagerSource).toContain("normalizeRendererActiveTab");
         expect(uiStateManagerSource).toContain("rendererActiveFileState.js");
-        expect(uiStateManagerSource).toContain(
-            "rendererChartControlsState.js"
-        );
+        expect(uiStateManagerSource).toContain("rendererChartControlsState.js");
         expect(uiStateManagerSource).toContain("rendererDragDropState.js");
         expect(uiStateManagerSource).toContain("rendererLoadingState.js");
         expect(uiStateManagerSource).toContain("rendererLayoutState.js");
@@ -11995,22 +11995,16 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain(
             "subscribeToRendererDropOverlayVisible"
         );
-        expect(uiStateManagerSource).toContain(
-            "isRendererUnloadButtonVisible"
-        );
+        expect(uiStateManagerSource).toContain("isRendererUnloadButtonVisible");
         expect(uiStateManagerSource).toContain("getRendererFileInfo");
         expect(uiStateManagerSource).toContain("getRendererLoadingIndicator");
         expect(uiStateManagerSource).toContain("isRendererLoading");
         expect(uiStateManagerSource).toContain("isRendererDropOverlayVisible");
         expect(uiStateManagerSource).toContain("isRendererSidebarCollapsed");
         expect(uiStateManagerSource).toContain("setLastRendererNotification");
-        expect(uiStateManagerSource).toContain(
-            "setRendererSidebarCollapsed"
-        );
+        expect(uiStateManagerSource).toContain("setRendererSidebarCollapsed");
         expect(uiStateManagerSource).toContain("updateAppActionWindowState");
-        expect(uiStateManagerSource).not.toContain(
-            "../core/stateManager.js"
-        );
+        expect(uiStateManagerSource).not.toContain("../core/stateManager.js");
         expect(uiStateManagerSource).not.toContain('subscribe("ui.activeTab"');
         expect(uiStateManagerSource).not.toContain('subscribe("ui.theme"');
         expect(uiStateManagerSource).not.toContain(
@@ -12756,7 +12750,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(188);
+        expect.assertions(197);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12789,7 +12783,9 @@ describe("architecture boundaries", () => {
             )
         );
         const renderChartJSSource = stripComments(
-            readRepositoryFile("electron-app/utils/charts/core/renderChartJS.ts")
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartJS.ts"
+            )
         );
         const renderChartPreflightSource = stripComments(
             readRepositoryFile(
@@ -12819,6 +12815,16 @@ describe("architecture boundaries", () => {
         const renderChartPerformanceStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartPerformanceState.ts"
+            )
+        );
+        const renderChartNotificationFlowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartNotificationFlow.ts"
+            )
+        );
+        const renderChartDataCompletionSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDataCompletion.ts"
             )
         );
         const renderChartDevToolsSource = stripComments(
@@ -12892,7 +12898,9 @@ describe("architecture boundaries", () => {
             )
         );
         const fitFileStateSource = stripComments(
-            readRepositoryFile("electron-app/utils/state/domain/fitFileState.ts")
+            readRepositoryFile(
+                "electron-app/utils/state/domain/fitFileState.ts"
+            )
         );
         const rendererStateIntegrationSource = stripComments(
             readRepositoryFile(
@@ -12968,7 +12976,9 @@ describe("architecture boundaries", () => {
         expect(renderChartDirectRerenderSource).not.toContain(
             "getState(path: string)"
         );
-        expect(renderChartDirectRerenderSource).not.toContain("getStateManager");
+        expect(renderChartDirectRerenderSource).not.toContain(
+            "getStateManager"
+        );
         expect(renderChartDirectRerenderSource).not.toContain(
             "dependencies.getStateManager"
         );
@@ -13119,13 +13129,13 @@ describe("architecture boundaries", () => {
         expect(renderChartActionsSource).toContain(
             "completeChartRenderLifecycleState"
         );
-        expect(renderChartActionsSource).not.toContain(
-            'updateState("charts"'
-        );
+        expect(renderChartActionsSource).not.toContain('updateState("charts"');
         expect(renderChartActionsSource).not.toContain(
             'dependencies.updateState(\n                "charts"'
         );
-        expect(renderChartActionsSource).not.toContain("dependencies.updateState");
+        expect(renderChartActionsSource).not.toContain(
+            "dependencies.updateState"
+        );
         expect(renderChartActionsSource).not.toContain(
             '"charts.selectedChart"'
         );
@@ -13145,6 +13155,24 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartPerformanceStateSource).not.toContain("getState(");
         expect(renderChartPerformanceStateSource).not.toContain("updateState(");
+        expect(renderChartNotificationFlowSource).toContain(
+            "setLastNotification("
+        );
+        expect(renderChartNotificationFlowSource).toContain(
+            "rendererNotificationState.js"
+        );
+        expect(renderChartNotificationFlowSource).not.toContain(
+            "updateState: UpdateStateFunction"
+        );
+        expect(renderChartNotificationFlowSource).not.toContain(
+            'updateState("ui"'
+        );
+        expect(renderChartNotificationFlowSource).not.toContain(
+            "updateChartState"
+        );
+        expect(renderChartDataCompletionSource).toContain(
+            "setLastNotification: dependencies.setLastNotification"
+        );
         expect(renderChartLifecycleSource).toContain("setChartRendering");
         expect(renderChartLifecycleSource).toContain("setLoadingState");
         expect(renderChartLifecycleSource).toContain("clearChartRenderState");
@@ -13164,9 +13192,7 @@ describe("architecture boundaries", () => {
         expect(renderChartJSSource).not.toContain(
             'setState("charts.isRendering"'
         );
-        expect(renderChartExportStateSource).not.toContain(
-            "charts.isRendered"
-        );
+        expect(renderChartExportStateSource).not.toContain("charts.isRendered");
         expect(renderChartExportStateSource).toContain(
             "dependencies.areChartsRendered()"
         );
@@ -13208,9 +13234,15 @@ describe("architecture boundaries", () => {
         expect(renderChartDevToolsSource).toContain(
             "dependencies.getPerformanceMetrics()"
         );
-        expect(renderChartDevToolsSource).not.toContain("getState(path: string)");
-        expect(renderChartDevToolsSource).not.toContain("dependencies.setState");
-        expect(renderChartDevToolsSource).not.toContain("dependencies.subscribe");
+        expect(renderChartDevToolsSource).not.toContain(
+            "getState(path: string)"
+        );
+        expect(renderChartDevToolsSource).not.toContain(
+            "dependencies.setState"
+        );
+        expect(renderChartDevToolsSource).not.toContain(
+            "dependencies.subscribe"
+        );
         expect(renderChartStateViewSource).not.toContain("charts.isRendered");
         expect(renderChartStateViewSource).not.toContain("charts.isRendering");
         expect(renderChartStateViewSource).not.toContain(
@@ -13273,17 +13305,24 @@ describe("architecture boundaries", () => {
         expect(renderChartSuccessfulCompletionSource).toContain(
             "updatePerformanceSummary: dependencies.updatePerformanceSummary"
         );
+        expect(renderChartSuccessfulCompletionSource).toContain(
+            "setLastNotification: dependencies.setLastNotification"
+        );
         expect(renderChartSuccessfulCompletionSource).not.toContain(
             "getState: GetStateFunction"
+        );
+        expect(renderChartSuccessfulCompletionSource).not.toContain(
+            "updateState: UpdateStateFunction"
+        );
+        expect(renderChartJSSource).toContain(
+            "setLastNotification: setLastRendererNotification"
         );
         expect(stateManagerSource).toContain("charts.isRendered");
         expect(stateManagerSource).toContain("charts.isRendering");
         expect(stateManagerSource).toContain("charts.tabActive");
         expect(stateManagerSource).toContain("map.measurementMode");
         expect(stateManagerSource).toContain("tables.isRendered");
-        expect(fitFileStateSource).toContain(
-            "rendererRenderLifecycleState.js"
-        );
+        expect(fitFileStateSource).toContain("rendererRenderLifecycleState.js");
         expect(fitFileStateSource).toContain(
             "resetRendererRenderLifecycle({ source })"
         );
@@ -16124,7 +16163,9 @@ describe("architecture boundaries", () => {
             'stateManager.subscribe("ui.activeTab"'
         );
         expect(updateActiveTabSource).toContain("rendererActiveTabState.js");
-        expect(updateActiveTabSource).toContain("getRendererActiveTabFromState");
+        expect(updateActiveTabSource).toContain(
+            "getRendererActiveTabFromState"
+        );
         expect(updateActiveTabSource).toContain("setRendererActiveTabInState");
         expect(updateActiveTabSource).toContain(
             "subscribeToRendererActiveTabInState"
@@ -16141,7 +16182,9 @@ describe("architecture boundaries", () => {
             'getStateMgr().setState("ui.activeTab"'
         );
         expect(updateActiveTabSource).not.toContain('"ui.activeTab"');
-        expect(tabStateManagerSource).toContain("getRendererActiveTabFromState");
+        expect(tabStateManagerSource).toContain(
+            "getRendererActiveTabFromState"
+        );
         expect(tabStateManagerSource).toContain("setRendererActiveTabInState");
         expect(tabStateManagerSource).toContain(
             "subscribeToRendererActiveTabInState"
@@ -24997,9 +25040,7 @@ describe("architecture boundaries", () => {
         expect(renderChartCachePrewarmSource).toContain(
             "rendererActiveTabState.js"
         );
-        expect(renderChartCachePrewarmSource).toContain(
-            "getRendererActiveTab"
-        );
+        expect(renderChartCachePrewarmSource).toContain("getRendererActiveTab");
         expect(renderChartCachePrewarmSource).toContain(
             "rendererChartRenderState.js"
         );

@@ -66,6 +66,7 @@ import {
 } from "../../state/domain/rendererChartControlsState.js";
 import { setRendererExporting } from "../../state/domain/rendererExportState.js";
 import { setRendererLoading } from "../../state/domain/rendererLoadingState.js";
+import { setLastRendererNotification } from "../../state/domain/rendererNotificationState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -129,10 +130,7 @@ import {
     getShowRenderNotificationSafe,
     getUIStateManagerMaybe,
 } from "./renderChartDependencyAccessors.js";
-import {
-    callGetStateHistory,
-    callUpdateState,
-} from "./renderChartStateAccess.js";
+import { callGetStateHistory } from "./renderChartStateAccess.js";
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartStateManagementApi } from "./renderChartStateManagementApi.js";
 import { createChartActions } from "./renderChartActions.js";
@@ -681,11 +679,11 @@ async function renderChartsWithData(
             notify,
             now: renderChartRuntime().now,
             nowPerformance: renderChartRuntime().nowPerformance,
+            setLastNotification: setLastRendererNotification,
             showRenderNotification: showRenderNotificationSafe,
             updatePerformanceSummary:
                 updateRendererChartRenderPerformanceSummary,
             updatePreviousChartState,
-            updateState: callUpdateState,
         },
         {
             renderStartTime,

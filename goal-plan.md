@@ -2073,6 +2073,9 @@ architecture checks blocking direct settings-cache path access from returning.
 Chart devtools snapshots now route through typed read-only dependencies for active tab, chart render state, performance
 metrics, settings, and state history instead of exposing arbitrary `getState`, `setState`, or `subscribe` helpers, with
 focused devtools coverage and architecture checks blocking the generic diagnostic state bridge from returning.
+Chart render notification completion now records the last success notification through `rendererNotificationState.ts`
+instead of passing a generic `updateState("ui", ...)` dependency through chart completion helpers, with focused
+notification-flow coverage and architecture checks blocking that generic UI write bridge from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

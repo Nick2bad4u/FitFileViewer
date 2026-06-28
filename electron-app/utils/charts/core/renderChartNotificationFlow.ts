@@ -2,7 +2,7 @@ import {
     getRendererActiveTab,
     isRendererChartTab,
 } from "../../state/domain/rendererActiveTabState.js";
-import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
+import type { NotificationType } from "../../state/domain/rendererNotificationState.js";
 import { getRenderChartTimerRuntime } from "./renderChartTimerRuntime.js";
 
 type DateNowFunction = () => number;
@@ -12,17 +12,20 @@ type ShowRenderNotificationFunction = (
     totalChartsRendered: number,
     visibleFieldCount: number
 ) => boolean;
-type UpdateStateFunction = (
-    path: string,
-    value: Record<string, unknown>,
-    options?: ChartStateUpdateOptions
+type SetLastNotificationFunction = (
+    notification: {
+        message: string;
+        timestamp: number;
+        type: NotificationType;
+    },
+    options?: { source?: string }
 ) => void;
 
 interface ChartRenderNotificationDependencies {
     isTestRuntime: boolean;
     notify: NotifySuccessFunction;
+    setLastNotification: SetLastNotificationFunction;
     showRenderNotification: ShowRenderNotificationFunction;
-    updateState: UpdateStateFunction;
 }
 
 interface ChartRenderNotificationInput {
@@ -69,8 +72,8 @@ export function handleChartRenderNotification(
     const {
         isTestRuntime,
         notify: notifySuccess,
+        setLastNotification,
         showRenderNotification,
-        updateState: updateChartState,
     } = dependencies;
     const {
         dateNow = defaultDateNow,
@@ -103,16 +106,13 @@ export function handleChartRenderNotification(
                 }
             }, 100);
 
-            updateChartState(
-                "ui",
+            setLastNotification(
                 {
-                    lastNotification: {
-                        message,
-                        timestamp: dateNow(),
-                        type: "success",
-                    },
+                    message,
+                    timestamp: dateNow(),
+                    type: "success",
                 },
-                { merge: true, source: "renderChartsWithData" }
+                { source: "renderChartsWithData" }
             );
             return;
         }
