@@ -56,6 +56,21 @@ function createPerformanceMonitor(): RendererPerformanceMonitor {
     };
 }
 
+type RendererSensorDebugTestUtilities = Readonly<{
+    readonly checkDataAvailability: (...args: never[]) => unknown;
+    readonly debugSensorInfo: (...args: never[]) => unknown;
+    readonly showDataKeys: (...args: never[]) => unknown;
+    readonly showSensorNames: (...args: never[]) => unknown;
+    readonly testManufacturerId: (...args: never[]) => unknown;
+    readonly testProductId: (...args: never[]) => unknown;
+}>;
+
+type RendererDebugChartFormattingTestUtilities = Readonly<{
+    readonly testFaveroCase: (...args: never[]) => unknown;
+    readonly testFaveroStringCase: (...args: never[]) => unknown;
+    readonly testNewFormatting: (...args: never[]) => unknown;
+}>;
+
 describe("renderer development debug tools", () => {
     afterEach(() => {
         setRendererDebugLoggingEnabled(false);
@@ -122,13 +137,13 @@ describe("renderer development debug tools", () => {
             AppActions?: unknown;
             chartDebug: boolean;
             chartDebugVerbose: boolean;
-            debugChartFormatting?: Record<string, unknown>;
+            debugChartFormatting?: RendererDebugChartFormattingTestUtilities;
             chartFullscreenTrace: boolean;
             debug: boolean;
             debugState: () => void;
             getPerformanceMetrics: () => Record<string, number>;
             getState: () => Promise<unknown>;
-            sensorDebug?: Record<string, unknown>;
+            sensorDebug?: RendererSensorDebugTestUtilities;
             stateManager: Promise<unknown>;
             uiStateManager?: unknown;
         };

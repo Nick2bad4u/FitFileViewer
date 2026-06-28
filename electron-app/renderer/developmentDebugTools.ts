@@ -56,6 +56,19 @@ type RendererDevelopmentDebugStateModules = {
     readonly masterStateManager?: unknown;
     readonly uiStateManager?: unknown;
 };
+type RendererSensorDebugUtilities = Readonly<{
+    readonly checkDataAvailability: typeof import("../utils/debug/debugSensorInfo.js").checkDataAvailability;
+    readonly debugSensorInfo: typeof import("../utils/debug/debugSensorInfo.js").debugSensorInfo;
+    readonly showDataKeys: typeof import("../utils/debug/debugSensorInfo.js").showDataKeys;
+    readonly showSensorNames: typeof import("../utils/debug/debugSensorInfo.js").showSensorNames;
+    readonly testManufacturerId: typeof import("../utils/debug/debugSensorInfo.js").testManufacturerId;
+    readonly testProductId: typeof import("../utils/debug/debugSensorInfo.js").testProductId;
+}>;
+type RendererDebugChartFormattingUtilities = Readonly<{
+    readonly testFaveroCase: typeof import("../utils/debug/debugChartFormatting.js").testFaveroCase;
+    readonly testFaveroStringCase: typeof import("../utils/debug/debugChartFormatting.js").testFaveroStringCase;
+    readonly testNewFormatting: typeof import("../utils/debug/debugChartFormatting.js").testNewFormatting;
+}>;
 type RendererDevelopmentDebugStateManagerCandidate = {
     readonly getHistory?: unknown;
     readonly getState?: unknown;
@@ -76,7 +89,6 @@ type RendererDebugToolsView = {
     readonly showNotification: RendererDebugToolCall;
     readonly showUpdateNotification: RendererDebugToolCall;
 };
-type RendererDebugUtilityGroup = Record<string, unknown>;
 export type RendererDevelopmentRuntimeMemoryUsage = Readonly<{
     readonly jsHeapSizeLimit: number | undefined;
     readonly totalJSHeapSize: number | undefined;
@@ -99,7 +111,7 @@ type RendererDevToolsView = {
     chartDebugVerbose: boolean;
     chartFullscreenTrace: boolean | string;
     debug: boolean;
-    debugChartFormatting?: RendererDebugUtilityGroup;
+    debugChartFormatting?: RendererDebugChartFormattingUtilities;
     debugState: () => void;
     getPerformanceMetrics: () => Record<string, number>;
     getState: () => Promise<unknown>;
@@ -107,7 +119,7 @@ type RendererDevToolsView = {
     isOpeningFileRef: RendererFileOpeningStateRef;
     PerformanceMonitor: RendererPerformanceMonitor;
     reinitialize: () => Promise<void>;
-    sensorDebug?: RendererDebugUtilityGroup;
+    sensorDebug?: RendererSensorDebugUtilities;
     readonly stateManager: Promise<unknown>;
     uiStateManager?: unknown;
     validateDOM: () => boolean;

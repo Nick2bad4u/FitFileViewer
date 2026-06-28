@@ -948,6 +948,9 @@ with architecture coverage keeping that startup test on the typed renderer devel
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
 `__renderer_dev`, `__sensorDebug`, or `__debugChartFormatting`; their coverage now checks absence without
 mutating those names, and architecture coverage blocks those mutations from returning.
+Renderer development debug utility groups now use explicit typed contracts for `sensorDebug` and
+`debugChartFormatting` instead of a generic `Record<string, unknown>` helper-bag alias, with architecture
+coverage blocking the broad alias and record-typed fields from returning.
 Renderer development debug runtime metadata now resolves location, navigator, and performance-memory snapshots
 through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` directly inside
 `developmentDebugTools.ts`, with focused runtime coverage and architecture guardrails blocking those direct

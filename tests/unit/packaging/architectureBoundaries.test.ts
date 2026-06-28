@@ -13866,7 +13866,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug helpers off global surfaces", () => {
-        expect.assertions(1);
+        expect.assertions(6);
 
         const violations = sourceRoots
             .flatMap(collectSourceFiles)
@@ -13876,8 +13876,26 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const developmentDebugToolsSource = stripComments(
+            readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(developmentDebugToolsSource).not.toContain(
+            "RendererDebugUtilityGroup"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "debugChartFormatting?: Record<string, unknown>"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "sensorDebug?: Record<string, unknown>"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "RendererSensorDebugUtilities"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "RendererDebugChartFormattingUtilities"
+        );
     });
 
     it("keeps migrated master state monitoring off state debug globals", () => {
