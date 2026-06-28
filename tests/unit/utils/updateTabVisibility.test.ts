@@ -264,7 +264,7 @@ describe(updateTabVisibility, () => {
         expect(mockSetState).not.toHaveBeenCalled();
     });
 
-    it("reads visible content from state", () => {
+    it("reads visible content from typed active-tab-content state", () => {
         expect.assertions(3);
 
         mockGetState.mockReturnValue("map");
@@ -273,7 +273,7 @@ describe(updateTabVisibility, () => {
         expect(mockGetState).toHaveBeenCalledWith("ui.activeTabContent");
 
         mockGetState.mockReturnValue("");
-        expect(getVisibleTabContent()).toBeNull();
+        expect(getVisibleTabContent()).toBe("summary");
     });
 
     it("registers active-tab and raw FIT data subscriptions", () => {

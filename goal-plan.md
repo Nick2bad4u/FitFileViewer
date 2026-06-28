@@ -2022,6 +2022,9 @@ access seam.
 The tab UI click, keyboard, and activation write paths now route through `setRendererActiveTabInState`, so active-tab
 write normalization also lives in the typed renderer active-tab state module instead of direct `ui.activeTab` writes in
 `updateActiveTab.ts`.
+Tab visibility active-content reads and writes now route through `getRendererActiveTabContentFromState` and
+`setRendererActiveTabContentInState`, so `updateTabVisibility.ts` no longer reads or writes `ui.activeTabContent`
+directly while keeping tab-content normalization in the typed active-tab state module.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

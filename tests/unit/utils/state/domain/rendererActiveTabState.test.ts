@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     getRendererActiveTab,
+    getRendererActiveTabContentFromState,
     getRendererActiveTabFromState,
     isRendererActiveTab,
     isRendererChartTab,
@@ -11,6 +12,7 @@ import {
     RENDERER_TAB_NAMES,
     replaceRendererActiveTab,
     setRendererActiveTab,
+    setRendererActiveTabContentInState,
     setRendererActiveTabInState,
     subscribeToRendererActiveTab as subscribeToActiveTab,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
@@ -46,6 +48,20 @@ describe("rendererActiveTabState", () => {
         expect(getRendererActiveTabFromState(() => "unknown")).toBe("summary");
     });
 
+    it("reads active tab content values through an explicit state reader", () => {
+        expect.assertions(3);
+
+        const reads: string[] = [];
+        const readState = (path: string): unknown => {
+            reads.push(path);
+            return "map";
+        };
+
+        expect(getRendererActiveTabContentFromState(readState)).toBe("map");
+        expect(reads).toStrictEqual(["ui.activeTabContent"]);
+        expect(getRendererActiveTabContentFromState(() => "")).toBe("summary");
+    });
+
     it("writes active tab values through an explicit state writer", () => {
         expect.assertions(1);
 
@@ -67,6 +83,32 @@ describe("rendererActiveTabState", () => {
             {
                 options: { source: "test" },
                 path: "ui.activeTab",
+                value: "summary",
+            },
+        ]);
+    });
+
+    it("writes active tab content values through an explicit state writer", () => {
+        expect.assertions(1);
+
+        const writes: Array<{
+            options: unknown;
+            path: string;
+            value: unknown;
+        }> = [];
+
+        setRendererActiveTabContentInState(
+            (path, value, options) => {
+                writes.push({ options, path, value });
+            },
+            "unknown",
+            { source: "test" }
+        );
+
+        expect(writes).toStrictEqual([
+            {
+                options: { source: "test" },
+                path: "ui.activeTabContent",
                 value: "summary",
             },
         ]);

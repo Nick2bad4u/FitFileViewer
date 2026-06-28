@@ -12,9 +12,11 @@ import {
     type RendererStateManagerAccess,
 } from "../../state/domain/rendererStateManagerAccess.js";
 import {
+    getRendererActiveTabContentFromState,
     getRendererActiveTabFromState,
     isRendererTabName,
     normalizeRendererActiveTab,
+    setRendererActiveTabContentInState,
     setRendererActiveTabInState,
 } from "../../state/domain/rendererActiveTabState.js";
 import {
@@ -86,12 +88,6 @@ function getStateMgr(): RendererStateManagerAccess {
     }
 
     return getRequiredRendererCoreStateManager();
-}
-
-function getStringState(path: string): null | string {
-    const value = getStateMgr().getState(path);
-
-    return typeof value === "string" && value ? value : null;
 }
 
 function getConfiguredContentIdFromTabName(tabName: unknown): null | string {
@@ -197,7 +193,7 @@ function resolveTargetContentId(
  * @returns Currently visible tab name or null.
  */
 export function getVisibleTabContent(): null | string {
-    return getStringState("ui.activeTabContent");
+    return getRendererActiveTabContentFromState(getStateMgr().getState);
 }
 
 /**
@@ -308,7 +304,7 @@ export function updateTabVisibility(
     if (targetId && targetId in elementMap) {
         const tabName = derivedTabName ?? extractTabNameFromContentId(targetId);
         if (tabName) {
-            getStateMgr().setState("ui.activeTabContent", tabName, {
+            setRendererActiveTabContentInState(getStateMgr().setState, tabName, {
                 source: "updateTabVisibility",
             });
         }

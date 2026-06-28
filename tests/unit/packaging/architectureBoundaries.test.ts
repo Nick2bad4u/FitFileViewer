@@ -15700,7 +15700,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(57);
+        expect.assertions(63);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -15768,7 +15768,13 @@ describe("architecture boundaries", () => {
             "getRendererActiveTabFromState"
         );
         expect(updateTabVisibilitySource).toContain(
+            "getRendererActiveTabContentFromState"
+        );
+        expect(updateTabVisibilitySource).toContain(
             "setRendererActiveTabInState"
+        );
+        expect(updateTabVisibilitySource).toContain(
+            "setRendererActiveTabContentInState"
         );
         expect(updateTabVisibilitySource).not.toContain(
             "const TAB_CONTENT_IDS = ["
@@ -15778,6 +15784,12 @@ describe("architecture boundaries", () => {
         );
         expect(updateTabVisibilitySource).not.toContain(
             'stateManager.setState("ui.activeTab"'
+        );
+        expect(updateTabVisibilitySource).not.toContain(
+            'getStringState("ui.activeTabContent")'
+        );
+        expect(updateTabVisibilitySource).not.toContain(
+            'getStateMgr().setState("ui.activeTabContent"'
         );
         expect(updateActiveTabSource).toContain("rendererActiveTabState.js");
         expect(updateActiveTabSource).toContain("getRendererActiveTabFromState");
@@ -15800,7 +15812,13 @@ describe("architecture boundaries", () => {
             "getRendererActiveTabFromState"
         );
         expect(rendererActiveTabStateSource).toContain(
+            "getRendererActiveTabContentFromState"
+        );
+        expect(rendererActiveTabStateSource).toContain(
             "setRendererActiveTabInState"
+        );
+        expect(rendererActiveTabStateSource).toContain(
+            "setRendererActiveTabContentInState"
         );
         expect(appActionsSource).toContain(
             "setPerformanceLastLoadTime(appActionsRuntime().dateNow(), {"
