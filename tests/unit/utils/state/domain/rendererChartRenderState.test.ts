@@ -15,6 +15,7 @@ import {
     setRendererChartRendering,
     setRendererChartTabActive,
     setRendererChartsRendered,
+    setRendererSelectedChart,
     subscribeToRendererChartsRendered,
     subscribeToRendererSelectedChart as subscribeToSelectedChart,
     updateRendererChartState,
@@ -229,9 +230,7 @@ describe("rendererChartRenderState", () => {
             changes.push(newValue);
         });
 
-        stateManager.setState("charts.selectedChart", "power", {
-            source: "test",
-        });
+        setRendererSelectedChart("power", { source: "test" });
         expect(changes).toStrictEqual(["power"]);
 
         unsubscribe();

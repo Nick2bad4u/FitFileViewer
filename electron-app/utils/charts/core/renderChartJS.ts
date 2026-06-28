@@ -38,7 +38,9 @@ import {
     initializeRendererChartRenderState,
     isRendererChartRendering,
     setRendererChartRendering,
+    setRendererSelectedChart,
 } from "../../state/domain/rendererChartRenderState.js";
+import { setRendererChartControlsVisible } from "../../state/domain/rendererChartControlsState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -281,7 +283,9 @@ export const chartActions = createChartActions({
     isLoadingStateSuppressed,
     isRendered: () => chartState.isRendered,
     notifyChartRenderComplete,
+    setChartControlsVisible: setRendererChartControlsVisible,
     setChartRendering: setRendererChartRendering,
+    setSelectedChart: setRendererSelectedChart,
     setState: callSetState,
     updateState: callUpdateState,
 });

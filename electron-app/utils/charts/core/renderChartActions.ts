@@ -34,7 +34,9 @@ interface CreateChartActionsDependencies {
     isLoadingStateSuppressed(): boolean;
     isRendered(): boolean;
     notifyChartRenderComplete(appActions: unknown, chartCount: number): void;
+    setChartControlsVisible(visible: boolean, options: unknown): unknown;
     setChartRendering(rendering: boolean, options: unknown): unknown;
+    setSelectedChart(chartType: string, options: unknown): unknown;
     setState(path: string, value: unknown, options: unknown): unknown;
     updateState(path: string, value: unknown, options: unknown): unknown;
 }
@@ -145,7 +147,7 @@ export function createChartActions(
         },
 
         selectChart(chartType) {
-            dependencies.setState("charts.selectedChart", chartType, {
+            dependencies.setSelectedChart(chartType, {
                 silent: false,
                 source: "chartActions.selectChart",
             });
@@ -171,7 +173,7 @@ export function createChartActions(
 
         toggleControls() {
             const newVisibility = !dependencies.getControlsVisible();
-            dependencies.setState("charts.controlsVisible", newVisibility, {
+            dependencies.setChartControlsVisible(newVisibility, {
                 silent: false,
                 source: "chartActions.toggleControls",
             });

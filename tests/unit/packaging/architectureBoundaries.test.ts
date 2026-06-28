@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(71);
+        expect.assertions(77);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12801,6 +12801,12 @@ describe("architecture boundaries", () => {
             "setChartRendering: setRendererChartRendering"
         );
         expect(renderChartJSSource).toContain(
+            "setSelectedChart: setRendererSelectedChart"
+        );
+        expect(renderChartJSSource).toContain(
+            "setChartControlsVisible: setRendererChartControlsVisible"
+        );
+        expect(renderChartJSSource).toContain(
             "clearChartRenderState: clearRendererChartRenderState"
         );
         expect(renderChartJSSource).toContain(
@@ -12825,6 +12831,8 @@ describe("architecture boundaries", () => {
             "initializeChartRenderState"
         );
         expect(renderChartActionsSource).toContain("setChartRendering");
+        expect(renderChartActionsSource).toContain("setSelectedChart");
+        expect(renderChartActionsSource).toContain("setChartControlsVisible");
         expect(renderChartActionsSource).toContain("clearChartRenderState");
         expect(renderChartActionsSource).toContain(
             "completeChartRenderLifecycleState"
@@ -12834,6 +12842,12 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartActionsSource).not.toContain(
             'dependencies.updateState(\n                "charts"'
+        );
+        expect(renderChartActionsSource).not.toContain(
+            '"charts.selectedChart"'
+        );
+        expect(renderChartActionsSource).not.toContain(
+            '"charts.controlsVisible"'
         );
         expect(renderChartActionsSource).not.toContain("charts.isRendering");
         expect(renderChartLifecycleSource).toContain("setChartRendering");

@@ -5,10 +5,12 @@ import { createChartActions } from "../../../../../electron-app/utils/charts/cor
 function createDependencies() {
     const state = {
         charts: {
+            controlsVisible: true,
             isRendered: false,
             isRendering: true,
             lastRenderTime: 0,
             renderedCount: 0,
+            selectedChart: "elevation",
         },
         isLoading: true,
         performanceRenderTimes: {
@@ -37,14 +39,20 @@ function createDependencies() {
         }),
         dateNow: vi.fn(() => 1_717_249_600_000),
         debouncedDirectRerender: vi.fn(),
-        getControlsVisible: vi.fn(() => true),
+        getControlsVisible: vi.fn(() => state.charts.controlsVisible),
         getDebouncedChartStateManager: vi.fn(() => null),
         getPanelVisibilityManager: vi.fn(() => null),
         isLoadingStateSuppressed: vi.fn(() => false),
         isRendered: vi.fn(() => false),
         notifyChartRenderComplete: vi.fn(),
+        setChartControlsVisible: vi.fn((visible: boolean) => {
+            state.charts.controlsVisible = visible;
+        }),
         setChartRendering: vi.fn((rendering: boolean) => {
             state.charts.isRendering = rendering;
+        }),
+        setSelectedChart: vi.fn((chartType: string) => {
+            state.charts.selectedChart = chartType;
         }),
         setState: vi.fn((path: string, value: unknown) => {
             if (path === "isLoading") {
@@ -110,10 +118,12 @@ describe("createChartActions", () => {
 
         expect(state).toStrictEqual({
             charts: {
+                controlsVisible: true,
                 isRendered: true,
                 isRendering: false,
                 lastRenderTime: 1_717_249_600_000,
                 renderedCount: 5,
+                selectedChart: "elevation",
             },
             isLoading: false,
             performanceRenderTimes: {
@@ -156,10 +166,12 @@ describe("createChartActions", () => {
 
         expect(state).toStrictEqual({
             charts: {
+                controlsVisible: true,
                 isRendered: false,
                 isRendering: false,
                 lastRenderTime: 0,
                 renderedCount: 0,
+                selectedChart: "elevation",
             },
             isLoading: false,
             performanceRenderTimes: {
@@ -197,5 +209,53 @@ describe("createChartActions", () => {
             true,
             expect.any(Object)
         );
+    });
+
+    it("selects charts through the chart render-state dependency", () => {
+        expect.assertions(4);
+
+        const { dependencies, state } = createDependencies();
+        dependencies.isRendered.mockReturnValue(true);
+        const actions = createChartActions(dependencies);
+
+        actions.selectChart("power");
+
+        expect(state.charts.selectedChart).toBe("power");
+        expect(dependencies.setSelectedChart).toHaveBeenCalledWith("power", {
+            silent: false,
+            source: "chartActions.selectChart",
+        });
+        expect(dependencies.setState).not.toHaveBeenCalledWith(
+            "charts.selectedChart",
+            "power",
+            expect.any(Object)
+        );
+        expect(dependencies.debouncedDirectRerender).toHaveBeenCalledWith(
+            "Chart selection changed"
+        );
+    });
+
+    it("toggles controls through the chart controls-state dependency", () => {
+        expect.assertions(4);
+
+        const { dependencies, state } = createDependencies();
+        const actions = createChartActions(dependencies);
+
+        actions.toggleControls();
+
+        expect(state.charts.controlsVisible).toBe(false);
+        expect(dependencies.setChartControlsVisible).toHaveBeenCalledWith(
+            false,
+            {
+                silent: false,
+                source: "chartActions.toggleControls",
+            }
+        );
+        expect(dependencies.setState).not.toHaveBeenCalledWith(
+            "charts.controlsVisible",
+            false,
+            expect.any(Object)
+        );
+        expect(dependencies.getPanelVisibilityManager).toHaveBeenCalledWith();
     });
 });

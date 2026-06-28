@@ -83,6 +83,16 @@ export function setRendererChartLastRenderTime(
     });
 }
 
+export function setRendererSelectedChart(
+    chartType: string,
+    options: StateUpdateOptions = {}
+): void {
+    setState(RENDERER_CHART_SELECTED_STATE_PATH, chartType, {
+        source: "rendererChartRenderState.setSelectedChart",
+        ...options,
+    });
+}
+
 export function setRendererChartRendering(
     rendering: boolean,
     options: StateUpdateOptions = {}
