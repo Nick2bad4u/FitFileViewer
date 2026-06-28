@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     clearChartRuntimeForTests,
+    isRegisteredChartRuntime,
+    isRegisteredChartZoomPlugin,
     resolveChartRuntime,
     resolveChartZoomPlugin,
     setChartRuntime,
@@ -43,5 +45,31 @@ describe("chartRuntime", () => {
 
         expect(resolveChartRuntime(isRuntime)).toBeNull();
         expect(resolveChartZoomPlugin()).toBeNull();
+    });
+
+    it("validates registered Chart.js runtime payloads", () => {
+        expect.assertions(6);
+
+        expect(isRegisteredChartRuntime({ register() {} })).toBe(true);
+        expect(
+            isRegisteredChartRuntime(
+                Object.assign(function Chart() {}, {
+                    register() {},
+                })
+            )
+        ).toBe(true);
+        expect(isRegisteredChartRuntime({ register: "missing" })).toBe(false);
+        expect(isRegisteredChartRuntime(null)).toBe(false);
+        expect(isRegisteredChartRuntime([])).toBe(false);
+        expect(isRegisteredChartRuntime({})).toBe(false);
+    });
+
+    it("validates registered Chart.js zoom plugin payloads", () => {
+        expect.assertions(4);
+
+        expect(isRegisteredChartZoomPlugin({ id: "zoom" })).toBe(true);
+        expect(isRegisteredChartZoomPlugin({ id: "" })).toBe(false);
+        expect(isRegisteredChartZoomPlugin({ id: 123 })).toBe(false);
+        expect(isRegisteredChartZoomPlugin([])).toBe(false);
     });
 });

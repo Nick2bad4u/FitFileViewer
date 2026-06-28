@@ -326,6 +326,67 @@ describe("renderer vendor bundle loader", () => {
         ).toBe(dataTableRuntime);
     });
 
+    it("waits for valid Chart.js and DataTables payloads instead of accepting malformed readiness", async () => {
+        expect.assertions(5);
+
+        vi.useFakeTimers();
+        try {
+            let resolved = false;
+            const vendorReadiness = ensureVendorBundle("chart-data");
+            void vendorReadiness.then(() => {
+                resolved = true;
+            });
+            const script = getVendorScript("chart-data");
+
+            script.dispatchEvent(new Event("load"));
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv-renderer-vendor-entry-loaded", {
+                    detail: {
+                        chartData: {
+                            chartRuntime: { register: "not callable" },
+                            chartZoomPlugin: { id: "zoom" },
+                            dataTableRuntime: Object.assign(
+                                function DataTableRuntime() {},
+                                {
+                                    isDataTable() {},
+                                }
+                            ),
+                        },
+                        entryName: "chart-data",
+                    },
+                })
+            );
+            await vi.advanceTimersByTimeAsync(20);
+            await Promise.resolve();
+
+            expect(resolved).toBe(false);
+            expect(resolveChartRuntime((): never => false)).toBeNull();
+            expect(resolveChartZoomPlugin()).toBeNull();
+            expect(resolveDataTableRuntime((): never => false)).toBeNull();
+
+            const chartRuntime = { register() {} };
+            const chartZoomPlugin = { id: "zoom" };
+            const dataTableRuntime = Object.assign(
+                function DataTableRuntime() {},
+                {
+                    isDataTable() {},
+                }
+            );
+            markRendererVendorEntryLoaded("chart-data", {
+                chartData: {
+                    chartRuntime,
+                    chartZoomPlugin,
+                    dataTableRuntime,
+                },
+            });
+            await vi.advanceTimersByTimeAsync(20);
+
+            await expect(vendorReadiness).resolves.toBeUndefined();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("registers core runtime payloads from the split core vendor event", async () => {
         expect.assertions(5);
 

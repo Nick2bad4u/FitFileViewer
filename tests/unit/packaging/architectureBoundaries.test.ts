@@ -17692,7 +17692,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(36);
+        expect.assertions(42);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -17718,10 +17718,22 @@ describe("architecture boundaries", () => {
 
         expect(chartRuntimeSource).not.toContain("Symbol.for");
         expect(chartRuntimeSource).not.toContain("globalThis");
+        expect(chartRuntimeSource).toContain("function isObjectOrFunction(");
+        expect(chartRuntimeSource).toContain("isRegisteredChartRuntime");
+        expect(chartRuntimeSource).toContain("isRegisteredChartZoomPlugin");
+        expect(chartRuntimeSource).not.toContain(
+            "value as { register?: unknown }"
+        );
         expect(chartInstanceRegistrySource).not.toContain("Symbol.for");
         expect(chartInstanceRegistrySource).not.toContain("globalThis");
         expect(dataTableRuntimeSource).not.toContain("Symbol.for");
         expect(dataTableRuntimeSource).not.toContain("globalThis");
+        expect(dataTableRuntimeSource).toContain(
+            "isRegisteredDataTableRuntime"
+        );
+        expect(dataTableRuntimeSource).not.toContain(
+            "value as { isDataTable?: unknown }"
+        );
         expect(rendererVendorSharedSource).not.toContain("Symbol.for");
         expect(rendererVendorSharedSource).not.toContain("globalThis");
         expect(rendererVendorSharedSource).not.toContain("new CustomEvent");

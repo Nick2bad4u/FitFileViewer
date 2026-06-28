@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     clearDataTableRuntimeForTests,
+    isRegisteredDataTableRuntime,
     resolveDataTableRuntime,
     setDataTableRuntime,
 } from "../../../../../electron-app/utils/rendering/core/dataTableRuntime.js";
@@ -43,5 +44,22 @@ describe("dataTableRuntime", () => {
         clearDataTableRuntimeForTests();
 
         expect(resolveDataTableRuntime(isDataTableRuntime)).toBeNull();
+    });
+
+    it("validates registered DataTables runtime payloads", () => {
+        expect.assertions(4);
+
+        const runtime = Object.assign(function DataTableRuntime() {}, {
+            isDataTable() {
+                return false;
+            },
+        });
+
+        expect(isRegisteredDataTableRuntime(runtime)).toBe(true);
+        expect(isRegisteredDataTableRuntime({ isDataTable() {} })).toBe(false);
+        expect(
+            isRegisteredDataTableRuntime(function DataTableRuntime() {})
+        ).toBe(false);
+        expect(isRegisteredDataTableRuntime(null)).toBe(false);
     });
 });

@@ -3,6 +3,22 @@ type ChartRuntimeRegistry = {
     zoomPlugin?: unknown;
 };
 
+export type RegisteredChartRuntime = Readonly<{
+    register: (...items: unknown[]) => unknown;
+}>;
+
+export type RegisteredChartZoomPlugin = Readonly<{
+    id: string;
+}>;
+
+type ChartRuntimeCandidate = Readonly<{
+    register?: unknown;
+}>;
+
+type ChartZoomPluginCandidate = Readonly<{
+    id?: unknown;
+}>;
+
 const chartRuntimeRegistry: ChartRuntimeRegistry = {};
 
 export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
@@ -15,6 +31,26 @@ export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
 export function clearChartRuntimeForTests(): void {
     chartRuntimeRegistry.runtime = undefined;
     chartRuntimeRegistry.zoomPlugin = undefined;
+}
+
+export function isRegisteredChartRuntime(
+    value: unknown
+): value is RegisteredChartRuntime {
+    if (!isObjectOrFunction(value)) {
+        return false;
+    }
+
+    return typeof value.register === "function";
+}
+
+export function isRegisteredChartZoomPlugin(
+    value: unknown
+): value is RegisteredChartZoomPlugin {
+    if (!isChartZoomPluginCandidate(value)) {
+        return false;
+    }
+
+    return typeof value.id === "string" && value.id.length > 0;
 }
 
 export function resolveChartRuntime<T>(
@@ -35,4 +71,18 @@ export function resolveChartZoomPlugin(): unknown {
 
 function getChartRuntimeCandidates(): unknown[] {
     return [chartRuntimeRegistry.runtime];
+}
+
+function isObjectOrFunction(value: unknown): value is ChartRuntimeCandidate {
+    return (
+        (typeof value === "object" || typeof value === "function") &&
+        value !== null &&
+        !Array.isArray(value)
+    );
+}
+
+function isChartZoomPluginCandidate(
+    value: unknown
+): value is ChartZoomPluginCandidate {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -2,6 +2,16 @@ type DataTableRuntimeRegistry = {
     runtime?: unknown;
 };
 
+export type RegisteredDataTableRuntime = ((...args: unknown[]) => unknown) &
+    Readonly<{
+        isDataTable: (selector: string) => boolean;
+    }>;
+
+type DataTableRuntimeCandidate = ((...args: unknown[]) => unknown) &
+    Readonly<{
+        isDataTable?: unknown;
+    }>;
+
 const dataTableRuntimeRegistry: DataTableRuntimeRegistry = {};
 
 export function setDataTableRuntime(runtime: unknown): void {
@@ -10,6 +20,16 @@ export function setDataTableRuntime(runtime: unknown): void {
 
 export function clearDataTableRuntimeForTests(): void {
     dataTableRuntimeRegistry.runtime = undefined;
+}
+
+export function isRegisteredDataTableRuntime(
+    value: unknown
+): value is RegisteredDataTableRuntime {
+    if (!isDataTableRuntimeCandidate(value)) {
+        return false;
+    }
+
+    return typeof value.isDataTable === "function";
 }
 
 export function resolveDataTableRuntime<T>(
@@ -26,4 +46,10 @@ export function resolveDataTableRuntime<T>(
 
 function getDataTableRuntimeCandidates(): unknown[] {
     return [dataTableRuntimeRegistry.runtime];
+}
+
+function isDataTableRuntimeCandidate(
+    value: unknown
+): value is DataTableRuntimeCandidate {
+    return typeof value === "function";
 }

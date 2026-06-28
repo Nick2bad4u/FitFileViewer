@@ -17,7 +17,11 @@ import {
     rendererVendorBundleFileByEntry,
     type RendererVendorBundleEntry,
 } from "./vendorBundleManifest.js";
-import { setChartRuntime } from "../utils/charts/core/chartRuntime.js";
+import {
+    isRegisteredChartRuntime,
+    isRegisteredChartZoomPlugin,
+    setChartRuntime,
+} from "../utils/charts/core/chartRuntime.js";
 import {
     isDomPurifyRuntime,
     setDomPurifyRuntime,
@@ -34,7 +38,10 @@ import {
     isArqueroRuntime,
     setArqueroRuntime,
 } from "../utils/rendering/helpers/arqueroRuntime.js";
-import { setDataTableRuntime } from "../utils/rendering/core/dataTableRuntime.js";
+import {
+    isRegisteredDataTableRuntime,
+    setDataTableRuntime,
+} from "../utils/rendering/core/dataTableRuntime.js";
 import {
     isScreenfullRuntime,
     setScreenfullRuntime,
@@ -88,9 +95,9 @@ function registerChartDataRuntimePayload(
 ): boolean {
     if (
         payload === undefined ||
-        payload.chartRuntime === undefined ||
-        payload.chartZoomPlugin === undefined ||
-        payload.dataTableRuntime === undefined
+        !isRegisteredChartRuntime(payload.chartRuntime) ||
+        !isRegisteredChartZoomPlugin(payload.chartZoomPlugin) ||
+        !isRegisteredDataTableRuntime(payload.dataTableRuntime)
     ) {
         return false;
     }
