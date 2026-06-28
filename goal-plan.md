@@ -401,6 +401,9 @@ local API shape.
 Fullscreen command candidate typing now uses an exact readonly method alias backed by the shared menu-event
 API-domain contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local Electron API
 interface.
+Update notification scoped Electron API validation now uses an explicit non-array record check plus optional-function
+property guard over an unknown-valued candidate instead of casting the candidate preload API to a generic record or
+local API shape.
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge

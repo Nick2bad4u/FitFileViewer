@@ -11273,7 +11273,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update notification DOM access behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(30);
 
         const violations = migratedShowUpdateNotificationDomRuntimeFiles
             .filter((relativeFile) =>
@@ -11318,6 +11318,14 @@ describe("architecture boundaries", () => {
         );
         expect(showUpdateNotificationSource).not.toContain(
             "readonly [K in keyof ElectronUpdateAPI]?: unknown;"
+        );
+        expect(showUpdateNotificationSource).not.toContain(
+            "value as ElectronUpdateAPI"
+        );
+        expect(showUpdateNotificationSource).toContain("function isRecord(");
+        expect(showUpdateNotificationSource).toContain("!Array.isArray(value)");
+        expect(showUpdateNotificationSource).toContain(
+            'const candidate = value["installUpdate"];'
         );
         expect(showUpdateNotificationSource).not.toContain(
             "value.installUpdate"

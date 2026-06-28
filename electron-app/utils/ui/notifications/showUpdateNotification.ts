@@ -55,6 +55,10 @@ const activeAutoHideTimerRuntimes = new WeakMap<
     NotificationTimerRuntime
 >();
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 /**
  * Shows update notifications with enhanced features and error handling.
  *
@@ -355,15 +359,15 @@ function getInstallUpdate(
 }
 
 function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
     return hasOptionalInstallUpdate(value);
 }
 
-function hasOptionalInstallUpdate(value: object): boolean {
-    const candidate = (value as ElectronUpdateAPI).installUpdate;
+function hasOptionalInstallUpdate(value: Record<string, unknown>): boolean {
+    const candidate = value["installUpdate"];
     return candidate === undefined || typeof candidate === "function";
 }
 
