@@ -25,11 +25,12 @@ describe("domPurifyRuntime", () => {
     });
 
     it("ignores malformed runtimes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         setDomPurifyRuntime({ purify: vi.fn() });
 
         expect(isDomPurifyRuntime({ purify: vi.fn() })).toBe(false);
+        expect(isDomPurifyRuntime([vi.fn()])).toBe(false);
         expect(resolveDomPurifyRuntime()).toBeUndefined();
     });
 });

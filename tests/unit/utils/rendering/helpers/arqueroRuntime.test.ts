@@ -31,11 +31,12 @@ describe("arqueroRuntime", () => {
     });
 
     it("ignores malformed runtimes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         setArqueroRuntime({ table: () => undefined });
 
         expect(isArqueroRuntime({ table: () => undefined })).toBe(false);
+        expect(isArqueroRuntime([() => undefined])).toBe(false);
         expect(resolveArqueroRuntime()).toBeUndefined();
     });
 });

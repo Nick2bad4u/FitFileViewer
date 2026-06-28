@@ -14,6 +14,10 @@ export interface DomPurifyRuntime {
 
 let registeredDomPurifyRuntime: DomPurifyRuntime | undefined;
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function setDomPurifyRuntime(runtime: unknown): void {
     registeredDomPurifyRuntime = isDomPurifyRuntime(runtime)
         ? runtime
@@ -30,8 +34,6 @@ export function resolveDomPurifyRuntime(): DomPurifyRuntime | undefined {
 
 export function isDomPurifyRuntime(value: unknown): value is DomPurifyRuntime {
     return (
-        typeof value === "object" &&
-        value !== null &&
-        typeof (value as { sanitize?: unknown }).sanitize === "function"
+        isRecord(value) && typeof value["sanitize"] === "function"
     );
 }

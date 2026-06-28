@@ -31,6 +31,10 @@ type ArqueroRuntimeRegistry = {
 
 const arqueroRuntimeRegistry: ArqueroRuntimeRegistry = {};
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function setArqueroRuntime(runtime: unknown): void {
     arqueroRuntimeRegistry.runtime = runtime;
 }
@@ -46,8 +50,6 @@ export function resolveArqueroRuntime(): ArqueroRuntime | undefined {
 
 export function isArqueroRuntime(value: unknown): value is ArqueroRuntime {
     return (
-        typeof value === "object" &&
-        value !== null &&
-        typeof (value as { from?: unknown }).from === "function"
+        isRecord(value) && typeof value["from"] === "function"
     );
 }

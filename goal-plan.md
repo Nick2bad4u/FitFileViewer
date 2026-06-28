@@ -1916,6 +1916,9 @@ that cast from returning.
 Screenfull runtime candidate validation now uses a non-array readonly record guard and direct property reads instead of
 per-property structural casts, with malformed array-shaped runtime coverage and architecture coverage blocking those
 bridge casts from returning.
+DOMPurify and Arquero runtime candidate validation now use non-array readonly record guards and indexed method reads
+instead of per-property structural casts, with malformed array-shaped runtime coverage and architecture coverage
+blocking those core vendor bridge casts from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

@@ -16573,7 +16573,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core vendor runtime adapters off global symbol registries", () => {
-        expect.assertions(8);
+        expect.assertions(18);
 
         const coreRuntimeSources = [
             "electron-app/utils/dom/domPurifyRuntime.ts",
@@ -16583,11 +16583,37 @@ describe("architecture boundaries", () => {
         ].map((relativeFile) =>
             stripComments(readRepositoryFile(relativeFile))
         );
+        const domPurifyRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/dom/domPurifyRuntime.ts")
+        );
+        const arqueroRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/arqueroRuntime.ts"
+            )
+        );
 
         for (const source of coreRuntimeSources) {
             expect(source).not.toContain("Symbol.for");
             expect(source).not.toContain("globalThis");
         }
+        expect(domPurifyRuntimeSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(domPurifyRuntimeSource).toContain("!Array.isArray(value)");
+        expect(domPurifyRuntimeSource).toContain('typeof value["sanitize"]');
+        expect(domPurifyRuntimeSource).not.toContain(
+            "value as { sanitize?: unknown }"
+        );
+        expect(domPurifyRuntimeSource).not.toContain(".sanitize");
+        expect(arqueroRuntimeSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(arqueroRuntimeSource).toContain("!Array.isArray(value)");
+        expect(arqueroRuntimeSource).toContain('typeof value["from"]');
+        expect(arqueroRuntimeSource).not.toContain(
+            "value as { from?: unknown }"
+        );
+        expect(arqueroRuntimeSource).not.toContain(".from");
     });
 
     it("keeps migrated DOM sanitizers on the DOMPurify runtime adapter", () => {
