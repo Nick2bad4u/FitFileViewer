@@ -27171,7 +27171,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(87);
+        expect.assertions(90);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -27310,6 +27310,13 @@ describe("architecture boundaries", () => {
         );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
+        expect(leafletRuntimeSource).toContain("type BrowserTimerHandle");
+        expect(leafletRuntimeSource).toContain(
+            "LeafletRuntimeTimeoutHandle = BrowserTimerHandle"
+        );
+        expect(leafletRuntimeSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
+        );
         expect(leafletRuntimeSource).toContain(
             "defaultLeafletRuntimeEnvironmentScope"
         );

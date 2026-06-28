@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     clearLeafletRuntimeForTests,
     getLeafletRuntimeEnvironment,
+    type LeafletRuntimeTimeoutHandle,
     resolveLeafletRuntime,
     setLeafletRuntime,
     waitForLeafletRuntime,
@@ -95,19 +96,16 @@ describe("leafletRuntime", () => {
 
         const timeoutHandle = Symbol(
             "leaflet-runtime-timeout"
-        ) as unknown as ReturnType<typeof setTimeout>;
+        ) as unknown as LeafletRuntimeTimeoutHandle;
         let scheduledCallback: (() => void) | null = null;
         const setTimeoutProvider = vi.fn<
-            (
-                callback: () => void,
-                delay: number
-            ) => ReturnType<typeof setTimeout>
+            (callback: () => void, delay: number) => LeafletRuntimeTimeoutHandle
         >((callback) => {
             scheduledCallback = callback;
             return timeoutHandle;
         });
         const clearTimeoutProvider =
-            vi.fn<(handle: ReturnType<typeof setTimeout>) => void>();
+            vi.fn<(handle: LeafletRuntimeTimeoutHandle) => void>();
         const dateNow = vi.fn<() => number>(() => 1234);
         const runtime = getLeafletRuntimeEnvironment({
             getClearTimeout: () => clearTimeoutProvider,

@@ -287,6 +287,9 @@ malformed payload coverage keeping invalid response shapes closed.
 Leaflet runtime wait-loop timeout clocks and polling waits now route through `leafletRuntime.ts` environment
 providers instead of calling `Date.now` directly inside the runtime wait loop, with focused runtime and architecture
 coverage blocking direct loop clocks and direct scope properties from returning.
+Leaflet runtime polling timer handles now use the runtime's `LeafletRuntimeTimeoutHandle` alias backed by the shared
+browser-runtime timer handle instead of spelling `ReturnType<typeof setTimeout>` locally, with focused runtime and
+architecture coverage blocking that ambient timer-handle spelling from returning.
 Generated split renderer vendor assets now use `renderer-vendor*.js/css` filenames instead of the retired
 `vendor-globals*.js/css` compatibility wording, while preserving the typed loader entry semantics and runtime
 readiness event flow.

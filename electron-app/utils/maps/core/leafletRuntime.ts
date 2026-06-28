@@ -1,4 +1,5 @@
 import {
+    type BrowserTimerHandle,
     getBrowserClearTimeout,
     getBrowserDateNow,
     getBrowserSetTimeout,
@@ -8,7 +9,7 @@ type LeafletRuntimeRegistry = {
     runtime?: unknown;
 };
 
-type LeafletRuntimeTimeoutHandle = ReturnType<typeof setTimeout>;
+export type LeafletRuntimeTimeoutHandle = BrowserTimerHandle;
 type LeafletRuntimeClearTimeout = (
     handle: LeafletRuntimeTimeoutHandle
 ) => void;
