@@ -9,6 +9,7 @@ import {
     initializeRendererChartRenderState,
     isRendererChartRendering,
     normalizeRendererChartsRendered,
+    resetRendererChartRenderStateForDataChange,
     setRendererChartLastRenderTime,
     setRendererChartPreviousState,
     setRendererChartRendering,
@@ -135,6 +136,29 @@ describe("rendererChartRenderState", () => {
             chartData: null,
             isRendered: false,
             renderedCount: 0,
+        });
+    });
+
+    it("resets data-change chart render state through the typed helper", () => {
+        expect.assertions(1);
+
+        updateRendererChartState(
+            {
+                chartData: { rows: [1] },
+                isRendered: true,
+                tabActive: true,
+            },
+            { source: "test" }
+        );
+
+        resetRendererChartRenderStateForDataChange({
+            source: "test.dataChange",
+        });
+
+        expect(getRendererChartState()).toMatchObject({
+            chartData: null,
+            isRendered: false,
+            tabActive: false,
         });
     });
 

@@ -11,11 +11,11 @@ import {
 import { subscribeToRendererChartControlsVisibleState } from "../../state/domain/rendererChartControlsState.js";
 import {
     getRendererChartState,
+    resetRendererChartRenderStateForDataChange,
     setRendererChartLastRenderTime,
     setRendererChartRendering,
     setRendererChartTabActive,
     subscribeToRendererSelectedChart,
-    updateRendererChartState,
 } from "../../state/domain/rendererChartRenderState.js";
 import { subscribeToRendererTheme } from "../../state/domain/rendererThemeState.js";
 import {
@@ -78,14 +78,9 @@ export class ChartStateManager {
         invalidateChartRenderCache("ChartStateManager.clearChartState");
         this.destroyExistingCharts();
 
-        updateRendererChartState(
-            {
-                chartData: null,
-                isRendered: false,
-                tabActive: false,
-            },
-            { source: "ChartStateManager.clearChartState" }
-        );
+        resetRendererChartRenderStateForDataChange({
+            source: "ChartStateManager.clearChartState",
+        });
     }
 
     /**

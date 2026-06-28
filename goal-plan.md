@@ -1971,6 +1971,8 @@ Chart action completion state now routes through `completeRendererChartRenderSta
 patches the aggregate `charts` branch directly from chart action code.
 Chart state-management initialization now routes through `initializeRendererChartRenderState`, keeping default chart
 branch setup in the state-domain helper instead of a chart-core aggregate patch.
+Chart state-manager data-change clearing now routes through `resetRendererChartRenderStateForDataChange`, keeping the
+`tabActive` reset behind the renderer chart state-domain helper.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.

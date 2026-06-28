@@ -163,6 +163,22 @@ export function clearRendererChartRenderState(
     );
 }
 
+export function resetRendererChartRenderStateForDataChange(
+    options: StateUpdateOptions = {}
+): void {
+    updateRendererChartState(
+        {
+            chartData: null,
+            isRendered: false,
+            tabActive: false,
+        },
+        {
+            source: "rendererChartRenderState.resetForDataChange",
+            ...options,
+        }
+    );
+}
+
 export function initializeRendererChartRenderState(
     options: StateUpdateOptions = {}
 ): void {

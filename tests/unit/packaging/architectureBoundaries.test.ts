@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(68);
+        expect.assertions(71);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12684,6 +12684,11 @@ describe("architecture boundaries", () => {
         );
         const renderChartJSSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/renderChartJS.ts")
+        );
+        const chartStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartStateManager.ts"
+            )
         );
         const renderChartActionsSource = stripComments(
             readRepositoryFile(
@@ -12755,6 +12760,9 @@ describe("architecture boundaries", () => {
         expect(rendererChartRenderStateSource).toContain(
             "initializeRendererChartRenderState"
         );
+        expect(rendererChartRenderStateSource).toContain(
+            "resetRendererChartRenderStateForDataChange"
+        );
         expect(rendererChartRenderStateSource).not.toContain(
             "function normalizeRendererChartsRendered"
         );
@@ -12800,6 +12808,12 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartJSSource).toContain(
             "initializeChartRenderState: initializeRendererChartRenderState"
+        );
+        expect(chartStateManagerSource).toContain(
+            "resetRendererChartRenderStateForDataChange"
+        );
+        expect(chartStateManagerSource).not.toContain(
+            "updateRendererChartState"
         );
         expect(renderChartStateManagementSource).toContain(
             "initializeChartRenderState"
