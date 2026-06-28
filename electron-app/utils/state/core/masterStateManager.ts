@@ -36,6 +36,7 @@ import type {
     ElectronAppInfoApi,
     ElectronDialogApi,
 } from "../../../shared/preloadApi.js";
+import { subscribeToActiveFitRawDataInState } from "../domain/activeFitRawDataState.js";
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -1008,7 +1009,7 @@ export class MasterStateManager {
         const stateAPI = this.getStateManagerAPI();
         // Integrate file operations with UI state
         this.trackIntegrationSubscription(
-            stateAPI.subscribe("fitFile.rawData", (data: unknown) => {
+            subscribeToActiveFitRawDataInState(stateAPI.subscribe, (data) => {
                 if (data) {
                     // Enable tabs when data is loaded
                     const { UIActions: dynUI } = this.getUIStateModule();

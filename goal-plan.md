@@ -1262,6 +1262,8 @@ Tab raw-data subscriptions now route through `subscribeToActiveFitRawDataInState
 `updateTabVisibility.ts` no longer carry local `fitFile.rawData` subscription path access.
 Renderer state integration data-load updates now subscribe through `subscribeToActiveFitRawData`, so the integration
 layer no longer carries a local `fitFile.rawData` subscription string.
+Master state integration data-load updates now use the injected `subscribeToActiveFitRawDataInState` helper, preserving
+the manager's state-API dependency injection while removing another local raw-data subscription string.
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state
 slot instead of carrying a retired `globalData` fixture slot, with architecture coverage blocking that stale
 integration fixture shape.

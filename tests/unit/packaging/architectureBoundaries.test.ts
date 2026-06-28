@@ -13393,12 +13393,17 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const globalDataStorePath =
             "electron-app/utils/state/core/globalDataStore.ts";
         const activeFitRawDataStateSource = readRepositoryFile(
             "electron-app/utils/state/domain/activeFitRawDataState.ts"
+        );
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
         );
         const rendererStateIntegrationSource = stripComments(
             readRepositoryFile(
@@ -13479,6 +13484,13 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationSource).not.toContain(
             'subscribeRendererState("fitFile.rawData"'
+        );
+        expect(masterStateManagerSource).toContain("activeFitRawDataState.js");
+        expect(masterStateManagerSource).toContain(
+            "subscribeToActiveFitRawDataInState("
+        );
+        expect(masterStateManagerSource).not.toContain(
+            'stateAPI.subscribe("fitFile.rawData"'
         );
     });
 
