@@ -263,7 +263,8 @@ function createOverlayEntry(
 }
 
 function createPrimaryEntry(): LoadedFitFileEntry | null {
-    const baseData = getActiveFitRawData() as OverlayFitData | null;
+    const rawBaseData = getActiveFitRawData();
+    const baseData = isOverlayFitData(rawBaseData) ? rawBaseData : null;
     if (!baseData) {
         return null;
     }
@@ -289,6 +290,28 @@ function createPrimaryEntry(): LoadedFitFileEntry | null {
     };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isOverlayFitData(value: unknown): value is OverlayFitData {
+    return isRecord(value);
+}
+
+function isLoadedFitFileEntry(value: unknown): value is LoadedFitFileEntry {
+    if (!isRecord(value) || !isOverlayFitData(value["data"])) {
+        return false;
+    }
+
+    const { filePath, originalPath, sourceKey } = value;
+
+    return (
+        typeof filePath === "string" &&
+        (originalPath === null || typeof originalPath === "string") &&
+        (sourceKey === null || typeof sourceKey === "string")
+    );
+}
+
 function deriveEntryKey(entry: LoadedFitFileEntry): string | null {
     if (entry.originalPath) {
         return `path:${normalizePath(entry.originalPath)}`;
@@ -300,8 +323,9 @@ function deriveEntryKey(entry: LoadedFitFileEntry): string | null {
 }
 
 function ensureLoadedFitFilesInitialized(existingKeys: Set<string>): boolean {
-    let loadedFitFiles = getLoadedFitFiles() as LoadedFitFileEntry[];
-    let mutated = false;
+    const rawLoadedFitFiles = getLoadedFitFiles();
+    let loadedFitFiles = rawLoadedFitFiles.filter(isLoadedFitFileEntry);
+    let mutated = loadedFitFiles.length !== rawLoadedFitFiles.length;
     const shouldInitializeEmptyMirror = loadedFitFiles.length === 0;
 
     if (loadedFitFiles.length === 0) {

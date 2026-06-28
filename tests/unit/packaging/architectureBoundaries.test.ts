@@ -20594,7 +20594,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -20639,6 +20639,13 @@ describe("architecture boundaries", () => {
         );
         expect(loadOverlayFilesSource).toContain(
             "loadOverlayFilesRuntime().getHardwareConcurrency()"
+        );
+        expect(loadOverlayFilesSource).not.toContain(
+            "getActiveFitRawData() as"
+        );
+        expect(loadOverlayFilesSource).not.toContain("getLoadedFitFiles() as");
+        expect(loadOverlayFilesSource).toContain(
+            "function isLoadedFitFileEntry("
         );
         expect(loadOverlayFilesRuntimeSource).toContain(
             "defaultLoadOverlayFilesRuntimeScope"

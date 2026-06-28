@@ -248,6 +248,49 @@ describe(loadOverlayFiles, () => {
         }
     });
 
+    it("filters malformed loaded-file state before duplicate detection", async () => {
+        expect.assertions(6);
+
+        const existingData = {
+            cachedFilePath: String.raw`C:\rides\overlay.fit`,
+            recordMesgs: [],
+        };
+        const validEntry = {
+            data: existingData,
+            filePath: "overlay.fit",
+            originalPath: String.raw`C:\rides\overlay.fit`,
+            sourceKey: "path:c:/rides/overlay.fit",
+        };
+        const file = {
+            name: "overlay.fit",
+            path: String.raw`C:\rides\overlay.fit`,
+        };
+
+        try {
+            mocks.loadedFitFilesFixture = [
+                { data: null, filePath: 42 },
+                validEntry,
+            ] as unknown as LoadedFitFileEntry[];
+
+            await loadOverlayFiles([file]);
+
+            expect(mocks.loadedFitFilesFixture).toStrictEqual([validEntry]);
+            expect(mocks.loadSingleOverlayFile).not.toHaveBeenCalled();
+            expect(mocks.setLoadedFiles).toHaveBeenCalledWith(
+                [validEntry],
+                "loadOverlayFiles.initialize"
+            );
+            expect(mocks.renderMap).toHaveBeenCalledOnce();
+            expect(mocks.updateShownFilesList).toHaveBeenCalledOnce();
+            expect(mocks.showNotification).toHaveBeenCalledWith(
+                "overlay.fit already loaded. Skipping duplicate files.",
+                "info"
+            );
+        } finally {
+            cleanupGlobals();
+        }
+    });
+
     it("reports failed overlays and still hides the loading overlay", async () => {
         expect.assertions(5);
 
