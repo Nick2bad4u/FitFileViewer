@@ -56,6 +56,7 @@ import {
     areRendererChartControlsVisible,
     setRendererChartControlsVisible,
 } from "../../state/domain/rendererChartControlsState.js";
+import { setRendererExporting } from "../../state/domain/rendererExportState.js";
 import { setRendererLoading } from "../../state/domain/rendererLoadingState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
@@ -330,7 +331,7 @@ export const exportChartsWithState = createExportChartsWithState({
     areChartsRendered: areRendererChartsRendered,
     getChartInstances: getGlobalChartInstances,
     notify,
-    setState: callSetState,
+    setExportingState: setRendererExporting,
 });
 
 /** Returns the current public chart-rendering status snapshot. */

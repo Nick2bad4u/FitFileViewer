@@ -8,9 +8,8 @@ interface CreateExportChartsWithStateDependencies {
         message: string,
         type: "error" | "info" | "success" | "warning"
     ): unknown;
-    setState(
-        path: string,
-        value: unknown,
+    setExportingState(
+        exporting: boolean,
         options?: ChartStateUpdateOptions
     ): unknown;
 }
@@ -49,7 +48,7 @@ export function createExportChartsWithState(
         }
 
         try {
-            dependencies.setState("ui.isExporting", true, {
+            dependencies.setExportingState(true, {
                 silent: false,
                 source: "exportChartsWithState",
             });
@@ -69,7 +68,7 @@ export function createExportChartsWithState(
         }
 
         try {
-            dependencies.setState("ui.isExporting", false, {
+            dependencies.setExportingState(false, {
                 silent: false,
                 source: "exportChartsWithState",
             });

@@ -55,6 +55,10 @@ import {
     normalizeRendererDragDropUiBranch,
 } from "../domain/rendererDragDropContract.js";
 import {
+    normalizeRendererExporting,
+    normalizeRendererExportUiBranch,
+} from "../domain/rendererExportContract.js";
+import {
     normalizeRendererLoading,
     normalizeRendererLoadingIndicator,
     normalizeRendererLoadingUiBranch,
@@ -128,6 +132,7 @@ const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
     ["ui.dragCounter", normalizeDragCounter],
     ["ui.dropOverlay.visible", normalizeDropOverlayVisible],
     ["ui.fileInfo", normalizeRendererFileInfo],
+    ["ui.isExporting", normalizeRendererExporting],
     ["ui.lastNotification", normalizeRendererNotification],
     ["ui.loadingIndicator", normalizeRendererLoadingIndicator],
     ["ui.previousTheme", normalizeRendererTheme],
@@ -301,6 +306,13 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
         );
         if (loadingNormalizedBranch !== (normalizedBranch ?? value)) {
             normalizedBranch = loadingNormalizedBranch;
+        }
+
+        const exportNormalizedBranch = normalizeRendererExportUiBranch(
+            normalizedBranch ?? value
+        );
+        if (exportNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = exportNormalizedBranch;
         }
 
         if (normalizedBranch) {

@@ -1190,7 +1190,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
         });
 
         it("should export charts when available", async () => {
-            expect.assertions(1);
+            expect.assertions(3);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return true;
                 return null;
@@ -1212,6 +1212,20 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
             expect({ exportSucceeded }).toStrictEqual({
                 exportSucceeded: true,
             });
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "ui.isExporting",
+                true,
+                expect.objectContaining({
+                    source: "exportChartsWithState",
+                })
+            );
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "ui.isExporting",
+                false,
+                expect.objectContaining({
+                    source: "exportChartsWithState",
+                })
+            );
         });
     });
 

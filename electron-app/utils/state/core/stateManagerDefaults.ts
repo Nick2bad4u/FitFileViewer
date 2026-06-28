@@ -78,6 +78,7 @@ export type UIState = {
     dragCounter: number;
     dropOverlay: DropOverlayState;
     fileInfo: UIFileInfo;
+    isExporting: boolean;
     isFullscreen: boolean;
     lastNotification: null | RendererNotification;
     loadingIndicator: LoadingIndicatorState;
@@ -386,6 +387,7 @@ export function createDefaultAppState(): AppStateShape {
                 hasFile: false,
                 title: stateManagerDefaultsRuntime().getDefaultDocumentTitle(),
             },
+            isExporting: false,
             isFullscreen: false,
             lastNotification: null,
             loadingIndicator: {
