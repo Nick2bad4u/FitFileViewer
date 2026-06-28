@@ -18634,7 +18634,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(69);
+        expect.assertions(73);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -18864,6 +18864,16 @@ describe("architecture boundaries", () => {
         expect(fileBrowserTabSource).not.toContain(
             "type FitBrowserElectronApiCandidate"
         );
+        expect(fileBrowserTabSource).not.toContain(
+            "const api = value as FitBrowserElectronAPI"
+        );
+        expect(fileBrowserTabSource).toContain(
+            'hasOptionalFunction(value["getFitBrowserFolder"])'
+        );
+        expect(fileBrowserTabSource).toContain(
+            'hasOptionalFunction(value["listFitBrowserFolder"])'
+        );
+        expect(fileBrowserTabSource).toContain("!Array.isArray(value)");
         expect(fileBrowserTabSource).toContain("type FitBrowserElectronAPI =");
         expect(fileBrowserTabSource).not.toContain(
             "hasOptionalFunction(Reflect.get(value, methodName))"

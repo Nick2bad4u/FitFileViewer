@@ -199,6 +199,41 @@ describe("fileBrowserTab accessibility", () => {
         });
     });
 
+    it("rejects array-shaped Browser Electron API values", async () => {
+        expect.assertions(3);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        const api = [] as unknown[] & Record<string, unknown>;
+        api["getFitBrowserFolder"] = vi
+            .fn<() => Promise<string>>()
+            .mockResolvedValue("C:\\rides");
+        api["listFitBrowserFolder"] = vi.fn<() => Promise<unknown>>(
+            async () => ({
+                entries: [],
+                relPath: "",
+                root: "C:\\rides",
+            })
+        );
+
+        await renderFileBrowserTab({
+            electronApiScope: createElectronApiScope(api),
+        });
+
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("Browser unavailable (Electron API missing)");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            "Browser unavailable."
+        );
+        expect(getBrowserListingState()).toMatchObject({
+            error: "Electron Browser API is unavailable.",
+            status: "error",
+        });
+    });
+
     it("shows an explicit error state for malformed folder listings", async () => {
         expect.assertions(4);
 

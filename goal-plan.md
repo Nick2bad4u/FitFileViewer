@@ -451,6 +451,9 @@ instead of `Pick<ElectronAPI, ...>` aliases.
 Browser tab folder/list/read/decode candidate typing now uses explicit optional method aliases backed by shared file,
 dialog, and Fit Browser API-domain contracts, with architecture coverage blocking local
 `Pick<FitBrowserElectronAPI, ...>` aliases and `Partial` intersection bridges from returning.
+Browser tab IPC candidate validation now reads optional methods directly from an unknown-valued plain record instead
+of casting the candidate to `FitBrowserElectronAPI`, with focused coverage for array-shaped malformed candidates and
+architecture coverage blocking the cast from returning.
 FIT import candidate typing in handle-open-file, path-based FIT opening, overlay selection, and single-overlay loading
 now uses explicit shared API-domain method type aliases instead of local Electron API interfaces, with architecture
 coverage blocking those ad hoc interfaces from returning. Handle-open-file Electron API candidate validation now narrows

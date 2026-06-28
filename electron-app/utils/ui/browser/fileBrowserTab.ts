@@ -583,17 +583,16 @@ function getElectronAPI(
 function isFitBrowserElectronApi(
     value: unknown
 ): value is FitBrowserElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as FitBrowserElectronAPI;
     return (
-        hasOptionalFunction(api.decodeFitFile) &&
-        hasOptionalFunction(api.getFitBrowserFolder) &&
-        hasOptionalFunction(api.listFitBrowserFolder) &&
-        hasOptionalFunction(api.openFolderDialog) &&
-        hasOptionalFunction(api.readFile)
+        hasOptionalFunction(value["decodeFitFile"]) &&
+        hasOptionalFunction(value["getFitBrowserFolder"]) &&
+        hasOptionalFunction(value["listFitBrowserFolder"]) &&
+        hasOptionalFunction(value["openFolderDialog"]) &&
+        hasOptionalFunction(value["readFile"])
     );
 }
 
