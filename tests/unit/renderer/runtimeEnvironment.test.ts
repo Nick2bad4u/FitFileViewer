@@ -27,11 +27,11 @@ describe("renderer runtime environment", () => {
 
         const electronApiFixture = {};
 
+        vi.stubGlobal("electronAPI", electronApiFixture);
+
         const environment = createRuntimeEnvironment(
             getBrowserRendererRuntimeEnvironmentScope()
         );
-
-        vi.stubGlobal("electronAPI", electronApiFixture);
 
         expect(environment.electronApiScope.getElectronAPI?.()).toBe(
             electronApiFixture
@@ -40,9 +40,10 @@ describe("renderer runtime environment", () => {
     });
 
     it("captures browser globals through named providers", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const electronApiFixture = {};
+        const replacementElectronApiFixture = {};
         const legacyRendererGlobalElectronApi = {};
         const rendererGlobal = {
             addEventListener: vi.fn(function addEventListener(this: unknown) {
@@ -97,6 +98,7 @@ describe("renderer runtime environment", () => {
             getSetInterval,
             getSetTimeout,
         });
+        getElectronAPI.mockReturnValue(replacementElectronApiFixture);
 
         expect(environment.console).toBe(console);
         expect(environment.documentTarget).toBe(document);
@@ -105,6 +107,9 @@ describe("renderer runtime environment", () => {
         );
         expect(environment.electronApiScope.getElectronAPI?.()).not.toBe(
             legacyRendererGlobalElectronApi
+        );
+        expect(environment.electronApiScope.getElectronAPI?.()).not.toBe(
+            replacementElectronApiFixture
         );
         expect(environment.rendererEventTarget).toBe(rendererGlobal);
         expect(environment.addEventListener("load", vi.fn())).toBe(
@@ -120,7 +125,7 @@ describe("renderer runtime environment", () => {
         expect(getClearInterval).toHaveBeenCalledOnce();
         expect(getConsole).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledOnce();
-        expect(getElectronAPI).toHaveBeenCalledTimes(2);
+        expect(getElectronAPI).toHaveBeenCalledOnce();
         expect(getRemoveEventListener).toHaveBeenCalledOnce();
         expect(getRendererEventTarget).toHaveBeenCalledOnce();
         expect(getSetInterval).toHaveBeenCalledOnce();

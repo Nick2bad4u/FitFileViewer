@@ -7,7 +7,8 @@ export type RendererElectronApiProvider = () => unknown;
 export function createRendererElectronApiScope(
     getElectronAPI: RendererElectronApiProvider
 ): RendererElectronApiScope {
-    return { getElectronAPI };
+    const electronAPI = getElectronAPI();
+    return { getElectronAPI: () => electronAPI };
 }
 
 /**

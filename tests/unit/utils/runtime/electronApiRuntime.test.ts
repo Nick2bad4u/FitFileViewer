@@ -59,19 +59,26 @@ describe("electronApiRuntime", () => {
         ).toBeNull();
     });
 
-    it("creates explicit provider scopes without reading the API eagerly", () => {
-        expect.assertions(3);
+    it("creates explicit scopes by capturing the provided API once", () => {
+        expect.assertions(4);
 
         const api = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const replacementApi = {
             openExternal: vi.fn<(url: string) => Promise<boolean>>(),
         };
         const getElectronAPI = vi.fn(() => api);
 
         const utils = createRendererElectronApiScope(getElectronAPI);
+        getElectronAPI.mockReturnValue(replacementApi);
 
-        expect(getElectronAPI).not.toHaveBeenCalled();
+        expect(getElectronAPI).toHaveBeenCalledOnce();
         expect(getRendererElectronApi(isExternalOpenApi, utils)).toBe(api);
         expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(getRendererElectronApi(isExternalOpenApi, utils)).not.toBe(
+            replacementApi
+        );
     });
 
     it("ignores missing or malformed APIs", () => {

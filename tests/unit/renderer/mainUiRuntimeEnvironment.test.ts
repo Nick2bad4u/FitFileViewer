@@ -35,11 +35,11 @@ describe("main UI runtime environment", () => {
 
         const electronApiFixture = {};
 
+        vi.stubGlobal("electronAPI", electronApiFixture);
+
         const runtimeEnvironment = getMainUiRuntimeEnvironment(
             getBrowserMainUiRuntimeEnvironmentScope()
         );
-
-        vi.stubGlobal("electronAPI", electronApiFixture);
 
         expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBe(
             electronApiFixture
@@ -47,7 +47,7 @@ describe("main UI runtime environment", () => {
     });
 
     it("uses injected runtime primitives for main-ui orchestration", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const runtimeConsole = {
             ...console,
@@ -58,18 +58,24 @@ describe("main UI runtime environment", () => {
         } as unknown as Document;
         const dateNow = vi.fn<() => number>(() => 1234);
         const electronApiFixture = {};
+        const replacementElectronApiFixture = {};
+        const getElectronAPI = vi.fn(() => electronApiFixture);
         const runtimeEnvironment = getMainUiRuntimeEnvironment({
             dateNow,
             getConsole: () => runtimeConsole,
             getDocument: () => documentRef,
-            getElectronAPI: () => electronApiFixture,
+            getElectronAPI,
         });
+        getElectronAPI.mockReturnValue(replacementElectronApiFixture);
 
         expect(runtimeEnvironment.consoleRef).toBe(runtimeConsole);
         expect(runtimeEnvironment.dateNow()).toBe(1234);
         expect(runtimeEnvironment.documentRef).toBe(documentRef);
         expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBe(
             electronApiFixture
+        );
+        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).not.toBe(
+            replacementElectronApiFixture
         );
         expect(dateNow).toHaveBeenCalledOnce();
     });
