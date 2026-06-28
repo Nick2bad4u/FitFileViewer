@@ -7338,7 +7338,7 @@ describe("architecture boundaries", () => {
         expect(mainUiElectronApiSource).not.toContain("ElectronAPI");
         expect(mainUiElectronApiSource).not.toContain("Pick<");
         expect(mainUiElectronApiSource).toContain(
-            "Readonly<Record<string, unknown>>"
+            "type MainUiElectronApiCandidate = Readonly<{"
         );
         expect(mainUiElectronApiSource).not.toContain(
             "function hasOptionalFunctionProperty("
@@ -7351,13 +7351,13 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiElectronApiSource).toContain("Array.isArray(value)");
         expect(mainUiElectronApiSource).toContain(
-            'hasOptionalFunction(value["injectMenu"])'
+            "hasOptionalFunction(value.injectMenu)"
         );
         expect(mainUiElectronApiSource).toContain(
-            'hasOptionalFunction(value["onOpenSummaryColumnSelector"])'
+            "hasOptionalFunction(value.onOpenSummaryColumnSelector)"
         );
         expect(mainUiElectronApiSource).not.toContain(
-            "type MenuInjectionPropertyShape"
+            "Readonly<Record<string, unknown>>"
         );
         expect(mainUiElectronApiSource).not.toContain(
             "type SummarySelectorPropertyShape"

@@ -27,13 +27,22 @@ export interface MainUiUnloadElectronApi {
     onUnloadFitFile?: ElectronMenuEventApi["onUnloadFitFile"];
 }
 
+type MainUiElectronApiCandidate = Readonly<{
+    readonly injectMenu?: unknown;
+    readonly notifyFitFileLoaded?: unknown;
+    readonly onOpenSummaryColumnSelector?: unknown;
+    readonly onSetTheme?: unknown;
+    readonly onUnloadFitFile?: unknown;
+    readonly sendThemeChanged?: unknown;
+}>;
+
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
 }
 
 function isMainUiElectronApiCandidate(
     value: unknown
-): value is Readonly<Record<string, unknown>> {
+): value is MainUiElectronApiCandidate {
     if (value === null || typeof value !== "object" || Array.isArray(value)) {
         return false;
     }
@@ -48,7 +57,7 @@ function isMainUiMenuInjectionElectronApi(
         return false;
     }
 
-    return hasOptionalFunction(value["injectMenu"]);
+    return hasOptionalFunction(value.injectMenu);
 }
 
 function isMainUiSummarySelectorElectronApi(
@@ -58,7 +67,7 @@ function isMainUiSummarySelectorElectronApi(
         return false;
     }
 
-    return hasOptionalFunction(value["onOpenSummaryColumnSelector"]);
+    return hasOptionalFunction(value.onOpenSummaryColumnSelector);
 }
 
 function isMainUiThemeSyncElectronApi(
@@ -69,8 +78,8 @@ function isMainUiThemeSyncElectronApi(
     }
 
     return (
-        hasOptionalFunction(value["onSetTheme"]) &&
-        hasOptionalFunction(value["sendThemeChanged"])
+        hasOptionalFunction(value.onSetTheme) &&
+        hasOptionalFunction(value.sendThemeChanged)
     );
 }
 
@@ -82,8 +91,8 @@ function isMainUiUnloadElectronApi(
     }
 
     return (
-        hasOptionalFunction(value["notifyFitFileLoaded"]) &&
-        hasOptionalFunction(value["onUnloadFitFile"])
+        hasOptionalFunction(value.notifyFitFileLoaded) &&
+        hasOptionalFunction(value.onUnloadFitFile)
     );
 }
 
