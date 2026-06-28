@@ -9938,7 +9938,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification state normalization on the shared contract", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const rendererNotificationStateSource = stripComments(
             readRepositoryFile(
@@ -9964,8 +9964,12 @@ describe("architecture boundaries", () => {
             "normalizeRendererNotificationUiBranch"
         );
         expect(stateManagerSource).toContain("ui.currentNotification");
+        expect(stateManagerSource).toContain("ui.lastNotification");
         expect(stateManagerSource).toContain(
             "normalizeRendererNotificationUiBranch"
+        );
+        expect(rendererNotificationContractSource).toContain(
+            '"lastNotification"'
         );
     });
 
@@ -11948,7 +11952,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(218);
+        expect.assertions(229);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11972,6 +11976,8 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerSource).toContain("rendererDragDropState.js");
         expect(uiStateManagerSource).toContain("rendererLoadingState.js");
+        expect(uiStateManagerSource).toContain("rendererLayoutState.js");
+        expect(uiStateManagerSource).toContain("rendererNotificationState.js");
         expect(uiStateManagerSource).toContain("rendererThemeState.js");
         expect(uiStateManagerSource).toContain("subscribeToRendererActiveTab");
         expect(uiStateManagerSource).toContain("subscribeToRendererTheme");
@@ -11996,6 +12002,15 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("getRendererLoadingIndicator");
         expect(uiStateManagerSource).toContain("isRendererLoading");
         expect(uiStateManagerSource).toContain("isRendererDropOverlayVisible");
+        expect(uiStateManagerSource).toContain("isRendererSidebarCollapsed");
+        expect(uiStateManagerSource).toContain("setLastRendererNotification");
+        expect(uiStateManagerSource).toContain(
+            "setRendererSidebarCollapsed"
+        );
+        expect(uiStateManagerSource).toContain("updateAppActionWindowState");
+        expect(uiStateManagerSource).not.toContain(
+            "../core/stateManager.js"
+        );
         expect(uiStateManagerSource).not.toContain('subscribe("ui.activeTab"');
         expect(uiStateManagerSource).not.toContain('subscribe("ui.theme"');
         expect(uiStateManagerSource).not.toContain(
@@ -12025,6 +12040,18 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerSource).not.toContain(
             'getState("ui.dropOverlay.visible")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'getState("ui.sidebarCollapsed")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'setState("ui.lastNotification"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'setState("ui.sidebarCollapsed"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'updateState("ui.windowState"'
         );
         expect(uiStateManagerSource).toContain(
             "return getUIStateManagerRuntime();"

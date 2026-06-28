@@ -39,16 +39,16 @@ export function normalizeRendererNotification(
 export function normalizeRendererNotificationUiBranch(
     value: Record<string, unknown>
 ): Record<string, unknown> {
-    if (!("currentNotification" in value)) {
-        return value;
+    let normalizedBranch: Record<string, unknown> | undefined;
+
+    for (const key of ["currentNotification", "lastNotification"]) {
+        if (key in value) {
+            normalizedBranch ??= { ...value };
+            normalizedBranch[key] = normalizeRendererNotification(value[key]);
+        }
     }
 
-    return {
-        ...value,
-        currentNotification: normalizeRendererNotification(
-            value["currentNotification"]
-        ),
-    };
+    return normalizedBranch ?? value;
 }
 
 function getNotificationProperty(
@@ -58,7 +58,7 @@ function getNotificationProperty(
     return key in value ? value[key as keyof typeof value] : undefined;
 }
 
-function isNotificationType(value: unknown): value is NotificationType {
+export function isNotificationType(value: unknown): value is NotificationType {
     return (
         value === "error" ||
         value === "info" ||

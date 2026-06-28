@@ -4,8 +4,10 @@ import * as stateManager from "../../../../../electron-app/utils/state/core/stat
 import {
     clearCurrentNotification,
     getCurrentRendererNotification,
+    getLastRendererNotification,
     normalizeRendererNotification,
     setCurrentRendererNotification,
+    setLastRendererNotification,
     subscribeToCurrentRendererNotification as subscribeToCurrentNotification,
 } from "../../../../../electron-app/utils/state/domain/rendererNotificationState.js";
 
@@ -32,6 +34,27 @@ describe("rendererNotificationState", () => {
             message: "Saved",
             timestamp: 123,
             type: "success",
+        });
+    });
+
+    it("reads and writes last notification through the typed helper", () => {
+        expect.assertions(2);
+
+        expect(getLastRendererNotification()).toBeNull();
+
+        setLastRendererNotification(
+            {
+                message: "Loaded",
+                timestamp: 456,
+                type: "info",
+            },
+            { source: "test" }
+        );
+
+        expect(getLastRendererNotification()).toStrictEqual({
+            message: "Loaded",
+            timestamp: 456,
+            type: "info",
         });
     });
 
@@ -66,6 +89,37 @@ describe("rendererNotificationState", () => {
             })
         ).toStrictEqual({
             message: "No timestamp needed",
+            type: "warning",
+        });
+    });
+
+    it("normalizes last notification direct state writes", () => {
+        expect.assertions(2);
+
+        stateManager.setState(
+            "ui.lastNotification",
+            {
+                message: "Ignored",
+                type: "fatal",
+            },
+            { source: "test" }
+        );
+        expect(stateManager.getState("ui.lastNotification")).toBeNull();
+
+        stateManager.setState(
+            "ui",
+            {
+                lastNotification: {
+                    message: "Recovered",
+                    timestamp: 789,
+                    type: "warning",
+                },
+            },
+            { source: "test" }
+        );
+        expect(stateManager.getState("ui.lastNotification")).toStrictEqual({
+            message: "Recovered",
+            timestamp: 789,
             type: "warning",
         });
     });

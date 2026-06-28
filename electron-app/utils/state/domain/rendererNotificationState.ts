@@ -5,16 +5,19 @@ import {
     type StateUpdateOptions,
 } from "../core/stateManager.js";
 export {
+    isNotificationType,
     normalizeRendererNotification,
     type NotificationType,
     type RendererNotification,
 } from "./rendererNotificationContract.js";
 import {
     normalizeRendererNotification,
+    type NotificationType,
     type RendererNotification,
 } from "./rendererNotificationContract.js";
 
 const CURRENT_NOTIFICATION_STATE_PATH = "ui.currentNotification";
+const LAST_NOTIFICATION_STATE_PATH = "ui.lastNotification";
 
 type NotificationListener = (notification: null | RendererNotification) => void;
 
@@ -33,6 +36,10 @@ export function getCurrentRendererNotification(): null | RendererNotification {
     );
 }
 
+export function getLastRendererNotification(): null | RendererNotification {
+    return normalizeRendererNotification(getState(LAST_NOTIFICATION_STATE_PATH));
+}
+
 export function setCurrentRendererNotification(
     notification: RendererNotification,
     options: StateUpdateOptions = {}
@@ -42,6 +49,24 @@ export function setCurrentRendererNotification(
         normalizeRendererNotification(notification),
         {
             source: "rendererNotificationState.set",
+            ...options,
+        }
+    );
+}
+
+export function setLastRendererNotification(
+    notification: {
+        message: string;
+        timestamp: number;
+        type: NotificationType;
+    },
+    options: StateUpdateOptions = {}
+): void {
+    setState(
+        LAST_NOTIFICATION_STATE_PATH,
+        normalizeRendererNotification(notification),
+        {
+            source: "rendererNotificationState.setLast",
             ...options,
         }
     );

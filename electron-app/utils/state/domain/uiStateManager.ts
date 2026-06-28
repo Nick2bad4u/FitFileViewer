@@ -6,12 +6,10 @@
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
-    getState,
-    setState,
-    updateState,
-} from "../core/stateManager.js";
+    subscribeToRendererMapMeasurementMode,
+    updateAppActionWindowState,
+} from "./appActionsState.js";
 import { getActiveFitRawData } from "./activeFitRawDataState.js";
-import { subscribeToRendererMapMeasurementMode } from "./appActionsState.js";
 import {
     normalizeRendererActiveTab,
     subscribeToRendererActiveTab,
@@ -36,6 +34,15 @@ import {
     subscribeToRendererLoading,
     type RendererLoadingIndicatorState,
 } from "./rendererLoadingState.js";
+import {
+    isNotificationType,
+    setLastRendererNotification,
+    type NotificationType,
+} from "./rendererNotificationState.js";
+import {
+    isRendererSidebarCollapsed,
+    setRendererSidebarCollapsed,
+} from "./rendererLayoutState.js";
 import { subscribeToRendererTheme } from "./rendererThemeState.js";
 import {
     getUIStateManagerRuntime,
@@ -53,7 +60,7 @@ type NotificationInput =
 type NormalizedNotification = {
     duration: number;
     message: string;
-    type: string;
+    type: NotificationType;
 };
 
 const DEFAULT_DOCUMENT_TITLE = "Fit File Viewer";
@@ -87,7 +94,9 @@ function normalizeNotificationInput(
         return {
             duration: notification.duration || 3000,
             message: notification.message || "No message provided",
-            type: notification.type || "info",
+            type: isNotificationType(notification.type)
+                ? notification.type
+                : "info",
         };
     }
 
@@ -407,8 +416,7 @@ export class UIStateManager {
             }
 
             // Update state to track the last notification
-            setState(
-                "ui.lastNotification",
+            setLastRendererNotification(
                 {
                     message,
                     timestamp: uiStateManagerRuntime().dateNow(),
@@ -431,10 +439,10 @@ export class UIStateManager {
      * Show/hide sidebar
      */
     toggleSidebar(collapsed?: boolean) {
-        const currentState = getState("ui.sidebarCollapsed"),
+        const currentState = isRendererSidebarCollapsed(),
             newState = collapsed === undefined ? !currentState : collapsed;
 
-        setState("ui.sidebarCollapsed", newState, {
+        setRendererSidebarCollapsed(newState, {
             source: "UIStateManager.toggleSidebar",
         });
 
@@ -777,7 +785,7 @@ export class UIStateManager {
             return;
         }
 
-        updateState("ui.windowState", windowState, {
+        updateAppActionWindowState(windowState, {
             source: "UIStateManager.updateWindowStateFromDOM",
         });
     }

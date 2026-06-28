@@ -3,6 +3,7 @@ import {
     type StateManagerDefaultsRuntime,
 } from "./stateManagerDefaultsRuntime.js";
 import type { RendererTabName } from "../domain/rendererActiveTabContract.js";
+import type { RendererNotification } from "../domain/rendererNotificationContract.js";
 
 function stateManagerDefaultsRuntime(): StateManagerDefaultsRuntime {
     return getStateManagerDefaultsRuntime();
@@ -73,10 +74,12 @@ export type TabReadinessState = Record<RendererTabName, TabReadinessEntry>;
 export type UIState = {
     activeTab: string;
     activeTabContent: string;
+    currentNotification: null | RendererNotification;
     dragCounter: number;
     dropOverlay: DropOverlayState;
     fileInfo: UIFileInfo;
     isFullscreen: boolean;
+    lastNotification: null | RendererNotification;
     loadingIndicator: LoadingIndicatorState;
     sidebarCollapsed: boolean;
     tabReadiness: TabReadinessState;
@@ -373,6 +376,7 @@ export function createDefaultAppState(): AppStateShape {
         ui: {
             activeTab: "summary",
             activeTabContent: "summary",
+            currentNotification: null,
             dragCounter: 0,
             dropOverlay: {
                 visible: false,
@@ -383,6 +387,7 @@ export function createDefaultAppState(): AppStateShape {
                 title: stateManagerDefaultsRuntime().getDefaultDocumentTitle(),
             },
             isFullscreen: false,
+            lastNotification: null,
             loadingIndicator: {
                 active: false,
                 progress: 0,

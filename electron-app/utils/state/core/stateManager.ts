@@ -46,6 +46,10 @@ import {
     normalizeRendererNotificationUiBranch,
 } from "../domain/rendererNotificationContract.js";
 import {
+    normalizeRendererLayoutUiBranch,
+    normalizeRendererSidebarCollapsed,
+} from "../domain/rendererLayoutContract.js";
+import {
     normalizeDragCounter,
     normalizeDropOverlayVisible,
     normalizeRendererDragDropUiBranch,
@@ -124,8 +128,10 @@ const UI_STATE_PATH_NORMALIZERS = new Map<string, (value: unknown) => unknown>([
     ["ui.dragCounter", normalizeDragCounter],
     ["ui.dropOverlay.visible", normalizeDropOverlayVisible],
     ["ui.fileInfo", normalizeRendererFileInfo],
+    ["ui.lastNotification", normalizeRendererNotification],
     ["ui.loadingIndicator", normalizeRendererLoadingIndicator],
     ["ui.previousTheme", normalizeRendererTheme],
+    ["ui.sidebarCollapsed", normalizeRendererSidebarCollapsed],
     ["ui.theme", normalizeRendererTheme],
     ["ui.unloadButtonVisible", normalizeRendererUnloadButtonVisible],
 ]);
@@ -267,6 +273,13 @@ function normalizeStateWriteValue(path: string, value: unknown): unknown {
             normalizeRendererNotificationUiBranch(normalizedBranch ?? value);
         if (notificationNormalizedBranch !== (normalizedBranch ?? value)) {
             normalizedBranch = notificationNormalizedBranch;
+        }
+
+        const layoutNormalizedBranch = normalizeRendererLayoutUiBranch(
+            normalizedBranch ?? value
+        );
+        if (layoutNormalizedBranch !== (normalizedBranch ?? value)) {
+            normalizedBranch = layoutNormalizedBranch;
         }
 
         const dragDropNormalizedBranch = normalizeRendererDragDropUiBranch(

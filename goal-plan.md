@@ -2044,6 +2044,9 @@ Loading-indicator progress now normalizes through `rendererLoadingContract.ts` a
 `rendererLoadingState.ts`; UI state-manager loading-indicator and map measurement-mode subscriptions now consume typed
 facades instead of direct raw state-path subscriptions, with focused helper coverage and architecture guardrails
 blocking those direct paths from returning.
+UI state-manager last-notification, sidebar collapsed, and window-state updates now route through typed notification,
+layout, and app-actions state facades. `uiStateManager.ts` no longer imports the core state manager for direct `ui.*`
+path reads or writes, with focused helper tests and architecture checks blocking those raw paths from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
