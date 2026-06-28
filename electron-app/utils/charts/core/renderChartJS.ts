@@ -35,6 +35,8 @@ import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
     completeRendererChartRenderState,
+    getRendererChartData,
+    getRendererChartOptions,
     getRendererSelectedChart,
     initializeRendererChartRenderState,
     isRendererChartRendering,
@@ -268,11 +270,12 @@ initializeChartRuntimeBootstrap({
 export const chartState = createChartStateView({
     areChartControlsVisible: areRendererChartControlsVisible,
     areChartsRendered: areRendererChartsRendered,
+    getChartData: getRendererChartData,
+    getChartOptions: getRendererChartOptions,
     getFieldVisibility: (field) =>
         chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
     getSelectedChart: getRendererSelectedChart,
-    getState: callGetState,
     isChartRendering: isRendererChartRendering,
 });
 

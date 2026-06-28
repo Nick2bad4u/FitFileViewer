@@ -10,6 +10,8 @@ export { normalizeRendererRenderFlag as normalizeRendererChartsRendered } from "
 import { normalizeRendererRenderFlag } from "./rendererRenderStateContract.js";
 
 const RENDERER_CHART_STATE_PATH = "charts";
+const RENDERER_CHART_DATA_STATE_PATH = "charts.chartData";
+const RENDERER_CHART_OPTIONS_STATE_PATH = "charts.chartOptions";
 const RENDERER_CHARTS_RENDERED_STATE_PATH = "charts.isRendered";
 const RENDERER_CHART_PREVIOUS_STATE_PATH = "charts.previousState";
 const RENDERER_CHART_RENDERING_STATE_PATH = "charts.isRendering";
@@ -71,6 +73,14 @@ export function isRendererChartRendering(): boolean {
 export function getRendererChartState(): Record<string, unknown> | undefined {
     const chartState = getState(RENDERER_CHART_STATE_PATH);
     return isRecord(chartState) ? chartState : undefined;
+}
+
+export function getRendererChartData(): unknown {
+    return getState(RENDERER_CHART_DATA_STATE_PATH);
+}
+
+export function getRendererChartOptions(): unknown {
+    return getState(RENDERER_CHART_OPTIONS_STATE_PATH) || {};
 }
 
 export function setRendererChartLastRenderTime(

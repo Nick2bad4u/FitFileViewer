@@ -3,10 +3,11 @@ import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 interface CreateChartStateViewDependencies {
     areChartsRendered(): boolean;
     areChartControlsVisible(): boolean;
+    getChartData(): unknown;
+    getChartOptions(): unknown;
     getFieldVisibility(field: string): unknown;
     getFormatChartFields(): unknown;
     getSelectedChart(): unknown;
-    getState(path: string): unknown;
     isChartRendering(): boolean;
 }
 
@@ -65,11 +66,11 @@ export function createChartStateView(
 ): ChartStateView {
     const state: ChartStateView = {
         get chartData() {
-            return dependencies.getState("charts.chartData");
+            return dependencies.getChartData();
         },
 
         get chartOptions() {
-            return dependencies.getState("charts.chartOptions") || {};
+            return dependencies.getChartOptions();
         },
 
         get controlsVisible() {

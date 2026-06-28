@@ -5,6 +5,8 @@ import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
     completeRendererChartRenderState,
+    getRendererChartData,
+    getRendererChartOptions,
     getRendererChartState,
     getRendererSelectedChart,
     initializeRendererChartRenderState,
@@ -80,13 +82,14 @@ describe("rendererChartRenderState", () => {
     });
 
     it("reads and updates the aggregate renderer chart state", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         expect(getRendererChartState()).toBeDefined();
 
         updateRendererChartState(
             {
                 chartData: null,
+                chartOptions: { responsive: true },
                 isRendered: false,
                 tabActive: false,
             },
@@ -95,9 +98,12 @@ describe("rendererChartRenderState", () => {
 
         expect(getRendererChartState()).toMatchObject({
             chartData: null,
+            chartOptions: { responsive: true },
             isRendered: false,
             tabActive: false,
         });
+        expect(getRendererChartData()).toBeNull();
+        expect(getRendererChartOptions()).toStrictEqual({ responsive: true });
     });
 
     it("initializes chart render state through the typed helper", () => {
