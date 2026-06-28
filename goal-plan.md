@@ -2006,6 +2006,9 @@ module, with architecture guardrails blocking that ambient timer-handle type spe
 Field-toggle delayed status-update bookkeeping now stores handles as the field-toggle runtime's
 `CreateFieldTogglesSectionTimerHandle` alias instead of spelling `ReturnType<typeof setTimeout>` in the source module,
 with architecture guardrails blocking that ambient timer-handle type spelling from returning.
+Renderer state integration update-all-components active-tab reads now route through the typed `getRendererActiveTab`
+selector instead of normalizing a direct `ui.activeTab` state-manager read, with architecture guardrails blocking that
+bridge read from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

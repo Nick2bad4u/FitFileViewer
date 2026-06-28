@@ -11,7 +11,10 @@ import { getState, setState, subscribe } from "../core/stateManager.js";
 import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
-import { normalizeRendererActiveTab } from "../domain/rendererActiveTabState.js";
+import {
+    getRendererActiveTab,
+    normalizeRendererActiveTab,
+} from "../domain/rendererActiveTabState.js";
 import { subscribeToRendererChartsRendered } from "../domain/rendererChartRenderState.js";
 import { resetRendererRenderLifecycle } from "../domain/rendererRenderLifecycleState.js";
 import { UIActions } from "../domain/uiStateManager.js";
@@ -464,7 +467,7 @@ function updateAllComponents(newData: unknown): void {
     updateSummaryTab(newData);
 
     // Other tabs will be loaded when switched to
-    const activeTab = normalizeRendererActiveTab(getState("ui.activeTab"));
+    const activeTab = getRendererActiveTab();
     if (activeTab !== "summary") {
         handleTabChange(activeTab);
     }
