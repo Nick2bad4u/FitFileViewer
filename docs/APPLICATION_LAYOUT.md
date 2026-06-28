@@ -266,14 +266,14 @@ Root Level Files:
 
 ### Critical Application Files
 
-| File                                                   | Size/Complexity           | Primary Responsibility               |
-| ------------------------------------------------------ | ------------------------- | ------------------------------------ |
-| `electron-app/main.ts`                                 | Main entry source         | Electron main process, app lifecycle |
-| `electron-app/utils/config/index.ts`                   | Root-built runtime source | Centralized configuration            |
-| `electron-app/utils/errors/index.ts`                   | Root-built runtime source | Unified error handling               |
-| `electron-app/utils/state/core/unifiedStateManager.ts` | Root-built runtime source | State management facade              |
-| `electron-app/fitParser.ts`                            | Parser source             | FIT file parsing logic               |
-| `electron-app/main-ui.ts`                              | UI source                 | UI management and tabs               |
+| File                                            | Size/Complexity           | Primary Responsibility               |
+| ----------------------------------------------- | ------------------------- | ------------------------------------ |
+| `electron-app/main.ts`                          | Main entry source         | Electron main process, app lifecycle |
+| `electron-app/utils/config/index.ts`            | Root-built runtime source | Centralized configuration            |
+| `electron-app/utils/errors/index.ts`            | Root-built runtime source | Unified error handling               |
+| `electron-app/utils/state/core/stateManager.ts` | Root-built runtime source | Centralized state store              |
+| `electron-app/fitParser.ts`                     | Parser source             | FIT file parsing logic               |
+| `electron-app/main-ui.ts`                       | UI source                 | UI management and tabs               |
 
 ### Module Distribution
 

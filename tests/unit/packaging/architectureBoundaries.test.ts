@@ -124,9 +124,7 @@ const sourceExtensions = new Set([
 
 const allowedLegacyGlobalDataBridgeFiles = new Set<string>();
 const allowedGlobalDataWriterFiles = new Set<string>();
-const allowedRuntimeGlobalDataMentionFiles = new Set<string>([
-    "electron-app/utils/state/core/unifiedStateManager.ts",
-]);
+const allowedRuntimeGlobalDataMentionFiles = new Set<string>();
 const allowedBrowserRuntimeGlobalBridgeFiles = new Set<string>([
     "electron-app/utils/runtime/browserRuntime.ts",
 ]);
@@ -143,7 +141,6 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/charts/components/chartStatusIndicator.ts",
     "electron-app/utils/app/initialization/chartSettingsRender.ts",
     "electron-app/utils/app/lifecycle/listeners.ts",
-    "electron-app/utils/state/core/unifiedStateManager.ts",
     "electron-app/utils/maps/controls/mapLapSelector.ts",
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
     "electron-app/utils/maps/core/renderMap.ts",
@@ -675,8 +672,6 @@ const directGlobalDataReadPattern =
 const directGlobalDataPropertyDefinitionPattern =
     /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']globalData["']/u;
 const debugSensorInfoTestGlobalDataMutationPattern =
-    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
-const unifiedStateManagerGlobalDataTestMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
 const directGlobalDataReactivePropertyPattern =
     /\bcreateReactiveProperty\(\s*["']globalData["']/u;
@@ -13836,7 +13831,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
-        expect.assertions(25);
+        expect.assertions(19);
 
         const globalDataStorePath =
             "electron-app/utils/state/core/globalDataStore.ts";
@@ -13860,9 +13855,6 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/updateTabVisibility.ts"
             )
-        );
-        const unifiedStateManagerSource = readRepositoryFile(
-            "electron-app/utils/state/core/unifiedStateManager.ts"
         );
         const stateManagerDefaultsSource = readRepositoryFile(
             "electron-app/utils/state/core/stateManagerDefaults.ts"
@@ -13891,22 +13883,6 @@ describe("architecture boundaries", () => {
         );
         expect(stateManagerDefaultsSource).toContain("rawData: null");
         expect(stateManagerDefaultsSource).not.toContain("globalData: null");
-        expect(unifiedStateManagerSource).toContain(
-            'export const RETIRED_STATE_ROOT_PATHS = ["globalData"] as const'
-        );
-        expect(unifiedStateManagerSource).toContain(
-            "export type RetiredStateRootPath = (typeof RETIRED_STATE_ROOT_PATHS)[number]"
-        );
-        expect(unifiedStateManagerSource).toContain(
-            "export function isRetiredStatePath"
-        );
-        expect(unifiedStateManagerSource).not.toContain("BLOCKED_STATE_PATHS");
-        expect(unifiedStateManagerSource).not.toContain(
-            "UNSUPPORTED_LEGACY_PATHS"
-        );
-        expect(unifiedStateManagerSource).not.toContain(
-            '"globalData", "fitFile.rawData"'
-        );
         expect(tabStateManagerSource).toContain(
             "subscribeToActiveFitRawDataInState"
         );
@@ -13996,80 +13972,19 @@ describe("architecture boundaries", () => {
         expect(rawBrowserStatePathViolations).toStrictEqual([]);
     });
 
-    it("keeps the unified state facade free of legacy path synchronization", () => {
-        expect.assertions(8);
+    it("keeps the retired unified state facade deleted", () => {
+        expect.assertions(4);
 
-        const unifiedStateManagerSource = stripComments(
-            readRepositoryFile(
-                "electron-app/utils/state/core/unifiedStateManager.ts"
-            )
-        );
-
-        expect(unifiedStateManagerSource).not.toContain("LEGACY_PATHS");
-        expect(unifiedStateManagerSource).not.toContain("legacyPaths");
-        expect(unifiedStateManagerSource).not.toContain("syncLegacy");
-        expect(unifiedStateManagerSource).not.toContain("syncEnabled");
-        expect(unifiedStateManagerSource).not.toContain("setSyncEnabled");
-        expect(unifiedStateManagerSource).not.toContain("isLegacyPath");
-        expect(unifiedStateManagerSource).not.toContain("legacy-sync");
-        expect(unifiedStateManagerSource).not.toContain("validateConsistency");
-    });
-
-    it("keeps unified state facade snapshot timestamps behind the runtime facade", () => {
-        expect.assertions(15);
-
-        const unifiedStateManagerSource = stripComments(
-            readRepositoryFile(
-                "electron-app/utils/state/core/unifiedStateManager.ts"
-            )
-        );
-        const unifiedStateManagerRuntimeSource = stripComments(
-            readRepositoryFile(
-                "electron-app/utils/state/core/unifiedStateManagerRuntime.ts"
-            )
-        );
-
-        expect(unifiedStateManagerSource).toContain(
-            "unifiedStateManagerRuntime.js"
-        );
-        expect(unifiedStateManagerSource).toContain(
-            "type UnifiedStateManagerRuntime"
-        );
-        expect(unifiedStateManagerSource).toContain(
-            "function unifiedStateManagerRuntime(): UnifiedStateManagerRuntime"
-        );
-        expect(unifiedStateManagerSource).toContain(
-            "timestamp: unifiedStateManagerRuntime().dateNow()"
-        );
-        expect(unifiedStateManagerSource).not.toContain("Date.now");
-        expect(unifiedStateManagerSource).not.toContain(
-            "const unifiedStateManagerRuntime = getUnifiedStateManagerRuntime();"
-        );
-        expect(unifiedStateManagerRuntimeSource).toContain(
-            "defaultUnifiedStateManagerRuntimeScope"
-        );
-        expect(unifiedStateManagerRuntimeSource).toContain(
-            '"../../runtime/browserRuntime.js"'
-        );
-        expect(unifiedStateManagerRuntimeSource).toContain(
-            "getDateNow: getBrowserDateNow"
-        );
-        expect(unifiedStateManagerRuntimeSource).not.toContain(
-            "getDateNow: () => Date.now"
-        );
-        expect(unifiedStateManagerRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
-        );
-        expect(unifiedStateManagerRuntimeSource).toContain(
-            "unifiedStateManager requires dateNow"
-        );
-        expect(unifiedStateManagerRuntimeSource).not.toContain(
-            "readonly dateNow?:"
-        );
-        expect(unifiedStateManagerRuntimeSource).not.toContain("scope.dateNow");
-        expect(unifiedStateManagerRuntimeSource).not.toMatch(
-            directRuntimeAmbientClockFallbackPattern
-        );
+        for (const retiredPath of [
+            "electron-app/utils/state/core/unifiedStateManager.ts",
+            "electron-app/utils/state/core/unifiedStateManagerRuntime.ts",
+            "tests/unit/utils/state/core/unifiedStateManager.globalDataStore.test.ts",
+            "tests/unit/utils/state/core/unifiedStateManagerRuntime.test.ts",
+        ]) {
+            expect(existsSync(path.join(process.cwd(), retiredPath))).toBe(
+                false
+            );
+        }
     });
 
     it("keeps state-manager defaults on scoped runtime access", () => {
@@ -29786,20 +29701,6 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/debug/debugSensorInfo.test.ts"
-                    )
-                )
-            )
-        ).toBe(false);
-    });
-
-    it("keeps unified state manager globalData tests from mutating retired globals", () => {
-        expect.assertions(1);
-
-        expect(
-            unifiedStateManagerGlobalDataTestMutationPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/state/core/unifiedStateManager.globalDataStore.test.ts"
                     )
                 )
             )
