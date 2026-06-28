@@ -51,6 +51,33 @@ type SingleChartCallback = (chart: ChartLike) => unknown;
 
 type CombinedChartsCallback = (charts: ChartLike[]) => unknown;
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isChartDataset(value: unknown): value is ChartDataset {
+    return (
+        isRecord(value) &&
+        (value["label"] === undefined || typeof value["label"] === "string")
+    );
+}
+
+function getChartDatasets(value: unknown): ChartDataset[] | undefined {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    const chartData = value["data"];
+    if (!isRecord(chartData)) {
+        return undefined;
+    }
+
+    const datasets = chartData["datasets"];
+    return Array.isArray(datasets) && datasets.every(isChartDataset)
+        ? datasets
+        : undefined;
+}
+
 type ChartOption = {
     default?: unknown;
     defaultValue?: unknown;
@@ -109,16 +136,7 @@ function getChartInstances(): ChartLike[] | undefined {
 }
 
 function isChartLike(value: unknown): value is ChartLike {
-    const chartData =
-        value !== null && typeof value === "object"
-            ? (value as { data?: unknown }).data
-            : undefined;
-
-    return (
-        chartData !== null &&
-        typeof chartData === "object" &&
-        Array.isArray((chartData as { datasets?: unknown }).datasets)
-    );
+    return getChartDatasets(value) !== undefined;
 }
 
 function stringifyPrimitiveSetting(value: unknown, fallback = ""): string {

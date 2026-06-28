@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { clearChartInstanceRegistryForTests } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartInstanceRegistryForTests,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import {
     registerChartStateManager,
     resetChartStateManagerRegistryForTests,
@@ -19,6 +22,16 @@ type ZoneType = "hr" | "power";
 
 type InlineZoneSelectorElement = HTMLDivElement & {
     _updateDisplay: () => void;
+};
+
+type ChartCandidate = {
+    data?: {
+        datasets?: Array<{
+            backgroundColor?: string[];
+            label?: string;
+        }>;
+    };
+    update?: (mode?: string) => void;
 };
 
 // Hoisted mocks to satisfy Vitest's hoisting of vi.mock
@@ -306,6 +319,45 @@ describe(createInlineZoneColorSelector, () => {
         expect(
             bg === "#ff0000" || /rgb\(\s*255\s*,\s*0\s*,\s*0\s*\)/i.test(bg)
         ).toBe(true);
+    });
+
+    it("ignores array-shaped chart candidates when updating previews", () => {
+        expect.assertions(4);
+
+        const update = vi.fn<(mode?: string) => void>();
+        const arrayChart = [] as unknown[] & ChartCandidate;
+        arrayChart.data = {
+            datasets: [
+                {
+                    label: "Heart Rate Zones",
+                    backgroundColor: ["#000000"],
+                },
+            ],
+        };
+        arrayChart.update = update;
+        setRegisteredChartInstances([arrayChart]);
+
+        const container = document.createElement("div");
+        document.body.append(container);
+        const el = createInlineZoneColorSelector(
+            "hr_zone",
+            container
+        ) as InlineZoneSelectorElement;
+        expect(el).toBeInstanceOf(HTMLDivElement);
+
+        const input =
+            container.querySelector<HTMLInputElement>(".zone-color-input");
+        expect(input).toBeInstanceOf(HTMLInputElement);
+        if (!input) {
+            throw new Error("Zone color input not rendered");
+        }
+        input.value = "#ff0000";
+        input.dispatchEvent(new Event("change"));
+
+        expect(arrayChart.data.datasets[0]?.backgroundColor?.[0]).toBe(
+            "#000000"
+        );
+        expect(update).not.toHaveBeenCalled();
     });
 
     it("reset button clears storages and triggers rerender and update of all selectors", () => {

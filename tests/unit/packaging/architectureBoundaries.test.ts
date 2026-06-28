@@ -8175,7 +8175,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(70);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -8236,6 +8236,18 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderSource).not.toContain("document.head");
         expect(settingsHeaderSource).not.toContain("URL.createObjectURL");
         expect(settingsHeaderSource).not.toContain('new Event("change")');
+        expect(settingsHeaderSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(settingsHeaderSource).toContain("!Array.isArray(value)");
+        expect(settingsHeaderSource).toContain('value["data"]');
+        expect(settingsHeaderSource).toContain('typeof value["label"]');
+        expect(settingsHeaderSource).not.toContain(
+            "value as { data?: unknown }"
+        );
+        expect(settingsHeaderSource).not.toContain(
+            "chartData as { datasets?: unknown }"
+        );
         expect(settingsHeaderRuntimeSource).not.toMatch(
             directCreateSettingsHeaderRuntimeAmbientFallbackPattern
         );
@@ -8481,7 +8493,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(62);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -8516,6 +8528,18 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorSource).not.toContain(
             "import { chartStateManager }"
+        );
+        expect(inlineZoneSelectorSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(inlineZoneSelectorSource).toContain("!Array.isArray(value)");
+        expect(inlineZoneSelectorSource).toContain('value["data"]');
+        expect(inlineZoneSelectorSource).toContain('typeof value["label"]');
+        expect(inlineZoneSelectorSource).not.toContain(
+            "value as { data?: unknown }"
+        );
+        expect(inlineZoneSelectorSource).not.toContain(
+            "chartData as { datasets?: unknown }"
         );
         expect(inlineZoneSelectorRuntimeSource).not.toMatch(
             directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern
@@ -8668,7 +8692,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(58);
+        expect.assertions(64);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -8724,6 +8748,18 @@ describe("architecture boundaries", () => {
         );
         expect(zoneColorPickerSource).not.toContain("instanceof KeyboardEvent");
         expect(zoneColorPickerSource).not.toContain("chartStateManager.");
+        expect(zoneColorPickerSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(zoneColorPickerSource).toContain("!Array.isArray(value)");
+        expect(zoneColorPickerSource).toContain('value["data"]');
+        expect(zoneColorPickerSource).toContain('typeof value["label"]');
+        expect(zoneColorPickerSource).not.toContain(
+            "value as { data?: unknown }"
+        );
+        expect(zoneColorPickerSource).not.toContain(
+            "chartData as { datasets?: unknown }"
+        );
         expect(zoneColorPickerRuntimeSource).not.toMatch(
             directOpenZoneColorPickerRuntimeAmbientFallbackPattern
         );

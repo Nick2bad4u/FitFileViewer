@@ -563,4 +563,30 @@ describe("updateZoneColorPreview", () => {
         ).not.toThrow();
         expect(updateMock).not.toHaveBeenCalled();
     });
+
+    it("ignores array-shaped chart candidates", async () => {
+        expect.assertions(2);
+
+        const module = await loadModule();
+        const updateMock = vi.fn<(mode?: string) => void>();
+        const arrayChart = [] as unknown[] & ChartInstance;
+        arrayChart.data = {
+            datasets: [
+                {
+                    label: "Heart Rate Zones",
+                    backgroundColor: ["#000000"],
+                },
+            ],
+        };
+        arrayChart.update = updateMock;
+
+        setRegisteredChartInstances([arrayChart]);
+
+        module.updateZoneColorPreview("hr_zone", 0, "#abcdef");
+
+        expect(arrayChart.data.datasets[0]?.backgroundColor?.[0]).toBe(
+            "#000000"
+        );
+        expect(updateMock).not.toHaveBeenCalled();
+    });
 });

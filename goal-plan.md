@@ -1919,6 +1919,10 @@ bridge casts from returning.
 DOMPurify and Arquero runtime candidate validation now use non-array readonly record guards and indexed method reads
 instead of per-property structural casts, with malformed array-shaped runtime coverage and architecture coverage
 blocking those core vendor bridge casts from returning.
+Registered chart candidate validation in the chart settings header, inline zone selector, and zone color picker now uses
+non-array readonly record guards plus guarded chart-data/dataset records instead of casting arbitrary registered chart
+values into local chart shapes, with malformed array-shaped candidate coverage and architecture guardrails blocking those
+casts from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

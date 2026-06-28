@@ -41,20 +41,41 @@ type ChartInstance = {
     update: (mode?: string) => void;
 };
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isChartDataset(value: unknown): value is ChartDataset {
+    return (
+        isRecord(value) &&
+        (value["label"] === undefined || typeof value["label"] === "string")
+    );
+}
+
+function getChartDatasets(value: unknown): ChartDataset[] | undefined {
+    if (!isRecord(value)) {
+        return undefined;
+    }
+
+    const chartData = value["data"];
+    if (!isRecord(chartData)) {
+        return undefined;
+    }
+
+    const datasets = chartData["datasets"];
+    return Array.isArray(datasets) && datasets.every(isChartDataset)
+        ? datasets
+        : undefined;
+}
+
 function isChartInstance(value: unknown): value is ChartInstance {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const chartData = (value as { data?: unknown }).data;
+    const datasets = getChartDatasets(value);
 
-    return (
-        chartData !== null &&
-        typeof chartData === "object" &&
-        Array.isArray((chartData as { datasets?: unknown }).datasets) &&
-        "update" in value &&
-        typeof (value as { update?: unknown }).update === "function"
-    );
+    return datasets !== undefined && typeof value["update"] === "function";
 }
 
 function getErrorMessage(error: unknown): string {
