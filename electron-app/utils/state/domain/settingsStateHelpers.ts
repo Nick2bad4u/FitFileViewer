@@ -8,6 +8,7 @@ import {
     setState,
     subscribe,
     type StateUpdateOptions,
+    updateState,
 } from "../core/stateManager.js";
 import {
     getStateStorageRuntime,
@@ -206,6 +207,14 @@ export function getUserChartSettings(): NormalizedChartSettings {
 }
 
 /**
+ * Read the cached chart settings snapshot used by chart renderers.
+ */
+export function getCachedChartSettings(): ChartSettings | null {
+    const settings = getState("settings.charts");
+    return isPlainSettingsRecord(settings) ? settings : null;
+}
+
+/**
  * Import settings from data.
  */
 export function importAllSettings(settingsData: unknown): boolean {
@@ -233,6 +242,19 @@ export function setCachedChartSettings(
 ): void {
     setState("settings.charts", settings, {
         source: "SettingsStateManager.setCachedChartSettings",
+        ...options,
+    });
+}
+
+/**
+ * Merge updates into the cached chart settings snapshot used by chart renderers.
+ */
+export function updateCachedChartSettings(
+    settings: ChartSettings,
+    options: StateUpdateOptions = {}
+): void {
+    updateState("settings.charts", settings, {
+        source: "SettingsStateManager.updateCachedChartSettings",
         ...options,
     });
 }

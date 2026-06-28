@@ -9,6 +9,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 const mockGetState = vi.fn<(path?: string) => unknown>();
 const mockSetState =
     vi.fn<(path: string, value: unknown, options?: unknown) => void>();
+const mockUpdateState =
+    vi.fn<(path: string, value: Record<string, unknown>, options?: unknown) => void>();
 const mockSubscribe = vi.fn<
     (path: string, callback: (value: unknown) => void) => () => void
 >(() => () => {});
@@ -29,6 +31,7 @@ vi.mock(
         getState: mockGetState,
         setState: mockSetState,
         subscribe: mockSubscribe,
+        updateState: mockUpdateState,
     })
 );
 
@@ -136,6 +139,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
         // Reset state manager mocks
         mockGetState.mockReturnValue(null);
         mockSetState.mockReturnValue(undefined);
+        mockUpdateState.mockReturnValue(undefined);
         mockSubscribe.mockReturnValue(() => {});
         mockSettingsDateNow.mockReturnValue(1_700_000_000_000);
         mockAddStorageEventListener.mockReturnValue(true);
@@ -218,6 +222,66 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     },
                     {
                         source: "test.setCachedChartSettings",
+                    }
+                );
+            });
+        });
+
+        describe("getCachedChartSettings", () => {
+            it("should read cached chart settings through the settings state path", () => {
+                expect.assertions(2);
+                const cachedSettings = {
+                    chartType: "line",
+                    fieldVisibility: {
+                        speed: "visible",
+                    },
+                };
+                mockGetState.mockReturnValueOnce(cachedSettings);
+
+                const settings =
+                    settingsStateManagerModule.getCachedChartSettings();
+
+                expect(settings).toStrictEqual(cachedSettings);
+                expect(mockGetState).toHaveBeenCalledWith("settings.charts");
+            });
+
+            it("should normalize malformed cached chart settings to null", () => {
+                expect.assertions(1);
+                mockGetState.mockReturnValueOnce("bad-settings");
+
+                expect(
+                    settingsStateManagerModule.getCachedChartSettings()
+                ).toBeNull();
+            });
+        });
+
+        describe("updateCachedChartSettings", () => {
+            it("should merge cached chart settings through the settings state path", () => {
+                expect.assertions(2);
+                const writtenState = new Map<string, unknown>();
+                mockUpdateState.mockImplementationOnce((path, value) => {
+                    writtenState.set(path, value);
+                });
+
+                settingsStateManagerModule.updateCachedChartSettings(
+                    {
+                        chartType: "bar",
+                    },
+                    { source: "test.updateCachedChartSettings" }
+                );
+
+                expect(Object.fromEntries(writtenState)).toStrictEqual({
+                    "settings.charts": {
+                        chartType: "bar",
+                    },
+                });
+                expect(mockUpdateState).toHaveBeenCalledWith(
+                    "settings.charts",
+                    {
+                        chartType: "bar",
+                    },
+                    {
+                        source: "test.updateCachedChartSettings",
                     }
                 );
             });

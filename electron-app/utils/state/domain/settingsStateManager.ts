@@ -163,6 +163,7 @@ export const updateChartSettings = updateChartSettingsImpl as (
 export {
     clearCachedChartSettings,
     exportAllSettings,
+    getCachedChartSettings,
     getChartFieldVisibility,
     getChartSetting,
     getMapThemeSetting,
@@ -172,4 +173,5 @@ export {
     removeChartSetting,
     setCachedChartSettings,
     setChartFieldVisibility,
+    updateCachedChartSettings,
 } from "./settingsStateHelpers.js";

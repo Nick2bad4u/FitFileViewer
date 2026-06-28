@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(161);
+        expect.assertions(171);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12814,6 +12814,11 @@ describe("architecture boundaries", () => {
         const renderChartPerformanceStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartPerformanceState.ts"
+            )
+        );
+        const renderChartSettingsManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartSettingsManager.ts"
             )
         );
         const renderChartLifecycleSource = stripComments(
@@ -13052,6 +13057,27 @@ describe("architecture boundaries", () => {
         expect(renderChartRenderSettingsSource).toContain(
             "dependencies.setChartOptionsState("
         );
+        expect(renderChartSettingsManagerSource).toContain(
+            "dependencies.getCachedChartSettings()"
+        );
+        expect(renderChartSettingsManagerSource).toContain(
+            "dependencies.setCachedChartSettings"
+        );
+        expect(renderChartSettingsManagerSource).toContain(
+            "dependencies.updateCachedChartSettings"
+        );
+        expect(renderChartSettingsManagerSource).not.toContain(
+            '"settings.charts"'
+        );
+        expect(renderChartSettingsManagerSource).not.toContain(
+            "getState(path: string)"
+        );
+        expect(renderChartSettingsManagerSource).not.toContain(
+            "setState(path: string"
+        );
+        expect(renderChartSettingsManagerSource).not.toContain(
+            "updateState(path: string"
+        );
         expect(renderChartRuntimeDependenciesSource).not.toContain("gs_rcwd");
         expect(renderChartRuntimeDependenciesSource).not.toContain("ss_rcwd");
         expect(renderChartRuntimeDependenciesSource).not.toContain("us_rcwd");
@@ -13137,6 +13163,9 @@ describe("architecture boundaries", () => {
         expect(renderChartJSSource).toContain(
             "updateRendererChartRenderPerformanceSummary"
         );
+        expect(renderChartJSSource).toContain("getCachedChartSettings");
+        expect(renderChartJSSource).toContain("setCachedChartSettings");
+        expect(renderChartJSSource).toContain("updateCachedChartSettings");
         expect(renderChartStateViewSource).not.toContain("charts.isRendered");
         expect(renderChartStateViewSource).not.toContain("charts.isRendering");
         expect(renderChartStateViewSource).not.toContain(

@@ -33,19 +33,27 @@ interface ChartSettingsApi {
     updateChartSettings(updates: Record<string, unknown>): unknown;
 }
 
+type CachedChartSettings = Record<string, unknown>;
+
 interface CreateChartSettingsManagerDependencies {
     createDataSettingsSignature(settings: unknown): string;
     dataSignatureSources: readonly DataSignatureSource[];
     defaultMaxPoints: number;
     getComputedStateManager(): ComputedStateManager;
+    getCachedChartSettings(): unknown;
     getRecordValue(value: unknown, key: string): unknown;
     getSettingsStateManager(): SettingsStateManager;
-    getState(path: string): unknown;
     invalidateChartRenderCache(reason: string): void;
     isRendered(): boolean;
     requestRerender(reason: string): void;
-    setState(path: string, value: unknown, options: unknown): void;
-    updateState(path: string, value: unknown, options: unknown): void;
+    setCachedChartSettings(
+        settings: CachedChartSettings,
+        options: unknown
+    ): void;
+    updateCachedChartSettings(
+        settings: CachedChartSettings,
+        options: unknown
+    ): void;
 }
 
 /** State-backed chart settings access and mutation API. */
@@ -173,6 +181,10 @@ function normalizeChartSettings(
     };
 }
 
+function asChartSettings(settings: unknown): CachedChartSettings {
+    return isObjectRecord(settings) ? settings : {};
+}
+
 function hasDataSettingsUpdate(
     newSettings: Record<string, unknown>,
     dataSignatureSources: readonly DataSignatureSource[]
@@ -201,11 +213,11 @@ export function createChartSettingsManager(
         },
 
         getSettings() {
-            let settings = dependencies.getState("settings.charts");
+            let settings = dependencies.getCachedChartSettings();
 
             if (!settings) {
                 settings = resolveSettingsApi(dependencies).getChartSettings();
-                dependencies.setState("settings.charts", settings, {
+                dependencies.setCachedChartSettings(asChartSettings(settings), {
                     silent: false,
                     source: "chartSettingsManager.getSettings",
                 });
@@ -251,7 +263,7 @@ export function createChartSettingsManager(
                 updatedSettings
             );
 
-            dependencies.updateState("settings.charts", updatedSettings, {
+            dependencies.updateCachedChartSettings(updatedSettings, {
                 silent: false,
                 source: "chartSettingsManager.updateSettings",
             });

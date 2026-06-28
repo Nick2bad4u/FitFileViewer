@@ -35,6 +35,11 @@ import {
     updateRendererChartRenderPerformanceSummary,
     updateRendererPerformanceRenderTimes,
 } from "../../state/domain/appActionsState.js";
+import {
+    getCachedChartSettings,
+    setCachedChartSettings,
+    updateCachedChartSettings,
+} from "../../state/domain/settingsStateManager.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import {
     areRendererChartsRendered,
@@ -187,15 +192,15 @@ export const chartSettingsManager = createChartSettingsManager({
     createDataSettingsSignature,
     dataSignatureSources: DATA_SIGNATURE_SOURCES,
     defaultMaxPoints: DEFAULT_MAX_POINTS,
+    getCachedChartSettings,
     getComputedStateManager: getComputedStateManagerSafe,
     getRecordValue,
     getSettingsStateManager: getSettingsStateManagerSafe,
-    getState: callGetState,
     invalidateChartRenderCache,
     isRendered: () => chartState.isRendered,
     requestRerender: (reason) => chartActions.requestRerender(reason),
-    setState: callSetState,
-    updateState: callUpdateState,
+    setCachedChartSettings,
+    updateCachedChartSettings,
 });
 
 const renderTimingGate = createRenderTimingGate(RENDER_DEBOUNCE_MS);

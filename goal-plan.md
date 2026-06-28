@@ -2065,6 +2065,9 @@ returning to `renderChartExportState.ts`.
 Chart successful-render performance summaries now route through the app-actions performance facade instead of letting
 `renderChartPerformanceState.ts` read and patch raw performance paths directly, with focused helper/app-actions tests
 and architecture checks blocking direct performance path reads and writes from returning.
+Chart settings cache reads and writes now route through the settings state facade instead of letting
+`renderChartSettingsManager.ts` own the raw `settings.charts` state path, with focused settings-helper coverage and
+architecture checks blocking direct settings-cache path access from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

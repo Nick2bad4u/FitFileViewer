@@ -463,6 +463,9 @@ function injectChartJSMocks() {
     vi.doMock(
         import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
         () => ({
+            getCachedChartSettings: vi.fn<MockFn>(() =>
+                mocks.stateManager.getState("settings.charts")
+            ),
             getChartFieldVisibility:
                 mocks.settingsStateManager.getChartFieldVisibility,
             getChartSetting: vi.fn<MockFn>(),
@@ -470,11 +473,25 @@ function injectChartJSMocks() {
             getUserChartSettings: vi.fn<MockFn>().mockReturnValue({}),
             setChartFieldVisibility:
                 mocks.settingsStateManager.setChartFieldVisibility,
+            setCachedChartSettings: vi.fn<MockFn>((settings, options) =>
+                mocks.stateManager.setState(
+                    "settings.charts",
+                    settings,
+                    options
+                )
+            ),
             setChartSetting: vi.fn<MockFn>(),
             settingsStateManager: {
                 getSetting: vi.fn<MockFn>(),
                 setSetting: vi.fn<MockFn>(),
             },
+            updateCachedChartSettings: vi.fn<MockFn>((settings, options) =>
+                mocks.stateManager.updateState(
+                    "settings.charts",
+                    settings,
+                    options
+                )
+            ),
             updateChartSettings: mocks.settingsStateManager.updateChartSettings,
         })
     );
