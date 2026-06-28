@@ -41,12 +41,6 @@ type FitFileElectronAPI = {
     readonly readFile: ElectronFileApi["readFile"];
 };
 
-type FitFileElectronApiCandidate = {
-    readonly notifyFitFileLoaded?: unknown;
-    readonly parseFitFile?: unknown;
-    readonly readFile?: unknown;
-};
-
 type ShowNotification = (
     message: string,
     type: string,
@@ -179,13 +173,19 @@ function isFitFileElectronAPI(value: unknown): value is FitFileElectronAPI {
         return false;
     }
 
-    const api = value as FitFileElectronApiCandidate;
     return (
-        typeof api.readFile === "function" &&
-        typeof api.parseFitFile === "function" &&
-        (api.notifyFitFileLoaded === undefined ||
-            typeof api.notifyFitFileLoaded === "function")
+        typeof Reflect.get(value, "readFile") === "function" &&
+        typeof Reflect.get(value, "parseFitFile") === "function" &&
+        hasOptionalFunctionProperty(value, "notifyFitFileLoaded")
     );
+}
+
+function hasOptionalFunctionProperty(
+    value: object,
+    propertyKey: string
+): boolean {
+    const propertyValue = Reflect.get(value, propertyKey);
+    return propertyValue === undefined || typeof propertyValue === "function";
 }
 
 /**

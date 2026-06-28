@@ -104,6 +104,31 @@ describe(openFitFileFromPath, () => {
         }
     });
 
+    it("reports when scoped Electron file API is primitive", async () => {
+        expect.assertions(2);
+
+        cleanupFixture();
+
+        try {
+            const showNotification = vi.fn<ShowNotification>();
+            const result = await openFitFileFromPath({
+                electronApiScope: {
+                    getElectronAPI: () => "not an api",
+                },
+                filePath: "C:\\activities\\ride.fit",
+                showNotification,
+            });
+
+            expect({ result }).toStrictEqual({ result: false });
+            expect(showNotification).toHaveBeenCalledWith(
+                "Electron file API unavailable.",
+                "error"
+            );
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("reads, parses, renders, forwards, and notifies for a valid FIT file path", async () => {
         expect.assertions(11);
 
