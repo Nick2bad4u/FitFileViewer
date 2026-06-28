@@ -7,9 +7,7 @@ import {
 const BROWSER_TAB_BUTTON_ID = "tab_browser";
 const BROWSER_TAB_CONTENT_ID = "content_browser";
 
-type BrowserTabFeatureGateDocument = Readonly<
-    Pick<Document, "defaultView" | "querySelector">
->;
+type BrowserTabFeatureGateDocument = Readonly<Pick<Document, "querySelector">>;
 type BrowserTabFeatureGateVisibleElement = Readonly<Pick<HTMLElement, "style">>;
 
 export interface BrowserTabFeatureGateElements {
@@ -41,12 +39,9 @@ const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScop
     };
 
 function getHTMLElementConstructor(
-    scope: FitBrowserFeatureGateRuntimeScope,
-    runtimeDocument: BrowserTabFeatureGateDocument | undefined
+    scope: FitBrowserFeatureGateRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return (
-        scope.getHTMLElement?.() ?? runtimeDocument?.defaultView?.HTMLElement
-    );
+    return scope.getHTMLElement?.();
 }
 
 function getElementById(
@@ -54,10 +49,7 @@ function getElementById(
     id: string
 ): BrowserTabFeatureGateVisibleElement | null {
     const runtimeDocument = scope.getDocument?.();
-    const HTMLElementConstructor = getHTMLElementConstructor(
-        scope,
-        runtimeDocument
-    );
+    const HTMLElementConstructor = getHTMLElementConstructor(scope);
     if (!runtimeDocument || typeof HTMLElementConstructor !== "function") {
         return null;
     }

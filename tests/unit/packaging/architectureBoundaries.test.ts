@@ -7929,7 +7929,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(28);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -8018,7 +8018,10 @@ describe("architecture boundaries", () => {
             "const runtimeDocument = scope.getDocument?.();"
         );
         expect(featureGateRuntimeSource).toContain(
-            "scope.getHTMLElement?.() ?? runtimeDocument?.defaultView?.HTMLElement"
+            "return scope.getHTMLElement?.();"
+        );
+        expect(featureGateRuntimeSource).not.toContain(
+            "defaultView?.HTMLElement"
         );
     });
 
