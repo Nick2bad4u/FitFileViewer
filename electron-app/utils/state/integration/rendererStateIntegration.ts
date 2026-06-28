@@ -7,7 +7,7 @@
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Corrected path: state manager utilities live in ../core directory
-import { getState, setState, subscribe } from "../core/stateManager.js";
+import { setState, subscribe } from "../core/stateManager.js";
 import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
@@ -16,7 +16,9 @@ import {
     normalizeRendererActiveTab,
 } from "../domain/rendererActiveTabState.js";
 import { subscribeToRendererChartsRendered } from "../domain/rendererChartRenderState.js";
+import { isRendererLoading } from "../domain/rendererLoadingState.js";
 import { resetRendererRenderLifecycle } from "../domain/rendererRenderLifecycleState.js";
+import { getRendererTheme } from "../domain/rendererThemeState.js";
 import { UIActions } from "../domain/uiStateManager.js";
 import {
     getRendererElectronApi,
@@ -107,9 +109,9 @@ export function cleanupRendererStateIntegration(): void {
  */
 export function exampleStateUsage(): Unsubscribe {
     // Getting state
-    const activeTab = getState("ui.activeTab"),
-        currentTheme = getState("ui.theme"),
-        isLoading = getState("isLoading");
+    const activeTab = getRendererActiveTab(),
+        currentTheme = getRendererTheme(),
+        isLoading = isRendererLoading();
 
     console.log("Current state:", { activeTab, currentTheme, isLoading });
 

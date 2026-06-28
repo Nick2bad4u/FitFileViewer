@@ -2014,6 +2014,8 @@ instead of asking generic chart state dependencies for `ui.activeTab`, with arch
 direct chart-core reads from returning.
 Chart render preflight active-tab checks now also route through `getRendererActiveTab`, so the render abort path no
 longer accepts a generic state-manager dependency just to read `ui.activeTab`.
+Renderer state integration example active-tab, theme, and loading reads now route through typed renderer state
+selectors instead of direct state-path reads, with architecture guardrails blocking those sample reads from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
