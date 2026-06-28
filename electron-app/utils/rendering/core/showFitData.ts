@@ -81,7 +81,7 @@ export type ShowFitDataOptions = {
     updateUI?: boolean;
 };
 
-type ShowFitDataElectronApiCandidate = {
+type ShowFitDataElectronApi = {
     readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
 };
 
@@ -98,22 +98,22 @@ type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
 function getShowFitDataElectronApi(
     electronApiScope: RendererElectronApiScope | undefined
-): ShowFitDataElectronApiCandidate | null {
+): ShowFitDataElectronApi | null {
     return getRendererElectronApi(isShowFitDataElectronApi, electronApiScope);
 }
 
 function isShowFitDataElectronApi(
     value: unknown
-): value is ShowFitDataElectronApiCandidate {
+): value is ShowFitDataElectronApi {
     if (value === null || typeof value !== "object") {
         return false;
     }
 
-    if (!("notifyFitFileLoaded" in value)) {
-        return true;
-    }
-
-    return typeof value.notifyFitFileLoaded === "function";
+    const notifyFitFileLoaded = Reflect.get(value, "notifyFitFileLoaded");
+    return (
+        notifyFitFileLoaded === undefined ||
+        typeof notifyFitFileLoaded === "function"
+    );
 }
 
 /**

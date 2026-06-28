@@ -246,6 +246,45 @@ describe("showFitData", () => {
         );
     });
 
+    it("rejects primitive scoped notify APIs without blocking data display", async () => {
+        expect.assertions(5);
+
+        const getElectronAPI = vi.fn<() => unknown>(() => "not an api");
+        const malformedElectronApiScope: RendererElectronApiScope = {
+            getElectronAPI,
+        };
+        const { showFitData } = await loadModule();
+        const data: Record<string, unknown> = {
+            recordMesgs: [{ timestamp: 1 }],
+        };
+        const filePath = "C:/tmp/primitive.fit";
+        stateManagerMocks.getState.mockImplementation((path?: string) =>
+            path === "map.isRendered" ? true : undefined
+        );
+
+        showFitData(data, filePath, {
+            electronApiScope: malformedElectronApiScope,
+        });
+
+        expect(data).toMatchObject({
+            cachedFileName: "primitive.fit",
+            cachedFilePath: filePath,
+        });
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(
+            rendererDependencyMocks.setTabButtonsEnabled
+        ).toHaveBeenCalledWith(true);
+        expect(rendererDependencyMocks.createTables).toHaveBeenCalledWith([
+            {
+                key: "recordMesgs",
+                rows: data.recordMesgs,
+            },
+        ]);
+        expect(rendererDependencyMocks.renderSummary).toHaveBeenCalledWith(
+            data
+        );
+    });
+
     it("does not render the map again when it is already rendered", async () => {
         expect.assertions(5);
 
