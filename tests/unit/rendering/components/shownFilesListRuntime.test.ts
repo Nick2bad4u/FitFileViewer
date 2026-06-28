@@ -143,14 +143,24 @@ describe("getShownFilesListRuntime", () => {
         );
     });
 
-    it("uses the scoped document HTMLElement constructor when no constructor provider is injected", () => {
+    it("does not borrow document-window element constructors for explicit document scopes", () => {
         expect.assertions(1);
 
+        const documentRef =
+            document.implementation.createHTMLDocument("shown files");
         const runtime = getShownFilesListRuntime({
-            getDocument: () => document,
+            getDocument: () =>
+                ({
+                    ...documentRef,
+                    defaultView: {
+                        HTMLElement,
+                    },
+                }) as unknown as Document,
         });
 
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("shownFilesList requires an HTMLElement runtime");
     });
 
     it("does not borrow ambient documents for explicit DOM scopes", () => {

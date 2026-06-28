@@ -123,9 +123,7 @@ function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: ShownFilesListRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor =
-        scope.getHTMLElement?.() ??
-        scope.getDocument?.()?.defaultView?.HTMLElement;
+    const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("shownFilesList requires an HTMLElement runtime");
     }

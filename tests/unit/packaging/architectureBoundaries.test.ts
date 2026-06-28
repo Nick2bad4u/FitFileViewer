@@ -28172,7 +28172,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(79);
+        expect.assertions(80);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -28358,6 +28358,9 @@ describe("architecture boundaries", () => {
         );
         expect(shownFilesListRuntimeSource).toContain(
             "scope.getHTMLElement?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "defaultView?.HTMLElement"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "shownFilesList requires an HTMLElement runtime"
