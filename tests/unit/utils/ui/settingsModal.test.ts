@@ -302,7 +302,7 @@ describe("settingsModal", () => {
     });
 
     it("ignores array-shaped Electron API candidates when syncing theme changes", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         resetFixture();
         const sendThemeChanged = vi.fn<(theme: string) => void>();
@@ -319,6 +319,7 @@ describe("settingsModal", () => {
             themeSelect.value = "light";
             change(themeSelect);
 
+            expect(themeSelect.value).toBe("light");
             expect(mocks.setRendererTheme).toHaveBeenCalledWith("light", {
                 source: "settingsModal:theme-select",
             });

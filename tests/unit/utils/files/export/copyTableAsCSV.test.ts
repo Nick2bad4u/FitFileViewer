@@ -7,9 +7,7 @@ type ClipboardElectronAPI = {
     writeClipboardText?: (text: string) => boolean | Promise<boolean>;
 };
 
-function createClipboardApiScope(
-    api: unknown
-): RendererElectronApiScope {
+function createClipboardApiScope(api: unknown): RendererElectronApiScope {
     return {
         getElectronAPI: () => api,
     };
@@ -114,7 +112,7 @@ describe(copyTableAsCSV, () => {
     });
 
     it("falls back to browser clipboard when scoped Electron API is array-shaped", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const writeText = vi.fn<(text: string) => Promise<void>>();
         installClipboard({ writeText });
@@ -124,7 +122,9 @@ describe(copyTableAsCSV, () => {
         Object.assign(arrayShapedApi, { writeClipboardText });
         const electronApiScope = createClipboardApiScope(arrayShapedApi);
 
-        await copyTableAsCSV([{ name: "A" }], { electronApiScope });
+        await expect(
+            copyTableAsCSV([{ name: "A" }], { electronApiScope })
+        ).resolves.toBeUndefined();
 
         expect(writeClipboardText).not.toHaveBeenCalled();
         expect(writeText).toHaveBeenCalledWith("name\r\nA");

@@ -248,7 +248,8 @@ describe("handleOpenFile.js", () => {
             const { validateElectronAPI } = handleOpenFileModule;
             const malformedElectronApi = Object.assign([], {
                 openFile: vi.fn<() => Promise<null | string | string[]>>(),
-                parseFitFile: vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>(),
+                parseFitFile:
+                    vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>(),
                 readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
             });
 

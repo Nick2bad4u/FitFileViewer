@@ -17032,7 +17032,9 @@ describe("architecture boundaries", () => {
             "createExportGPXButtonRuntime.js"
         );
         expect(createExportGPXButtonSource).toContain("createAbortController");
-        expect(createExportGPXButtonSource).not.toContain("routeData.rawData as");
+        expect(createExportGPXButtonSource).not.toContain(
+            "routeData.rawData as"
+        );
         expect(createExportGPXButtonSource).not.toContain(
             "routeData.recordMesgs as"
         );

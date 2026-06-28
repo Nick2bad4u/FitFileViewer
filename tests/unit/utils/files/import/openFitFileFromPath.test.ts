@@ -135,7 +135,8 @@ describe(openFitFileFromPath, () => {
         cleanupFixture();
 
         try {
-            const readFile = vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
+            const readFile =
+                vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
             const parseFitFile =
                 vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>();
             const malformedElectronApi = Object.assign([], {
