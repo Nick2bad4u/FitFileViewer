@@ -81,29 +81,23 @@ function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
         return false;
     }
 
+    const api = value as MenuElectronAPI;
     return (
-        hasOptionalFunctionProperty(value, "installUpdate") &&
-        hasOptionalFunctionProperty(value, "onMenuAbout") &&
-        hasOptionalFunctionProperty(value, "onMenuExport") &&
-        hasOptionalFunctionProperty(value, "onMenuKeyboardShortcuts") &&
-        hasOptionalFunctionProperty(value, "onMenuOpenOverlay") &&
-        hasOptionalFunctionProperty(value, "onMenuRestartUpdate") &&
-        hasOptionalFunctionProperty(value, "onMenuSaveAs") &&
-        hasOptionalFunctionProperty(value, "onOpenAccentColorPicker") &&
-        hasOptionalFunctionProperty(value, "requestExport") &&
-        hasOptionalFunctionProperty(value, "requestSaveAs")
+        hasOptionalFunction(api.installUpdate) &&
+        hasOptionalFunction(api.onMenuAbout) &&
+        hasOptionalFunction(api.onMenuExport) &&
+        hasOptionalFunction(api.onMenuKeyboardShortcuts) &&
+        hasOptionalFunction(api.onMenuOpenOverlay) &&
+        hasOptionalFunction(api.onMenuRestartUpdate) &&
+        hasOptionalFunction(api.onMenuSaveAs) &&
+        hasOptionalFunction(api.onOpenAccentColorPicker) &&
+        hasOptionalFunction(api.requestExport) &&
+        hasOptionalFunction(api.requestSaveAs)
     );
 }
 
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
-}
-
-function hasOptionalFunctionProperty(
-    value: object,
-    propertyKey: string
-): boolean {
-    return hasOptionalFunction(Reflect.get(value, propertyKey));
 }
 
 function getMenuForwardRegistry(): Set<MenuSendChannel> {

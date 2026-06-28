@@ -7117,10 +7117,10 @@ describe("architecture boundaries", () => {
         expect(mainUiElectronApiSource).not.toContain("ElectronAPI");
         expect(mainUiElectronApiSource).not.toContain("Pick<");
         expect(mainUiElectronApiSource).not.toContain("Readonly<Record");
-        expect(mainUiElectronApiSource).toContain(
+        expect(mainUiElectronApiSource).not.toContain(
             "function hasOptionalFunctionProperty("
         );
-        expect(mainUiElectronApiSource).toContain(
+        expect(mainUiElectronApiSource).not.toContain(
             "Reflect.get(value, propertyKey)"
         );
         expect(mainUiElectronApiSource).toContain(
@@ -7761,13 +7761,13 @@ describe("architecture boundaries", () => {
         expect(browserTabSource).not.toContain(
             "value as FitBrowserElectronApiCandidate"
         );
-        expect(browserTabSource).toContain(
+        expect(browserTabSource).not.toContain(
             "const FIT_BROWSER_ELECTRON_API_METHODS ="
         );
         expect(browserTabSource).not.toContain(
             "type FitBrowserElectronApiCandidate"
         );
-        expect(browserTabSource).toContain(
+        expect(browserTabSource).not.toContain(
             "hasOptionalFunction(Reflect.get(value, methodName))"
         );
         expect(browserTabSource).not.toContain("activeElectronApiScope");
@@ -10635,7 +10635,7 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerSource).not.toContain(
             "type UnknownDragDropElectronApiCandidate"
         );
-        expect(dragDropHandlerSource).toContain(
+        expect(dragDropHandlerSource).not.toContain(
             'Reflect.get(value, "decodeFitFile")'
         );
         expect(dragDropHandlerSource).not.toContain("Pick<ElectronAPI");
@@ -11258,7 +11258,7 @@ describe("architecture boundaries", () => {
         expect(showUpdateNotificationSource).not.toContain(
             "interface ElectronUpdateAPI"
         );
-        expect(showUpdateNotificationSource).toContain(
+        expect(showUpdateNotificationSource).not.toContain(
             'Reflect.get(value, "installUpdate")'
         );
         expect(showUpdateNotificationSource).not.toContain(
@@ -12218,7 +12218,7 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).not.toContain(
             "type ShowFitDataElectronApiCandidate"
         );
-        expect(showFitDataSource).toContain(
+        expect(showFitDataSource).not.toContain(
             'Reflect.get(value, "notifyFitFileLoaded")'
         );
         expect(showFitDataSource).not.toContain("ElectronApiLike");
@@ -12637,10 +12637,12 @@ describe("architecture boundaries", () => {
         expect(handleOpenFileSource).not.toContain(
             "interface FileOpenElectronAPI"
         );
-        expect(handleOpenFileSource).toContain(
+        expect(handleOpenFileSource).not.toContain(
             "const REQUIRED_ELECTRON_API_METHODS ="
         );
-        expect(handleOpenFileSource).toContain("Reflect.get(value, method)");
+        expect(handleOpenFileSource).not.toContain(
+            "Reflect.get(value, method)"
+        );
         expect(handleOpenFileSource).not.toContain(
             "type FileOpenElectronApiCandidate"
         );
@@ -18307,7 +18309,7 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonSource).not.toContain(
             "readonly [K in keyof ElectronFullscreenAPI]?: unknown;"
         );
-        expect(fullscreenButtonSource).toContain("Reflect.get(value, key)");
+        expect(fullscreenButtonSource).not.toContain("Reflect.get(value, key)");
         expect(fullscreenButtonSource).toContain(
             "handleKeyboardShortcuts(event, electronApiScope)"
         );
@@ -18638,7 +18640,7 @@ describe("architecture boundaries", () => {
         expect(showUpdateNotificationSource).not.toContain(
             "value as Record<string, unknown>"
         );
-        expect(showUpdateNotificationSource).toContain(
+        expect(showUpdateNotificationSource).not.toContain(
             'Reflect.get(value, "installUpdate")'
         );
         expect(showUpdateNotificationSource).not.toContain(
@@ -18660,10 +18662,10 @@ describe("architecture boundaries", () => {
         expect(menuIpcListenersSource).not.toContain(
             "Reflect.get(value, methodName)"
         );
-        expect(menuIpcListenersSource).toContain(
+        expect(menuIpcListenersSource).not.toContain(
             "function hasOptionalFunctionProperty("
         );
-        expect(menuIpcListenersSource).toContain(
+        expect(menuIpcListenersSource).not.toContain(
             "Reflect.get(value, propertyKey)"
         );
         expect(menuIpcListenersSource).toContain("ElectronMenuEventApi");
@@ -18712,7 +18714,9 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersSource).toContain(
             "function hasOptionalLifecycleElectronFunction("
         );
-        expect(lifecycleListenersSource).toContain("Reflect.get(value, key)");
+        expect(lifecycleListenersSource).not.toContain(
+            "Reflect.get(value, key)"
+        );
         expect(lifecycleListenersSource).not.toContain(
             "type LifecycleElectronApiCandidate"
         );
@@ -18731,10 +18735,10 @@ describe("architecture boundaries", () => {
         expect(openFitFileFromPathSource).not.toContain(
             "interface FitFileElectronAPI"
         );
-        expect(openFitFileFromPathSource).toContain(
+        expect(openFitFileFromPathSource).not.toContain(
             "function hasOptionalFunctionProperty("
         );
-        expect(openFitFileFromPathSource).toContain(
+        expect(openFitFileFromPathSource).not.toContain(
             'Reflect.get(value, "readFile")'
         );
         expect(openFitFileFromPathSource).not.toContain(
@@ -18771,10 +18775,8 @@ describe("architecture boundaries", () => {
         expect(fileBrowserTabSource).not.toContain(
             "type FitBrowserElectronApiCandidate"
         );
-        expect(fileBrowserTabSource).toContain(
-            "const FIT_BROWSER_ELECTRON_API_METHODS ="
-        );
-        expect(fileBrowserTabSource).toContain(
+        expect(fileBrowserTabSource).toContain("type FitBrowserElectronAPI =");
+        expect(fileBrowserTabSource).not.toContain(
             "hasOptionalFunction(Reflect.get(value, methodName))"
         );
         expect(fileBrowserTabSource).not.toContain("Pick<ElectronAPI");
@@ -21224,10 +21226,10 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoSource).not.toContain(
             "Reflect.get(value, methodName)"
         );
-        expect(loadVersionInfoSource).toContain(
+        expect(loadVersionInfoSource).not.toContain(
             "function hasOptionalFunctionProperty("
         );
-        expect(loadVersionInfoSource).toContain(
+        expect(loadVersionInfoSource).not.toContain(
             "Reflect.get(value, propertyKey)"
         );
         expect(loadVersionInfoSource).not.toContain(
@@ -29702,7 +29704,7 @@ describe("architecture boundaries", () => {
         expect(mainUiDomUtilsSource).not.toContain(
             "value as MainUiDomElectronApiCandidate"
         );
-        expect(mainUiDomUtilsSource).toContain(
+        expect(mainUiDomUtilsSource).not.toContain(
             'Reflect.get(value, "decodeFitFile")'
         );
         expect(mainUiDomUtilsSource).not.toContain("import type { ElectronAPI");

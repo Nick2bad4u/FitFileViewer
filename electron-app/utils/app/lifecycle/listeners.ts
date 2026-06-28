@@ -121,23 +121,6 @@ type LifecycleElectronAPI = {
     readonly readFile?: ElectronFileApi["readFile"];
 };
 
-const LIFECYCLE_ELECTRON_API_METHODS = [
-    "addRecentFile",
-    "checkForUpdates",
-    "onDecoderOptionsChanged",
-    "onExportFile",
-    "onMenuCheckForUpdates",
-    "onMenuOpenFile",
-    "onMenuPrint",
-    "onOpenRecentFile",
-    "onSetFontSize",
-    "onSetHighContrast",
-    "onShowNotification",
-    "onUpdateEvent",
-    "parseFitFile",
-    "readFile",
-] as const satisfies readonly (keyof LifecycleElectronAPI)[];
-
 /** Mutable flag shared with the file-opening workflow. */
 export type FileOpeningStateRef = {
     value?: boolean;
@@ -194,12 +177,8 @@ const HIGH_CONTRAST_BODY_CLASSES = [
     "high-contrast-yellow",
 ] as const;
 
-function hasOptionalLifecycleElectronFunction(
-    value: object,
-    key: keyof LifecycleElectronAPI
-): boolean {
-    const candidate = Reflect.get(value, key);
-    return candidate === undefined || typeof candidate === "function";
+function hasOptionalLifecycleElectronFunction(value: unknown): boolean {
+    return value === undefined || typeof value === "function";
 }
 
 function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
@@ -207,8 +186,22 @@ function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
         return false;
     }
 
-    return LIFECYCLE_ELECTRON_API_METHODS.every((key) =>
-        hasOptionalLifecycleElectronFunction(value, key)
+    const api = value as LifecycleElectronAPI;
+    return (
+        hasOptionalLifecycleElectronFunction(api.addRecentFile) &&
+        hasOptionalLifecycleElectronFunction(api.checkForUpdates) &&
+        hasOptionalLifecycleElectronFunction(api.onDecoderOptionsChanged) &&
+        hasOptionalLifecycleElectronFunction(api.onExportFile) &&
+        hasOptionalLifecycleElectronFunction(api.onMenuCheckForUpdates) &&
+        hasOptionalLifecycleElectronFunction(api.onMenuOpenFile) &&
+        hasOptionalLifecycleElectronFunction(api.onMenuPrint) &&
+        hasOptionalLifecycleElectronFunction(api.onOpenRecentFile) &&
+        hasOptionalLifecycleElectronFunction(api.onSetFontSize) &&
+        hasOptionalLifecycleElectronFunction(api.onSetHighContrast) &&
+        hasOptionalLifecycleElectronFunction(api.onShowNotification) &&
+        hasOptionalLifecycleElectronFunction(api.onUpdateEvent) &&
+        hasOptionalLifecycleElectronFunction(api.parseFitFile) &&
+        hasOptionalLifecycleElectronFunction(api.readFile)
     );
 }
 

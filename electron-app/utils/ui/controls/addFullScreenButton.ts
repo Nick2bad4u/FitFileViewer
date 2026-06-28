@@ -73,14 +73,7 @@ function isElectronFullscreenApi(
         return false;
     }
 
-    return hasOptionalFullscreenFunction(value, "setFullScreen");
-}
-
-function hasOptionalFullscreenFunction(
-    value: object,
-    key: keyof ElectronFullscreenAPI
-): boolean {
-    const candidate = Reflect.get(value, key);
+    const candidate = (value as ElectronFullscreenAPI).setFullScreen;
     return candidate === undefined || typeof candidate === "function";
 }
 

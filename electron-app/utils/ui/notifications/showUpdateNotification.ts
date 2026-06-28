@@ -363,7 +363,7 @@ function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
 }
 
 function hasOptionalInstallUpdate(value: object): boolean {
-    const candidate = Reflect.get(value, "installUpdate");
+    const candidate = (value as ElectronUpdateAPI).installUpdate;
     return candidate === undefined || typeof candidate === "function";
 }
 

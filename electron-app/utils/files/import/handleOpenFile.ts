@@ -80,11 +80,6 @@ type FitFileStateManagerFacade = {
 
 // Constants for better maintainability
 const FILE_OPEN_CONSTANTS = {
-    ELECTRON_API_METHODS: {
-        OPEN_FILE: "openFile",
-        PARSE_FIT_FILE: "parseFitFile",
-        READ_FILE: "readFile",
-    },
     ERROR_TIMEOUTS: {
         CRITICAL: 7000,
         DEFAULT: 5000,
@@ -94,19 +89,16 @@ const FILE_OPEN_CONSTANTS = {
 
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
 
-const REQUIRED_ELECTRON_API_METHODS = [
-    FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.OPEN_FILE,
-    FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.PARSE_FIT_FILE,
-    FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.READ_FILE,
-] satisfies readonly (keyof FileOpenElectronAPI)[];
-
 function isFileOpenElectronAPI(value: unknown): value is FileOpenElectronAPI {
     if (value === null || typeof value !== "object") {
         return false;
     }
 
-    return REQUIRED_ELECTRON_API_METHODS.every(
-        (method) => typeof Reflect.get(value, method) === "function"
+    const api = value as FileOpenElectronAPI;
+    return (
+        typeof api.openFile === "function" &&
+        typeof api.parseFitFile === "function" &&
+        typeof api.readFile === "function"
     );
 }
 

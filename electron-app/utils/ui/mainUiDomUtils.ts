@@ -88,7 +88,7 @@ function isDecodeFitFileApi(value: unknown): value is MainUiDomElectronApi {
         return false;
     }
 
-    return typeof Reflect.get(value, "decodeFitFile") === "function";
+    return typeof (value as MainUiDomElectronApi).decodeFitFile === "function";
 }
 
 /**

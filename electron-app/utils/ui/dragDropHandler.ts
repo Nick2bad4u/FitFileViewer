@@ -58,7 +58,7 @@ function isDragDropElectronApi(value: unknown): value is DragDropElectronApi {
         return false;
     }
 
-    return typeof Reflect.get(value, "decodeFitFile") === "function";
+    return typeof (value as DragDropElectronApi).decodeFitFile === "function";
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {

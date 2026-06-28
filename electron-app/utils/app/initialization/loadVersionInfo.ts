@@ -245,23 +245,17 @@ function isVersionInfoElectronAPI(
         return false;
     }
 
+    const api = value as VersionInfoElectronAPI;
     return (
-        hasOptionalFunctionProperty(value, "getAppVersion") &&
-        hasOptionalFunctionProperty(value, "getChromeVersion") &&
-        hasOptionalFunctionProperty(value, "getElectronVersion") &&
-        hasOptionalFunctionProperty(value, "getLicenseInfo") &&
-        hasOptionalFunctionProperty(value, "getNodeVersion") &&
-        hasOptionalFunctionProperty(value, "getPlatformInfo")
+        hasOptionalFunction(api.getAppVersion) &&
+        hasOptionalFunction(api.getChromeVersion) &&
+        hasOptionalFunction(api.getElectronVersion) &&
+        hasOptionalFunction(api.getLicenseInfo) &&
+        hasOptionalFunction(api.getNodeVersion) &&
+        hasOptionalFunction(api.getPlatformInfo)
     );
 }
 
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
-}
-
-function hasOptionalFunctionProperty(
-    value: object,
-    propertyKey: string
-): boolean {
-    return hasOptionalFunction(Reflect.get(value, propertyKey));
 }

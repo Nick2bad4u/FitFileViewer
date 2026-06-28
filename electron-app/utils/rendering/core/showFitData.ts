@@ -109,7 +109,7 @@ function isShowFitDataElectronApi(
         return false;
     }
 
-    const notifyFitFileLoaded = Reflect.get(value, "notifyFitFileLoaded");
+    const { notifyFitFileLoaded } = value as ShowFitDataElectronApi;
     return (
         notifyFitFileLoaded === undefined ||
         typeof notifyFitFileLoaded === "function"

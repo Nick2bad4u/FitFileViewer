@@ -173,19 +173,16 @@ function isFitFileElectronAPI(value: unknown): value is FitFileElectronAPI {
         return false;
     }
 
+    const api = value as FitFileElectronAPI;
     return (
-        typeof Reflect.get(value, "readFile") === "function" &&
-        typeof Reflect.get(value, "parseFitFile") === "function" &&
-        hasOptionalFunctionProperty(value, "notifyFitFileLoaded")
+        typeof api.readFile === "function" &&
+        typeof api.parseFitFile === "function" &&
+        hasOptionalFunction(api.notifyFitFileLoaded)
     );
 }
 
-function hasOptionalFunctionProperty(
-    value: object,
-    propertyKey: string
-): boolean {
-    const propertyValue = Reflect.get(value, propertyKey);
-    return propertyValue === undefined || typeof propertyValue === "function";
+function hasOptionalFunction(value: unknown): boolean {
+    return value === undefined || typeof value === "function";
 }
 
 /**
