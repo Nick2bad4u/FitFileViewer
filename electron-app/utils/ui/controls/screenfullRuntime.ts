@@ -11,6 +11,10 @@ type ScreenfullRuntimeRegistry = {
 
 const screenfullRuntimeRegistry: ScreenfullRuntimeRegistry = {};
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export function setScreenfullRuntime(runtime: unknown): void {
     screenfullRuntimeRegistry.runtime = runtime;
 }
@@ -28,11 +32,9 @@ export function isScreenfullRuntime(
     value: unknown
 ): value is ScreenfullRuntime {
     return (
-        typeof value === "object" &&
-        value !== null &&
-        typeof (value as { isEnabled?: unknown }).isEnabled === "boolean" &&
-        typeof (value as { isFullscreen?: unknown }).isFullscreen ===
-            "boolean" &&
-        typeof (value as { on?: unknown }).on === "function"
+        isRecord(value) &&
+        typeof value["isEnabled"] === "boolean" &&
+        typeof value["isFullscreen"] === "boolean" &&
+        typeof value["on"] === "function"
     );
 }

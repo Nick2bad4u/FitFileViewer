@@ -18409,7 +18409,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {
-        expect.assertions(4);
+        expect.assertions(9);
 
         const violations = migratedScreenfullRuntimeFiles
             .filter((relativeFile) =>
@@ -18423,11 +18423,27 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/addFullScreenButton.ts"
             )
         );
+        const screenfullRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/screenfullRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(fullscreenButtonSource).toContain("setupFullscreenListeners");
         expect(fullscreenButtonSource).not.toContain("setupDOMContentLoaded");
         expect(fullscreenButtonSource).not.toContain("Legacy DOM setup");
+        expect(screenfullRuntimeSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(screenfullRuntimeSource).toContain("!Array.isArray(value)");
+        expect(screenfullRuntimeSource).toContain('typeof value["isEnabled"]');
+        expect(screenfullRuntimeSource).not.toContain(
+            "value as { isEnabled?: unknown }"
+        );
+        expect(screenfullRuntimeSource).not.toContain(
+            "value as { on?: unknown }"
+        );
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {

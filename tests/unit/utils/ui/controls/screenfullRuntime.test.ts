@@ -28,7 +28,7 @@ describe("screenfullRuntime", () => {
     });
 
     it("ignores malformed runtimes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         setScreenfullRuntime({
             isEnabled: true,
@@ -40,6 +40,13 @@ describe("screenfullRuntime", () => {
                 isEnabled: true,
                 isFullscreen: false,
             })
+        ).toBe(false);
+        expect(
+            isScreenfullRuntime([
+                true,
+                false,
+                () => undefined,
+            ])
         ).toBe(false);
         expect(resolveScreenfullRuntime()).toBeUndefined();
     });

@@ -1913,6 +1913,9 @@ coverage and development-guide notes keeping that split explicit.
 Overlay filename lookup now narrows unknown loaded-file entries through local record and `filePath` guards instead of
 asserting `loadedFitFiles[idx]` to an object shape, with malformed-entry coverage and architecture coverage blocking
 that cast from returning.
+Screenfull runtime candidate validation now uses a non-array readonly record guard and direct property reads instead of
+per-property structural casts, with malformed array-shaped runtime coverage and architecture coverage blocking those
+bridge casts from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
