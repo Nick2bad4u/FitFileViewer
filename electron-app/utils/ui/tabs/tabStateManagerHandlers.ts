@@ -11,6 +11,8 @@ import {
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { createTables } from "../../rendering/components/createTables.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
+import { setRendererChartTabActive } from "../../state/domain/rendererChartRenderState.js";
+import { setRendererMapRendered } from "../../state/domain/rendererMapRenderState.js";
 import { setTabReadiness } from "./tabReadinessState.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
@@ -241,14 +243,14 @@ export async function handleChartTab(
                 console.log(
                     "[TabStateManager] Chart tab activated - charts already rendered"
                 );
-                getStateMgr().setState("charts.tabActive", true, {
+                setRendererChartTabActive(true, {
                     source: "TabStateManager.handleChartTab",
                 });
             } else {
                 console.log(
                     "[TabStateManager] Chart tab activated - triggering initial render through state system"
                 );
-                getStateMgr().setState("charts.tabActive", true, {
+                setRendererChartTabActive(true, {
                     source: "TabStateManager.handleChartTab",
                 });
             }
@@ -323,7 +325,7 @@ export async function handleMapTab(
     if (!isMapRendered) {
         console.log("[TabStateManager] Rendering map for first time");
         renderMap();
-        getStateMgr().setState("map.isRendered", true, {
+        setRendererMapRendered(true, {
             source: "TabStateManager.handleMapTab",
         });
         return;
@@ -346,7 +348,7 @@ export async function handleMapTab(
                 "[TabStateManager] Map container missing; re-rendering map instance"
             );
             renderMap();
-            getStateMgr().setState("map.isRendered", true, {
+            setRendererMapRendered(true, {
                 source: "TabStateManager.handleMapTab.reRender",
             });
             return;
@@ -363,7 +365,7 @@ export async function handleMapTab(
                 error
             );
             renderMap();
-            getStateMgr().setState("map.isRendered", true, {
+            setRendererMapRendered(true, {
                 source: "TabStateManager.handleMapTab.recover",
             });
         }

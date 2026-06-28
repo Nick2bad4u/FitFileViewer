@@ -12650,7 +12650,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(12);
+        expect.assertions(18);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12674,6 +12674,11 @@ describe("architecture boundaries", () => {
         );
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+        const tabStateManagerHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts"
+            )
         );
 
         expect(rendererChartRenderStateSource).toContain(
@@ -12702,6 +12707,24 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).toContain("charts.tabActive");
         expect(stateManagerSource).toContain("map.measurementMode");
         expect(stateManagerSource).toContain("tables.isRendered");
+        expect(tabStateManagerHandlersSource).toContain(
+            "rendererChartRenderState.js"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "setRendererChartTabActive(true"
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
+            '.setState("charts.tabActive"'
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "rendererMapRenderState.js"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "setRendererMapRendered(true"
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
+            '.setState("map.isRendered"'
+        );
     });
 
     it("keeps map base-layer persistence on the map base-layer state facade", () => {
