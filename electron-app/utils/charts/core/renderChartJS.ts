@@ -43,6 +43,8 @@ import {
     getRendererSelectedChart,
     initializeRendererChartRenderState,
     isRendererChartRendering,
+    setRendererChartData,
+    setRendererChartOptions,
     setRendererChartRendering,
     setRendererSelectedChart,
 } from "../../state/domain/rendererChartRenderState.js";
@@ -421,11 +423,10 @@ export async function renderChartJS(
                 doc: document,
                 getConverters: getConvertersSafe,
                 getSetupZoneData: getSetupZoneDataSafe,
-                getState: callGetState,
-                getStateManager: getStateManagerSafe,
                 getThemeConfig: getThemeConfigSafe,
                 notify,
                 safeCompleteRendering,
+                setChartData: setRendererChartData,
             },
             { targetContainer }
         );
@@ -533,7 +534,6 @@ async function renderChartsWithData(
         renderPerformanceAnalysisChartsSafe,
         renderTimeInZoneChartsSafe,
         showRenderNotificationSafe,
-        ss_rcwd,
         themeConfig,
         us_rcwd,
     } = await resolveChartRuntimeDependencies({
@@ -573,7 +573,7 @@ async function renderChartsWithData(
             ensureDataSettingsSignature,
             getSettings: () => chartSettingsManager.getSettings(),
             resolvePerformanceSettings,
-            setChartOptionsState: ss_rcwd,
+            setChartOptionsState: setRendererChartOptions,
         },
         {
             processedAt: renderChartRuntime().now(),

@@ -80,12 +80,32 @@ export function getRendererChartData(): unknown {
     return getState(RENDERER_CHART_DATA_STATE_PATH);
 }
 
+export function setRendererChartData(
+    chartData: unknown,
+    options: StateUpdateOptions = {}
+): void {
+    setState(RENDERER_CHART_DATA_STATE_PATH, chartData, {
+        source: "rendererChartRenderState.setChartData",
+        ...options,
+    });
+}
+
 export function getRendererChartOptions(): unknown {
     return getState(RENDERER_CHART_OPTIONS_STATE_PATH);
 }
 
 export function getRendererChartOptionsOrDefault(): unknown {
     return getRendererChartOptions() || {};
+}
+
+export function setRendererChartOptions(
+    chartOptions: unknown,
+    options: StateUpdateOptions = {}
+): void {
+    setState(RENDERER_CHART_OPTIONS_STATE_PATH, chartOptions, {
+        source: "rendererChartRenderState.setChartOptions",
+        ...options,
+    });
 }
 
 export function getRendererChartLastRenderTime(): unknown {

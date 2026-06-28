@@ -76,24 +76,21 @@ describe("renderChartDataPreparation", () => {
     });
 
     it("stores prepared chart data in state with render source metadata", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
-        let storedPath = "";
         let storedValue: PreparedChartData | undefined;
         let storedOptions: unknown;
-        const setState = vi.fn<
-            (path: string, value: PreparedChartData, options: unknown) => void
-        >((path, value, options) => {
-            storedPath = path;
+        const setChartData = vi.fn<
+            (value: PreparedChartData, options: unknown) => void
+        >((value, options) => {
             storedValue = value;
             storedOptions = options;
         });
         const activityStartTime = new Date("2026-05-21T12:00:00Z");
         const recordMesgs = [{ timestamp: activityStartTime }];
 
-        storeChartData({ setState }, recordMesgs, activityStartTime);
+        storeChartData({ setChartData }, recordMesgs, activityStartTime);
 
-        expect(storedPath).toBe("charts.chartData");
         expect({ options: storedOptions, value: storedValue }).toStrictEqual({
             options: { silent: false, source: "renderChartJS" },
             value: {

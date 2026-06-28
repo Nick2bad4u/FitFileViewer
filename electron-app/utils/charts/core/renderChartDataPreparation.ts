@@ -27,8 +27,7 @@ export interface PreparedChartData {
 export type ChartDataRecordSource = FitChartRecordSource;
 
 interface StoreChartDataDependencies {
-    setState(
-        path: string,
+    setChartData(
         value: PreparedChartData,
         options: { readonly silent: boolean; readonly source: string }
     ): void;
@@ -95,8 +94,7 @@ export function storeChartData(
     recordMesgs: readonly ChartDataRecord[],
     activityStartTime: ActivityStartTime
 ): void {
-    dependencies.setState(
-        "charts.chartData",
+    dependencies.setChartData(
         {
             activityStartTime,
             recordMesgs,

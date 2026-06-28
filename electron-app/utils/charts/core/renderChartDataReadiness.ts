@@ -14,28 +14,18 @@ import {
 
 type UnitConverter = (value: number, field: string) => unknown;
 type NotifyFunction = (message: string, type: "info" | "warning") => unknown;
-type SetStateFunction = (
-    path: string,
-    value: unknown,
-    options?: ChartStateUpdateOptions
-) => void;
 type SetupZoneDataFunction = (
     activityData: ChartDataRecord | ChartDataRecordSource
 ) => unknown;
 
-interface ChartStateManagerAccess {
-    setState: SetStateFunction;
-}
-
 interface ChartRenderDataReadinessDependencies {
     doc: Document;
     getConverters(): UnitConverter;
-    getState(path: string): unknown;
-    getStateManager(): ChartStateManagerAccess;
     getSetupZoneData(): SetupZoneDataFunction;
     getThemeConfig(): unknown;
     notify: NotifyFunction;
     safeCompleteRendering(success: boolean): void;
+    setChartData(value: unknown, options?: ChartStateUpdateOptions): void;
 }
 
 interface ChartRenderDataReadinessInput {
@@ -120,8 +110,8 @@ export async function prepareChartRenderData(
 
     storeChartData(
         {
-            setState: (path, value, options) =>
-                dependencies.getStateManager().setState(path, value, options),
+            setChartData: (value, options) =>
+                dependencies.setChartData(value, options),
         },
         chartData.recordMesgs,
         activityStartTime

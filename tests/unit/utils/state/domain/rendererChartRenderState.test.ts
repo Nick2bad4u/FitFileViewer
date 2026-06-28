@@ -16,7 +16,9 @@ import {
     isRendererChartRendering,
     normalizeRendererChartsRendered,
     resetRendererChartRenderStateForDataChange,
+    setRendererChartData,
     setRendererChartLastRenderTime,
+    setRendererChartOptions,
     setRendererChartPreviousState,
     setRendererChartRendering,
     setRendererChartTabActive,
@@ -85,10 +87,15 @@ describe("rendererChartRenderState", () => {
     });
 
     it("reads and updates the aggregate renderer chart state", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         expect(getRendererChartState()).toBeDefined();
         expect(getRendererChartOptionsOrDefault()).toStrictEqual({});
+
+        setRendererChartData({ rows: [1] }, { source: "test" });
+        setRendererChartOptions({ responsive: false }, { source: "test" });
+        expect(getRendererChartData()).toStrictEqual({ rows: [1] });
+        expect(getRendererChartOptions()).toStrictEqual({ responsive: false });
 
         updateRendererChartState(
             {

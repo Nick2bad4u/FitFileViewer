@@ -14,7 +14,6 @@ type ResolvePerformanceSettings = (
 ) => ChartPerformanceSettings;
 
 type SetChartOptionsState = (
-    path: string,
     value: unknown,
     options?: ChartStateUpdateOptions
 ) => unknown;
@@ -121,7 +120,6 @@ export function resolveChartRenderSettings(
     );
 
     dependencies.setChartOptionsState(
-        "charts.chartOptions",
         {
             ...settings,
             boolSettings,

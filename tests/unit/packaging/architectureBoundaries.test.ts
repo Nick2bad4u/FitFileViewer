@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(110);
+        expect.assertions(116);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12713,6 +12713,16 @@ describe("architecture boundaries", () => {
         const renderChartStateManagementSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartStateManagement.ts"
+            )
+        );
+        const renderChartDataPreparationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDataPreparation.ts"
+            )
+        );
+        const renderChartRenderSettingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRenderSettings.ts"
             )
         );
         const renderChartRenderedEventSource = stripComments(
@@ -12865,6 +12875,12 @@ describe("architecture boundaries", () => {
         expect(renderChartJSSource).toContain(
             "getChartOptions: getRendererChartOptions"
         );
+        expect(renderChartJSSource).toContain(
+            "setChartData: setRendererChartData"
+        );
+        expect(renderChartJSSource).toContain(
+            "setChartOptionsState: setRendererChartOptions"
+        );
         expect(chartStateManagerSource).toContain(
             "resetRendererChartRenderStateForDataChange"
         );
@@ -12888,6 +12904,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartStateManagementSource).not.toContain(
             'updateState("charts"'
+        );
+        expect(renderChartDataPreparationSource).not.toContain(
+            "charts.chartData"
+        );
+        expect(renderChartDataPreparationSource).toContain(
+            "dependencies.setChartData("
+        );
+        expect(renderChartRenderSettingsSource).not.toContain(
+            "charts.chartOptions"
+        );
+        expect(renderChartRenderSettingsSource).toContain(
+            "dependencies.setChartOptionsState("
         );
         expect(renderChartStateManagementApiSource).toContain(
             "initializeChartRenderState"
