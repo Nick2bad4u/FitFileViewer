@@ -26,7 +26,10 @@ import {
     isExportZipConstructor,
     setExportZipRuntime,
 } from "../utils/files/export/exportZipRuntime.js";
-import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
+import {
+    isRegisteredLeafletRuntime,
+    setLeafletRuntime,
+} from "../utils/maps/core/leafletRuntime.js";
 import {
     isArqueroRuntime,
     setArqueroRuntime,
@@ -120,7 +123,10 @@ function registerCoreRuntimePayload(
 function registerMapRuntimePayload(
     payload: RendererVendorMapRuntimePayload | undefined
 ): boolean {
-    if (payload === undefined || payload.leafletRuntime === undefined) {
+    if (
+        payload === undefined ||
+        !isRegisteredLeafletRuntime(payload.leafletRuntime)
+    ) {
         return false;
     }
 

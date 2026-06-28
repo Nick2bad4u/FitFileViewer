@@ -463,7 +463,13 @@ describe("renderer vendor bundle loader", () => {
     it("registers the Leaflet payload from the split map vendor event", async () => {
         expect.assertions(2);
 
-        const leafletRuntime = { divIcon() {} };
+        const leafletRuntime = {
+            Layer: class Layer {},
+            control: {},
+            divIcon() {},
+            map() {},
+            tileLayer() {},
+        };
         const vendorReadiness = [ensureVendorBundle("map")];
         const script = getVendorScript("map");
 
@@ -479,6 +485,64 @@ describe("renderer vendor bundle loader", () => {
                     value === leafletRuntime
             )
         ).toBe(leafletRuntime);
+    });
+
+    it("waits for a valid map payload instead of accepting malformed readiness", async () => {
+        expect.assertions(4);
+
+        vi.useFakeTimers();
+        try {
+            let resolved = false;
+            const vendorReadiness = ensureVendorBundle("map");
+            void vendorReadiness.then(() => {
+                resolved = true;
+            });
+            const script = getVendorScript("map");
+
+            script.dispatchEvent(new Event("load"));
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv-renderer-vendor-entry-loaded", {
+                    detail: {
+                        entryName: "map",
+                        map: { leafletRuntime: { divIcon() {} } },
+                    },
+                })
+            );
+            await vi.advanceTimersByTimeAsync(20);
+            await Promise.resolve();
+
+            expect(resolved).toBe(false);
+            expect(
+                resolveLeafletRuntime(
+                    (value): value is { divIcon: () => void } =>
+                        typeof value === "object" &&
+                        value !== null &&
+                        "divIcon" in value
+                )
+            ).toBeNull();
+
+            const leafletRuntime = {
+                Layer: class Layer {},
+                control: {},
+                divIcon() {},
+                map() {},
+                tileLayer() {},
+            };
+            markRendererVendorEntryLoaded("map", {
+                map: { leafletRuntime },
+            });
+            await vi.advanceTimersByTimeAsync(20);
+
+            await expect(vendorReadiness).resolves.toBeUndefined();
+            expect(
+                resolveLeafletRuntime(
+                    (value): value is typeof leafletRuntime =>
+                        value === leafletRuntime
+                )
+            ).toBe(leafletRuntime);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("waits for the split entry marker when a script tag already exists", async () => {

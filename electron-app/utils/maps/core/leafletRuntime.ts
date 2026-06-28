@@ -10,9 +10,7 @@ type LeafletRuntimeRegistry = {
 };
 
 export type LeafletRuntimeTimeoutHandle = BrowserTimerHandle;
-type LeafletRuntimeClearTimeout = (
-    handle: LeafletRuntimeTimeoutHandle
-) => void;
+type LeafletRuntimeClearTimeout = (handle: LeafletRuntimeTimeoutHandle) => void;
 type LeafletRuntimeSetTimeout = (
     callback: () => void,
     delay: number
@@ -43,6 +41,21 @@ const defaultLeafletRuntimeEnvironmentScope: LeafletRuntimeEnvironmentScope = {
 
 export function setLeafletRuntime(runtime: unknown): void {
     leafletRuntimeRegistry.runtime = runtime;
+}
+
+export function isRegisteredLeafletRuntime(
+    value: unknown
+): value is Record<string, unknown> {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+        return false;
+    }
+
+    return (
+        hasFunctionProperty(value, "Layer") &&
+        hasFunctionProperty(value, "map") &&
+        hasFunctionProperty(value, "tileLayer") &&
+        hasControlProperty(value)
+    );
 }
 
 export function clearLeafletRuntimeForTests(): void {
@@ -107,6 +120,29 @@ function getLeafletRuntimeCandidates(): unknown[] {
     return [leafletRuntimeRegistry.runtime];
 }
 
+function hasControlProperty(value: object): boolean {
+    if (!("control" in value)) {
+        return false;
+    }
+
+    const control = value.control;
+    return (
+        (typeof control === "function" || typeof control === "object") &&
+        control !== null
+    );
+}
+
+function hasFunctionProperty(
+    value: object,
+    key: "Layer" | "map" | "tileLayer"
+): boolean {
+    if (!(key in value)) {
+        return false;
+    }
+
+    return typeof value[key as keyof typeof value] === "function";
+}
+
 function getRequiredClearTimeout(
     scope: LeafletRuntimeEnvironmentScope
 ): LeafletRuntimeClearTimeout {
@@ -118,7 +154,9 @@ function getRequiredClearTimeout(
     throw new TypeError("leafletRuntime requires clearTimeout");
 }
 
-function getRequiredDateNow(scope: LeafletRuntimeEnvironmentScope): () => number {
+function getRequiredDateNow(
+    scope: LeafletRuntimeEnvironmentScope
+): () => number {
     const dateNow = scope.getDateNow?.();
     if (typeof dateNow === "function") {
         return dateNow;
