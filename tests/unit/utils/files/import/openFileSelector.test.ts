@@ -139,6 +139,42 @@ describe(openFileSelector, () => {
         }
     });
 
+    it("rejects array-shaped native dialog APIs and uses browser file input", async () => {
+        expect.assertions(5);
+
+        const file = new File([new Uint8Array([2])], "fallback.fit");
+        const openOverlayDialog = vi.fn<() => Promise<string[]>>(async () => [
+            String.raw`C:\rides\native.fit`,
+        ]);
+        const malformedElectronApi = Object.assign([], {
+            openOverlayDialog,
+        });
+        const electronApiScope: RendererElectronApiScope = {
+            getElectronAPI: () => malformedElectronApi,
+        };
+        const clickSpy = vi
+            .spyOn(HTMLInputElement.prototype, "click")
+            .mockImplementation(function selectFile(this: HTMLInputElement) {
+                Object.defineProperty(this, "selectedFiles", {
+                    configurable: true,
+                    value: [file],
+                });
+                this.dispatchEvent(new Event("change"));
+            });
+
+        try {
+            await openFileSelector({ electronApiScope });
+
+            expect(openOverlayDialog).not.toHaveBeenCalled();
+            expect(clickSpy).toHaveBeenCalledOnce();
+            expect(mocks.loadOverlayFiles).toHaveBeenCalledWith([file]);
+            expect(mocks.loadingHide).toHaveBeenCalledOnce();
+            expect(document.body.childElementCount).toBe(0);
+        } finally {
+            cleanupGlobals();
+        }
+    });
+
     it("uses the imported overlay loader for browser file input selections when native dialog is unavailable", async () => {
         expect.assertions(4);
 

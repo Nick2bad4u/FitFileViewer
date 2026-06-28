@@ -133,15 +133,18 @@ export async function openFileSelector({
 function isFileSelectorElectronApi(
     value: unknown
 ): value is FileSelectorElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as FileSelectorElectronAPI;
     return (
-        typeof api.openOverlayDialog === "function" ||
-        typeof api.readFile === "function"
+        typeof value["openOverlayDialog"] === "function" ||
+        typeof value["readFile"] === "function"
     );
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function getFileSelectorElectronApi(

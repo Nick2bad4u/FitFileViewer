@@ -438,7 +438,9 @@ spelling direct ambient constructor types.
 Open-file selector hidden input creation, jsdom detection, microtask fallback, timeout cleanup, and
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
-guardrails blocking those direct selector runtime primitives from returning.
+guardrails blocking those direct selector runtime primitives from returning. Open-file selector Electron API candidate
+validation now checks direct optional method properties through a non-array record guard instead of casting to the local
+API shape, with focused malformed candidate coverage and architecture coverage blocking that cast from returning.
 Browser tab container/status/view-button lookups, Files/Calendar/Library view path/content/control lookups, open-file
 button lookup, Browser tab scaffold/row/card/control element and text-node creation, HTMLElement/input/select checks,
 managed listener abort-controller creation, and Browser listing/library scan timestamp reads now route through
