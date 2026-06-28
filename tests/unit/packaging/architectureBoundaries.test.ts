@@ -12650,7 +12650,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(18);
+        expect.assertions(31);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12670,6 +12670,19 @@ describe("architecture boundaries", () => {
         const rendererRenderStateContractSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/rendererRenderStateContract.ts"
+            )
+        );
+        const rendererRenderLifecycleStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererRenderLifecycleState.ts"
+            )
+        );
+        const fitFileStateSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/domain/fitFileState.ts")
+        );
+        const rendererStateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/rendererStateIntegration.ts"
             )
         );
         const stateManagerSource = stripComments(
@@ -12702,11 +12715,48 @@ describe("architecture boundaries", () => {
         expect(rendererRenderStateContractSource).toContain(
             "normalizeRendererTableRenderStateBranch"
         );
+        expect(rendererRenderLifecycleStateSource).toContain(
+            "setRendererChartsRendered(false"
+        );
+        expect(rendererRenderLifecycleStateSource).toContain(
+            "setRendererMapRendered(false"
+        );
+        expect(rendererRenderLifecycleStateSource).toContain(
+            "setRendererTablesRendered(false"
+        );
         expect(stateManagerSource).toContain("charts.isRendered");
         expect(stateManagerSource).toContain("charts.isRendering");
         expect(stateManagerSource).toContain("charts.tabActive");
         expect(stateManagerSource).toContain("map.measurementMode");
         expect(stateManagerSource).toContain("tables.isRendered");
+        expect(fitFileStateSource).toContain(
+            "rendererRenderLifecycleState.js"
+        );
+        expect(fitFileStateSource).toContain(
+            "resetRendererRenderLifecycle({ source })"
+        );
+        expect(fitFileStateSource).not.toContain(
+            'setState("charts.isRendered"'
+        );
+        expect(fitFileStateSource).not.toContain('setState("map.isRendered"');
+        expect(fitFileStateSource).not.toContain(
+            'setState("tables.isRendered"'
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "rendererRenderLifecycleState.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "resetRendererRenderLifecycle({"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'setState("charts.isRendered"'
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'setState("map.isRendered"'
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'setState("tables.isRendered"'
+        );
         expect(tabStateManagerHandlersSource).toContain(
             "rendererChartRenderState.js"
         );

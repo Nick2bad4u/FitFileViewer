@@ -1430,6 +1430,8 @@ Tab readiness state runtime production defaults now reuse the shared browser dat
 `Date.now` getter, with focused runtime coverage and architecture guardrails blocking the inline default from returning.
 Tab activation now updates chart-tab active state and map-rendered state through the typed render-state facades,
 with architecture coverage blocking raw tab-handler writes to `charts.tabActive` and `map.isRendered`.
+FIT file loads and renderer component refreshes now reset chart/map/table render flags through
+`resetRendererRenderLifecycle`, with coverage blocking duplicated raw reset writes in those callers.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.

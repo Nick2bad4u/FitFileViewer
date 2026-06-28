@@ -12,6 +12,7 @@ import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabState.js";
+import { resetRendererRenderLifecycle } from "../domain/rendererRenderLifecycleState.js";
 import { UIActions } from "../domain/uiStateManager.js";
 import {
     getRendererElectronApi,
@@ -446,15 +447,7 @@ function setupStateAwareEventHandlers({
  */
 function updateAllComponents(newData: unknown): void {
     // Reset all component render states
-    setState("charts.isRendered", false, {
-        silent: true,
-        source: "updateAllComponents",
-    });
-    setState("map.isRendered", false, {
-        silent: true,
-        source: "updateAllComponents",
-    });
-    setState("tables.isRendered", false, {
+    resetRendererRenderLifecycle({
         silent: true,
         source: "updateAllComponents",
     });

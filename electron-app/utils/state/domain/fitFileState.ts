@@ -23,6 +23,7 @@ import {
     getFitFileStateRuntime,
     type FitFileStateRuntime,
 } from "./fitFileStateRuntime.js";
+import { resetRendererRenderLifecycle } from "./rendererRenderLifecycleState.js";
 
 type DataRecord = Record<string, unknown>;
 type RawFitDataArrayKey =
@@ -568,9 +569,7 @@ export class FitFileStateManager {
         setCurrentFileState(resolvedPath, source);
         setState("fitFile.loaded", safeData, { source });
 
-        setState("charts.isRendered", false, { source });
-        setState("map.isRendered", false, { source });
-        setState("tables.isRendered", false, { source });
+        resetRendererRenderLifecycle({ source });
 
         setState("performance.lastLoadTime", fitFileStateRuntime().dateNow(), {
             source,
