@@ -10,12 +10,12 @@ export type StorageLike = {
 };
 
 /**
- * Optional storage-provider callback for tests or alternate storage scopes.
+ * Storage-provider callback for tests or alternate storage scopes.
  */
 export type StorageProvider = () => null | StorageLike;
 
 export interface StorageUtilsRuntimeScope {
-    readonly getLocalStorage?: (() => null | StorageLike) | undefined;
+    readonly getLocalStorage: () => null | StorageLike;
 }
 
 export interface StorageUtilsRuntime {
@@ -29,7 +29,11 @@ const defaultStorageUtilsRuntimeScope: StorageUtilsRuntimeScope = {
 function getScopeLocalStorage(
     scope: StorageUtilsRuntimeScope
 ): null | StorageLike {
-    return scope.getLocalStorage?.() ?? null;
+    if (typeof scope.getLocalStorage !== "function") {
+        throw new TypeError("storageUtils requires a localStorage provider");
+    }
+
+    return scope.getLocalStorage();
 }
 
 export function getStorageUtilsRuntime(

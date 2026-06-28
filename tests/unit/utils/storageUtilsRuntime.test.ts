@@ -54,6 +54,8 @@ describe("storage utilities runtime", () => {
                 localStorage,
             } as unknown as Parameters<typeof getStorageUtilsRuntime>[0]);
 
-        expect(runtime.getDefaultStorage()).toBeNull();
+        expect(() => runtime.getDefaultStorage()).toThrow(
+            "storageUtils requires a localStorage provider"
+        );
     });
 });
