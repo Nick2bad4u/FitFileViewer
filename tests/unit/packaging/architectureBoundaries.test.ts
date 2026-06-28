@@ -20021,7 +20021,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(97);
+        expect.assertions(103);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -20282,10 +20282,24 @@ describe("architecture boundaries", () => {
         expect(openFileSelectorSource).not.toContain(
             "const api = value as FileSelectorElectronAPI"
         );
-        expect(openFileSelectorSource).toContain("function isRecord(");
+        expect(openFileSelectorSource).toContain(
+            "type FileSelectorElectronApiMethods = Readonly<{"
+        );
+        expect(openFileSelectorSource).toContain(
+            "function isFileSelectorElectronApiMethods("
+        );
         expect(openFileSelectorSource).toContain("!Array.isArray(value)");
         expect(openFileSelectorSource).toContain(
-            'typeof value["openOverlayDialog"] === "function"'
+            "function readElectronApiValue("
+        );
+        expect(openFileSelectorSource).toContain("value.openOverlayDialog");
+        expect(openFileSelectorSource).toContain("value.readFile");
+        expect(openFileSelectorSource).not.toContain(
+            'value["openOverlayDialog"]'
+        );
+        expect(openFileSelectorSource).not.toContain('value["readFile"]');
+        expect(openFileSelectorSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
         );
         expect(openFileSelectorSource).not.toContain("Pick<ElectronAPI");
         expect(fileBrowserTabSource).toContain("ElectronDialogApi");

@@ -19,6 +19,11 @@ type FileSelectorElectronAPI = {
     readonly readFile?: ElectronFileApi["readFile"];
 };
 
+type FileSelectorElectronApiMethods = Readonly<{
+    readonly openOverlayDialog?: ElectronDialogApi["openOverlayDialog"];
+    readonly readFile?: ElectronFileApi["readFile"];
+}>;
+
 type NativeFileFacade = OverlayInputFile & {
     arrayBuffer: () => Promise<ArrayBuffer>;
     name: string;
@@ -133,18 +138,33 @@ export async function openFileSelector({
 function isFileSelectorElectronApi(
     value: unknown
 ): value is FileSelectorElectronAPI {
-    if (!isRecord(value)) {
+    if (!isFileSelectorElectronApiMethods(value)) {
         return false;
     }
 
+    const openOverlayDialog = readElectronApiValue(
+        () => value.openOverlayDialog
+    );
+    const readFile = readElectronApiValue(() => value.readFile);
+
     return (
-        typeof value["openOverlayDialog"] === "function" ||
-        typeof value["readFile"] === "function"
+        typeof openOverlayDialog === "function" ||
+        typeof readFile === "function"
     );
 }
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isFileSelectorElectronApiMethods(
+    value: unknown
+): value is FileSelectorElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function getFileSelectorElectronApi(

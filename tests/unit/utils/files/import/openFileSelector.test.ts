@@ -175,6 +175,48 @@ describe(openFileSelector, () => {
         }
     });
 
+    it("uses browser file input when scoped Electron API methods cannot be inspected", async () => {
+        expect.assertions(5);
+
+        const file = new File([new Uint8Array([3])], "proxy-fallback.fit");
+        const electronApiScope: RendererElectronApiScope = {
+            getElectronAPI: () =>
+                new Proxy(
+                    {},
+                    {
+                        get(_target, propertyKey) {
+                            if (propertyKey === "openOverlayDialog") {
+                                throw new Error("dialog unavailable");
+                            }
+
+                            return undefined;
+                        },
+                    }
+                ),
+        };
+        const clickSpy = vi
+            .spyOn(HTMLInputElement.prototype, "click")
+            .mockImplementation(function selectFile(this: HTMLInputElement) {
+                Object.defineProperty(this, "selectedFiles", {
+                    configurable: true,
+                    value: [file],
+                });
+                this.dispatchEvent(new Event("change"));
+            });
+
+        try {
+            await openFileSelector({ electronApiScope });
+
+            expect(clickSpy).toHaveBeenCalledOnce();
+            expect(mocks.loadOverlayFiles).toHaveBeenCalledWith([file]);
+            expect(mocks.showNotification).not.toHaveBeenCalled();
+            expect(mocks.loadingHide).toHaveBeenCalledOnce();
+            expect(document.body.childElementCount).toBe(0);
+        } finally {
+            cleanupGlobals();
+        }
+    });
+
     it("uses the imported overlay loader for browser file input selections when native dialog is unavailable", async () => {
         expect.assertions(4);
 
