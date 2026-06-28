@@ -273,10 +273,13 @@ const expectedRootToolingScripts = {
         "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
     "test:playwright":
         "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts",
+    "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
+    "sync:node-version-files:check":
+        "node scripts/sync-node-version-files.mjs --check",
     "update-deps":
         "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
     "verify:fast":
-        "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
+        "npm run sync:node-version-files:check && npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
     "verify:full":
         "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
     "verify:release": "npm run verify:full",
@@ -628,7 +631,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps verify release as the full pre-release readiness gate", () => {
-        expect.assertions(26);
+        expect.assertions(28);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const scripts = rootPackage.scripts ?? {};
@@ -643,12 +646,18 @@ describe("workspace package boundaries", () => {
 
         expect(scripts["release:verify"]).toBe("npm run verify:release");
         expect(scripts["verify:release"]).toBe("npm run verify:full");
+        expect(scripts["sync:node-version-files:check"]).toBe(
+            "node scripts/sync-node-version-files.mjs --check"
+        );
         expect(scripts["verify:release:signed"]).toBe(
             "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged"
         );
         expect(expandedReleaseGate).toContain("verify:release:");
         expect(expandedReleaseGate).toContain("verify:full:");
         expect(expandedReleaseGate).toContain("verify:fast:");
+        expect(expandedReleaseGate).toContain(
+            "npm run sync:node-version-files:check"
+        );
         expect(expandedReleaseGate).toContain("npm run prettier");
         expect(expandedReleaseGate).toContain("npm run lint");
         expect(expandedReleaseGate).toContain("npm run lint:css");
@@ -889,7 +898,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(20);
+        expect.assertions(26);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
@@ -937,8 +946,16 @@ describe("workspace package boundaries", () => {
             )
         ).toStrictEqual([]);
         expect(dependencyValidationWorkflow).toContain("schedule:");
+        expect(dependencyValidationWorkflow).toContain('".node-version"');
+        expect(dependencyValidationWorkflow).toContain('".nvmrc"');
         expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
         expect(dependencyValidationWorkflow).toContain("node-version: 24");
+        expect(dependencyValidationWorkflow).toContain(
+            "npm run sync:node-version-files:check"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "node-version-files-check.log"
+        );
         expect(dependencyValidationWorkflow).toContain(
             "xvfb-run -a npm run release:verify"
         );
@@ -958,6 +975,10 @@ describe("workspace package boundaries", () => {
         expect(dependencyValidationWorkflow).toContain(
             "Collect dependency validation diagnostics"
         );
+        expect(dependencyValidationWorkflow).toContain(
+            "repository-node-version.txt"
+        );
+        expect(dependencyValidationWorkflow).toContain("repository-nvmrc.txt");
         expect(dependencyValidationWorkflow).toContain(
             "cp -R release-dist artifacts/dependency-validation/release-dist"
         );

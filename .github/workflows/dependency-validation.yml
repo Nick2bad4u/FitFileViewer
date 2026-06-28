@@ -15,6 +15,8 @@ on:
             - develop
             - "release/*"
         paths:
+            - ".node-version"
+            - ".nvmrc"
             - "package.json"
             - "package-lock.json"
             - ".ncurc.json"
@@ -66,6 +68,7 @@ jobs:
               run: |
                   mkdir -p artifacts/dependency-validation
                   set -o pipefail
+                  npm run sync:node-version-files:check 2>&1 | tee artifacts/dependency-validation/node-version-files-check.log
                   npm ci --no-audit --no-fund 2>&1 | tee artifacts/dependency-validation/npm-ci-app.log
                   npm ci --prefix docusaurus --no-audit --no-fund 2>&1 | tee artifacts/dependency-validation/npm-ci-docusaurus.log
 
@@ -88,6 +91,8 @@ jobs:
                   node --version > artifacts/dependency-validation/node-version.txt
                   npm --version > artifacts/dependency-validation/npm-version.txt
                   git status --short > artifacts/dependency-validation/git-status.txt
+                  cp .node-version artifacts/dependency-validation/repository-node-version.txt
+                  cp .nvmrc artifacts/dependency-validation/repository-nvmrc.txt
                   cp package.json artifacts/dependency-validation/package.json
                   cp package-lock.json artifacts/dependency-validation/package-lock.json
                   cp docusaurus/package.json artifacts/dependency-validation/docusaurus-package.json
@@ -125,12 +130,22 @@ jobs:
                     echo "The failed dependency rehearsal uploaded \`dependency-validation-diagnostics\`."
                     echo
                     echo "### Captured logs"
+                    echo "- \`artifacts/dependency-validation/node-version-files-check.log\`"
                     echo "- \`artifacts/dependency-validation/npm-ci-app.log\`"
                     echo "- \`artifacts/dependency-validation/npm-ci-docusaurus.log\`"
                     echo "- \`artifacts/dependency-validation/release-verify.log\`"
                     echo "- \`artifacts/dependency-validation/npm-ls.txt\`"
                     echo "- \`artifacts/dependency-validation/docusaurus-npm-ls.txt\`"
                     echo "- \`artifacts/dependency-validation/root-artifacts-files.txt\`"
+                    echo
+                    echo "### Node version files check tail"
+                    if [ -f artifacts/dependency-validation/node-version-files-check.log ]; then
+                      echo '```text'
+                      tail -n 40 artifacts/dependency-validation/node-version-files-check.log
+                      echo '```'
+                    else
+                      echo "_No Node version file check log was produced._"
+                    fi
                     echo
                     echo "### App install tail"
                     if [ -f artifacts/dependency-validation/npm-ci-app.log ]; then

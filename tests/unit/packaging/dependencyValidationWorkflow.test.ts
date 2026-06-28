@@ -21,7 +21,7 @@ function readDependencyValidationWorkflow(): string {
 
 describe("dependency validation workflow", () => {
     it("uploads release gate diagnostics when dependency validation fails", () => {
-        expect.assertions(55);
+        expect.assertions(66);
 
         const workflow = readDependencyValidationWorkflow();
         const developmentGuide = readFileSync(developmentGuidePath, "utf8");
@@ -31,6 +31,8 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain("pull_request:");
         expect(workflow).toContain("merge_group:");
         expect(workflow).toContain("workflow_dispatch:");
+        expect(workflow).toContain('".node-version"');
+        expect(workflow).toContain('".nvmrc"');
         expect(workflow).toContain('"package.json"');
         expect(workflow).toContain('"package-lock.json"');
         expect(workflow).toContain('".ncurc.json"');
@@ -42,6 +44,10 @@ describe("dependency validation workflow", () => {
         );
         expect(workflow).toContain("timeout-minutes: 60");
         expect(workflow).toContain("node-version: 24");
+        expect(workflow).toContain("npm run sync:node-version-files:check");
+        expect(workflow).toContain(
+            "tee artifacts/dependency-validation/node-version-files-check.log"
+        );
         expect(workflow).toContain(
             "tee artifacts/dependency-validation/npm-ci-app.log"
         );
@@ -65,6 +71,12 @@ describe("dependency validation workflow", () => {
             "npm --version > artifacts/dependency-validation/npm-version.txt"
         );
         expect(workflow).toContain("git status --short");
+        expect(workflow).toContain(
+            "cp .node-version artifacts/dependency-validation/repository-node-version.txt"
+        );
+        expect(workflow).toContain(
+            "cp .nvmrc artifacts/dependency-validation/repository-nvmrc.txt"
+        );
         expect(workflow).toContain(
             "cp package.json artifacts/dependency-validation/package.json"
         );
@@ -98,6 +110,13 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain("GITHUB_STEP_SUMMARY");
         expect(workflow).toContain("The failed dependency rehearsal uploaded");
         expect(workflow).toContain("### Captured logs");
+        expect(workflow).toContain(
+            "artifacts/dependency-validation/node-version-files-check.log"
+        );
+        expect(workflow).toContain("### Node version files check tail");
+        expect(workflow).toContain(
+            "tail -n 40 artifacts/dependency-validation/node-version-files-check.log"
+        );
         expect(workflow).toContain("### App install tail");
         expect(workflow).toContain(
             "tail -n 40 artifacts/dependency-validation/npm-ci-app.log"
@@ -115,12 +134,14 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain("name: dependency-validation-diagnostics");
 
         expect(developmentGuide).toContain("### Dependency Validation");
-        expect(developmentGuide).toContain("runs `npm run release:verify`");
+        expect(developmentGuide).toContain(
+            "verifies `.node-version`/`.nvmrc` synchronization"
+        );
+        expect(developmentGuide).toContain("release:verify");
         expect(developmentGuide).toContain(
             "Dependency pull requests that change dependency update configuration"
         );
-        expect(developmentGuide).toContain(
-            "release gate and package smoke coverage"
-        );
+        expect(developmentGuide).toContain("Node version files");
+        expect(developmentGuide).toContain("package smoke");
     });
 });

@@ -5279,7 +5279,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps dependency validation on the scheduled release gate", () => {
-        expect.assertions(19);
+        expect.assertions(25);
 
         const dependencyValidationWorkflow = readRepositoryFile(
             ".github/workflows/dependency-validation.yml"
@@ -5292,6 +5292,8 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain("workflow_dispatch:");
         expect(dependencyValidationWorkflow).toContain("permissions:");
         expect(dependencyValidationWorkflow).toContain("contents: read");
+        expect(dependencyValidationWorkflow).toContain('".node-version"');
+        expect(dependencyValidationWorkflow).toContain('".nvmrc"');
         expect(dependencyValidationWorkflow).toContain('"package.json"');
         expect(dependencyValidationWorkflow).toContain('"package-lock.json"');
         expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
@@ -5308,6 +5310,12 @@ describe("architecture boundaries", () => {
             "npm ci --no-audit --no-fund"
         );
         expect(dependencyValidationWorkflow).toContain(
+            "npm run sync:node-version-files:check"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "node-version-files-check.log"
+        );
+        expect(dependencyValidationWorkflow).toContain(
             "npm ci --prefix docusaurus --no-audit --no-fund"
         );
         expect(dependencyValidationWorkflow).toContain(
@@ -5319,6 +5327,10 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain(
             "npm run release:list-release-dist-files"
         );
+        expect(dependencyValidationWorkflow).toContain(
+            "repository-node-version.txt"
+        );
+        expect(dependencyValidationWorkflow).toContain("repository-nvmrc.txt");
         expect(dependencyValidationWorkflow).toContain(
             "dependency-validation-diagnostics"
         );
