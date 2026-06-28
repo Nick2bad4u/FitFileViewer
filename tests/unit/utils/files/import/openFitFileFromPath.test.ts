@@ -129,6 +129,40 @@ describe(openFitFileFromPath, () => {
         }
     });
 
+    it("reports when scoped Electron file API is array-shaped", async () => {
+        expect.assertions(4);
+
+        cleanupFixture();
+
+        try {
+            const readFile = vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
+            const parseFitFile =
+                vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>();
+            const malformedElectronApi = Object.assign([], {
+                parseFitFile,
+                readFile,
+            });
+            const showNotification = vi.fn<ShowNotification>();
+            const result = await openFitFileFromPath({
+                electronApiScope: {
+                    getElectronAPI: () => malformedElectronApi,
+                },
+                filePath: "C:\\activities\\ride.fit",
+                showNotification,
+            });
+
+            expect({ result }).toStrictEqual({ result: false });
+            expect(readFile).not.toHaveBeenCalled();
+            expect(parseFitFile).not.toHaveBeenCalled();
+            expect(showNotification).toHaveBeenCalledWith(
+                "Electron file API unavailable.",
+                "error"
+            );
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("reads, parses, renders, forwards, and notifies for a valid FIT file path", async () => {
         expect.assertions(11);
 

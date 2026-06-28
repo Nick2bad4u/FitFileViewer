@@ -169,16 +169,19 @@ function resolveFitFileElectronAPI(
 }
 
 function isFitFileElectronAPI(value: unknown): value is FitFileElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as FitFileElectronAPI;
     return (
-        typeof api.readFile === "function" &&
-        typeof api.parseFitFile === "function" &&
-        hasOptionalFunction(api.notifyFitFileLoaded)
+        typeof value["readFile"] === "function" &&
+        typeof value["parseFitFile"] === "function" &&
+        hasOptionalFunction(value["notifyFitFileLoaded"])
     );
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function hasOptionalFunction(value: unknown): boolean {

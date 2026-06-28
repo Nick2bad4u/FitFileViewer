@@ -1860,9 +1860,9 @@ Open-FIT-file path button disable/enable checks now resolve the HTMLElement cons
 `openFitFileFromPathRuntime.ts` instead of checking the ambient constructor directly in `openFitFileFromPath.ts`,
 with focused runtime coverage and architecture coverage blocking direct constructor access and legacy direct
 runtime-scope properties from returning.
-Open-FIT-file path Electron API candidate validation now narrows scoped candidates through an unknown-valued candidate
-shape instead of casting to `Partial<FitFileElectronAPI>`, with architecture coverage blocking that bridge cast from
-returning.
+Open-FIT-file path Electron API candidate validation now checks required and optional method properties through a
+non-array record guard instead of casting to the local API shape, with focused malformed candidate coverage and
+architecture coverage blocking those bridge casts from returning.
 FIT browser feature-gate tab/content lookup now uses the shared browser-runtime HTMLElement constructor alias instead
 of a direct ambient constructor type spelling in its provider contract.
 App-actions lifecycle load-file timestamps and chart/map/table render duration measurements now route through
