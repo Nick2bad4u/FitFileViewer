@@ -1,16 +1,12 @@
-import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
-type GetStateFunction = (path: string) => unknown;
-type UpdateStateFunction = (
-    path: string,
-    value: Record<string, unknown>,
+type UpdatePerformanceSummaryFunction = (
+    summary: { chartsRendered: number; lastChartRender: number },
     options?: ChartStateUpdateOptions
 ) => void;
 
 interface ChartRenderPerformanceStateDependencies {
-    getState: GetStateFunction;
-    updateState: UpdateStateFunction;
+    updatePerformanceSummary: UpdatePerformanceSummaryFunction;
 }
 
 interface ChartRenderPerformanceStateInput {
@@ -28,22 +24,11 @@ export function updateChartRenderPerformanceState(
     dependencies: ChartRenderPerformanceStateDependencies,
     input: ChartRenderPerformanceStateInput
 ): void {
-    const existingRenderTimes = dependencies.getState(
-        "performance.renderTimes"
-    );
-    const renderTimes = isObjectRecord(existingRenderTimes)
-        ? existingRenderTimes
-        : {};
-
-    dependencies.updateState(
-        "performance",
+    dependencies.updatePerformanceSummary(
         {
             chartsRendered: input.totalChartsRendered,
-            renderTimes: {
-                ...renderTimes,
-                lastChartRender: input.renderTime,
-            },
+            lastChartRender: input.renderTime,
         },
-        { merge: true, source: "renderChartsWithData" }
+        { source: "renderChartsWithData" }
     );
 }

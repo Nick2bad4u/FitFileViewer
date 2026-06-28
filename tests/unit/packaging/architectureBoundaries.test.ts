@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(154);
+        expect.assertions(161);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12809,6 +12809,11 @@ describe("architecture boundaries", () => {
         const renderChartExportStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartExportState.ts"
+            )
+        );
+        const renderChartPerformanceStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartPerformanceState.ts"
             )
         );
         const renderChartLifecycleSource = stripComments(
@@ -13085,6 +13090,14 @@ describe("architecture boundaries", () => {
         expect(renderChartActionsSource).not.toContain(
             '"performance.renderTimes"'
         );
+        expect(renderChartPerformanceStateSource).toContain(
+            "dependencies.updatePerformanceSummary"
+        );
+        expect(renderChartPerformanceStateSource).not.toContain(
+            '"performance.renderTimes"'
+        );
+        expect(renderChartPerformanceStateSource).not.toContain("getState(");
+        expect(renderChartPerformanceStateSource).not.toContain("updateState(");
         expect(renderChartLifecycleSource).toContain("setChartRendering");
         expect(renderChartLifecycleSource).toContain("setLoadingState");
         expect(renderChartLifecycleSource).toContain("clearChartRenderState");
@@ -13121,6 +13134,9 @@ describe("architecture boundaries", () => {
             "setExportingState: setRendererExporting"
         );
         expect(renderChartJSSource).toContain("setRendererExporting");
+        expect(renderChartJSSource).toContain(
+            "updateRendererChartRenderPerformanceSummary"
+        );
         expect(renderChartStateViewSource).not.toContain("charts.isRendered");
         expect(renderChartStateViewSource).not.toContain("charts.isRendering");
         expect(renderChartStateViewSource).not.toContain(
@@ -13179,6 +13195,12 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartSuccessfulCompletionSource).toContain(
             "getChartOptions: dependencies.getChartOptions"
+        );
+        expect(renderChartSuccessfulCompletionSource).toContain(
+            "updatePerformanceSummary: dependencies.updatePerformanceSummary"
+        );
+        expect(renderChartSuccessfulCompletionSource).not.toContain(
+            "getState: GetStateFunction"
         );
         expect(stateManagerSource).toContain("charts.isRendered");
         expect(stateManagerSource).toContain("charts.isRendering");

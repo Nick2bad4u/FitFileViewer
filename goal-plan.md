@@ -2062,6 +2062,9 @@ blocking direct performance render-time path reads from returning to chart statu
 Chart export state now toggles `ui.isExporting` through `rendererExportState.ts` instead of a generic chart export
 state dependency, with focused export-state tests and architecture checks blocking direct export UI path writes from
 returning to `renderChartExportState.ts`.
+Chart successful-render performance summaries now route through the app-actions performance facade instead of letting
+`renderChartPerformanceState.ts` read and patch raw performance paths directly, with focused helper/app-actions tests
+and architecture checks blocking direct performance path reads and writes from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

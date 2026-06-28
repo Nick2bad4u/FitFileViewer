@@ -42,7 +42,6 @@ export async function completeChartDataRender(
         doc: dependencies.doc,
         getChartOptions: dependencies.getChartOptions,
         getComputedStateManager: dependencies.getComputedStateManager,
-        getState: dependencies.getState,
         getThemeConfig: dependencies.getThemeConfig,
         isTestRuntime: dependencies.isTestRuntime,
         notify: dependencies.notify,
@@ -51,6 +50,7 @@ export async function completeChartDataRender(
         showRenderNotification: dependencies.showRenderNotification,
         updateChartControlsUI: (enabled) =>
             dependencies.getUIStateManager()?.updateChartControlsUI?.(enabled),
+        updatePerformanceSummary: dependencies.updatePerformanceSummary,
         updatePreviousChartState: dependencies.updatePreviousChartState,
         updateState: dependencies.updateState,
     };

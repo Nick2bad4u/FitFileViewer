@@ -14,6 +14,7 @@ import {
     setRendererTablesRendered,
     subscribeToRendererMapMeasurementMode,
     updateAppActionWindowState,
+    updateRendererChartRenderPerformanceSummary,
     updateRendererMapState,
     updateRendererPerformanceRenderTimes,
     updateRendererTableState,
@@ -31,7 +32,7 @@ describe("appActionsState lifecycle facade", () => {
     });
 
     it("writes app lifecycle, map, table, and performance paths", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         setAppInitialized(true, { source: "test" });
         setAppIsOpeningFile(true, { source: "test" });
@@ -41,6 +42,10 @@ describe("appActionsState lifecycle facade", () => {
         setPerformanceLastLoadTime(123, { source: "test" });
         updateAppActionWindowState({ width: 1000 }, { source: "test" });
         updateRendererPerformanceRenderTimes({ chart: 12 }, { source: "test" });
+        updateRendererChartRenderPerformanceSummary(
+            { chartsRendered: 5, lastChartRender: 34 },
+            { source: "test" }
+        );
         updateRendererTableState({ currentPage: 3 }, { source: "test" });
         updateRendererMapState(
             { center: [1, 2], isRendered: true, zoom: 9 },
@@ -56,7 +61,9 @@ describe("appActionsState lifecycle facade", () => {
         expect(getState("ui.windowState")).toMatchObject({ width: 1000 });
         expect(getState("performance.renderTimes")).toMatchObject({
             chart: 12,
+            lastChartRender: 34,
         });
+        expect(getState("performance.chartsRendered")).toBe(5);
         expect(getRendererPerformanceRenderTime("chart")).toBe(12);
         expect(getState("tables")).toMatchObject({ currentPage: 3 });
         expect(getRendererMapState()).toMatchObject({

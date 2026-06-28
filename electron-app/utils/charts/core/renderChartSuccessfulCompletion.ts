@@ -8,7 +8,6 @@ import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { resolveChartRenderResultState } from "./renderChartResultState.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
-type GetStateFunction = (path: string) => unknown;
 type GetChartOptionsFunction = () => unknown;
 type NotifySuccessFunction = (
     message: string,
@@ -21,6 +20,10 @@ type ShowRenderNotificationFunction = (
 type UpdateStateFunction = (
     path: string,
     value: Record<string, unknown>,
+    options?: ChartStateUpdateOptions
+) => void;
+type UpdatePerformanceSummaryFunction = (
+    summary: { chartsRendered: number; lastChartRender: number },
     options?: ChartStateUpdateOptions
 ) => void;
 type AddChartHoverEffectsFunction = (
@@ -48,7 +51,6 @@ interface SuccessfulChartRenderCompletionDependencies {
     doc: Document;
     getComputedStateManager(): ComputedStateAccess;
     getChartOptions: GetChartOptionsFunction;
-    getState: GetStateFunction;
     getThemeConfig: GetThemeConfigFunction;
     isTestRuntime: boolean;
     notify: NotifySuccessFunction;
@@ -61,6 +63,7 @@ interface SuccessfulChartRenderCompletionDependencies {
         visibleFields: number,
         timestamp: number
     ): unknown;
+    updatePerformanceSummary: UpdatePerformanceSummaryFunction;
     updateState: UpdateStateFunction;
 }
 
@@ -128,8 +131,7 @@ export async function completeSuccessfulChartRender(
 
     updateChartRenderPerformanceState(
         {
-            getState: dependencies.getState,
-            updateState: dependencies.updateState,
+            updatePerformanceSummary: dependencies.updatePerformanceSummary,
         },
         { renderTime, totalChartsRendered }
     );

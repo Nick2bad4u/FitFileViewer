@@ -1529,7 +1529,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
         });
 
         it("should update performance state on completion", async () => {
-            expect.assertions(3);
+            expect.assertions(5);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1540,12 +1540,27 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
                 { chart: expect.any(Number) },
                 expect.any(Object)
             );
+            expect(mocks.stateManager.updateState).toHaveBeenCalledWith(
+                "performance",
+                {
+                    chartsRendered: expect.any(Number),
+                    renderTimes: expect.objectContaining({
+                        lastChartRender: expect.any(Number),
+                    }),
+                },
+                expect.any(Object)
+            );
             expect({ rendered: view }).toStrictEqual({ rendered: true });
             const performanceStateUpdates =
                 mocks.stateManager.updateState.mock.calls.filter(
                     ([path]) => path === "performance.renderTimes"
                 );
             expect(performanceStateUpdates).not.toHaveLength(0);
+            const performanceSummaryUpdates =
+                mocks.stateManager.updateState.mock.calls.filter(
+                    ([path]) => path === "performance"
+                );
+            expect(performanceSummaryUpdates).not.toHaveLength(0);
         });
     });
 

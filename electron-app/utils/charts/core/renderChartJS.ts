@@ -32,6 +32,7 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import {
     getRendererPerformanceRenderTime,
+    updateRendererChartRenderPerformanceSummary,
     updateRendererPerformanceRenderTimes,
 } from "../../state/domain/appActionsState.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
@@ -672,7 +673,6 @@ async function renderChartsWithData(
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
             getChartOptions: getRendererChartOptions,
-            getState: callGetState,
             getThemeConfig: getThemeConfigSafe,
             getUIStateManager: getUIStateManagerMaybe,
             isTestRuntime,
@@ -680,6 +680,8 @@ async function renderChartsWithData(
             now: renderChartRuntime().now,
             nowPerformance: renderChartRuntime().nowPerformance,
             showRenderNotification: showRenderNotificationSafe,
+            updatePerformanceSummary:
+                updateRendererChartRenderPerformanceSummary,
             updatePreviousChartState,
             updateState: callUpdateState,
         },

@@ -14,6 +14,7 @@ export type AppActionTableState = Record<string, unknown>;
 const MAP_MEASUREMENT_MODE_STATE_PATH = "map.measurementMode";
 const MAP_SELECTED_LAP_STATE_PATH = "map.selectedLap";
 const MAP_STATE_PATH = "map";
+const PERFORMANCE_STATE_PATH = "performance";
 const PERFORMANCE_LAST_LOAD_TIME_STATE_PATH = "performance.lastLoadTime";
 const PERFORMANCE_RENDER_TIMES_STATE_PATH = "performance.renderTimes";
 const TABLES_RENDERED_STATE_PATH = "tables.isRendered";
@@ -160,6 +161,31 @@ export function updateRendererPerformanceRenderTimes(
         source: "appActionsState.updatePerformanceRenderTimes",
         ...options,
     });
+}
+
+export function updateRendererChartRenderPerformanceSummary(
+    summary: { chartsRendered: number; lastChartRender: number },
+    options: StateUpdateOptions = {}
+): void {
+    const existingRenderTimes = getState(PERFORMANCE_RENDER_TIMES_STATE_PATH);
+    const renderTimes = isRecord(existingRenderTimes)
+        ? existingRenderTimes
+        : {};
+
+    updateState(
+        PERFORMANCE_STATE_PATH,
+        {
+            chartsRendered: summary.chartsRendered,
+            renderTimes: {
+                ...renderTimes,
+                lastChartRender: summary.lastChartRender,
+            },
+        },
+        {
+            source: "appActionsState.updateChartRenderPerformanceSummary",
+            ...options,
+        }
+    );
 }
 
 export function updateRendererTableState(
