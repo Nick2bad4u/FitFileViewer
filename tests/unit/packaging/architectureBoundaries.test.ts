@@ -2106,7 +2106,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload API domain contracts split from the composed preload API", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const localDomainContracts = preloadDomainContractFiles
             .filter((relativeFile) =>
@@ -2131,6 +2131,7 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).toContain("ElectronMenuEventApi");
         expect(sharedPreloadApiSource).toContain("ElectronMainStateApi");
         expect(sharedPreloadApiSource).not.toContain("Pick<ElectronAPI");
+        expect(sharedPreloadApiSource).not.toMatch(/\w+\??:\s*\(/u);
         expect(sharedPreloadApiDomainsSource).toContain(
             "export interface ElectronFileApi"
         );

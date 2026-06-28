@@ -251,6 +251,9 @@ instead of local `Pick<ElectronAPI, ...>` aliases. Renderer FIT decode candidate
 single-overlay loading, and main UI DOM validation now use shared file API-domain contracts instead of local
 `Pick<ElectronAPI, ...>` aliases, and the drag/drop FIT decoder candidate now uses a named readonly alias instead
 of a generic local Electron API interface.
+The composed shared `ElectronAPI` contract now remains a pure aggregate of domain interfaces, with architecture
+coverage blocking direct method signatures in `electron-app/shared/preloadApi.ts` so method ownership stays in
+`preloadApiDomains.ts`.
 
 Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
 and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling
