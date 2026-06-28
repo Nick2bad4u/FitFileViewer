@@ -6,6 +6,7 @@ import {
     __resetStateManagerForTests,
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import { setLoadedFitFiles } from "../../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 
 const showNotificationMock = vi.hoisted(() =>
     vi.fn<(message: string, type: string, duration?: number) => void>()
@@ -83,8 +84,8 @@ describe(createExportGPXButton, () => {
                 createObjectURL,
                 revokeObjectURL,
             });
+            setLoadedFitFiles([{ displayName: "Morning Ride" }], "test");
             setActiveFitRawData({
-                loadedFitFiles: [{ displayName: "Morning Ride" }],
                 recordMesgs: [
                     {
                         enhancedAltitude: 10,
@@ -201,7 +202,7 @@ describe(createExportGPXButton, () => {
         }
     });
 
-    it("filters loaded-file metadata from raw route data before naming downloads", async () => {
+    it("uses loaded-file state instead of raw route data when naming downloads", async () => {
         expect.assertions(2);
 
         try {
@@ -212,11 +213,12 @@ describe(createExportGPXButton, () => {
                 createObjectURL: vi.fn(() => "blob:track"),
                 revokeObjectURL: vi.fn(),
             });
+            setLoadedFitFiles([{ name: "State FIT Activity" }], "test");
             setActiveFitRawData({
                 loadedFitFiles: [
                     null,
                     { displayName: 42 },
-                    { name: "Filtered FIT Activity" },
+                    { name: "Legacy Raw Activity" },
                 ],
                 recordMesgs: [
                     {
@@ -230,7 +232,7 @@ describe(createExportGPXButton, () => {
             button.click();
 
             const link = queryRequiredAnchor(
-                "a[download='Filtered_FIT_Activity.gpx']"
+                "a[download='State_FIT_Activity.gpx']"
             );
             const [[blob]] = vi.mocked(URL.createObjectURL).mock.calls as [
                 [Blob],
@@ -238,7 +240,7 @@ describe(createExportGPXButton, () => {
 
             expect(link).toBeInstanceOf(HTMLAnchorElement);
             await expect(blob.text()).resolves.toContain(
-                "<name>Filtered FIT Activity</name>"
+                "<name>State FIT Activity</name>"
             );
         } finally {
             cleanupTestGlobals();

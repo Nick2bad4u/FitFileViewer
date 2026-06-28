@@ -1,10 +1,7 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
-import {
-    getActiveFitRouteData,
-    isFitRouteRecord,
-} from "../../state/domain/fitRouteDataState.js";
+import { getActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
@@ -15,7 +12,6 @@ import {
 } from "./createExportGPXButtonRuntime.js";
 import {
     buildGpxFromRecords,
-    type LoadedFitFileDescriptor,
     resolveTrackNameFromFileIdentity,
     resolveTrackNameFromLoadedFiles,
 } from "./gpxExport.js";
@@ -24,33 +20,6 @@ const downloadCleanupTimers = new WeakMap<
     HTMLAnchorElement,
     CreateExportGPXButtonTimer
 >();
-
-function getStringProperty(
-    record: Record<string, unknown>,
-    key: keyof LoadedFitFileDescriptor
-): string | undefined {
-    const value = record[key];
-    return typeof value === "string" ? value : undefined;
-}
-
-function isLoadedFitFileDescriptor(
-    value: unknown
-): value is LoadedFitFileDescriptor {
-    return (
-        isFitRouteRecord(value) &&
-        (getStringProperty(value, "displayName") !== undefined ||
-            getStringProperty(value, "filePath") !== undefined ||
-            getStringProperty(value, "name") !== undefined)
-    );
-}
-
-function getLoadedFitFileDescriptors(
-    value: unknown
-): LoadedFitFileDescriptor[] | undefined {
-    return Array.isArray(value)
-        ? value.filter(isLoadedFitFileDescriptor)
-        : undefined;
-}
 
 function createExportIcon(
     runtime: CreateExportGPXButtonRuntime,
@@ -83,8 +52,8 @@ function createExportIcon(
 
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
- * The button uses the current theme colors and exports the track from
- * explicit FIT route state.
+ * The button uses the current theme colors and exports the track from explicit
+ * FIT route state.
  */
 export function createExportGPXButton(): HTMLButtonElement {
     const runtime = getCreateExportGPXButtonRuntime();
@@ -125,11 +94,8 @@ export function createExportGPXButton(): HTMLButtonElement {
                     sourceData: routeData.rawData,
                 }).storageIdentity
             );
-            const loadedFitFiles = getLoadedFitFileDescriptors(
-                routeData.rawData?.["loadedFitFiles"]
-            );
             const trackName = resolveTrackNameFromLoadedFiles(
-                loadedFitFiles ?? getLoadedFitFiles(),
+                getLoadedFitFiles(),
                 fallbackTrackName
             );
             const gpx = buildGpxFromRecords(routeData.recordMesgs, {

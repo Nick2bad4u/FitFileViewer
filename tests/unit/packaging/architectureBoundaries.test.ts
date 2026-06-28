@@ -18351,7 +18351,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(41);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -18374,6 +18374,14 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createExportGPXButtonSource).toContain(
             "createExportGPXButtonRuntime.js"
+        );
+        expect(createExportGPXButtonSource).toContain("loadedFitFilesState.js");
+        expect(createExportGPXButtonSource).toContain("getLoadedFitFiles()");
+        expect(createExportGPXButtonSource).not.toContain(
+            'rawData?.["loadedFitFiles"]'
+        );
+        expect(createExportGPXButtonSource).not.toContain(
+            "getLoadedFitFileDescriptors"
         );
         expect(createExportGPXButtonSource).toContain("createAbortController");
         expect(createExportGPXButtonSource).not.toContain(
