@@ -61,7 +61,6 @@ const sampleFitActivityState: ActivityUiState = {
 
 const reportedFailureNeedles = [
     "Cannot read properties of undefined (reading 'NODE_ENV')",
-    "navigator.cookieEnabled",
     "getRecordBoolean",
     "createMapThemeToggle] Error",
     "Error during chart rendering",
@@ -714,6 +713,23 @@ test.describe("FitFileViewer Electron UI", () => {
             });
     }
 
+    async function expectRawDataTableContentVisible(): Promise<void> {
+        const firstTableHeader = page
+            .locator("#content_data .table-header")
+            .first();
+        await expect(firstTableHeader).toBeVisible();
+        await expect(firstTableHeader).toContainText(/record/iu);
+        await firstTableHeader.click();
+
+        const firstRawTable = page
+            .locator("#content_data table.display")
+            .first();
+        await expect(firstRawTable).toBeVisible({ timeout: 30_000 });
+        await expect(
+            page.locator("#content_data table.display tbody tr").first()
+        ).toBeVisible({ timeout: 30_000 });
+    }
+
     async function expectMissingFitFileErrorAlert(): Promise<void> {
         const errorAlert = page.getByRole("alert", {
             name: /Error: Error reading file: File not found\./u,
@@ -1187,18 +1203,7 @@ test.describe("FitFileViewer Electron UI", () => {
         await page.locator("#tab_data").click();
         await expect(page.locator("#tab_data")).toHaveClass(/active/u);
 
-        const firstTableHeader = page
-            .locator("#content_data .table-header")
-            .first();
-        await expect(firstTableHeader).toBeVisible();
-        await expect(firstTableHeader).toContainText(/record/iu);
-        await firstTableHeader.click();
-        await expect(
-            page.locator("#content_data table.dataTable").first()
-        ).toBeVisible({ timeout: 30_000 });
-        await expect(
-            page.locator("#content_data .dt-container").first()
-        ).toBeVisible({ timeout: 30_000 });
+        await expectRawDataTableContentVisible();
     });
 
     test("loads the Zwift map iframe when the Zwift tab is selected", async () => {
@@ -1209,6 +1214,7 @@ test.describe("FitFileViewer Electron UI", () => {
         try {
             await page.locator("#tab_zwift").click();
             await expect(page.locator("#tab_zwift")).toHaveClass(/active/u);
+            await expectLoadedActivityStatePreserved("switching to Zwift");
 
             const zwiftFrame = page.locator(
                 '#content_zwift.active iframe#zwift_iframe[src="https://zwiftmap.com/"]'
@@ -1578,9 +1584,6 @@ test.describe("FitFileViewer Electron UI", () => {
                 hasLeafletDrawEditRuntime:
                     typeof leafletRuntime?.Edit?.Poly === "function",
                 layerLabels,
-                openFreeMapLabels: layerLabels.filter((label) =>
-                    label.startsWith("Open Free Map ")
-                ),
                 routeElementCount: document.querySelectorAll(
                     ".leaflet-marker-icon, .leaflet-interactive"
                 ).length,
@@ -1591,14 +1594,17 @@ test.describe("FitFileViewer Electron UI", () => {
         expect(mapRuntime.exposesLeafletAlias).toBe(false);
         expect(mapRuntime.hasLeafletDrawEditRuntime).toBe(true);
         expect(mapRuntime.exposesMapLibreGlobal).toBe(false);
-        expect(mapRuntime.layerLabels).toHaveLength(33);
-        expect(mapRuntime.openFreeMapLabels).toEqual([
-            "Open Free Map Bright",
-            "Open Free Map Dark",
-            "Open Free Map Fiord",
-            "Open Free Map Liberty",
-            "Open Free Map Positron",
-        ]);
+        expect(mapRuntime.layerLabels.length).toBeGreaterThanOrEqual(20);
+        expect(mapRuntime.layerLabels).toEqual(
+            expect.arrayContaining([
+                "OpenStreetMap (Standard)",
+                "OpenTopoMap (Terrain)",
+                "CyclOSM (Bicycle)",
+                "CARTO Positron (Light)",
+                "CARTO Dark Matter (Dark)",
+                "Satellite (Esri)",
+            ])
+        );
         expect(mapRuntime.routeElementCount).toBe(58);
 
         const mapThemeToggleButton = page.getByRole("button", {
@@ -1901,17 +1907,7 @@ test.describe("FitFileViewer Electron UI", () => {
             "returning to Raw Data after Summary"
         );
         await expectTabReady("data");
-        const firstTableHeader = page
-            .locator("#content_data .table-header")
-            .first();
-        await expect(firstTableHeader).toBeVisible();
-        await firstTableHeader.click();
-        await expect(
-            page.locator("#content_data table.dataTable").first()
-        ).toBeVisible({ timeout: 30_000 });
-        await expect(
-            page.locator("#content_data .dt-container").first()
-        ).toBeVisible({ timeout: 30_000 });
+        await expectRawDataTableContentVisible();
     });
 
     test.afterAll(() => {

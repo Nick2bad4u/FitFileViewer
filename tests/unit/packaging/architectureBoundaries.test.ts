@@ -14083,8 +14083,9 @@ describe("architecture boundaries", () => {
         const smokeSource = readRepositoryFile(playwrightSmokeFiles[0]);
         const requiredSmokeTests = [
             'test("auto-renders the selected FIT file in the Raw Data tab"',
-            "#content_data table.dataTable",
-            "#content_data .dt-container",
+            "expectRawDataTableContentVisible",
+            "#content_data table.display",
+            "#content_data table.display tbody tr",
             'test("loads the Zwift map iframe when the Zwift tab is selected"',
             'iframe#zwift_iframe[src="https://zwiftmap.com/"]',
             'await expect(zwiftFrame).toHaveAttribute("allow", "geolocation");',

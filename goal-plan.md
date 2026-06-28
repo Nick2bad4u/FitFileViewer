@@ -2065,6 +2065,8 @@ Renderer state integration active-tab subscriptions now route through `subscribe
 architecture checks blocking direct `ui.activeTab` subscriptions from returning there.
 Renderer state integration chart-controls subscriptions now route through `subscribeToRendererChartControlsVisible`,
 letting the module drop its local generic state-manager subscription bridge.
+The Zwift Playwright smoke now also asserts the selected FIT activity state survives switching to the Zwift iframe tab,
+covering the tab-preserved-loaded-state regression path for the previously blank external map tab.
 Chart action completion now writes performance render times through the app-actions state facade instead of a generic
 `updateState("performance.renderTimes", ...)` dependency, with focused action/app-actions tests and architecture checks
 blocking direct performance render-time path writes from returning to chart actions.

@@ -689,7 +689,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release readiness backed by app-level regression smoke coverage", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const playwrightSmoke = readFileSync(
@@ -712,6 +712,9 @@ describe("workspace package boundaries", () => {
         expect(playwrightSmoke).toContain("expectAltFitIframeLoadedActivity");
         expect(playwrightSmoke).toContain(
             'test("loads the Zwift map iframe when the Zwift tab is selected"'
+        );
+        expect(playwrightSmoke).toContain(
+            'expectLoadedActivityStatePreserved("switching to Zwift")'
         );
         expect(playwrightSmoke).toContain(
             'test("shows loading and loaded states for an empty Browser folder"'
