@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { BrowserAbortControllerConstructor } from "../../../electron-app/utils/runtime/browserRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserAddEventListener,
+} from "../../../electron-app/utils/runtime/browserRuntime.js";
 import { getErrorHandlingRuntime } from "../../../electron-app/utils/errors/errorHandlingRuntime.js";
 
 describe("getErrorHandlingRuntime", () => {
@@ -132,7 +135,7 @@ describe("getErrorHandlingRuntime", () => {
     it("resolves the default error listener target when listeners are registered", () => {
         expect.assertions(3);
 
-        const addEventListener = vi.fn();
+        const addEventListener = vi.fn<BrowserAddEventListener>();
         const listener = vi.fn();
         const controller = new AbortController();
         const options = { signal: controller.signal };
@@ -156,7 +159,7 @@ describe("getErrorHandlingRuntime", () => {
     it("resolves event targets through the injected listener provider", () => {
         expect.assertions(2);
 
-        const addEventListener = vi.fn();
+        const addEventListener = vi.fn<BrowserAddEventListener>();
         const listener = vi.fn();
         const controller = new AbortController();
         const options = { passive: true, signal: controller.signal };

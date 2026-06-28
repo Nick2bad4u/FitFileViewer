@@ -1,5 +1,6 @@
 import {
     type BrowserAbortControllerConstructor,
+    type BrowserAddEventListener,
     getBrowserAbortController,
     getBrowserAddEventListener,
     getBrowserDateNow,
@@ -10,7 +11,7 @@ export interface ErrorHandlingRuntimeScope {
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
     readonly getAddEventListener?:
-        | (() => Window["addEventListener"] | undefined)
+        | (() => BrowserAddEventListener | undefined)
         | undefined;
     readonly getDateConstructor?:
         | (() => ErrorHandlingDateConstructor | undefined)
@@ -24,7 +25,7 @@ export interface ErrorHandlingRuntimeScope {
 type ErrorHandlingDateConstructor = new () => { toISOString: () => string };
 
 export interface ErrorHandlingEventTarget {
-    readonly addEventListener: Window["addEventListener"];
+    readonly addEventListener: BrowserAddEventListener;
 }
 
 export interface ErrorHandlingRuntime {

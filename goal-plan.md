@@ -1030,6 +1030,9 @@ browser-runtime alias instead of a direct ambient constructor type. Error-handli
 shared browser runtime provider instead of rebinding the listener through `globalThis` inside
 `errorHandlingRuntime.ts`, and the runtime exposes an error-listener-specific target accessor instead of a generic
 global-event-target bridge.
+Error-handling runtime listener contracts now reuse the shared `BrowserAddEventListener` alias instead of spelling
+`Window["addEventListener"]` in the runtime scope and target contracts, with focused runtime coverage and architecture
+guardrails blocking that direct ambient listener type from returning.
 `AppError` timestamp creation now also routes through `errorHandlingRuntime.ts` instead of calling `Date.now`
 directly inside `errorHandling.ts`, with focused runtime coverage and architecture guardrails blocking direct
 clock reads and legacy direct runtime scope properties from returning.
