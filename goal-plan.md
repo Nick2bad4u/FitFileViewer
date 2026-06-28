@@ -497,8 +497,9 @@ CSV table clipboard fallback now routes browser clipboard writes and legacy text
 `copyTableAsCSV.ts`; production defaults and explicit runtime scopes now use named provider functions instead of
 a broad `globalThis` default scope or direct document/navigator properties, Electron clipboard bridge candidate
 typing now uses an explicit shared clipboard method alias instead of deriving from the monolithic `ElectronAPI`
-type or carrying a local interface, with focused runtime coverage and architecture guardrails blocking those direct
-browser clipboard paths from returning.
+type or carrying a local interface, and its validation now uses a non-array record guard instead of casting the
+preload candidate to the local API shape, with focused runtime coverage and architecture guardrails blocking those
+direct browser clipboard paths from returning.
 External-link Electron bridge candidate typing now uses an explicit shared shell-external method alias instead of
 deriving from the monolithic `ElectronAPI` type or carrying a local interface.
 App performance debounce, throttle, batch, and idle-callback helpers now route timeout scheduling/clearing,

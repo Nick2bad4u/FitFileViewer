@@ -33,6 +33,10 @@ function copyTableAsCSVRuntime(): CopyTableAsCSVRuntime {
     return getCopyTableAsCSVRuntime();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 type TableRow = Record<string, unknown>;
 
 type RowsTable = {
@@ -270,13 +274,11 @@ function getCopyCsvElectronAPI(
 }
 
 function isClipboardElectronAPI(value: unknown): value is ClipboardElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    return (
-        typeof (value as ClipboardElectronAPI).writeClipboardText === "function"
-    );
+    return typeof value["writeClipboardText"] === "function";
 }
 
 function normalizeTableRows(table: unknown): TableRow[] {

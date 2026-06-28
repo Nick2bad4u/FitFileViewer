@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { copyTableAsCSV } from "../../../../../electron-app/utils/files/export/copyTableAsCSV.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
@@ -8,14 +8,46 @@ type ClipboardElectronAPI = {
 };
 
 function createClipboardApiScope(
-    api: ClipboardElectronAPI
+    api: unknown
 ): RendererElectronApiScope {
     return {
         getElectronAPI: () => api,
     };
 }
 
+const originalClipboardDescriptor = Object.getOwnPropertyDescriptor(
+    navigator,
+    "clipboard"
+);
+
+function installClipboard(
+    clipboard: Readonly<{ writeText: (text: string) => Promise<void> | void }>
+): void {
+    Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: clipboard,
+    });
+}
+
+function restoreClipboard(): void {
+    if (originalClipboardDescriptor) {
+        Object.defineProperty(
+            navigator,
+            "clipboard",
+            originalClipboardDescriptor
+        );
+        return;
+    }
+
+    Reflect.deleteProperty(navigator, "clipboard");
+}
+
 describe(copyTableAsCSV, () => {
+    afterEach(() => {
+        restoreClipboard();
+        vi.restoreAllMocks();
+    });
+
     it("serializes row arrays to CSV through the Electron clipboard bridge", async () => {
         expect.assertions(1);
 
@@ -79,6 +111,24 @@ describe(copyTableAsCSV, () => {
         );
 
         expect(clipboardText).toBe("cadence,speed\r\n90,10");
+    });
+
+    it("falls back to browser clipboard when scoped Electron API is array-shaped", async () => {
+        expect.assertions(3);
+
+        const writeText = vi.fn<(text: string) => Promise<void>>();
+        installClipboard({ writeText });
+
+        const writeClipboardText = vi.fn<(text: string) => boolean>(() => true);
+        const arrayShapedApi = [] as unknown[];
+        Object.assign(arrayShapedApi, { writeClipboardText });
+        const electronApiScope = createClipboardApiScope(arrayShapedApi);
+
+        await copyTableAsCSV([{ name: "A" }], { electronApiScope });
+
+        expect(writeClipboardText).not.toHaveBeenCalled();
+        expect(writeText).toHaveBeenCalledWith("name\r\nA");
+        expect(writeText).toHaveBeenCalledOnce();
     });
 
     it("rejects unsupported table inputs", async () => {
