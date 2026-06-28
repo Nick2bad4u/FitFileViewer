@@ -241,19 +241,22 @@ function getVersionInfoElectronAPI(
 function isVersionInfoElectronAPI(
     value: unknown
 ): value is VersionInfoElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as VersionInfoElectronAPI;
     return (
-        hasOptionalFunction(api.getAppVersion) &&
-        hasOptionalFunction(api.getChromeVersion) &&
-        hasOptionalFunction(api.getElectronVersion) &&
-        hasOptionalFunction(api.getLicenseInfo) &&
-        hasOptionalFunction(api.getNodeVersion) &&
-        hasOptionalFunction(api.getPlatformInfo)
+        hasOptionalFunction(value["getAppVersion"]) &&
+        hasOptionalFunction(value["getChromeVersion"]) &&
+        hasOptionalFunction(value["getElectronVersion"]) &&
+        hasOptionalFunction(value["getLicenseInfo"]) &&
+        hasOptionalFunction(value["getNodeVersion"]) &&
+        hasOptionalFunction(value["getPlatformInfo"])
     );
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function hasOptionalFunction(value: unknown): boolean {

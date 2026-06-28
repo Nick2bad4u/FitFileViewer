@@ -1887,9 +1887,9 @@ returning.
 Menu IPC preload API candidate validation now checks explicit optional method properties through a non-array record
 guard instead of iterating menu method names through `Reflect.get` or casting to the local API shape, with architecture
 coverage blocking those generic probes and casts from returning.
-Version-info preload API candidate validation now checks explicit optional method properties directly instead of
-iterating app-info method names through `Reflect.get`, with architecture coverage blocking that generic probe from
-returning.
+Version-info preload API candidate validation now checks explicit optional method properties through a non-array record
+guard instead of iterating app-info method names through `Reflect.get` or casting to the local API shape, with
+architecture coverage blocking those generic probes and casts from returning.
 Export utility Electron API candidate validation, Imgur upload response parsing, and export runtime crypto/storage
 candidate checks now use explicit typed property reads instead of generic `Reflect.get` probes, with focused malformed
 shape coverage and architecture coverage blocking those reflective export utility probes from returning.
