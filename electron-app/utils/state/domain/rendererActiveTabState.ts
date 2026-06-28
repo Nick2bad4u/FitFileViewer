@@ -23,6 +23,20 @@ type RendererActiveTabStateWriter = (
     value: unknown,
     options?: StateUpdateOptions
 ) => void;
+type RendererActiveTabStateListener = (
+    newValue: unknown,
+    oldValue?: unknown,
+    path?: string
+) => void;
+type RendererActiveTabStateSubscriber = (
+    path: string,
+    callback: RendererActiveTabStateListener
+) => unknown;
+type RendererActiveTabStateSingletonSubscriber = (
+    path: string,
+    key: string,
+    callback: RendererActiveTabStateListener
+) => unknown;
 
 export function getRendererActiveTab(): string {
     return normalizeRendererActiveTab(getState(RENDERER_ACTIVE_TAB_STATE_PATH));
@@ -50,6 +64,21 @@ export function subscribeToRendererActiveTab(
     callback: StateListener
 ): () => void {
     return subscribe(RENDERER_ACTIVE_TAB_STATE_PATH, callback);
+}
+
+export function subscribeToRendererActiveTabInState(
+    subscribeState: RendererActiveTabStateSubscriber,
+    callback: RendererActiveTabStateListener
+): unknown {
+    return subscribeState(RENDERER_ACTIVE_TAB_STATE_PATH, callback);
+}
+
+export function subscribeToRendererActiveTabSingletonInState(
+    subscribeState: RendererActiveTabStateSingletonSubscriber,
+    key: string,
+    callback: RendererActiveTabStateListener
+): unknown {
+    return subscribeState(RENDERER_ACTIVE_TAB_STATE_PATH, key, callback);
 }
 
 export function setRendererActiveTab(

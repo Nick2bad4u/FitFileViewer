@@ -18,6 +18,7 @@ import {
     normalizeRendererActiveTab,
     setRendererActiveTabContentInState,
     setRendererActiveTabInState,
+    subscribeToRendererActiveTabInState,
 } from "../../state/domain/rendererActiveTabState.js";
 import {
     buildIdVariants,
@@ -225,12 +226,15 @@ export function initializeTabVisibilityState(): void {
     const stateManager = getStateMgr();
 
     trackSubscription(
-        stateManager.subscribe("ui.activeTab", (activeTab: unknown) => {
-            const contentId = getConfiguredContentIdFromTabName(activeTab);
-            if (contentId) {
-                updateTabVisibility(contentId);
+        subscribeToRendererActiveTabInState(
+            stateManager.subscribe,
+            (activeTab: unknown) => {
+                const contentId = getConfiguredContentIdFromTabName(activeTab);
+                if (contentId) {
+                    updateTabVisibility(contentId);
+                }
             }
-        })
+        )
     );
 
     trackSubscription(

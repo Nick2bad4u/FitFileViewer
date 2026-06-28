@@ -7,8 +7,11 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
+    getRendererActiveTabFromState,
     isRendererTabName,
     normalizeRendererActiveTab,
+    setRendererActiveTabInState,
+    subscribeToRendererActiveTabInState,
 } from "../../state/domain/rendererActiveTabState.js";
 import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
@@ -224,9 +227,7 @@ export class TabStateManager {
      * @returns Active tab information.
      */
     getActiveTabInfo(): ActiveTabInfo {
-        const activeTab = normalizeRendererActiveTab(
-            getStateMgr().getState("ui.activeTab")
-        );
+        const activeTab = getRendererActiveTabFromState(getStateMgr().getState);
         const config = getTabConfig(activeTab);
 
         return {
@@ -354,7 +355,7 @@ export class TabStateManager {
         }
 
         // Update state - this will trigger the subscription handler
-        getStateMgr().setState("ui.activeTab", tabName, {
+        setRendererActiveTabInState(getStateMgr().setState, tabName, {
             source: "TabStateManager.buttonClick",
         });
     };
@@ -513,8 +514,8 @@ export class TabStateManager {
      */
     initializeSubscriptions(): void {
         // Subscribe to active tab changes
-        const unsubActive = getStateMgr().subscribe(
-            "ui.activeTab",
+        const unsubActive = subscribeToRendererActiveTabInState(
+            getStateMgr().subscribe,
             (newTab: unknown, oldTab: unknown) => {
                 const nextTab = normalizeRendererActiveTab(newTab);
                 const previousTab = isRendererTabName(oldTab) ? oldTab : null;
@@ -606,7 +607,7 @@ export class TabStateManager {
             return false;
         }
 
-        getStateMgr().setState("ui.activeTab", tabName, {
+        setRendererActiveTabInState(getStateMgr().setState, tabName, {
             source: "TabStateManager.switchToTab",
         });
         return true;

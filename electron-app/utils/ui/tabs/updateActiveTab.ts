@@ -10,6 +10,8 @@ import {
     isRendererTabName,
     normalizeRendererActiveTab,
     setRendererActiveTabInState,
+    subscribeToRendererActiveTabInState,
+    subscribeToRendererActiveTabSingletonInState,
 } from "../../state/domain/rendererActiveTabState.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
@@ -234,8 +236,8 @@ export function initializeActiveTabState(): void {
 
         const stateManager = getStateMgr();
         if (typeof stateManager.subscribe === "function") {
-            const maybeUnsub = stateManager.subscribe(
-                "ui.activeTab",
+            const maybeUnsub = subscribeToRendererActiveTabInState(
+                stateManager.subscribe,
                 onActiveTabChange
             );
             activeTabUnsubscribe =
@@ -245,8 +247,8 @@ export function initializeActiveTabState(): void {
         } else {
             const subscribeSingleton = getRendererCoreSubscribeSingleton();
             if (subscribeSingleton) {
-                subscribeSingleton(
-                    "ui.activeTab",
+                subscribeToRendererActiveTabSingletonInState(
+                    subscribeSingleton,
                     "ui:updateActiveTab:activeTab",
                     onActiveTabChange
                 );

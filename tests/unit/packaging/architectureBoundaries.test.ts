@@ -15700,7 +15700,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(63);
+        expect.assertions(76);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -15715,6 +15715,9 @@ describe("architecture boundaries", () => {
         );
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
+        );
+        const tabStateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/tabStateManager.ts")
         );
         const tabStateManagerConfigSource = stripComments(
             readRepositoryFile(
@@ -15776,6 +15779,9 @@ describe("architecture boundaries", () => {
         expect(updateTabVisibilitySource).toContain(
             "setRendererActiveTabContentInState"
         );
+        expect(updateTabVisibilitySource).toContain(
+            "subscribeToRendererActiveTabInState"
+        );
         expect(updateTabVisibilitySource).not.toContain(
             "const TAB_CONTENT_IDS = ["
         );
@@ -15791,9 +15797,18 @@ describe("architecture boundaries", () => {
         expect(updateTabVisibilitySource).not.toContain(
             'getStateMgr().setState("ui.activeTabContent"'
         );
+        expect(updateTabVisibilitySource).not.toContain(
+            'stateManager.subscribe("ui.activeTab"'
+        );
         expect(updateActiveTabSource).toContain("rendererActiveTabState.js");
         expect(updateActiveTabSource).toContain("getRendererActiveTabFromState");
         expect(updateActiveTabSource).toContain("setRendererActiveTabInState");
+        expect(updateActiveTabSource).toContain(
+            "subscribeToRendererActiveTabInState"
+        );
+        expect(updateActiveTabSource).toContain(
+            "subscribeToRendererActiveTabSingletonInState"
+        );
         expect(updateActiveTabSource).toContain("isRendererTabName");
         expect(updateActiveTabSource).toContain("normalizeRendererActiveTab");
         expect(updateActiveTabSource).not.toContain(
@@ -15802,6 +15817,19 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabSource).not.toContain(
             'getStateMgr().setState("ui.activeTab"'
         );
+        expect(updateActiveTabSource).not.toContain('"ui.activeTab"');
+        expect(tabStateManagerSource).toContain("getRendererActiveTabFromState");
+        expect(tabStateManagerSource).toContain("setRendererActiveTabInState");
+        expect(tabStateManagerSource).toContain(
+            "subscribeToRendererActiveTabInState"
+        );
+        expect(tabStateManagerSource).not.toContain(
+            'getStateMgr().getState("ui.activeTab")'
+        );
+        expect(tabStateManagerSource).not.toContain(
+            'getStateMgr().setState("ui.activeTab"'
+        );
+        expect(tabStateManagerSource).not.toContain('"ui.activeTab"');
         expect(rendererActiveTabStateSource).toContain(
             "rendererActiveTabContract.js"
         );
@@ -15819,6 +15847,12 @@ describe("architecture boundaries", () => {
         );
         expect(rendererActiveTabStateSource).toContain(
             "setRendererActiveTabContentInState"
+        );
+        expect(rendererActiveTabStateSource).toContain(
+            "subscribeToRendererActiveTabInState"
+        );
+        expect(rendererActiveTabStateSource).toContain(
+            "subscribeToRendererActiveTabSingletonInState"
         );
         expect(appActionsSource).toContain(
             "setPerformanceLastLoadTime(appActionsRuntime().dateNow(), {"

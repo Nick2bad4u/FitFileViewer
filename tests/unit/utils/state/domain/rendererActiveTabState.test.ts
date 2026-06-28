@@ -15,6 +15,8 @@ import {
     setRendererActiveTabContentInState,
     setRendererActiveTabInState,
     subscribeToRendererActiveTab as subscribeToActiveTab,
+    subscribeToRendererActiveTabInState,
+    subscribeToRendererActiveTabSingletonInState,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
 
 describe("rendererActiveTabState", () => {
@@ -140,6 +142,63 @@ describe("rendererActiveTabState", () => {
         unsubscribe();
         setRendererActiveTab("map", { source: "test" });
         expect(changes).toStrictEqual(["chart"]);
+    });
+
+    it("subscribes to active tab values through an explicit state subscriber", () => {
+        expect.assertions(3);
+
+        const changes: unknown[] = [];
+        const calls: Array<{ callbackType: string; path: string }> = [];
+
+        expect(
+            subscribeToRendererActiveTabInState(
+                (path, callback) => {
+                    calls.push({ callbackType: typeof callback, path });
+                    callback("map", "summary", path);
+                    return "unsubscribe";
+                },
+                (newValue) => {
+                    changes.push(newValue);
+                }
+            )
+        ).toBe("unsubscribe");
+        expect(calls).toStrictEqual([
+            { callbackType: "function", path: "ui.activeTab" },
+        ]);
+        expect(changes).toStrictEqual(["map"]);
+    });
+
+    it("subscribes to active tab singleton values through an explicit state subscriber", () => {
+        expect.assertions(3);
+
+        const changes: unknown[] = [];
+        const calls: Array<{
+            callbackType: string;
+            key: string;
+            path: string;
+        }> = [];
+
+        expect(
+            subscribeToRendererActiveTabSingletonInState(
+                (path, key, callback) => {
+                    calls.push({ callbackType: typeof callback, key, path });
+                    callback("browser", "summary", path);
+                    return "singleton";
+                },
+                "test-key",
+                (newValue) => {
+                    changes.push(newValue);
+                }
+            )
+        ).toBe("singleton");
+        expect(calls).toStrictEqual([
+            {
+                callbackType: "function",
+                key: "test-key",
+                path: "ui.activeTab",
+            },
+        ]);
+        expect(changes).toStrictEqual(["browser"]);
     });
 
     it("normalizes empty or non-string active-tab values", () => {
