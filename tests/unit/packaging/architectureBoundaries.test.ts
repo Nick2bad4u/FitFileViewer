@@ -7166,16 +7166,14 @@ describe("architecture boundaries", () => {
         expect(mainUiStartupSource).not.toContain(
             "getMainUiThemeSyncElectronApi"
         );
-        expect(mainUiStartupSource).not.toContain(
-            "getMainUiUnloadElectronApi"
-        );
+        expect(mainUiStartupSource).not.toContain("getMainUiUnloadElectronApi");
         expect(mainUiStartupSource).toContain("createMainUiDragDropHandler({");
         expect(mainUiStartupSource).toContain("electronApiScope,");
         expect(mainUiElectronApiBindingsSource).not.toContain(
             "createRendererElectronApiScope"
         );
         expect(mainUiElectronApiBindingsSource).toContain(
-            "Pick<MainUiRuntimeEnvironment, \"electronApiScope\">"
+            'Pick<MainUiRuntimeEnvironment, "electronApiScope">'
         );
         expect(mainUiElectronApiBindingsSource).toContain(
             "getMainUiMenuInjectionElectronApi(electronApiScope)"
@@ -11261,7 +11259,7 @@ describe("architecture boundaries", () => {
             "interface ElectronUpdateAPI"
         );
         expect(showUpdateNotificationSource).toContain(
-            "Reflect.get(value, \"installUpdate\")"
+            'Reflect.get(value, "installUpdate")'
         );
         expect(showUpdateNotificationSource).not.toContain(
             "type ElectronUpdateApiCandidate"
@@ -18867,10 +18865,14 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
         );
         const startupHooksSource = stripComments(
-            readRepositoryFile("electron-app/renderer/electronApiStartupHooks.ts")
+            readRepositoryFile(
+                "electron-app/renderer/electronApiStartupHooks.ts"
+            )
         );
         const registrationSource = stripComments(
-            readRepositoryFile("electron-app/renderer/electronApiRegistration.ts")
+            readRepositoryFile(
+                "electron-app/renderer/electronApiRegistration.ts"
+            )
         );
         const menuActionSource = stripComments(
             readRepositoryFile(
@@ -18916,7 +18918,9 @@ describe("architecture boundaries", () => {
         expect(startupHooksSource).not.toContain(
             "readonly checkForUpdates?: unknown;"
         );
-        expect(startupHooksSource).not.toContain("readonly recentFiles?: unknown;");
+        expect(startupHooksSource).not.toContain(
+            "readonly recentFiles?: unknown;"
+        );
         expect(startupHooksSource).not.toContain("Promise<unknown>");
         expect(startupHooksSource).not.toContain("(() => unknown) | undefined");
         expect(startupHooksSource).not.toContain(") => unknown)");
@@ -19106,15 +19110,11 @@ describe("architecture boundaries", () => {
         expect(testOnlyBootstrapSource).toContain(
             "toTestSetupThemeOverrideModule"
         );
-        expect(testOnlyBootstrapSource).toContain(
-            "toTestThemeOverrideModule"
-        );
+        expect(testOnlyBootstrapSource).toContain("toTestThemeOverrideModule");
         expect(testOnlyBootstrapSource).not.toContain(
             "isTestOverrideModuleRecord"
         );
-        expect(testOnlyBootstrapSource).not.toContain(
-            "override as { readonly"
-        );
+        expect(testOnlyBootstrapSource).not.toContain("override as { readonly");
         expect(testOnlyBootstrapSource).not.toContain("toModuleRecord");
         expect(rendererEntrypointSource).not.toContain(
             "testOnlyBootstrapOptions = {\n    callUnknownFunction,"
@@ -29629,7 +29629,7 @@ describe("architecture boundaries", () => {
             "getBrowserElectronApiCandidate()"
         );
         expect(electronApiRuntimeSource).not.toContain(
-            "from \"./browserRuntime.js\""
+            'from "./browserRuntime.js"'
         );
         expect(electronApiRuntimeSource).toContain(
             "return scope?.getElectronAPI?.();"

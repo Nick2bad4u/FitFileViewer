@@ -23,7 +23,9 @@ describe("main UI runtime environment", () => {
 
         expect(runtimeEnvironment.consoleRef).toBe(console);
         expect(runtimeEnvironment.documentRef).toBe(document);
-        expect(runtimeEnvironment.electronApiScope.getElectronAPI?.()).toBeUndefined();
+        expect(
+            runtimeEnvironment.electronApiScope.getElectronAPI?.()
+        ).toBeUndefined();
         expect(runtimeNow).toBeGreaterThanOrEqual(before);
         expect(runtimeNow).toBeLessThanOrEqual(after + 1000);
     });
