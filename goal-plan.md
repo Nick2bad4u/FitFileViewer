@@ -108,7 +108,9 @@ Main-process FIT IPC payload, file-read payload, file-access policy, and file-ac
 use named source exports too, while file/FIT IPC handlers import those migrated helpers natively instead of
 requiring their source modules directly.
 Main-process file, FIT, browser, dialog, and recent-file IPC handler modules now use named source exports too;
-`setupIPCHandlers.ts` imports those migrated handler and file-access policy boundaries natively.
+`setupIPCHandlers.ts` imports those migrated handler and file-access policy boundaries natively. IPC setup now
+passes main-process constants directly instead of adapting them through a broad `MAIN_PROCESS_CONSTANTS as unknown`
+alias, and dialog handlers clone readonly FIT filters only when calling Electron's mutable dialog API.
 Main-process clipboard, external integration, and info IPC handler modules now use named source exports as well,
 and `setupIPCHandlers.ts` imports those migrated handler boundaries natively too.
 The main IPC sender policy and IPC registry now use named source exports too, and the registry/setup IPC

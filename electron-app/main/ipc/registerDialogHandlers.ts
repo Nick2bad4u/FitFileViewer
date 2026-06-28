@@ -16,6 +16,11 @@ type DialogResponsePayload = import("../../shared/ipc").DialogResponsePayload;
 type OpenDialogOptions = import("electron").OpenDialogOptions;
 type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
 
+interface ReadonlyDialogFilter {
+    readonly extensions: readonly string[];
+    readonly name: string;
+}
+
 interface DialogApi {
     showOpenDialog: (
         options: OpenDialogOptions
@@ -25,8 +30,8 @@ interface DialogApi {
 type BrowserWindowApi = MainWindowBrowserWindowApi<BrowserWindow>;
 
 interface DialogConstants {
-    DIALOG_FILTERS: {
-        FIT_FILES: NonNullable<OpenDialogOptions["filters"]>;
+    readonly DIALOG_FILTERS: {
+        readonly FIT_FILES: readonly ReadonlyDialogFilter[];
     };
 }
 
@@ -65,6 +70,15 @@ interface RegisterDialogHandlersOptions {
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
+function createFitFileDialogFilters(
+    constants: DialogConstants
+): NonNullable<OpenDialogOptions["filters"]> {
+    return constants.DIALOG_FILTERS.FIT_FILES.map((filter) => ({
+        extensions: [...filter.extensions],
+        name: filter.name,
+    }));
+}
+
 /**
  * Registers dialog IPC handlers for opening FIT files and overlay selections.
  */
@@ -94,7 +108,7 @@ export function registerDialogHandlers({
                 }
 
                 const { canceled, filePaths } = await dialog.showOpenDialog({
-                    filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
+                    filters: createFitFileDialogFilters(CONSTANTS),
                     properties: ["openFile"],
                 });
 
@@ -179,7 +193,7 @@ export function registerDialogHandlers({
                 }
 
                 const { canceled, filePaths } = await dialog.showOpenDialog({
-                    filters: CONSTANTS.DIALOG_FILTERS.FIT_FILES,
+                    filters: createFitFileDialogFilters(CONSTANTS),
                     properties: ["openFile", "multiSelections"],
                 });
 

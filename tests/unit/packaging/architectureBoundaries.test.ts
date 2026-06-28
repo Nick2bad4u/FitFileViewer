@@ -3009,7 +3009,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(92);
+        expect.assertions(95);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3203,12 +3203,19 @@ describe("architecture boundaries", () => {
             'getAppState: (key: "loadedFitFilePath")'
         );
         expect(registerDialogHandlersSource).not.toContain("getFocusedWindow");
+        expect(registerDialogHandlersSource).toContain(
+            "createFitFileDialogFilters"
+        );
         expect(registerRecentFileHandlersSource).not.toContain(
             "getFocusedWindow"
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("../security/fileAccessPolicy")'
         );
+        expect(setupIpcHandlersSource).not.toContain(
+            "MAIN_PROCESS_CONSTANTS as unknown"
+        );
+        expect(setupIpcHandlersSource).not.toContain("ConstantsLike");
         expect(setupIpcHandlersSource).not.toContain("export default");
         expect(setupIpcHandlersSource).not.toContain(
             'require("./registerBrowserHandlers")'

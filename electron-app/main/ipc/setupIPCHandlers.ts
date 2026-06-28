@@ -36,16 +36,7 @@ import {
     loadRecentFiles,
 } from "../../utils/files/recent/recentFiles.js";
 
-type ConstantsLike = {
-    DEFAULT_THEME: string;
-    DIALOG_FILTERS: {
-        FIT_FILES: NonNullable<import("electron").OpenDialogOptions["filters"]>;
-    };
-    SETTINGS_CONFIG_NAME: string;
-    [key: string]: unknown;
-};
-
-const CONSTANTS = MAIN_PROCESS_CONSTANTS as unknown as ConstantsLike;
+const CONSTANTS = MAIN_PROCESS_CONSTANTS;
 
 type BrowserWindow = import("electron").BrowserWindow;
 
