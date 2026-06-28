@@ -75,8 +75,7 @@ export function isHTMLElement(el: unknown): el is HTMLElement {
     if (!el || typeof el !== "object") {
         return false;
     }
-    const candidate = el as { nodeType?: unknown };
-    return candidate.nodeType === ELEMENT_NODE;
+    return "nodeType" in el && el.nodeType === ELEMENT_NODE;
 }
 
 /**

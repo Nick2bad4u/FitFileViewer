@@ -294,10 +294,12 @@ export function validateWindow(win: unknown): win is BrowserWindowInstance {
         return false;
     }
 
-    const candidate = win as { readonly isDestroyed?: unknown };
+    if (!("isDestroyed" in win)) {
+        return false;
+    }
+
     return (
-        isBooleanCallback(candidate.isDestroyed) &&
-        candidate.isDestroyed() !== true
+        isBooleanCallback(win.isDestroyed) && win.isDestroyed() !== true
     );
 }
 

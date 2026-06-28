@@ -206,8 +206,9 @@ The application-event setup boundary now imports migrated logging, safe menu cre
 window-validation helpers natively.
 The window-state utility boundary now uses named source exports instead of a source-level `module.exports`
 wrapper, and application-event/window-bootstrap/window-initialization source imports `createWindow` natively
-instead of requiring `windowStateUtils`. Window validation now reads the optional `isDestroyed` callback through a
-typed candidate shape instead of probing the window candidate with `Reflect.get`.
+instead of requiring `windowStateUtils`. Window validation now reads the optional `isDestroyed` callback through
+property-existence narrowing instead of probing the window candidate with `Reflect.get` or casting to a bridge
+candidate shape.
 The main entrypoint now imports runtime helpers natively instead of using its `mainRequire` table or
 source-level `module.exports` fallback, and the test-only default export object has been removed so tests use
 named exports directly.
@@ -1935,6 +1936,9 @@ guardrails blocking that stale cast from returning.
 Render-map Leaflet runtime candidate validation now uses a non-array record guard and direct property reads instead of
 casting arbitrary runtime values to a local Leaflet shape, with array-shaped malformed candidate coverage and
 architecture guardrails blocking that bridge cast from returning.
+Window-state and shared DOM helper candidate validation now use property-existence narrowing for `isDestroyed` and
+`nodeType` reads instead of local structural bridge casts, with focused window validation coverage and architecture
+guardrails blocking those casts from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

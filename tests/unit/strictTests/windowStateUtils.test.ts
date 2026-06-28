@@ -71,4 +71,26 @@ describe("windowStateUtils strict tests (pure functions)", () => {
             y: 6,
         });
     });
+
+    it("validateWindow requires a live isDestroyed callback", async () => {
+        expect.assertions(1);
+
+        const mod = await import("../../../electron-app/windowStateUtils.js");
+
+        expect(
+            [
+                null,
+                {},
+                { isDestroyed: true },
+                { isDestroyed: () => true },
+                { isDestroyed: () => false },
+            ].map((windowCandidate) => mod.validateWindow(windowCandidate))
+        ).toStrictEqual([
+            false,
+            false,
+            false,
+            false,
+            true,
+        ]);
+    });
 });

@@ -3422,7 +3422,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(426);
+        expect.assertions(427);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3644,9 +3644,10 @@ describe("architecture boundaries", () => {
         expect(windowStateUtilsSource).not.toContain(
             'Reflect.get(win, "isDestroyed")'
         );
-        expect(windowStateUtilsSource).toContain(
+        expect(windowStateUtilsSource).not.toContain(
             "const candidate = win as { readonly isDestroyed?: unknown };"
         );
+        expect(windowStateUtilsSource).toContain('"isDestroyed" in win');
         expect(logWithContextSource).toContain("getProcessEnvironmentValue");
         expect(safeCreateAppMenuSource).toContain("getProcessEnvironmentValue");
         expect(windowStateUtilsSource).toContain("getProcessEnvironmentValue");
@@ -16789,7 +16790,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps DOM helper listener cleanup and default document roots behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(24);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
@@ -16845,6 +16846,9 @@ describe("architecture boundaries", () => {
         expect(domHelpersRuntimeSource).not.toContain("scope.AbortController");
         expect(domHelpersRuntimeSource).not.toContain("scope.document");
         expect(domHelpersSource).toContain("runtime.getDocument()");
+        expect(domHelpersSource).not.toContain(
+            "const candidate = el as { nodeType?: unknown };"
+        );
         expect(domHelpersSource).not.toContain("root: ParentNode = document");
         expect(domHelpersSource).not.toContain("document.querySelector");
         expect(domHelpersSource).not.toContain("export default");
