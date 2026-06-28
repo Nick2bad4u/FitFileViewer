@@ -51,13 +51,11 @@ function createDependencies() {
         setChartRendering: vi.fn((rendering: boolean) => {
             state.charts.isRendering = rendering;
         }),
+        setLoadingState: vi.fn((loading: boolean) => {
+            state.isLoading = loading;
+        }),
         setSelectedChart: vi.fn((chartType: string) => {
             state.charts.selectedChart = chartType;
-        }),
-        setState: vi.fn((path: string, value: unknown) => {
-            if (path === "isLoading") {
-                state.isLoading = Boolean(value);
-            }
         }),
         updateState: vi.fn((path: string, value: unknown) => {
             if (typeof value !== "object" || value === null) {
@@ -141,7 +139,7 @@ describe("createChartActions", () => {
             },
             { silent: false, source: "chartActions.completeRendering" }
         );
-        expect(dependencies.setState).toHaveBeenCalledWith("isLoading", false, {
+        expect(dependencies.setLoadingState).toHaveBeenCalledWith(false, {
             silent: false,
             source: "chartActions.completeRendering",
         });
@@ -204,15 +202,14 @@ describe("createChartActions", () => {
             silent: false,
             source: "chartActions.startRendering",
         });
-        expect(dependencies.setState).not.toHaveBeenCalledWith(
-            "charts.isRendering",
-            true,
-            expect.any(Object)
-        );
+        expect(dependencies.setLoadingState).toHaveBeenCalledWith(true, {
+            silent: false,
+            source: "chartActions.startRendering",
+        });
     });
 
     it("selects charts through the chart render-state dependency", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const { dependencies, state } = createDependencies();
         dependencies.isRendered.mockReturnValue(true);
@@ -225,18 +222,13 @@ describe("createChartActions", () => {
             silent: false,
             source: "chartActions.selectChart",
         });
-        expect(dependencies.setState).not.toHaveBeenCalledWith(
-            "charts.selectedChart",
-            "power",
-            expect.any(Object)
-        );
         expect(dependencies.debouncedDirectRerender).toHaveBeenCalledWith(
             "Chart selection changed"
         );
     });
 
     it("toggles controls through the chart controls-state dependency", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const { dependencies, state } = createDependencies();
         const actions = createChartActions(dependencies);
@@ -250,11 +242,6 @@ describe("createChartActions", () => {
                 silent: false,
                 source: "chartActions.toggleControls",
             }
-        );
-        expect(dependencies.setState).not.toHaveBeenCalledWith(
-            "charts.controlsVisible",
-            false,
-            expect.any(Object)
         );
         expect(dependencies.getPanelVisibilityManager).toHaveBeenCalledWith();
     });

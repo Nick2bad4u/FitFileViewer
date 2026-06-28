@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(136);
+        expect.assertions(142);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -13051,6 +13051,7 @@ describe("architecture boundaries", () => {
             "initializeChartRenderState"
         );
         expect(renderChartActionsSource).toContain("setChartRendering");
+        expect(renderChartActionsSource).toContain("setLoadingState");
         expect(renderChartActionsSource).toContain("setSelectedChart");
         expect(renderChartActionsSource).toContain("setChartControlsVisible");
         expect(renderChartActionsSource).toContain("clearChartRenderState");
@@ -13070,16 +13071,23 @@ describe("architecture boundaries", () => {
             '"charts.controlsVisible"'
         );
         expect(renderChartActionsSource).not.toContain("charts.isRendering");
+        expect(renderChartActionsSource).not.toContain('"isLoading"');
         expect(renderChartLifecycleSource).toContain("setChartRendering");
+        expect(renderChartLifecycleSource).toContain("setLoadingState");
         expect(renderChartLifecycleSource).toContain("clearChartRenderState");
         expect(renderChartLifecycleSource).not.toContain(
             'updateState("charts"'
         );
         expect(renderChartLifecycleSource).not.toContain("charts.isRendering");
+        expect(renderChartLifecycleSource).not.toContain('"isLoading"');
+        expect(renderChartJSSource).toContain(
+            "setLoadingState: setRendererLoading"
+        );
         expect(renderChartSessionStartSource).not.toContain(
             "updateState: UpdateStateFunction"
         );
         expect(renderChartJSSource).toContain("setRendererChartRendering");
+        expect(renderChartJSSource).toContain("setRendererLoading");
         expect(renderChartJSSource).not.toContain(
             'setState("charts.isRendering"'
         );

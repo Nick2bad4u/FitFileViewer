@@ -52,6 +52,7 @@ import {
     areRendererChartControlsVisible,
     setRendererChartControlsVisible,
 } from "../../state/domain/rendererChartControlsState.js";
+import { setRendererLoading } from "../../state/domain/rendererLoadingState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -299,8 +300,8 @@ export const chartActions = createChartActions({
     notifyChartRenderComplete,
     setChartControlsVisible: setRendererChartControlsVisible,
     setChartRendering: setRendererChartRendering,
+    setLoadingState: setRendererLoading,
     setSelectedChart: setRendererSelectedChart,
-    setState: callSetState,
     updateState: callUpdateState,
 });
 registerChartActions(chartActions);
@@ -407,7 +408,7 @@ export async function renderChartJS(
                 isLoadingStateSuppressed,
                 now: renderChartRuntime().nowPerformance,
                 setChartRendering: setRendererChartRendering,
-                setState: callSetState,
+                setLoadingState: setRendererLoading,
                 waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
             },
             { targetContainer }

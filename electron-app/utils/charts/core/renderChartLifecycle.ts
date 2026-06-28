@@ -14,7 +14,7 @@ interface StartChartRenderingDependencies {
     getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
     setChartRendering(rendering: boolean, options: unknown): void;
-    setState(path: string, value: unknown, options: unknown): void;
+    setLoadingState(loading: boolean, options: unknown): void;
 }
 
 interface ClearExistingChartsDependencies {
@@ -43,7 +43,7 @@ export function startChartRendering(
     });
 
     if (!dependencies.isLoadingStateSuppressed()) {
-        dependencies.setState("isLoading", true, {
+        dependencies.setLoadingState(true, {
             silent: false,
             source: "renderChartJS.start",
         });

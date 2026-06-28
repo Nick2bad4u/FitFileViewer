@@ -2050,6 +2050,9 @@ path reads or writes, with focused helper tests and architecture checks blocking
 Chart cache prewarm now checks chart rendered/rendering status through `rendererChartRenderState.ts` instead of reading
 the aggregate `charts` branch through `renderChartStateAccess.ts`, with focused prewarm/domain tests and architecture
 checks blocking direct aggregate chart-state reads from returning.
+Chart actions and render-session fallback now toggle renderer loading through `rendererLoadingState.ts` instead of
+generic `setState("isLoading", ...)` dependencies, with focused action/session tests and architecture checks blocking
+direct loading path writes from returning to those chart lifecycle helpers.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

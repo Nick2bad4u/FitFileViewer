@@ -36,8 +36,8 @@ interface CreateChartActionsDependencies {
     notifyChartRenderComplete(appActions: unknown, chartCount: number): void;
     setChartControlsVisible(visible: boolean, options: unknown): unknown;
     setChartRendering(rendering: boolean, options: unknown): unknown;
+    setLoadingState(loading: boolean, options: unknown): unknown;
     setSelectedChart(chartType: string, options: unknown): unknown;
-    setState(path: string, value: unknown, options: unknown): unknown;
     updateState(path: string, value: unknown, options: unknown): unknown;
 }
 
@@ -111,7 +111,7 @@ export function createChartActions(
             });
 
             if (!dependencies.isLoadingStateSuppressed()) {
-                dependencies.setState("isLoading", false, {
+                dependencies.setLoadingState(false, {
                     silent: false,
                     source: "chartActions.completeRendering",
                 });
@@ -164,7 +164,7 @@ export function createChartActions(
             });
 
             if (!dependencies.isLoadingStateSuppressed()) {
-                dependencies.setState("isLoading", true, {
+                dependencies.setLoadingState(true, {
                     silent: false,
                     source: "chartActions.startRendering",
                 });

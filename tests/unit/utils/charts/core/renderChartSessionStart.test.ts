@@ -13,11 +13,10 @@ describe("renderChartSessionStart", () => {
             vi.fn<
                 (rendering: boolean, options?: ChartStateUpdateOptions) => void
             >();
-        const setState =
+        const setLoadingState =
             vi.fn<
                 (
-                    path: string,
-                    value: unknown,
+                    loading: boolean,
                     options?: ChartStateUpdateOptions
                 ) => void
             >();
@@ -31,7 +30,7 @@ describe("renderChartSessionStart", () => {
                 isLoadingStateSuppressed: () => false,
                 now: () => 1234,
                 setChartRendering,
-                setState,
+                setLoadingState,
                 waitIfRapidRender,
             },
             { targetContainer: document.createElement("div") }
@@ -42,7 +41,7 @@ describe("renderChartSessionStart", () => {
             silent: false,
             source: "renderChartJS.start",
         });
-        expect(setState).toHaveBeenCalledWith("isLoading", true, {
+        expect(setLoadingState).toHaveBeenCalledWith(true, {
             silent: false,
             source: "renderChartJS.start",
         });

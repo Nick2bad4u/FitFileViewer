@@ -7,8 +7,7 @@ import {
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 type SetStateFunction = (
-    path: string,
-    value: unknown,
+    loading: boolean,
     options?: ChartStateUpdateOptions
 ) => void;
 type SetChartRenderingFunction = (
@@ -31,7 +30,7 @@ interface ChartRenderSessionStartDependencies {
     isLoadingStateSuppressed(): boolean;
     now(): number;
     setChartRendering: SetChartRenderingFunction;
-    setState: SetStateFunction;
+    setLoadingState: SetStateFunction;
     waitIfRapidRender(): Promise<void>;
 }
 
@@ -70,10 +69,9 @@ export async function beginChartRenderSession(
                 rendering,
                 options as ChartStateUpdateOptions | undefined
             ),
-        setState: (path, value, options) =>
-            dependencies.setState(
-                path,
-                value,
+        setLoadingState: (loading, options) =>
+            dependencies.setLoadingState(
+                loading,
                 options as ChartStateUpdateOptions | undefined
             ),
     });
