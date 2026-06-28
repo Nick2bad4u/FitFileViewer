@@ -260,6 +260,28 @@ describe("handleOpenFile.js", () => {
             expect(result).toBe(false);
         });
 
+        it("should return false when scoped Electron API methods cannot be inspected", () => {
+            const { validateElectronAPI } = handleOpenFileModule;
+
+            const result = validateElectronAPI({
+                getElectronAPI: () =>
+                    new Proxy(
+                        {},
+                        {
+                            get(_target, propertyKey) {
+                                if (propertyKey === "openFile") {
+                                    throw new Error("openFile unavailable");
+                                }
+
+                                return undefined;
+                            },
+                        }
+                    ),
+            });
+
+            expect(result).toBe(false);
+        });
+
         it("should return false when methods are not functions", () => {
             currentElectronApi = {
                 openFile: "not a function",

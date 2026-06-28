@@ -63,6 +63,12 @@ type FileOpenElectronAPI = {
     readonly readFile: ElectronFileApi["readFile"];
 };
 
+type FileOpenElectronApiMethods = Readonly<{
+    readonly openFile?: ElectronDialogApi["openFile"];
+    readonly parseFitFile?: ElectronFileApi["parseFitFile"];
+    readonly readFile?: ElectronFileApi["readFile"];
+}>;
+
 type FitFileStateManagerFacade = {
     handleFileLoadingError: (error: Error) => void;
     startFileLoading?: (filePath: string) => void;
@@ -90,19 +96,33 @@ const FILE_OPEN_CONSTANTS = {
 const log = createRendererLogger(FILE_OPEN_CONSTANTS.LOG_PREFIX);
 
 function isFileOpenElectronAPI(value: unknown): value is FileOpenElectronAPI {
-    if (!isRecord(value)) {
+    if (!isFileOpenElectronApiMethods(value)) {
         return false;
     }
 
+    const openFile = readElectronApiValue(() => value.openFile);
+    const parseFitFile = readElectronApiValue(() => value.parseFitFile);
+    const readFile = readElectronApiValue(() => value.readFile);
+
     return (
-        typeof value["openFile"] === "function" &&
-        typeof value["parseFitFile"] === "function" &&
-        typeof value["readFile"] === "function"
+        typeof openFile === "function" &&
+        typeof parseFitFile === "function" &&
+        typeof readFile === "function"
     );
 }
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isFileOpenElectronApiMethods(
+    value: unknown
+): value is FileOpenElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function isMissingFileError(error: unknown): boolean {

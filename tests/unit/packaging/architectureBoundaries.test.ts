@@ -13678,7 +13678,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
-        expect.assertions(19);
+        expect.assertions(27);
 
         const handleOpenFileSource = stripComments(
             readRepositoryFile(
@@ -13717,10 +13717,24 @@ describe("architecture boundaries", () => {
         expect(handleOpenFileSource).not.toContain(
             "const api = value as FileOpenElectronAPI"
         );
-        expect(handleOpenFileSource).toContain("function isRecord(");
+        expect(handleOpenFileSource).toContain(
+            "type FileOpenElectronApiMethods = Readonly<{"
+        );
+        expect(handleOpenFileSource).toContain(
+            "function isFileOpenElectronApiMethods("
+        );
         expect(handleOpenFileSource).toContain("!Array.isArray(value)");
         expect(handleOpenFileSource).toContain(
-            'typeof value["openFile"] === "function"'
+            "function readElectronApiValue("
+        );
+        expect(handleOpenFileSource).toContain("value.openFile");
+        expect(handleOpenFileSource).toContain("value.parseFitFile");
+        expect(handleOpenFileSource).toContain("value.readFile");
+        expect(handleOpenFileSource).not.toContain('value["openFile"]');
+        expect(handleOpenFileSource).not.toContain('value["parseFitFile"]');
+        expect(handleOpenFileSource).not.toContain('value["readFile"]');
+        expect(handleOpenFileSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
         );
         expect(handleOpenFileSource).not.toContain(
             "readonly openFile?: unknown;"
