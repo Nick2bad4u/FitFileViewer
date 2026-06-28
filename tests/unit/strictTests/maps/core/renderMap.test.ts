@@ -348,6 +348,24 @@ describe("renderMap core", () => {
         expect(document.getElementById("leaflet-map")).toBeNull();
     });
 
+    it("rejects array-shaped Leaflet runtime candidates", async () => {
+        expect.assertions(3);
+
+        const { L } = makeLeafletStub();
+        const malformedRuntime = Object.assign([], L);
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        setLeafletRuntime(malformedRuntime);
+
+        const { renderMap } = await importSUT();
+        renderMap();
+
+        expect(L.map).not.toHaveBeenCalled();
+        expect(document.getElementById("leaflet-map")).toBeNull();
+        expect(warnSpy).toHaveBeenCalledWith(
+            "[renderMap] Leaflet library unavailable; skipping map render."
+        );
+    });
+
     it("creates map structure and UI controls, sets up zoom slider and layers button", async () => {
         expect.assertions(12);
 

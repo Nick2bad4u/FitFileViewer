@@ -1927,6 +1927,9 @@ casts from returning.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.
+Render-map Leaflet runtime candidate validation now uses a non-array record guard and direct property reads instead of
+casting arbitrary runtime values to a local Leaflet shape, with array-shaped malformed candidate coverage and
+architecture guardrails blocking that bridge cast from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

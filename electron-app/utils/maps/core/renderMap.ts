@@ -251,25 +251,22 @@ function isDrawnLayer(layer: Leaflet.Layer): layer is DrawnLayer {
     return typeof layer === "object" && layer !== null;
 }
 
+function isLooseRecord(value: unknown): value is LooseRecord {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function isLeafletRuntime(value: unknown): value is LeafletRuntime {
-    if (typeof value !== "object" || value === null) {
+    if (!isLooseRecord(value)) {
         return false;
     }
 
-    const candidate = value as {
-        Layer?: unknown;
-        control?: unknown;
-        map?: unknown;
-        tileLayer?: unknown;
-    };
-
     return (
-        typeof candidate.Layer === "function" &&
-        typeof candidate.map === "function" &&
-        typeof candidate.tileLayer === "function" &&
-        (typeof candidate.control === "function" ||
-            typeof candidate.control === "object") &&
-        candidate.control !== null
+        typeof value["Layer"] === "function" &&
+        typeof value["map"] === "function" &&
+        typeof value["tileLayer"] === "function" &&
+        (typeof value["control"] === "function" ||
+            typeof value["control"] === "object") &&
+        value["control"] !== null
     );
 }
 

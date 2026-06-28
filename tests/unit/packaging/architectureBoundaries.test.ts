@@ -27121,7 +27121,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(85);
+        expect.assertions(87);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -27320,6 +27320,8 @@ describe("architecture boundaries", () => {
         );
         expect(viteRendererConfig).not.toContain("leaflet.markercluster");
         expect(renderMapSource).not.toContain("markerClusterGroup");
+        expect(renderMapSource).toContain("function isLooseRecord");
+        expect(renderMapSource).not.toContain("const candidate = value as {");
         expect(mapDrawLapsSource).not.toContain("markerClusterGroup");
         expect(mapDrawLapsSource).toContain("runtime.isSVGElement");
         expect(mapDrawLapsSource).not.toContain("instanceof SVGElement");
