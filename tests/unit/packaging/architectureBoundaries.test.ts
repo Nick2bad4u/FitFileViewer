@@ -5924,7 +5924,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(30);
+        expect.assertions(31);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6019,7 +6019,10 @@ describe("architecture boundaries", () => {
             'import { masterStateManager } from "./utils/state/core/masterStateManager.js";'
         );
         expect(rendererEntrypointSource).toContain(
-            'import { subscribeToAppOpeningFile } from "./utils/state/domain/appDomainState.js";'
+            'from "./utils/state/domain/appDomainState.js";'
+        );
+        expect(rendererEntrypointSource).toContain(
+            "subscribeToAppOpeningFile,"
         );
         expect(rendererEntrypointSource).toContain(
             "createRendererStateStartup({\n    logRenderer,\n    masterStateManager,\n    subscribeToAppOpeningFile,\n});"
@@ -20726,7 +20729,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(36);
+        expect.assertions(40);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -20753,11 +20756,17 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).toContain(
             "readonly handleOpenFile: RendererHandleOpenFile | undefined;"
         );
-        expect(importTimeBootstrapSource).toContain(
+        expect(importTimeBootstrapSource).not.toContain(
             "readonly getAppStartTime: AppStartTimeGetter | undefined;"
         );
-        expect(importTimeBootstrapSource).toContain(
+        expect(importTimeBootstrapSource).not.toContain(
             "readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "getAppStartTime: AppStartTimeGetter;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "subscribeToAppStartTime: AppStartTimeSubscriber;"
         );
         expect(importTimeBootstrapSource).toContain(
             "ensureCoreModules: () => Promise<RendererImportTimeCoreModules>"
@@ -20771,7 +20780,7 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapTestSource).not.toContain(
             "RendererCoreModules"
         );
-        expect(importTimeBootstrapSource).toContain("getAppStartTime?.()");
+        expect(importTimeBootstrapSource).toContain("getAppStartTime();");
         expect(importTimeBootstrapSource).not.toContain(
             'getAppDomainState?.("app.startTime")'
         );
@@ -20781,7 +20790,7 @@ describe("architecture boundaries", () => {
             "electronApiScope: getElectronApiScope()"
         );
         expect(importTimeBootstrapSource).toContain(
-            "subscribeToAppStartTime?.(() => {})"
+            "subscribeToAppStartTime(() => {})"
         );
         expect(importTimeBootstrapSource).not.toContain(
             'subscribeAppDomain?.("app.startTime", () => {})'
@@ -20832,6 +20841,8 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain(
             "createRendererImportTimeBootstrap({"
         );
+        expect(rendererEntrypointSource).toContain("getAppStartTime,");
+        expect(rendererEntrypointSource).toContain("subscribeToAppStartTime,");
         expect(coreModuleResolutionSource).toContain(
             "export async function ensureCoreModules()"
         );

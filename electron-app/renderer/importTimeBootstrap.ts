@@ -18,7 +18,6 @@ export type RendererImportTimeCoreModules = Readonly<{
     readonly applyTheme:
         | ((theme: string, withTransition?: boolean) => void)
         | undefined;
-    readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
@@ -26,16 +25,17 @@ export type RendererImportTimeCoreModules = Readonly<{
     readonly showAboutModal: ((html?: string) => void) | undefined;
     readonly showNotification: ShowNotification | undefined;
     readonly showUpdateNotification: ShowUpdateNotification | undefined;
-    readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;
 }>;
 
 interface RendererImportTimeBootstrapOptions {
     ensureCoreModules: () => Promise<RendererImportTimeCoreModules>;
     getElectronApiScope: () => RendererElectronApiScope;
+    getAppStartTime: AppStartTimeGetter;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isOpeningFileRef: RendererFileOpeningStateRef;
     setLoading: (loading: boolean) => void;
+    subscribeToAppStartTime: AppStartTimeSubscriber;
 }
 
 export interface RendererImportTimeBootstrap {
@@ -48,16 +48,17 @@ export interface RendererImportTimeBootstrap {
 export function createRendererImportTimeBootstrap({
     ensureCoreModules,
     getElectronApiScope,
+    getAppStartTime,
     getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
     setLoading,
+    subscribeToAppStartTime,
 }: RendererImportTimeBootstrapOptions): RendererImportTimeBootstrap {
     async function initializeImportTimeStateManager(): Promise<void> {
         await initializeStateManager();
         try {
-            const { getAppStartTime } = await ensureCoreModules();
-            getAppStartTime?.();
+            getAppStartTime();
         } catch {
             /* Ignore errors */
         }
@@ -119,10 +120,8 @@ export function createRendererImportTimeBootstrap({
 
     async function touchAppDomainState(): Promise<void> {
         try {
-            const { getAppStartTime, subscribeToAppStartTime } =
-                await ensureCoreModules();
-            getAppStartTime?.();
-            subscribeToAppStartTime?.(() => {});
+            getAppStartTime();
+            subscribeToAppStartTime(() => {});
         } catch {
             /* Ignore errors */
         }

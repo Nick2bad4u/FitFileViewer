@@ -27,7 +27,11 @@ import { applyTheme } from "./utils/theming/core/theme.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { masterStateManager } from "./utils/state/core/masterStateManager.js";
-import { subscribeToAppOpeningFile } from "./utils/state/domain/appDomainState.js";
+import {
+    getAppStartTime,
+    subscribeToAppOpeningFile,
+    subscribeToAppStartTime,
+} from "./utils/state/domain/appDomainState.js";
 import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
@@ -101,10 +105,12 @@ const getRendererElectronApiScope = () => runtimeEnvironment.electronApiScope;
 const importTimeBootstrap = createRendererImportTimeBootstrap({
     ensureCoreModules,
     getElectronApiScope: getRendererElectronApiScope,
+    getAppStartTime,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
     setLoading,
+    subscribeToAppStartTime,
 });
 const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
     importTimeBootstrap;
