@@ -6184,14 +6184,14 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer core module resolution on the app-domain state facade", () => {
+    it("keeps renderer core module resolution off app-domain state services", () => {
         expect.assertions(18);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
         );
 
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "state/domain/appDomainState.js"
         );
         expect(coreModuleResolutionSource).toContain(
@@ -6200,18 +6200,20 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             "export interface RendererCoreModules"
         );
-        expect(coreModuleResolutionSource).toContain("AppStartTimeGetter");
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain("AppStartTimeGetter");
+        expect(coreModuleResolutionSource).not.toContain(
             "AppOpeningFileSubscriber"
         );
-        expect(coreModuleResolutionSource).toContain("AppStartTimeSubscriber");
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
+            "AppStartTimeSubscriber"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
             "getAppStartTime: AppStartTimeGetter | undefined"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined"
         );
-        expect(coreModuleResolutionSource).toContain(
+        expect(coreModuleResolutionSource).not.toContain(
             "subscribeToAppStartTime: AppStartTimeSubscriber | undefined"
         );
         expect(coreModuleResolutionSource).not.toContain(
@@ -20611,7 +20613,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(38);
+        expect.assertions(51);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -20658,8 +20660,8 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).toContain(
             '"setFileOpening" | "setInitialized"'
         );
-        expect(coreModuleResolutionSource).toContain(
-            "export type RendererAppInitializationActions = Pick<"
+        expect(coreModuleResolutionSource).not.toContain(
+            "export type RendererAppInitializationActions"
         );
         expect(coreModuleResolutionSource).toContain(
             "readonly AppActions: RendererAppCleanupActions | undefined;"
@@ -20668,9 +20670,15 @@ describe("architecture boundaries", () => {
             "): RendererAppCleanupActions | undefined {"
         );
         expect(applicationStartupSource).toContain(
-            "export type RendererApplicationStartupActions = RendererAppInitializationActions;"
+            "export type RendererApplicationStartupActions = Readonly<{"
         );
         expect(applicationStartupSource).toContain(
+            "readonly setInitialized: (initialized: boolean) => void;"
+        );
+        expect(applicationStartupSource).toContain(
+            "appActions: RendererApplicationStartupActions;"
+        );
+        expect(applicationStartupSource).not.toContain(
             "readonly AppActions: RendererApplicationStartupActions | undefined;"
         );
         expect(applicationStartupSource).not.toContain(
@@ -20680,10 +20688,32 @@ describe("architecture boundaries", () => {
             "readonly AppActions: Record<string, unknown> | undefined;"
         );
         expect(applicationStartupSource).toContain(
-            "appActions?.setInitialized?.(true);"
+            "appActions.setInitialized(true);"
         );
         expect(applicationStartupSource).not.toContain(
             'appActions?.["setInitialized"]'
+        );
+        expect(applicationStartupSource).not.toContain(
+            "appActions?.setInitialized?.(true);"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "readonly getAppStartTime: AppStartTimeGetter | undefined;"
+        );
+        expect(applicationStartupSource).toContain(
+            "getAppStartTime: AppStartTimeGetter;"
+        );
+        expect(applicationStartupSource).toContain(
+            "options.getAppStartTime();"
+        );
+        expect(applicationStartupSource).toContain(
+            "showNotification: ShowNotification;"
+        );
+        expect(applicationStartupSource).toContain("options.showNotification(");
+        expect(applicationStartupSource).not.toContain(
+            "coreModules.showNotification"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "showNotification !== undefined"
         );
         expect(applicationStartupSource).toContain(
             "readonly showUpdateNotification: ShowUpdateNotification | undefined;"
@@ -20723,6 +20753,9 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).not.toContain(
             "createRendererApplicationStartup({\n    addEventListener: runtimeEnvironment.addEventListener,\n    callUnknownFunction,"
         );
+        expect(rendererEntrypointSource).toContain("appActions: AppActions,");
+        expect(rendererEntrypointSource).toContain("getAppStartTime,");
+        expect(rendererEntrypointSource).toContain("showNotification,");
         expect(applicationStartupSource).not.toContain(
             "handleImmediateFileInputChange"
         );

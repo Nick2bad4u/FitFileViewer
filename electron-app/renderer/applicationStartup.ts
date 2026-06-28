@@ -16,7 +16,6 @@ import type { RendererAddEventListener } from "./runtimeEnvironment.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     ListenForThemeChange,
-    RendererAppInitializationActions,
     RendererHandleOpenFile,
     RendererSetupListeners,
     RendererSetupTheme,
@@ -42,30 +41,31 @@ export interface RendererDependencies {
     openFileBtn: HTMLElement | null;
     setLoading: (loading: boolean) => void;
     showAboutModal: ((html?: string) => void) | undefined;
-    showNotification: ShowNotification | undefined;
+    showNotification: ShowNotification;
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
-export type RendererApplicationStartupActions = RendererAppInitializationActions;
+export type RendererApplicationStartupActions = Readonly<{
+    readonly setInitialized: (initialized: boolean) => void;
+}>;
 
 export type RendererApplicationStartupCoreModules = Readonly<{
-    readonly AppActions: RendererApplicationStartupActions | undefined;
     readonly applyTheme: ApplyTheme | undefined;
-    readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
     readonly showAboutModal: ((html?: string) => void) | undefined;
-    readonly showNotification: ShowNotification | undefined;
     readonly showUpdateNotification: ShowUpdateNotification | undefined;
 }>;
 
 interface RendererApplicationStartupOptions {
     addEventListener: RendererAddEventListener;
+    appActions: RendererApplicationStartupActions;
     ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
     getElectronApiScope: () => RendererElectronApiScope;
+    getAppStartTime: AppStartTimeGetter;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isDevelopmentMode: () => boolean;
@@ -74,6 +74,7 @@ interface RendererApplicationStartupOptions {
     performanceMonitor: RendererPerformanceMonitor;
     runtime?: RendererApplicationStartupRuntime | undefined;
     setLoading: (loading: boolean) => void;
+    showNotification: ShowNotification;
     setupCreditsMarquee: () => void;
     validateDOMElements: () => boolean;
 }
@@ -138,14 +139,12 @@ export function createRendererApplicationStartup(
             }
 
             try {
-                if (coreModules.getAppStartTime !== undefined) {
-                    coreModules.getAppStartTime();
-                }
+                options.getAppStartTime();
             } catch {
                 /* Ignore errors */
             }
 
-            markApplicationInitialized(coreModules.AppActions);
+            markApplicationInitialized(options.appActions);
 
             const initTime =
                 options.performanceMonitor.end("app_initialization");
@@ -154,11 +153,8 @@ export function createRendererApplicationStartup(
                 `[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`
             );
 
-            if (
-                options.isDevelopmentMode() &&
-                coreModules.showNotification !== undefined
-            ) {
-                coreModules.showNotification(
+            if (options.isDevelopmentMode()) {
+                options.showNotification(
                     `App initialized in ${initTime.toFixed(0)}ms`,
                     "success",
                     3000
@@ -173,14 +169,11 @@ export function createRendererApplicationStartup(
             );
 
             try {
-                const coreModules = await options.ensureCoreModules();
-                if (coreModules.showNotification !== undefined) {
-                    coreModules.showNotification(
-                        `Initialization failed: ${getRendererErrorMessage(error)}`,
-                        "error",
-                        10_000
-                    );
-                }
+                options.showNotification(
+                    `Initialization failed: ${getRendererErrorMessage(error)}`,
+                    "error",
+                    10_000
+                );
             } catch {
                 /* Ignore errors */
             }
@@ -351,7 +344,7 @@ function createRendererDependencies(
         openFileBtn,
         setLoading: options.setLoading,
         showAboutModal: coreModules.showAboutModal,
-        showNotification: coreModules.showNotification,
+        showNotification: options.showNotification,
         showUpdateNotification: coreModules.showUpdateNotification,
     };
 }
@@ -413,7 +406,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function markApplicationInitialized(
-    appActions: RendererApplicationStartupActions | undefined
+    appActions: RendererApplicationStartupActions
 ): void {
-    appActions?.setInitialized?.(true);
+    appActions.setInitialized(true);
 }

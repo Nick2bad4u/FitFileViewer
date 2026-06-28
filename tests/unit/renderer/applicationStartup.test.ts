@@ -10,17 +10,12 @@ function createCoreModules(
     overrides: Partial<RendererApplicationStartupCoreModules> = {}
 ): RendererApplicationStartupCoreModules {
     return {
-        AppActions: {
-            setInitialized: vi.fn(),
-        },
         applyTheme: vi.fn(),
-        getAppStartTime: vi.fn(),
         handleOpenFile: vi.fn(),
         listenForThemeChange: vi.fn(),
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
         showAboutModal: vi.fn(),
-        showNotification: vi.fn(),
         showUpdateNotification: vi.fn(),
         ...overrides,
     };
@@ -72,8 +67,14 @@ describe("renderer application startup", () => {
         const addEventListener = vi.fn<typeof globalThis.addEventListener>();
         const performance = createPerformanceMonitor();
         const electronApiScope = {};
+        const appActions = {
+            setInitialized: vi.fn(),
+        };
+        const getAppStartTime = vi.fn();
+        const showNotification = vi.fn();
         const utils = createRendererApplicationStartup({
             addEventListener,
+            appActions,
             ensureCoreModules: async () => coreModules,
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -82,6 +83,7 @@ describe("renderer application startup", () => {
                 onUnhandledRejectionEvent: vi.fn(),
             },
             getElectronApiScope: () => electronApiScope,
+            getAppStartTime,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isDevelopmentMode: () => true,
@@ -89,6 +91,7 @@ describe("renderer application startup", () => {
             logRenderer: vi.fn(),
             performanceMonitor: performance.monitor,
             setLoading: vi.fn(),
+            showNotification,
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => true,
         });
@@ -118,11 +121,9 @@ describe("renderer application startup", () => {
                 openFileBtn: openFileButton,
             })
         );
-        expect(coreModules.getAppStartTime).toHaveBeenCalledOnce();
-        expect(coreModules.AppActions?.setInitialized).toHaveBeenCalledWith(
-            true
-        );
-        expect(coreModules.showNotification).toHaveBeenCalledWith(
+        expect(getAppStartTime).toHaveBeenCalledOnce();
+        expect(appActions.setInitialized).toHaveBeenCalledWith(true);
+        expect(showNotification).toHaveBeenCalledWith(
             "App initialized in 12ms",
             "success",
             3000
@@ -155,6 +156,7 @@ describe("renderer application startup", () => {
         const runtime = createApplicationStartupRuntime();
         const utils = createRendererApplicationStartup({
             addEventListener,
+            appActions: { setInitialized: vi.fn() },
             ensureCoreModules: async () => coreModules,
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -165,6 +167,7 @@ describe("renderer application startup", () => {
             getElectronApiScope: () => ({
                 getElectronAPI: () => ({ checkForUpdates }),
             }),
+            getAppStartTime: vi.fn(),
             getOpenFileButton: () => null,
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
@@ -173,6 +176,7 @@ describe("renderer application startup", () => {
             performanceMonitor: performance.monitor,
             runtime,
             setLoading: vi.fn(),
+            showNotification: vi.fn(),
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => true,
         });
@@ -214,10 +218,8 @@ describe("renderer application startup", () => {
         const logRenderer = vi.fn();
         const utils = createRendererApplicationStartup({
             addEventListener: vi.fn(),
-            ensureCoreModules: async () =>
-                createCoreModules({
-                    showNotification,
-                }),
+            appActions: { setInitialized: vi.fn() },
+            ensureCoreModules: async () => createCoreModules(),
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
                 handleUnhandledRejection: vi.fn(),
@@ -225,6 +227,7 @@ describe("renderer application startup", () => {
                 onUnhandledRejectionEvent: vi.fn(),
             },
             getElectronApiScope: () => ({}),
+            getAppStartTime: vi.fn(),
             getOpenFileButton: () => null,
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
@@ -232,6 +235,7 @@ describe("renderer application startup", () => {
             logRenderer,
             performanceMonitor: performance.monitor,
             setLoading: vi.fn(),
+            showNotification,
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => false,
         });

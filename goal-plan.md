@@ -2073,6 +2073,9 @@ the renderer entrypoint instead of resolving them through the broad renderer cor
 Renderer import-time app-domain state touches now receive typed `getAppStartTime` and `subscribeToAppStartTime`
 services directly from the renderer entrypoint instead of resolving them through the broad renderer core-module
 aggregate.
+Renderer application startup now receives typed `AppActions.setInitialized`, `getAppStartTime`, and `showNotification`
+services directly from the renderer entrypoint, and the broad core-module resolver no longer imports or exposes
+app-domain state services for startup paths.
 Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
 renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Renderer error handling now receives the typed `showNotification` service directly from the renderer entrypoint instead

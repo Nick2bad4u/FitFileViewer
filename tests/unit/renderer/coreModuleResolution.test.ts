@@ -45,7 +45,7 @@ describe("renderer core module resolution", () => {
     });
 
     it("builds the core module facade from test overrides", async () => {
-        expect.assertions(11);
+        expect.assertions(8);
 
         const applyTheme = vi.fn();
         const handleOpenFile = vi.fn();
@@ -55,9 +55,6 @@ describe("renderer core module resolution", () => {
         const showAboutModal = vi.fn();
         const showNotification = vi.fn();
         const showUpdateNotification = vi.fn();
-        const subscribeToAppOpeningFile = vi.fn();
-        const subscribeToAppStartTime = vi.fn();
-        const getAppStartTime = vi.fn();
         const AppActions = {
             setFileOpening: vi.fn(),
             setInitialized: vi.fn(),
@@ -92,14 +89,6 @@ describe("renderer core module resolution", () => {
                 ],
                 ["../../utils/app/lifecycle/appActions.js", { AppActions }],
                 [
-                    "../../utils/state/domain/appDomainState.js",
-                    {
-                        getAppStartTime,
-                        subscribeToAppOpeningFile,
-                        subscribeToAppStartTime,
-                    },
-                ],
-                [
                     "../../utils/state/domain/uiStateManager.js",
                     { uiStateManager },
                 ],
@@ -115,13 +104,6 @@ describe("renderer core module resolution", () => {
         expect(coreModules.masterStateManager).toBe(masterStateManager);
         expect(coreModules.setupListeners).toBe(setupListeners);
         expect(coreModules.showNotification).toBe(showNotification);
-        expect(coreModules.getAppStartTime).toBe(getAppStartTime);
-        expect(coreModules.subscribeToAppOpeningFile).toBe(
-            subscribeToAppOpeningFile
-        );
-        expect(coreModules.subscribeToAppStartTime).toBe(
-            subscribeToAppStartTime
-        );
         expect(coreModules.uiStateManager).toBe(uiStateManager);
     });
 });

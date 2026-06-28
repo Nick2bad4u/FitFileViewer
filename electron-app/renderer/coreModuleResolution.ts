@@ -2,11 +2,6 @@ import type { RendererApplyTheme as ApplyTheme } from "./electronApiStartupHooks
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type { AppActions } from "../utils/app/lifecycle/appActions.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
-import type {
-    AppOpeningFileSubscriber,
-    AppStartTimeGetter,
-    AppStartTimeSubscriber,
-} from "../utils/state/domain/appDomainState.js";
 
 export type ListenForThemeChange = (
     onThemeChange: (theme: string) => void,
@@ -39,15 +34,10 @@ export type RendererAppCleanupActions = Pick<
     typeof AppActions,
     "setFileOpening" | "setInitialized"
 >;
-export type RendererAppInitializationActions = Pick<
-    RendererAppCleanupActions,
-    "setInitialized"
->;
 
 type ResolvedRendererCoreModules = Readonly<{
     readonly AppActions: RendererAppCleanupActions | undefined;
     readonly applyTheme: ApplyTheme | undefined;
-    readonly getAppStartTime: AppStartTimeGetter | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly masterStateManager: unknown;
@@ -56,8 +46,6 @@ type ResolvedRendererCoreModules = Readonly<{
     readonly showAboutModal: ((html?: string) => void) | undefined;
     readonly showNotification: ShowNotification | undefined;
     readonly showUpdateNotification: ShowUpdateNotification | undefined;
-    readonly subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined;
-    readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;
     readonly uiStateManager: unknown;
 }>;
 
@@ -106,10 +94,6 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         "../../utils/app/lifecycle/appActions.js",
         "../utils/app/lifecycle/appActions.js"
     );
-    const appDomainMod = await resolveCoreModule(
-        "../../utils/state/domain/appDomainState.js",
-        "../utils/state/domain/appDomainState.js"
-    );
     const uiStateMod = await resolveCoreModule(
         "../../utils/state/domain/uiStateManager.js",
         "../utils/state/domain/uiStateManager.js"
@@ -119,9 +103,6 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
         AppActions: resolveAppActionsModule(appActionsMod),
         applyTheme: toApplyTheme(themeMod["applyTheme"]),
-        getAppStartTime: toAppStartTimeGetter(
-            resolveDefaultableExport(appDomainMod, "getAppStartTime")
-        ),
         handleOpenFile: toRendererHandleOpenFile(openFileMod["handleOpenFile"]),
         listenForThemeChange: toListenForThemeChange(
             themeMod["listenForThemeChange"]
@@ -136,12 +117,6 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         showNotification: toShowNotification(notifMod["showNotification"]),
         showUpdateNotification: toShowUpdateNotification(
             updateNotifMod["showUpdateNotification"]
-        ),
-        subscribeToAppOpeningFile: toAppOpeningFileSubscriber(
-            resolveDefaultableExport(appDomainMod, "subscribeToAppOpeningFile")
-        ),
-        subscribeToAppStartTime: toAppStartTimeSubscriber(
-            resolveDefaultableExport(appDomainMod, "subscribeToAppStartTime")
         ),
         uiStateManager:
             resolveDefaultableExport(uiStateMod, "uiStateManager") ??
@@ -235,9 +210,6 @@ async function importRendererModule(realPath: string): Promise<unknown> {
         case "../utils/state/core/masterStateManager.js": {
             return /** @type {Promise<unknown>} */ import("../utils/state/core/masterStateManager.js");
         }
-        case "../utils/state/domain/appDomainState.js": {
-            return /** @type {Promise<unknown>} */ import("../utils/state/domain/appDomainState.js");
-        }
         case "../utils/state/domain/uiStateManager.js": {
             return /** @type {Promise<unknown>} */ import("../utils/state/domain/uiStateManager.js");
         }
@@ -316,28 +288,6 @@ function resolveDefaultableExport(
 
 function toApplyTheme(value: unknown): ApplyTheme | undefined {
     return typeof value === "function" ? (value as ApplyTheme) : undefined;
-}
-
-function toAppOpeningFileSubscriber(
-    value: unknown
-): AppOpeningFileSubscriber | undefined {
-    return typeof value === "function"
-        ? (value as AppOpeningFileSubscriber)
-        : undefined;
-}
-
-function toAppStartTimeGetter(value: unknown): AppStartTimeGetter | undefined {
-    return typeof value === "function"
-        ? (value as AppStartTimeGetter)
-        : undefined;
-}
-
-function toAppStartTimeSubscriber(
-    value: unknown
-): AppStartTimeSubscriber | undefined {
-    return typeof value === "function"
-        ? (value as AppStartTimeSubscriber)
-        : undefined;
 }
 
 function toListenForThemeChange(

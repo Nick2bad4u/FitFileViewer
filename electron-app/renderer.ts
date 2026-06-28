@@ -153,9 +153,11 @@ const PerformanceMonitor: RendererPerformanceMonitor =
 
 const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
+    appActions: AppActions,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
     getElectronApiScope: getRendererElectronApiScope,
+    getAppStartTime,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isDevelopmentMode,
@@ -163,6 +165,7 @@ const initializeApplication = createRendererApplicationStartup({
     logRenderer,
     performanceMonitor: PerformanceMonitor,
     setLoading,
+    showNotification,
     setupCreditsMarquee,
     validateDOMElements: domAccess.validateDOMElements,
 });
