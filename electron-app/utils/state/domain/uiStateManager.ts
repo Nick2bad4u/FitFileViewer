@@ -12,7 +12,28 @@ import {
     updateState,
 } from "../core/stateManager.js";
 import { getActiveFitRawData } from "./activeFitRawDataState.js";
-import { normalizeRendererActiveTab } from "./rendererActiveTabState.js";
+import {
+    normalizeRendererActiveTab,
+    subscribeToRendererActiveTab,
+} from "./rendererActiveTabState.js";
+import {
+    DEFAULT_RENDERER_FILE_INFO,
+    getRendererFileInfo,
+    isRendererUnloadButtonVisible,
+    subscribeToRendererFileInfo,
+    subscribeToRendererUnloadButtonVisible,
+    type RendererFileInfoState,
+} from "./rendererActiveFileState.js";
+import { subscribeToRendererChartControlsVisible } from "./rendererChartControlsState.js";
+import {
+    isRendererDropOverlayVisible,
+    subscribeToRendererDropOverlayVisible,
+} from "./rendererDragDropState.js";
+import {
+    isRendererLoading,
+    subscribeToRendererLoading,
+} from "./rendererLoadingState.js";
+import { subscribeToRendererTheme } from "./rendererThemeState.js";
 import {
     getUIStateManagerRuntime,
     type UIStateManagerRuntime,
@@ -30,12 +51,6 @@ type NormalizedNotification = {
     duration: number;
     message: string;
     type: string;
-};
-
-type FileInfoState = {
-    displayName?: string;
-    hasFile?: boolean;
-    title?: string;
 };
 
 type LoadingIndicatorState = {
@@ -230,27 +245,25 @@ export class UIStateManager {
      */
     initializeReactiveElements() {
         // Subscribe to active tab changes
-        subscribe("ui.activeTab", (activeTab) => {
+        subscribeToRendererActiveTab((activeTab) => {
             const tabName = normalizeRendererActiveTab(activeTab);
             this.updateTabVisibility(tabName);
             this.updateTabButtons(tabName);
         });
 
         // Subscribe to theme changes
-        subscribe("ui.theme", (theme) => {
+        subscribeToRendererTheme((theme) => {
             this.applyTheme(typeof theme === "string" ? theme : "system");
         });
 
         // Subscribe to unload button visibility
-        subscribe("ui.unloadButtonVisible", (isVisible) => {
-            this.updateUnloadButtonVisibility(Boolean(isVisible));
+        subscribeToRendererUnloadButtonVisible((isVisible) => {
+            this.updateUnloadButtonVisibility(isVisible);
         });
 
         // Subscribe to file display updates
-        subscribe("ui.fileInfo", (fileInfo) => {
-            this.updateFileDisplayUI(
-                fileInfo as FileInfoState | null | undefined
-            );
+        subscribeToRendererFileInfo((fileInfo) => {
+            this.updateFileDisplayUI(fileInfo);
         });
 
         // Subscribe to loading indicator progress
@@ -261,13 +274,13 @@ export class UIStateManager {
         });
 
         // Subscribe to loading state changes
-        subscribe("isLoading", (isLoading) => {
-            this.updateLoadingIndicator(Boolean(isLoading));
+        subscribeToRendererLoading((isLoading) => {
+            this.updateLoadingIndicator(isLoading);
         });
 
         // Subscribe to chart controls visibility
-        subscribe("charts.controlsVisible", (isVisible) => {
-            this.updateChartControlsUI(Boolean(isVisible));
+        subscribeToRendererChartControlsVisible((isVisible) => {
+            this.updateChartControlsUI(isVisible);
         });
 
         // Subscribe to measurement mode changes
@@ -276,27 +289,21 @@ export class UIStateManager {
         });
 
         // Subscribe to drop overlay visibility changes
-        subscribe("ui.dropOverlay.visible", (isVisible) => {
-            this.updateDropOverlayVisibility(Boolean(isVisible));
+        subscribeToRendererDropOverlayVisible((isVisible) => {
+            this.updateDropOverlayVisibility(isVisible);
         });
 
         // Apply persisted states on startup
-        this.updateUnloadButtonVisibility(
-            Boolean(getState("ui.unloadButtonVisible"))
-        );
-        this.updateFileDisplayUI(
-            getState("ui.fileInfo") as FileInfoState | null | undefined
-        );
+        this.updateUnloadButtonVisibility(isRendererUnloadButtonVisible());
+        this.updateFileDisplayUI(getRendererFileInfo());
         this.updateLoadingProgressUI(
             getState("ui.loadingIndicator") as
                 | LoadingIndicatorState
                 | null
                 | undefined
         );
-        this.updateLoadingIndicator(Boolean(getState("isLoading")));
-        this.updateDropOverlayVisibility(
-            Boolean(getState("ui.dropOverlay.visible"))
-        );
+        this.updateLoadingIndicator(isRendererLoading());
+        this.updateDropOverlayVisibility(isRendererDropOverlayVisible());
     }
 
     /**
@@ -537,8 +544,9 @@ export class UIStateManager {
     /**
      * Update active file display elements based on state
      */
-    updateFileDisplayUI(fileInfo: FileInfoState | null | undefined) {
-        const info = fileInfo || {},
+    updateFileDisplayUI(fileInfo: RendererFileInfoState | null | undefined) {
+        const info: RendererFileInfoState =
+                fileInfo ?? DEFAULT_RENDERER_FILE_INFO,
             requestedHasFile = Boolean(info.hasFile),
             displayName =
                 typeof info.displayName === "string" ? info.displayName : "",

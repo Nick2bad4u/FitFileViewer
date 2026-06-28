@@ -12,6 +12,8 @@ import {
     setRendererCurrentFile,
     setRendererFileInfo,
     setRendererUnloadButtonVisible,
+    subscribeToRendererFileInfo,
+    subscribeToRendererUnloadButtonVisible,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveFileState.js";
 
 describe("rendererActiveFileState", () => {
@@ -118,6 +120,53 @@ describe("rendererActiveFileState", () => {
             hasFile: true,
             title: "Race",
         });
+    });
+
+    it("subscribes with normalized active file values", () => {
+        expect.assertions(2);
+
+        const fileInfoValues: unknown[] = [],
+            subscriptionCleanups: Array<() => void> = [],
+            unloadValues: boolean[] = [];
+
+        subscriptionCleanups.push(
+            subscribeToRendererFileInfo((fileInfo) =>
+                fileInfoValues.push(fileInfo)
+            ),
+            subscribeToRendererUnloadButtonVisible((visible) =>
+                unloadValues.push(visible)
+            )
+        );
+
+        stateManager.setState(
+            "ui.fileInfo",
+            {
+                displayName: "race.fit",
+                hasFile: "yes",
+                title: 123,
+            },
+            { source: "test" }
+        );
+        stateManager.setState("ui.unloadButtonVisible", "true", {
+            source: "test",
+        });
+        setRendererUnloadButtonVisible(true, { source: "test" });
+        stateManager.setState("ui.unloadButtonVisible", "true", {
+            source: "test",
+        });
+
+        expect(fileInfoValues).toStrictEqual([
+            {
+                displayName: "race.fit",
+                hasFile: false,
+                title: "",
+            },
+        ]);
+        expect(unloadValues).toStrictEqual([true, false]);
+
+        for (const cleanup of subscriptionCleanups) {
+            cleanup();
+        }
     });
 
     it("stores normalized active file values through direct state writes", () => {

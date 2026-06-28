@@ -8,6 +8,7 @@ import {
     normalizeDropOverlayVisible,
     setRendererDragCounter,
     setRendererDropOverlayVisible,
+    subscribeToRendererDropOverlayVisible,
 } from "../../../../../electron-app/utils/state/domain/rendererDragDropState.js";
 
 describe("rendererDragDropState", () => {
@@ -48,6 +49,36 @@ describe("rendererDragDropState", () => {
         expect(normalizeDragCounter(-3)).toBe(0);
         expect(normalizeDropOverlayVisible("visible")).toBe(true);
         expect(normalizeDropOverlayVisible(0)).toBe(false);
+    });
+
+    it("subscribes with normalized drop overlay values", () => {
+        expect.assertions(2);
+
+        const subscriptionCleanups: Array<() => void> = [];
+        const values: boolean[] = [];
+
+        subscriptionCleanups.push(
+            subscribeToRendererDropOverlayVisible((visible) =>
+                values.push(visible)
+            )
+        );
+
+        stateManager.setState("ui.dropOverlay.visible", "visible", {
+            source: "test",
+        });
+        stateManager.setState("ui.dropOverlay.visible", 0, {
+            source: "test",
+        });
+
+        expect(values).toStrictEqual([true, false]);
+
+        for (const cleanup of subscriptionCleanups) {
+            cleanup();
+        }
+        stateManager.setState("ui.dropOverlay.visible", true, {
+            source: "test",
+        });
+        expect(values).toStrictEqual([true, false]);
     });
 
     it("stores normalized drag/drop values through direct state writes", () => {

@@ -11935,7 +11935,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(185);
+        expect.assertions(211);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -11952,6 +11952,50 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("type UIStateManagerRuntime");
         expect(uiStateManagerSource).toContain("rendererActiveTabState.js");
         expect(uiStateManagerSource).toContain("normalizeRendererActiveTab");
+        expect(uiStateManagerSource).toContain("rendererActiveFileState.js");
+        expect(uiStateManagerSource).toContain(
+            "rendererChartControlsState.js"
+        );
+        expect(uiStateManagerSource).toContain("rendererDragDropState.js");
+        expect(uiStateManagerSource).toContain("rendererLoadingState.js");
+        expect(uiStateManagerSource).toContain("rendererThemeState.js");
+        expect(uiStateManagerSource).toContain("subscribeToRendererActiveTab");
+        expect(uiStateManagerSource).toContain("subscribeToRendererTheme");
+        expect(uiStateManagerSource).toContain("subscribeToRendererFileInfo");
+        expect(uiStateManagerSource).toContain("subscribeToRendererLoading");
+        expect(uiStateManagerSource).toContain(
+            "subscribeToRendererChartControlsVisible"
+        );
+        expect(uiStateManagerSource).toContain(
+            "subscribeToRendererDropOverlayVisible"
+        );
+        expect(uiStateManagerSource).toContain(
+            "isRendererUnloadButtonVisible"
+        );
+        expect(uiStateManagerSource).toContain("getRendererFileInfo");
+        expect(uiStateManagerSource).toContain("isRendererLoading");
+        expect(uiStateManagerSource).toContain("isRendererDropOverlayVisible");
+        expect(uiStateManagerSource).not.toContain('subscribe("ui.activeTab"');
+        expect(uiStateManagerSource).not.toContain('subscribe("ui.theme"');
+        expect(uiStateManagerSource).not.toContain(
+            'subscribe("ui.unloadButtonVisible"'
+        );
+        expect(uiStateManagerSource).not.toContain('subscribe("ui.fileInfo"');
+        expect(uiStateManagerSource).not.toContain('subscribe("isLoading"');
+        expect(uiStateManagerSource).not.toContain(
+            'subscribe("charts.controlsVisible"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'subscribe("ui.dropOverlay.visible"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'getState("ui.unloadButtonVisible")'
+        );
+        expect(uiStateManagerSource).not.toContain('getState("ui.fileInfo")');
+        expect(uiStateManagerSource).not.toContain('getState("isLoading")');
+        expect(uiStateManagerSource).not.toContain(
+            'getState("ui.dropOverlay.visible")'
+        );
         expect(uiStateManagerSource).toContain(
             "return getUIStateManagerRuntime();"
         );

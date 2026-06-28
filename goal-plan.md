@@ -2036,6 +2036,10 @@ the typed active-tab read/write/subscription helpers instead of carrying local `
 Tab-specific handlers now route chart/map rendered checks and summary last-data hash reads/writes through state-domain
 helpers, so `tabStateManagerHandlers.ts` no longer carries local aggregate `charts`/`map` state reads or direct
 `summary.lastDataHash` path access.
+UI state-manager active-tab, theme, active-file, unload-button, loading, chart-controls, and drop-overlay subscriptions
+plus startup reads now route through typed renderer state-domain helpers instead of direct raw state-path subscriptions
+or reads inside `uiStateManager.ts`, with focused domain-helper tests and architecture guardrails blocking those direct
+paths from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

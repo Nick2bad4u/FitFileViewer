@@ -1,6 +1,7 @@
 import {
     getState,
     setState,
+    subscribe,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
 export {
@@ -15,6 +16,8 @@ import {
 
 const RENDERER_DRAG_COUNTER_STATE_PATH = "ui.dragCounter";
 const RENDERER_DROP_OVERLAY_VISIBLE_STATE_PATH = "ui.dropOverlay.visible";
+
+type RendererDropOverlayVisibleListener = (visible: boolean) => void;
 
 export function getRendererDragCounter(): number {
     return normalizeDragCounter(getState(RENDERER_DRAG_COUNTER_STATE_PATH));
@@ -48,4 +51,12 @@ export function setRendererDropOverlayVisible(
             ...options,
         }
     );
+}
+
+export function subscribeToRendererDropOverlayVisible(
+    listener: RendererDropOverlayVisibleListener
+): () => void {
+    return subscribe(RENDERER_DROP_OVERLAY_VISIBLE_STATE_PATH, (visible) => {
+        listener(normalizeDropOverlayVisible(visible));
+    });
 }

@@ -1,6 +1,7 @@
 import {
     getState,
     setState,
+    subscribe,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
 export {
@@ -22,6 +23,9 @@ const RENDERER_FILE_INFO_STATE_PATH = "ui.fileInfo";
 const RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH = "ui.unloadButtonVisible";
 const RENDERER_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";
 
+type RendererFileInfoListener = (fileInfo: RendererFileInfoState) => void;
+type RendererUnloadButtonVisibleListener = (visible: boolean) => void;
+
 export function getRendererFileInfo(): RendererFileInfoState {
     return normalizeRendererFileInfo(getState(RENDERER_FILE_INFO_STATE_PATH));
 }
@@ -38,6 +42,14 @@ export function setRendererFileInfo(
             ...options,
         }
     );
+}
+
+export function subscribeToRendererFileInfo(
+    listener: RendererFileInfoListener
+): () => void {
+    return subscribe(RENDERER_FILE_INFO_STATE_PATH, (fileInfo) => {
+        listener(normalizeRendererFileInfo(fileInfo));
+    });
 }
 
 export function isRendererUnloadButtonVisible(): boolean {
@@ -58,6 +70,14 @@ export function setRendererUnloadButtonVisible(
             ...options,
         }
     );
+}
+
+export function subscribeToRendererUnloadButtonVisible(
+    listener: RendererUnloadButtonVisibleListener
+): () => void {
+    return subscribe(RENDERER_UNLOAD_BUTTON_VISIBLE_STATE_PATH, (visible) => {
+        listener(normalizeRendererUnloadButtonVisible(visible));
+    });
 }
 
 export function getRendererCurrentFile(): null | string {
