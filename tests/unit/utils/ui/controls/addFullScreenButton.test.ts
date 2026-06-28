@@ -273,6 +273,47 @@ describe("addFullScreenButton", () => {
         }
     });
 
+    it("falls back to native fullscreen when scoped Electron fullscreen IPC properties are inaccessible", async () => {
+        expect.assertions(3);
+
+        await resetTestState();
+        const storedHandlers: ScreenfullChangeHandler[] = [];
+        const screenfullMock = createScreenfullMock(storedHandlers);
+        await registerScreenfullRuntime(screenfullMock);
+
+        const activeContent = document.createElement("section");
+        activeContent.id = "content-data";
+        const requestFullscreen = vi.fn<() => void>();
+        defineElementMethod(
+            activeContent,
+            "requestFullscreen",
+            requestFullscreen
+        );
+        document.body.append(activeContent);
+        controlMocks.getActiveTabContent.mockReturnValue(activeContent);
+
+        const electronApiScope = createElectronApiScope(
+            Object.defineProperty({}, "setFullScreen", {
+                get() {
+                    throw new Error("blocked fullscreen property");
+                },
+            })
+        );
+
+        try {
+            const module = await loadModule();
+            module.addFullScreenButton({ electronApiScope });
+
+            getRequiredFullscreenButton().click();
+
+            expect(requestFullscreen).toHaveBeenCalledOnce();
+            expect(screenfullMock.request).not.toHaveBeenCalled();
+            expect(storedHandlers).toStrictEqual([]);
+        } finally {
+            await cleanupTestState();
+        }
+    });
+
     it("handles F11 keyboard shortcut with IPC and native fallback", async () => {
         expect.assertions(7);
 

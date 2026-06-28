@@ -19,6 +19,10 @@ type ElectronFullscreenAPI = {
     readonly setFullScreen?: ElectronMenuEventApi["setFullScreen"];
 };
 
+type ElectronFullscreenApiMethods = Readonly<{
+    readonly setFullScreen?: ElectronMenuEventApi["setFullScreen"];
+}>;
+
 type FullScreenButtonOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -60,25 +64,45 @@ function addFullScreenButtonRuntime(): AddFullScreenButtonRuntime {
     return getAddFullScreenButtonRuntime();
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
 const getElectronAPI = (
     electronApiScope?: RendererElectronApiScope
-): ElectronFullscreenAPI | undefined =>
-    getRendererElectronApi(isElectronFullscreenApi, electronApiScope) ??
-    undefined;
+): ElectronFullscreenAPI | undefined => {
+    const electronAPI = getRendererElectronApi(
+        isElectronFullscreenApi,
+        electronApiScope
+    );
+    if (!electronAPI) {
+        return undefined;
+    }
+
+    const setFullScreen = readElectronApiValue(() => electronAPI.setFullScreen);
+
+    return typeof setFullScreen === "function" ? { setFullScreen } : {};
+};
 
 function isElectronFullscreenApi(
     value: unknown
 ): value is ElectronFullscreenAPI {
-    if (!isRecord(value)) {
+    if (!isElectronFullscreenApiMethods(value)) {
         return false;
     }
 
-    const candidate = value["setFullScreen"];
+    const candidate = readElectronApiValue(() => value.setFullScreen);
     return candidate === undefined || typeof candidate === "function";
+}
+
+function isElectronFullscreenApiMethods(
+    value: unknown
+): value is ElectronFullscreenApiMethods {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue<T>(readValue: () => T): T | undefined {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 const getScreenfullInstance = (): ScreenfullRuntime | undefined =>
