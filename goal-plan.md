@@ -1871,6 +1871,9 @@ returning.
 The generic `setBrowserGlobalProperty` writer has been removed from `browserRuntime.ts`; runtime process writes route
 through `setBrowserProcessCandidate` and a private process-specific setter, with browser-runtime and architecture
 coverage blocking the generic setter from returning.
+Architecture coverage now scans utility `*Runtime.ts` adapters outside the central `browserRuntime.ts` provider and
+blocks silent `scope.* ?? globalThis.*` runtime fallbacks plus direct timeout calls from returning in new utility
+runtime modules.
 Temporary Leaflet package alias cleanup now routes through the named `deleteBrowserLeafletGlobals` provider instead of
 exporting a generic browser-global delete helper, with renderer-vendor-map and architecture coverage blocking the broad
 delete provider from returning.

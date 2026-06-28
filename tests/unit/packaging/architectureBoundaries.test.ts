@@ -1963,6 +1963,30 @@ describe("architecture boundaries", () => {
         expect(processEnvironmentSource).toContain("RuntimePropertyCandidate");
     });
 
+    it("keeps utility runtime modules from falling back to ambient browser APIs", () => {
+        expect.assertions(2);
+
+        const directAmbientRuntimeFallbackPattern =
+            /\bscope\.[^;\n]*\?\?\s*globalThis\.(?:AbortController|cancelAnimationFrame|clearInterval|clearTimeout|fetch|queueMicrotask|requestAnimationFrame|setInterval|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+        const utilityAdapterFiles = collectSourceFiles("electron-app/utils")
+            .filter(
+                (relativeFile) =>
+                    relativeFile.endsWith("Runtime.ts") &&
+                    relativeFile !== "electron-app/utils/runtime/browserRuntime.ts"
+            )
+            .sort();
+        const ambientFallbackViolations = utilityAdapterFiles
+            .filter((relativeFile) =>
+                directAmbientRuntimeFallbackPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(utilityAdapterFiles.length).toBeGreaterThan(0);
+        expect(ambientFallbackViolations).toStrictEqual([]);
+    });
+
     it("keeps preload before-exit tracking off global registries", () => {
         expect.assertions(5);
 
