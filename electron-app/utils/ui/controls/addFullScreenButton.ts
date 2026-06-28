@@ -19,10 +19,6 @@ type ElectronFullscreenAPI = {
     readonly setFullScreen?: ElectronMenuEventApi["setFullScreen"];
 };
 
-type ElectronFullscreenApiCandidate = {
-    readonly [K in keyof ElectronFullscreenAPI]?: unknown;
-};
-
 type FullScreenButtonOptions = {
     readonly electronApiScope?: RendererElectronApiScope | undefined;
 };
@@ -81,10 +77,10 @@ function isElectronFullscreenApi(
 }
 
 function hasOptionalFullscreenFunction(
-    value: ElectronFullscreenApiCandidate,
+    value: object,
     key: keyof ElectronFullscreenAPI
 ): boolean {
-    const candidate = value[key];
+    const candidate = Reflect.get(value, key);
     return candidate === undefined || typeof candidate === "function";
 }
 
