@@ -5,10 +5,10 @@ import {
 } from "../runtime/browserRuntime.js";
 
 export interface DomHelpersRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: () => Document | undefined;
 }
 
 export interface DomHelpersRuntime {
@@ -24,11 +24,19 @@ const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = {
 function getScopeAbortController(
     scope: DomHelpersRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError("dom helpers require an AbortController provider");
+    }
+
+    return scope.getAbortController();
 }
 
 function getScopeDocument(scope: DomHelpersRuntimeScope): Document | undefined {
-    return scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError("dom helpers require a document provider");
+    }
+
+    return scope.getDocument();
 }
 
 export function getDomHelpersRuntime(

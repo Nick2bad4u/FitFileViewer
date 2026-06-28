@@ -18137,7 +18137,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps DOM helper listener cleanup and default document roots behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(30);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
@@ -18190,6 +18190,20 @@ describe("architecture boundaries", () => {
             "typeof AbortController | undefined"
         );
         expect(domHelpersRuntimeSource).not.toContain("readonly document?:");
+        expect(domHelpersRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(domHelpersRuntimeSource).not.toContain("readonly getDocument?:");
+        expect(domHelpersRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(domHelpersRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(domHelpersRuntimeSource).toContain(
+            "dom helpers require an AbortController provider"
+        );
+        expect(domHelpersRuntimeSource).toContain(
+            "dom helpers require a document provider"
+        );
         expect(domHelpersRuntimeSource).not.toContain("scope.AbortController");
         expect(domHelpersRuntimeSource).not.toContain("scope.document");
         expect(domHelpersSource).toContain("runtime.getDocument()");

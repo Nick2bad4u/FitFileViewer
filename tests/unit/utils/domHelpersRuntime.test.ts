@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { getDomHelpersRuntime } from "../../../electron-app/utils/dom/domHelpersRuntime.js";
+import {
+    getDomHelpersRuntime,
+    type DomHelpersRuntimeScope,
+} from "../../../electron-app/utils/dom/domHelpersRuntime.js";
+
+function createDomHelpersRuntimeScope(
+    overrides: Partial<DomHelpersRuntimeScope> = {}
+): DomHelpersRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getDomHelpersRuntime", () => {
     it("uses browser runtime providers for production AbortController defaults", () => {
@@ -27,9 +40,11 @@ describe("getDomHelpersRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getDomHelpersRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const runtime = getDomHelpersRuntime(
+            createDomHelpersRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -54,12 +69,14 @@ describe("getDomHelpersRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getDomHelpersRuntime({
-            getAbortController: () => {
-                providerCount += 1;
-                return TestAbortController;
-            },
-        });
+        const runtime = getDomHelpersRuntime(
+            createDomHelpersRuntimeScope({
+                getAbortController: () => {
+                    providerCount += 1;
+                    return TestAbortController;
+                },
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -75,12 +92,14 @@ describe("getDomHelpersRuntime", () => {
             querySelector: () => null,
         } as unknown as Document;
         let providerCount = 0;
-        const runtime = getDomHelpersRuntime({
-            getDocument: () => {
-                providerCount += 1;
-                return documentRef;
-            },
-        });
+        const runtime = getDomHelpersRuntime(
+            createDomHelpersRuntimeScope({
+                getDocument: () => {
+                    providerCount += 1;
+                    return documentRef;
+                },
+            })
+        );
 
         expect(runtime.getDocument()).toBe(documentRef);
         expect(providerCount).toBe(1);
@@ -89,7 +108,7 @@ describe("getDomHelpersRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getDomHelpersRuntime({});
+        const runtime = getDomHelpersRuntime(createDomHelpersRuntimeScope());
 
         expect(() => {
             runtime.createAbortController();
@@ -99,7 +118,7 @@ describe("getDomHelpersRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getDomHelpersRuntime({});
+        const runtime = getDomHelpersRuntime(createDomHelpersRuntimeScope());
 
         expect(() => {
             runtime.getDocument();
@@ -127,9 +146,9 @@ describe("getDomHelpersRuntime", () => {
 
         expect(() => {
             runtime.createAbortController();
-        }).toThrow("dom helpers require an AbortController runtime");
+        }).toThrow("dom helpers require an AbortController provider");
         expect(() => {
             runtime.getDocument();
-        }).toThrow("dom helpers require a document runtime");
+        }).toThrow("dom helpers require a document provider");
     });
 });
