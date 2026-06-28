@@ -89,15 +89,6 @@ type ShowFitDataElectronApiMethods = Readonly<{
     readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
 }>;
 
-type FitFileStateManagerLike = {
-    handleFileLoaded: (
-        data: FitDataObject,
-        context: { filePath: null | string }
-    ) => void;
-    isLoading?: () => boolean;
-    startFileLoading?: (filePath: string) => void;
-};
-
 type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
 function getShowFitDataElectronApi(
@@ -394,33 +385,23 @@ function getCachedFileName(data: FitDataObject, filePath: string): string {
 
 function integrateFitState(data: FitDataObject, filePath?: string): void {
     try {
-        const manager = resolveFitFileStateManager();
-
-        if (manager && typeof manager.handleFileLoaded === "function") {
-            const isAlreadyLoading =
-                typeof manager.isLoading === "function" && manager.isLoading();
-            if (
-                filePath &&
-                typeof manager.startFileLoading === "function" &&
-                !isAlreadyLoading
-            ) {
-                try {
-                    manager.startFileLoading(filePath);
-                } catch (error) {
-                    const message =
-                        error instanceof Error ? error.message : String(error);
-                    log("warn", "Unable to start file loading state", {
-                        error: message,
-                        filePath,
-                    });
-                }
+        const isAlreadyLoading = fitFileStateManager.isLoading();
+        if (filePath && !isAlreadyLoading) {
+            try {
+                fitFileStateManager.startFileLoading(filePath);
+            } catch (error) {
+                const message =
+                    error instanceof Error ? error.message : String(error);
+                log("warn", "Unable to start file loading state", {
+                    error: message,
+                    filePath,
+                });
             }
-
-            manager.handleFileLoaded(data, { filePath: filePath ?? null });
-            return;
         }
 
-        AppActions.loadFile(data, filePath ?? null);
+        fitFileStateManager.handleFileLoaded(data, {
+            filePath: filePath ?? null,
+        });
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log("error", "Failed to integrate FIT state", {
@@ -429,21 +410,6 @@ function integrateFitState(data: FitDataObject, filePath?: string): void {
         });
         AppActions.loadFile(data, filePath ?? null);
     }
-}
-
-function resolveFitFileStateManager(): FitFileStateManagerLike | null {
-    const candidate = fitFileStateManager;
-
-    if (
-        candidate &&
-        typeof candidate === "object" &&
-        "handleFileLoaded" in candidate &&
-        typeof candidate.handleFileLoaded === "function"
-    ) {
-        return candidate;
-    }
-
-    return null;
 }
 
 /** Updates state-backed UI fields for the active file. */
