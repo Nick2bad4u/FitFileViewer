@@ -23,16 +23,18 @@ type SessionLike = {
 
 const BLOCKED_HOSTNAMES = new Set(["ua.harryonline.net"]);
 
+function isRequestCandidate(
+    value: unknown
+): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function isWebRequestLike(value: unknown): value is WebRequestLike {
-    if (
-        value === null ||
-        (typeof value !== "object" && typeof value !== "function")
-    ) {
+    if (!isRequestCandidate(value)) {
         return false;
     }
 
-    const candidate = value as { readonly onBeforeRequest?: unknown };
-    return typeof candidate.onBeforeRequest === "function";
+    return typeof value["onBeforeRequest"] === "function";
 }
 
 function shouldBlockRequest(details: WebRequestDetails): boolean {

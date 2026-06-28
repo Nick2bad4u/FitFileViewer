@@ -79,6 +79,26 @@ describe("setupBlockedRequests", () => {
         expect(setupBlockedRequests()).toBeUndefined();
     });
 
+    it("ignores array-shaped webRequest candidates", async () => {
+        expect.assertions(2);
+
+        const { electronAccess, setupBlockedRequests } = await importModules();
+        const webRequest = createWebRequestHarness();
+        electronAccess.setElectronOverride({
+            session: {
+                defaultSession: {
+                    webRequest: Object.assign([], {
+                        onBeforeRequest: webRequest.onBeforeRequest,
+                    }),
+                },
+            },
+        });
+
+        expect(setupBlockedRequests()).toBeUndefined();
+
+        expect(webRequest.onBeforeRequest).not.toHaveBeenCalled();
+    });
+
     it("registers a request guard that cancels only blocked hostnames", async () => {
         expect.assertions(3);
 

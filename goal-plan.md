@@ -144,8 +144,9 @@ Main logging, menu-creation, Electron access, and blocked-request support helper
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
 files. Main logging now resolves console methods through an explicit supported-level dispatch instead of
 `Reflect.get(console, level)`, a generic `Record<string, unknown>` cast, or a named console-method candidate bridge.
-Blocked-request webRequest validation now checks a typed optional `onBeforeRequest` property instead of probing the
-candidate with `Reflect.get`.
+Blocked-request webRequest validation now checks `onBeforeRequest` through a non-array record guard instead of probing
+the candidate with `Reflect.get` or casting it to a local shape, with array-shaped malformed candidate coverage and
+architecture guardrails blocking that bridge cast from returning.
 Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly,
 and `electronAccess.ts` now imports the Electron package natively through the main build's external package
 boundary instead of owning a direct package `require("electron")` or `loadNodeModule("electron")` call; its
