@@ -5,18 +5,14 @@ type RendererStateStartupLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererStateStartupCoreModules = Readonly<{
-    readonly masterStateManager: unknown;
-    readonly subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined;
-}>;
-
 export type RendererFileOpeningStateRef = {
     value: boolean;
 };
 
 interface RendererStateStartupOptions {
-    ensureCoreModules: () => Promise<RendererStateStartupCoreModules>;
     logRenderer: RendererStateStartupLogger;
+    masterStateManager: RendererStateManager;
+    subscribeToAppOpeningFile: AppOpeningFileSubscriber;
 }
 
 type RendererStateManagerInitializer = () => Promise<void> | void;
@@ -62,22 +58,10 @@ export function createRendererStateStartup(
                     "log",
                     "[Renderer] Initializing state management system..."
                 );
-                const { masterStateManager, subscribeToAppOpeningFile } =
-                    await options.ensureCoreModules();
-                const stateManager = toRendererStateManager(masterStateManager);
-                if (stateManager === undefined) {
-                    throw new TypeError(
-                        "masterStateManager.initialize missing"
-                    );
-                }
 
-                await stateManager.initialize();
+                await options.masterStateManager.initialize();
 
-                if (typeof subscribeToAppOpeningFile !== "function") {
-                    throw new TypeError("subscribeToAppOpeningFile missing");
-                }
-
-                subscribeToAppOpeningFile((isOpening) => {
+                options.subscribeToAppOpeningFile((isOpening) => {
                     setRendererFileOpeningState(
                         isOpeningFileRef,
                         isOpening === true
@@ -133,18 +117,4 @@ export function setRendererFileOpeningState(
     isOpeningFile: boolean
 ): void {
     stateRef.value = isOpeningFile;
-}
-
-function toRendererStateManager(
-    value: unknown
-): RendererStateManager | undefined {
-    return isRendererStateManager(value) ? value : undefined;
-}
-
-function isRendererStateManager(value: unknown): value is RendererStateManager {
-    if (value === null || typeof value !== "object") {
-        return false;
-    }
-
-    return "initialize" in value && typeof value.initialize === "function";
 }

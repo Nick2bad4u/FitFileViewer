@@ -22,6 +22,8 @@
 // ==========================================
 
 import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
+import { masterStateManager } from "./utils/state/core/masterStateManager.js";
+import { subscribeToAppOpeningFile } from "./utils/state/domain/appDomainState.js";
 import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
@@ -79,8 +81,9 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
 // ==========================================
 
 const rendererStateStartup = createRendererStateStartup({
-    ensureCoreModules,
     logRenderer,
+    masterStateManager,
+    subscribeToAppOpeningFile,
 });
 const { initializeStateManager, isOpeningFileRef } = rendererStateStartup;
 

@@ -2068,6 +2068,8 @@ Renderer state integration chart-controls subscriptions now route through `subsc
 letting the module drop its local generic state-manager subscription bridge.
 The Zwift Playwright smoke now also asserts the selected FIT activity state survives switching to the Zwift iframe tab,
 covering the tab-preserved-loaded-state regression path for the previously blank external map tab.
+Renderer state startup now receives typed `masterStateManager` and `subscribeToAppOpeningFile` services directly from
+the renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Chart action completion now writes performance render times through the app-actions state facade instead of a generic
 `updateState("performance.renderTimes", ...)` dependency, with focused action/app-actions tests and architecture checks
 blocking direct performance render-time path writes from returning to chart actions.

@@ -14,15 +14,14 @@ describe("renderer state manager startup", () => {
         const initialize = vi.fn<() => void>();
         let openingFileSubscriber: ((value: unknown) => void) | undefined;
         const utils = createRendererStateStartup({
-            ensureCoreModules: async () => ({
-                masterStateManager: {
-                    initialize,
-                },
-                subscribeToAppOpeningFile: (callback) => {
-                    openingFileSubscriber = callback;
-                },
-            }),
             logRenderer: vi.fn(),
+            masterStateManager: {
+                initialize,
+            },
+            subscribeToAppOpeningFile: (callback) => {
+                openingFileSubscriber = callback;
+                return vi.fn();
+            },
         });
 
         await utils.initializeStateManager();
@@ -45,53 +44,17 @@ describe("renderer state manager startup", () => {
         expect.assertions(2);
 
         const utils = createRendererStateStartup({
-            ensureCoreModules: async () => ({
-                masterStateManager: {},
-            }),
             logRenderer: vi.fn(),
+            masterStateManager: {
+                initialize: vi.fn(async () => {
+                    throw new Error("state failed");
+                }),
+            },
+            subscribeToAppOpeningFile: vi.fn(),
         });
 
         await expect(utils.initializeStateManager()).rejects.toThrow(
-            "masterStateManager.initialize missing"
-        );
-
-        expect(utils.isOpeningFileRef.value).toBe(false);
-    });
-
-    it("rejects malformed state managers with a non-function initializer", async () => {
-        expect.assertions(2);
-
-        const utils = createRendererStateStartup({
-            ensureCoreModules: async () => ({
-                masterStateManager: {
-                    initialize: true,
-                },
-                subscribeToAppOpeningFile: vi.fn(),
-            }),
-            logRenderer: vi.fn(),
-        });
-
-        await expect(utils.initializeStateManager()).rejects.toThrow(
-            "masterStateManager.initialize missing"
-        );
-
-        expect(utils.isOpeningFileRef.value).toBe(false);
-    });
-
-    it("requires the app-opening subscription facade", async () => {
-        expect.assertions(2);
-
-        const utils = createRendererStateStartup({
-            ensureCoreModules: async () => ({
-                masterStateManager: {
-                    initialize: vi.fn(),
-                },
-            }),
-            logRenderer: vi.fn(),
-        });
-
-        await expect(utils.initializeStateManager()).rejects.toThrow(
-            "subscribeToAppOpeningFile missing"
+            "state failed"
         );
 
         expect(utils.isOpeningFileRef.value).toBe(false);

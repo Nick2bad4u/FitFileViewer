@@ -5924,7 +5924,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(25);
+        expect.assertions(30);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -5960,8 +5960,8 @@ describe("architecture boundaries", () => {
             'import type { RendererCoreModules } from "./coreModuleResolution.js";'
         );
         expect(stateStartupSource).toContain("AppOpeningFileSubscriber");
-        expect(stateStartupSource).toContain(
-            "export type RendererStateStartupCoreModules = Readonly<{"
+        expect(stateStartupSource).not.toContain(
+            "RendererStateStartupCoreModules"
         );
         expect(stateStartupSource).not.toContain("Pick<");
         expect(stateStartupSource).not.toContain(
@@ -5975,14 +5975,12 @@ describe("architecture boundaries", () => {
         );
         expect(stateStartupSource).not.toContain("initialize?: unknown");
         expect(stateStartupSource).not.toContain("RendererCoreModules,");
+        expect(stateStartupSource).not.toContain("ensureCoreModules");
         expect(stateStartupSource).toContain(
-            "ensureCoreModules: () => Promise<RendererStateStartupCoreModules>"
+            "masterStateManager: RendererStateManager;"
         );
         expect(stateStartupSource).toContain(
-            "readonly masterStateManager: unknown;"
-        );
-        expect(stateStartupSource).toContain(
-            "readonly subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined;"
+            "subscribeToAppOpeningFile: AppOpeningFileSubscriber;"
         );
         expect(stateStartupSource).toContain(
             "export type RendererFileOpeningStateRef ="
@@ -5994,7 +5992,13 @@ describe("architecture boundaries", () => {
             "const isOpeningFileRef = { value: false }"
         );
         expect(anonymousOpeningStateRefConsumers).toStrictEqual([]);
-        expect(stateStartupSource).toContain("toRendererStateManager(");
+        expect(stateStartupSource).toContain(
+            "await options.masterStateManager.initialize();"
+        );
+        expect(stateStartupSource).toContain(
+            "options.subscribeToAppOpeningFile((isOpening) => {"
+        );
+        expect(stateStartupSource).not.toContain("toRendererStateManager(");
         expect(stateStartupSource).not.toContain(
             "ensureCoreModules: () => Promise<\n        Pick<"
         );
@@ -6010,6 +6014,15 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).toContain("subscribeToAppOpeningFile");
         expect(rendererEntrypointSource).not.toContain(
             "createRendererStateStartup({\n    ensureCoreModules,\n    logRenderer,\n    toModuleRecord,"
+        );
+        expect(rendererEntrypointSource).toContain(
+            'import { masterStateManager } from "./utils/state/core/masterStateManager.js";'
+        );
+        expect(rendererEntrypointSource).toContain(
+            'import { subscribeToAppOpeningFile } from "./utils/state/domain/appDomainState.js";'
+        );
+        expect(rendererEntrypointSource).toContain(
+            "createRendererStateStartup({\n    logRenderer,\n    masterStateManager,\n    subscribeToAppOpeningFile,\n});"
         );
     });
 
