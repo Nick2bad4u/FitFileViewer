@@ -156,10 +156,17 @@ type HandleOpenFileOptions = {
     showNotification: ShowNotification;
 };
 
+type HandleOpenFileRuntimeOptions = {
+    electronApiScope?: RendererElectronApiScope | undefined;
+};
+
 /** Parameters required to wire renderer DOM and IPC listeners. */
 export type SetupListenersOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
-    handleOpenFile: (options: HandleOpenFileOptions) => unknown;
+    handleOpenFile: (
+        options: HandleOpenFileOptions,
+        runtimeOptions?: HandleOpenFileRuntimeOptions
+    ) => unknown;
     isOpeningFileRef: FileOpeningStateRef;
     openFileBtn?: HTMLButtonElement | null;
     setLoading: (loading: boolean) => void;
@@ -645,12 +652,15 @@ export function setupListeners({
 
     // Open File button click
     const handleOpenFileClick = () => {
-        handleOpenFile({
-            isOpeningFileRef,
-            openFileBtn,
-            setLoading,
-            showNotification,
-        });
+        handleOpenFile(
+            {
+                isOpeningFileRef,
+                openFileBtn,
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope }
+        );
     };
 
     const openFileClickController = runtime.createAbortController();
@@ -688,12 +698,15 @@ export function setupListeners({
     ) {
         trackUnsubscribe(
             electronAPI.onMenuOpenFile(() => {
-                handleOpenFile({
-                    isOpeningFileRef,
-                    openFileBtn,
-                    setLoading,
-                    showNotification,
-                });
+                handleOpenFile(
+                    {
+                        isOpeningFileRef,
+                        openFileBtn,
+                        setLoading,
+                        showNotification,
+                    },
+                    { electronApiScope }
+                );
             })
         );
 

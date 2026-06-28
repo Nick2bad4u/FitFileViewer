@@ -314,12 +314,15 @@ describe(setupListeners, () => {
             dispatchResult: true,
         });
         expect(openButton.dataset.openHandled).toBe("true");
-        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
-            isOpeningFileRef,
-            openFileBtn: openButton,
-            setLoading,
-            showNotification,
-        });
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
+            {
+                isOpeningFileRef,
+                openFileBtn: openButton,
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope }
+        );
     });
 
     it("ignores malformed scoped lifecycle Electron APIs", () => {
@@ -355,12 +358,15 @@ describe(setupListeners, () => {
 
         openButton.click();
 
-        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
-            isOpeningFileRef,
-            openFileBtn: openButton,
-            setLoading,
-            showNotification,
-        });
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
+            {
+                isOpeningFileRef,
+                openFileBtn: openButton,
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope: expect.any(Object) }
+        );
         expect(malformedOnOpenRecentFile).not.toHaveBeenCalled();
         expect(malformedOnUpdateEvent).not.toHaveBeenCalled();
         expect(malformedOnSetFontSize).not.toHaveBeenCalled();

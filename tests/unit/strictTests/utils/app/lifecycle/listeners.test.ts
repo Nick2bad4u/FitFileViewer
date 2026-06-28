@@ -316,6 +316,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const isOpeningFileRef = { current: false };
 
         setupListeners({
+            electronApiScope,
             openFileBtn,
             isOpeningFileRef,
             setLoading,
@@ -327,12 +328,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         openFileBtn.click();
         expect(openFileBtn.id).toBe("open-file-btn");
-        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
-            isOpeningFileRef,
-            openFileBtn,
-            setLoading,
-            showNotification,
-        });
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
+            {
+                isOpeningFileRef,
+                openFileBtn,
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope }
+        );
     });
 
     it("does not publish retired lifecycle helper globals", () => {

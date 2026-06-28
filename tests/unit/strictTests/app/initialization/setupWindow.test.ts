@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
     showNotification:
         vi.fn<(message: string, type: string, duration?: number) => void>(),
     tabStateCleanup: vi.fn<() => void>(),
+    tabSetElectronApiScope: vi.fn<(scope: unknown) => void>(),
     tabSwitchToTab: vi.fn<(tabId: string) => void>(),
 }));
 
@@ -69,6 +70,7 @@ vi.mock(
     () => ({
         tabStateManager: {
             cleanup: mocks.tabStateCleanup,
+            setElectronApiScope: mocks.tabSetElectronApiScope,
             switchToTab: mocks.tabSwitchToTab,
         },
     })
@@ -76,7 +78,7 @@ vi.mock(
 
 describe("setupWindow", () => {
     it("initializes theme, chart integration, default tab, and notification", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         resetTestState();
 
@@ -93,6 +95,9 @@ describe("setupWindow", () => {
             { electronApiScope }
         );
         expect(mocks.chartTabInitialize).toHaveBeenCalledOnce();
+        expect(mocks.tabSetElectronApiScope).toHaveBeenCalledWith(
+            electronApiScope
+        );
         expect(mocks.tabSwitchToTab).toHaveBeenCalledWith("summary");
         expect(mocks.showNotification).toHaveBeenCalledWith(
             "Application initialized successfully",
@@ -122,7 +127,7 @@ describe("setupWindow", () => {
     });
 
     it("cleans up chart, tab, and integration managers", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         resetTestState();
 
@@ -130,6 +135,7 @@ describe("setupWindow", () => {
         const result = cleanup();
 
         expect(result).toBeUndefined();
+        expect(mocks.tabSetElectronApiScope).toHaveBeenCalledWith(undefined);
         expect(mocks.chartStateDestroy).toHaveBeenCalledOnce();
         expect(mocks.tabStateCleanup).toHaveBeenCalledOnce();
         expect(mocks.chartTabDestroy).toHaveBeenCalledOnce();

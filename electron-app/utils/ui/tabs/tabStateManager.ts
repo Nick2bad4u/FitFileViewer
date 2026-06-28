@@ -17,6 +17,7 @@ import {
     TAB_CONFIG as TAB_CONFIG_DEFINITIONS,
     type TabDef,
 } from "./tabStateManagerConfig.js";
+import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
 import { setTabReadiness } from "./tabReadinessState.js";
 import {
     handleAltFitTab as handleAltFitTabImpl,
@@ -132,6 +133,7 @@ export class TabStateManager {
 
     previousTab: null | string = null;
 
+    private _electronApiScope: RendererElectronApiScope | undefined;
     private _setupHandlersFn: (() => void) | null = null;
     private readonly _buttonClickHandler: EventListener;
     private readonly _unsubscribes: Array<() => void> = [];
@@ -163,6 +165,7 @@ export class TabStateManager {
      * Cleanup resources (placeholder for future unsubscribe logic)
      */
     cleanup(): void {
+        this._electronApiScope = undefined;
         // Unsubscribe state listeners
         try {
             for (const unsubscribe of this._unsubscribes.splice(0)) {
@@ -250,7 +253,7 @@ export class TabStateManager {
      * Handle browser tab activation.
      */
     handleBrowserTab(): Promise<void> {
-        return handleBrowserTabImpl();
+        return handleBrowserTabImpl(this._electronApiScope);
     }
 
     /**
@@ -497,6 +500,12 @@ export class TabStateManager {
         return `${size}-${getRecordTimestamp(firstRecord)}-${getRecordTimestamp(
             lastRecord
         )}`;
+    }
+
+    setElectronApiScope(
+        electronApiScope: RendererElectronApiScope | undefined
+    ): void {
+        this._electronApiScope = electronApiScope;
     }
 
     /**

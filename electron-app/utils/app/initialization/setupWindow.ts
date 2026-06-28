@@ -20,6 +20,7 @@ export type SetupWindowOptions = Readonly<{
  */
 export function cleanup(): void {
     try {
+        tabStateManager.setElectronApiScope(undefined);
         getRegisteredChartStateManager()?.destroy?.();
         tabStateManager.cleanup();
         chartTabIntegration.destroy();
@@ -49,6 +50,7 @@ export async function setupWindow({
 
         // Initialize state managers in proper order
         // TabStateManager and chartStateManager are initialized automatically via constructors
+        tabStateManager.setElectronApiScope(electronApiScope);
         chartTabIntegration.initialize();
 
         // Set default tab to summary

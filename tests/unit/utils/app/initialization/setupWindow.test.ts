@@ -11,6 +11,7 @@ type ShowNotification = (
     type: "error" | "success",
     duration: number
 ) => void;
+type SetElectronApiScope = (scope: unknown) => void;
 type SwitchToTab = (tab: string) => void;
 
 const chartStateManagerMock = {
@@ -22,6 +23,7 @@ const chartStateManagerMock = {
     },
     tabStateManagerMock = {
         cleanup: vi.fn<Cleanup>(),
+        setElectronApiScope: vi.fn<SetElectronApiScope>(),
         switchToTab: vi.fn<SwitchToTab>(),
     },
     setupThemeMock = vi.fn<SetupTheme>(),
@@ -84,6 +86,7 @@ describe("setupWindow", () => {
         chartTabIntegrationMock.destroy.mockReset();
         chartTabIntegrationMock.initialize.mockReset();
         tabStateManagerMock.cleanup.mockReset();
+        tabStateManagerMock.setElectronApiScope.mockReset();
         tabStateManagerMock.switchToTab.mockReset();
         setupThemeMock.mockReset();
         showNotificationMock.mockReset();
@@ -92,12 +95,15 @@ describe("setupWindow", () => {
     });
 
     it("cleans up managers successfully", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const { cleanup } = await loadModule();
 
         expect(cleanup()).toBeUndefined();
+        expect(tabStateManagerMock.setElectronApiScope).toHaveBeenCalledWith(
+            undefined
+        );
         expect(chartStateManagerMock.destroy).toHaveBeenCalledOnce();
         expect(tabStateManagerMock.cleanup).toHaveBeenCalledOnce();
         expect(chartTabIntegrationMock.destroy).toHaveBeenCalledOnce();
@@ -107,7 +113,7 @@ describe("setupWindow", () => {
     });
 
     it("logs error when cleanup fails", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const error = new Error("boom");
         chartStateManagerMock.destroy.mockImplementationOnce(() => {
@@ -119,6 +125,9 @@ describe("setupWindow", () => {
         const { cleanup } = await loadModule();
 
         expect(cleanup()).toBeUndefined();
+        expect(tabStateManagerMock.setElectronApiScope).toHaveBeenCalledWith(
+            undefined
+        );
         expect(errorSpy).toHaveBeenCalledWith(
             "[setupWindow] Cleanup failed:",
             error
@@ -128,7 +137,7 @@ describe("setupWindow", () => {
     });
 
     it("initializes window successfully", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const lifecycleEvents: Array<{
             args?: unknown[];
@@ -147,6 +156,14 @@ describe("setupWindow", () => {
         chartTabIntegrationMock.initialize.mockImplementationOnce(() => {
             lifecycleEvents.push({ event: "chartTabIntegration.initialize" });
         });
+        tabStateManagerMock.setElectronApiScope.mockImplementationOnce(
+            (scope) => {
+                lifecycleEvents.push({
+                    args: [scope],
+                    event: "tabStateManager.setElectronApiScope",
+                });
+            }
+        );
         tabStateManagerMock.switchToTab.mockImplementationOnce((tab) => {
             lifecycleEvents.push({
                 args: [tab],
@@ -180,6 +197,10 @@ describe("setupWindow", () => {
                 usesApplyTheme: true,
                 usesThemeListener: true,
             },
+            {
+                args: [electronApiScope],
+                event: "tabStateManager.setElectronApiScope",
+            },
             { event: "chartTabIntegration.initialize" },
             {
                 args: ["summary"],
@@ -202,6 +223,9 @@ describe("setupWindow", () => {
             applyThemeMock,
             listenForThemeChangeMock,
             { electronApiScope }
+        );
+        expect(tabStateManagerMock.setElectronApiScope).toHaveBeenCalledWith(
+            electronApiScope
         );
 
         logSpy.mockRestore();

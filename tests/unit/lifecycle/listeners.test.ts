@@ -76,6 +76,22 @@ function getMenuOpenOverlayHandler(
     return handler;
 }
 
+function getMenuOpenFileHandler(
+    electronAPI: TestElectronAPI
+): Parameters<ElectronAPI["onMenuOpenFile"]>[0] {
+    const entry = electronAPI.onMenuOpenFile.mock.calls[0];
+    if (!entry) {
+        throw new TypeError("Expected menu-open-file registration");
+    }
+
+    const handler = entry[0];
+    if (typeof handler !== "function") {
+        throw new TypeError("Expected menu-open-file handler");
+    }
+
+    return handler;
+}
+
 function getAccessibilityHandler<
     MethodName extends "onSetFontSize" | "onSetHighContrast",
 >(
@@ -134,6 +150,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     function mount(openRecentReturn: string[] | null = null): {
         electronAPI: TestElectronAPI;
         deactivateElectronApi: () => void;
+        electronApiScope: RendererElectronApiScope;
         handleOpenFile: Mock<SetupListenersOptions["handleOpenFile"]>;
         isOpeningFileRef: FileOpeningStateRef;
         openFileBtn: HTMLButtonElement;
@@ -192,6 +209,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         return {
             electronAPI,
             deactivateElectronApi,
+            electronApiScope,
             openFileBtn,
             isOpeningFileRef,
             setLoading,
@@ -206,17 +224,21 @@ describe("utils/app/lifecycle/listeners.js", () => {
         const {
             openFileBtn,
             handleOpenFile,
+            electronApiScope,
             isOpeningFileRef,
             setLoading,
             showNotification,
         } = mount([]);
         openFileBtn.click();
-        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith({
-            isOpeningFileRef,
-            openFileBtn,
-            setLoading,
-            showNotification,
-        });
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
+            {
+                isOpeningFileRef,
+                openFileBtn,
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope }
+        );
         expect({
             isOpeningFile: isOpeningFileRef.current,
             openedDatasetValue: openFileBtn.dataset.opened,
@@ -224,6 +246,32 @@ describe("utils/app/lifecycle/listeners.js", () => {
             isOpeningFile: true,
             openedDatasetValue: "true",
         });
+    });
+
+    it("menu Open File callback forwards the renderer Electron API scope", () => {
+        expect.assertions(1);
+
+        const {
+            electronAPI,
+            electronApiScope,
+            handleOpenFile,
+            isOpeningFileRef,
+            openFileBtn,
+            setLoading,
+            showNotification,
+        } = mount([]);
+
+        getMenuOpenFileHandler(electronAPI)();
+
+        expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(
+            {
+                isOpeningFileRef,
+                openFileBtn,
+                setLoading,
+                showNotification,
+            },
+            { electronApiScope }
+        );
     });
 
     it("replaces existing Open File listeners during repeated setup", () => {

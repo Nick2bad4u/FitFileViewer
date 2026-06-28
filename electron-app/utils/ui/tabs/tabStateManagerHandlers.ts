@@ -20,6 +20,7 @@ import {
     type TabStateManagerHandlersTimerHandle,
 } from "./tabStateManagerHandlersRuntime.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
+import type { RendererElectronApiScope } from "../../runtime/electronApiRuntime.js";
 
 type ActivityRecord = Record<string, unknown> & {
     readonly timestamp?: unknown;
@@ -139,10 +140,12 @@ export function handleAltFitTab(): void {
 /**
  * Handle Browser tab activation (folder-based activity browser).
  */
-export async function handleBrowserTab(): Promise<void> {
+export async function handleBrowserTab(
+    electronApiScope?: RendererElectronApiScope
+): Promise<void> {
     const mod = await import("../browser/fileBrowserTab.js");
     if (typeof mod.renderFileBrowserTab === "function") {
-        await mod.renderFileBrowserTab();
+        await mod.renderFileBrowserTab({ electronApiScope });
     }
 }
 

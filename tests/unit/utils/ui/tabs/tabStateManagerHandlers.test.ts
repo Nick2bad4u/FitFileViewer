@@ -2,7 +2,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { mockRenderFileBrowserTab } = vi.hoisted(() => ({
-    mockRenderFileBrowserTab: vi.fn<() => Promise<void> | void>(),
+    mockRenderFileBrowserTab:
+        vi.fn<
+            (options?: { electronApiScope?: unknown }) => Promise<void> | void
+        >(),
 }));
 
 vi.mock(
@@ -22,11 +25,16 @@ describe("tabStateManagerHandlers", () => {
     it("renders the Browser tab through the file browser module", async () => {
         expect.assertions(2);
 
+        const electronApiScope = { getElectronAPI: () => ({}) };
         mockRenderFileBrowserTab.mockResolvedValue(undefined);
 
-        await expect(handleBrowserTab()).resolves.toBeUndefined();
+        await expect(
+            handleBrowserTab(electronApiScope)
+        ).resolves.toBeUndefined();
 
-        expect(mockRenderFileBrowserTab).toHaveBeenCalledOnce();
+        expect(mockRenderFileBrowserTab).toHaveBeenCalledExactlyOnceWith({
+            electronApiScope,
+        });
     });
 
     it("propagates Browser tab render failures to tab readiness handling", async () => {
