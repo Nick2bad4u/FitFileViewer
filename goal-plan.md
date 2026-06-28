@@ -659,11 +659,11 @@ Show FIT data post-load map-container detection, scroll availability checks, red
 microtask scheduling, and scroll calls now route through `showFitDataRuntime.ts` instead of probing `document`,
 `globalThis.scrollTo`, `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with
 focused runtime/behavior coverage and architecture guardrails blocking those direct browser APIs from returning.
-Show FIT data file-loaded IPC now validates the scoped preload candidate with an explicit optional-function property guard
-instead of casting the renderer Electron API candidate to a generic record, with malformed-scope coverage proving data
-display still proceeds and architecture coverage blocking the cast from returning. Its file-loaded notification
-candidate typing now uses the shared preload-event API-domain contract instead of deriving from the monolithic
-`ElectronAPI` type.
+Show FIT data file-loaded IPC now validates the scoped preload candidate with an explicit unknown-valued
+optional-function property guard instead of casting the renderer Electron API candidate to a local or generic record
+shape, with malformed-scope and array-shaped candidate coverage proving data display still proceeds and architecture
+coverage blocking the cast from returning. Its file-loaded notification candidate typing now uses the shared
+preload-event API-domain contract instead of deriving from the monolithic `ElectronAPI` type.
 Show FIT data CustomEvent, dispatchEvent, matchMedia, and queueMicrotask provider contracts now reuse shared
 browser-runtime aliases instead of direct ambient type spellings, with architecture coverage blocking those
 direct provider type spellings from returning.

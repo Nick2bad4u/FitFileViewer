@@ -12231,7 +12231,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(64);
+        expect.assertions(68);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -12270,6 +12270,14 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).not.toContain(
             "type ShowFitDataElectronApiCandidate"
         );
+        expect(showFitDataSource).not.toContain(
+            "value as ShowFitDataElectronApi"
+        );
+        expect(showFitDataSource).toContain(
+            'const notifyFitFileLoaded = value["notifyFitFileLoaded"];'
+        );
+        expect(showFitDataSource).toContain("function isRecord(");
+        expect(showFitDataSource).toContain("!Array.isArray(value)");
         expect(showFitDataSource).not.toContain(
             'Reflect.get(value, "notifyFitFileLoaded")'
         );

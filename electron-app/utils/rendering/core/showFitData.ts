@@ -105,15 +105,19 @@ function getShowFitDataElectronApi(
 function isShowFitDataElectronApi(
     value: unknown
 ): value is ShowFitDataElectronApi {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const { notifyFitFileLoaded } = value as ShowFitDataElectronApi;
+    const notifyFitFileLoaded = value["notifyFitFileLoaded"];
     return (
         notifyFitFileLoaded === undefined ||
         typeof notifyFitFileLoaded === "function"
     );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 /**

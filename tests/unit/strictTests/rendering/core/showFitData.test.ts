@@ -285,6 +285,49 @@ describe("showFitData", () => {
         );
     });
 
+    it("rejects array-shaped scoped notify APIs without blocking data display", async () => {
+        expect.assertions(6);
+
+        const notifyFitFileLoaded = vi.fn<(filePath: string) => void>();
+        const api = [] as unknown[] & Record<string, unknown>;
+        api["notifyFitFileLoaded"] = notifyFitFileLoaded;
+        const getElectronAPI = vi.fn<() => unknown>(() => api);
+        const malformedElectronApiScope: RendererElectronApiScope = {
+            getElectronAPI,
+        };
+        const { showFitData } = await loadModule();
+        const data: Record<string, unknown> = {
+            recordMesgs: [{ timestamp: 1 }],
+        };
+        const filePath = "C:/tmp/array-api.fit";
+        stateManagerMocks.getState.mockImplementation((path?: string) =>
+            path === "map.isRendered" ? true : undefined
+        );
+
+        showFitData(data, filePath, {
+            electronApiScope: malformedElectronApiScope,
+        });
+
+        expect(data).toMatchObject({
+            cachedFileName: "array-api.fit",
+            cachedFilePath: filePath,
+        });
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(notifyFitFileLoaded).not.toHaveBeenCalled();
+        expect(
+            rendererDependencyMocks.setTabButtonsEnabled
+        ).toHaveBeenCalledWith(true);
+        expect(rendererDependencyMocks.createTables).toHaveBeenCalledWith([
+            {
+                key: "recordMesgs",
+                rows: data.recordMesgs,
+            },
+        ]);
+        expect(rendererDependencyMocks.renderSummary).toHaveBeenCalledWith(
+            data
+        );
+    });
+
     it("does not render the map again when it is already rendered", async () => {
         expect.assertions(5);
 
