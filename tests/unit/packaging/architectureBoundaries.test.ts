@@ -2942,7 +2942,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(36);
+        expect.assertions(53);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2993,9 +2993,12 @@ describe("architecture boundaries", () => {
         expect(gyazoStartupTimerSource).not.toContain("module.exports");
         expect(gyazoStartupTimerSource).not.toContain("export default");
         expect(gyazoStartupTimerSource).toContain("MainProcessTimerHandle");
+        expect(gyazoStartupTimerSource).toContain("clearMainProcessTimeout");
         expect(gyazoStartupTimerSource).not.toContain(
             "ReturnType<typeof setTimeout>"
         );
+        expect(gyazoStartupTimerSource).not.toContain("clearTimeout(");
+        expect(gyazoStartupTimerSource).not.toContain("setTimeout(");
         expect(primeTestEnvironmentSource).not.toContain("module.exports");
         expect(primeTestEnvironmentSource).not.toContain("process.env");
         expect(primeTestEnvironmentSource).not.toContain("Reflect.get(");
@@ -3003,9 +3006,19 @@ describe("architecture boundaries", () => {
         expect(primeTestEnvironmentSource).toContain(
             "MainProcessIntervalHandle"
         );
+        expect(primeTestEnvironmentSource).toContain("setMainProcessTimeout");
+        expect(primeTestEnvironmentSource).toContain("setMainProcessInterval");
+        expect(primeTestEnvironmentSource).toContain("clearMainProcessTimeout");
+        expect(primeTestEnvironmentSource).toContain(
+            "clearMainProcessInterval"
+        );
         expect(primeTestEnvironmentSource).not.toContain(
             "ReturnType<typeof setTimeout>"
         );
+        expect(primeTestEnvironmentSource).not.toContain("setTimeout(");
+        expect(primeTestEnvironmentSource).not.toContain("setInterval(");
+        expect(primeTestEnvironmentSource).not.toContain("clearTimeout(");
+        expect(primeTestEnvironmentSource).not.toContain("clearInterval(");
         expect(primeTestEnvironmentSource).not.toContain(
             "return Reflect.get(record, key);"
         );
@@ -3026,6 +3039,16 @@ describe("architecture boundaries", () => {
         expect(mainProcessTimerHandleSource).toContain(
             "MainProcessTimerHandle"
         );
+        expect(mainProcessTimerHandleSource).toContain("setMainProcessTimeout");
+        expect(mainProcessTimerHandleSource).toContain(
+            "clearMainProcessTimeout"
+        );
+        expect(mainProcessTimerHandleSource).toContain(
+            "setMainProcessInterval"
+        );
+        expect(mainProcessTimerHandleSource).toContain(
+            "clearMainProcessInterval"
+        );
         expect(stateIntegrationBarrelSource).not.toContain(
             'require("./mainProcessStateManager.js")'
         );
@@ -3037,6 +3060,8 @@ describe("architecture boundaries", () => {
         expect(appEventHandlersSource).not.toContain(
             'require("./gyazoStartupTimerState")'
         );
+        expect(appEventHandlersSource).toContain("setMainProcessTimeout");
+        expect(appEventHandlersSource).not.toContain("setTimeout(");
         expect(appEventHandlersSource).toContain("startGyazoOAuthServer");
     });
 

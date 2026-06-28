@@ -1,4 +1,7 @@
-import type { MainProcessTimerHandle } from "../runtime/mainProcessTimerHandle.js";
+import {
+    clearMainProcessTimeout,
+    type MainProcessTimerHandle,
+} from "../runtime/mainProcessTimerHandle.js";
 
 let gyazoStartupTimer: MainProcessTimerHandle | undefined;
 
@@ -18,7 +21,7 @@ export function setGyazoStartupTimer(handle: MainProcessTimerHandle): void {
 /** Clears the pending Gyazo startup timer and forgets the handle. */
 export function clearGyazoStartupTimer(): void {
     if (gyazoStartupTimer !== undefined) {
-        clearTimeout(gyazoStartupTimer);
+        clearMainProcessTimeout(gyazoStartupTimer);
         gyazoStartupTimer = undefined;
     }
 }

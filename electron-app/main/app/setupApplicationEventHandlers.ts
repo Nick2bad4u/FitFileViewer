@@ -14,6 +14,10 @@ import {
     dialogRef as electronDialogRef,
     shellRef as electronShellRef,
 } from "../runtime/electronAccess.js";
+import {
+    setMainProcessTimeout,
+    type MainProcessTimerHandle,
+} from "../runtime/mainProcessTimerHandle.js";
 import { httpRef, path } from "../runtime/nodeModules.js";
 import {
     getGeolocationPermissionAllowed,
@@ -38,7 +42,6 @@ import {
     isTestEnvironment,
 } from "../../utils/runtime/processEnvironment.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
-import type { MainProcessTimerHandle } from "../runtime/mainProcessTimerHandle.js";
 
 type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
 type WindowValidationCandidate = Parameters<typeof validateWindow>[0];
@@ -731,7 +734,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
         if (hasGyazoOAuthCredentials()) {
             rememberStartupTimer(
-                setTimeout(() => {
+                setMainProcessTimeout(() => {
                     try {
                         if (hasGyazoServer()) {
                             const http = httpRef();

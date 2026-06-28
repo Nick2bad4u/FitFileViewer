@@ -10,9 +10,13 @@ import {
     getMainWindow,
     setMainWindow,
 } from "../state/appState.js";
-import type {
-    MainProcessIntervalHandle,
-    MainProcessTimerHandle,
+import {
+    clearMainProcessInterval,
+    clearMainProcessTimeout,
+    setMainProcessInterval,
+    setMainProcessTimeout,
+    type MainProcessIntervalHandle,
+    type MainProcessTimerHandle,
 } from "./mainProcessTimerHandle.js";
 
 let clearPrimeTestEnvironmentTimersImpl: (() => void) | undefined;
@@ -210,7 +214,7 @@ type PrimeTestMainWindowLike = {
     }
 
     function scheduleTestRetry(callback: () => void): void {
-        rememberTestTimer(setTimeout(callback, 0));
+        rememberTestTimer(setMainProcessTimeout(callback, 0));
     }
 
     function ignoreSettledPromise(value: unknown): void {
@@ -338,19 +342,19 @@ type PrimeTestMainWindowLike = {
         }
 
         keepaliveTick();
-        testKeepaliveTimer = setInterval(() => {
+        testKeepaliveTimer = setMainProcessInterval(() => {
             keepaliveTick();
         }, 1);
     }
 
     function clearPrimeTestEnvironmentTimers(): void {
         if (testKeepaliveTimer) {
-            clearInterval(testKeepaliveTimer);
+            clearMainProcessInterval(testKeepaliveTimer);
             testKeepaliveTimer = undefined;
         }
 
         for (const timer of testRetryTimers) {
-            clearTimeout(timer);
+            clearMainProcessTimeout(timer);
         }
         testRetryTimers.clear();
     }
