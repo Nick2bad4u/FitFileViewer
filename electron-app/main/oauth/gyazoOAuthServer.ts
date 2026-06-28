@@ -10,10 +10,13 @@ import {
 
 type GyazoServerStartResult = import("../../shared/ipc").GyazoServerStartResult;
 type GyazoServerStopResult = import("../../shared/ipc").GyazoServerStopResult;
-type OAuthServer = import("node:http").Server;
 type ServerResponse = import("node:http").ServerResponse;
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
+
+type ClosableOAuthServer = {
+    close: (callback: () => void) => void;
+};
 
 interface OAuthWindowLike {
     isDestroyed?: () => boolean;
@@ -27,20 +30,28 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
-function isAddressInUseError(error: unknown): boolean {
-    if (!error || typeof error !== "object") return false;
-    const candidate = error as { readonly code?: unknown };
-    return candidate.code === "EADDRINUSE";
+function isRecordCandidate(
+    value: unknown
+): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function asOAuthServer(value: unknown): OAuthServer | null {
-    if (!value || typeof value !== "object") {
+function isAddressInUseError(error: unknown): boolean {
+    return isRecordCandidate(error) && error["code"] === "EADDRINUSE";
+}
+
+function asOAuthServer(value: unknown): ClosableOAuthServer | null {
+    if (!isRecordCandidate(value)) {
         return null;
     }
 
-    const candidate = value as { readonly close?: unknown };
-    return typeof candidate.close === "function"
-        ? (value as OAuthServer)
+    const close = value["close"];
+    return typeof close === "function"
+        ? {
+              close(callback) {
+                  close.call(value, callback);
+              },
+          }
         : null;
 }
 

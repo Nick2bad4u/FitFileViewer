@@ -377,4 +377,20 @@ describe("gyazoOAuthServer", () => {
             },
         });
     });
+
+    it("ignores array-shaped stored server candidates", async () => {
+        expect.assertions(2);
+
+        const { stopGyazoOAuthServer } = await importGyazoOAuthServer();
+        const close = vi.fn<(cb: () => void) => void>((cb) => cb());
+        appState.setGyazoServerState(Object.assign([], { close }), 3000);
+
+        const result = await stopGyazoOAuthServer();
+
+        expect(result).toStrictEqual({
+            message: "No server was running",
+            success: true,
+        });
+        expect(close).not.toHaveBeenCalled();
+    });
 });

@@ -135,8 +135,9 @@ application and IPC setup import those migrated helper boundaries natively. `set
 Main bootstrap/IPC setup source (`initializeApplication.ts`, `setupIPCHandlers.ts`, and `gyazoOAuthServer.ts`)
 now uses named source exports too; initialize application, IPC setup, and Gyazo OAuth import migrated
 constants/app-state/OAuth helper boundaries natively where those sources have already been retired from
-source-level CommonJS wrappers. Gyazo OAuth error and server-shape validation now use typed optional properties
-instead of source-level `Reflect.get` probes.
+source-level CommonJS wrappers. Gyazo OAuth address-error and stored-server validation now use a non-array record guard
+and indexed property reads instead of source-level `Reflect.get` probes or local shape casts, with array-shaped stored
+server coverage and architecture guardrails blocking that bridge cast from returning.
 Clipboard, external, and filesystem IPC validation handlers now import `zod` natively instead of requiring
 that package at source level.
 Main logging, menu-creation, Electron access, and blocked-request support helpers (`logWithContext.ts`,
