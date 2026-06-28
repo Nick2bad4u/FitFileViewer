@@ -110,9 +110,18 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const runtime = getAddExitFullscreenOverlayRuntime({});
+        const runtimeWithoutAbortController =
+            getAddExitFullscreenOverlayRuntime({
+                getDocument: () =>
+                    ({
+                        defaultView: {
+                            AbortController,
+                        },
+                    }) as Document,
+            });
         const runtimeWithInvalidAbortController =
             getAddExitFullscreenOverlayRuntime({
                 getAbortController: () =>
@@ -122,6 +131,11 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
 
         expect(() => runtime.createButton()).toThrow(
             "addExitFullscreenOverlay requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithoutAbortController.createAbortController()
+        ).toThrow(
+            "addExitFullscreenOverlay requires an AbortController runtime"
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()

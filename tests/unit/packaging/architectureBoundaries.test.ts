@@ -18565,7 +18565,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(23);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -18615,6 +18615,9 @@ describe("architecture boundaries", () => {
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "scope.document"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "defaultView?.AbortController"
         );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
@@ -18912,7 +18915,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(28);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -18968,6 +18971,12 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "scope.Event"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "defaultView?.AbortController"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "defaultView?.Event"
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"

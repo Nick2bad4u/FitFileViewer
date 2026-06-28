@@ -43,9 +43,7 @@ function getScopeDocument(
 function getAbortControllerConstructor(
     scope: AddExitFullscreenOverlayRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addExitFullscreenOverlay requires an AbortController runtime"

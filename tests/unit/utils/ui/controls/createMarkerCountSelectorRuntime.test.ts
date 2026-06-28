@@ -66,7 +66,12 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
     it("does not borrow ambient constructors for explicit documents", () => {
         expect.assertions(2);
 
-        const scopedDocument = { defaultView: undefined } as Document;
+        const scopedDocument = {
+            defaultView: {
+                AbortController,
+                Event,
+            },
+        } as Document;
         const runtime = getCreateMarkerCountSelectorRuntime({
             getDocument: () => scopedDocument,
         });

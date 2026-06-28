@@ -43,9 +43,7 @@ function getScopeDocument(
 function getAbortControllerConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an AbortController runtime"
@@ -69,8 +67,7 @@ function getDocument(scope: CreateMarkerCountSelectorRuntimeScope): Document {
 function getEventConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): BrowserEventConstructor {
-    const EventConstructor =
-        scope.getEvent?.() ?? getScopeDocument(scope)?.defaultView?.Event;
+    const EventConstructor = scope.getEvent?.();
     if (typeof EventConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an Event runtime"
