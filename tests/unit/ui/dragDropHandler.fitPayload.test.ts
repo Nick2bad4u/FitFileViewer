@@ -196,4 +196,38 @@ describe(DragDropHandler, () => {
         expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
         expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
     });
+
+    it("rejects malformed scoped Electron APIs without decoding dropped files", async () => {
+        expect.assertions(7);
+
+        resetHarnessMocks();
+
+        const handler = new DragDropHandler({
+            electronApiScope: {
+                getElectronAPI: () => ({
+                    decodeFitFile: "not callable",
+                }),
+            },
+        });
+        vi.spyOn(handler, "readFileAsArrayBuffer").mockResolvedValue(
+            new ArrayBuffer(16)
+        );
+
+        const outcome = await handler.processDroppedFile(
+            createDroppedFile("malformed.fit")
+        );
+
+        expect({ outcome }).toStrictEqual({ outcome: undefined });
+        expect(mocks.renderDecodedFitData).not.toHaveBeenCalled();
+        expect(mocks.handleFileLoadingError).not.toHaveBeenCalled();
+        expect(mocks.showNotification).toHaveBeenCalledWith(
+            "FIT file decoding is not supported in this environment.",
+            "error"
+        );
+        expect(mocks.startFileLoading).toHaveBeenCalledWith(
+            "C:/rides/malformed.fit"
+        );
+        expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
+        expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
+    });
 });

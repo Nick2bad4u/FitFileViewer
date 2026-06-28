@@ -32,12 +32,8 @@ import type { ElectronFileApi } from "../../shared/preloadApi.js";
 
 type DroppedFile = File & { path?: string };
 
-type DragDropElectronApiCandidate = {
+type DragDropElectronApi = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
-};
-
-type UnknownDragDropElectronApiCandidate = {
-    readonly decodeFitFile?: unknown;
 };
 
 type PerformanceMonitorLike = {
@@ -53,21 +49,16 @@ type DragDropHandlerOptions = {
 
 function getDragDropElectronApi(
     scope?: RendererElectronApiScope
-): DragDropElectronApiCandidate | null {
+): DragDropElectronApi | null {
     return getRendererElectronApi(isDragDropElectronApi, scope);
 }
 
-function isDragDropElectronApi(
-    value: unknown
-): value is DragDropElectronApiCandidate {
+function isDragDropElectronApi(value: unknown): value is DragDropElectronApi {
     if (value === null || typeof value !== "object") {
         return false;
     }
 
-    return (
-        typeof (value as UnknownDragDropElectronApiCandidate).decodeFitFile ===
-        "function"
-    );
+    return typeof Reflect.get(value, "decodeFitFile") === "function";
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {
