@@ -1,7 +1,10 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
-import { getActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
+import {
+    getActiveFitRouteData,
+    isFitRouteRecord,
+} from "../../state/domain/fitRouteDataState.js";
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
@@ -12,21 +15,42 @@ import {
 } from "./createExportGPXButtonRuntime.js";
 import {
     buildGpxFromRecords,
-    type GpxRecord,
     type LoadedFitFileDescriptor,
     resolveTrackNameFromFileIdentity,
     resolveTrackNameFromLoadedFiles,
 } from "./gpxExport.js";
 
-type GpxExportData = {
-    readonly loadedFitFiles?: LoadedFitFileDescriptor[];
-    readonly recordMesgs?: GpxRecord[];
-};
-
 const downloadCleanupTimers = new WeakMap<
     HTMLAnchorElement,
     CreateExportGPXButtonTimer
 >();
+
+function getStringProperty(
+    record: Record<string, unknown>,
+    key: keyof LoadedFitFileDescriptor
+): string | undefined {
+    const value = record[key];
+    return typeof value === "string" ? value : undefined;
+}
+
+function isLoadedFitFileDescriptor(
+    value: unknown
+): value is LoadedFitFileDescriptor {
+    return (
+        isFitRouteRecord(value) &&
+        (getStringProperty(value, "displayName") !== undefined ||
+            getStringProperty(value, "filePath") !== undefined ||
+            getStringProperty(value, "name") !== undefined)
+    );
+}
+
+function getLoadedFitFileDescriptors(
+    value: unknown
+): LoadedFitFileDescriptor[] | undefined {
+    return Array.isArray(value)
+        ? value.filter(isLoadedFitFileDescriptor)
+        : undefined;
+}
 
 function createExportIcon(
     runtime: CreateExportGPXButtonRuntime,
@@ -77,8 +101,6 @@ export function createExportGPXButton(): HTMLButtonElement {
         "click",
         () => {
             const routeData = getActiveFitRouteData();
-            const fitData = routeData.rawData as GpxExportData | null;
-            const records = routeData.recordMesgs as GpxRecord[];
 
             if (routeData.totalRecords === 0) {
                 showNotification(
@@ -100,17 +122,19 @@ export function createExportGPXButton(): HTMLButtonElement {
 
             const fallbackTrackName = resolveTrackNameFromFileIdentity(
                 getActiveFitFileMetadata({
-                    sourceData:
-                        fitData !== null && typeof fitData === "object"
-                            ? fitData
-                            : null,
+                    sourceData: routeData.rawData,
                 }).storageIdentity
             );
+            const loadedFitFiles = getLoadedFitFileDescriptors(
+                routeData.rawData?.["loadedFitFiles"]
+            );
             const trackName = resolveTrackNameFromLoadedFiles(
-                fitData?.loadedFitFiles ?? getLoadedFitFiles(),
+                loadedFitFiles ?? getLoadedFitFiles(),
                 fallbackTrackName
             );
-            const gpx = buildGpxFromRecords(records, { trackName });
+            const gpx = buildGpxFromRecords(routeData.recordMesgs, {
+                trackName,
+            });
             if (gpx === null || gpx.length === 0) {
                 showNotification(
                     "No valid coordinates found for GPX export.",

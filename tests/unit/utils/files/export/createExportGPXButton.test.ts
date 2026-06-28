@@ -200,4 +200,48 @@ describe(createExportGPXButton, () => {
             cleanupTestGlobals();
         }
     });
+
+    it("filters loaded-file metadata from raw route data before naming downloads", async () => {
+        expect.assertions(2);
+
+        try {
+            vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
+                () => {}
+            );
+            vi.stubGlobal("URL", {
+                createObjectURL: vi.fn(() => "blob:track"),
+                revokeObjectURL: vi.fn(),
+            });
+            setActiveFitRawData({
+                loadedFitFiles: [
+                    null,
+                    { displayName: 42 },
+                    { name: "Filtered FIT Activity" },
+                ],
+                recordMesgs: [
+                    {
+                        positionLat: 536_870_912,
+                        positionLong: -1_073_741_824,
+                    },
+                ],
+            });
+            const button = createExportGPXButton();
+
+            button.click();
+
+            const link = queryRequiredAnchor(
+                "a[download='Filtered_FIT_Activity.gpx']"
+            );
+            const [[blob]] = vi.mocked(URL.createObjectURL).mock.calls as [
+                [Blob],
+            ];
+
+            expect(link).toBeInstanceOf(HTMLAnchorElement);
+            await expect(blob.text()).resolves.toContain(
+                "<name>Filtered FIT Activity</name>"
+            );
+        } finally {
+            cleanupTestGlobals();
+        }
+    });
 });

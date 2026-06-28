@@ -59,6 +59,8 @@ The preload before-exit, development-tools, and Electron API exposure helpers (`
 `developmentToolsGlobal.ts`, and `electronApiExposure.ts`) now use named source exports too.
 Preload before-exit listener tracking now stays in module-local `WeakMap`/`WeakSet` state instead of mutating Node
 listener wrappers with symbol marker properties.
+GPX export now consumes explicit route-state records and guarded loaded-file descriptors instead of asserting raw FIT
+route data to export-specific shapes before download generation.
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.

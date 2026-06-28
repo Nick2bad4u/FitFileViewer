@@ -16912,7 +16912,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(37);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -16937,6 +16937,10 @@ describe("architecture boundaries", () => {
             "createExportGPXButtonRuntime.js"
         );
         expect(createExportGPXButtonSource).toContain("createAbortController");
+        expect(createExportGPXButtonSource).not.toContain("routeData.rawData as");
+        expect(createExportGPXButtonSource).not.toContain(
+            "routeData.recordMesgs as"
+        );
         expect(createExportGPXButtonRuntimeSource).toContain(
             "iconFactoryRuntime.js"
         );

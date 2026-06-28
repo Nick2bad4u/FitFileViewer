@@ -70,7 +70,7 @@ const XML_ESCAPE_MAP: Readonly<Record<string, string>> = Object.freeze({
  * user-friendly notifications.
  */
 export function buildGpxFromRecords(
-    records: GpxRecord[] | null | undefined,
+    records: readonly FitRouteRecord[] | null | undefined,
     options: GpxBuildOptions = {}
 ): string | null {
     if (!Array.isArray(records) || records.length === 0) {
@@ -94,12 +94,10 @@ export function buildGpxFromRecords(
             continue;
         }
 
-        const gpxRecord = record as GpxRecord;
         const elevation =
-            typeof gpxRecord.enhancedAltitude === "number"
-                ? gpxRecord.enhancedAltitude
-                : gpxRecord.altitude;
-        const timestampIso = toIsoTimestamp(gpxRecord.timestamp);
+            getFiniteRecordNumber(record, "enhancedAltitude") ??
+            getFiniteRecordNumber(record, "altitude");
+        const timestampIso = toIsoTimestamp(record["timestamp"]);
         if (!firstTimestamp && timestampIso) {
             firstTimestamp = timestampIso;
         }
@@ -114,21 +112,27 @@ export function buildGpxFromRecords(
 
         let extensionLines: string[] = [];
         if (includeExtensions) {
-            const hr = normalizeMetric(gpxRecord.heartRate);
+            const hr = normalizeMetric(record["heartRate"]);
             const cadence = normalizeMetric(
-                gpxRecord.cadence ??
-                    gpxRecord["cadenceRunning"] ??
-                    gpxRecord["cadenceCycling"]
+                getFirstRecordValue(record, [
+                    "cadence",
+                    "cadenceRunning",
+                    "cadenceCycling",
+                ])
             );
             const temperature = normalizeMetric(
-                gpxRecord["temperature"] ??
-                    gpxRecord["bodyTemperature"] ??
-                    gpxRecord["ambientTemperature"]
+                getFirstRecordValue(record, [
+                    "temperature",
+                    "bodyTemperature",
+                    "ambientTemperature",
+                ])
             );
             const power = normalizeMetric(
-                gpxRecord.power ??
-                    gpxRecord["instantPower"] ??
-                    gpxRecord["avgPower"]
+                getFirstRecordValue(record, [
+                    "power",
+                    "instantPower",
+                    "avgPower",
+                ])
             );
 
             const extensionValues = [
@@ -279,6 +283,29 @@ function formatCoordinate(value: number): string {
  */
 function formatElevation(value: number): string {
     return value.toFixed(2);
+}
+
+function getFiniteRecordNumber(
+    record: FitRouteRecord,
+    key: string
+): number | null {
+    const value = record[key];
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function getFirstRecordValue(
+    record: FitRouteRecord,
+    keys: readonly string[]
+): unknown {
+    for (const key of keys) {
+        const value = record[key];
+
+        if (value !== null && value !== undefined) {
+            return value;
+        }
+    }
+
+    return undefined;
 }
 
 /**
