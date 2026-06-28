@@ -34,6 +34,7 @@ import { showNotification } from "../notifications/showNotification.js";
 import {
     getCreateInlineZoneColorSelectorRuntime,
     type CreateInlineZoneColorSelectorRuntime,
+    type CreateInlineZoneColorSelectorTimerHandle,
 } from "./createInlineZoneColorSelectorRuntime.js";
 
 type ZoneType = "hr" | "power";
@@ -68,7 +69,8 @@ type ZoneSelectorConfig = {
     zoneType: ZoneType;
 };
 
-const zoneColorSelectorTimers = new Set<ReturnType<typeof setTimeout>>();
+const zoneColorSelectorTimers =
+    new Set<CreateInlineZoneColorSelectorTimerHandle>();
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
     return typeof value === "object" && value !== null && !Array.isArray(value);

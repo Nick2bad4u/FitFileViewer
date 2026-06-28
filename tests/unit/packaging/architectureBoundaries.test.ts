@@ -8513,7 +8513,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(62);
+        expect.assertions(64);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -8536,6 +8536,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(inlineZoneSelectorSource).toContain(
             "createInlineZoneColorSelectorRuntime.js"
+        );
+        expect(inlineZoneSelectorSource).toContain(
+            "type CreateInlineZoneColorSelectorTimerHandle"
+        );
+        expect(inlineZoneSelectorSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
         );
         expect(inlineZoneSelectorSource).toContain(
             "chartStateManagerRegistry.js"
