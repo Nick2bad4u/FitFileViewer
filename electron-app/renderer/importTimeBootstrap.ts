@@ -15,11 +15,7 @@ import type {
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 export type RendererImportTimeCoreModules = Readonly<{
-    readonly applyTheme:
-        | ((theme: string, withTransition?: boolean) => void)
-        | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
-    readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
     readonly showAboutModal: ((html?: string) => void) | undefined;
@@ -28,12 +24,14 @@ export type RendererImportTimeCoreModules = Readonly<{
 }>;
 
 interface RendererImportTimeBootstrapOptions {
+    applyTheme: (theme: string, withTransition?: boolean) => void;
     ensureCoreModules: () => Promise<RendererImportTimeCoreModules>;
     getElectronApiScope: () => RendererElectronApiScope;
     getAppStartTime: AppStartTimeGetter;
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isOpeningFileRef: RendererFileOpeningStateRef;
+    listenForThemeChange: ListenForThemeChange;
     setLoading: (loading: boolean) => void;
     subscribeToAppStartTime: AppStartTimeSubscriber;
 }
@@ -46,12 +44,14 @@ export interface RendererImportTimeBootstrap {
 }
 
 export function createRendererImportTimeBootstrap({
+    applyTheme,
     ensureCoreModules,
     getElectronApiScope,
     getAppStartTime,
     getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
+    listenForThemeChange,
     setLoading,
     subscribeToAppStartTime,
 }: RendererImportTimeBootstrapOptions): RendererImportTimeBootstrap {
@@ -108,12 +108,8 @@ export function createRendererImportTimeBootstrap({
     }
 
     async function setupImportTimeTheme(): Promise<void> {
-        const {
-            applyTheme: applyThemeFn,
-            listenForThemeChange: listenForThemeChangeFn,
-            setupTheme: setupThemeFn,
-        } = await ensureCoreModules();
-        setupThemeFn?.(applyThemeFn, listenForThemeChangeFn, {
+        const { setupTheme: setupThemeFn } = await ensureCoreModules();
+        setupThemeFn?.(applyTheme, listenForThemeChange, {
             electronApiScope: getElectronApiScope(),
         });
     }

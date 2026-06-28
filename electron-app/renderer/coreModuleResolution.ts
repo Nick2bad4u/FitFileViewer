@@ -37,9 +37,7 @@ export type RendererAppCleanupActions = Pick<
 
 type ResolvedRendererCoreModules = Readonly<{
     readonly AppActions: RendererAppCleanupActions | undefined;
-    readonly applyTheme: ApplyTheme | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
-    readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly masterStateManager: unknown;
     readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
@@ -82,10 +80,6 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
         "../../utils/ui/modals/aboutModal.js",
         "../utils/ui/modals/aboutModal.js"
     );
-    const themeMod = await resolveCoreModule(
-        "../../utils/theming/core/theme.js",
-        "../utils/theming/core/theme.js"
-    );
     const msmMod = await resolveCoreModule(
         "../../utils/state/core/masterStateManager.js",
         "../utils/state/core/masterStateManager.js"
@@ -102,11 +96,7 @@ export async function ensureCoreModules(): Promise<ResolvedRendererCoreModules> 
     return {
         // Be robust to different mock shapes: named export, default.AppActions, default object, or module as object
         AppActions: resolveAppActionsModule(appActionsMod),
-        applyTheme: toApplyTheme(themeMod["applyTheme"]),
         handleOpenFile: toRendererHandleOpenFile(openFileMod["handleOpenFile"]),
-        listenForThemeChange: toListenForThemeChange(
-            themeMod["listenForThemeChange"]
-        ),
         masterStateManager:
             resolveDefaultableExport(msmMod, "masterStateManager") ?? msmMod,
         setupListeners: toRendererSetupListeners(
@@ -216,9 +206,6 @@ async function importRendererModule(realPath: string): Promise<unknown> {
         case "../utils/theming/core/setupTheme.js": {
             return /** @type {Promise<unknown>} */ import("../utils/theming/core/setupTheme.js");
         }
-        case "../utils/theming/core/theme.js": {
-            return /** @type {Promise<unknown>} */ import("../utils/theming/core/theme.js");
-        }
         case "../utils/ui/modals/aboutModal.js": {
             return /** @type {Promise<unknown>} */ import("../utils/ui/modals/aboutModal.js");
         }
@@ -284,18 +271,6 @@ function resolveDefaultableExport(
     }
 
     return toModuleRecord(moduleRecord["default"])[exportName];
-}
-
-function toApplyTheme(value: unknown): ApplyTheme | undefined {
-    return typeof value === "function" ? (value as ApplyTheme) : undefined;
-}
-
-function toListenForThemeChange(
-    value: unknown
-): ListenForThemeChange | undefined {
-    return typeof value === "function"
-        ? (value as ListenForThemeChange)
-        : undefined;
 }
 
 function toRendererHandleOpenFile(

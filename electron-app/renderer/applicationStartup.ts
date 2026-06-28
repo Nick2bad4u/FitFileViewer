@@ -33,11 +33,11 @@ type RendererStartupLogger = (
 ) => void;
 
 export interface RendererDependencies {
-    applyTheme: ApplyTheme | undefined;
+    applyTheme: ApplyTheme;
     electronApiScope: RendererElectronApiScope;
     handleOpenFile: RendererHandleOpenFile | undefined;
     isOpeningFileRef: RendererFileOpeningStateRef;
-    listenForThemeChange: ListenForThemeChange | undefined;
+    listenForThemeChange: ListenForThemeChange;
     openFileBtn: HTMLElement | null;
     setLoading: (loading: boolean) => void;
     showAboutModal: ((html?: string) => void) | undefined;
@@ -50,9 +50,7 @@ export type RendererApplicationStartupActions = Readonly<{
 }>;
 
 export type RendererApplicationStartupCoreModules = Readonly<{
-    readonly applyTheme: ApplyTheme | undefined;
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
-    readonly listenForThemeChange: ListenForThemeChange | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
     readonly showAboutModal: ((html?: string) => void) | undefined;
@@ -62,6 +60,7 @@ export type RendererApplicationStartupCoreModules = Readonly<{
 interface RendererApplicationStartupOptions {
     addEventListener: RendererAddEventListener;
     appActions: RendererApplicationStartupActions;
+    applyTheme: ApplyTheme;
     ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>;
     errorHandlers: RendererErrorEventHandlers;
     getElectronApiScope: () => RendererElectronApiScope;
@@ -70,6 +69,7 @@ interface RendererApplicationStartupOptions {
     initializeStateManager: () => Promise<void>;
     isDevelopmentMode: () => boolean;
     isOpeningFileRef: RendererFileOpeningStateRef;
+    listenForThemeChange: ListenForThemeChange;
     logRenderer: RendererStartupLogger;
     performanceMonitor: RendererPerformanceMonitor;
     runtime?: RendererApplicationStartupRuntime | undefined;
@@ -134,7 +134,7 @@ export function createRendererApplicationStartup(
                     electronApiHooks,
                     openFileBtn,
                     coreModules.showAboutModal,
-                    coreModules.applyTheme
+                    options.applyTheme
                 );
             }
 
@@ -336,11 +336,11 @@ function createRendererDependencies(
     options: RendererApplicationStartupOptions
 ): RendererDependencies {
     return {
-        applyTheme: coreModules.applyTheme,
+        applyTheme: options.applyTheme,
         electronApiScope: options.getElectronApiScope(),
         handleOpenFile: coreModules.handleOpenFile,
         isOpeningFileRef: options.isOpeningFileRef,
-        listenForThemeChange: coreModules.listenForThemeChange,
+        listenForThemeChange: options.listenForThemeChange,
         openFileBtn,
         setLoading: options.setLoading,
         showAboutModal: coreModules.showAboutModal,

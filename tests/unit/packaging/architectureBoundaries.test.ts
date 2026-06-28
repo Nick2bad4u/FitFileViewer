@@ -20323,7 +20323,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(46);
+        expect.assertions(47);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -20450,8 +20450,9 @@ describe("architecture boundaries", () => {
             "readonly showAboutModal: RendererElectronApiAboutModal;"
         );
         expect(rendererEntrypointSource).toContain(
-            'import { applyTheme } from "./utils/theming/core/theme.js";'
+            'from "./utils/theming/core/theme.js";'
         );
+        expect(rendererEntrypointSource).toContain("applyTheme,");
         expect(rendererEntrypointSource).toContain(
             'import { showAboutModal } from "./utils/ui/modals/aboutModal.js";'
         );
@@ -20635,7 +20636,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(51);
+        expect.assertions(61);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -20721,6 +20722,16 @@ describe("architecture boundaries", () => {
         expect(applicationStartupSource).not.toContain(
             "readonly getAppStartTime: AppStartTimeGetter | undefined;"
         );
+        expect(applicationStartupSource).not.toContain(
+            "readonly applyTheme: ApplyTheme | undefined;"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "readonly listenForThemeChange: ListenForThemeChange | undefined;"
+        );
+        expect(applicationStartupSource).toContain("applyTheme: ApplyTheme;");
+        expect(applicationStartupSource).toContain(
+            "listenForThemeChange: ListenForThemeChange;"
+        );
         expect(applicationStartupSource).toContain(
             "getAppStartTime: AppStartTimeGetter;"
         );
@@ -20776,15 +20787,27 @@ describe("architecture boundaries", () => {
             "createRendererApplicationStartup({\n    addEventListener: runtimeEnvironment.addEventListener,\n    callUnknownFunction,"
         );
         expect(rendererEntrypointSource).toContain("appActions: AppActions,");
+        expect(rendererEntrypointSource).toContain("applyTheme,");
         expect(rendererEntrypointSource).toContain("getAppStartTime,");
+        expect(rendererEntrypointSource).toContain("listenForThemeChange,");
         expect(rendererEntrypointSource).toContain("showNotification,");
+        expect(coreModuleResolutionSource).not.toContain(
+            "readonly applyTheme: ApplyTheme | undefined;"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "readonly listenForThemeChange: ListenForThemeChange | undefined;"
+        );
+        expect(coreModuleResolutionSource).not.toContain("const themeMod");
+        expect(coreModuleResolutionSource).not.toContain(
+            '"../utils/theming/core/theme.js"'
+        );
         expect(applicationStartupSource).not.toContain(
             "handleImmediateFileInputChange"
         );
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(40);
+        expect.assertions(48);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -20817,6 +20840,16 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).not.toContain(
             "readonly subscribeToAppStartTime: AppStartTimeSubscriber | undefined;"
         );
+        expect(importTimeBootstrapSource).not.toContain("readonly applyTheme:");
+        expect(importTimeBootstrapSource).not.toContain(
+            "readonly listenForThemeChange: ListenForThemeChange | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "applyTheme: (theme: string, withTransition?: boolean) => void;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "listenForThemeChange: ListenForThemeChange;"
+        );
         expect(importTimeBootstrapSource).toContain(
             "getAppStartTime: AppStartTimeGetter;"
         );
@@ -20840,7 +20873,9 @@ describe("architecture boundaries", () => {
             'getAppDomainState?.("app.startTime")'
         );
         expect(importTimeBootstrapSource).toContain("setupListenersFn?.(deps)");
-        expect(importTimeBootstrapSource).toContain("setupThemeFn?.(");
+        expect(importTimeBootstrapSource).toContain(
+            "setupThemeFn?.(applyTheme, listenForThemeChange,"
+        );
         expect(importTimeBootstrapSource).toContain(
             "electronApiScope: getElectronApiScope()"
         );
@@ -20897,7 +20932,13 @@ describe("architecture boundaries", () => {
             "createRendererImportTimeBootstrap({"
         );
         expect(rendererEntrypointSource).toContain("getAppStartTime,");
+        expect(rendererEntrypointSource).toContain("applyTheme,");
+        expect(rendererEntrypointSource).toContain("listenForThemeChange,");
         expect(rendererEntrypointSource).toContain("subscribeToAppStartTime,");
+        expect(coreModuleResolutionSource).not.toContain("const themeMod");
+        expect(coreModuleResolutionSource).not.toContain(
+            '"../utils/theming/core/theme.js"'
+        );
         expect(coreModuleResolutionSource).toContain(
             "export async function ensureCoreModules()"
         );

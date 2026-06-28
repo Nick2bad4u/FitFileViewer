@@ -2078,6 +2078,9 @@ services directly from the renderer entrypoint, and the broad core-module resolv
 app-domain state services for startup paths.
 Renderer file-input wiring now receives the typed `handleOpenFile` service directly from the renderer entrypoint instead
 of resolving it through a local `RendererFileInputCoreModules` aggregate backed by the broad core-module resolver.
+Renderer application startup and import-time theme setup now receive typed `applyTheme` and `listenForThemeChange`
+services directly from the renderer entrypoint, and the broad core-module resolver no longer imports the theme module
+just to expose those callbacks.
 Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
 renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Renderer error handling now receives the typed `showNotification` service directly from the renderer entrypoint instead

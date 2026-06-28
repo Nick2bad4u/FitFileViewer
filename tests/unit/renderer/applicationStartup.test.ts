@@ -10,9 +10,7 @@ function createCoreModules(
     overrides: Partial<RendererApplicationStartupCoreModules> = {}
 ): RendererApplicationStartupCoreModules {
     return {
-        applyTheme: vi.fn(),
         handleOpenFile: vi.fn(),
-        listenForThemeChange: vi.fn(),
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
         showAboutModal: vi.fn(),
@@ -70,11 +68,14 @@ describe("renderer application startup", () => {
         const appActions = {
             setInitialized: vi.fn(),
         };
+        const applyTheme = vi.fn();
         const getAppStartTime = vi.fn();
+        const listenForThemeChange = vi.fn();
         const showNotification = vi.fn();
         const utils = createRendererApplicationStartup({
             addEventListener,
             appActions,
+            applyTheme,
             ensureCoreModules: async () => coreModules,
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -88,6 +89,7 @@ describe("renderer application startup", () => {
             initializeStateManager,
             isDevelopmentMode: () => true,
             isOpeningFileRef: { value: false },
+            listenForThemeChange,
             logRenderer: vi.fn(),
             performanceMonitor: performance.monitor,
             setLoading: vi.fn(),
@@ -110,8 +112,8 @@ describe("renderer application startup", () => {
             expect.objectContaining({ signal: expect.any(AbortSignal) })
         );
         expect(coreModules.setupTheme).toHaveBeenCalledWith(
-            coreModules.applyTheme,
-            coreModules.listenForThemeChange,
+            applyTheme,
+            listenForThemeChange,
             { electronApiScope }
         );
         expect(coreModules.setupListeners).toHaveBeenCalledWith(
@@ -157,6 +159,7 @@ describe("renderer application startup", () => {
         const utils = createRendererApplicationStartup({
             addEventListener,
             appActions: { setInitialized: vi.fn() },
+            applyTheme: vi.fn(),
             ensureCoreModules: async () => coreModules,
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -172,6 +175,7 @@ describe("renderer application startup", () => {
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
             isOpeningFileRef: { value: false },
+            listenForThemeChange: vi.fn(),
             logRenderer: vi.fn(),
             performanceMonitor: performance.monitor,
             runtime,
@@ -219,6 +223,7 @@ describe("renderer application startup", () => {
         const utils = createRendererApplicationStartup({
             addEventListener: vi.fn(),
             appActions: { setInitialized: vi.fn() },
+            applyTheme: vi.fn(),
             ensureCoreModules: async () => createCoreModules(),
             errorHandlers: {
                 handleUncaughtError: vi.fn(),
@@ -232,6 +237,7 @@ describe("renderer application startup", () => {
             initializeStateManager: async () => undefined,
             isDevelopmentMode: () => false,
             isOpeningFileRef: { value: false },
+            listenForThemeChange: vi.fn(),
             logRenderer,
             performanceMonitor: performance.monitor,
             setLoading: vi.fn(),

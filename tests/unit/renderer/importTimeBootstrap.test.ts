@@ -24,9 +24,7 @@ function createCoreModules(
     overrides: Partial<RendererImportTimeCoreModules> = {}
 ): RendererImportTimeCoreModules {
     return {
-        applyTheme: vi.fn(),
         handleOpenFile: vi.fn(),
-        listenForThemeChange: vi.fn(),
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
         showAboutModal: vi.fn(),
@@ -54,7 +52,9 @@ describe("renderer import-time bootstrap", () => {
             getElectronAPI: () => ({ readFile: vi.fn() }),
         };
         const getElectronApiScope = vi.fn(() => electronApiScope);
+        const applyTheme = vi.fn();
         const getAppStartTime = vi.fn();
+        const listenForThemeChange = vi.fn();
         const subscribeToAppStartTime = vi.fn();
         const receivedUpdateNotifications: unknown[][] = [];
         let setupListenersOptions: SetupListenersOptions | undefined;
@@ -77,12 +77,14 @@ describe("renderer import-time bootstrap", () => {
             scheduleImportTimeStateInitialization,
             scheduleImportTimeThemeSetup,
         } = createRendererImportTimeBootstrap({
+            applyTheme,
             ensureCoreModules: async () => coreModules,
             getElectronApiScope,
             getAppStartTime,
             getOpenFileButton: () => openFileButton,
             initializeStateManager,
             isOpeningFileRef,
+            listenForThemeChange,
             setLoading,
             subscribeToAppStartTime,
         });
@@ -94,8 +96,8 @@ describe("renderer import-time bootstrap", () => {
         await flushImportTimeWork();
 
         expect(coreModules.setupTheme).toHaveBeenCalledWith(
-            coreModules.applyTheme,
-            coreModules.listenForThemeChange,
+            applyTheme,
+            listenForThemeChange,
             { electronApiScope }
         );
         expect(coreModules.setupListeners).toHaveBeenCalledWith(
@@ -140,12 +142,14 @@ describe("renderer import-time bootstrap", () => {
         });
         const { scheduleImportTimeStateInitialization } =
             createRendererImportTimeBootstrap({
+                applyTheme: vi.fn(),
                 ensureCoreModules: async () => createCoreModules(),
                 getElectronApiScope: () => ({ getElectronAPI: () => null }),
                 getAppStartTime: vi.fn(),
                 getOpenFileButton: () => null,
                 initializeStateManager,
                 isOpeningFileRef: { value: false },
+                listenForThemeChange: vi.fn(),
                 setLoading: vi.fn(),
                 subscribeToAppStartTime: vi.fn(),
             });

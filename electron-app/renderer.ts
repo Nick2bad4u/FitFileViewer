@@ -23,7 +23,10 @@
 
 import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
-import { applyTheme } from "./utils/theming/core/theme.js";
+import {
+    applyTheme,
+    listenForThemeChange,
+} from "./utils/theming/core/theme.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { handleOpenFile as openFitFileFromDialog } from "./utils/files/import/handleOpenFile.js";
@@ -104,12 +107,14 @@ const domAccess = createRendererDomAccess({
 const getRendererElectronApiScope = () => runtimeEnvironment.electronApiScope;
 
 const importTimeBootstrap = createRendererImportTimeBootstrap({
+    applyTheme,
     ensureCoreModules,
     getElectronApiScope: getRendererElectronApiScope,
     getAppStartTime,
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
+    listenForThemeChange,
     setLoading,
     subscribeToAppStartTime,
 });
@@ -164,6 +169,7 @@ const PerformanceMonitor: RendererPerformanceMonitor =
 const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
     appActions: AppActions,
+    applyTheme,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
     getElectronApiScope: getRendererElectronApiScope,
@@ -172,6 +178,7 @@ const initializeApplication = createRendererApplicationStartup({
     initializeStateManager,
     isDevelopmentMode,
     isOpeningFileRef,
+    listenForThemeChange,
     logRenderer,
     performanceMonitor: PerformanceMonitor,
     setLoading,
