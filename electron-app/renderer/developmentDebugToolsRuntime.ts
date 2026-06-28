@@ -35,6 +35,29 @@ export interface RendererDevelopmentDebugToolsRuntime {
     getPerformanceMemorySnapshot: () => RendererDevelopmentPerformanceMemorySnapshot;
 }
 
+type RendererDevelopmentLocationCandidate = Readonly<{
+    readonly protocol?: unknown;
+}>;
+
+type RendererDevelopmentNavigatorCandidate = Readonly<{
+    readonly cookieEnabled?: unknown;
+    readonly hardwareConcurrency?: unknown;
+    readonly language?: unknown;
+    readonly onLine?: unknown;
+    readonly platform?: unknown;
+    readonly userAgent?: unknown;
+}>;
+
+type RendererDevelopmentPerformanceCandidate = Readonly<{
+    readonly memory?: unknown;
+}>;
+
+type RendererDevelopmentPerformanceMemoryCandidate = Readonly<{
+    readonly jsHeapSizeLimit?: unknown;
+    readonly totalJSHeapSize?: unknown;
+    readonly usedJSHeapSize?: unknown;
+}>;
+
 function readScopeValue(getValue: (() => unknown) | undefined): unknown {
     try {
         return getValue?.();
@@ -43,50 +66,55 @@ function readScopeValue(getValue: (() => unknown) | undefined): unknown {
     }
 }
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isObjectCandidate(value: unknown): value is object {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function getStringProperty(
-    value: Readonly<Record<string, unknown>>,
-    key: string
-): string | undefined {
-    const property = value[key];
-    return typeof property === "string" ? property : undefined;
+function toLocationCandidate(
+    value: unknown
+): RendererDevelopmentLocationCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
 }
 
-function getNumberProperty(
-    value: Readonly<Record<string, unknown>>,
-    key: string
-): number | undefined {
-    const property = value[key];
-    return typeof property === "number" ? property : undefined;
+function toNavigatorCandidate(
+    value: unknown
+): RendererDevelopmentNavigatorCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
 }
 
-function getBooleanProperty(
-    value: Readonly<Record<string, unknown>>,
-    key: string
-): boolean | undefined {
-    const property = value[key];
-    return typeof property === "boolean" ? property : undefined;
+function toPerformanceCandidate(
+    value: unknown
+): RendererDevelopmentPerformanceCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
 }
 
-function getObjectProperty(
-    value: Readonly<Record<string, unknown>>,
-    key: string
-): Readonly<Record<string, unknown>> | undefined {
-    const property = value[key];
-    return isRecord(property) ? property : undefined;
+function toPerformanceMemoryCandidate(
+    value: unknown
+): RendererDevelopmentPerformanceMemoryCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
+}
+
+function getStringProperty(value: unknown): string | undefined {
+    return typeof value === "string" ? value : undefined;
+}
+
+function getNumberProperty(value: unknown): number | undefined {
+    return typeof value === "number" ? value : undefined;
+}
+
+function getBooleanProperty(value: unknown): boolean | undefined {
+    return typeof value === "boolean" ? value : undefined;
 }
 
 function toLocationSnapshot(
     value: unknown
 ): RendererDevelopmentLocationSnapshot {
-    if (!isRecord(value)) {
+    const location = toLocationCandidate(value);
+    if (location === undefined) {
         return {};
     }
 
-    const protocol = getStringProperty(value, "protocol");
+    const protocol = getStringProperty(location.protocol);
 
     return protocol === undefined ? {} : { protocol };
 }
@@ -94,16 +122,19 @@ function toLocationSnapshot(
 function toNavigatorSnapshot(
     value: unknown
 ): RendererDevelopmentNavigatorSnapshot {
-    if (!isRecord(value)) {
+    const navigator = toNavigatorCandidate(value);
+    if (navigator === undefined) {
         return {};
     }
 
-    const cookieEnabled = getBooleanProperty(value, "cookieEnabled");
-    const hardwareConcurrency = getNumberProperty(value, "hardwareConcurrency");
-    const language = getStringProperty(value, "language");
-    const onLine = getBooleanProperty(value, "onLine");
-    const platform = getStringProperty(value, "platform");
-    const userAgent = getStringProperty(value, "userAgent");
+    const cookieEnabled = getBooleanProperty(navigator.cookieEnabled);
+    const hardwareConcurrency = getNumberProperty(
+        navigator.hardwareConcurrency
+    );
+    const language = getStringProperty(navigator.language);
+    const onLine = getBooleanProperty(navigator.onLine);
+    const platform = getStringProperty(navigator.platform);
+    const userAgent = getStringProperty(navigator.userAgent);
 
     return {
         ...(cookieEnabled === undefined ? {} : { cookieEnabled }),
@@ -118,18 +149,19 @@ function toNavigatorSnapshot(
 function toPerformanceMemorySnapshot(
     value: unknown
 ): RendererDevelopmentPerformanceMemorySnapshot {
-    if (!isRecord(value)) {
+    const performance = toPerformanceCandidate(value);
+    if (performance === undefined) {
         return {};
     }
 
-    const memory = getObjectProperty(value, "memory");
-    if (!memory) {
+    const memory = toPerformanceMemoryCandidate(performance.memory);
+    if (memory === undefined) {
         return {};
     }
 
-    const jsHeapSizeLimit = getNumberProperty(memory, "jsHeapSizeLimit");
-    const totalJSHeapSize = getNumberProperty(memory, "totalJSHeapSize");
-    const usedJSHeapSize = getNumberProperty(memory, "usedJSHeapSize");
+    const jsHeapSizeLimit = getNumberProperty(memory.jsHeapSizeLimit);
+    const totalJSHeapSize = getNumberProperty(memory.totalJSHeapSize);
+    const usedJSHeapSize = getNumberProperty(memory.usedJSHeapSize);
 
     return {
         ...(jsHeapSizeLimit === undefined ? {} : { jsHeapSizeLimit }),

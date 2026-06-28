@@ -17270,7 +17270,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(32);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -17320,16 +17320,19 @@ describe("architecture boundaries", () => {
             "getPerformanceMemorySnapshot"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
-            "Readonly<Record<string, unknown>>"
+            "type RendererDevelopmentLocationCandidate = Readonly<{"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "type RendererDevelopmentNavigatorCandidate = Readonly<{"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "type RendererDevelopmentPerformanceMemoryCandidate = Readonly<{"
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
             "Array.isArray(value)"
         );
         expect(developmentDebugToolsRuntimeSource).not.toContain(
-            "readonly [propertyName: string]: unknown"
-        );
-        expect(developmentDebugToolsRuntimeSource).not.toContain(
-            "toRuntimeRecord"
+            "Readonly<Record<string, unknown>>"
         );
         expect(developmentDebugToolsRuntimeSource).not.toMatch(
             directRendererDevelopmentDebugToolsRuntimeAmbientGetterPattern
