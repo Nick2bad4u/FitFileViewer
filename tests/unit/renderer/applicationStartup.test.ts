@@ -13,8 +13,6 @@ function createCoreModules(
         handleOpenFile: vi.fn(),
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
-        showAboutModal: vi.fn(),
-        showUpdateNotification: vi.fn(),
         ...overrides,
     };
 }
@@ -71,7 +69,9 @@ describe("renderer application startup", () => {
         const applyTheme = vi.fn();
         const getAppStartTime = vi.fn();
         const listenForThemeChange = vi.fn();
+        const showAboutModal = vi.fn();
         const showNotification = vi.fn();
+        const showUpdateNotification = vi.fn();
         const utils = createRendererApplicationStartup({
             addEventListener,
             appActions,
@@ -93,7 +93,9 @@ describe("renderer application startup", () => {
             logRenderer: vi.fn(),
             performanceMonitor: performance.monitor,
             setLoading: vi.fn(),
+            showAboutModal,
             showNotification,
+            showUpdateNotification,
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => true,
         });
@@ -142,8 +144,8 @@ describe("renderer application startup", () => {
             "async_components",
             "app_initialization",
         ]);
-        expect(coreModules.showAboutModal).not.toHaveBeenCalled();
-        expect(coreModules.showUpdateNotification).not.toHaveBeenCalled();
+        expect(showAboutModal).not.toHaveBeenCalled();
+        expect(showUpdateNotification).not.toHaveBeenCalled();
     });
 
     it("schedules production update checks and cancels the pending timer before unload", async () => {
@@ -180,7 +182,9 @@ describe("renderer application startup", () => {
             performanceMonitor: performance.monitor,
             runtime,
             setLoading: vi.fn(),
+            showAboutModal: vi.fn(),
             showNotification: vi.fn(),
+            showUpdateNotification: vi.fn(),
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => true,
         });
@@ -241,7 +245,9 @@ describe("renderer application startup", () => {
             logRenderer,
             performanceMonitor: performance.monitor,
             setLoading: vi.fn(),
+            showAboutModal: vi.fn(),
             showNotification,
+            showUpdateNotification: vi.fn(),
             setupCreditsMarquee: vi.fn(),
             validateDOMElements: () => false,
         });

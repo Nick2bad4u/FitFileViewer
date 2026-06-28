@@ -53,8 +53,6 @@ export type RendererApplicationStartupCoreModules = Readonly<{
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
-    readonly showAboutModal: ((html?: string) => void) | undefined;
-    readonly showUpdateNotification: ShowUpdateNotification | undefined;
 }>;
 
 interface RendererApplicationStartupOptions {
@@ -74,7 +72,9 @@ interface RendererApplicationStartupOptions {
     performanceMonitor: RendererPerformanceMonitor;
     runtime?: RendererApplicationStartupRuntime | undefined;
     setLoading: (loading: boolean) => void;
+    showAboutModal: ((html?: string) => void) | undefined;
     showNotification: ShowNotification;
+    showUpdateNotification: ShowUpdateNotification | undefined;
     setupCreditsMarquee: () => void;
     validateDOMElements: () => boolean;
 }
@@ -133,7 +133,7 @@ export function createRendererApplicationStartup(
                 registerStartupElectronHooks(
                     electronApiHooks,
                     openFileBtn,
-                    coreModules.showAboutModal,
+                    options.showAboutModal,
                     options.applyTheme
                 );
             }
@@ -343,9 +343,9 @@ function createRendererDependencies(
         listenForThemeChange: options.listenForThemeChange,
         openFileBtn,
         setLoading: options.setLoading,
-        showAboutModal: coreModules.showAboutModal,
+        showAboutModal: options.showAboutModal,
         showNotification: options.showNotification,
-        showUpdateNotification: coreModules.showUpdateNotification,
+        showUpdateNotification: options.showUpdateNotification,
     };
 }
 

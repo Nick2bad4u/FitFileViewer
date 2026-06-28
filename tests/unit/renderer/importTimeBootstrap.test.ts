@@ -27,9 +27,6 @@ function createCoreModules(
         handleOpenFile: vi.fn(),
         setupListeners: vi.fn(),
         setupTheme: vi.fn(),
-        showAboutModal: vi.fn(),
-        showNotification: vi.fn(),
-        showUpdateNotification: vi.fn(),
         ...overrides,
     };
 }
@@ -55,21 +52,30 @@ describe("renderer import-time bootstrap", () => {
         const applyTheme = vi.fn();
         const getAppStartTime = vi.fn();
         const listenForThemeChange = vi.fn();
-        const subscribeToAppStartTime = vi.fn();
+        const showAboutModal = vi.fn();
+        const showNotification = vi.fn();
         const receivedUpdateNotifications: unknown[][] = [];
-        let setupListenersOptions: SetupListenersOptions | undefined;
-        const coreModules = createCoreModules({
-            setupListeners: vi.fn((options: SetupListenersOptions) => {
-                setupListenersOptions = options;
-            }),
-            showUpdateNotification: (message, type, duration, withAction) => {
+        const showUpdateNotification = vi.fn(
+            (
+                message: string,
+                type?: string,
+                duration?: number,
+                withAction?: boolean | string
+            ) => {
                 receivedUpdateNotifications.push([
                     message,
                     type,
                     duration,
                     withAction,
                 ]);
-            },
+            }
+        );
+        const subscribeToAppStartTime = vi.fn();
+        let setupListenersOptions: SetupListenersOptions | undefined;
+        const coreModules = createCoreModules({
+            setupListeners: vi.fn((options: SetupListenersOptions) => {
+                setupListenersOptions = options;
+            }),
         });
         const {
             scheduleAppDomainStateTouch,
@@ -86,6 +92,9 @@ describe("renderer import-time bootstrap", () => {
             isOpeningFileRef,
             listenForThemeChange,
             setLoading,
+            showAboutModal,
+            showNotification,
+            showUpdateNotification,
             subscribeToAppStartTime,
         });
 
@@ -130,7 +139,7 @@ describe("renderer import-time bootstrap", () => {
                 "download",
             ],
         ]);
-        expect(coreModules.showAboutModal).not.toHaveBeenCalled();
+        expect(showAboutModal).not.toHaveBeenCalled();
     });
 
     it("lets state startup own state manager initialization", async () => {
@@ -151,6 +160,9 @@ describe("renderer import-time bootstrap", () => {
                 isOpeningFileRef: { value: false },
                 listenForThemeChange: vi.fn(),
                 setLoading: vi.fn(),
+                showAboutModal: vi.fn(),
+                showNotification: vi.fn(),
+                showUpdateNotification: vi.fn(),
                 subscribeToAppStartTime: vi.fn(),
             });
 

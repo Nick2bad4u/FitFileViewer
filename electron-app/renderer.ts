@@ -29,6 +29,7 @@ import {
 } from "./utils/theming/core/theme.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
+import { showUpdateNotification } from "./utils/ui/notifications/showUpdateNotification.js";
 import { handleOpenFile as openFitFileFromDialog } from "./utils/files/import/handleOpenFile.js";
 import { masterStateManager } from "./utils/state/core/masterStateManager.js";
 import {
@@ -116,6 +117,9 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     isOpeningFileRef,
     listenForThemeChange,
     setLoading,
+    showAboutModal,
+    showNotification,
+    showUpdateNotification,
     subscribeToAppStartTime,
 });
 const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
@@ -182,7 +186,9 @@ const initializeApplication = createRendererApplicationStartup({
     logRenderer,
     performanceMonitor: PerformanceMonitor,
     setLoading,
+    showAboutModal,
     showNotification,
+    showUpdateNotification,
     setupCreditsMarquee,
     validateDOMElements: domAccess.validateDOMElements,
 });

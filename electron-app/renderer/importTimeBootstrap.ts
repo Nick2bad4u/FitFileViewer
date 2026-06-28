@@ -18,9 +18,6 @@ export type RendererImportTimeCoreModules = Readonly<{
     readonly handleOpenFile: RendererHandleOpenFile | undefined;
     readonly setupListeners: RendererSetupListeners | undefined;
     readonly setupTheme: RendererSetupTheme | undefined;
-    readonly showAboutModal: ((html?: string) => void) | undefined;
-    readonly showNotification: ShowNotification | undefined;
-    readonly showUpdateNotification: ShowUpdateNotification | undefined;
 }>;
 
 interface RendererImportTimeBootstrapOptions {
@@ -33,6 +30,9 @@ interface RendererImportTimeBootstrapOptions {
     isOpeningFileRef: RendererFileOpeningStateRef;
     listenForThemeChange: ListenForThemeChange;
     setLoading: (loading: boolean) => void;
+    showAboutModal: ((html?: string) => void) | undefined;
+    showNotification: ShowNotification | undefined;
+    showUpdateNotification: ShowUpdateNotification | undefined;
     subscribeToAppStartTime: AppStartTimeSubscriber;
 }
 
@@ -53,6 +53,9 @@ export function createRendererImportTimeBootstrap({
     isOpeningFileRef,
     listenForThemeChange,
     setLoading,
+    showAboutModal,
+    showNotification,
+    showUpdateNotification,
     subscribeToAppStartTime,
 }: RendererImportTimeBootstrapOptions): RendererImportTimeBootstrap {
     async function initializeImportTimeStateManager(): Promise<void> {
@@ -84,9 +87,6 @@ export function createRendererImportTimeBootstrap({
         const {
             handleOpenFile: handleOpenFileFn,
             setupListeners: setupListenersFn,
-            showAboutModal: showAboutModalFn,
-            showNotification: showNotificationFn,
-            showUpdateNotification: showUpdateNotificationFn,
         } = await ensureCoreModules();
         const deps = createSetupListenersOptions({
             electronApiScope: getElectronApiScope(),
@@ -94,12 +94,12 @@ export function createRendererImportTimeBootstrap({
             isOpeningFileRef,
             openFileBtn: getOpenFileButton(),
             setLoading,
-            showAboutModal: showAboutModalFn,
-            showNotification: showNotificationFn,
+            showAboutModal,
+            showNotification,
             showUpdateNotification:
-                showUpdateNotificationFn === undefined
+                showUpdateNotification === undefined
                     ? undefined
-                    : adaptShowUpdateNotification(showUpdateNotificationFn),
+                    : adaptShowUpdateNotification(showUpdateNotification),
         });
 
         if (deps !== undefined) {

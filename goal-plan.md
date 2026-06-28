@@ -2081,6 +2081,9 @@ of resolving it through a local `RendererFileInputCoreModules` aggregate backed 
 Renderer application startup and import-time theme setup now receive typed `applyTheme` and `listenForThemeChange`
 services directly from the renderer entrypoint, and the broad core-module resolver no longer imports the theme module
 just to expose those callbacks.
+Renderer application startup and import-time listener setup now receive `showAboutModal`, `showNotification`, and
+`showUpdateNotification` services directly from the renderer entrypoint instead of resolving those callbacks through the
+broad core-module aggregate.
 Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
 renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Renderer error handling now receives the typed `showNotification` service directly from the renderer entrypoint instead

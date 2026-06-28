@@ -20636,7 +20636,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(61);
+        expect.assertions(68);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -20742,14 +20742,29 @@ describe("architecture boundaries", () => {
             "showNotification: ShowNotification;"
         );
         expect(applicationStartupSource).toContain("options.showNotification(");
+        expect(applicationStartupSource).toContain(
+            "showAboutModal: ((html?: string) => void) | undefined;"
+        );
+        expect(applicationStartupSource).toContain(
+            "showUpdateNotification: ShowUpdateNotification | undefined;"
+        );
         expect(applicationStartupSource).not.toContain(
             "coreModules.showNotification"
         );
         expect(applicationStartupSource).not.toContain(
+            "coreModules.showAboutModal"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "coreModules.showUpdateNotification"
+        );
+        expect(applicationStartupSource).not.toContain(
             "showNotification !== undefined"
         );
-        expect(applicationStartupSource).toContain(
+        expect(applicationStartupSource).not.toContain(
             "readonly showUpdateNotification: ShowUpdateNotification | undefined;"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "readonly showAboutModal: ((html?: string) => void) | undefined;"
         );
         expect(applicationStartupSource).toContain(
             "ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>"
@@ -20790,7 +20805,9 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("applyTheme,");
         expect(rendererEntrypointSource).toContain("getAppStartTime,");
         expect(rendererEntrypointSource).toContain("listenForThemeChange,");
+        expect(rendererEntrypointSource).toContain("showAboutModal,");
         expect(rendererEntrypointSource).toContain("showNotification,");
+        expect(rendererEntrypointSource).toContain("showUpdateNotification,");
         expect(coreModuleResolutionSource).not.toContain(
             "readonly applyTheme: ApplyTheme | undefined;"
         );
@@ -20807,7 +20824,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(48);
+        expect.assertions(57);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -20835,6 +20852,15 @@ describe("architecture boundaries", () => {
             "readonly handleOpenFile: RendererHandleOpenFile | undefined;"
         );
         expect(importTimeBootstrapSource).not.toContain(
+            "readonly showAboutModal: ((html?: string) => void) | undefined;"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "readonly showNotification: ShowNotification | undefined;"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "readonly showUpdateNotification: ShowUpdateNotification | undefined;"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
             "readonly getAppStartTime: AppStartTimeGetter | undefined;"
         );
         expect(importTimeBootstrapSource).not.toContain(
@@ -20855,6 +20881,15 @@ describe("architecture boundaries", () => {
         );
         expect(importTimeBootstrapSource).toContain(
             "subscribeToAppStartTime: AppStartTimeSubscriber;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "showAboutModal: ((html?: string) => void) | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "showNotification: ShowNotification | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "showUpdateNotification: ShowUpdateNotification | undefined;"
         );
         expect(importTimeBootstrapSource).toContain(
             "ensureCoreModules: () => Promise<RendererImportTimeCoreModules>"
@@ -20934,6 +20969,9 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("getAppStartTime,");
         expect(rendererEntrypointSource).toContain("applyTheme,");
         expect(rendererEntrypointSource).toContain("listenForThemeChange,");
+        expect(rendererEntrypointSource).toContain("showAboutModal,");
+        expect(rendererEntrypointSource).toContain("showNotification,");
+        expect(rendererEntrypointSource).toContain("showUpdateNotification,");
         expect(rendererEntrypointSource).toContain("subscribeToAppStartTime,");
         expect(coreModuleResolutionSource).not.toContain("const themeMod");
         expect(coreModuleResolutionSource).not.toContain(
