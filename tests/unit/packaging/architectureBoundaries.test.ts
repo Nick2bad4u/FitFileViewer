@@ -27006,7 +27006,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(63);
+        expect.assertions(64);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -27114,6 +27114,9 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "getHTMLScriptElement: getBrowserHTMLScriptElement"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "defaultView?.HTMLScriptElement"
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "getNow: getBrowserDateNow"

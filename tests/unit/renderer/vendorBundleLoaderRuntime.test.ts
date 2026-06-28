@@ -206,6 +206,31 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         script.remove();
     });
 
+    it("does not borrow document-window script constructors for explicit document scopes", () => {
+        expect.assertions(1);
+
+        const script = document.createElement("script");
+        script.dataset["ffvRendererVendorEntry"] = "map";
+        document.head.append(script);
+
+        const utils = getRendererVendorBundleLoaderRuntime({
+            getDocument: () =>
+                ({
+                    ...document,
+                    defaultView: {
+                        HTMLScriptElement,
+                    },
+                    head: document.head,
+                    querySelector: (selector: string) =>
+                        document.querySelector(selector),
+                }) as unknown as Document,
+        });
+
+        expect(utils.getExistingVendorScript("map")).toBeNull();
+
+        script.remove();
+    });
+
     it("registers script load listeners through the script element", () => {
         expect.assertions(2);
 

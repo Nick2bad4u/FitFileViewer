@@ -107,22 +107,13 @@ function getDocument(scope: RendererVendorBundleLoaderRuntimeScope): Document {
 function getScriptConstructor(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserHTMLScriptElementConstructor | undefined {
-    return (
-        scope.getHTMLScriptElement?.() ??
-        getScopeDocument(scope)?.defaultView?.HTMLScriptElement
-    );
+    return scope.getHTMLScriptElement?.();
 }
 
 function getScopeAbortController(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
     return scope.getAbortController?.();
-}
-
-function getScopeDocument(
-    scope: RendererVendorBundleLoaderRuntimeScope
-): Document | undefined {
-    return scope.getDocument?.();
 }
 
 function isScriptElement(
