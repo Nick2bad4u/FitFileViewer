@@ -53,7 +53,7 @@ export async function cleanupRendererStateManagerState(
         options.appActions.setInitialized(false);
         options.appActions.setFileOpening(false);
 
-        if (options.masterStateManager.isInitialized === true) {
+        if (options.masterStateManager.isInitialized) {
             options.masterStateManager.cleanup();
             return;
         }

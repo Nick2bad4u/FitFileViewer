@@ -1,7 +1,9 @@
 import { installRendererElectronApiRegistration } from "./electronApiRegistration.js";
-import { getElectronApiStartupHooks } from "./electronApiStartupHooks.js";
+import {
+    getElectronApiStartupHooks,
+    type RendererApplyTheme,
+} from "./electronApiStartupHooks.js";
 import { createRendererElectronMenuActionHandlers } from "./electronMenuActionHandlers.js";
-import type { RendererApplyTheme } from "./electronApiStartupHooks.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 type RendererElectronApiWiringLogger = (
