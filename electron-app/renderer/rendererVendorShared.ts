@@ -94,7 +94,9 @@ export function markRendererVendorEntryLoaded(
     runtimePayload: RendererVendorRuntimePayload = {},
     options: RendererVendorSharedOptions = {}
 ): void {
-    recordRendererVendorEntryLoaded(entryName);
+    if (!hasRendererVendorRuntimePayload(runtimePayload)) {
+        recordRendererVendorEntryLoaded(entryName);
+    }
     dispatchRendererVendorEntryLoadedEvent(
         entryName,
         runtimePayload,
@@ -110,4 +112,14 @@ export function recordRendererVendorEntryLoaded(
 
 export function resetRendererVendorBundleState(): void {
     loadedVendorEntries.clear();
+}
+
+function hasRendererVendorRuntimePayload(
+    runtimePayload: RendererVendorRuntimePayload
+): boolean {
+    return (
+        runtimePayload.chartData !== undefined ||
+        runtimePayload.core !== undefined ||
+        runtimePayload.map !== undefined
+    );
 }

@@ -4,6 +4,7 @@ import {
     getRendererVendorBundleState,
     isRendererVendorEntryLoaded,
     markRendererVendorEntryLoaded,
+    recordRendererVendorEntryLoaded,
     rendererVendorEntryLoadedEventName,
     resetRendererVendorBundleState,
 } from "../../../electron-app/renderer/rendererVendorShared.js";
@@ -14,10 +15,15 @@ describe("rendererVendorShared", () => {
         resetRendererVendorBundleState();
     });
 
-    it("marks vendor entries loaded and dispatches readiness through the injected runtime", () => {
+    it("dispatches payload readiness without recording the loaded marker", () => {
         expect.assertions(5);
 
-        const leafletRuntime = { map() {} };
+        const leafletRuntime = {
+            Layer: class Layer {},
+            control: {},
+            map() {},
+            tileLayer() {},
+        };
         const vendorSharedRuntime: RendererVendorSharedRuntime = {
             dispatchRendererVendorEntryLoadedEvent: vi.fn(() => true),
         };
@@ -28,11 +34,11 @@ describe("rendererVendorShared", () => {
             { runtime: vendorSharedRuntime }
         );
 
-        expect(isRendererVendorEntryLoaded("map")).toBe(true);
+        expect(isRendererVendorEntryLoaded("map")).toBe(false);
         expect(getRendererVendorBundleState()).toStrictEqual({
             loaded: true,
             source: "npm-bundle",
-            splitEntries: ["map"],
+            splitEntries: [],
         });
         expect(
             vendorSharedRuntime.dispatchRendererVendorEntryLoadedEvent
@@ -44,5 +50,18 @@ describe("rendererVendorShared", () => {
             vendorSharedRuntime.dispatchRendererVendorEntryLoadedEvent
         ).toHaveBeenCalledOnce();
         expect(isRendererVendorEntryLoaded("core")).toBe(false);
+    });
+
+    it("keeps explicit marker-only recording available", () => {
+        expect.assertions(2);
+
+        recordRendererVendorEntryLoaded("map");
+
+        expect(isRendererVendorEntryLoaded("map")).toBe(true);
+        expect(getRendererVendorBundleState()).toStrictEqual({
+            loaded: true,
+            source: "npm-bundle",
+            splitEntries: ["map"],
+        });
     });
 });
