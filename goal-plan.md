@@ -263,6 +263,8 @@ Renderer map vendor plugin registration now names the module-local Leaflet targe
 `leafletGlobal`, with architecture coverage blocking the misleading local global terminology from returning.
 Leaflet.draw created-event handling now narrows through an explicit event-shape guard instead of destructuring a
 generic `event as unknown as { layer?: unknown }` bridge.
+Chart share modal callbacks now accept returned values directly, removing the async Imgur/Gyazo share callback
+`as unknown as never` adapters from export utilities.
 Leaflet runtime wait-loop timeout clocks and polling waits now route through `leafletRuntime.ts` environment
 providers instead of calling `Date.now` directly inside the runtime wait loop, with focused runtime and architecture
 coverage blocking direct loop clocks and direct scope properties from returning.

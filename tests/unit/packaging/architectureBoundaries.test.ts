@@ -6188,7 +6188,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(111);
+        expect.assertions(112);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -6273,6 +6273,7 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("window?.confirm");
         expect(exportUtilsSource).not.toMatch(/\bwindow\.open\s*\(/u);
         expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
+        expect(exportUtilsSource).not.toContain("as unknown as never");
         expect(exportUtilsRuntimeSource).toContain(
             "defaultExportUtilsRuntimeScope"
         );

@@ -47,9 +47,9 @@ type ChartLike = {
     [key: string]: unknown;
 };
 
-type SingleChartCallback = (chart: ChartLike) => void;
+type SingleChartCallback = (chart: ChartLike) => unknown;
 
-type CombinedChartsCallback = (charts: ChartLike[]) => void;
+type CombinedChartsCallback = (charts: ChartLike[]) => unknown;
 
 type ChartOption = {
     default?: unknown;

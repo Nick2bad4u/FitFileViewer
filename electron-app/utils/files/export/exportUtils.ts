@@ -2828,12 +2828,8 @@ body {
 
         showChartSelectionModal(
             "share URL",
-            // The modal callback type is void, but tests and callers observe
-            // the returned promise from these async share flows.
-            (chart: ExportableChart): void =>
-                shareSingleChartAsUrl(chart) as unknown as never,
-            (charts: ExportableChart[]): void =>
-                shareCombinedChartsAsUrl(charts) as unknown as never
+            (chart: ExportableChart) => shareSingleChartAsUrl(chart),
+            (charts: ExportableChart[]) => shareCombinedChartsAsUrl(charts)
         );
     },
     /*
@@ -2993,12 +2989,8 @@ body {
 
         showChartSelectionModal(
             "share to Gyazo",
-            // The modal callback type is void, but tests and callers observe
-            // the returned promise from these async share flows.
-            (chart: ExportableChart): void =>
-                shareSingleChartToGyazo(chart) as unknown as never,
-            (charts: ExportableChart[]): void =>
-                shareCombinedChartsToGyazo(charts) as unknown as never
+            (chart: ExportableChart) => shareSingleChartToGyazo(chart),
+            (charts: ExportableChart[]) => shareCombinedChartsToGyazo(charts)
         );
     },
     /* C8 ignore stop */
