@@ -2009,6 +2009,9 @@ with architecture guardrails blocking that ambient timer-handle type spelling fr
 Renderer state integration update-all-components active-tab reads now route through the typed `getRendererActiveTab`
 selector instead of normalizing a direct `ui.activeTab` state-manager read, with architecture guardrails blocking that
 bridge read from returning.
+Chart notification and cache-prewarm active-tab checks now route through the typed `getRendererActiveTab` selector
+instead of asking generic chart state dependencies for `ui.activeTab`, with architecture guardrails blocking those
+direct chart-core reads from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

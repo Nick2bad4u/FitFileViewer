@@ -136,7 +136,6 @@ export async function completeSuccessfulChartRender(
 
     handleChartRenderNotification(
         {
-            getState: dependencies.getState,
             isTestRuntime: dependencies.isTestRuntime,
             notify: dependencies.notify,
             showRenderNotification: dependencies.showRenderNotification,

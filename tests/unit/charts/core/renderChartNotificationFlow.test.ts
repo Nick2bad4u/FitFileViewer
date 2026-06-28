@@ -2,6 +2,25 @@ import { describe, expect, it, vi } from "vitest";
 
 import { handleChartRenderNotification } from "../../../../electron-app/utils/charts/core/renderChartNotificationFlow.js";
 
+const activeTabState = vi.hoisted(() => ({
+    activeTab: "chart" as unknown,
+}));
+
+vi.mock(
+    "../../../../electron-app/utils/state/domain/rendererActiveTabState.js",
+    async (importOriginal) => {
+        const actual =
+            await importOriginal<
+                typeof import("../../../../electron-app/utils/state/domain/rendererActiveTabState.js")
+            >();
+
+        return {
+            ...actual,
+            getRendererActiveTab: vi.fn(() => activeTabState.activeTab),
+        };
+    }
+);
+
 type ChartStateUpdate = {
     options: unknown;
     path: string;
@@ -17,8 +36,9 @@ function createDependencies(
     updates: ChartStateUpdate[] = [],
     notifications: Notification[] = []
 ) {
+    activeTabState.activeTab = activeTab;
+
     return {
-        getState: vi.fn<(path: string) => unknown>(() => activeTab),
         isTestRuntime: false,
         notify(message: string, type: "success"): void {
             notifications.push({ message, type });

@@ -1,4 +1,7 @@
-import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
+import {
+    getRendererActiveTab,
+    isRendererChartTab,
+} from "../../state/domain/rendererActiveTabState.js";
 import { getLabelsForRecords } from "./renderChartLabelCache.js";
 import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 import {
@@ -205,9 +208,8 @@ export async function prewarmChartRenderCaches(
     }
 
     const stateManager = getStateManagerSafe();
-    const getActiveTab = (): unknown => stateManager.getState("ui.activeTab");
     const getState = (path: string): unknown => stateManager.getState(path);
-    if (isRendererChartTab(getActiveTab())) {
+    if (isRendererChartTab(getRendererActiveTab())) {
         return { processedFields: 0, skipped: true };
     }
 
@@ -252,7 +254,7 @@ export async function prewarmChartRenderCaches(
             convert,
             dataSettingsSignature,
             fieldsToPrewarm,
-            getActiveTab,
+            getActiveTab: getRendererActiveTab,
             getFieldVisibility: (field) =>
                 dependencies.getFieldVisibility(field),
             labels,

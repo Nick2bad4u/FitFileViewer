@@ -24512,7 +24512,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(40);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -24565,6 +24565,15 @@ describe("architecture boundaries", () => {
             "timerRuntime: RenderChartTimerRuntime = getRenderChartTimerRuntime()"
         );
         expect(renderChartCachePrewarmSource).toContain("timerRuntime,");
+        expect(renderChartCachePrewarmSource).toContain(
+            "rendererActiveTabState.js"
+        );
+        expect(renderChartCachePrewarmSource).toContain(
+            "getRendererActiveTab"
+        );
+        expect(renderChartCachePrewarmSource).not.toContain(
+            'stateManager.getState("ui.activeTab")'
+        );
         expect(renderChartTimingSource).toContain(
             "const now = runtime.dateNow();"
         );
@@ -24573,6 +24582,15 @@ describe("architecture boundaries", () => {
             "timestamp: dateNow(),"
         );
         expect(renderChartNotificationFlowSource).not.toContain("Date.now");
+        expect(renderChartNotificationFlowSource).toContain(
+            "rendererActiveTabState.js"
+        );
+        expect(renderChartNotificationFlowSource).toContain(
+            "getRendererActiveTab"
+        );
+        expect(renderChartNotificationFlowSource).not.toContain(
+            'getState("ui.activeTab")'
+        );
         expect(runtimeSource).toContain("defaultRenderChartTimerRuntimeScope");
         expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
         expect(runtimeScopeSource).not.toContain("readonly dateNow?:");

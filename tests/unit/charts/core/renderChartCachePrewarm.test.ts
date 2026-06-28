@@ -18,13 +18,25 @@ vi.mock(
 );
 
 vi.mock(
+    "../../../../electron-app/utils/state/domain/rendererActiveTabState.js",
+    async (importOriginal) => {
+        const actual =
+            await importOriginal<
+                typeof import("../../../../electron-app/utils/state/domain/rendererActiveTabState.js")
+            >();
+
+        return {
+            ...actual,
+            getRendererActiveTab: vi.fn(() => mocks.activeTab),
+        };
+    }
+);
+
+vi.mock(
     "../../../../electron-app/utils/charts/core/renderChartStateAccess.js",
     () => ({
         getStateManagerSafe: () => ({
             getState: (path: string) => {
-                if (path === "ui.activeTab") {
-                    return mocks.activeTab;
-                }
                 if (path === "charts") {
                     return mocks.chartsState;
                 }

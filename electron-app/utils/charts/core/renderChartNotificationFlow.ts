@@ -1,8 +1,10 @@
-import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
+import {
+    getRendererActiveTab,
+    isRendererChartTab,
+} from "../../state/domain/rendererActiveTabState.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 import { getRenderChartTimerRuntime } from "./renderChartTimerRuntime.js";
 
-type GetStateFunction = (path: string) => unknown;
 type DateNowFunction = () => number;
 type NotifySuccessFunction = (message: string, type: "success") => unknown;
 type ScheduleFunction = (callback: () => void, delay: number) => unknown;
@@ -17,7 +19,6 @@ type UpdateStateFunction = (
 ) => void;
 
 interface ChartRenderNotificationDependencies {
-    getState: GetStateFunction;
     isTestRuntime: boolean;
     notify: NotifySuccessFunction;
     showRenderNotification: ShowRenderNotificationFunction;
@@ -66,7 +67,6 @@ export function handleChartRenderNotification(
     input: ChartRenderNotificationInput
 ): void {
     const {
-        getState,
         isTestRuntime,
         notify: notifySuccess,
         showRenderNotification,
@@ -85,7 +85,7 @@ export function handleChartRenderNotification(
     );
 
     if (shouldShowNotification && totalChartsRendered > 0) {
-        const activeTab = getState("ui.activeTab");
+        const activeTab = getRendererActiveTab();
 
         if (isChartTabActive(activeTab, isTestRuntime)) {
             const message = createRenderSuccessMessage(totalChartsRendered);
@@ -93,7 +93,7 @@ export function handleChartRenderNotification(
             console.log(`[ChartJS] Showing success notification: "${message}"`);
 
             schedule(() => {
-                const currentTab = getState("ui.activeTab");
+                const currentTab = getRendererActiveTab();
                 if (isChartTabActive(currentTab, isTestRuntime)) {
                     notifySuccessLater(notifySuccess, message);
                 } else {
