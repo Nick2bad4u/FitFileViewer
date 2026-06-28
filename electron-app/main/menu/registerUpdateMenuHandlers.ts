@@ -7,7 +7,10 @@ import {
     isAutoUpdaterUpdateDownloaded as defaultIsAutoUpdaterUpdateDownloaded,
 } from "../state/appState.js";
 import { resolveAutoUpdaterAsync as defaultResolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
-import { getProcessStringValue as defaultGetProcessStringValue } from "../../utils/runtime/processEnvironment.js";
+import {
+    getProcessStringValue as defaultGetProcessStringValue,
+    type RuntimeProcessStringPropertyName,
+} from "../../utils/runtime/processEnvironment.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
 type MainProcessIpcEventChannel =
@@ -56,7 +59,9 @@ interface RegisterUpdateMenuHandlersOptions {
     browserWindowRef: () => BrowserWindowRefLike | null | undefined;
     constants?: UpdateMenuConstants;
     dialogRef?: () => DialogLike | undefined;
-    getProcessStringValue?: (property: string) => string | undefined;
+    getProcessStringValue?: (
+        property: RuntimeProcessStringPropertyName
+    ) => string | undefined;
     isAutoUpdaterInitialized?: () => boolean;
     isAutoUpdaterUpdateDownloaded?: () => boolean;
     logWithContext?: (

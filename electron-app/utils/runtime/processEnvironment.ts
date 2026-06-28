@@ -3,40 +3,51 @@ import {
     setBrowserProcessCandidate,
 } from "./browserRuntime.js";
 
-type RuntimePropertyCandidate = {
-    readonly [propertyKey: string]: unknown;
-};
+export type RuntimeProcessStringPropertyName =
+    | "arch"
+    | "platform"
+    | "resourcesPath";
+
+type RuntimeProcessCandidate = Readonly<{
+    readonly arch?: unknown;
+    readonly argv?: unknown;
+    readonly cwd?: unknown;
+    readonly env?: unknown;
+    readonly platform?: unknown;
+    readonly resourcesPath?: unknown;
+    readonly versions?: unknown;
+}>;
 
 /**
  * Reads process environment values through a defensive runtime boundary.
  *
- * Renderer contexts, tests, and browser-like sandboxes may not expose
- * `globalThis.process` or `process.env`. Direct `process.env?.FOO` access still
+ * Renderer contexts, tests, and browser-like sandboxes may not expose a runtime
+ * process object or process environment. Direct `process.env?.FOO` access still
  * throws when `process` itself is missing, so renderer-safe code should use
  * this helper instead.
  */
 export function getProcessEnvironmentValue(name: string): string | undefined {
-    const processValue = getRuntimeProcess();
-    if (typeof processValue !== "object" || processValue === null) {
+    const processValue = toProcessCandidate(getRuntimeProcess());
+    if (processValue === undefined) {
         return undefined;
     }
 
-    const env = getRuntimeProperty(processValue, "env");
-    if (typeof env !== "object" || env === null) {
+    const env = toObjectCandidate(getDataProperty(processValue, "env"));
+    if (env === undefined) {
         return undefined;
     }
 
-    const value = getRuntimeProperty(env, name);
+    const value = getDataProperty(env, name);
     return typeof value === "string" ? value : undefined;
 }
 
 export function getProcessArgumentValues(): readonly string[] {
-    const processValue = getRuntimeProcess();
-    if (typeof processValue !== "object" || processValue === null) {
+    const processValue = toProcessCandidate(getRuntimeProcess());
+    if (processValue === undefined) {
         return [];
     }
 
-    const argv = getRuntimeProperty(processValue, "argv");
+    const argv = getDataProperty(processValue, "argv");
     if (!Array.isArray(argv)) {
         return [];
     }
@@ -44,38 +55,42 @@ export function getProcessArgumentValues(): readonly string[] {
     return argv.filter((value): value is string => typeof value === "string");
 }
 
-export function getProcessStringValue(name: string): string | undefined {
-    const processValue = getRuntimeProcess();
-    if (typeof processValue !== "object" || processValue === null) {
+export function getProcessStringValue(
+    name: RuntimeProcessStringPropertyName
+): string | undefined {
+    const processValue = toProcessCandidate(getRuntimeProcess());
+    if (processValue === undefined) {
         return undefined;
     }
 
-    const value = getRuntimeProperty(processValue, name);
+    const value = getDataProperty(processValue, name);
     return typeof value === "string" ? value : undefined;
 }
 
 export function getProcessVersionValue(name: string): string | undefined {
-    const processValue = getRuntimeProcess();
-    if (typeof processValue !== "object" || processValue === null) {
+    const processValue = toProcessCandidate(getRuntimeProcess());
+    if (processValue === undefined) {
         return undefined;
     }
 
-    const versions = getRuntimeProperty(processValue, "versions");
-    if (typeof versions !== "object" || versions === null) {
+    const versions = toObjectCandidate(
+        getDataProperty(processValue, "versions")
+    );
+    if (versions === undefined) {
         return undefined;
     }
 
-    const value = getRuntimeProperty(versions, name);
+    const value = getDataProperty(versions, name);
     return typeof value === "string" ? value : undefined;
 }
 
 export function getProcessCurrentWorkingDirectory(): string | undefined {
-    const processValue = getRuntimeProcess();
-    if (typeof processValue !== "object" || processValue === null) {
+    const processValue = toProcessCandidate(getRuntimeProcess());
+    if (processValue === undefined) {
         return undefined;
     }
 
-    const cwd = getRuntimeProperty(processValue, "cwd");
+    const cwd = getDataProperty(processValue, "cwd");
     if (typeof cwd !== "function") {
         return undefined;
     }
@@ -96,10 +111,34 @@ export function setRuntimeProcess(processValue: unknown): void {
     setBrowserProcessCandidate(processValue);
 }
 
-function getRuntimeProperty(target: object, propertyKey: string): unknown {
+function isObjectCandidate(value: unknown): value is object {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toObjectCandidate(value: unknown): object | undefined {
+    return isObjectCandidate(value) ? value : undefined;
+}
+
+function toProcessCandidate(
+    value: unknown
+): RuntimeProcessCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
+}
+
+function getDataProperty(target: object, propertyKey: string): unknown {
     try {
-        const record = target as RuntimePropertyCandidate;
-        return record[propertyKey];
+        let candidate: object | null = target;
+        while (candidate !== null) {
+            const descriptor = Object.getOwnPropertyDescriptor(
+                candidate,
+                propertyKey
+            );
+            if (descriptor !== undefined) {
+                return "value" in descriptor ? descriptor.value : undefined;
+            }
+            candidate = Object.getPrototypeOf(candidate);
+        }
+        return undefined;
     } catch {
         return undefined;
     }

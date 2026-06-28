@@ -1901,7 +1901,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps process runtime get and set behind an explicit browser-runtime provider", () => {
-        expect.assertions(24);
+        expect.assertions(27);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1968,10 +1968,17 @@ describe("architecture boundaries", () => {
         expect(processEnvironmentSource).not.toContain(
             "target as Record<string, unknown>"
         );
+        expect(processEnvironmentSource).toContain("function getDataProperty(");
         expect(processEnvironmentSource).toContain(
-            "return record[propertyKey];"
+            "Object.getOwnPropertyDescriptor"
         );
-        expect(processEnvironmentSource).toContain("RuntimePropertyCandidate");
+        expect(processEnvironmentSource).toContain("RuntimeProcessCandidate");
+        expect(processEnvironmentSource).not.toContain(
+            "RuntimePropertyCandidate"
+        );
+        expect(processEnvironmentSource).not.toContain(
+            "readonly [propertyKey: string]"
+        );
     });
 
     it("keeps direct browser-global property access centralized in browser runtime", () => {
