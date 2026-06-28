@@ -26937,7 +26937,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input browser constructors behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(35);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -26992,6 +26992,30 @@ describe("architecture boundaries", () => {
         );
         expect(fileInputStartupRuntimeSource).toContain(
             "getHTMLInputElement: getBrowserHTMLInputElement"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "readonly getAbortController: () =>"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "readonly getHTMLInputElement: () =>"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "renderer file input startup requires an AbortController provider"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "renderer file input startup requires an HTMLInputElement provider"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "scope.getAbortController()"
+        );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "scope.getHTMLInputElement()"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
         );
         expect(fileInputStartupRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"

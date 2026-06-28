@@ -6,7 +6,10 @@ import {
     registerDelegatedFileInputChangeListener,
     registerImportTimeFileInputChangeHandler,
 } from "../../../electron-app/renderer/fileInputStartup.js";
-import { getRendererFileInputStartupRuntime } from "../../../electron-app/renderer/fileInputStartupRuntime.js";
+import {
+    getRendererFileInputStartupRuntime,
+    type RendererFileInputStartupRuntimeScope,
+} from "../../../electron-app/renderer/fileInputStartupRuntime.js";
 import type { BrowserHTMLInputElementConstructor } from "../../../electron-app/utils/runtime/browserRuntime.js";
 
 function createFileInput(id = "fileInput"): {
@@ -28,6 +31,16 @@ function createFileInput(id = "fileInput"): {
     document.body.append(input);
 
     return { file, input };
+}
+
+function createRuntimeScope(
+    overrides: Partial<RendererFileInputStartupRuntimeScope> = {}
+): RendererFileInputStartupRuntimeScope {
+    return {
+        getAbortController: () => AbortController,
+        getHTMLInputElement: () => window.HTMLInputElement,
+        ...overrides,
+    };
 }
 
 describe("renderer file input startup wiring", () => {
@@ -62,7 +75,9 @@ describe("renderer file input startup wiring", () => {
             }
         }
         const utils = getRendererFileInputStartupRuntime({
+            ...createRuntimeScope(),
             getAbortController: () => TestAbortController,
+            getHTMLInputElement: () => undefined,
         });
 
         expect(utils.createAbortController()).toBeInstanceOf(
@@ -80,6 +95,7 @@ describe("renderer file input startup wiring", () => {
         class TestHTMLInputElement {}
         const input = new TestHTMLInputElement();
         const utils = getRendererFileInputStartupRuntime({
+            ...createRuntimeScope(),
             getHTMLInputElement: () =>
                 TestHTMLInputElement as unknown as BrowserHTMLInputElementConstructor,
         });
@@ -91,7 +107,7 @@ describe("renderer file input startup wiring", () => {
     });
 
     it("ignores legacy direct constructor scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(1);
 
         class LegacyAbortController implements AbortController {
             public readonly signal = Symbol(
@@ -102,20 +118,13 @@ describe("renderer file input startup wiring", () => {
                 /* Test double */
             }
         }
-        const utils = getRendererFileInputStartupRuntime({
-            AbortController: LegacyAbortController,
-            HTMLInputElement: window.HTMLInputElement,
-        } as unknown as Parameters<
-            typeof getRendererFileInputStartupRuntime
-        >[0]);
-
-        expect(() => {
-            utils.createAbortController();
-        }).toThrow(
-            "renderer file input startup requires an AbortController runtime"
-        );
-        expect(utils.isHTMLInputElement(document.createElement("input"))).toBe(
-            false
+        expect(() =>
+            getRendererFileInputStartupRuntime({
+                AbortController: LegacyAbortController,
+                HTMLInputElement: window.HTMLInputElement,
+            } as unknown as RendererFileInputStartupRuntimeScope)
+        ).toThrow(
+            "renderer file input startup requires an AbortController provider"
         );
     });
 
@@ -200,12 +209,34 @@ describe("renderer file input startup wiring", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRendererFileInputStartupRuntime({});
+        const utils = getRendererFileInputStartupRuntime({
+            ...createRuntimeScope(),
+            getAbortController: () => undefined,
+        });
 
         expect(() => {
             utils.createAbortController();
         }).toThrow(
             "renderer file input startup requires an AbortController runtime"
+        );
+    });
+
+    it("fails clearly when explicit scopes omit runtime providers", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getRendererFileInputStartupRuntime({
+                getHTMLInputElement: () => window.HTMLInputElement,
+            } as unknown as RendererFileInputStartupRuntimeScope)
+        ).toThrow(
+            "renderer file input startup requires an AbortController provider"
+        );
+        expect(() =>
+            getRendererFileInputStartupRuntime({
+                getAbortController: () => AbortController,
+            } as unknown as RendererFileInputStartupRuntimeScope)
+        ).toThrow(
+            "renderer file input startup requires an HTMLInputElement provider"
         );
     });
 

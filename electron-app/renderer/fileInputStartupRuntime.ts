@@ -6,11 +6,11 @@ import {
 } from "../utils/runtime/browserRuntime.js";
 
 export interface RendererFileInputStartupRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
+    readonly getHTMLInputElement: () =>
+        | BrowserHTMLInputElementConstructor
         | undefined;
 }
 
@@ -28,9 +28,20 @@ const defaultRendererFileInputStartupRuntimeScope: RendererFileInputStartupRunti
 export function getRendererFileInputStartupRuntime(
     scope: RendererFileInputStartupRuntimeScope = defaultRendererFileInputStartupRuntimeScope
 ): RendererFileInputStartupRuntime {
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError(
+            "renderer file input startup requires an AbortController provider"
+        );
+    }
+    if (typeof scope.getHTMLInputElement !== "function") {
+        throw new TypeError(
+            "renderer file input startup requires an HTMLInputElement provider"
+        );
+    }
+
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const AbortControllerConstructor = scope.getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderer file input startup requires an AbortController runtime"
@@ -40,7 +51,7 @@ export function getRendererFileInputStartupRuntime(
             return new AbortControllerConstructor();
         },
         isHTMLInputElement(value: unknown): value is HTMLInputElement {
-            const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+            const HTMLInputElementConstructor = scope.getHTMLInputElement();
             return (
                 typeof HTMLInputElementConstructor === "function" &&
                 value instanceof HTMLInputElementConstructor
