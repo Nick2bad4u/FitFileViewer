@@ -92,15 +92,18 @@ function getSettingsModalElectronApi(
 function isSettingsModalElectronApi(
     value: unknown
 ): value is SettingsModalElectronApi {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
     return (
         !("sendThemeChanged" in value) ||
-        typeof (value as SettingsModalElectronApi).sendThemeChanged ===
-            "function"
+        typeof value["sendThemeChanged"] === "function"
     );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 /**

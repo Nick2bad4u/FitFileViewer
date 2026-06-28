@@ -300,4 +300,31 @@ describe("settingsModal", () => {
             cleanupFixture();
         }
     });
+
+    it("ignores array-shaped Electron API candidates when syncing theme changes", async () => {
+        expect.assertions(2);
+
+        resetFixture();
+        const sendThemeChanged = vi.fn<(theme: string) => void>();
+        const api = [] as unknown[] & Record<string, unknown>;
+        api["sendThemeChanged"] = sendThemeChanged;
+        const electronApiScope = createElectronApiScope(api);
+
+        try {
+            await showSettingsModal({ electronApiScope });
+            await vi.dynamicImportSettled();
+
+            const themeSelect =
+                getRequiredElement<HTMLSelectElement>("#theme-select");
+            themeSelect.value = "light";
+            change(themeSelect);
+
+            expect(mocks.setRendererTheme).toHaveBeenCalledWith("light", {
+                source: "settingsModal:theme-select",
+            });
+            expect(sendThemeChanged).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
+    });
 });

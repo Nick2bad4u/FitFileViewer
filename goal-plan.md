@@ -1546,8 +1546,9 @@ browser-runtime timer, animation-frame, HTMLElement, HTML input/select, and keyb
 direct ambient constructor/timer/frame types in the settings modal runtime. Settings modal preload candidate typing
 now uses an explicit readonly method alias backed by the shared menu-event API-domain contract instead of carrying a
 local Electron API interface.
-Settings modal theme-change IPC candidate typing now uses the shared menu-event API-domain contract instead of deriving
-from the monolithic `ElectronAPI` type.
+Settings modal theme-change IPC validation now reads `sendThemeChanged` from an unknown-valued plain record instead
+of casting the preload candidate to `SettingsModalElectronApi`, with array-shaped malformed candidate coverage and
+architecture coverage blocking that cast from returning.
 Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,
 cancellation, and abort-controller creation through `dragDropHandlerRuntime.ts` instead of calling those globals or
 constructing controllers directly in `dragDropHandler.ts`, with runtime adapter tests and architecture coverage
