@@ -22,7 +22,8 @@ interface ChartSummaryState {
 interface InitializeChartStateManagementDependencies {
     getChartSummaryState(): ChartSummaryState;
     getComputedStateManager(): ComputedStateManager;
-    getState(path: string): unknown;
+    getLastRenderTime(): unknown;
+    getRenderedCount(): unknown;
     initializeChartRenderState(options: unknown): void;
     middlewareManager: MiddlewareManagerLike;
     notify(message: string, type: string): unknown;
@@ -62,11 +63,11 @@ export function initializeChartStateManagement(
     computedStateManager.addComputed("charts.summary", () => {
         const chartState = dependencies.getChartSummaryState();
         return {
-            chartCount: dependencies.getState("charts.renderedCount") || 0,
+            chartCount: dependencies.getRenderedCount(),
             fieldCount: chartState.renderableFields.length,
             hasData: chartState.hasValidData,
             isRendered: chartState.isRendered,
-            lastRender: dependencies.getState("charts.lastRenderTime"),
+            lastRender: dependencies.getLastRenderTime(),
         };
     });
 

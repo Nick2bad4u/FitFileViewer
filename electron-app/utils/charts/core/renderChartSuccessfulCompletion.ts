@@ -9,6 +9,7 @@ import { resolveChartRenderResultState } from "./renderChartResultState.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 type GetStateFunction = (path: string) => unknown;
+type GetChartOptionsFunction = () => unknown;
 type NotifySuccessFunction = (
     message: string,
     type: "success"
@@ -46,6 +47,7 @@ interface SuccessfulChartRenderCompletionDependencies {
     CustomEventConstructor: typeof CustomEvent | undefined;
     doc: Document;
     getComputedStateManager(): ComputedStateAccess;
+    getChartOptions: GetChartOptionsFunction;
     getState: GetStateFunction;
     getThemeConfig: GetThemeConfigFunction;
     isTestRuntime: boolean;
@@ -155,8 +157,8 @@ export async function completeSuccessfulChartRender(
             CustomEventConstructor: dependencies.CustomEventConstructor,
             doc: dependencies.doc,
             emitChartsRenderedEvent,
+            getChartOptions: dependencies.getChartOptions,
             getComputedStateManager: dependencies.getComputedStateManager,
-            getState: dependencies.getState,
             now: dependencies.now,
             updatePreviousChartState: dependencies.updatePreviousChartState,
         },

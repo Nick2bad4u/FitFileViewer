@@ -17,7 +17,8 @@ interface CreateChartStateManagementApiDependencies {
     getComputedStateManager(): {
         addComputed(key: string, compute: () => unknown): void;
     };
-    getState(path: string): unknown;
+    getLastRenderTime(): unknown;
+    getRenderedCount(): unknown;
     middlewareManager: {
         has?(key: string): boolean;
         register?(key: string, middleware: MiddlewareDefinition): void;
@@ -64,7 +65,8 @@ export function createChartStateManagementApi(
                 }),
                 getComputedStateManager: () =>
                     dependencies.getComputedStateManager(),
-                getState: (path) => dependencies.getState(path),
+                getLastRenderTime: dependencies.getLastRenderTime,
+                getRenderedCount: dependencies.getRenderedCount,
                 initializeChartRenderState: (options) =>
                     dependencies.initializeChartRenderState(options),
                 middlewareManager: dependencies.middlewareManager,

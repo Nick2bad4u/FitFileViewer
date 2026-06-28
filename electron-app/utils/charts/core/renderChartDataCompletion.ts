@@ -40,6 +40,7 @@ export async function completeChartDataRender(
         chartInstances: getRegisteredChartInstances(),
         CustomEventConstructor: dependencies.CustomEventConstructor,
         doc: dependencies.doc,
+        getChartOptions: dependencies.getChartOptions,
         getComputedStateManager: dependencies.getComputedStateManager,
         getState: dependencies.getState,
         getThemeConfig: dependencies.getThemeConfig,

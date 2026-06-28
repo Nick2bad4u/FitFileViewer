@@ -1981,6 +1981,8 @@ Chart state-view chart-data and chart-options reads now route through renderer c
 direct `charts.chartData` or `charts.chartOptions` path reads.
 Public chart-status chart-options, last-render-time, and rendered-count reads now route through renderer chart
 state-domain helpers instead of direct chart state-path reads.
+Computed chart-summary count/time reads and rendered-event chart-options reads now route through renderer chart
+state-domain helpers instead of direct chart state-path reads.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.

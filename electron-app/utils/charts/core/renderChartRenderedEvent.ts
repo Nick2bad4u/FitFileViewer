@@ -3,7 +3,7 @@ import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 interface RenderedEventDependencies {
     CustomEventConstructor: typeof CustomEvent | undefined;
     doc: Document;
-    getState(path: string): unknown;
+    getChartOptions(): unknown;
     now(): number;
 }
 
@@ -34,7 +34,7 @@ export function emitChartsRenderedEvent(
             detail: {
                 hasData: hasRenderableActiveFitChartData(),
                 renderTime: summary.renderTime,
-                settings: dependencies.getState("charts.chartOptions"),
+                settings: dependencies.getChartOptions(),
                 timestamp: dependencies.now(),
                 totalRendered: summary.totalChartsRendered,
                 visibleFields: summary.visibleFieldCount,

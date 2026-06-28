@@ -28,7 +28,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("initializes charts state, computed values, and render middleware", async () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const consoleLog = vi
             .spyOn(console, "log")
@@ -48,10 +48,8 @@ describe("renderChartStateManagement", () => {
             renderableFields: ["heart_rate", "power"],
         }));
         hasActiveFitChartDataMock.mockReturnValue(true);
-        const getState = vi.fn<(path: string) => unknown>((path) => {
-            if (path === "charts.renderedCount") return 3;
-            if (path === "charts.lastRenderTime") return 1234;
-        });
+        const getLastRenderTime = vi.fn(() => 1234);
+        const getRenderedCount = vi.fn(() => 3);
 
         initializeChartStateManagement({
             getChartSummaryState,
@@ -60,7 +58,8 @@ describe("renderChartStateManagement", () => {
                     computedValues.set(key, compute);
                 },
             }),
-            getState,
+            getLastRenderTime,
+            getRenderedCount,
             initializeChartRenderState,
             middlewareManager: {
                 has: () => false,
@@ -100,6 +99,8 @@ describe("renderChartStateManagement", () => {
                 onError: expect.any(Function),
             })
         );
+        expect(getRenderedCount).toHaveBeenCalledWith();
+        expect(getLastRenderTime).toHaveBeenCalledWith();
 
         const middleware = register.mock.calls[0]?.[1] as MiddlewareDefinition;
         const context = { path: "charts", value: {} };
@@ -137,7 +138,8 @@ describe("renderChartStateManagement", () => {
                     computedValues.set(key, compute);
                 },
             }),
-            getState: () => undefined,
+            getLastRenderTime: () => undefined,
+            getRenderedCount: () => 0,
             initializeChartRenderState: vi.fn<(options: unknown) => void>(),
             middlewareManager: {
                 has: () => true,

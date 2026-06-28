@@ -5,7 +5,7 @@ interface ComputedStateAccess {
 interface RenderedEventDependencies {
     CustomEventConstructor: typeof CustomEvent | undefined;
     doc: Document;
-    getState(path: string): unknown;
+    getChartOptions(): unknown;
     now(): number;
 }
 
@@ -55,7 +55,7 @@ export function completeChartRenderState(
         {
             CustomEventConstructor: dependencies.CustomEventConstructor,
             doc: dependencies.doc,
-            getState: (path) => dependencies.getState(path),
+            getChartOptions: dependencies.getChartOptions,
             now: () => dependencies.now(),
         },
         summary
