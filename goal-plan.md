@@ -2019,6 +2019,9 @@ selectors instead of direct state-path reads, with architecture guardrails block
 The tab UI `getActiveTab()` helper now routes state-manager reads through `getRendererActiveTabFromState`, keeping
 active-tab path normalization in the typed renderer active-tab state module while preserving the existing state-manager
 access seam.
+The tab UI click, keyboard, and activation write paths now route through `setRendererActiveTabInState`, so active-tab
+write normalization also lives in the typed renderer active-tab state module instead of direct `ui.activeTab` writes in
+`updateActiveTab.ts`.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

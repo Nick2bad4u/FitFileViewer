@@ -9,6 +9,7 @@ import {
     getRendererActiveTabFromState,
     isRendererTabName,
     normalizeRendererActiveTab,
+    setRendererActiveTabInState,
 } from "../../state/domain/rendererActiveTabState.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
@@ -110,7 +111,7 @@ function setActiveTabFromButton(button: TabButtonLike, source: string): void {
         return;
     }
 
-    getStateMgr().setState("ui.activeTab", tabName, { source });
+    setRendererActiveTabInState(getStateMgr().setState, tabName, { source });
 }
 
 function createActiveTabClickHandler(
@@ -334,7 +335,7 @@ export function updateActiveTab(tabId: unknown): boolean {
             if (!isRendererTabName(tabNameFast)) {
                 return false;
             }
-            getStateMgr().setState("ui.activeTab", tabNameFast, {
+            setRendererActiveTabInState(getStateMgr().setState, tabNameFast, {
                 source: "updateActiveTab",
             });
             return true;
@@ -369,7 +370,7 @@ export function updateActiveTab(tabId: unknown): boolean {
         }
 
         target.classList.add("active");
-        getStateMgr().setState("ui.activeTab", tabName, {
+        setRendererActiveTabInState(getStateMgr().setState, tabName, {
             source: "updateActiveTab",
         });
         return true;

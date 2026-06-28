@@ -11,6 +11,7 @@ import {
     RENDERER_TAB_NAMES,
     replaceRendererActiveTab,
     setRendererActiveTab,
+    setRendererActiveTabInState,
     subscribeToRendererActiveTab as subscribeToActiveTab,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
 
@@ -43,6 +44,32 @@ describe("rendererActiveTabState", () => {
         expect(getRendererActiveTabFromState(readState)).toBe("chartjs");
         expect(reads).toStrictEqual(["ui.activeTab"]);
         expect(getRendererActiveTabFromState(() => "unknown")).toBe("summary");
+    });
+
+    it("writes active tab values through an explicit state writer", () => {
+        expect.assertions(1);
+
+        const writes: Array<{
+            options: unknown;
+            path: string;
+            value: unknown;
+        }> = [];
+
+        setRendererActiveTabInState(
+            (path, value, options) => {
+                writes.push({ options, path, value });
+            },
+            "unknown",
+            { source: "test" }
+        );
+
+        expect(writes).toStrictEqual([
+            {
+                options: { source: "test" },
+                path: "ui.activeTab",
+                value: "summary",
+            },
+        ]);
     });
 
     it("replaces the active renderer tab only when the expected tab is active", () => {

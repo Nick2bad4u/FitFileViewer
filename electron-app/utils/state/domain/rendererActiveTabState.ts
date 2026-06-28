@@ -17,6 +17,11 @@ import { normalizeRendererActiveTab } from "./rendererActiveTabContract.js";
 const RENDERER_ACTIVE_TAB_STATE_PATH = "ui.activeTab";
 
 type RendererActiveTabStateReader = (path: string) => unknown;
+type RendererActiveTabStateWriter = (
+    path: string,
+    value: unknown,
+    options?: StateUpdateOptions
+) => void;
 
 export function getRendererActiveTab(): string {
     return normalizeRendererActiveTab(getState(RENDERER_ACTIVE_TAB_STATE_PATH));
@@ -47,6 +52,21 @@ export function setRendererActiveTab(
         normalizeRendererActiveTab(tabName),
         {
             source: "rendererActiveTabState.set",
+            ...options,
+        }
+    );
+}
+
+export function setRendererActiveTabInState(
+    writeState: RendererActiveTabStateWriter,
+    tabName: string,
+    options: StateUpdateOptions = {}
+): void {
+    writeState(
+        RENDERER_ACTIVE_TAB_STATE_PATH,
+        normalizeRendererActiveTab(tabName),
+        {
+            source: "rendererActiveTabState.setInState",
             ...options,
         }
     );
