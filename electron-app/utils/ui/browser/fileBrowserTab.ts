@@ -9,7 +9,10 @@
  *   path.
  */
 
-import type { FitBrowserListFolderResult } from "../../../shared/ipc";
+import type {
+    FitBrowserEntry,
+    FitBrowserListFolderResult,
+} from "../../../shared/ipc";
 import type {
     ElectronDialogApi,
     ElectronFileApi,
@@ -637,27 +640,33 @@ function groupItemsByDay(
 function isFitBrowserListResponse(
     value: unknown
 ): value is FitBrowserListFolderResult {
-    if (!value || typeof value !== "object") return false;
-    const v = value as { entries?: unknown; relPath?: unknown; root?: unknown };
-    if (v.root !== null && typeof v.root !== "string" && v.root !== undefined)
+    if (!isRecord(value)) {
         return false;
-    if (typeof v.relPath !== "string") return false;
-    if (!Array.isArray(v.entries)) return false;
-    return v.entries.every((e: unknown) => {
-        if (!e || typeof e !== "object") return false;
-        const entry = e as {
-            fullPath?: unknown;
-            kind?: unknown;
-            name?: unknown;
-            relPath?: unknown;
-        };
-        return (
-            typeof entry.name === "string" &&
-            (entry.kind === "dir" || entry.kind === "file") &&
-            typeof entry.relPath === "string" &&
-            typeof entry.fullPath === "string"
-        );
-    });
+    }
+
+    const { entries, relPath, root } = value;
+
+    return (
+        (root === null || typeof root === "string") &&
+        typeof relPath === "string" &&
+        Array.isArray(entries) &&
+        entries.every(isFitBrowserEntry)
+    );
+}
+
+function isFitBrowserEntry(value: unknown): value is FitBrowserEntry {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    const { fullPath, kind, name, relPath } = value;
+
+    return (
+        typeof name === "string" &&
+        (kind === "dir" || kind === "file") &&
+        typeof relPath === "string" &&
+        typeof fullPath === "string"
+    );
 }
 
 async function listAllFitFiles(

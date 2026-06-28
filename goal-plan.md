@@ -63,6 +63,8 @@ GPX export now consumes explicit route-state records and guarded loaded-file des
 route data to export-specific shapes before download generation.
 Settings import now narrows exported settings payloads and category names through explicit guards instead of asserting
 unknown import data into settings-state shapes.
+Browser folder listings now validate shared IPC entry/listing contracts before updating explicit Browser state instead
+of asserting anonymous response shapes inside the renderer.
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.

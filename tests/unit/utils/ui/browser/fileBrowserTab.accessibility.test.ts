@@ -199,6 +199,52 @@ describe("fileBrowserTab accessibility", () => {
         });
     });
 
+    it("shows an explicit error state for malformed folder listings", async () => {
+        expect.assertions(4);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        const electronApiScope = createElectronApiScope({
+            getFitBrowserFolder: async () => "C:\\rides",
+            listFitBrowserFolder: async () => ({
+                entries: [
+                    {
+                        fullPath: "C:\\rides\\broken.fit",
+                        kind: "workout",
+                        name: "broken.fit",
+                        relPath: "broken.fit",
+                    },
+                ],
+                relPath: "",
+                root: "C:\\rides",
+            }),
+        });
+
+        await renderFileBrowserTab({ electronApiScope });
+
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("C:\\rides");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            "Folder could not be loaded."
+        );
+        expect(document.querySelector("#fit-browser-list")?.textContent).toBe(
+            "Unable to list folder."
+        );
+        expect(getBrowserListingState()).toStrictEqual({
+            error: "Folder could not be loaded.",
+            fileCount: 0,
+            folderCount: 0,
+            itemCount: 0,
+            loadedAt: null,
+            relPath: "",
+            root: "C:\\rides",
+            status: "error",
+        });
+    });
+
     it("uses the latest scoped Electron API after rerendering the Browser tab", async () => {
         expect.assertions(4);
 
