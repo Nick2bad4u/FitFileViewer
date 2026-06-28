@@ -65,6 +65,8 @@ Settings import now narrows exported settings payloads and category names throug
 unknown import data into settings-state shapes.
 Browser folder listings now validate shared IPC entry/listing contracts before updating explicit Browser state instead
 of asserting anonymous response shapes inside the renderer.
+Raw Browser state paths now stay confined to the state-manager normalization boundary and typed `browserState.ts`
+domain API, with architecture coverage blocking feature code from bypassing those Browser state helpers.
 Overlay loading now narrows active raw FIT data and loaded-file entries before initializing overlay state instead of
 asserting state arrays into overlay entry shapes.
 FIT parser payload handling now narrows parser error payloads through record guards instead of asserting unknown decode

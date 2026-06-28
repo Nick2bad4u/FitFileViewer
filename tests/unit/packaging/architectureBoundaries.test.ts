@@ -13009,7 +13009,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps browser state normalization on explicit state branch shapes", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const browserStateSource = stripComments(
             readRepositoryFile(
@@ -13045,6 +13045,26 @@ describe("architecture boundaries", () => {
             "function asRecord(value: unknown): Record<string, unknown>"
         );
         expect(browserStateSource).not.toContain('getState("globalData")');
+
+        const rawBrowserStatePathUsagePattern =
+            /["'`]browser\.(?:listing|relPath|scan|view)["'`]/u;
+        const rawBrowserStatePathViolations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                        "electron-app/utils/state/core/stateManager.ts" &&
+                    relativeFile !==
+                        "electron-app/utils/state/domain/browserState.ts"
+            )
+            .filter((relativeFile) =>
+                rawBrowserStatePathUsagePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(rawBrowserStatePathViolations).toStrictEqual([]);
     });
 
     it("keeps the unified state facade free of legacy path synchronization", () => {
