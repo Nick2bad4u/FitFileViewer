@@ -31,6 +31,10 @@ import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { normalizeRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
+import {
+    areRendererChartsRendered,
+    isRendererChartRendering,
+} from "../../state/domain/rendererChartRenderState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -252,10 +256,12 @@ initializeChartRuntimeBootstrap({
 
 /** Reactive view over chart state and renderable fields. */
 export const chartState = createChartStateView({
+    areChartsRendered: areRendererChartsRendered,
     getFieldVisibility: (field) =>
         chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
     getState: callGetState,
+    isChartRendering: isRendererChartRendering,
 });
 
 /** State-backed chart action handlers exposed to chart integrations. */

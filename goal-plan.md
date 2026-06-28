@@ -1434,6 +1434,8 @@ FIT file loads and renderer component refreshes now reset chart/map/table render
 `resetRendererRenderLifecycle`, with coverage blocking duplicated raw reset writes in those callers.
 Renderer integration now observes chart-rendered state through `subscribeToRendererChartsRendered`,
 with architecture coverage blocking direct `charts.isRendered` subscriptions there.
+The chart state view now receives typed rendered/rendering selectors from `rendererChartRenderState.ts`,
+with architecture coverage blocking raw `charts.isRendered`/`charts.isRendering` reads inside the view.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.

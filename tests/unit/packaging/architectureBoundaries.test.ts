@@ -12650,7 +12650,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(35);
+        expect.assertions(42);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12677,6 +12677,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/state/domain/rendererRenderLifecycleState.ts"
             )
         );
+        const renderChartJSSource = stripComments(
+            readRepositoryFile("electron-app/utils/charts/core/renderChartJS.ts")
+        );
+        const renderChartStateViewSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartStateView.ts"
+            )
+        );
         const fitFileStateSource = stripComments(
             readRepositoryFile("electron-app/utils/state/domain/fitFileState.ts")
         );
@@ -12699,6 +12707,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererChartRenderStateSource).toContain(
             "subscribeToRendererChartsRendered"
+        );
+        expect(rendererChartRenderStateSource).toContain(
+            "isRendererChartRendering"
         );
         expect(rendererChartRenderStateSource).not.toContain(
             "function normalizeRendererChartsRendered"
@@ -12726,6 +12737,18 @@ describe("architecture boundaries", () => {
         );
         expect(rendererRenderLifecycleStateSource).toContain(
             "setRendererTablesRendered(false"
+        );
+        expect(renderChartJSSource).toContain("rendererChartRenderState.js");
+        expect(renderChartJSSource).toContain(
+            "areChartsRendered: areRendererChartsRendered"
+        );
+        expect(renderChartJSSource).toContain(
+            "isChartRendering: isRendererChartRendering"
+        );
+        expect(renderChartStateViewSource).not.toContain("charts.isRendered");
+        expect(renderChartStateViewSource).not.toContain("charts.isRendering");
+        expect(renderChartStateViewSource).toContain(
+            "dependencies.areChartsRendered()"
         );
         expect(stateManagerSource).toContain("charts.isRendered");
         expect(stateManagerSource).toContain("charts.isRendering");

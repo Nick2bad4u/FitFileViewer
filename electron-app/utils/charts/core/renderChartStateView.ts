@@ -1,9 +1,11 @@
 import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface CreateChartStateViewDependencies {
+    areChartsRendered(): boolean;
     getFieldVisibility(field: string): unknown;
     getFormatChartFields(): unknown;
     getState(path: string): unknown;
+    isChartRendering(): boolean;
 }
 
 /** Read-only live view of chart state derived from the centralized state store. */
@@ -77,11 +79,11 @@ export function createChartStateView(
         },
 
         get isRendered() {
-            return Boolean(dependencies.getState("charts.isRendered"));
+            return dependencies.areChartsRendered();
         },
 
         get isRendering() {
-            return Boolean(dependencies.getState("charts.isRendering"));
+            return dependencies.isChartRendering();
         },
 
         get renderableFields() {

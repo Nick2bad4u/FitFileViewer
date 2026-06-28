@@ -29,6 +29,12 @@ export function areRendererChartsRendered(): boolean {
     );
 }
 
+export function isRendererChartRendering(): boolean {
+    return normalizeRendererRenderFlag(
+        getState(RENDERER_CHART_RENDERING_STATE_PATH)
+    );
+}
+
 export function getRendererChartState(): Record<string, unknown> | undefined {
     const chartState = getState(RENDERER_CHART_STATE_PATH);
     return isRecord(chartState) ? chartState : undefined;
