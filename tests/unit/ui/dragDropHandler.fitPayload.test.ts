@@ -263,4 +263,41 @@ describe(DragDropHandler, () => {
         expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
         expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
     });
+
+    it("rejects inaccessible scoped Electron API decoder properties without aborting drop cleanup", async () => {
+        expect.assertions(7);
+
+        resetHarnessMocks();
+
+        const api = Object.defineProperty({}, "decodeFitFile", {
+            get() {
+                throw new Error("blocked decoder property");
+            },
+        });
+        const handler = new DragDropHandler({
+            electronApiScope: {
+                getElectronAPI: () => api,
+            },
+        });
+        vi.spyOn(handler, "readFileAsArrayBuffer").mockResolvedValue(
+            new ArrayBuffer(16)
+        );
+
+        const outcome = await handler.processDroppedFile(
+            createDroppedFile("inaccessible-api.fit")
+        );
+
+        expect({ outcome }).toStrictEqual({ outcome: undefined });
+        expect(mocks.renderDecodedFitData).not.toHaveBeenCalled();
+        expect(mocks.handleFileLoadingError).not.toHaveBeenCalled();
+        expect(mocks.showNotification).toHaveBeenCalledWith(
+            "FIT file decoding is not supported in this environment.",
+            "error"
+        );
+        expect(mocks.startFileLoading).toHaveBeenCalledWith(
+            "C:/rides/inaccessible-api.fit"
+        );
+        expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
+        expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
+    });
 });

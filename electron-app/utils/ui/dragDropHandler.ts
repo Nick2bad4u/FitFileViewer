@@ -36,6 +36,10 @@ type DragDropElectronApi = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
 };
 
+type DragDropElectronApiMethods = Readonly<{
+    readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
+}>;
+
 type PerformanceMonitorLike = {
     endTimer?: (id: string) => void;
     isEnabled?: boolean | (() => boolean);
@@ -54,15 +58,27 @@ function getDragDropElectronApi(
 }
 
 function isDragDropElectronApi(value: unknown): value is DragDropElectronApi {
-    if (!isRecord(value)) {
+    if (!isDragDropElectronApiMethods(value)) {
         return false;
     }
 
-    return typeof value["decodeFitFile"] === "function";
+    return (
+        typeof readElectronApiValue(() => value.decodeFitFile) === "function"
+    );
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isDragDropElectronApiMethods(
+    value: unknown
+): value is DragDropElectronApiMethods {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function readElectronApiValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {
