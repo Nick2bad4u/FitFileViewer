@@ -1,4 +1,7 @@
-import { isRendererChartTab } from "../../state/domain/rendererActiveTabState.js";
+import {
+    getRendererActiveTab,
+    isRendererChartTab,
+} from "../../state/domain/rendererActiveTabState.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
@@ -8,12 +11,7 @@ interface NormalizedRenderChartOptions {
     skipTabAbort: boolean;
 }
 
-interface StateAccessor {
-    getState(path: string): unknown;
-}
-
 interface InactiveTabDependencies {
-    getStateManager(): StateAccessor;
     isTestEnvironment(): boolean;
     log(message: string): void;
 }
@@ -48,8 +46,7 @@ export function shouldAbortInactiveChartRender(
         return false;
     }
 
-    const stateManager = dependencies.getStateManager();
-    const activeTab = stateManager.getState("ui.activeTab");
+    const activeTab = getRendererActiveTab();
     if (isRendererChartTab(activeTab)) {
         return false;
     }

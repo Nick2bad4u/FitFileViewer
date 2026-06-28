@@ -389,7 +389,6 @@ export async function renderChartJS(
     if (
         shouldAbortInactiveChartRender(
             {
-                getStateManager: getStateManagerSafe,
                 isTestEnvironment,
                 log: (message) => console.log(message),
             },

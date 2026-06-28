@@ -5,13 +5,29 @@ import {
     shouldAbortInactiveChartRender,
 } from "../../../../electron-app/utils/charts/core/renderChartPreflight.js";
 
+const activeTabState = vi.hoisted(() => ({
+    activeTab: "chart" as unknown,
+}));
+
+vi.mock(
+    "../../../../electron-app/utils/state/domain/rendererActiveTabState.js",
+    async (importOriginal) => {
+        const actual =
+            await importOriginal<
+                typeof import("../../../../electron-app/utils/state/domain/rendererActiveTabState.js")
+            >();
+
+        return {
+            ...actual,
+            getRendererActiveTab: vi.fn(() => activeTabState.activeTab),
+        };
+    }
+);
+
 function createDependencies(activeTab: unknown, isTestEnvironment = false) {
+    activeTabState.activeTab = activeTab;
+
     return {
-        getStateManager: () => ({
-            getState: vi.fn<(path: string) => unknown>((path) =>
-                path === "ui.activeTab" ? activeTab : undefined
-            ),
-        }),
         isTestEnvironment: () => isTestEnvironment,
         log: vi.fn<(message: string) => void>(),
     };
