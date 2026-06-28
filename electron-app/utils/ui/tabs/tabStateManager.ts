@@ -5,6 +5,7 @@
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { subscribeToActiveFitRawDataInState } from "../../state/domain/activeFitRawDataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
     getRendererActiveTabFromState,
@@ -534,8 +535,8 @@ export class TabStateManager {
             });
 
         // Subscribe to data changes to enable/disable tabs
-        const unsubData = getStateMgr().subscribe(
-            "fitFile.rawData",
+        const unsubData = subscribeToActiveFitRawDataInState(
+            getStateMgr().subscribe,
             (newData: unknown) => {
                 this.updateTabAvailability(asActivityData(newData));
             }

@@ -13393,12 +13393,20 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
-        expect.assertions(14);
+        expect.assertions(19);
 
         const globalDataStorePath =
             "electron-app/utils/state/core/globalDataStore.ts";
         const activeFitRawDataStateSource = readRepositoryFile(
             "electron-app/utils/state/domain/activeFitRawDataState.ts"
+        );
+        const tabStateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/tabStateManager.ts")
+        );
+        const updateTabVisibilitySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateTabVisibility.ts"
+            )
         );
         const unifiedStateManagerSource = readRepositoryFile(
             "electron-app/utils/state/core/unifiedStateManager.ts"
@@ -13415,6 +13423,9 @@ describe("architecture boundaries", () => {
         );
         expect(activeFitRawDataStateSource).toContain(
             "setState(ACTIVE_FIT_RAW_DATA_PATH"
+        );
+        expect(activeFitRawDataStateSource).toContain(
+            "subscribeToActiveFitRawDataInState"
         );
         expect(activeFitRawDataStateSource).toContain(
             "getActiveFitRawDataProperty"
@@ -13442,6 +13453,18 @@ describe("architecture boundaries", () => {
         );
         expect(unifiedStateManagerSource).not.toContain(
             '"globalData", "fitFile.rawData"'
+        );
+        expect(tabStateManagerSource).toContain(
+            "subscribeToActiveFitRawDataInState"
+        );
+        expect(tabStateManagerSource).not.toContain(
+            'getStateMgr().subscribe("fitFile.rawData"'
+        );
+        expect(updateTabVisibilitySource).toContain(
+            "subscribeToActiveFitRawDataInState"
+        );
+        expect(updateTabVisibilitySource).not.toContain(
+            'stateManager.subscribe("fitFile.rawData"'
         );
     });
 

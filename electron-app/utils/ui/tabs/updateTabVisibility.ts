@@ -4,6 +4,7 @@
 
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { getRegisteredMapMiniMapControl } from "../../maps/state/mapPluginControlState.js";
+import { subscribeToActiveFitRawDataInState } from "../../state/domain/activeFitRawDataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getRendererLoadingFromState } from "../../state/domain/rendererLoadingState.js";
 import {
@@ -238,7 +239,7 @@ export function initializeTabVisibilityState(): void {
     );
 
     trackSubscription(
-        stateManager.subscribe("fitFile.rawData", (data: unknown) => {
+        subscribeToActiveFitRawDataInState(stateManager.subscribe, (data) => {
             const hasData = data !== null && data !== undefined;
 
             if (hasData) {

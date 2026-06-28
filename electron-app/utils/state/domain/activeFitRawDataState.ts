@@ -11,6 +11,15 @@ type ActiveFitRawDataChangeListener = (
     data: RawFitData | null,
     previousData: RawFitData | null
 ) => void;
+type ActiveFitRawDataStateListener = (
+    newValue: unknown,
+    oldValue?: unknown,
+    path?: string
+) => void;
+type ActiveFitRawDataStateSubscriber = (
+    path: string,
+    callback: ActiveFitRawDataStateListener
+) => unknown;
 
 const ACTIVE_FIT_RAW_DATA_PATH = "fitFile.rawData";
 
@@ -34,6 +43,13 @@ export function subscribeToActiveFitRawData(
     return subscribe(ACTIVE_FIT_RAW_DATA_PATH, (data) => {
         listener(normalizeActiveFitRawData(data));
     });
+}
+
+export function subscribeToActiveFitRawDataInState(
+    subscribeState: ActiveFitRawDataStateSubscriber,
+    listener: ActiveFitRawDataStateListener
+): unknown {
+    return subscribeState(ACTIVE_FIT_RAW_DATA_PATH, listener);
 }
 
 export function subscribeToActiveFitRawDataChange(

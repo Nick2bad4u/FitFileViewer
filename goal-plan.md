@@ -1258,6 +1258,8 @@ retired `globalData` entries, with architecture coverage blocking that stale reg
 Active FIT raw-data message-array access now reads through an own-property helper after explicit raw-data narrowing
 instead of casting the raw-data payload to a broad `Record<string, unknown>`, with unit and architecture coverage
 blocking that generic active-data bucket from returning.
+Tab raw-data subscriptions now route through `subscribeToActiveFitRawDataInState`, so `tabStateManager.ts` and
+`updateTabVisibility.ts` no longer carry local `fitFile.rawData` subscription path access.
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state
 slot instead of carrying a retired `globalData` fixture slot, with architecture coverage blocking that stale
 integration fixture shape.
