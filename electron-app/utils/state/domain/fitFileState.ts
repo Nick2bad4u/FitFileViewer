@@ -700,6 +700,14 @@ export class FitFileStateManager {
         });
 
         subscribe("fitFile.loaded", (fileData) => {
+            if (fileData === null || fileData === undefined) {
+                return;
+            }
+
+            if (fileData === getState("fitFile.rawData")) {
+                return;
+            }
+
             this.handleFileLoaded(fileData as RawFitData);
         });
 

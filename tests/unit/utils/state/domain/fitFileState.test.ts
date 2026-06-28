@@ -253,7 +253,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("handleFileLoaded updates domain slices and notifies", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -326,6 +326,18 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             "success",
             3000
         );
+        expect(
+            notif.mock.calls.filter(
+                ([
+                    message,
+                    type,
+                    duration,
+                ]) =>
+                    message === "FIT file loaded successfully" &&
+                    type === "success" &&
+                    duration === 3000
+            )
+        ).toHaveLength(1);
         expect({
             chartsRendered: stateManager.getState("charts.isRendered"),
             fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
@@ -354,6 +366,36 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             rawData: data,
             tablesRendered: false,
         });
+    });
+
+    it("clearFileState does not re-handle a cleared loaded payload", () => {
+        expect.assertions(6);
+
+        const mgr = new FitFileStateManager();
+        const notif = vi
+            .spyOn(syncRendererNotifications, "showNotification")
+            .mockImplementation(() => {});
+        const data = { recordMesgs: [{}] };
+
+        mgr.handleFileLoaded(data as any, {
+            filePath: "C:/demo.fit",
+        });
+        notif.mockClear();
+
+        mgr.clearFileState();
+
+        expect(notif).not.toHaveBeenCalled();
+        expect(stateManager.getState("fitFile.currentFile")).toBeNull();
+        expect(stateManager.getState("fitFile.loaded")).toBeNull();
+        expect(stateManager.getState("fitFile.rawData")).toBeNull();
+        expect(stateManager.getState("fitFile.loadingPhase")).toBe("idle");
+        expect(stateManager.getState("fitFile.loadingState")).toEqual(
+            expect.objectContaining({
+                filePath: null,
+                phase: "idle",
+                progress: 0,
+            })
+        );
     });
 
     it("handleFileLoadingError records error once and notifies", () => {
