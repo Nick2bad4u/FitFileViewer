@@ -1880,6 +1880,9 @@ instead of using a generic `Reflect.get` probe, with existing malformed-marker c
 blocking that renderer dependency reflection from returning.
 Dependency validation workflow coverage now locks the scheduled dependency rehearsal to read-only permissions,
 dependency path filters, app/docs installs, `release:verify`, unsigned package artifact checks, and diagnostics upload.
+Overlay filename lookup now narrows unknown loaded-file entries through local record and `filePath` guards instead of
+asserting `loadedFitFiles[idx]` to an object shape, with malformed-entry coverage and architecture coverage blocking
+that cast from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

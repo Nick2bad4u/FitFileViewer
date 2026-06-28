@@ -54,6 +54,27 @@ describe("getOverlayFileName", () => {
         expect(getOverlayFileName(2)).toBe("");
     });
 
+    it("ignores malformed loaded file entries before reading filePath", async () => {
+        expect.assertions(4);
+
+        vi.doMock(
+            import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
+            () => ({
+                getLoadedFitFiles: vi.fn<() => unknown>(() => [
+                    null,
+                    "C:/data/string.fit",
+                    ["C:/data/array.fit"],
+                    { filePath: "C:/data/ride.fit" },
+                ]),
+            })
+        );
+        const { getOverlayFileName } = await importGetOverlayFileName();
+        expect(getOverlayFileName(0)).toBe("");
+        expect(getOverlayFileName(1)).toBe("");
+        expect(getOverlayFileName(2)).toBe("");
+        expect(getOverlayFileName(3)).toBe("C:/data/ride.fit");
+    });
+
     it("returns filePath when present", async () => {
         expect.assertions(1);
 

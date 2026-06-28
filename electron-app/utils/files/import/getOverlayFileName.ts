@@ -1,14 +1,23 @@
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 
-type LoadedFitFile = {
-    readonly filePath?: unknown;
-};
-
 const ERROR_MESSAGES = {
     INVALID_INDEX: "Index must be a non-negative integer",
     INVALID_LOADED_FILES: "Loaded FIT files data is not an array",
     STATE_ACCESS_ERROR: "Failed to access overlay file state:",
 } as const;
+
+function getLoadedFitFilePath(value: unknown): string {
+    if (!isRecord(value)) {
+        return "";
+    }
+
+    const filePath = value["filePath"];
+    return typeof filePath === "string" && filePath.trim() ? filePath : "";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 
 /**
  * Gets the filename for a loaded FIT file overlay by index.
@@ -40,16 +49,7 @@ export function getOverlayFileName(idx: number): string {
             return "";
         }
 
-        const fileData = loadedFitFiles[idx] as LoadedFitFile | undefined;
-        if (
-            fileData &&
-            typeof fileData.filePath === "string" &&
-            fileData.filePath.trim()
-        ) {
-            return fileData.filePath;
-        }
-
-        return "";
+        return getLoadedFitFilePath(loadedFitFiles[idx]);
     } catch (error) {
         console.error(
             `[getOverlayFileName] ${ERROR_MESSAGES.STATE_ACCESS_ERROR}`,

@@ -20700,6 +20700,25 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps overlay filename lookup behind loaded-file entry guards", () => {
+        expect.assertions(4);
+
+        const getOverlayFileNameSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/getOverlayFileName.ts"
+            )
+        );
+
+        expect(getOverlayFileNameSource).not.toContain("as LoadedFitFile");
+        expect(getOverlayFileNameSource).not.toContain(
+            "const fileData = loadedFitFiles[idx]"
+        );
+        expect(getOverlayFileNameSource).toContain(
+            "function getLoadedFitFilePath("
+        );
+        expect(getOverlayFileNameSource).toContain("function isRecord(");
+    });
+
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
         expect.assertions(43);
 
