@@ -1963,6 +1963,29 @@ describe("architecture boundaries", () => {
         expect(processEnvironmentSource).toContain("RuntimePropertyCandidate");
     });
 
+    it("keeps direct browser-global property access centralized in browser runtime", () => {
+        expect.assertions(1);
+
+        const directBrowserGlobalPropertyPattern =
+            /\b(?:window|globalThis)\.[A-Za-z_$][\w$]*/u;
+        const sourceFiles = sourceRoots.flatMap((sourceRoot) =>
+            collectSourceFiles(sourceRoot)
+        );
+        const directBrowserGlobalAccessViolations = sourceFiles
+            .filter(
+                (relativeFile) =>
+                    relativeFile !== "electron-app/utils/runtime/browserRuntime.ts"
+            )
+            .filter((relativeFile) =>
+                directBrowserGlobalPropertyPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directBrowserGlobalAccessViolations).toStrictEqual([]);
+    });
+
     it("keeps utility runtime modules from falling back to ambient browser APIs", () => {
         expect.assertions(2);
 

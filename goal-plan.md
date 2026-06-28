@@ -1874,6 +1874,9 @@ coverage blocking the generic setter from returning.
 Architecture coverage now scans utility `*Runtime.ts` adapters outside the central `browserRuntime.ts` provider and
 blocks silent `scope.* ?? globalThis.*` runtime fallbacks plus direct timeout calls from returning in new utility
 runtime modules.
+Architecture coverage also scans Electron source outside the central `browserRuntime.ts` provider and blocks direct
+`window.*` or `globalThis.*` property access from returning in app, renderer, preload, shared, UI, or utility source
+modules.
 Temporary Leaflet package alias cleanup now routes through the named `deleteBrowserLeafletGlobals` provider instead of
 exporting a generic browser-global delete helper, with renderer-vendor-map and architecture coverage blocking the broad
 delete provider from returning.
