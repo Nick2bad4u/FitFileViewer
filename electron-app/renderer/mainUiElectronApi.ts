@@ -27,30 +27,14 @@ export interface MainUiUnloadElectronApi {
     onUnloadFitFile?: ElectronMenuEventApi["onUnloadFitFile"];
 }
 
-type MenuInjectionPropertyShape = {
-    readonly injectMenu?: unknown;
-};
-
-type SummarySelectorPropertyShape = {
-    readonly onOpenSummaryColumnSelector?: unknown;
-};
-
-type ThemeSyncPropertyShape = {
-    readonly onSetTheme?: unknown;
-    readonly sendThemeChanged?: unknown;
-};
-
-type UnloadPropertyShape = {
-    readonly notifyFitFileLoaded?: unknown;
-    readonly onUnloadFitFile?: unknown;
-};
-
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
 }
 
-function isMainUiElectronApiCandidate(value: unknown): value is object {
-    if (value === null || typeof value !== "object") {
+function isMainUiElectronApiCandidate(
+    value: unknown
+): value is Readonly<Record<string, unknown>> {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) {
         return false;
     }
 
@@ -64,8 +48,7 @@ function isMainUiMenuInjectionElectronApi(
         return false;
     }
 
-    const api = value as MenuInjectionPropertyShape;
-    return hasOptionalFunction(api.injectMenu);
+    return hasOptionalFunction(value["injectMenu"]);
 }
 
 function isMainUiSummarySelectorElectronApi(
@@ -75,8 +58,7 @@ function isMainUiSummarySelectorElectronApi(
         return false;
     }
 
-    const api = value as SummarySelectorPropertyShape;
-    return hasOptionalFunction(api.onOpenSummaryColumnSelector);
+    return hasOptionalFunction(value["onOpenSummaryColumnSelector"]);
 }
 
 function isMainUiThemeSyncElectronApi(
@@ -86,10 +68,9 @@ function isMainUiThemeSyncElectronApi(
         return false;
     }
 
-    const api = value as ThemeSyncPropertyShape;
     return (
-        hasOptionalFunction(api.onSetTheme) &&
-        hasOptionalFunction(api.sendThemeChanged)
+        hasOptionalFunction(value["onSetTheme"]) &&
+        hasOptionalFunction(value["sendThemeChanged"])
     );
 }
 
@@ -100,10 +81,9 @@ function isMainUiUnloadElectronApi(
         return false;
     }
 
-    const api = value as UnloadPropertyShape;
     return (
-        hasOptionalFunction(api.notifyFitFileLoaded) &&
-        hasOptionalFunction(api.onUnloadFitFile)
+        hasOptionalFunction(value["notifyFitFileLoaded"]) &&
+        hasOptionalFunction(value["onUnloadFitFile"])
     );
 }
 

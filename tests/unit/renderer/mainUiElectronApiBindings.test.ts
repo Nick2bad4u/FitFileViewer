@@ -51,4 +51,23 @@ describe("main UI Electron API bindings", () => {
         expect(bindings.getThemeSyncElectronAPI()).toBeNull();
         expect(bindings.getUnloadElectronAPI()).toBeNull();
     });
+
+    it("rejects array-shaped runtime candidates for every domain", () => {
+        const malformedApi = Object.assign([], {
+            injectMenu: vi.fn(),
+            notifyFitFileLoaded: vi.fn(),
+            onOpenSummaryColumnSelector: vi.fn(),
+            onSetTheme: vi.fn(),
+            onUnloadFitFile: vi.fn(),
+            sendThemeChanged: vi.fn(),
+        });
+        const bindings = createMainUiElectronApiBindings({
+            electronApiScope: { getElectronAPI: () => malformedApi },
+        });
+
+        expect(bindings.getMenuInjectionElectronAPI()).toBeNull();
+        expect(bindings.getSummarySelectorElectronAPI()).toBeNull();
+        expect(bindings.getThemeSyncElectronAPI()).toBeNull();
+        expect(bindings.getUnloadElectronAPI()).toBeNull();
+    });
 });

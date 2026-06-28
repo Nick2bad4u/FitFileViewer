@@ -6795,7 +6795,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(190);
+        expect.assertions(197);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7136,7 +7136,9 @@ describe("architecture boundaries", () => {
         expect(mainUiElectronApiSource).toContain("ElectronDevtoolsMenuApi");
         expect(mainUiElectronApiSource).not.toContain("ElectronAPI");
         expect(mainUiElectronApiSource).not.toContain("Pick<");
-        expect(mainUiElectronApiSource).not.toContain("Readonly<Record");
+        expect(mainUiElectronApiSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
         expect(mainUiElectronApiSource).not.toContain(
             "function hasOptionalFunctionProperty("
         );
@@ -7145,6 +7147,25 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiElectronApiSource).toContain(
             "function isMainUiElectronApiCandidate("
+        );
+        expect(mainUiElectronApiSource).toContain("Array.isArray(value)");
+        expect(mainUiElectronApiSource).toContain(
+            'hasOptionalFunction(value["injectMenu"])'
+        );
+        expect(mainUiElectronApiSource).toContain(
+            'hasOptionalFunction(value["onOpenSummaryColumnSelector"])'
+        );
+        expect(mainUiElectronApiSource).not.toContain(
+            "type MenuInjectionPropertyShape"
+        );
+        expect(mainUiElectronApiSource).not.toContain(
+            "type SummarySelectorPropertyShape"
+        );
+        expect(mainUiElectronApiSource).not.toContain(
+            "type ThemeSyncPropertyShape"
+        );
+        expect(mainUiElectronApiSource).not.toContain(
+            "type UnloadPropertyShape"
         );
         expect(mainUiElectronApiSource).not.toContain(
             "type MainUiApiCandidate<"
