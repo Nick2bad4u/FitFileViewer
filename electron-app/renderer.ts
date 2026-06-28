@@ -22,6 +22,7 @@
 // ==========================================
 
 import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
+import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { applyTheme } from "./utils/theming/core/theme.js";
 import { showAboutModal } from "./utils/ui/modals/aboutModal.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
@@ -174,10 +175,11 @@ const initializeApplication = createRendererApplicationStartup({
 // ==========================================
 
 const cleanup = createRendererLifecycleCleanup({
+    appActions: AppActions,
     errorHandlers: rendererErrorHandlers,
-    getCoreModules: ensureCoreModules,
     isOpeningFileRef,
     logRenderer,
+    masterStateManager,
     removeEventListener: runtimeEnvironment.removeEventListener,
 });
 

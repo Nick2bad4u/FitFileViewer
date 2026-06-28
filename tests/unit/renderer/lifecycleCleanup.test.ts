@@ -13,11 +13,25 @@ function createErrorHandlers() {
     };
 }
 
+function createActions(actions: Array<[string, boolean]> = []) {
+    return {
+        actions,
+        appActions: {
+            setFileOpening(value: boolean): void {
+                actions.push(["setFileOpening", value]);
+            },
+            setInitialized(value: boolean): void {
+                actions.push(["setInitialized", value]);
+            },
+        },
+    };
+}
+
 describe("renderer lifecycle cleanup", () => {
     it("removes renderer error listeners and cleans initialized state managers", async () => {
         expect.assertions(5);
 
-        const actions: Array<[string, boolean]> = [];
+        const { actions, appActions } = createActions();
         const logs: unknown[][] = [];
         const removedEvents: string[] = [];
         let managerCleanupCalled = false;
@@ -31,23 +45,13 @@ describe("renderer lifecycle cleanup", () => {
         };
         const lifecycle = {
             execute: createRendererLifecycleCleanup({
+                appActions,
                 errorHandlers: createErrorHandlers(),
-                getCoreModules: () =>
-                    Promise.resolve({
-                        AppActions: {
-                            setFileOpening(value: boolean): void {
-                                actions.push(["setFileOpening", value]);
-                            },
-                            setInitialized(value: boolean): void {
-                                actions.push(["setInitialized", value]);
-                            },
-                        },
-                        masterStateManager,
-                    }),
                 isOpeningFileRef: { value: true },
                 logRenderer: (...args: unknown[]) => {
                     logs.push(args);
                 },
+                masterStateManager,
                 removeEventListener: (eventName) => {
                     removedEvents.push(eventName);
                 },
@@ -73,25 +77,18 @@ describe("renderer lifecycle cleanup", () => {
     it("resets lifecycle state through actions when the state manager is not initialized", async () => {
         expect.assertions(2);
 
-        const actions: Array<[string, boolean]> = [];
+        const { actions, appActions } = createActions();
         const isOpeningFileRef = { value: true };
 
         await cleanupRendererStateManagerState({
+            appActions,
             errorHandlers: createErrorHandlers(),
-            getCoreModules: () =>
-                Promise.resolve({
-                    AppActions: {
-                        setFileOpening(value: boolean): void {
-                            actions.push(["setFileOpening", value]);
-                        },
-                        setInitialized(value: boolean): void {
-                            actions.push(["setInitialized", value]);
-                        },
-                    },
-                    masterStateManager: { isInitialized: false },
-                }),
             isOpeningFileRef,
             logRenderer: () => {},
+            masterStateManager: {
+                cleanup: () => {},
+                isInitialized: false,
+            },
             removeEventListener: () => {},
         });
 
@@ -102,31 +99,23 @@ describe("renderer lifecycle cleanup", () => {
         expect(isOpeningFileRef.value).toBe(false);
     });
 
-    it("resets lifecycle state through actions when initialized cleanup is malformed", async () => {
+    it("resets local opening state when initialized cleanup throws", async () => {
         expect.assertions(2);
 
-        const actions: Array<[string, boolean]> = [];
+        const { actions, appActions } = createActions();
         const isOpeningFileRef = { value: true };
 
         await cleanupRendererStateManagerState({
+            appActions,
             errorHandlers: createErrorHandlers(),
-            getCoreModules: () =>
-                Promise.resolve({
-                    AppActions: {
-                        setFileOpening(value: boolean): void {
-                            actions.push(["setFileOpening", value]);
-                        },
-                        setInitialized(value: boolean): void {
-                            actions.push(["setInitialized", value]);
-                        },
-                    },
-                    masterStateManager: {
-                        cleanup: "not cleanup",
-                        isInitialized: true,
-                    },
-                }),
             isOpeningFileRef,
             logRenderer: () => {},
+            masterStateManager: {
+                cleanup() {
+                    throw new Error("cleanup failed");
+                },
+                isInitialized: true,
+            },
             removeEventListener: () => {},
         });
 
@@ -137,36 +126,25 @@ describe("renderer lifecycle cleanup", () => {
         expect(isOpeningFileRef.value).toBe(false);
     });
 
-    it("resets local opening state when core module cleanup fails", async () => {
+    it("resets local opening state when app action cleanup fails", async () => {
         expect.assertions(1);
 
         const isOpeningFileRef = { value: true };
 
         await cleanupRendererStateManagerState({
+            appActions: {
+                setFileOpening: () => {},
+                setInitialized: () => {
+                    throw new Error("app action failed");
+                },
+            },
             errorHandlers: createErrorHandlers(),
-            getCoreModules: () => Promise.reject(new Error("missing modules")),
             isOpeningFileRef,
             logRenderer: () => {},
-            removeEventListener: () => {},
-        });
-
-        expect(isOpeningFileRef.value).toBe(false);
-    });
-
-    it("resets local opening state for malformed core module shapes", async () => {
-        expect.assertions(1);
-
-        const isOpeningFileRef = { value: true };
-
-        await cleanupRendererStateManagerState({
-            errorHandlers: createErrorHandlers(),
-            getCoreModules: () =>
-                Promise.resolve({
-                    AppActions: "not actions" as never,
-                    masterStateManager: null,
-                }),
-            isOpeningFileRef,
-            logRenderer: () => {},
+            masterStateManager: {
+                cleanup: () => {},
+                isInitialized: true,
+            },
             removeEventListener: () => {},
         });
 
@@ -192,15 +170,15 @@ describe("renderer lifecycle cleanup", () => {
         const logs: unknown[][] = [];
         const lifecycle = {
             execute: createRendererLifecycleCleanup({
+                appActions: createActions().appActions,
                 errorHandlers: createErrorHandlers(),
-                getCoreModules: () =>
-                    Promise.resolve({
-                        AppActions: undefined,
-                        masterStateManager: {},
-                    }),
                 isOpeningFileRef: { value: true },
                 logRenderer: (...args: unknown[]) => {
                     logs.push(args);
+                },
+                masterStateManager: {
+                    cleanup: () => {},
+                    isInitialized: false,
                 },
                 removeEventListener: () => {
                     throw cleanupError;

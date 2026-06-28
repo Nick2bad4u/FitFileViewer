@@ -2,25 +2,22 @@ import type { RendererErrorEventHandlers } from "./errorHandling.js";
 import type { RendererRemoveEventListener } from "./runtimeEnvironment.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 import type { AppActions } from "../utils/app/lifecycle/appActions.js";
+import type { MasterStateManager } from "../utils/state/core/masterStateManager.js";
 
 type RendererCleanupLogger = (
     level: "error" | "log",
     ...args: unknown[]
 ) => void;
 
-interface RendererCleanupCoreModules {
-    AppActions: RendererCleanupAppActions | undefined;
-    masterStateManager: unknown;
-}
-
 interface RendererLifecycleCleanupOptions {
+    appActions: RendererCleanupAppActions;
     errorHandlers: Pick<
         RendererErrorEventHandlers,
         "onUncaughtErrorEvent" | "onUnhandledRejectionEvent"
     >;
-    getCoreModules: () => Promise<RendererCleanupCoreModules>;
     isOpeningFileRef: RendererFileOpeningStateRef;
     logRenderer: RendererCleanupLogger;
+    masterStateManager: RendererCleanupMasterStateManager;
     removeEventListener: RendererRemoveEventListener;
 }
 
@@ -29,11 +26,9 @@ type RendererCleanupAppActions = {
     readonly setInitialized: typeof AppActions.setInitialized;
 };
 
-type RendererCleanupMethod = (this: unknown) => void;
-
 type RendererCleanupMasterStateManager = {
-    readonly cleanup?: RendererCleanupMethod | undefined;
-    readonly isInitialized: boolean;
+    readonly cleanup: MasterStateManager["cleanup"];
+    readonly isInitialized: MasterStateManager["isInitialized"];
 };
 
 export function createRendererLifecycleCleanup(
@@ -55,15 +50,11 @@ export async function cleanupRendererStateManagerState(
     options: RendererLifecycleCleanupOptions
 ): Promise<void> {
     try {
-        const { AppActions, masterStateManager } =
-            await options.getCoreModules();
-        AppActions?.setInitialized?.(false);
-        AppActions?.setFileOpening?.(false);
+        options.appActions.setInitialized(false);
+        options.appActions.setFileOpening(false);
 
-        const masterStateManagerRecord =
-            toCleanupMasterStateManager(masterStateManager);
-        if (masterStateManagerRecord?.isInitialized === true) {
-            masterStateManagerRecord.cleanup?.call(masterStateManager);
+        if (options.masterStateManager.isInitialized === true) {
+            options.masterStateManager.cleanup();
             return;
         }
 
@@ -90,23 +81,4 @@ function removeRendererErrorEventListeners(
         "error",
         options.errorHandlers.onUncaughtErrorEvent
     );
-}
-
-function toCleanupMasterStateManager(
-    value: unknown
-): RendererCleanupMasterStateManager | undefined {
-    if (
-        typeof value !== "object" ||
-        value === null ||
-        !("isInitialized" in value) ||
-        typeof value.isInitialized !== "boolean"
-    ) {
-        return undefined;
-    }
-
-    if ("cleanup" in value && typeof value.cleanup !== "function") {
-        return undefined;
-    }
-
-    return value as RendererCleanupMasterStateManager;
 }

@@ -6934,7 +6934,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(197);
+        expect.assertions(201);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7221,13 +7221,16 @@ describe("architecture boundaries", () => {
             "readonly setInitialized: typeof AppActions.setInitialized;"
         );
         expect(lifecycleCleanupSource).toContain(
-            "type RendererCleanupMethod = (this: unknown) => void;"
+            "appActions: RendererCleanupAppActions;"
         );
         expect(lifecycleCleanupSource).toContain(
-            "readonly cleanup?: RendererCleanupMethod | undefined;"
+            "masterStateManager: RendererCleanupMasterStateManager;"
         );
         expect(lifecycleCleanupSource).toContain(
-            "readonly isInitialized: boolean;"
+            'readonly cleanup: MasterStateManager["cleanup"];'
+        );
+        expect(lifecycleCleanupSource).toContain(
+            'readonly isInitialized: MasterStateManager["isInitialized"];'
         );
         expect(lifecycleCleanupSource).not.toContain(
             "readonly cleanup?: unknown;"
@@ -7238,6 +7241,13 @@ describe("architecture boundaries", () => {
         expect(lifecycleCleanupSource).not.toContain(
             "cleanupStateManagerFn.call(masterStateManager)"
         );
+        expect(lifecycleCleanupSource).not.toContain("getCoreModules");
+        expect(lifecycleCleanupSource).not.toContain(
+            "toCleanupMasterStateManager"
+        );
+        expect(lifecycleCleanupSource).not.toContain(
+            "masterStateManagerRecord"
+        );
         expect(lifecycleCleanupSource).not.toContain(
             "typeof globalThis.removeEventListener"
         );
@@ -7246,10 +7256,10 @@ describe("architecture boundaries", () => {
             "value as Record<string, unknown>"
         );
         expect(lifecycleCleanupSource).toContain(
-            "AppActions?.setInitialized?.(false);"
+            "options.appActions.setInitialized(false);"
         );
         expect(lifecycleCleanupSource).toContain(
-            "AppActions?.setFileOpening?.(false);"
+            "options.appActions.setFileOpening(false);"
         );
         expect(lifecycleCleanupSource).not.toContain("callBooleanAppAction");
         expect(lifecycleCleanupSource).not.toContain("toCleanupAppActions");

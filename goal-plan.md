@@ -1791,9 +1791,9 @@ the runtime environment object, with unit and architecture coverage blocking the
 Renderer runtime environment startup now also returns a narrow `rendererEventTarget` instead of exporting the broad
 `rendererGlobal` object to the renderer entrypoint; lifecycle, test bootstrap, and file-input wiring receive only
 the event target they use, with architecture coverage blocking the broad handoff from returning.
-Renderer lifecycle cleanup now narrows core-module cleanup shapes through explicit app-action/state-manager contracts
-instead of casting unknown core modules to a broad `Record<string, unknown>`, with unit and architecture coverage
-blocking the broad cast from returning.
+Renderer lifecycle cleanup now receives typed `AppActions` and `masterStateManager` services directly from the renderer
+entrypoint instead of resolving cleanup state through the broad renderer core-module aggregate, with unit and
+architecture coverage blocking the aggregate lookup and unknown state-manager guard from returning.
 Renderer import-time bootstrap no longer accepts or initializes master-state-manager test override modules; state startup
 owns state-manager initialization, with unit and architecture coverage blocking the old override parser from returning.
 Renderer and main-UI browser runtime-environment scopes now assemble their production defaults from named browser
