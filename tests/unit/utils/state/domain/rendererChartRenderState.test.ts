@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     areRendererChartsRendered,
+    areRendererChartsRenderedFromState,
     clearRendererChartRenderState,
     completeRendererChartRenderState,
     getRendererChartData,
@@ -44,6 +45,20 @@ describe("rendererChartRenderState", () => {
 
         setRendererChartsRendered(false);
         expect(areRendererChartsRendered()).toBe(false);
+    });
+
+    it("reads chart rendered values through an explicit state reader", () => {
+        expect.assertions(3);
+
+        const reads: string[] = [];
+        const readState = (path: string): unknown => {
+            reads.push(path);
+            return true;
+        };
+
+        expect(areRendererChartsRenderedFromState(readState)).toBe(true);
+        expect(reads).toStrictEqual(["charts.isRendered"]);
+        expect(areRendererChartsRenderedFromState(() => "true")).toBe(false);
     });
 
     it("normalizes chart rendered values", () => {

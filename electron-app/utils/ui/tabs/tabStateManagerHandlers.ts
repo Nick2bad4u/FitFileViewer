@@ -11,8 +11,18 @@ import {
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { createTables } from "../../rendering/components/createTables.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
-import { setRendererChartTabActive } from "../../state/domain/rendererChartRenderState.js";
-import { setRendererMapRendered } from "../../state/domain/rendererMapRenderState.js";
+import {
+    areRendererChartsRenderedFromState,
+    setRendererChartTabActive,
+} from "../../state/domain/rendererChartRenderState.js";
+import {
+    isRendererMapRenderedFromState,
+    setRendererMapRendered,
+} from "../../state/domain/rendererMapRenderState.js";
+import {
+    getRendererSummaryLastDataHashFromState,
+    setRendererSummaryLastDataHashInState,
+} from "../../state/domain/rendererSummaryState.js";
 import { setTabReadiness } from "./tabReadinessState.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
@@ -85,10 +95,6 @@ function scheduleFallbackMapInvalidation(
         },
         75
     );
-}
-
-function hasRenderedFlag(value: unknown): value is { isRendered?: boolean } {
-    return value !== null && typeof value === "object" && "isRendered" in value;
 }
 
 function isIframeLike(
@@ -237,9 +243,8 @@ export async function handleChartTab(
             }
 
             const movedPreRendered = attachPreRenderedCharts();
-            const chartState = getStateMgr().getState("charts");
 
-            if (hasRenderedFlag(chartState) && chartState.isRendered) {
+            if (areRendererChartsRenderedFromState(getStateMgr().getState)) {
                 console.log(
                     "[TabStateManager] Chart tab activated - charts already rendered"
                 );
@@ -319,9 +324,7 @@ export async function handleMapTab(
         return;
     }
 
-    const mapState = getStateMgr().getState("map");
-    const isMapRendered =
-        hasRenderedFlag(mapState) && mapState.isRendered === true;
+    const isMapRendered = isRendererMapRenderedFromState(getStateMgr().getState);
     if (!isMapRendered) {
         console.log("[TabStateManager] Rendering map for first time");
         renderMap();
@@ -401,14 +404,18 @@ export function handleSummaryTab(
     }
 
     const currentDataHash = hashData(rawFitData);
-    const previousData = getStateMgr().getState("summary.lastDataHash");
+    const previousData = getRendererSummaryLastDataHashFromState(
+        getStateMgr().getState
+    );
 
     if (previousData !== currentDataHash) {
         console.log("[TabStateManager] Rendering summary with new data");
         renderSummary(rawFitData);
-        getStateMgr().setState("summary.lastDataHash", currentDataHash, {
-            source: "TabStateManager.handleSummaryTab",
-        });
+        setRendererSummaryLastDataHashInState(
+            getStateMgr().setState,
+            currentDataHash,
+            { source: "TabStateManager.handleSummaryTab" }
+        );
     }
 }
 

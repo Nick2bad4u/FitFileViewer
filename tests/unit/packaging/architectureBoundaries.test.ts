@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(124);
+        expect.assertions(136);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12665,6 +12665,11 @@ describe("architecture boundaries", () => {
         const rendererMapRenderStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/rendererMapRenderState.ts"
+            )
+        );
+        const rendererSummaryStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/rendererSummaryState.ts"
             )
         );
         const appActionsStateSource = stripComments(
@@ -13084,7 +13089,13 @@ describe("architecture boundaries", () => {
             "rendererChartRenderState.js"
         );
         expect(tabStateManagerHandlersSource).toContain(
+            "areRendererChartsRenderedFromState"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
             "setRendererChartTabActive(true"
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
+            'getStateMgr().getState("charts")'
         );
         expect(tabStateManagerHandlersSource).not.toContain(
             '.setState("charts.tabActive"'
@@ -13093,10 +13104,40 @@ describe("architecture boundaries", () => {
             "rendererMapRenderState.js"
         );
         expect(tabStateManagerHandlersSource).toContain(
+            "isRendererMapRenderedFromState"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
             "setRendererMapRendered(true"
         );
         expect(tabStateManagerHandlersSource).not.toContain(
+            'getStateMgr().getState("map")'
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
             '.setState("map.isRendered"'
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "rendererSummaryState.js"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "getRendererSummaryLastDataHashFromState"
+        );
+        expect(tabStateManagerHandlersSource).toContain(
+            "setRendererSummaryLastDataHashInState"
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
+            'getStateMgr().getState("summary.lastDataHash")'
+        );
+        expect(tabStateManagerHandlersSource).not.toContain(
+            'getStateMgr().setState("summary.lastDataHash"'
+        );
+        expect(rendererChartRenderStateSource).toContain(
+            "areRendererChartsRenderedFromState"
+        );
+        expect(rendererMapRenderStateSource).toContain(
+            "isRendererMapRenderedFromState"
+        );
+        expect(rendererSummaryStateSource).toContain(
+            "setRendererSummaryLastDataHashInState"
         );
     });
 

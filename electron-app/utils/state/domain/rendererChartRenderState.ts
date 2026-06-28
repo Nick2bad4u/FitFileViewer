@@ -37,6 +37,8 @@ const INITIAL_RENDERER_CHART_STATE = {
     zoomLevel: 1,
 } as const;
 
+type RendererChartRenderStateReader = (path: string) => unknown;
+
 export type RendererChartPreviousState = {
     chartCount: number;
     timestamp: number;
@@ -62,6 +64,14 @@ export type RendererChartRenderCompleteState =
 export function areRendererChartsRendered(): boolean {
     return normalizeRendererRenderFlag(
         getState(RENDERER_CHARTS_RENDERED_STATE_PATH)
+    );
+}
+
+export function areRendererChartsRenderedFromState(
+    readState: RendererChartRenderStateReader
+): boolean {
+    return normalizeRendererRenderFlag(
+        readState(RENDERER_CHARTS_RENDERED_STATE_PATH)
     );
 }
 

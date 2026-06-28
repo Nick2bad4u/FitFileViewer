@@ -25,6 +25,7 @@ export * from "./rendererLoadingState.js";
 export * from "./rendererMapRenderState.js";
 export * from "./rendererNotificationState.js";
 export * from "./rendererStateManagerAccess.js";
+export * from "./rendererSummaryState.js";
 export * from "./rendererTabButtonsState.js";
 export * from "./rendererThemeState.js";
 export * from "./settingsStateManager.js";

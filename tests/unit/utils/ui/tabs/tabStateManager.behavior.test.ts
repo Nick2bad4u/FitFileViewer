@@ -109,8 +109,12 @@ describe("tabStateManager.behavior", () => {
                     return { recordMesgs: [{ timestamp: 1 }] };
                 case "charts":
                     return { isRendered: false };
+                case "charts.isRendered":
+                    return false;
                 case "map":
                     return { isRendered: false };
+                case "map.isRendered":
+                    return false;
                 case "summary.lastDataHash":
                     return "";
                 default:
@@ -512,7 +516,7 @@ describe("tabStateManager.behavior", () => {
         expect.assertions(3);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "fitFile.rawData") return { recordMesgs: [{}] };
-            if (key === "map") return { isRendered: false };
+            if (key === "map.isRendered") return false;
             return null;
         });
 
@@ -582,10 +586,10 @@ describe("tabStateManager.behavior", () => {
         });
 
         mockGetState.mockImplementation((/* @type {any} */ key) =>
-            key === "charts" ? { isRendered: true } : { recordMesgs: [{}] }
+            key === "charts.isRendered" ? true : { recordMesgs: [{}] }
         );
         await tabStateManager.handleChartTab({ recordMesgs: [{}] });
-        expect(mockGetState("charts")).toStrictEqual({ isRendered: true });
+        expect(mockGetState("charts.isRendered")).toBe(true);
         expect(mockSetState).toHaveBeenCalledWith(
             "charts.tabActive",
             true,
@@ -606,10 +610,10 @@ describe("tabStateManager.behavior", () => {
         // Now report isRendered true – should not call render again
         mockRenderMap.mockClear();
         mockGetState.mockImplementation((/* @type {any} */ key) =>
-            key === "map" ? { isRendered: true } : { recordMesgs: [{}] }
+            key === "map.isRendered" ? true : { recordMesgs: [{}] }
         );
         await tabStateManager.handleMapTab({ recordMesgs: [{}] });
-        expect(mockGetState("map")).toStrictEqual({ isRendered: true });
+        expect(mockGetState("map.isRendered")).toBe(true);
         expect(mockRenderMap).not.toHaveBeenCalled();
     });
 
@@ -841,11 +845,11 @@ describe("tabStateManager.behavior", () => {
         expect.assertions(2);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "fitFile.rawData") return { recordMesgs: [{}] };
-            if (key === "charts") return { isRendered: false };
+            if (key === "charts.isRendered") return false;
             return null;
         });
         await tabStateManager.handleTabSpecificLogic("chartjs");
-        expect(mockGetState("charts")).toStrictEqual({ isRendered: false });
+        expect(mockGetState("charts.isRendered")).toBe(false);
         expect(mockSetState).toHaveBeenCalledWith("charts.tabActive", true, {
             source: "TabStateManager.handleChartTab",
         });
@@ -855,11 +859,11 @@ describe("tabStateManager.behavior", () => {
         expect.assertions(2);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             if (key === "fitFile.rawData") return { recordMesgs: [{}] };
-            if (key === "map") return { isRendered: false };
+            if (key === "map.isRendered") return false;
             return null;
         });
         await tabStateManager.handleTabSpecificLogic("map");
-        expect(mockGetState("map")).toStrictEqual({ isRendered: false });
+        expect(mockGetState("map.isRendered")).toBe(false);
         expect(mockRenderMap).toHaveBeenCalledWith();
     });
 

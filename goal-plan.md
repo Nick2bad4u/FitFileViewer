@@ -2027,6 +2027,9 @@ Tab visibility active-content reads and writes now route through `getRendererAct
 directly while keeping tab-content normalization in the typed active-tab state module.
 Active-tab subscriptions now route through typed active-tab subscription helpers, and `tabStateManager.ts` now shares
 the typed active-tab read/write/subscription helpers instead of carrying local `ui.activeTab` path access.
+Tab-specific handlers now route chart/map rendered checks and summary last-data hash reads/writes through state-domain
+helpers, so `tabStateManagerHandlers.ts` no longer carries local aggregate `charts`/`map` state reads or direct
+`summary.lastDataHash` path access.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
