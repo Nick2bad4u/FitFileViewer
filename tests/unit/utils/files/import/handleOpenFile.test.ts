@@ -234,6 +234,16 @@ describe("handleOpenFile.js", () => {
             expect(result).toBe(false);
         });
 
+        it("should return false when scoped Electron API is primitive", () => {
+            const { validateElectronAPI } = handleOpenFileModule;
+
+            const result = validateElectronAPI({
+                getElectronAPI: () => "not an api",
+            });
+
+            expect(result).toBe(false);
+        });
+
         it("should return false when methods are not functions", () => {
             currentElectronApi = {
                 openFile: "not a function",
