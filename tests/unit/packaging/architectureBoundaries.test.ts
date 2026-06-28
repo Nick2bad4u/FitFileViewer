@@ -2942,7 +2942,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(30);
+        expect.assertions(36);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
@@ -2958,6 +2958,11 @@ describe("architecture boundaries", () => {
         const primeTestEnvironmentSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/runtime/primeTestEnvironment.ts"
+            )
+        );
+        const mainProcessTimerHandleSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/mainProcessTimerHandle.ts"
             )
         );
         const stateIntegrationBarrelSource = stripComments(
@@ -2987,9 +2992,20 @@ describe("architecture boundaries", () => {
         expect(constantsSource).not.toContain("export default");
         expect(gyazoStartupTimerSource).not.toContain("module.exports");
         expect(gyazoStartupTimerSource).not.toContain("export default");
+        expect(gyazoStartupTimerSource).toContain("MainProcessTimerHandle");
+        expect(gyazoStartupTimerSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
+        );
         expect(primeTestEnvironmentSource).not.toContain("module.exports");
         expect(primeTestEnvironmentSource).not.toContain("process.env");
         expect(primeTestEnvironmentSource).not.toContain("Reflect.get(");
+        expect(primeTestEnvironmentSource).toContain("MainProcessTimerHandle");
+        expect(primeTestEnvironmentSource).toContain(
+            "MainProcessIntervalHandle"
+        );
+        expect(primeTestEnvironmentSource).not.toContain(
+            "ReturnType<typeof setTimeout>"
+        );
         expect(primeTestEnvironmentSource).not.toContain(
             "return Reflect.get(record, key);"
         );
@@ -3007,6 +3023,9 @@ describe("architecture boundaries", () => {
             'require("../state/appState")'
         );
         expect(stateIntegrationBarrelSource).not.toContain("module.exports");
+        expect(mainProcessTimerHandleSource).toContain(
+            "MainProcessTimerHandle"
+        );
         expect(stateIntegrationBarrelSource).not.toContain(
             'require("./mainProcessStateManager.js")'
         );

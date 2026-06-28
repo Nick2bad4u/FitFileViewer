@@ -10,6 +10,10 @@ import {
     getMainWindow,
     setMainWindow,
 } from "../state/appState.js";
+import type {
+    MainProcessIntervalHandle,
+    MainProcessTimerHandle,
+} from "./mainProcessTimerHandle.js";
 
 let clearPrimeTestEnvironmentTimersImpl: (() => void) | undefined;
 let primeTestEnvironmentImpl:
@@ -198,10 +202,10 @@ type PrimeTestMainWindowLike = {
         PROBE_INSTALLED_APPS.add(record);
     }
 
-    let testKeepaliveTimer: ReturnType<typeof setInterval> | undefined;
-    const testRetryTimers = new Set<ReturnType<typeof setTimeout>>();
+    let testKeepaliveTimer: MainProcessIntervalHandle | undefined;
+    const testRetryTimers = new Set<MainProcessTimerHandle>();
 
-    function rememberTestTimer(handle: ReturnType<typeof setTimeout>): void {
+    function rememberTestTimer(handle: MainProcessTimerHandle): void {
         testRetryTimers.add(handle);
     }
 

@@ -38,6 +38,7 @@ import {
     isTestEnvironment,
 } from "../../utils/runtime/processEnvironment.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
+import type { MainProcessTimerHandle } from "../runtime/mainProcessTimerHandle.js";
 
 type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
 type WindowValidationCandidate = Parameters<typeof validateWindow>[0];
@@ -757,7 +758,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         }
     }
 
-    function rememberStartupTimer(handle: ReturnType<typeof setTimeout>): void {
+    function rememberStartupTimer(handle: MainProcessTimerHandle): void {
         setGyazoStartupTimer(handle);
     }
 

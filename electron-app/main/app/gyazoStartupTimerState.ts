@@ -1,16 +1,16 @@
-type TimerHandle = ReturnType<typeof setTimeout>;
+import type { MainProcessTimerHandle } from "../runtime/mainProcessTimerHandle.js";
 
-let gyazoStartupTimer: TimerHandle | undefined;
+let gyazoStartupTimer: MainProcessTimerHandle | undefined;
 
 /**
  * Returns the pending Gyazo startup timer, when one has been registered.
  */
-export function getGyazoStartupTimer(): TimerHandle | undefined {
+export function getGyazoStartupTimer(): MainProcessTimerHandle | undefined {
     return gyazoStartupTimer;
 }
 
 /** Stores the pending Gyazo startup timer. */
-export function setGyazoStartupTimer(handle: TimerHandle): void {
+export function setGyazoStartupTimer(handle: MainProcessTimerHandle): void {
     clearGyazoStartupTimer();
     gyazoStartupTimer = handle;
 }
