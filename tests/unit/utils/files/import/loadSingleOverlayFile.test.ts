@@ -95,6 +95,29 @@ describe(loadSingleOverlayFile, () => {
         });
     });
 
+    it("rejects array-shaped decoder bridges", async () => {
+        expect.assertions(2);
+
+        const decodeFitFile =
+            vi.fn<
+                (
+                    arrayBuffer: ArrayBuffer
+                ) => Promise<FitDecodeResult | undefined>
+            >();
+        const malformedElectronApi = Object.assign([], { decodeFitFile });
+        const result = await loadSingleOverlayFile(makeFitFile(), {
+            electronApiScope: {
+                getElectronAPI: () => malformedElectronApi,
+            },
+        });
+
+        expect(result).toStrictEqual({
+            error: "No file data or decoder not available",
+            success: false,
+        });
+        expect(decodeFitFile).not.toHaveBeenCalled();
+    });
+
     it("returns parser errors from decoded FIT data", async () => {
         expect.assertions(1);
 

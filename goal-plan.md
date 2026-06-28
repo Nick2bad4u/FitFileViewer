@@ -434,7 +434,9 @@ Single overlay FileReader fallback listener abort-controller creation now routes
 instead of a broad `globalThis` default scope or direct `AbortController` property, with focused runtime coverage
 and architecture guardrails blocking direct single-overlay controller construction from returning. The single-overlay
 AbortController, FileReader, and Response constructor contracts now reuse shared browser-runtime aliases instead of
-spelling direct ambient constructor types.
+spelling direct ambient constructor types. Single-overlay decoder API candidate validation now reads `decodeFitFile`
+through a non-array record guard instead of casting to the local API shape, with focused malformed candidate coverage
+and architecture coverage blocking that cast from returning.
 Open-file selector hidden input creation, jsdom detection, microtask fallback, timeout cleanup, and
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
