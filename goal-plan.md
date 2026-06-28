@@ -155,9 +155,10 @@ exports/imports instead of source-level `module.exports` or a barrel `require`, 
 imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers
 natively instead of requiring those source modules. Its Electron runtime access now uses a menu-specific module-shape
 guard instead of adapting `getRuntimeElectron` through a function-level `as unknown` bridge.
-Renderer menu IPC listener validation now checks each optional preload menu method explicitly instead of casting the
-candidate Electron API to a generic record, with malformed-scope coverage proving invalid menu candidates do not register
-handlers and architecture coverage blocking that bridge cast from returning.
+Renderer menu IPC listener validation now checks each optional preload menu method through a non-array record guard
+instead of casting the candidate Electron API to a generic record or local API shape, with malformed-scope coverage
+proving invalid menu candidates do not register handlers and architecture coverage blocking that bridge cast from
+returning.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
 the updater resolver boundary natively instead of requiring its source file. Electron-updater now resolves
 through the async native import path instead of a synchronous `loadNodeModule` or direct package
@@ -1883,8 +1884,9 @@ Preload logger dispatch now resolves `info`, `warn`, and `error` through explici
 Browser tab preload API candidate validation now checks the explicit optional method properties directly instead of
 iterating method-name strings through `Reflect.get`, with architecture coverage blocking that generic probe from
 returning.
-Menu IPC preload API candidate validation now checks explicit optional method properties directly instead of iterating
-menu method names through `Reflect.get`, with architecture coverage blocking that generic probe from returning.
+Menu IPC preload API candidate validation now checks explicit optional method properties through a non-array record
+guard instead of iterating menu method names through `Reflect.get` or casting to the local API shape, with architecture
+coverage blocking those generic probes and casts from returning.
 Version-info preload API candidate validation now checks explicit optional method properties directly instead of
 iterating app-info method names through `Reflect.get`, with architecture coverage blocking that generic probe from
 returning.

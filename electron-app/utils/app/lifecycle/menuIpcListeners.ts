@@ -65,6 +65,18 @@ const accentColorPickerModulePath =
     "../../../ui/modals/accentColorPicker.js" as const;
 const keyboardShortcutsModalModulePath =
     "../../ui/modals/keyboardShortcutsModal.js" as const;
+const menuElectronApiFunctionKeys = [
+    "installUpdate",
+    "onMenuAbout",
+    "onMenuExport",
+    "onMenuKeyboardShortcuts",
+    "onMenuOpenOverlay",
+    "onMenuRestartUpdate",
+    "onMenuSaveAs",
+    "onOpenAccentColorPicker",
+    "requestExport",
+    "requestSaveAs",
+] as const satisfies readonly (keyof MenuElectronAPI)[];
 
 let cachedAccentColorPicker: (() => void) | undefined;
 let cachedKeyboardShortcutsModal: ShowKeyboardShortcutsModal | undefined;
@@ -77,23 +89,17 @@ function getMenuElectronApi(
 }
 
 function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as MenuElectronAPI;
-    return (
-        hasOptionalFunction(api.installUpdate) &&
-        hasOptionalFunction(api.onMenuAbout) &&
-        hasOptionalFunction(api.onMenuExport) &&
-        hasOptionalFunction(api.onMenuKeyboardShortcuts) &&
-        hasOptionalFunction(api.onMenuOpenOverlay) &&
-        hasOptionalFunction(api.onMenuRestartUpdate) &&
-        hasOptionalFunction(api.onMenuSaveAs) &&
-        hasOptionalFunction(api.onOpenAccentColorPicker) &&
-        hasOptionalFunction(api.requestExport) &&
-        hasOptionalFunction(api.requestSaveAs)
+    return menuElectronApiFunctionKeys.every((methodName) =>
+        hasOptionalFunction(value[methodName])
     );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function hasOptionalFunction(value: unknown): boolean {
