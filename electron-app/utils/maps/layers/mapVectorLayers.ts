@@ -1,13 +1,8 @@
-import type { Layer } from "leaflet";
-
-type EmptyLeafletLayer = Record<string, never>;
-export type LeafletBaseLayer = EmptyLeafletLayer | Layer;
-export type MapLibreLayerFactory = (
-    options: Record<string, unknown>
-) => LeafletBaseLayer;
-export type LeafletVectorLayerRuntime = {
-    maplibreGL?: MapLibreLayerFactory;
-};
+import {
+    resolveMapLibreLayerFactory,
+    type LeafletBaseLayer,
+    type MapLibreLayerFactory,
+} from "./mapLibreLayerRuntime.js";
 
 export type OpenFreeMapLayerName =
     | "OpenFreeMap_Bright"
@@ -25,15 +20,12 @@ const openFreeMapStyles = {
 } as const satisfies Record<OpenFreeMapLayerName, string>;
 
 export function createOpenFreeMapVectorLayers(
-    leaflet: LeafletVectorLayerRuntime
+    mapLibreLayerFactory: MapLibreLayerFactory | null = resolveMapLibreLayerFactory()
 ): Record<OpenFreeMapLayerName, LeafletBaseLayer> {
-    const createMapLibreLayer =
-        typeof leaflet.maplibreGL === "function" ? leaflet.maplibreGL : null;
-
     return Object.fromEntries(
         Object.entries(openFreeMapStyles).map(([name, style]) => [
             name,
-            createMapLibreLayer ? createMapLibreLayer({ style }) : {},
+            mapLibreLayerFactory ? mapLibreLayerFactory({ style }) : {},
         ])
     ) as Record<OpenFreeMapLayerName, LeafletBaseLayer>;
 }

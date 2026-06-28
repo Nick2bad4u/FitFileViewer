@@ -224,7 +224,9 @@ directly from a `vendor/` path.
   the explicit `fitfileviewer:leaflet-draw-runtime` wrapper until a package with
   a native import surface replaces it; do not reintroduce public `window.*`
   vendor globals, app-side browser-library runtime symbols, or persistent
-  split-vendor payload registries.
+  split-vendor payload registries. Keep MapLibre layer construction behind
+  `electron-app/utils/maps/layers/mapLibreLayerRuntime.ts` instead of threading
+  plugin-mutated Leaflet properties through map rendering modules.
 - Keep `electron-app/renderer/leafletMeasureLite.js` and
   `electron-app/renderer/leafletMeasureLiteRuntime.js` unless a CSP-safe package
   replacement is proven.

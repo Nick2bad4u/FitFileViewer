@@ -19,7 +19,7 @@ describe("mapVectorLayers.js", () => {
             type: "vector",
         }));
 
-        const layers = createOpenFreeMapVectorLayers({ maplibreGL });
+        const layers = createOpenFreeMapVectorLayers(maplibreGL);
 
         expect(Object.keys(layers)).toStrictEqual(expectedLayerNames);
         expect(maplibreGL).toHaveBeenCalledTimes(5);
@@ -35,7 +35,7 @@ describe("mapVectorLayers.js", () => {
     it("creates empty placeholders when the MapLibre bridge is unavailable", () => {
         expect.assertions(2);
 
-        const layers = createOpenFreeMapVectorLayers({});
+        const layers = createOpenFreeMapVectorLayers(null);
 
         expect(Object.keys(layers)).toStrictEqual(expectedLayerNames);
         expect(layers).toStrictEqual({

@@ -1,10 +1,7 @@
 import type { TileLayerOptions } from "leaflet";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
-import {
-    createOpenFreeMapVectorLayers,
-    type LeafletBaseLayer,
-    type LeafletVectorLayerRuntime,
-} from "./mapVectorLayers.js";
+import { type LeafletBaseLayer } from "./mapLibreLayerRuntime.js";
+import { createOpenFreeMapVectorLayers } from "./mapVectorLayers.js";
 
 // Leaflet base layers module. Resolves the registered Leaflet runtime when
 // present; otherwise provides a minimal shim to keep imports safe in
@@ -15,7 +12,7 @@ type LeafletTileLayerFactory = (
     urlTemplate: string,
     options?: LeafletTileLayerOptions
 ) => LeafletBaseLayer;
-type LeafletMinimal = LeafletVectorLayerRuntime & {
+type LeafletMinimal = {
     tileLayer: LeafletTileLayerFactory;
 };
 
@@ -45,7 +42,6 @@ function hasFunctionProperty(value: object, key: "tileLayer"): boolean {
 function getLeaflet(): LeafletMinimal {
     return (
         resolveLeafletRuntime(isLeafletMinimal) ?? {
-            maplibreGL: () => ({}),
             tileLayer: () => ({}),
         }
     );
@@ -57,7 +53,7 @@ export function createBaseLayers(
     leaflet: LeafletMinimal = getLeaflet()
 ): Record<string, LeafletBaseLayer> {
     const LRef = leaflet;
-    const openFreeMapLayers = createOpenFreeMapVectorLayers(LRef);
+    const openFreeMapLayers = createOpenFreeMapVectorLayers();
 
     return {
         CartoDB_DarkMatter: LRef.tileLayer(

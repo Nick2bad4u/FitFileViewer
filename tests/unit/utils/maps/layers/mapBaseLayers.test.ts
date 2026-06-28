@@ -4,6 +4,10 @@ async function loadLeafletRuntime() {
     return import("../../../../../electron-app/utils/maps/core/leafletRuntime.js");
 }
 
+async function loadMapLibreLayerRuntime() {
+    return import("../../../../../electron-app/utils/maps/layers/mapLibreLayerRuntime.js");
+}
+
 const EXPECTED_LAYER_NAMES = [
     "CartoDB_DarkMatter",
     "CartoDB_Positron",
@@ -46,12 +50,18 @@ describe("mapBaseLayers", () => {
     beforeEach(async () => {
         vi.resetModules();
         const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
+        const { clearMapLibreLayerFactoryForTests } =
+            await loadMapLibreLayerRuntime();
         clearLeafletRuntimeForTests();
+        clearMapLibreLayerFactoryForTests();
     });
 
     afterEach(async () => {
         const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
+        const { clearMapLibreLayerFactoryForTests } =
+            await loadMapLibreLayerRuntime();
         clearLeafletRuntimeForTests();
+        clearMapLibreLayerFactoryForTests();
     });
 
     it("uses shim when a Leaflet runtime is not registered", async () => {
@@ -66,17 +76,19 @@ describe("mapBaseLayers", () => {
         expect(baseLayers.OpenFreeMap_Dark).toStrictEqual({});
     });
 
-    it("calls L.tileLayer and L.maplibreGL when present", async () => {
+    it("calls L.tileLayer and registered MapLibre factory when present", async () => {
         expect.assertions(7);
 
         const rasterLayer = { kind: "raster" };
         const vectorLayer = { kind: "vector" };
+        const mapLibreLayerFactory = vi.fn<() => MockLayer>(() => vectorLayer);
         const leaflet = {
-            maplibreGL: vi.fn<() => MockLayer>(() => vectorLayer),
             tileLayer: vi.fn<() => MockLayer>(() => rasterLayer),
         };
         const { setLeafletRuntime } = await loadLeafletRuntime();
+        const { setMapLibreLayerFactory } = await loadMapLibreLayerRuntime();
         setLeafletRuntime(leaflet);
+        setMapLibreLayerFactory(mapLibreLayerFactory);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
@@ -84,7 +96,7 @@ describe("mapBaseLayers", () => {
         expect(baseLayers.CartoDB_DarkMatter).toBe(rasterLayer);
         expect(baseLayers.OpenFreeMap_Bright).toBe(vectorLayer);
         expect(leaflet.tileLayer).toHaveBeenCalledTimes(28);
-        expect(leaflet.maplibreGL).toHaveBeenCalledTimes(5);
+        expect(mapLibreLayerFactory).toHaveBeenCalledTimes(5);
         expect(leaflet.tileLayer).toHaveBeenCalledWith(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             {
@@ -92,7 +104,7 @@ describe("mapBaseLayers", () => {
                     '&copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
             }
         );
-        expect(leaflet.maplibreGL).toHaveBeenCalledWith({
+        expect(mapLibreLayerFactory).toHaveBeenCalledWith({
             style: "https://tiles.openfreemap.org/styles/bright",
         });
     });
@@ -100,17 +112,20 @@ describe("mapBaseLayers", () => {
     it("falls back to the shim when the registered runtime lacks tileLayer", async () => {
         expect.assertions(3);
 
-        const maplibreGL = vi.fn<() => MockLayer>(() => ({ kind: "unused" }));
+        const mapLibreLayerFactory = vi.fn<() => MockLayer>(() => ({
+            kind: "unused",
+        }));
         const { setLeafletRuntime } = await loadLeafletRuntime();
+        const { setMapLibreLayerFactory } = await loadMapLibreLayerRuntime();
         setLeafletRuntime({
-            maplibreGL,
             tileLayer: "not-a-function",
         });
+        setMapLibreLayerFactory(mapLibreLayerFactory);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         expect(baseLayers.OpenStreetMap).toStrictEqual({});
-        expect(baseLayers.OpenFreeMap_Bright).toStrictEqual({});
-        expect(maplibreGL).not.toHaveBeenCalled();
+        expect(baseLayers.OpenFreeMap_Bright).toBeDefined();
+        expect(mapLibreLayerFactory).toHaveBeenCalledTimes(5);
     });
 });

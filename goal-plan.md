@@ -957,6 +957,10 @@ metadata properties.
 Development debug state-manager method extraction now validates optional `getState`, `getHistory`, and
 `getSubscriptions` methods through direct typed property reads instead of looping method names through
 `Reflect.get(value, methodName)`, with architecture coverage blocking that reflective helper from returning.
+MapLibre layer construction now registers the `@maplibre/maplibre-gl-leaflet` factory through
+`mapLibreLayerRuntime.ts` after the map vendor entry loads, so base-layer and vector-layer modules consume an
+explicit module-local adapter instead of reading a plugin-mutated `Leaflet.maplibreGL` property from the broader
+Leaflet runtime shape.
 Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and global
 error-listener abort-controller creation now routes through `errorHandlingRuntime.ts` instead of constructing
 `AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary

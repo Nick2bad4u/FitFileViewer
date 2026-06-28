@@ -663,7 +663,7 @@ const migratedMapLeafletRuntimeFiles = [
 const directLeafletRuntimeGlobalLookupAllowedFiles = [] as const;
 const leafletCompatibilityGlobalDefinitionAllowedFiles = [] as const;
 const directMapLibreBridgeAllowedFiles = [
-    "electron-app/utils/maps/layers/mapVectorLayers.ts",
+    "electron-app/utils/maps/layers/mapLibreLayerRuntime.ts",
 ] as const;
 const directFitFileRawDataSelectorAllowedFiles = [
     "electron-app/utils/state/domain/activeFitRawDataState.ts",
@@ -26973,7 +26973,7 @@ describe("architecture boundaries", () => {
         expect(vitestSetupSource).not.toContain("maplibreGL");
     });
 
-    it("keeps direct MapLibre bridge calls quarantined to the vector-layer adapter", () => {
+    it("keeps direct MapLibre bridge calls quarantined to the runtime adapter", () => {
         expect.assertions(1);
 
         const allowed = new Set<string>(directMapLibreBridgeAllowedFiles);

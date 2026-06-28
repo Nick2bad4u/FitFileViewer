@@ -4,6 +4,10 @@ async function loadLeafletRuntime() {
     return import("../../../../electron-app/utils/maps/core/leafletRuntime.js");
 }
 
+async function loadMapLibreLayerRuntime() {
+    return import("../../../../electron-app/utils/maps/layers/mapLibreLayerRuntime.js");
+}
+
 const EXPECTED_LAYER_NAMES = [
     "CartoDB_DarkMatter",
     "CartoDB_Positron",
@@ -40,12 +44,19 @@ const EXPECTED_LAYER_NAMES = [
     "WaymarkedTrails_Slopes",
 ];
 
-async function importBaseLayersWithLeaflet(leaflet: unknown) {
+async function importBaseLayersWithLeaflet(
+    leaflet: unknown,
+    mapLibreLayerFactory?: MockMaplibreFactory
+) {
     vi.resetModules();
     const { clearLeafletRuntimeForTests, setLeafletRuntime } =
         await loadLeafletRuntime();
+    const { clearMapLibreLayerFactoryForTests, setMapLibreLayerFactory } =
+        await loadMapLibreLayerRuntime();
     clearLeafletRuntimeForTests();
+    clearMapLibreLayerFactoryForTests();
     setLeafletRuntime(leaflet);
+    setMapLibreLayerFactory(mapLibreLayerFactory);
 
     return import("../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
 }
@@ -66,23 +77,32 @@ describe("mapBaseLayers", () => {
     afterEach(async () => {
         vi.resetModules();
         const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
+        const { clearMapLibreLayerFactoryForTests } =
+            await loadMapLibreLayerRuntime();
         clearLeafletRuntimeForTests();
+        clearMapLibreLayerFactoryForTests();
     });
 
     it("exports the full ordered base layer catalog", async () => {
         expect.assertions(2);
 
-        const { baseLayers } = await importBaseLayersWithLeaflet({
-            maplibreGL: vi.fn<MockMaplibreFactory>((options) => ({
-                options,
-                type: "vector",
-            })),
-            tileLayer: vi.fn<MockTileLayerFactory>((urlTemplate, options) => ({
-                options,
-                type: "raster",
-                urlTemplate,
-            })),
-        });
+        const maplibreGL = vi.fn<MockMaplibreFactory>((options) => ({
+            options,
+            type: "vector",
+        }));
+
+        const { baseLayers } = await importBaseLayersWithLeaflet(
+            {
+                tileLayer: vi.fn<MockTileLayerFactory>(
+                    (urlTemplate, options) => ({
+                        options,
+                        type: "raster",
+                        urlTemplate,
+                    })
+                ),
+            },
+            maplibreGL
+        );
 
         expect(Object.keys(baseLayers)).toStrictEqual(EXPECTED_LAYER_NAMES);
         expect(baseLayers).not.toHaveProperty("__missing_layer__");
@@ -103,10 +123,10 @@ describe("mapBaseLayers", () => {
             })
         );
 
-        const { baseLayers } = await importBaseLayersWithLeaflet({
-            maplibreGL,
-            tileLayer,
-        });
+        const { baseLayers } = await importBaseLayersWithLeaflet(
+            { tileLayer },
+            maplibreGL
+        );
 
         expect(tileLayer).toHaveBeenCalledTimes(28);
         expect(maplibreGL).toHaveBeenCalledTimes(5);
