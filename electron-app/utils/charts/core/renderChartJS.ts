@@ -296,8 +296,8 @@ registerChartStartup({
 
 /** Exports rendered chart artifacts using current state. */
 export const exportChartsWithState = createExportChartsWithState({
+    areChartsRendered: areRendererChartsRendered,
     getChartInstances: getGlobalChartInstances,
-    getState: callGetState,
     notify,
     setState: callSetState,
 });

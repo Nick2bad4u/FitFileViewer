@@ -2,8 +2,8 @@ import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 interface CreateExportChartsWithStateDependencies {
+    areChartsRendered(): boolean;
     getChartInstances(fallbackInstances: unknown): unknown[];
-    getState(path: string): unknown;
     notify(
         message: string,
         type: "error" | "info" | "success" | "warning"
@@ -36,7 +36,7 @@ export function createExportChartsWithState(
     dependencies: CreateExportChartsWithStateDependencies
 ): ExportChartsWithState {
     return (format = "png") => {
-        const isRendered = Boolean(dependencies.getState("charts.isRendered"));
+        const isRendered = dependencies.areChartsRendered();
         const instances = dependencies.getChartInstances(
             getRegisteredChartInstances()
         );
