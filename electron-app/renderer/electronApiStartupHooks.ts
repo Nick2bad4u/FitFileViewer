@@ -108,7 +108,7 @@ function isElectronApiStartupHookSource(
 function isElectronApiStartupHookRecord(
     value: unknown
 ): value is ElectronApiStartupHookSource {
-    return typeof value === "object" && value !== null;
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function probeDevelopmentMode(apiHooks: ElectronApiStartupHooks): void {

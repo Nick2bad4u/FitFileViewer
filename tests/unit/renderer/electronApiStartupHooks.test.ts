@@ -57,6 +57,27 @@ describe("renderer Electron API startup hooks", () => {
         expect(getElectronApiStartupHooks({})).toBeNull();
     });
 
+    it("rejects array-shaped startup hook records", () => {
+        expect.assertions(2);
+
+        const checkForUpdates = vi.fn<() => void>();
+        const recentFiles = vi.fn<() => Promise<string[]>>();
+        const arrayShapedApi = Object.assign([], {
+            checkForUpdates,
+            recentFiles,
+        });
+        const electronApiScope = {
+            getElectronAPI: () => arrayShapedApi,
+        };
+
+        expect(getElectronApiHooksFromValue(arrayShapedApi)).toBeNull();
+        expect(
+            getElectronApiStartupHooks({
+                getElectronApiScope: () => electronApiScope,
+            })
+        ).toBeNull();
+    });
+
     it("ignores ambient Electron API globals", () => {
         expect.assertions(1);
 

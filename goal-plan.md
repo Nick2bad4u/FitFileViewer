@@ -1737,8 +1737,8 @@ browser-runtime provider or explicit scoped provider instead of defining or dele
 directly, with architecture coverage blocking that direct fixture mutation, the retired default global lookup, and
 central runtime candidate defaults that route through `Partial<ElectronAPI>`.
 Renderer startup hooks now accept explicit Electron API lookup only through `getElectronApiScope`, not raw
-`RendererElectronApiScope` arguments or ambient global fallbacks, with runtime coverage and architecture coverage
-blocking those compatibility shapes from returning.
+`RendererElectronApiScope` arguments, ambient global fallbacks, or array-shaped compatibility records, with runtime
+coverage and architecture coverage blocking those compatibility shapes from returning.
 Renderer runtime environment startup now captures the preload API candidate through the named
 `getElectronApiCandidate` provider instead of reading `electronAPI` inline from `rendererGlobal` while assembling
 the runtime environment object, with unit and architecture coverage blocking the direct probe from returning.
