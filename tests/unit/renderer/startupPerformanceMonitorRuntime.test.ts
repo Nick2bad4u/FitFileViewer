@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getStartupPerformanceMonitorRuntime } from "../../../electron-app/renderer/startupPerformanceMonitorRuntime.js";
+import {
+    getStartupPerformanceMonitorRuntime,
+    type StartupPerformanceMonitorRuntimeScope,
+} from "../../../electron-app/renderer/startupPerformanceMonitorRuntime.js";
 
 describe("getStartupPerformanceMonitorRuntime", () => {
     it("reads performance timing through the injected provider", () => {
@@ -42,10 +45,24 @@ describe("getStartupPerformanceMonitorRuntime", () => {
     it("fails clearly when performance timing is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getStartupPerformanceMonitorRuntime({});
+        const utils = getStartupPerformanceMonitorRuntime({
+            getPerformance: () => undefined,
+        });
 
         expect(() => utils.nowPerformance()).toThrow(
             "startupPerformanceMonitorRuntime requires performance.now"
+        );
+    });
+
+    it("fails clearly when the performance provider is omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getStartupPerformanceMonitorRuntime(
+                {} as unknown as StartupPerformanceMonitorRuntimeScope
+            )
+        ).toThrow(
+            "startupPerformanceMonitorRuntime requires a performance provider"
         );
     });
 
@@ -53,14 +70,13 @@ describe("getStartupPerformanceMonitorRuntime", () => {
         expect.assertions(2);
 
         const now = vi.fn<() => number>(() => 123.45);
-        const utils = getStartupPerformanceMonitorRuntime({
-            performance: { now },
-        } as unknown as Parameters<
-            typeof getStartupPerformanceMonitorRuntime
-        >[0]);
 
-        expect(() => utils.nowPerformance()).toThrow(
-            "startupPerformanceMonitorRuntime requires performance.now"
+        expect(() =>
+            getStartupPerformanceMonitorRuntime({
+                performance: { now },
+            } as unknown as StartupPerformanceMonitorRuntimeScope)
+        ).toThrow(
+            "startupPerformanceMonitorRuntime requires a performance provider"
         );
         expect(now).not.toHaveBeenCalled();
     });
