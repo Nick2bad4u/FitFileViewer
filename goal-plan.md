@@ -67,6 +67,8 @@ Browser folder listings now validate shared IPC entry/listing contracts before u
 of asserting anonymous response shapes inside the renderer.
 Overlay loading now narrows active raw FIT data and loaded-file entries before initializing overlay state instead of
 asserting state arrays into overlay entry shapes.
+FIT parser payload handling now narrows parser error payloads through record guards instead of asserting unknown decode
+results into ad hoc error shapes.
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.

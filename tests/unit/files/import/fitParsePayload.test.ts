@@ -95,6 +95,20 @@ describe("fitParsePayload", () => {
         });
     });
 
+    it("rejects non-string error fields as malformed success envelopes", () => {
+        expect.assertions(2);
+
+        const malformedPayload = {
+            error: { message: "Decode failed" },
+            success: false,
+        };
+
+        expect(getFitParseErrorMessage(malformedPayload)).toBeNull();
+        expect(() => unwrapFitParseMessages(malformedPayload)).toThrow(
+            TypeError
+        );
+    });
+
     it("rejects malformed success envelopes instead of treating them as FIT messages", () => {
         expect.assertions(1);
 

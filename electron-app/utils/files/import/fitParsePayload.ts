@@ -112,10 +112,7 @@ function formatErrorDetails(details: FitFieldValue | undefined): string {
 function isFitDecodeErrorPayload(
     value: unknown
 ): value is FitDecodeErrorPayload {
-    return (
-        isPlainRecord(value) &&
-        typeof (value as { error?: unknown }).error === "string"
-    );
+    return isPlainRecord(value) && typeof value["error"] === "string";
 }
 
 function isFitMessages(value: unknown): value is FitMessages {

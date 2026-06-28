@@ -12646,11 +12646,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const handleOpenFileSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/files/import/handleOpenFile.ts"
+            )
+        );
+        const fitParsePayloadSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/fitParsePayload.ts"
             )
         );
 
@@ -12682,6 +12687,11 @@ describe("architecture boundaries", () => {
         );
         expect(handleOpenFileSource).not.toContain("import type { ElectronAPI");
         expect(handleOpenFileSource).not.toContain("Pick<ElectronAPI");
+        expect(fitParsePayloadSource).toContain("isPlainRecord(value)");
+        expect(fitParsePayloadSource).toContain('value["error"]');
+        expect(fitParsePayloadSource).not.toContain(
+            "value as { error?: unknown }"
+        );
     });
 
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
