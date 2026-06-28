@@ -19671,7 +19671,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {
-        expect.assertions(9);
+        expect.assertions(12);
 
         const violations = migratedScreenfullRuntimeFiles
             .filter((relativeFile) =>
@@ -19696,10 +19696,15 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonSource).not.toContain("setupDOMContentLoaded");
         expect(fullscreenButtonSource).not.toContain("Legacy DOM setup");
         expect(screenfullRuntimeSource).toContain(
-            "Readonly<Record<string, unknown>>"
+            "type ScreenfullRuntimeCandidate = Readonly<{"
         );
         expect(screenfullRuntimeSource).toContain("!Array.isArray(value)");
-        expect(screenfullRuntimeSource).toContain('typeof value["isEnabled"]');
+        expect(screenfullRuntimeSource).toContain("function readRuntimeValue(");
+        expect(screenfullRuntimeSource).toContain("runtime.isEnabled");
+        expect(screenfullRuntimeSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(screenfullRuntimeSource).not.toContain('value["isEnabled"]');
         expect(screenfullRuntimeSource).not.toContain(
             "value as { isEnabled?: unknown }"
         );

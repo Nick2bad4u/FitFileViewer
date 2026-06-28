@@ -5,14 +5,35 @@ export type ScreenfullRuntime = {
     on: (event: "change", handler: (event: Event) => void) => void;
 };
 
+type ScreenfullRuntimeCandidate = Readonly<{
+    readonly isEnabled?: unknown;
+    readonly isFullscreen?: unknown;
+    readonly off?: unknown;
+    readonly on?: unknown;
+}>;
+
 type ScreenfullRuntimeRegistry = {
     runtime?: unknown;
 };
 
 const screenfullRuntimeRegistry: ScreenfullRuntimeRegistry = {};
 
-function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+function isObjectCandidate(value: unknown): value is object {
     return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toScreenfullRuntimeCandidate(
+    value: unknown
+): ScreenfullRuntimeCandidate | undefined {
+    return isObjectCandidate(value) ? value : undefined;
+}
+
+function readRuntimeValue(readValue: () => unknown): unknown {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 export function setScreenfullRuntime(runtime: unknown): void {
@@ -31,10 +52,14 @@ export function resolveScreenfullRuntime(): ScreenfullRuntime | undefined {
 export function isScreenfullRuntime(
     value: unknown
 ): value is ScreenfullRuntime {
+    const runtime = toScreenfullRuntimeCandidate(value);
+    if (runtime === undefined) {
+        return false;
+    }
+
     return (
-        isRecord(value) &&
-        typeof value["isEnabled"] === "boolean" &&
-        typeof value["isFullscreen"] === "boolean" &&
-        typeof value["on"] === "function"
+        typeof readRuntimeValue(() => runtime.isEnabled) === "boolean" &&
+        typeof readRuntimeValue(() => runtime.isFullscreen) === "boolean" &&
+        typeof readRuntimeValue(() => runtime.on) === "function"
     );
 }

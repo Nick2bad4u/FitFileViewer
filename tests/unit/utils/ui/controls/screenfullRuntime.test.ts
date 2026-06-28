@@ -50,4 +50,26 @@ describe("screenfullRuntime", () => {
         ).toBe(false);
         expect(resolveScreenfullRuntime()).toBeUndefined();
     });
+
+    it("ignores screenfull runtimes with throwing property accessors", () => {
+        expect.assertions(2);
+
+        const runtime = Object.defineProperty(
+            {
+                isFullscreen: false,
+                on: () => undefined,
+            },
+            "isEnabled",
+            {
+                get() {
+                    throw new Error("screenfull unavailable");
+                },
+            }
+        );
+
+        setScreenfullRuntime(runtime);
+
+        expect(isScreenfullRuntime(runtime)).toBe(false);
+        expect(resolveScreenfullRuntime()).toBeUndefined();
+    });
 });
