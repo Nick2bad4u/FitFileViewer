@@ -15,7 +15,6 @@ interface RendererLocationParts {
 }
 
 interface RendererEnvironmentInputRecord {
-    readonly __DEVELOPMENT__?: unknown;
     readonly developmentFlag?: unknown;
     readonly document?: unknown;
     readonly location?: unknown;
@@ -131,10 +130,7 @@ function toRendererEnvironmentInput(
     const inputRecord = toEnvironmentInputRecord(input);
 
     return {
-        developmentFlag:
-            "developmentFlag" in inputRecord
-                ? inputRecord.developmentFlag
-                : inputRecord.__DEVELOPMENT__,
+        developmentFlag: inputRecord.developmentFlag,
         document: inputRecord.document,
         location: inputRecord.location,
     };

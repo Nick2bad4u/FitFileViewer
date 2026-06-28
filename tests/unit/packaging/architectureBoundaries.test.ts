@@ -7409,7 +7409,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(42);
+        expect.assertions(44);
 
         const rendererEnvironmentRawSource = readRepositoryFile(
             "electron-app/utils/app/initialization/rendererEnvironment.ts"
@@ -7445,6 +7445,12 @@ describe("architecture boundaries", () => {
             "interface RendererEnvironmentInputRecord"
         );
         expect(rendererEnvironmentSource).not.toContain("electronApiCandidate");
+        expect(rendererEnvironmentSource).not.toContain(
+            "readonly __DEVELOPMENT__?:"
+        );
+        expect(rendererEnvironmentSource).not.toContain(
+            "inputRecord.__DEVELOPMENT__"
+        );
         expect(rendererEnvironmentSource).not.toContain(
             "readonly electronAPI?: unknown"
         );

@@ -88,7 +88,7 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createEnvironmentInput({ __DEVELOPMENT__: true })
+                createEnvironmentInput({ developmentFlag: true })
             ),
         }).toStrictEqual({
             development: true,
@@ -96,7 +96,19 @@ describe("rendererEnvironment", () => {
 
         expect({
             development: isDevelopmentMode(
-                createEnvironmentInput({ __DEVELOPMENT__: false })
+                createEnvironmentInput({ developmentFlag: false })
+            ),
+        }).toStrictEqual({
+            development: false,
+        });
+    });
+
+    it("ignores the retired __DEVELOPMENT__ input alias", () => {
+        expect.assertions(1);
+
+        expect({
+            development: isDevelopmentMode(
+                createEnvironmentInput({ __DEVELOPMENT__: true })
             ),
         }).toStrictEqual({
             development: false,
