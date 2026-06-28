@@ -6,6 +6,8 @@
 
 - Always start your commit message with the appropriate emoji and type in brackets
 - Example: `"✨ [feat] Add dark mode toggle"`
+- Create signed commits when local commit signing is configured, and verify the
+  result with `git verify-commit HEAD` before reporting the commit as complete.
 - Each commit bullet point should start with one of those emojis (or create a new one if none fit)
 - Each new topic in the commit should start with one of the emojis and tags
 - Indent any lines that refer to the statement above with `" - "`

@@ -747,6 +747,27 @@ describe("workspace package boundaries", () => {
         );
     });
 
+    it("keeps agent commit guidance on signed, verified local commits", () => {
+        expect.assertions(4);
+
+        const commitInstructions = readFileSync(
+            path.join(
+                process.cwd(),
+                ".github/agent-commit-message-instructions.md"
+            ),
+            "utf8"
+        );
+
+        expect(commitInstructions).toContain(
+            "Create signed commits when local commit signing is configured"
+        );
+        expect(commitInstructions).toContain("git verify-commit HEAD");
+        expect(commitInstructions).toContain("## Format Requirements");
+        expect(commitInstructions).toContain(
+            "## Commitlint-enforced hybrid header format"
+        );
+    });
+
     it("keeps the root app package as the runtime app manifest", () => {
         expect.assertions(1);
 
