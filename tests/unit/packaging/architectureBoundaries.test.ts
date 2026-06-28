@@ -7047,7 +7047,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(202);
+        expect.assertions(209);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7576,11 +7576,26 @@ describe("architecture boundaries", () => {
         expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
             "readonly consoleRef?:"
         );
+        expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
+            "readonly getConsole?:"
+        );
+        expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "scope.consoleRef"
         );
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "scope.documentRef"
+        );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
+            "scope.getConsole?.()"
+        );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
+            "scope.getDocument?.()"
         );
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "type MainUiRuntimeGlobalScope = typeof globalThis &"
@@ -7608,10 +7623,16 @@ describe("architecture boundaries", () => {
             "main UI runtime environment requires an electron API provider"
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
-            "const consoleRef = scope.getConsole?.();"
+            "const consoleRef = scope.getConsole();"
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
-            "const documentRef = scope.getDocument?.();"
+            "const documentRef = scope.getDocument();"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            'typeof scope.dateNow !== "function"'
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            'typeof scope.getElectronAPI !== "function"'
         );
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "main UI runtime environment requires a document reference"

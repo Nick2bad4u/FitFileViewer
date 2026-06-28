@@ -11,14 +11,20 @@ export interface MainUiRuntimeEnvironment {
 }
 
 export interface MainUiRuntimeEnvironmentScope {
-    readonly dateNow?: (() => number) | undefined;
-    readonly getConsole?: (() => Console | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly dateNow: () => number;
+    readonly getConsole: () => Console | undefined;
+    readonly getDocument: () => Document | undefined;
     readonly getElectronAPI: () => unknown;
 }
 
 function getScopeConsole(scope: MainUiRuntimeEnvironmentScope): Console {
-    const consoleRef = scope.getConsole?.();
+    if (typeof scope.getConsole !== "function") {
+        throw new TypeError(
+            "main UI runtime environment requires a console reference"
+        );
+    }
+
+    const consoleRef = scope.getConsole();
     if (consoleRef === undefined) {
         throw new TypeError(
             "main UI runtime environment requires a console reference"
@@ -29,7 +35,7 @@ function getScopeConsole(scope: MainUiRuntimeEnvironmentScope): Console {
 }
 
 function getScopeDateNow(scope: MainUiRuntimeEnvironmentScope): () => number {
-    if (scope.dateNow === undefined) {
+    if (typeof scope.dateNow !== "function") {
         throw new TypeError("main UI runtime environment requires a clock");
     }
 
@@ -37,7 +43,13 @@ function getScopeDateNow(scope: MainUiRuntimeEnvironmentScope): () => number {
 }
 
 function getScopeDocument(scope: MainUiRuntimeEnvironmentScope): Document {
-    const documentRef = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "main UI runtime environment requires a document reference"
+        );
+    }
+
+    const documentRef = scope.getDocument();
     if (documentRef === undefined) {
         throw new TypeError(
             "main UI runtime environment requires a document reference"
@@ -50,7 +62,7 @@ function getScopeDocument(scope: MainUiRuntimeEnvironmentScope): Document {
 function getScopeElectronApiProvider(
     scope: MainUiRuntimeEnvironmentScope
 ): () => unknown {
-    if (scope.getElectronAPI === undefined) {
+    if (typeof scope.getElectronAPI !== "function") {
         throw new TypeError(
             "main UI runtime environment requires an electron API provider"
         );
