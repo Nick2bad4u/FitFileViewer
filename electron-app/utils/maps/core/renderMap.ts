@@ -1111,13 +1111,7 @@ export function renderMap(): void {
 
         // Estimated power (virtual power) settings
         const estPowerBtn = createPowerEstimationButton({
-            getData: () => {
-                const activityData = getActiveFitPowerInput();
-                return {
-                    ...activityData,
-                    loadedFitFiles: getLoadedFitFiles(),
-                };
-            },
+            getData: getActiveFitPowerInput,
             onAfterApply: () => {
                 // Redraw map so tooltips/points pick up the updated estimated power values.
                 mapDrawLapsWrapper("all");

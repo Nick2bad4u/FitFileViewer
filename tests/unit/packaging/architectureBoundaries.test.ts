@@ -18704,7 +18704,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(22);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -18723,6 +18723,9 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.ts"
             )
         );
+        const renderMapSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(createPowerEstimationButtonRuntimeSource).not.toMatch(
@@ -18733,6 +18736,22 @@ describe("architecture boundaries", () => {
         );
         expect(createPowerEstimationButtonSource).toContain(
             "createPowerEstimationButtonRuntime.js"
+        );
+        expect(createPowerEstimationButtonSource).toContain(
+            "loadedFitFilesState.js"
+        );
+        expect(createPowerEstimationButtonSource).toContain(
+            "for (const fitFile of getLoadedFitFiles())"
+        );
+        expect(createPowerEstimationButtonSource).not.toContain(
+            "readonly loadedFitFiles?:"
+        );
+        expect(createPowerEstimationButtonSource).not.toContain(
+            "data?.loadedFitFiles"
+        );
+        expect(renderMapSource).toContain("getData: getActiveFitPowerInput");
+        expect(renderMapSource).not.toContain(
+            "loadedFitFiles: getLoadedFitFiles()"
         );
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "readonly AbortController?:"

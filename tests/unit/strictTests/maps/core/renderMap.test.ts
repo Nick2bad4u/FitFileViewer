@@ -507,7 +507,6 @@ describe("renderMap core", () => {
 
         expect(mockPowerEstimationButtonOptions.current).not.toBeNull();
         expect(mockPowerEstimationButtonOptions.current?.getData()).toEqual({
-            loadedFitFiles: [],
             recordMesgs: data.recordMesgs,
             sessionMesgs: data.sessionMesgs,
         });

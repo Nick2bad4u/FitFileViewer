@@ -3,13 +3,11 @@ import {
     hasPowerData,
     type PowerEstimationSettings,
 } from "../../data/processing/estimateCyclingPower.js";
+import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import { openPowerEstimationSettingsModal } from "../modals/openPowerEstimationSettingsModal.js";
 import { getCreatePowerEstimationButtonRuntime } from "./createPowerEstimationButtonRuntime.js";
 
 interface FitRecordContainer {
-    readonly loadedFitFiles?: readonly {
-        readonly data?: FitRecordContainer;
-    }[];
     readonly recordMesgs?: Record<string, unknown>[];
     readonly sessionMesgs?: Record<string, unknown>[];
 }
@@ -71,7 +69,7 @@ function applyPowerEstimationToCurrentData(
         settings
     );
 
-    for (const fitFile of getLoadedFitFiles(currentData)) {
+    for (const fitFile of getLoadedFitFiles()) {
         applyToRecordSet(
             seen,
             getRecordMessages(fitFile.data ?? null),
@@ -103,19 +101,6 @@ function applyToRecordSet(
                   settings,
               }
     );
-}
-
-function getLoadedFitFiles(
-    data: FitRecordContainer | null
-): NonNullable<FitRecordContainer["loadedFitFiles"]> {
-    const loadedFitFiles: unknown = data?.loadedFitFiles;
-    return isLoadedFitFiles(loadedFitFiles) ? loadedFitFiles : [];
-}
-
-function isLoadedFitFiles(
-    value: unknown
-): value is NonNullable<FitRecordContainer["loadedFitFiles"]> {
-    return Array.isArray(value);
 }
 
 function getRecordMessages(

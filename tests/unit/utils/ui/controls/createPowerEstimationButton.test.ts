@@ -19,6 +19,12 @@ const mocks = vi.hoisted(() => ({
                 onApply: (settings: PowerEstimationSettings) => void;
             }) => void
         >(),
+    loadedFitFiles: [] as {
+        data?: {
+            recordMesgs?: Record<string, unknown>[];
+            sessionMesgs?: Record<string, unknown>[];
+        };
+    }[],
 }));
 
 vi.mock(
@@ -34,6 +40,12 @@ vi.mock(
     () => ({
         openPowerEstimationSettingsModal:
             mocks.openPowerEstimationSettingsModal,
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
+    () => ({
+        getLoadedFitFiles: vi.fn(() => mocks.loadedFitFiles),
     })
 );
 
@@ -55,6 +67,7 @@ function resetMocks(): void {
     vi.clearAllMocks();
     document.body.replaceChildren();
     mocks.hasPowerData.mockReturnValue(false);
+    mocks.loadedFitFiles = [];
 }
 
 function getModalApplyCallback(): (settings: PowerEstimationSettings) => void {
@@ -117,19 +130,19 @@ describe(createPowerEstimationButton, () => {
         const overlaySession = [{ sport: "cycling" }];
         const duplicateOverlay = { recordMesgs: activeRecords };
         const onAfterApply = vi.fn<() => void>();
+        mocks.loadedFitFiles = [
+            {
+                data: {
+                    recordMesgs: overlayRecords,
+                    sessionMesgs: overlaySession,
+                },
+            },
+            { data: duplicateOverlay },
+            { data: { recordMesgs: [] } },
+        ];
 
         const button = createPowerEstimationButton({
             getData: () => ({
-                loadedFitFiles: [
-                    {
-                        data: {
-                            recordMesgs: overlayRecords,
-                            sessionMesgs: overlaySession,
-                        },
-                    },
-                    { data: duplicateOverlay },
-                    { data: { recordMesgs: [] } },
-                ],
                 recordMesgs: activeRecords,
                 sessionMesgs: activeSession,
             }),
