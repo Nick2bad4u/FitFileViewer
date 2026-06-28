@@ -25232,7 +25232,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart request listener browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(32);
 
         const violations = migratedRenderChartRequestListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -25323,6 +25323,7 @@ describe("architecture boundaries", () => {
             "const runtimeDocument = scope.getDocument?.();"
         );
         expect(runtimeSource).toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).not.toContain("defaultView?.");
     });
 
     it("keeps chart startup browser APIs behind the runtime facade", () => {

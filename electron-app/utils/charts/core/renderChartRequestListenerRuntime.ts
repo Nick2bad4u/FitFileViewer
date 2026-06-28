@@ -19,7 +19,7 @@ type RenderChartRequestListenerAddEventListener = (
 
 type RenderChartRequestListenerDocument = Pick<
     Document,
-    "body" | "defaultView" | "querySelector"
+    "body" | "querySelector"
 >;
 
 export interface RenderChartRequestListenerRuntimeScope {
@@ -68,10 +68,7 @@ const defaultRenderChartRequestListenerRuntimeScope: RenderChartRequestListenerR
 function getCustomEventConstructor(
     scope: RenderChartRequestListenerRuntimeScope
 ): BrowserCustomEventConstructor | undefined {
-    return (
-        scope.getCustomEvent?.() ??
-        scope.getDocument?.()?.defaultView?.CustomEvent
-    );
+    return scope.getCustomEvent?.();
 }
 
 function getDocument(
@@ -88,10 +85,7 @@ function getDocument(
 function getHTMLElementConstructor(
     scope: RenderChartRequestListenerRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return (
-        scope.getHTMLElement?.() ??
-        scope.getDocument?.()?.defaultView?.HTMLElement
-    );
+    return scope.getHTMLElement?.();
 }
 
 function isHTMLElement(

@@ -142,6 +142,10 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
         const minimalDocument = {
             body: document.body,
+            defaultView: {
+                CustomEvent,
+                HTMLElement,
+            },
             querySelector: vi.fn<() => Element | null>(() => document.body),
         } as unknown as Document;
 
