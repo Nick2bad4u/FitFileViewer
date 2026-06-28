@@ -6,6 +6,7 @@ import {
     clearRendererChartRenderState,
     completeRendererChartRenderState,
     getRendererChartState,
+    getRendererSelectedChart,
     initializeRendererChartRenderState,
     isRendererChartRendering,
     normalizeRendererChartsRendered,
@@ -223,15 +224,18 @@ describe("rendererChartRenderState", () => {
     });
 
     it("subscribes to selected chart changes", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const changes: unknown[] = [];
         const unsubscribe = subscribeToSelectedChart((newValue) => {
             changes.push(newValue);
         });
 
+        expect(getRendererSelectedChart()).toBe("elevation");
+
         setRendererSelectedChart("power", { source: "test" });
         expect(changes).toStrictEqual(["power"]);
+        expect(getRendererSelectedChart()).toBe("power");
 
         unsubscribe();
         stateManager.setState("charts.selectedChart", "speed", {

@@ -2,8 +2,10 @@ import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface CreateChartStateViewDependencies {
     areChartsRendered(): boolean;
+    areChartControlsVisible(): boolean;
     getFieldVisibility(field: string): unknown;
     getFormatChartFields(): unknown;
+    getSelectedChart(): unknown;
     getState(path: string): unknown;
     isChartRendering(): boolean;
 }
@@ -71,7 +73,7 @@ export function createChartStateView(
         },
 
         get controlsVisible() {
-            return dependencies.getState("charts.controlsVisible") !== false;
+            return dependencies.areChartControlsVisible();
         },
 
         get hasValidData() {
@@ -91,7 +93,7 @@ export function createChartStateView(
         },
 
         get selectedChart() {
-            return dependencies.getState("charts.selectedChart") || "elevation";
+            return dependencies.getSelectedChart();
         },
     };
 

@@ -35,12 +35,16 @@ import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
     completeRendererChartRenderState,
+    getRendererSelectedChart,
     initializeRendererChartRenderState,
     isRendererChartRendering,
     setRendererChartRendering,
     setRendererSelectedChart,
 } from "../../state/domain/rendererChartRenderState.js";
-import { setRendererChartControlsVisible } from "../../state/domain/rendererChartControlsState.js";
+import {
+    areRendererChartControlsVisible,
+    setRendererChartControlsVisible,
+} from "../../state/domain/rendererChartControlsState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -262,10 +266,12 @@ initializeChartRuntimeBootstrap({
 
 /** Reactive view over chart state and renderable fields. */
 export const chartState = createChartStateView({
+    areChartControlsVisible: areRendererChartControlsVisible,
     areChartsRendered: areRendererChartsRendered,
     getFieldVisibility: (field) =>
         chartSettingsManager.getFieldVisibility(field),
     getFormatChartFields: getFormatChartFieldsSafe,
+    getSelectedChart: getRendererSelectedChart,
     getState: callGetState,
     isChartRendering: isRendererChartRendering,
 });

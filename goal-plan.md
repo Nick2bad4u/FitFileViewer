@@ -1975,6 +1975,8 @@ Chart state-manager data-change clearing now routes through `resetRendererChartR
 `tabActive` reset behind the renderer chart state-domain helper.
 Chart action selected-chart and controls-visible updates now route through renderer chart state-domain helpers instead
 of direct `charts.selectedChart` or `charts.controlsVisible` path writes.
+Chart state-view selected-chart and controls-visible reads now route through renderer chart state-domain helpers instead
+of direct `charts.selectedChart` or `charts.controlsVisible` path reads.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.

@@ -93,6 +93,10 @@ export function setRendererSelectedChart(
     });
 }
 
+export function getRendererSelectedChart(): unknown {
+    return getState(RENDERER_CHART_SELECTED_STATE_PATH) || "elevation";
+}
+
 export function setRendererChartRendering(
     rendering: boolean,
     options: StateUpdateOptions = {}
