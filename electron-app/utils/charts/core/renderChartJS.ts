@@ -32,6 +32,7 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import {
     getRendererPerformanceRenderTime,
+    getRendererPerformanceMetrics,
     updateRendererChartRenderPerformanceSummary,
     updateRendererPerformanceRenderTimes,
 } from "../../state/domain/appActionsState.js";
@@ -50,6 +51,7 @@ import {
     getRendererChartOptions,
     getRendererChartOptionsOrDefault,
     getRendererChartRenderedCount,
+    getRendererChartState,
     getRendererSelectedChart,
     initializeRendererChartRenderState,
     isRendererChartRendering,
@@ -128,10 +130,7 @@ import {
     getUIStateManagerMaybe,
 } from "./renderChartDependencyAccessors.js";
 import {
-    callGetState,
     callGetStateHistory,
-    callSetState,
-    callSubscribe,
     callUpdateState,
     getStateManagerSafe,
 } from "./renderChartStateAccess.js";
@@ -707,16 +706,16 @@ exposeChartDevTools({
     debounce: (callback, delay) => debounce(callback, delay),
     exportChartsWithState,
     formatChartFields,
+    getActiveTab: getRendererActiveTab,
+    getChartRenderState: getRendererChartState,
     getChartStatus,
     getComputedStateManager: getComputedStateManagerSafe,
-    getState: callGetState,
     getStateHistory: callGetStateHistory,
+    getPerformanceMetrics: getRendererPerformanceMetrics,
     initializeChartStateManagement,
     isWindowAvailable: renderChartRuntime().isWindowAvailable(),
     refreshChartsIfNeeded,
     resetChartNotificationState,
-    setState: callSetState,
-    subscribe: callSubscribe,
 });
 
 export { previousChartState } from "./renderChartNotificationStateAccess.js";

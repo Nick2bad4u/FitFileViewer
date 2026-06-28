@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(171);
+        expect.assertions(183);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12814,6 +12814,11 @@ describe("architecture boundaries", () => {
         const renderChartPerformanceStateSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartPerformanceState.ts"
+            )
+        );
+        const renderChartDevToolsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDevTools.ts"
             )
         );
         const renderChartSettingsManagerSource = stripComments(
@@ -13166,6 +13171,30 @@ describe("architecture boundaries", () => {
         expect(renderChartJSSource).toContain("getCachedChartSettings");
         expect(renderChartJSSource).toContain("setCachedChartSettings");
         expect(renderChartJSSource).toContain("updateCachedChartSettings");
+        expect(renderChartJSSource).toContain(
+            "getActiveTab: getRendererActiveTab"
+        );
+        expect(renderChartJSSource).toContain(
+            "getChartRenderState: getRendererChartState"
+        );
+        expect(renderChartJSSource).toContain(
+            "getPerformanceMetrics: getRendererPerformanceMetrics"
+        );
+        expect(renderChartJSSource).not.toContain("getState: callGetState");
+        expect(renderChartJSSource).not.toContain("setState: callSetState");
+        expect(renderChartJSSource).not.toContain("subscribe: callSubscribe");
+        expect(renderChartDevToolsSource).toContain(
+            "dependencies.getActiveTab()"
+        );
+        expect(renderChartDevToolsSource).toContain(
+            "dependencies.getChartRenderState()"
+        );
+        expect(renderChartDevToolsSource).toContain(
+            "dependencies.getPerformanceMetrics()"
+        );
+        expect(renderChartDevToolsSource).not.toContain("getState(path: string)");
+        expect(renderChartDevToolsSource).not.toContain("dependencies.setState");
+        expect(renderChartDevToolsSource).not.toContain("dependencies.subscribe");
         expect(renderChartStateViewSource).not.toContain("charts.isRendered");
         expect(renderChartStateViewSource).not.toContain("charts.isRendering");
         expect(renderChartStateViewSource).not.toContain(

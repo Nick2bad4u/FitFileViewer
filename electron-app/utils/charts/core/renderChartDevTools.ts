@@ -6,10 +6,6 @@ import {
     getRegisteredChartDevTools,
     registerChartDevTools,
 } from "./chartDevToolsRegistry.js";
-import type {
-    ChartStateListener,
-    ChartStateUpdateOptions,
-} from "./renderChartStateAccess.js";
 import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface ChartActionsAccess {
@@ -34,15 +30,6 @@ interface PerformanceMonitorAccess {
 }
 
 type DebounceFunction = (callback: () => void, delay: number) => () => unknown;
-type SetStateFunction = (
-    path: string,
-    value: unknown,
-    options?: ChartStateUpdateOptions
-) => unknown;
-type SubscribeFunction = (
-    path: string,
-    callback: ChartStateListener
-) => unknown;
 
 interface ChartDevToolsDependencies {
     readonly chartActions: ChartActionsAccess;
@@ -52,16 +39,16 @@ interface ChartDevToolsDependencies {
     readonly debounce: DebounceFunction;
     readonly exportChartsWithState: unknown;
     readonly formatChartFields: readonly string[];
+    readonly getActiveTab: () => unknown;
+    readonly getChartRenderState: () => unknown;
     readonly getChartStatus: unknown;
     readonly getComputedStateManager: () => ComputedStateAccess;
-    readonly getState: (path: string) => unknown;
+    readonly getPerformanceMetrics: () => unknown;
     readonly getStateHistory: () => unknown;
     readonly initializeChartStateManagement: unknown;
     readonly isWindowAvailable: boolean;
     readonly refreshChartsIfNeeded: unknown;
     readonly resetChartNotificationState: unknown;
-    readonly setState: SetStateFunction;
-    readonly subscribe: SubscribeFunction;
 }
 
 function getAllFieldVisibility(
@@ -100,7 +87,6 @@ export function exposeChartDevTools(
         chartPerformanceMonitor,
         chartSettingsManager,
         getComputedStateManager,
-        getState,
     } = dependencies;
 
     if (getRegisteredChartDevTools()) {
@@ -117,12 +103,12 @@ export function exposeChartDevTools(
             list: () => getComputedStateManager().list?.(),
         },
         dumpState: () => ({
+            activeTab: dependencies.getActiveTab(),
             chartInstances: getRegisteredChartInstanceCount(),
-            charts: getState("charts"),
+            charts: dependencies.getChartRenderState(),
             activeFitChartData: getActiveFitChartData().rawData !== null,
-            performance: getState("performance"),
-            settings: getState("settings"),
-            ui: getState("ui"),
+            performance: dependencies.getPerformanceMetrics(),
+            settings: chartSettingsManager.getSettings(),
         }),
         exportCharts: dependencies.exportChartsWithState,
         fieldVisibility: {
@@ -140,23 +126,15 @@ export function exposeChartDevTools(
         getChartSettings: () => chartSettingsManager.getSettings(),
         getChartState: () => dependencies.chartState,
         getChartStatus: dependencies.getChartStatus,
-        getPerformanceMetrics: () => getState("performance"),
+        getPerformanceMetrics: dependencies.getPerformanceMetrics,
         getPerformanceSummary: () => chartPerformanceMonitor.getSummary(),
-        getState: (path: string) => getState(path),
         getStateHistory: dependencies.getStateHistory,
         initializeStateManagement: dependencies.initializeChartStateManagement,
         performance: chartPerformanceMonitor,
         refreshCharts: dependencies.refreshChartsIfNeeded,
         requestRerender: chartActions.requestRerender,
         resetNotificationState: dependencies.resetChartNotificationState,
-        setState: (path: string, value: unknown) =>
-            dependencies.setState(path, value, {
-                silent: false,
-                source: "dev-tools",
-            }),
         settings: chartSettingsManager,
-        subscribe: (path: string, callback: ChartStateListener) =>
-            dependencies.subscribe(path, callback),
         testDebounce: (delay = 1000) => {
             dependencies.debounce(() => {
                 console.log("[ChartJS Dev] Debounce test executed");

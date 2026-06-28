@@ -2068,6 +2068,9 @@ and architecture checks blocking direct performance path reads and writes from r
 Chart settings cache reads and writes now route through the settings state facade instead of letting
 `renderChartSettingsManager.ts` own the raw `settings.charts` state path, with focused settings-helper coverage and
 architecture checks blocking direct settings-cache path access from returning.
+Chart devtools snapshots now route through typed read-only dependencies for active tab, chart render state, performance
+metrics, settings, and state history instead of exposing arbitrary `getState`, `setState`, or `subscribe` helpers, with
+focused devtools coverage and architecture checks blocking the generic diagnostic state bridge from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
