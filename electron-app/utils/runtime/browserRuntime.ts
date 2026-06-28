@@ -46,22 +46,32 @@ export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
 export type BrowserURLConstructor = typeof globalThis.URL;
 
-type BrowserRuntimeAmbientSlots = {
-    readonly __DEVELOPMENT__?: unknown;
-    readonly electronAPI?: unknown;
-    process?: unknown;
-    readonly vi?: unknown;
-};
-
-type BrowserRuntimeAmbientSlotName = keyof BrowserRuntimeAmbientSlots;
-
 type BrowserProcessSetResult = "blocked" | "fallback" | "set";
 
-function getBrowserRuntimeAmbientSlot<
-    SlotName extends BrowserRuntimeAmbientSlotName,
->(slotName: SlotName): BrowserRuntimeAmbientSlots[SlotName] {
-    const slots = globalThis as BrowserRuntimeAmbientSlots;
-    return slots[slotName];
+function getBrowserDevelopmentFlagSlot(): unknown {
+    const slots = globalThis as typeof globalThis & {
+        readonly __DEVELOPMENT__?: unknown;
+    };
+    return slots.__DEVELOPMENT__;
+}
+
+function getBrowserElectronApiSlot(): unknown {
+    const slots = globalThis as typeof globalThis & {
+        readonly electronAPI?: unknown;
+    };
+    return slots.electronAPI;
+}
+
+function getBrowserProcessSlot(): unknown {
+    const slots = globalThis as typeof globalThis & {
+        readonly process?: unknown;
+    };
+    return slots.process;
+}
+
+function getBrowserVitestImportMockSlot(): unknown {
+    const slots = globalThis as typeof globalThis & { readonly vi?: unknown };
+    return slots.vi;
 }
 
 function hasBrowserProcessSetter(): boolean {
@@ -78,9 +88,9 @@ function hasBrowserProcessSetter(): boolean {
 
 function trySetBrowserProcess(processValue: unknown): BrowserProcessSetResult {
     try {
-        const slots = globalThis as BrowserRuntimeAmbientSlots;
+        const slots: { process?: unknown } = globalThis;
         slots.process = processValue;
-        return Object.is(getBrowserRuntimeAmbientSlot("process"), processValue)
+        return Object.is(getBrowserProcessSlot(), processValue)
             ? "set"
             : "fallback";
     } catch {
@@ -188,12 +198,12 @@ function setBrowserProcessGlobal(processValue: unknown): void {
 }
 
 export function getBrowserElectronApiCandidate(): unknown {
-    return getBrowserRuntimeAmbientSlot("electronAPI");
+    return getBrowserElectronApiSlot();
 }
 
 export function getBrowserProcessCandidate(): unknown {
     try {
-        return getBrowserRuntimeAmbientSlot("process");
+        return getBrowserProcessSlot();
     } catch {
         return undefined;
     }
@@ -205,7 +215,7 @@ export function setBrowserProcessCandidate(processValue: unknown): void {
 
 export function getBrowserVitestImportMockCandidate(): unknown {
     try {
-        return getBrowserRuntimeAmbientSlot("vi");
+        return getBrowserVitestImportMockSlot();
     } catch {
         return undefined;
     }
@@ -240,7 +250,7 @@ export function getBrowserDateNow(): (() => number) | undefined {
 }
 
 export function getBrowserDevelopmentFlag(): unknown {
-    return getBrowserRuntimeAmbientSlot("__DEVELOPMENT__");
+    return getBrowserDevelopmentFlagSlot();
 }
 
 export function getBrowserCurrentTimestamp(): number {
