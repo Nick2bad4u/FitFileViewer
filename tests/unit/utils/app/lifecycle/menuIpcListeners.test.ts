@@ -214,6 +214,30 @@ describe(registerMenuIpcListeners, () => {
         }
     });
 
+    it("rejects primitive scoped menu APIs without registering handlers", () => {
+        expect.assertions(3);
+
+        const getElectronAPI = vi.fn<() => unknown>(() => "not an api");
+        const trackUnsubscribe = vi.fn<(value: unknown) => void>();
+
+        try {
+            const result = registerMenuIpcListeners({
+                debugMenuLog: vi.fn<(...args: unknown[]) => void>(),
+                electronApiScope: { getElectronAPI },
+                isTestEnvironment: true,
+                showAboutModal: vi.fn(),
+                showNotification: vi.fn(),
+                trackUnsubscribe,
+            });
+
+            expect(result).toBeUndefined();
+            expect(getElectronAPI).toHaveBeenCalledOnce();
+            expect(trackUnsubscribe).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("registers the expected menu IPC channels", () => {
         expect.assertions(2);
 

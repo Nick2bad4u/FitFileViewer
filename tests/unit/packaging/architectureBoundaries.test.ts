@@ -18452,7 +18452,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(48);
+        expect.assertions(53);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -18560,12 +18560,27 @@ describe("architecture boundaries", () => {
         expect(menuIpcListenersSource).not.toContain(
             "Reflect.get(value, methodName)"
         );
+        expect(menuIpcListenersSource).toContain(
+            "function hasOptionalFunctionProperty("
+        );
+        expect(menuIpcListenersSource).toContain(
+            "Reflect.get(value, propertyKey)"
+        );
         expect(menuIpcListenersSource).toContain("ElectronMenuEventApi");
         expect(menuIpcListenersSource).not.toContain(
             "import type { ElectronAPI"
         );
         expect(menuIpcListenersSource).not.toContain(
             "type MenuElectronAPI = Partial<"
+        );
+        expect(menuIpcListenersSource).not.toContain(
+            "type MenuElectronApiCandidate"
+        );
+        expect(menuIpcListenersSource).not.toContain(
+            "readonly [K in keyof MenuElectronAPI]?: unknown;"
+        );
+        expect(menuIpcListenersSource).not.toContain(
+            "value as MenuElectronApiCandidate"
         );
         expect(menuIpcListenersSource).not.toContain("Pick<ElectronAPI");
         expect(rendererStateIntegrationSource).not.toContain(
