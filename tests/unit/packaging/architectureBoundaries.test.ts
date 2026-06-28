@@ -6175,7 +6175,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(106);
+        expect.assertions(111);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -6208,6 +6208,19 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("value as Readonly<Record");
         expect(exportUtilsSource).not.toContain(
             "value as Record<string, unknown>"
+        );
+        expect(exportUtilsSource).not.toContain("type ElectronApiCandidate");
+        expect(exportUtilsSource).not.toContain(
+            "const candidate = value as ElectronApiCandidate"
+        );
+        expect(exportUtilsSource).toContain(
+            "const EXPORT_ELECTRON_API_METHODS ="
+        );
+        expect(exportUtilsSource).toContain(
+            "Object.getOwnPropertyDescriptor(record, key)"
+        );
+        expect(exportUtilsSource).toContain(
+            "hasOptionalOwnElectronFunction(value, key)"
         );
         expect(exportUtilsSource).not.toContain(
             "const exportUtilsRuntime = getExportUtilsRuntime();"

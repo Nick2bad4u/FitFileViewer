@@ -362,6 +362,27 @@ describe("exportUtils", () => {
             expect(electronApiMock.startGyazoServer).not.toHaveBeenCalled();
         });
 
+        it("rejects primitive Gyazo Electron API values", async () => {
+            vi.mocked(globalThis.localStorage.getItem).mockImplementation(
+                (key) => {
+                    if (key === "gyazo_client_id") return "test-client-id";
+                    if (key === "gyazo_client_secret")
+                        return "test-client-secret";
+                    return null;
+                }
+            );
+
+            await expect(
+                exportUtils.authenticateWithGyazo({
+                    electronApiScope: createExportApiScope("not an api"),
+                })
+            ).rejects.toThrow(
+                "Gyazo OAuth is only available in the Electron desktop build"
+            );
+
+            expect(electronApiMock.startGyazoServer).not.toHaveBeenCalled();
+        });
+
         it("cleans up state and subscriptions when user cancels", async () => {
             const unsubscribe = vi.fn();
             let capturedHandler: ((data: any) => void) | null = null;

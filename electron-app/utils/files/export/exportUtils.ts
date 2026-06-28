@@ -41,9 +41,6 @@ type LooseRecord = unknown;
 type ExportElectronApi = Readonly<
     Partial<ElectronClipboardApi & ElectronGyazoExternalApi>
 >;
-type ElectronApiCandidate = Readonly<{
-    [Key in keyof ExportElectronApi]?: unknown;
-}>;
 type ImgurUploadDataCandidate = Readonly<{
     link?: unknown;
 }>;
@@ -159,16 +156,28 @@ type ExportElectronApiOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
 };
 
+const EXPORT_ELECTRON_API_METHODS = [
+    "onGyazoOAuthCallback",
+    "startGyazoServer",
+    "stopGyazoServer",
+    "writeClipboardPngDataUrl",
+    "writeClipboardText",
+] as const satisfies readonly (keyof ExportElectronApi)[];
+
 let exportModalTitleCounter = 0;
 let detectCurrentThemeOverride: typeof __realDetectCurrentTheme | null = null;
 let showNotificationOverride: ExportNotification | null = null;
 
-function hasOptionalElectronFunction(
-    record: ElectronApiCandidate,
+function hasOptionalOwnElectronFunction(
+    record: object,
     key: keyof ExportElectronApi
 ): boolean {
-    const value = record[key];
-    return value === undefined || typeof value === "function";
+    if (!(key in record)) {
+        return true;
+    }
+
+    const descriptor = Object.getOwnPropertyDescriptor(record, key);
+    return descriptor !== undefined && typeof descriptor.value === "function";
 }
 
 function isExportElectronApi(value: unknown): value is ExportElectronApi {
@@ -176,15 +185,8 @@ function isExportElectronApi(value: unknown): value is ExportElectronApi {
         return false;
     }
 
-    const candidate = value as ElectronApiCandidate;
-    return [
-        "onGyazoOAuthCallback",
-        "startGyazoServer",
-        "stopGyazoServer",
-        "writeClipboardPngDataUrl",
-        "writeClipboardText",
-    ].every((key) =>
-        hasOptionalElectronFunction(candidate, key as keyof ExportElectronApi)
+    return EXPORT_ELECTRON_API_METHODS.every((key) =>
+        hasOptionalOwnElectronFunction(value, key)
     );
 }
 
