@@ -13383,7 +13383,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(57);
+        expect.assertions(61);
 
         const errorsIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/index.ts")
@@ -13420,8 +13420,14 @@ describe("architecture boundaries", () => {
         expect(errorHandlingSource).not.toContain("Reflect.get(");
         expect(errorHandlingSource).not.toContain('Reflect.get(value, "then")');
         expect(errorHandlingSource).toContain(
-            "const candidate = value as { readonly then?: unknown };"
+            "Readonly<Record<string, unknown>>"
         );
+        expect(errorHandlingSource).toContain("!Array.isArray(value)");
+        expect(errorHandlingSource).toContain('typeof value["then"]');
+        expect(errorHandlingSource).not.toContain(
+            "value as { readonly then?: unknown }"
+        );
+        expect(errorHandlingSource).not.toContain("candidate.then");
         expect(errorHandlingSource).toContain(
             "return getErrorHandlingRuntime();"
         );
@@ -21794,7 +21800,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(50);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -21825,6 +21831,15 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
+        expect(lazyRenderingUtilsSource).toContain(
+            "Readonly<Record<string, unknown>>"
+        );
+        expect(lazyRenderingUtilsSource).toContain("!Array.isArray(value)");
+        expect(lazyRenderingUtilsSource).toContain('typeof value["catch"]');
+        expect(lazyRenderingUtilsSource).not.toContain(
+            "value as { catch?: unknown }"
+        );
+        expect(lazyRenderingUtilsSource).not.toContain(".catch ===");
         expect(lazyRenderingRuntimeSource).not.toMatch(
             directLazyRenderingRuntimeAmbientFallbackPattern
         );

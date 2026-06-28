@@ -132,13 +132,14 @@ export function createLazyRenderer(
     };
 
     const observe = (): void => {
-        const nextObserver = getLazyRenderingRuntime().createIntersectionObserver(
-            handleIntersection,
-            {
-                rootMargin,
-                threshold,
-            }
-        );
+        const nextObserver =
+            getLazyRenderingRuntime().createIntersectionObserver(
+                handleIntersection,
+                {
+                    rootMargin,
+                    threshold,
+                }
+            );
 
         if (!nextObserver) {
             // Fallback: immediately execute if IntersectionObserver not available
@@ -222,11 +223,14 @@ export function isElementVisible(
     return verticalVisible && horizontalVisible;
 }
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function isPromiseLike(value: unknown): value is Promise<void> {
     return (
-        typeof value === "object" &&
-        value !== null &&
+        isRecord(value) &&
         "catch" in value &&
-        typeof (value as { catch?: unknown }).catch === "function"
+        typeof value["catch"] === "function"
     );
 }

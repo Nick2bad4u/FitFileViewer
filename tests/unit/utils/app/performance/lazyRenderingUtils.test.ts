@@ -171,6 +171,36 @@ describe("lazy rendering utilities", () => {
         }
     });
 
+    it("ignores array-shaped catch candidates returned by render callbacks", () => {
+        expect.assertions(3);
+
+        try {
+            vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
+            const catchMock = vi.fn();
+            let renderCount = 0;
+            const arrayResult = [] as unknown[] & {
+                catch: typeof catchMock;
+            };
+            arrayResult.catch = catchMock;
+            const renderCallback = vi.fn<() => Promise<void> | void>(() => {
+                renderCount += 1;
+                return arrayResult as unknown as Promise<void>;
+            });
+
+            createLazyRenderer(
+                document.createElement("div"),
+                renderCallback
+            ).observe();
+            intersect();
+
+            expect(renderCount).toBe(1);
+            expect(renderCallback).toHaveBeenCalledOnce();
+            expect(catchMock).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("falls back to immediate rendering when IntersectionObserver is unavailable", () => {
         expect.assertions(3);
 

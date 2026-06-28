@@ -115,17 +115,20 @@ function isValidationObject<T>(value: unknown): value is ValidatorResult<T> {
     return typeof value === "object" && value !== null && "isValid" in value;
 }
 
-function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
-    if (
-        (typeof value !== "object" && typeof value !== "function") ||
-        value === null ||
-        !("then" in value)
-    ) {
-        return false;
-    }
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-    const candidate = value as { readonly then?: unknown };
-    return typeof candidate.then === "function";
+function isPromiseCandidate(
+    value: unknown
+): value is
+    | (((...args: unknown[]) => unknown) & { readonly then?: unknown })
+    | Readonly<Record<string, unknown>> {
+    return (typeof value === "function" || isRecord(value)) && "then" in value;
+}
+
+function isPromiseLike<T>(value: unknown): value is PromiseLike<T> {
+    return isPromiseCandidate(value) && typeof value["then"] === "function";
 }
 
 /**

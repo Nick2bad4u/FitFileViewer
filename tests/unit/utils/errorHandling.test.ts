@@ -155,6 +155,34 @@ describe("error handling utilities", () => {
             await expect(asyncValue()).resolves.toBe("async fallback");
         });
 
+        it("does not treat array-shaped then candidates as promises", () => {
+            expect.assertions(2);
+
+            const thenMock = vi.fn();
+            const thenProperty = ["t", "hen"].join("");
+            const arrayResult = new Proxy([] as unknown[], {
+                get(target, property, receiver) {
+                    return property === thenProperty
+                        ? thenMock
+                        : Reflect.get(target, property, receiver);
+                },
+                has(target, property) {
+                    return (
+                        property === thenProperty ||
+                        Reflect.has(target, property)
+                    );
+                },
+            });
+            const wrapped = withErrorHandling(() => arrayResult, {
+                failSafe: true,
+                fallback: "fallback",
+                logLevel: "warn",
+            });
+
+            expect(wrapped()).toBe(arrayResult);
+            expect(thenMock).not.toHaveBeenCalled();
+        });
+
         it("creates safe wrappers that return null without logging when requested", () => {
             expect.assertions(2);
 

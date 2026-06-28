@@ -1011,8 +1011,9 @@ performance-monitor global fixture; architecture coverage blocks the source fall
 construction, and test-global mutation pattern from returning. Error-handling runtime defaults now read
 `AbortController` and `addEventListener` explicitly through focused helpers instead of generic
 `Reflect.get(globalThis, ...)` probes, and the default date-clock now reuses the shared browser runtime provider
-instead of a local `Date.now` getter. Promise-like validation now reads a typed optional `then` property instead of
-probing arbitrary values through `Reflect.get`. The error-handling runtime AbortController contract now reuses the shared
+instead of a local `Date.now` getter. Promise-like validation now reads `then` through a non-array readonly
+record/function-candidate guard instead of probing arbitrary values through `Reflect.get` or casting to a local
+promise-like object shape. The error-handling runtime AbortController contract now reuses the shared
 browser-runtime alias instead of a direct ambient constructor type. Error-handling listener binding now stays in the
 shared browser runtime provider instead of rebinding the listener through `globalThis` inside
 `errorHandlingRuntime.ts`, and the runtime exposes an error-listener-specific target accessor instead of a generic
@@ -1923,6 +1924,9 @@ Registered chart candidate validation in the chart settings header, inline zone 
 non-array readonly record guards plus guarded chart-data/dataset records instead of casting arbitrary registered chart
 values into local chart shapes, with malformed array-shaped candidate coverage and architecture guardrails blocking those
 casts from returning.
+Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
+casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
+guardrails blocking that stale cast from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
