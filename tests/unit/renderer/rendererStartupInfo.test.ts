@@ -8,7 +8,15 @@ import {
 describe("rendererStartupInfo", () => {
     it("logs the startup banner without owning renderer initialization", () => {
         expect.assertions(1);
-        const runtimeInfo: RendererStartupRuntimeInfo = { userAgent: "test" };
+        const runtimeInfo: RendererStartupRuntimeInfo = {
+            cookieEnabled: true,
+            hardwareConcurrency: 4,
+            language: "en-US",
+            memoryUsage: null,
+            onLine: true,
+            platform: "test-platform",
+            userAgent: "test",
+        };
         const appInfo = {
             getRuntimeInfo: () => runtimeInfo,
             name: "Test App",

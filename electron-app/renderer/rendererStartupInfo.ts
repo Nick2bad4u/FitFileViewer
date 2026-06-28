@@ -1,3 +1,5 @@
+import type { RendererRuntimeInfo } from "./rendererRuntimeInfoTypes.js";
+
 type RendererStartupInfoLogLevel = "group" | "groupEnd" | "log";
 
 type RendererStartupInfoLogger = (
@@ -5,7 +7,7 @@ type RendererStartupInfoLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererStartupRuntimeInfo = Readonly<Record<string, unknown>>;
+export type RendererStartupRuntimeInfo = RendererRuntimeInfo;
 
 type RendererAppInfo = {
     readonly getRuntimeInfo: () => RendererStartupRuntimeInfo;

@@ -17,6 +17,10 @@ import {
     type RendererDevelopmentDebugToolsRuntime,
     type RendererDevelopmentPerformanceMemorySnapshot,
 } from "./developmentDebugToolsRuntime.js";
+import type {
+    RendererRuntimeInfo,
+    RendererRuntimeMemoryUsage,
+} from "./rendererRuntimeInfoTypes.js";
 import type { RendererFileOpeningStateRef } from "./stateManagerStartup.js";
 
 type DevelopmentDebugLogLevel = "log" | "warn";
@@ -83,20 +87,8 @@ type RendererDebugToolsView = {
     readonly showNotification: RendererDebugToolCall;
     readonly showUpdateNotification: RendererDebugToolCall;
 };
-export type RendererDevelopmentRuntimeMemoryUsage = Readonly<{
-    readonly jsHeapSizeLimit: number | undefined;
-    readonly totalJSHeapSize: number | undefined;
-    readonly usedJSHeapSize: number | undefined;
-}>;
-export type RendererDevelopmentRuntimeInfo = Readonly<{
-    readonly cookieEnabled: boolean;
-    readonly hardwareConcurrency: number | undefined;
-    readonly language: string | undefined;
-    readonly memoryUsage: RendererDevelopmentRuntimeMemoryUsage | null;
-    readonly onLine: boolean | undefined;
-    readonly platform: string | undefined;
-    readonly userAgent: string | undefined;
-}>;
+export type RendererDevelopmentRuntimeMemoryUsage = RendererRuntimeMemoryUsage;
+export type RendererDevelopmentRuntimeInfo = RendererRuntimeInfo;
 type RendererDevToolsView = {
     APP_INFO: typeof APP_INFO;
     AppActions?: RendererDevelopmentDebugAppActions;

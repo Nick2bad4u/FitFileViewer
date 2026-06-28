@@ -6102,7 +6102,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(48);
+        expect.assertions(52);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -6216,13 +6216,25 @@ describe("architecture boundaries", () => {
             "readonly rendererDev: Record<string, unknown>"
         );
         expect(developmentDebugToolsSource).toContain(
+            'from "./rendererRuntimeInfoTypes.js";'
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "export type RendererDevelopmentRuntimeInfo = RendererRuntimeInfo;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
             "export type RendererDevelopmentRuntimeInfo = Readonly<{"
         );
         expect(developmentDebugToolsSource).toContain(
             "): RendererDevelopmentRuntimeInfo"
         );
         expect(startupInfoSource).toContain(
-            "export type RendererStartupRuntimeInfo = Readonly<Record<string, unknown>>;"
+            'import type { RendererRuntimeInfo } from "./rendererRuntimeInfoTypes.js";'
+        );
+        expect(startupInfoSource).toContain(
+            "export type RendererStartupRuntimeInfo = RendererRuntimeInfo;"
+        );
+        expect(startupInfoSource).not.toContain(
+            "Readonly<Record<string, unknown>>"
         );
         expect(startupInfoSource).not.toContain(
             "readonly getRuntimeInfo: () => unknown;"
