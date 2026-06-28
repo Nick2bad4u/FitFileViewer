@@ -12,6 +12,7 @@ import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
 import { normalizeRendererActiveTab } from "../domain/rendererActiveTabState.js";
+import { subscribeToRendererChartsRendered } from "../domain/rendererChartRenderState.js";
 import { resetRendererRenderLifecycle } from "../domain/rendererRenderLifecycleState.js";
 import { UIActions } from "../domain/uiStateManager.js";
 import {
@@ -81,13 +82,16 @@ function cleanupStateAwareEventHandlers(): void {
     stateAwareEventHandlersAbortController = undefined;
 }
 
+function trackRendererStateSubscription(unsubscribe: Unsubscribe): Unsubscribe {
+    rendererStateIntegrationUnsubscribes.push(unsubscribe);
+    return unsubscribe;
+}
+
 function subscribeRendererState(
     path: string,
     handler: Parameters<typeof subscribe>[1]
 ): Unsubscribe {
-    const unsubscribe = subscribe(path, handler);
-    rendererStateIntegrationUnsubscribes.push(unsubscribe);
-    return unsubscribe;
+    return trackRendererStateSubscription(subscribe(path, handler));
 }
 
 export function cleanupRendererStateIntegration(): void {
@@ -248,11 +252,15 @@ function initializeComponentsWithState(): void {
     });
 
     // Subscribe to chart rendering state
-    subscribeRendererState("charts.isRendered", (isRendered) => {
-        if (isRendered) {
+    trackRendererStateSubscription(
+        subscribeToRendererChartsRendered((isRendered) => {
+            if (!isRendered) {
+                return;
+            }
+
             console.log("[Renderer] Charts have been rendered");
-        }
-    });
+        })
+    );
 
     // Subscribe to loading state
     subscribeRendererState("isLoading", (isLoading) => {

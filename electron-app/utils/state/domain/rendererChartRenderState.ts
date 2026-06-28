@@ -92,6 +92,12 @@ export function subscribeToRendererSelectedChart(
     return subscribe(RENDERER_CHART_SELECTED_STATE_PATH, callback);
 }
 
+export function subscribeToRendererChartsRendered(
+    callback: StateListener
+): () => void {
+    return subscribe(RENDERER_CHARTS_RENDERED_STATE_PATH, callback);
+}
+
 export function updateRendererChartState(
     chartState: Record<string, unknown>,
     options: StateUpdateOptions = {}

@@ -12650,7 +12650,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(31);
+        expect.assertions(35);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12696,6 +12696,9 @@ describe("architecture boundaries", () => {
 
         expect(rendererChartRenderStateSource).toContain(
             "rendererRenderStateContract.js"
+        );
+        expect(rendererChartRenderStateSource).toContain(
+            "subscribeToRendererChartsRendered"
         );
         expect(rendererChartRenderStateSource).not.toContain(
             "function normalizeRendererChartsRendered"
@@ -12744,6 +12747,15 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationSource).toContain(
             "rendererRenderLifecycleState.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "rendererChartRenderState.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "subscribeToRendererChartsRendered("
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            'subscribeRendererState("charts.isRendered"'
         );
         expect(rendererStateIntegrationSource).toContain(
             "resetRendererRenderLifecycle({"

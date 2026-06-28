@@ -1432,6 +1432,8 @@ Tab activation now updates chart-tab active state and map-rendered state through
 with architecture coverage blocking raw tab-handler writes to `charts.tabActive` and `map.isRendered`.
 FIT file loads and renderer component refreshes now reset chart/map/table render flags through
 `resetRendererRenderLifecycle`, with coverage blocking duplicated raw reset writes in those callers.
+Renderer integration now observes chart-rendered state through `subscribeToRendererChartsRendered`,
+with architecture coverage blocking direct `charts.isRendered` subscriptions there.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.

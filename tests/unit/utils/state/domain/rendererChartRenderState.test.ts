@@ -10,6 +10,7 @@ import {
     setRendererChartRendering,
     setRendererChartTabActive,
     setRendererChartsRendered,
+    subscribeToRendererChartsRendered,
     subscribeToRendererSelectedChart as subscribeToSelectedChart,
     updateRendererChartState,
 } from "../../../../../electron-app/utils/state/domain/rendererChartRenderState.js";
@@ -122,6 +123,24 @@ describe("rendererChartRenderState", () => {
             source: "test",
         });
         expect(changes).toStrictEqual(["power"]);
+    });
+
+    it("subscribes to chart rendered changes", () => {
+        expect.assertions(2);
+
+        const changes: unknown[] = [];
+        const chartFlagSubscription = {
+            stop: subscribeToRendererChartsRendered((newValue) => {
+                changes.push(newValue);
+            }),
+        };
+
+        setRendererChartsRendered(true, { source: "test" });
+        expect(changes).toStrictEqual([true]);
+
+        chartFlagSubscription.stop();
+        setRendererChartsRendered(false, { source: "test" });
+        expect(changes).toStrictEqual([true]);
     });
 
     it("writes previous chart render state", () => {
