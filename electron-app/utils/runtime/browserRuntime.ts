@@ -46,27 +46,23 @@ export type BrowserSVGElementConstructor = typeof globalThis.SVGElement;
 export type BrowserTimerHandle = ReturnType<BrowserSetTimeout>;
 export type BrowserURLConstructor = typeof globalThis.URL;
 
-interface BrowserDevelopmentFlagGlobal {
+type BrowserRuntimeAmbientSlots = {
     readonly __DEVELOPMENT__?: unknown;
-}
-
-interface BrowserElectronApiGlobal {
     readonly electronAPI?: unknown;
-}
-
-interface BrowserProcessGlobal {
-    readonly process?: unknown;
-}
-
-interface BrowserProcessMutableGlobal {
     process?: unknown;
-}
-
-interface BrowserVitestGlobal {
     readonly vi?: unknown;
-}
+};
+
+type BrowserRuntimeAmbientSlotName = keyof BrowserRuntimeAmbientSlots;
 
 type BrowserProcessSetResult = "blocked" | "fallback" | "set";
+
+function getBrowserRuntimeAmbientSlot<
+    SlotName extends BrowserRuntimeAmbientSlotName,
+>(slotName: SlotName): BrowserRuntimeAmbientSlots[SlotName] {
+    const slots = globalThis as BrowserRuntimeAmbientSlots;
+    return slots[slotName];
+}
 
 function hasBrowserProcessSetter(): boolean {
     let target: object | null = globalThis;
@@ -82,9 +78,11 @@ function hasBrowserProcessSetter(): boolean {
 
 function trySetBrowserProcess(processValue: unknown): BrowserProcessSetResult {
     try {
-        const globals = globalThis as BrowserProcessMutableGlobal;
-        globals.process = processValue;
-        return Object.is(globals.process, processValue) ? "set" : "fallback";
+        const slots = globalThis as BrowserRuntimeAmbientSlots;
+        slots.process = processValue;
+        return Object.is(getBrowserRuntimeAmbientSlot("process"), processValue)
+            ? "set"
+            : "fallback";
     } catch {
         return hasBrowserProcessSetter() ? "blocked" : "fallback";
     }
@@ -190,12 +188,12 @@ function setBrowserProcessGlobal(processValue: unknown): void {
 }
 
 export function getBrowserElectronApiCandidate(): unknown {
-    return (globalThis as BrowserElectronApiGlobal).electronAPI;
+    return getBrowserRuntimeAmbientSlot("electronAPI");
 }
 
 export function getBrowserProcessCandidate(): unknown {
     try {
-        return (globalThis as BrowserProcessGlobal).process;
+        return getBrowserRuntimeAmbientSlot("process");
     } catch {
         return undefined;
     }
@@ -207,7 +205,7 @@ export function setBrowserProcessCandidate(processValue: unknown): void {
 
 export function getBrowserVitestImportMockCandidate(): unknown {
     try {
-        return (globalThis as BrowserVitestGlobal).vi;
+        return getBrowserRuntimeAmbientSlot("vi");
     } catch {
         return undefined;
     }
@@ -242,7 +240,7 @@ export function getBrowserDateNow(): (() => number) | undefined {
 }
 
 export function getBrowserDevelopmentFlag(): unknown {
-    return (globalThis as BrowserDevelopmentFlagGlobal).__DEVELOPMENT__;
+    return getBrowserRuntimeAmbientSlot("__DEVELOPMENT__");
 }
 
 export function getBrowserCurrentTimestamp(): number {

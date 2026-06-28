@@ -1889,7 +1889,7 @@ describe("architecture boundaries", () => {
         const ledger = readRepositoryFile("docs/DEPRECATION_LEDGER.md");
         const requiredLedgerText = [
             "Remaining browser-global access for compatibility-only values is narrowed",
-            "preload `electronAPI`, runtime `process`, and Vitest import-mock candidates now use explicit browser-runtime slots",
+            "preload `electronAPI`, runtime `process`, renderer development flags, and Vitest import-mock candidates now share one browser-runtime ambient-slot reader",
             "renderer development-mode inspection uses focused input contracts",
         ];
 
@@ -1901,7 +1901,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps process runtime get and set behind an explicit browser-runtime provider", () => {
-        expect.assertions(18);
+        expect.assertions(24);
 
         const browserRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/runtime/browserRuntime.ts")
@@ -1919,10 +1919,28 @@ describe("architecture boundaries", () => {
         expect(browserRuntimeSource).not.toContain("BrowserGlobalProperty");
         expect(browserRuntimeSource).not.toContain("getBrowserGlobalRecord");
         expect(browserRuntimeSource).toContain(
+            "type BrowserRuntimeAmbientSlots = {"
+        );
+        expect(browserRuntimeSource).toContain(
+            "function getBrowserRuntimeAmbientSlot"
+        );
+        expect(browserRuntimeSource).not.toContain(
+            "interface BrowserProcessGlobal"
+        );
+        expect(browserRuntimeSource).not.toContain(
+            "interface BrowserProcessMutableGlobal"
+        );
+        expect(browserRuntimeSource).toContain(
             "export function getBrowserProcessCandidate(): unknown"
         );
         expect(browserRuntimeSource).toContain(
+            'return getBrowserRuntimeAmbientSlot("process");'
+        );
+        expect(browserRuntimeSource).not.toContain(
             "return (globalThis as BrowserProcessGlobal).process;"
+        );
+        expect(browserRuntimeSource).not.toContain(
+            "const globals = globalThis as BrowserProcessMutableGlobal;"
         );
         expect(browserRuntimeSource).toContain(
             "export function setBrowserProcessCandidate(processValue: unknown): void"
@@ -31223,7 +31241,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Electron API global lookup centralized behind explicit runtime providers", () => {
-        expect.assertions(25);
+        expect.assertions(28);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -31283,10 +31301,19 @@ describe("architecture boundaries", () => {
         expect(browserRuntimeSource).toContain(
             "export function getBrowserElectronApiCandidate(): unknown"
         );
-        expect(browserRuntimeSource).toContain(
+        expect(browserRuntimeSource).not.toContain(
             "interface BrowserElectronApiGlobal"
         );
+        expect(browserRuntimeSource).not.toContain(
+            "interface BrowserDevelopmentFlagGlobal"
+        );
+        expect(browserRuntimeSource).not.toContain(
+            "interface BrowserVitestGlobal"
+        );
         expect(browserRuntimeSource).toContain(
+            'return getBrowserRuntimeAmbientSlot("electronAPI");'
+        );
+        expect(browserRuntimeSource).not.toContain(
             "return (globalThis as BrowserElectronApiGlobal).electronAPI;"
         );
         expect(browserRuntimeSource).not.toContain(
