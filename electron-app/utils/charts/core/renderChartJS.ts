@@ -132,7 +132,6 @@ import {
 import {
     callGetStateHistory,
     callUpdateState,
-    getStateManagerSafe,
 } from "./renderChartStateAccess.js";
 import { createChartStateView } from "./renderChartStateView.js";
 import { createChartStateManagementApi } from "./renderChartStateManagementApi.js";
@@ -210,7 +209,6 @@ function renderChartRuntime(): RenderChartJSRuntime {
 // A stable debounced re-render function.
 // NOTE: Do NOT create a new debounce() instance per call, or it won't debounce.
 const debouncedDirectRerender = createDebouncedDirectRerender({
-    getStateManager: getStateManagerSafe,
     isDevelopmentEnvironment,
     renderChart: renderChartJS,
     waitMs: RENDER_DEBOUNCE_MS,

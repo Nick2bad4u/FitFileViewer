@@ -12756,7 +12756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(183);
+        expect.assertions(188);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12794,6 +12794,11 @@ describe("architecture boundaries", () => {
         const renderChartPreflightSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartPreflight.ts"
+            )
+        );
+        const renderChartDirectRerenderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDirectRerender.ts"
             )
         );
         const chartStateManagerSource = stripComments(
@@ -12960,6 +12965,17 @@ describe("architecture boundaries", () => {
         expect(renderChartPreflightSource).not.toContain(
             'getState("ui.activeTab")'
         );
+        expect(renderChartDirectRerenderSource).not.toContain(
+            "getState(path: string)"
+        );
+        expect(renderChartDirectRerenderSource).not.toContain("getStateManager");
+        expect(renderChartDirectRerenderSource).not.toContain(
+            "dependencies.getStateManager"
+        );
+        expect(renderChartJSSource).not.toContain(
+            "getStateManager: getStateManagerSafe"
+        );
+        expect(renderChartJSSource).not.toContain("getStateManagerSafe");
         expect(renderChartJSSource).toContain(
             "areChartsRendered: areRendererChartsRendered"
         );

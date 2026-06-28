@@ -23,17 +23,15 @@ describe("createDebouncedDirectRerender", () => {
     });
 
     it("renders through the injected chart container runtime", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         vi.useFakeTimers();
         const container = document.createElement("section");
-        const getStateManager = vi.fn(() => ({}));
         const renderChart = vi.fn<() => Promise<unknown>>(() => {
             container.dataset.rendered = "true";
             return Promise.resolve();
         });
         const directChartUpdate = createDebouncedDirectChartUpdate({
-            getStateManager,
             isDevelopmentEnvironment: () => false,
             renderChart,
             runtime: {
@@ -47,7 +45,6 @@ describe("createDebouncedDirectRerender", () => {
         await vi.advanceTimersByTimeAsync(25);
 
         expect(container.dataset.rendered).toBe("true");
-        expect(getStateManager).toHaveBeenCalledOnce();
         expect(hasActiveFitChartDataMock).toHaveBeenCalledOnce();
         expect(renderChart).toHaveBeenCalledOnce();
         expect(renderChart).toHaveBeenCalledWith(container);
@@ -64,7 +61,6 @@ describe("createDebouncedDirectRerender", () => {
         );
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         const directChartUpdate = createDebouncedDirectChartUpdate({
-            getStateManager: () => ({}),
             isDevelopmentEnvironment: () => true,
             renderChart,
             runtime: {

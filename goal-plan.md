@@ -2020,6 +2020,8 @@ instead of asking generic chart state dependencies for `ui.activeTab`, with arch
 direct chart-core reads from returning.
 Chart render preflight active-tab checks now also route through `getRendererActiveTab`, so the render abort path no
 longer accepts a generic state-manager dependency just to read `ui.activeTab`.
+The debounced direct chart rerender fallback now checks active FIT chart data through the typed chart-data facade
+without accepting or waking a generic state-manager dependency.
 Renderer state integration example active-tab, theme, and loading reads now route through typed renderer state
 selectors instead of direct state-path reads, with architecture guardrails blocking those sample reads from returning.
 The tab UI `getActiveTab()` helper now routes state-manager reads through `getRendererActiveTabFromState`, keeping
