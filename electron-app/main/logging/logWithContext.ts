@@ -13,28 +13,39 @@ type ConsoleMethod = (
 
 type LogContext = Record<string, unknown>;
 
-type ConsoleMethodCandidate = {
-    readonly [method: string]: unknown;
-};
-
 const getNodeEnvironment = (): string | undefined =>
     getProcessEnvironmentValue("NODE_ENV");
 
 const isConsoleMethod = (value: unknown): value is ConsoleMethod =>
     typeof value === "function";
 
+const wrapConsoleMethod =
+    (method: ConsoleMethod): ConsoleMethod =>
+    (message?: unknown, ...args: readonly unknown[]): void => {
+        method(message, ...args);
+    };
+
 const getConsoleMethod = (level: string): ConsoleMethod => {
-    const method = (console as unknown as ConsoleMethodCandidate)[level];
+    const method =
+        level === "debug"
+            ? console.debug
+            : level === "error"
+              ? console.error
+              : level === "info"
+                ? console.info
+                : level === "log"
+                  ? console.log
+                  : level === "trace"
+                    ? console.trace
+                    : level === "warn"
+                      ? console.warn
+                      : console.log;
 
     if (isConsoleMethod(method)) {
-        return (message?: unknown, ...args: readonly unknown[]): void => {
-            method(message, ...args);
-        };
+        return wrapConsoleMethod(method);
     }
 
-    return (message?: unknown, ...args: readonly unknown[]): void => {
-        console.log(message, ...args);
-    };
+    return wrapConsoleMethod(console.log);
 };
 
 const shouldRedactKey = (key: string): boolean => {

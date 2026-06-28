@@ -3402,7 +3402,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(421);
+        expect.assertions(422);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3605,7 +3605,8 @@ describe("architecture boundaries", () => {
         expect(logWithContextSource).not.toContain(
             "(console as unknown as Record<string, unknown>)[level]"
         );
-        expect(logWithContextSource).toContain("ConsoleMethodCandidate");
+        expect(logWithContextSource).not.toContain("console as unknown");
+        expect(logWithContextSource).not.toContain("ConsoleMethodCandidate");
         expect(logWithContextSource).toContain("loggingTimestampRuntime.js");
         expect(logWithContextSource).toContain(
             "loggingTimestampRuntime().isoNow()"

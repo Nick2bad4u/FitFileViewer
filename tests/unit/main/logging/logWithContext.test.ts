@@ -83,4 +83,21 @@ describe("logWithContext", () => {
         expect(String(msg)).toBe("[2020-01-01T00:00:00.000Z] [main.js] msg");
         expect(ctx).toBe('{"key":"value"}');
     });
+
+    it("routes supported trace-level messages without dynamic console indexing", async () => {
+        expect.assertions(3);
+
+        const { logWithContext } =
+            await import("../../../../electron-app/main/logging/logWithContext.js");
+        const spy = vi.spyOn(console, "trace").mockReturnValue(undefined);
+
+        logWithContext("trace", "trace msg", { key: "value" });
+
+        expect(spy).toHaveBeenCalledOnce();
+        const [msg, ctx] = spy.mock.calls[0];
+        expect(String(msg)).toBe(
+            "[2020-01-01T00:00:00.000Z] [main.js] trace msg"
+        );
+        expect(ctx).toBe('{"key":"value"}');
+    });
 });
