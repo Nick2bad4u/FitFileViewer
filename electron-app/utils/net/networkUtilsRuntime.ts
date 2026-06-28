@@ -17,16 +17,12 @@ export type NetworkUtilsFetchInit =
 export type NetworkUtilsTimerHandle = BrowserTimerHandle;
 
 export interface NetworkUtilsRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getFetch?: (() => BrowserFetch | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
+    readonly getFetch: () => BrowserFetch | undefined;
+    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
 }
 
 export interface NetworkUtilsRuntime {
@@ -52,23 +48,43 @@ const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
 function getScopeAbortController(
     scope: NetworkUtilsRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError(
+            "networkUtils requires an AbortController provider"
+        );
+    }
+
+    return scope.getAbortController();
 }
 
 function getScopeClearTimeout(
     scope: NetworkUtilsRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    if (typeof scope.getClearTimeout !== "function") {
+        throw new TypeError("networkUtils requires clearTimeout");
+    }
+
+    return scope.getClearTimeout();
 }
 
-function getScopeFetch(scope: NetworkUtilsRuntimeScope): BrowserFetch | undefined {
-    return scope.getFetch?.();
+function getScopeFetch(
+    scope: NetworkUtilsRuntimeScope
+): BrowserFetch | undefined {
+    if (typeof scope.getFetch !== "function") {
+        throw new TypeError("networkUtils requires fetch");
+    }
+
+    return scope.getFetch();
 }
 
 function getScopeSetTimeout(
     scope: NetworkUtilsRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    if (typeof scope.getSetTimeout !== "function") {
+        throw new TypeError("networkUtils requires setTimeout");
+    }
+
+    return scope.getSetTimeout();
 }
 
 export function getNetworkUtilsRuntime(

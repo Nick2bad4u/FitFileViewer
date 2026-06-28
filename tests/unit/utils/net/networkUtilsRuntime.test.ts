@@ -1,6 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getNetworkUtilsRuntime } from "../../../../electron-app/utils/net/networkUtilsRuntime.js";
+import {
+    getNetworkUtilsRuntime,
+    type NetworkUtilsRuntimeScope,
+} from "../../../../electron-app/utils/net/networkUtilsRuntime.js";
+
+function createNetworkUtilsRuntimeScope(
+    overrides: Partial<NetworkUtilsRuntimeScope> = {}
+): NetworkUtilsRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getFetch: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getNetworkUtilsRuntime", () => {
     afterEach(() => {
@@ -42,7 +57,9 @@ describe("getNetworkUtilsRuntime", () => {
 
         const response = new Response("ok");
         const fetch = vi.fn<typeof globalThis.fetch>(async () => response);
-        const runtime = getNetworkUtilsRuntime({ getFetch: () => fetch });
+        const runtime = getNetworkUtilsRuntime(
+            createNetworkUtilsRuntimeScope({ getFetch: () => fetch })
+        );
         const init = { method: "POST" };
 
         await expect(runtime.fetch("https://example.test", init)).resolves.toBe(
@@ -72,12 +89,14 @@ describe("getNetworkUtilsRuntime", () => {
             () =>
                 AbortControllerConstructor as unknown as typeof AbortController
         );
-        const runtime = getNetworkUtilsRuntime({
-            getAbortController,
-            getClearTimeout,
-            getFetch,
-            getSetTimeout,
-        });
+        const runtime = getNetworkUtilsRuntime(
+            createNetworkUtilsRuntimeScope({
+                getAbortController,
+                getClearTimeout,
+                getFetch,
+                getSetTimeout,
+            })
+        );
         const callback = vi.fn<() => void>();
         const delay = 100;
 
@@ -107,10 +126,12 @@ describe("getNetworkUtilsRuntime", () => {
         const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
-        const runtime = getNetworkUtilsRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getNetworkUtilsRuntime(
+            createNetworkUtilsRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, delay)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -129,10 +150,12 @@ describe("getNetworkUtilsRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getNetworkUtilsRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
-        });
+        const runtime = getNetworkUtilsRuntime(
+            createNetworkUtilsRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as typeof AbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -141,7 +164,9 @@ describe("getNetworkUtilsRuntime", () => {
     it("does not borrow ambient runtimes for explicit scopes", async () => {
         expect.assertions(4);
 
-        const runtime = getNetworkUtilsRuntime({});
+        const runtime = getNetworkUtilsRuntime(
+            createNetworkUtilsRuntimeScope()
+        );
 
         expect(runtime.createAbortController()).toBeUndefined();
         await expect(runtime.fetch("https://example.test")).rejects.toThrow(
@@ -171,7 +196,9 @@ describe("getNetworkUtilsRuntime", () => {
             setTimeout,
         } as unknown as Parameters<typeof getNetworkUtilsRuntime>[0]);
 
-        expect(runtime.createAbortController()).toBeUndefined();
+        expect(() => runtime.createAbortController()).toThrow(
+            "networkUtils requires an AbortController provider"
+        );
         await expect(runtime.fetch("https://example.test")).rejects.toThrow(
             "networkUtils requires fetch"
         );
