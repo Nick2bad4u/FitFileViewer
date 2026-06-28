@@ -18690,7 +18690,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(85);
+        expect.assertions(89);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -18878,6 +18878,14 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersSource).not.toContain(
             "value as LifecycleElectronApiCandidate"
+        );
+        expect(lifecycleListenersSource).not.toContain(
+            "const api = value as LifecycleElectronAPI"
+        );
+        expect(lifecycleListenersSource).toContain("function isRecord(");
+        expect(lifecycleListenersSource).toContain("!Array.isArray(value)");
+        expect(lifecycleListenersSource).toContain(
+            'hasOptionalLifecycleElectronFunction(value["onMenuOpenFile"])'
         );
         expect(lifecycleListenersSource).not.toContain("Pick<ElectronAPI");
         expect(openFitFileFromPathSource).toContain("ElectronFileApi");

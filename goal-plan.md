@@ -1173,7 +1173,9 @@ returning. Lifecycle listener production defaults now live in an explicit provid
 `globalThis` default scope, and explicit scopes use named providers instead of direct scope properties for
 AbortController, timer, print, and process access. The default process and print providers now read
 `globalThis.process` and `globalThis.print` explicitly instead of using generic `Reflect.get(globalThis, ...)`
-probes.
+probes, and lifecycle Electron API candidate validation now checks optional method properties through a non-array
+record guard instead of casting to the local API shape, with focused malformed candidate coverage and architecture
+coverage blocking that cast from returning.
 Lifecycle listener runtime controller and timer provider types now use shared browser-runtime aliases instead of
 direct ambient `globalThis` controller/timer types, with architecture coverage blocking those direct type surfaces
 from returning.

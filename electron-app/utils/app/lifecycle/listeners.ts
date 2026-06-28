@@ -182,27 +182,30 @@ function hasOptionalLifecycleElectronFunction(value: unknown): boolean {
 }
 
 function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const api = value as LifecycleElectronAPI;
     return (
-        hasOptionalLifecycleElectronFunction(api.addRecentFile) &&
-        hasOptionalLifecycleElectronFunction(api.checkForUpdates) &&
-        hasOptionalLifecycleElectronFunction(api.onDecoderOptionsChanged) &&
-        hasOptionalLifecycleElectronFunction(api.onExportFile) &&
-        hasOptionalLifecycleElectronFunction(api.onMenuCheckForUpdates) &&
-        hasOptionalLifecycleElectronFunction(api.onMenuOpenFile) &&
-        hasOptionalLifecycleElectronFunction(api.onMenuPrint) &&
-        hasOptionalLifecycleElectronFunction(api.onOpenRecentFile) &&
-        hasOptionalLifecycleElectronFunction(api.onSetFontSize) &&
-        hasOptionalLifecycleElectronFunction(api.onSetHighContrast) &&
-        hasOptionalLifecycleElectronFunction(api.onShowNotification) &&
-        hasOptionalLifecycleElectronFunction(api.onUpdateEvent) &&
-        hasOptionalLifecycleElectronFunction(api.parseFitFile) &&
-        hasOptionalLifecycleElectronFunction(api.readFile)
+        hasOptionalLifecycleElectronFunction(value["addRecentFile"]) &&
+        hasOptionalLifecycleElectronFunction(value["checkForUpdates"]) &&
+        hasOptionalLifecycleElectronFunction(value["onDecoderOptionsChanged"]) &&
+        hasOptionalLifecycleElectronFunction(value["onExportFile"]) &&
+        hasOptionalLifecycleElectronFunction(value["onMenuCheckForUpdates"]) &&
+        hasOptionalLifecycleElectronFunction(value["onMenuOpenFile"]) &&
+        hasOptionalLifecycleElectronFunction(value["onMenuPrint"]) &&
+        hasOptionalLifecycleElectronFunction(value["onOpenRecentFile"]) &&
+        hasOptionalLifecycleElectronFunction(value["onSetFontSize"]) &&
+        hasOptionalLifecycleElectronFunction(value["onSetHighContrast"]) &&
+        hasOptionalLifecycleElectronFunction(value["onShowNotification"]) &&
+        hasOptionalLifecycleElectronFunction(value["onUpdateEvent"]) &&
+        hasOptionalLifecycleElectronFunction(value["parseFitFile"]) &&
+        hasOptionalLifecycleElectronFunction(value["readFile"])
     );
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function getLifecycleElectronAPI(

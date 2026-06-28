@@ -414,6 +414,54 @@ describe(setupListeners, () => {
         expect(showUpdateNotification).not.toHaveBeenCalled();
     });
 
+    it("ignores array-shaped scoped lifecycle Electron APIs", () => {
+        expect.assertions(6);
+
+        vi.clearAllMocks();
+        menuOpenHandler = null;
+        recentOpenHandler = null;
+        updateHandlers.clear();
+        const malformedOnMenuOpenFile = vi.fn<(handler: IpcHandler) => void>();
+        const malformedOnUpdateEvent =
+            vi.fn<(event: string, handler: IpcHandler) => void>();
+        const malformedElectronApi = Object.assign([], {
+            onMenuOpenFile: malformedOnMenuOpenFile,
+            onUpdateEvent: malformedOnUpdateEvent,
+        });
+        handleOpenFile.mockImplementationOnce(({ openFileBtn }) => {
+            openFileBtn.dataset.openHandled = "array";
+        });
+
+        setupListeners({
+            electronApiScope: createElectronApiScope(malformedElectronApi),
+            openFileBtn: openButton,
+            isOpeningFileRef,
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        const clickEvent = new MouseEvent("click", { cancelable: true });
+        const dispatchResult = openButton.dispatchEvent(clickEvent);
+
+        expect({
+            defaultPrevented: clickEvent.defaultPrevented,
+            dispatchResult,
+            openHandled: openButton.dataset.openHandled,
+        }).toStrictEqual({
+            defaultPrevented: false,
+            dispatchResult: true,
+            openHandled: "array",
+        });
+        expect(malformedOnMenuOpenFile).not.toHaveBeenCalled();
+        expect(malformedOnUpdateEvent).not.toHaveBeenCalled();
+        expect(menuOpenHandler).toBeNull();
+        expect(updateHandlers.size).toBe(0);
+        expect(showUpdateNotification).not.toHaveBeenCalled();
+    });
+
     it("shows info notification when no recent files exist", async () => {
         expect.assertions(2);
         electronAPI.recentFiles.mockResolvedValueOnce([]);
