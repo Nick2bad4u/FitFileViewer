@@ -67,6 +67,14 @@ type FitBrowserElectronAPI = {
     readonly readFile?: ElectronFileApi["readFile"];
 };
 
+type FitBrowserElectronApiMethods = Readonly<{
+    readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
+    readonly getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];
+    readonly listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];
+    readonly openFolderDialog?: ElectronDialogApi["openFolderDialog"];
+    readonly readFile?: ElectronFileApi["readFile"];
+}>;
+
 type FitBrowserDecodeApi = {
     readonly decodeFitFile: ElectronFileApi["decodeFitFile"];
     readonly readFile: ElectronFileApi["readFile"];
@@ -577,27 +585,77 @@ function getCalendarState(): CalendarState {
 function getElectronAPI(
     electronApiScope?: RendererElectronApiScope
 ): FitBrowserElectronAPI | null {
-    return getRendererElectronApi(isFitBrowserElectronApi, electronApiScope);
+    const electronAPI = getRendererElectronApi(
+        isFitBrowserElectronApi,
+        electronApiScope
+    );
+    if (!electronAPI) {
+        return null;
+    }
+
+    const decodeFitFile = readElectronApiValue(() => electronAPI.decodeFitFile);
+    const getFitBrowserFolder = readElectronApiValue(
+        () => electronAPI.getFitBrowserFolder
+    );
+    const listFitBrowserFolder = readElectronApiValue(
+        () => electronAPI.listFitBrowserFolder
+    );
+    const openFolderDialog = readElectronApiValue(
+        () => electronAPI.openFolderDialog
+    );
+    const readFile = readElectronApiValue(() => electronAPI.readFile);
+
+    return {
+        ...(typeof decodeFitFile === "function" ? { decodeFitFile } : {}),
+        ...(typeof getFitBrowserFolder === "function"
+            ? { getFitBrowserFolder }
+            : {}),
+        ...(typeof listFitBrowserFolder === "function"
+            ? { listFitBrowserFolder }
+            : {}),
+        ...(typeof openFolderDialog === "function" ? { openFolderDialog } : {}),
+        ...(typeof readFile === "function" ? { readFile } : {}),
+    };
 }
 
 function isFitBrowserElectronApi(
     value: unknown
 ): value is FitBrowserElectronAPI {
-    if (!isRecord(value)) {
+    if (!isFitBrowserElectronApiMethods(value)) {
         return false;
     }
 
     return (
-        hasOptionalFunction(value["decodeFitFile"]) &&
-        hasOptionalFunction(value["getFitBrowserFolder"]) &&
-        hasOptionalFunction(value["listFitBrowserFolder"]) &&
-        hasOptionalFunction(value["openFolderDialog"]) &&
-        hasOptionalFunction(value["readFile"])
+        hasOptionalFunction(readElectronApiValue(() => value.decodeFitFile)) &&
+        hasOptionalFunction(
+            readElectronApiValue(() => value.getFitBrowserFolder)
+        ) &&
+        hasOptionalFunction(
+            readElectronApiValue(() => value.listFitBrowserFolder)
+        ) &&
+        hasOptionalFunction(
+            readElectronApiValue(() => value.openFolderDialog)
+        ) &&
+        hasOptionalFunction(readElectronApiValue(() => value.readFile))
     );
+}
+
+function isFitBrowserElectronApiMethods(
+    value: unknown
+): value is FitBrowserElectronApiMethods {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
+}
+
+function readElectronApiValue<T>(readValue: () => T): T | undefined {
+    try {
+        return readValue();
+    } catch {
+        return undefined;
+    }
 }
 
 function getLibraryPrefs(): FitLibraryPrefs {

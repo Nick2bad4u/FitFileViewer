@@ -20077,7 +20077,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(103);
+        expect.assertions(114);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -20377,13 +20377,30 @@ describe("architecture boundaries", () => {
             "const api = value as FitBrowserElectronAPI"
         );
         expect(fileBrowserTabSource).toContain(
-            'hasOptionalFunction(value["getFitBrowserFolder"])'
+            "type FitBrowserElectronApiMethods = Readonly<{"
         );
         expect(fileBrowserTabSource).toContain(
-            'hasOptionalFunction(value["listFitBrowserFolder"])'
+            "function isFitBrowserElectronApiMethods("
         );
         expect(fileBrowserTabSource).toContain("!Array.isArray(value)");
+        expect(fileBrowserTabSource).toContain(
+            "function readElectronApiValue<T>("
+        );
+        expect(fileBrowserTabSource).toContain("value.decodeFitFile");
+        expect(fileBrowserTabSource).toContain("value.getFitBrowserFolder");
+        expect(fileBrowserTabSource).toContain("value.listFitBrowserFolder");
+        expect(fileBrowserTabSource).toContain("value.openFolderDialog");
+        expect(fileBrowserTabSource).toContain("value.readFile");
         expect(fileBrowserTabSource).toContain("type FitBrowserElectronAPI =");
+        expect(fileBrowserTabSource).not.toContain('value["decodeFitFile"]');
+        expect(fileBrowserTabSource).not.toContain(
+            'value["getFitBrowserFolder"]'
+        );
+        expect(fileBrowserTabSource).not.toContain(
+            'value["listFitBrowserFolder"]'
+        );
+        expect(fileBrowserTabSource).not.toContain('value["openFolderDialog"]');
+        expect(fileBrowserTabSource).not.toContain('value["readFile"]');
         expect(fileBrowserTabSource).not.toContain(
             "hasOptionalFunction(Reflect.get(value, methodName))"
         );

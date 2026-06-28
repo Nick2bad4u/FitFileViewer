@@ -234,6 +234,35 @@ describe("fileBrowserTab accessibility", () => {
         });
     });
 
+    it("rejects inaccessible Browser Electron API method properties", async () => {
+        expect.assertions(3);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        const electronApiScope = createElectronApiScope(
+            Object.defineProperty({}, "getFitBrowserFolder", {
+                get() {
+                    throw new Error("blocked Browser folder getter");
+                },
+            })
+        );
+
+        await renderFileBrowserTab({ electronApiScope });
+
+        expect(
+            document.querySelector("#fit-browser-current-path")?.textContent
+        ).toBe("Browser unavailable (Electron API missing)");
+        expect(document.querySelector("#fit-browser-status")?.textContent).toBe(
+            "Browser unavailable."
+        );
+        expect(getBrowserListingState()).toMatchObject({
+            error: "Electron Browser API is unavailable.",
+            status: "error",
+        });
+    });
+
     it("shows an explicit error state for malformed folder listings", async () => {
         expect.assertions(4);
 
