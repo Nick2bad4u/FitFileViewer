@@ -23,9 +23,9 @@ interface InitializeChartStateManagementDependencies {
     getChartSummaryState(): ChartSummaryState;
     getComputedStateManager(): ComputedStateManager;
     getState(path: string): unknown;
+    initializeChartRenderState(options: unknown): void;
     middlewareManager: MiddlewareManagerLike;
     notify(message: string, type: string): unknown;
-    updateState(path: string, value: unknown, options: unknown): void;
 }
 
 interface RefreshChartsIfNeededDependencies {
@@ -33,23 +33,6 @@ interface RefreshChartsIfNeededDependencies {
     isRendering(): boolean;
     requestRerender(reason: string): void;
 }
-
-const INITIAL_CHARTS_STATE = {
-    chartData: null,
-    chartOptions: {},
-    controlsVisible: true,
-    isRendered: false,
-    isRendering: false,
-    lastRenderTime: null,
-    previousState: {
-        chartCount: 0,
-        timestamp: 0,
-        visibleFields: 0,
-    },
-    renderedCount: 0,
-    selectedChart: "elevation",
-    zoomLevel: 1,
-} as const;
 
 /**
  * Initializes chart state, computed chart state, and render middleware.
@@ -61,7 +44,7 @@ export function initializeChartStateManagement(
 ): void {
     console.log("[ChartJS] Initializing chart state management...");
 
-    dependencies.updateState("charts", INITIAL_CHARTS_STATE, {
+    dependencies.initializeChartRenderState({
         merge: true,
         source: "initializeChartStateManagement",
     });

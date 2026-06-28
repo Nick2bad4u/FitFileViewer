@@ -12655,7 +12655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(63);
+        expect.assertions(68);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -12705,6 +12705,16 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartSessionStart.ts"
             )
         );
+        const renderChartStateManagementSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartStateManagement.ts"
+            )
+        );
+        const renderChartStateManagementApiSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartStateManagementApi.ts"
+            )
+        );
         const renderChartStateViewSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartStateView.ts"
@@ -12741,6 +12751,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererChartRenderStateSource).toContain(
             "completeRendererChartRenderState"
+        );
+        expect(rendererChartRenderStateSource).toContain(
+            "initializeRendererChartRenderState"
         );
         expect(rendererChartRenderStateSource).not.toContain(
             "function normalizeRendererChartsRendered"
@@ -12784,6 +12797,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartJSSource).toContain(
             "completeChartRenderLifecycleState: completeRendererChartRenderState"
+        );
+        expect(renderChartJSSource).toContain(
+            "initializeChartRenderState: initializeRendererChartRenderState"
+        );
+        expect(renderChartStateManagementSource).toContain(
+            "initializeChartRenderState"
+        );
+        expect(renderChartStateManagementSource).not.toContain(
+            'updateState("charts"'
+        );
+        expect(renderChartStateManagementApiSource).toContain(
+            "initializeChartRenderState"
         );
         expect(renderChartActionsSource).toContain("setChartRendering");
         expect(renderChartActionsSource).toContain("clearChartRenderState");

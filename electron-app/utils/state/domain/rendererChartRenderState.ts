@@ -17,6 +17,23 @@ const RENDERER_CHART_LAST_RENDER_TIME_STATE_PATH = "charts.lastRenderTime";
 const RENDERER_CHART_SELECTED_STATE_PATH = "charts.selectedChart";
 const RENDERER_CHART_TAB_ACTIVE_STATE_PATH = "charts.tabActive";
 
+const INITIAL_RENDERER_CHART_STATE = {
+    chartData: null,
+    chartOptions: {},
+    controlsVisible: true,
+    isRendered: false,
+    isRendering: false,
+    lastRenderTime: null,
+    previousState: {
+        chartCount: 0,
+        timestamp: 0,
+        visibleFields: 0,
+    },
+    renderedCount: 0,
+    selectedChart: "elevation",
+    zoomLevel: 1,
+} as const;
+
 export type RendererChartPreviousState = {
     chartCount: number;
     timestamp: number;
@@ -144,6 +161,16 @@ export function clearRendererChartRenderState(
             ...options,
         }
     );
+}
+
+export function initializeRendererChartRenderState(
+    options: StateUpdateOptions = {}
+): void {
+    updateRendererChartState(INITIAL_RENDERER_CHART_STATE, {
+        merge: true,
+        source: "rendererChartRenderState.initialize",
+        ...options,
+    });
 }
 
 export function completeRendererChartRenderState(

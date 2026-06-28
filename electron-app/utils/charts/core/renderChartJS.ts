@@ -35,6 +35,7 @@ import {
     areRendererChartsRendered,
     clearRendererChartRenderState,
     completeRendererChartRenderState,
+    initializeRendererChartRenderState,
     isRendererChartRendering,
     setRendererChartRendering,
 } from "../../state/domain/rendererChartRenderState.js";
@@ -291,9 +292,9 @@ const chartStateManagementApi = createChartStateManagementApi({
     chartState,
     getComputedStateManager: getComputedStateManagerSafe,
     getState: callGetState,
+    initializeChartRenderState: initializeRendererChartRenderState,
     middlewareManager,
     notify,
-    updateState: callUpdateState,
 });
 
 registerChartStartup({

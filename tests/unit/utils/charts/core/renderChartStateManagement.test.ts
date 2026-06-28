@@ -40,8 +40,8 @@ describe("renderChartStateManagement", () => {
         const register =
             vi.fn<(key: string, middleware: MiddlewareDefinition) => void>();
         const notify = vi.fn<(message: string, type: string) => void>();
-        const updateState =
-            vi.fn<(path: string, value: unknown, options: unknown) => void>();
+        const initializeChartRenderState =
+            vi.fn<(options: unknown) => void>();
         const getChartSummaryState = vi.fn<() => ChartSummaryState>(() => ({
             hasValidData: true,
             isRendered: false,
@@ -61,21 +61,15 @@ describe("renderChartStateManagement", () => {
                 },
             }),
             getState,
+            initializeChartRenderState,
             middlewareManager: {
                 has: () => false,
                 register,
             },
             notify,
-            updateState,
         });
 
-        expect(updateState).toHaveBeenCalledWith(
-            "charts",
-            expect.objectContaining({
-                controlsVisible: true,
-                isRendered: false,
-                selectedChart: "elevation",
-            }),
+        expect(initializeChartRenderState).toHaveBeenCalledWith(
             {
                 merge: true,
                 source: "initializeChartStateManagement",
@@ -144,15 +138,12 @@ describe("renderChartStateManagement", () => {
                 },
             }),
             getState: () => undefined,
+            initializeChartRenderState: vi.fn<(options: unknown) => void>(),
             middlewareManager: {
                 has: () => true,
                 register,
             },
             notify: vi.fn<(message: string, type: string) => void>(),
-            updateState:
-                vi.fn<
-                    (path: string, value: unknown, options: unknown) => void
-                >(),
         });
 
         expect(register).not.toHaveBeenCalled();

@@ -1969,6 +1969,8 @@ values into local chart shapes, with malformed array-shaped candidate coverage a
 casts from returning.
 Chart action completion state now routes through `completeRendererChartRenderState`, so render completion no longer
 patches the aggregate `charts` branch directly from chart action code.
+Chart state-management initialization now routes through `initializeRendererChartRenderState`, keeping default chart
+branch setup in the state-domain helper instead of a chart-core aggregate patch.
 Lazy render callback promise-like validation now reads `catch` through a non-array readonly record guard instead of
 casting returned values to local promise-like shapes, with malformed array-shaped candidate coverage and architecture
 guardrails blocking that stale cast from returning.

@@ -6,6 +6,7 @@ import {
     clearRendererChartRenderState,
     completeRendererChartRenderState,
     getRendererChartState,
+    initializeRendererChartRenderState,
     isRendererChartRendering,
     normalizeRendererChartsRendered,
     setRendererChartLastRenderTime,
@@ -93,6 +94,26 @@ describe("rendererChartRenderState", () => {
             chartData: null,
             isRendered: false,
             tabActive: false,
+        });
+    });
+
+    it("initializes chart render state through the typed helper", () => {
+        expect.assertions(1);
+
+        initializeRendererChartRenderState({ source: "test.initialize" });
+
+        expect(getRendererChartState()).toMatchObject({
+            chartData: null,
+            controlsVisible: true,
+            isRendered: false,
+            isRendering: false,
+            previousState: {
+                chartCount: 0,
+                timestamp: 0,
+                visibleFields: 0,
+            },
+            renderedCount: 0,
+            selectedChart: "elevation",
         });
     });
 

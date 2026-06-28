@@ -26,7 +26,7 @@ interface CreateChartStateManagementApiDependencies {
         message: string,
         type: "error" | "info" | "success" | "warning"
     ): unknown;
-    updateState(path: string, value: unknown, options: unknown): void;
+    initializeChartRenderState(options: unknown): void;
 }
 
 function normalizeNotificationType(type: string): NotificationType {
@@ -65,14 +65,14 @@ export function createChartStateManagementApi(
                 getComputedStateManager: () =>
                     dependencies.getComputedStateManager(),
                 getState: (path) => dependencies.getState(path),
+                initializeChartRenderState: (options) =>
+                    dependencies.initializeChartRenderState(options),
                 middlewareManager: dependencies.middlewareManager,
                 notify: (message, type) =>
                     dependencies.notify(
                         message,
                         normalizeNotificationType(type)
                     ),
-                updateState: (path, value, options) =>
-                    dependencies.updateState(path, value, options),
             });
         },
 
