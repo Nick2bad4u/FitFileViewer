@@ -163,6 +163,22 @@ describe("mainUiDomUtils", () => {
         resetTestState();
     });
 
+    it("rejects array-shaped scoped electron API values", () => {
+        expect.assertions(1);
+
+        resetTestState();
+
+        const api = [] as unknown[] & Record<string, unknown>;
+        api["decodeFitFile"] = vi.fn<(buffer: ArrayBuffer) => unknown>();
+        const electronApiScope = createElectronApiScope(api);
+
+        expect({
+            isValid: validateElectronAPI(electronApiScope),
+        }).toStrictEqual({ isValid: false });
+
+        resetTestState();
+    });
+
     it("accepts an electron API with a FIT decoder function", () => {
         expect.assertions(1);
 

@@ -1785,6 +1785,9 @@ constructing `AbortController` directly in `mainUiDomUtils.ts`, with focused run
 coverage blocking direct main UI DOM utility abort-controller construction from returning. Main UI DOM utility runtime
 provider contracts now reuse the shared browser-runtime AbortController constructor alias instead of spelling direct ambient
 constructor types in the runtime.
+Main UI DOM utility FIT decoder API validation now reads `decodeFitFile` from an unknown-valued plain record instead
+of casting scoped preload candidates to `MainUiDomElectronApi`, with array-shaped malformed API coverage and
+architecture coverage blocking that cast from returning.
 Shared event listener manager drag/drop default target resolution and tracked listener cleanup now route through
 `eventListenerManagerRuntime.ts` instead of probing `globalThis.window` or constructing `AbortController`
 directly in `eventListenerManager.ts`, with focused runtime coverage and architecture coverage blocking direct

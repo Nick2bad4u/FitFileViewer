@@ -84,11 +84,15 @@ export function validateElectronAPI(
 }
 
 function isDecodeFitFileApi(value: unknown): value is MainUiDomElectronApi {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    return typeof (value as MainUiDomElectronApi).decodeFitFile === "function";
+    return typeof value["decodeFitFile"] === "function";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 /**
