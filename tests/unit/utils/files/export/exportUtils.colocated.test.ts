@@ -1081,6 +1081,34 @@ describe("exportUtils", () => {
             ).rejects.toThrow("Invalid response from Imgur");
         });
 
+        it("rejects malformed Imgur response payloads without property assertions", async () => {
+            const base64Image = "data:image/png;base64,abcd";
+            vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({
+                clientId: "client123",
+                uploadUrl: "https://api.imgur.com/3/image",
+            } as any);
+
+            for (const payload of [
+                null,
+                "not-json-object",
+                { data: null },
+                { data: "not-upload-data" },
+                { data: { link: 42 } },
+            ]) {
+                vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+                    ok: true,
+                    status: 200,
+                    statusText: "OK",
+                    json: () => Promise.resolve(payload),
+                    text: () => Promise.resolve("ok"),
+                } as any);
+
+                await expect(
+                    exportUtils.uploadToImgur(base64Image)
+                ).rejects.toThrow("Invalid response from Imgur");
+            }
+        });
+
         it("should treat AbortError as a timeout", async () => {
             const base64Image = "data:image/png;base64,abcd";
             vi.spyOn(exportUtils, "getImgurConfig").mockReturnValue({

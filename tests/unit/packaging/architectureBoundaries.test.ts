@@ -6188,7 +6188,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(112);
+        expect.assertions(114);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -6264,6 +6264,12 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("Reflect.get(");
         expect(exportUtilsSource).not.toContain("globalThis.window");
         expect(exportUtilsSource).not.toContain("globalThis.localStorage");
+        expect(exportUtilsSource).not.toContain(
+            "type ImgurUploadDataCandidate"
+        );
+        expect(exportUtilsSource).not.toContain(
+            "type ImgurUploadResponseCandidate"
+        );
         expect(exportUtilsSource).not.toContain("document.addEventListener");
         expect(exportUtilsSource).not.toContain(
             "function getSecureRandomGlobal"

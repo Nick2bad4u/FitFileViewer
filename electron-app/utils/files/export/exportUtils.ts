@@ -41,12 +41,6 @@ type LooseRecord = unknown;
 type ExportElectronApi = Readonly<
     Partial<ElectronClipboardApi & ElectronGyazoExternalApi>
 >;
-type ImgurUploadDataCandidate = Readonly<{
-    link?: unknown;
-}>;
-type ImgurUploadResponseCandidate = Readonly<{
-    data?: unknown;
-}>;
 type ChartDataPoint = {
     x?: LooseRecord;
     y?: LooseRecord;
@@ -835,17 +829,24 @@ function getDataUrlPayload(dataUrl: string, errorMessage: string): string {
     return imageData;
 }
 
-function getImgurUploadLink(value: unknown): string | undefined {
+function readObjectProperty(
+    value: unknown,
+    property: string
+): unknown | undefined {
     if (typeof value !== "object" || value === null) {
         return undefined;
     }
 
-    const { data } = value as ImgurUploadResponseCandidate;
+    return Object.getOwnPropertyDescriptor(value, property)?.value;
+}
+
+function getImgurUploadLink(value: unknown): string | undefined {
+    const data = readObjectProperty(value, "data");
     if (typeof data !== "object" || data === null) {
         return undefined;
     }
 
-    const { link } = data as ImgurUploadDataCandidate;
+    const link = readObjectProperty(data, "link");
     return typeof link === "string" && link.length > 0 ? link : undefined;
 }
 

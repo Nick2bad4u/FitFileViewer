@@ -265,6 +265,8 @@ Leaflet.draw created-event handling now narrows through an explicit event-shape 
 generic `event as unknown as { layer?: unknown }` bridge.
 Chart share modal callbacks now accept returned values directly, removing the async Imgur/Gyazo share callback
 `as unknown as never` adapters from export utilities.
+Imgur upload response parsing now uses guarded property reads instead of typed response-shape assertions, with
+malformed payload coverage keeping invalid response shapes closed.
 Leaflet runtime wait-loop timeout clocks and polling waits now route through `leafletRuntime.ts` environment
 providers instead of calling `Date.now` directly inside the runtime wait loop, with focused runtime and architecture
 coverage blocking direct loop clocks and direct scope properties from returning.
