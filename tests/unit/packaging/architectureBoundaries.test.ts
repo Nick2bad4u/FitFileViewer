@@ -3402,7 +3402,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(422);
+        expect.assertions(423);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3580,6 +3580,9 @@ describe("architecture boundaries", () => {
         expect(safeCreateAppMenuSource).not.toContain("export default");
         expect(createAppMenuSource).not.toContain(
             'Reflect.get(globalThis, "process")'
+        );
+        expect(createAppMenuSource).not.toContain(
+            "getRuntimeElectron as unknown"
         );
         expect(createAppMenuSource).not.toContain("process.platform");
         expect(mainProcessStateManagerSource).not.toContain(

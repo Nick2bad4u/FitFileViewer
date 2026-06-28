@@ -77,6 +77,14 @@ type MenuItemLike = {
 
 let lastBuiltMenuTemplateForTests: MenuItemLike[] | undefined;
 
+type ElectronMenuCandidate = {
+    readonly app?: ElectronAppLike;
+    readonly BrowserWindow?: ElectronBrowserWindowLike;
+    readonly clipboard?: ElectronClipboardLike;
+    readonly Menu?: ElectronMenuLike;
+    readonly shell?: ElectronShellLike;
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -108,30 +116,40 @@ function sendToWindow(
     return false;
 }
 
-const getMenuRuntimeElectron =
-    getRuntimeElectron as unknown as () => ElectronLike;
-
 let __electronCached: ElectronLike | null = null;
-function hasUsableElectronReference(
-    candidate: ElectronLike | null
+function isMenuElectronReference(
+    candidate: unknown
 ): candidate is ElectronLike {
+    if (
+        !candidate ||
+        (typeof candidate !== "object" && typeof candidate !== "function")
+    ) {
+        return false;
+    }
+
+    const electron = candidate as ElectronMenuCandidate;
+
     return Boolean(
-        candidate?.["Menu"] ||
-        candidate?.["app"] ||
-        candidate?.["BrowserWindow"]
+        electron.Menu ||
+        electron.app ||
+        electron.BrowserWindow ||
+        electron.shell ||
+        electron.clipboard
     );
 }
 
 function getElectron(): ElectronLike {
     try {
-        const e = getMenuRuntimeElectron();
-        __electronCached = e;
-        return e;
+        const e = getRuntimeElectron();
+        if (isMenuElectronReference(e)) {
+            __electronCached = e;
+            return e;
+        }
     } catch {
         /* ignore */
     }
 
-    if (hasUsableElectronReference(__electronCached)) {
+    if (isMenuElectronReference(__electronCached)) {
         return __electronCached;
     }
 

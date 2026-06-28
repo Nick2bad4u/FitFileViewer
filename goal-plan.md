@@ -141,7 +141,8 @@ unused default namespace export has also been removed.
 The app-menu creation boundary (`createAppMenu.ts` plus `utils/app/menu/index.ts`) now uses named source
 exports/imports instead of source-level `module.exports` or a barrel `require`, and `safeCreateAppMenu.ts`
 imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers
-natively instead of requiring those source modules.
+natively instead of requiring those source modules. Its Electron runtime access now uses a menu-specific module-shape
+guard instead of adapting `getRuntimeElectron` through a function-level `as unknown` bridge.
 Renderer menu IPC listener validation now checks each optional preload menu method explicitly instead of casting the
 candidate Electron API to a generic record, with malformed-scope coverage proving invalid menu candidates do not register
 handlers and architecture coverage blocking that bridge cast from returning.
