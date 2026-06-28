@@ -129,27 +129,37 @@ export function initializeStateManagement(
     });
 }
 
-function isFitSdkModule(value: unknown): value is FitSdkModule {
-    if (value === null || typeof value !== "object") {
-        return false;
-    }
+function isRecordCandidate(
+    value: unknown
+): value is Readonly<Record<string, unknown>> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
-    const candidate = value as { Decoder?: unknown; Stream?: unknown };
-    if (typeof candidate.Decoder !== "function") {
-        return false;
-    }
-
-    const { Stream } = candidate;
-    if (
-        Stream === null ||
-        (typeof Stream !== "object" && typeof Stream !== "function")
-    ) {
-        return false;
-    }
-
+function isObjectOrFunctionCandidate(
+    value: unknown
+): value is Readonly<Record<string, unknown>> {
     return (
-        typeof (Stream as { fromBuffer?: unknown }).fromBuffer === "function"
+        (typeof value === "object" || typeof value === "function") &&
+        value !== null &&
+        !Array.isArray(value)
     );
+}
+
+function isFitSdkModule(value: unknown): value is FitSdkModule {
+    if (!isRecordCandidate(value)) {
+        return false;
+    }
+
+    if (typeof value["Decoder"] !== "function") {
+        return false;
+    }
+
+    const stream = value["Stream"];
+    if (!isObjectOrFunctionCandidate(stream)) {
+        return false;
+    }
+
+    return typeof stream["fromBuffer"] === "function";
 }
 
 function resolveFitSdkModule(value: unknown): FitSdkModule | null {
@@ -157,20 +167,24 @@ function resolveFitSdkModule(value: unknown): FitSdkModule | null {
         return value;
     }
 
-    if (value === null || typeof value !== "object") {
+    if (!isRecordCandidate(value)) {
         return null;
     }
 
-    const defaultExport = (value as { default?: unknown }).default;
+    if (!Object.hasOwn(value, "default")) {
+        return null;
+    }
+
+    const defaultExport = value["default"];
     return isFitSdkModule(defaultExport) ? defaultExport : null;
 }
 
 function isThenable(value: unknown): value is PromiseLike<unknown> {
-    return (
-        (typeof value === "object" || typeof value === "function") &&
-        value !== null &&
-        typeof (value as { then?: unknown }).then === "function"
-    );
+    if (!isObjectOrFunctionCandidate(value)) {
+        return false;
+    }
+
+    return typeof value["then"] === "function";
 }
 
 async function loadFitSdk(fitsdk: FitSdkModule | null): Promise<FitSdkModule> {

@@ -190,6 +190,9 @@ The FIT parser integration boundary now uses named source exports and imports co
 `setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file. The FIT parser
 facade now imports the typed default parser module directly instead of coercing the full parser namespace through
 `fitParserExports as unknown`.
+FIT SDK module/default export and promise-like candidate validation now uses non-array record guards plus indexed
+property reads instead of casting unknown values to local module, default-export, Stream, or thenable shapes, with
+array-shaped Stream coverage and architecture guardrails blocking those bridge casts from returning.
 FIT parser integration duration timing and last-result timestamps now route through
 `fitParserIntegrationRuntime.ts` instead of probing ambient `performance.now` or calling `Date.now` directly inside
 `fitParserIntegration.ts`, with focused runtime coverage and architecture guardrails blocking legacy direct runtime

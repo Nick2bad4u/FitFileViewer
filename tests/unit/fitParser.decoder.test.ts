@@ -739,6 +739,38 @@ describe("fitParser.js decoder behavior", () => {
             });
         });
 
+        it("rejects array-shaped FIT SDK stream candidates", async () => {
+            expect.assertions(3);
+
+            const originalStream = mockFitSDK.Stream;
+            const fromBuffer =
+                vi.fn<(buffer: Buffer | Uint8Array) => MockFitSdkStream>();
+            mockFitSDK.Stream = Object.assign([], { fromBuffer });
+            try {
+                const result = await fitParser.decodeFitFile(
+                    Buffer.from([
+                        0x0e,
+                        0x10,
+                        0x43,
+                        0x08,
+                    ])
+                );
+
+                expect(result.error).toBe(
+                    "Garmin FIT SDK module is missing Decoder or Stream.fromBuffer"
+                );
+                const [loadingError] =
+                    mockFitFileStateManager.handleFileLoadingError.mock
+                        .calls[0] ?? [];
+                expect(loadingError?.message).toBe(
+                    "Garmin FIT SDK module is missing Decoder or Stream.fromBuffer"
+                );
+                expect(fromBuffer).not.toHaveBeenCalled();
+            } finally {
+                mockFitSDK.Stream = originalStream;
+            }
+        });
+
         it("should handle integrity check failure", async () => {
             expect.assertions(2);
 

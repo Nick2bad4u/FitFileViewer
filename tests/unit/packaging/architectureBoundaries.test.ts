@@ -2891,7 +2891,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
-        expect.assertions(18);
+        expect.assertions(24);
 
         const parserSource = stripComments(
             readRepositoryFile("electron-app/fitParser.ts")
@@ -2909,6 +2909,18 @@ describe("architecture boundaries", () => {
         expect(parserSource).toContain("return getFitParserRuntime();");
         expect(parserSource).toContain("fitParserRuntime().isoTimestamp()");
         expect(parserSource).toContain("fitParserRuntime().dateNow()");
+        expect(parserSource).toContain("function isRecordCandidate");
+        expect(parserSource).toContain("function isObjectOrFunctionCandidate");
+        expect(parserSource).not.toContain(
+            "const candidate = value as { Decoder?: unknown; Stream?: unknown };"
+        );
+        expect(parserSource).not.toContain(
+            "Stream as { fromBuffer?: unknown }"
+        );
+        expect(parserSource).not.toContain(
+            "(value as { default?: unknown }).default"
+        );
+        expect(parserSource).not.toContain("value as { then?: unknown }");
         expect(parserSource).not.toContain("Date.now");
         expect(parserSource).not.toContain("new Date()");
         expect(parserRuntimeSource).toContain("defaultFitParserRuntimeScope");
