@@ -395,8 +395,9 @@ window event-target, HTMLElement, KeyboardEvent, and MutationObserver lookups in
 extending the existing AbortController provider migration with focused runtime coverage and architecture guardrails;
 its AbortController, HTMLElement, KeyboardEvent, and MutationObserver provider contracts now also reuse shared
 browser-runtime constructor aliases instead of direct ambient constructor type spellings.
-Fullscreen button scoped Electron API validation now uses an explicit optional-function property guard over an
-unknown-valued candidate instead of casting the candidate preload API to a generic record.
+Fullscreen button scoped Electron API validation now uses an explicit non-array record check plus optional-function
+property guard over an unknown-valued candidate instead of casting the candidate preload API to a generic record or
+local API shape.
 Fullscreen command candidate typing now uses an exact readonly method alias backed by the shared menu-event
 API-domain contract instead of deriving from the monolithic `ElectronAPI` type or carrying a local Electron API
 interface.

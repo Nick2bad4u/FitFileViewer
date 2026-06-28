@@ -18372,7 +18372,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(77);
+        expect.assertions(81);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -18423,6 +18423,14 @@ describe("architecture boundaries", () => {
             "readonly [K in keyof ElectronFullscreenAPI]?: unknown;"
         );
         expect(fullscreenButtonSource).not.toContain("Reflect.get(value, key)");
+        expect(fullscreenButtonSource).not.toContain(
+            "value as ElectronFullscreenAPI"
+        );
+        expect(fullscreenButtonSource).toContain("function isRecord(");
+        expect(fullscreenButtonSource).toContain("!Array.isArray(value)");
+        expect(fullscreenButtonSource).toContain(
+            'const candidate = value["setFullScreen"];'
+        );
         expect(fullscreenButtonSource).toContain(
             "handleKeyboardShortcuts(event, electronApiScope)"
         );

@@ -60,6 +60,10 @@ function addFullScreenButtonRuntime(): AddFullScreenButtonRuntime {
     return getAddFullScreenButtonRuntime();
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 const getElectronAPI = (
     electronApiScope?: RendererElectronApiScope
 ): ElectronFullscreenAPI | undefined =>
@@ -69,11 +73,11 @@ const getElectronAPI = (
 function isElectronFullscreenApi(
     value: unknown
 ): value is ElectronFullscreenAPI {
-    if (value === null || typeof value !== "object") {
+    if (!isRecord(value)) {
         return false;
     }
 
-    const candidate = (value as ElectronFullscreenAPI).setFullScreen;
+    const candidate = value["setFullScreen"];
     return candidate === undefined || typeof candidate === "function";
 }
 
