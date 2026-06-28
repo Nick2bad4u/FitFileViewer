@@ -374,6 +374,92 @@ describe("renderer vendor bundle loader", () => {
         expect(resolveScreenfullRuntime()).toBe(screenfullRuntime);
     });
 
+    it("waits for a valid core payload instead of accepting malformed readiness", async () => {
+        expect.assertions(7);
+
+        vi.useFakeTimers();
+        try {
+            let resolved = false;
+            const vendorReadiness = ensureVendorBundle("core");
+            void vendorReadiness.then(() => {
+                resolved = true;
+            });
+            const script = getVendorScript("core");
+
+            script.dispatchEvent(new Event("load"));
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv-renderer-vendor-entry-loaded", {
+                    detail: {
+                        core: {
+                            arqueroRuntime: { from: "not callable" },
+                            domPurifyRuntime: {
+                                sanitize: vi.fn(() =>
+                                    document.createDocumentFragment()
+                                ),
+                            },
+                            exportZipRuntime: class ExportZipRuntime {},
+                            screenfullRuntime: {
+                                isEnabled: true,
+                                isFullscreen: false,
+                                on() {},
+                            },
+                        },
+                        entryName: "core",
+                    },
+                })
+            );
+            await vi.advanceTimersByTimeAsync(20);
+            await Promise.resolve();
+
+            expect(resolved).toBe(false);
+            expect(resolveArqueroRuntime()).toBeUndefined();
+            expect(resolveDomPurifyRuntime()).toBeUndefined();
+            expect(resolveExportZipRuntime()).toBeUndefined();
+            expect(resolveScreenfullRuntime()).toBeUndefined();
+
+            const arqueroRuntime = {
+                from: () => ({
+                    array: () => [],
+                    columnNames: () => [],
+                    get: (_columnName: string, _rowIndex = 0) => undefined,
+                    numRows: () => 0,
+                }),
+            };
+            const domPurifyRuntime = {
+                sanitize: vi.fn(() => document.createDocumentFragment()),
+            };
+            class ExportZipRuntime {
+                public file(): this {
+                    return this;
+                }
+
+                public async generateAsync(): Promise<Blob> {
+                    return new Blob();
+                }
+            }
+            const screenfullRuntime = {
+                isEnabled: true,
+                isFullscreen: false,
+                on() {},
+            };
+
+            markRendererVendorEntryLoaded("core", {
+                core: {
+                    arqueroRuntime,
+                    domPurifyRuntime,
+                    exportZipRuntime: ExportZipRuntime,
+                    screenfullRuntime,
+                },
+            });
+            await vi.advanceTimersByTimeAsync(20);
+
+            await expect(vendorReadiness).resolves.toBeUndefined();
+            expect(resolveArqueroRuntime()).toBe(arqueroRuntime);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("registers the Leaflet payload from the split map vendor event", async () => {
         expect.assertions(2);
 

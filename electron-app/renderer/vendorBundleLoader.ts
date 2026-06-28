@@ -3,6 +3,9 @@ import {
     recordRendererVendorEntryLoaded,
     rendererVendorEntryLoadedEventName,
     type RendererVendorEntryLoadedEventDetail,
+    type RendererVendorChartDataRuntimePayload,
+    type RendererVendorCoreRuntimePayload,
+    type RendererVendorMapRuntimePayload,
 } from "./rendererVendorShared.js";
 import {
     getRendererVendorBundleLoaderRuntime,
@@ -15,12 +18,24 @@ import {
     type RendererVendorBundleEntry,
 } from "./vendorBundleManifest.js";
 import { setChartRuntime } from "../utils/charts/core/chartRuntime.js";
-import { setDomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
-import { setExportZipRuntime } from "../utils/files/export/exportZipRuntime.js";
+import {
+    isDomPurifyRuntime,
+    setDomPurifyRuntime,
+} from "../utils/dom/domPurifyRuntime.js";
+import {
+    isExportZipConstructor,
+    setExportZipRuntime,
+} from "../utils/files/export/exportZipRuntime.js";
 import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
-import { setArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
+import {
+    isArqueroRuntime,
+    setArqueroRuntime,
+} from "../utils/rendering/helpers/arqueroRuntime.js";
 import { setDataTableRuntime } from "../utils/rendering/core/dataTableRuntime.js";
-import { setScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
+import {
+    isScreenfullRuntime,
+    setScreenfullRuntime,
+} from "../utils/ui/controls/screenfullRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
@@ -40,30 +55,77 @@ function isRendererVendorBundleLoaded(
 
 function registerRendererVendorRuntimePayload(
     detail: RendererVendorEntryLoadedEventDetail
-): void {
-    recordRendererVendorEntryLoaded(detail.entryName);
-
-    if (detail.entryName === "core" && detail.core) {
-        setArqueroRuntime(detail.core.arqueroRuntime);
-        setDomPurifyRuntime(detail.core.domPurifyRuntime);
-        setExportZipRuntime(detail.core.exportZipRuntime);
-        setScreenfullRuntime(detail.core.screenfullRuntime);
-        return;
+): boolean {
+    if (
+        detail.entryName === "core" &&
+        registerCoreRuntimePayload(detail.core)
+    ) {
+        recordRendererVendorEntryLoaded(detail.entryName);
+        return true;
     }
 
-    if (detail.entryName !== "chart-data" || !detail.chartData) {
-        if (detail.entryName === "map" && detail.map) {
-            setLeafletRuntime(detail.map.leafletRuntime);
-        }
-
-        return;
+    if (
+        detail.entryName === "chart-data" &&
+        registerChartDataRuntimePayload(detail.chartData)
+    ) {
+        recordRendererVendorEntryLoaded(detail.entryName);
+        return true;
     }
 
-    setChartRuntime(
-        detail.chartData.chartRuntime,
-        detail.chartData.chartZoomPlugin
-    );
-    setDataTableRuntime(detail.chartData.dataTableRuntime);
+    if (detail.entryName === "map" && registerMapRuntimePayload(detail.map)) {
+        recordRendererVendorEntryLoaded(detail.entryName);
+        return true;
+    }
+
+    return false;
+}
+
+function registerChartDataRuntimePayload(
+    payload: RendererVendorChartDataRuntimePayload | undefined
+): boolean {
+    if (
+        payload === undefined ||
+        payload.chartRuntime === undefined ||
+        payload.chartZoomPlugin === undefined ||
+        payload.dataTableRuntime === undefined
+    ) {
+        return false;
+    }
+
+    setChartRuntime(payload.chartRuntime, payload.chartZoomPlugin);
+    setDataTableRuntime(payload.dataTableRuntime);
+    return true;
+}
+
+function registerCoreRuntimePayload(
+    payload: RendererVendorCoreRuntimePayload | undefined
+): boolean {
+    if (
+        payload === undefined ||
+        !isArqueroRuntime(payload.arqueroRuntime) ||
+        !isDomPurifyRuntime(payload.domPurifyRuntime) ||
+        !isExportZipConstructor(payload.exportZipRuntime) ||
+        !isScreenfullRuntime(payload.screenfullRuntime)
+    ) {
+        return false;
+    }
+
+    setArqueroRuntime(payload.arqueroRuntime);
+    setDomPurifyRuntime(payload.domPurifyRuntime);
+    setExportZipRuntime(payload.exportZipRuntime);
+    setScreenfullRuntime(payload.screenfullRuntime);
+    return true;
+}
+
+function registerMapRuntimePayload(
+    payload: RendererVendorMapRuntimePayload | undefined
+): boolean {
+    if (payload === undefined || payload.leafletRuntime === undefined) {
+        return false;
+    }
+
+    setLeafletRuntime(payload.leafletRuntime);
+    return true;
 }
 
 function createVendorScriptUrl(entryName: RendererVendorBundleEntry): string {
@@ -122,7 +184,9 @@ function waitForRendererVendorEntry(
                 return;
             }
 
-            registerRendererVendorRuntimePayload(detail);
+            if (!registerRendererVendorRuntimePayload(detail)) {
+                return;
+            }
             cleanup();
             resolve();
         };

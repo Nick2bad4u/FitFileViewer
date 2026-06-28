@@ -158,7 +158,6 @@
         "electron-app/utils/state/core/stateManager.ts",
         "electron-app/utils/state/core/computedStateManager.ts",
         "electron-app/utils/state/core/stateMiddleware.ts",
-        "electron-app/utils/state/core/unifiedStateManager.ts",
         "electron-app/utils/state/core/masterStateRuntime.ts",
         "electron-app/utils/state/core/masterStateManager.ts",
         "electron-app/utils/state/core/index.ts",
