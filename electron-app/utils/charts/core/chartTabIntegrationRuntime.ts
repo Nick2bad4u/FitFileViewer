@@ -4,10 +4,7 @@ import {
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
 
-type ChartTabIntegrationDocument = Pick<
-    Document,
-    "defaultView" | "querySelector"
->;
+type ChartTabIntegrationDocument = Pick<Document, "querySelector">;
 
 export interface ChartTabIntegrationRuntimeScope {
     readonly getDocument?:
@@ -41,10 +38,7 @@ const defaultChartTabIntegrationRuntimeScope: ChartTabIntegrationRuntimeScope =
 function getHTMLElementConstructor(
     scope: ChartTabIntegrationRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return (
-        scope.getHTMLElement?.() ??
-        scope.getDocument?.()?.defaultView?.HTMLElement
-    );
+    return scope.getHTMLElement?.();
 }
 
 function isHTMLElement(

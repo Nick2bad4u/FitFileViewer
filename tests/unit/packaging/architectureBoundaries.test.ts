@@ -9278,8 +9278,8 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationRuntimeSource).toContain(
             "scope.getHTMLElement?.()"
         );
-        expect(chartTabIntegrationRuntimeSource).toContain(
-            "scope.getDocument?.()?.defaultView?.HTMLElement"
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "defaultView?.HTMLElement"
         );
         expect(chartTabIntegrationRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
@@ -25109,9 +25109,7 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).toContain("scope.getHTMLElement?.()");
-        expect(runtimeSource).toContain(
-            "scope.getDocument?.()?.defaultView?.HTMLElement"
-        );
+        expect(runtimeSource).not.toContain("defaultView?.HTMLElement");
         expect(runtimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
         );

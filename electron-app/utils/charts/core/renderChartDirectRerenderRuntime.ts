@@ -4,10 +4,7 @@ import {
     getBrowserHTMLElement,
 } from "../../runtime/browserRuntime.js";
 
-type RenderChartDirectRerenderDocument = Pick<
-    Document,
-    "defaultView" | "querySelector"
->;
+type RenderChartDirectRerenderDocument = Pick<Document, "querySelector">;
 
 export interface RenderChartDirectRerenderRuntimeScope {
     readonly getDocument?:
@@ -40,10 +37,7 @@ const defaultRenderChartDirectRerenderRuntimeScope: RenderChartDirectRerenderRun
 function getHTMLElementConstructor(
     scope: RenderChartDirectRerenderRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return (
-        scope.getHTMLElement?.() ??
-        scope.getDocument?.()?.defaultView?.HTMLElement
-    );
+    return scope.getHTMLElement?.();
 }
 
 function isHTMLElement(

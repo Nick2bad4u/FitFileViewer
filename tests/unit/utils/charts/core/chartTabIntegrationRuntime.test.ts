@@ -57,9 +57,16 @@ describe("getChartTabIntegrationRuntime", () => {
             expect(runtime.isHTMLElement(tab)).toBe(true);
             expect(
                 getChartTabIntegrationRuntime({
-                    getDocument: () => document,
+                    getDocument: () =>
+                        ({
+                            defaultView: {
+                                HTMLElement,
+                            },
+                            querySelector: (selector: string) =>
+                                document.querySelector(selector),
+                        }) as unknown as Document,
                 }).querySelector('[data-tab="chart"]')
-            ).toBe(tab);
+            ).toBeNull();
             expect(
                 getChartTabIntegrationRuntime({
                     getDocument: () =>

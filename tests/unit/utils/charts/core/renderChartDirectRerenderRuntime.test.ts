@@ -57,9 +57,16 @@ describe("getRenderChartDirectRerenderRuntime", () => {
             ).toBe(chartContainer);
             expect(
                 getRenderChartDirectRerenderRuntime({
-                    getDocument: () => document,
+                    getDocument: () =>
+                        ({
+                            defaultView: {
+                                HTMLElement,
+                            },
+                            querySelector: (selector: string) =>
+                                document.querySelector(selector),
+                        }) as unknown as Document,
                 }).querySelector("#content_chart")
-            ).toBe(chartContainer);
+            ).toBeNull();
             expect(
                 getRenderChartDirectRerenderRuntime({
                     getDocument: () =>
