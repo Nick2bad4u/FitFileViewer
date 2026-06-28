@@ -115,7 +115,7 @@ const importRendererFresh = async () => {
     const subscribeToAppOpeningFile = vi.fn<(...args: unknown[]) => void>();
     const subscribeToAppStartTime = vi.fn<(...args: unknown[]) => void>();
 
-    // NOTE: renderer.js expects the exact '../../../electron-app/utils/...' ids to match resolveExactRendererCoreTestOverride
+    // NOTE: renderer.js imports these modules directly, so Vitest module mocks use the same source ids.
     vi.doMock(
         import("../../../electron-app/utils/ui/notifications/showNotification.js"),
         () => ({

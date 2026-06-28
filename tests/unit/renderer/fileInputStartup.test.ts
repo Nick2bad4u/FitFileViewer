@@ -209,35 +209,13 @@ describe("renderer file input startup wiring", () => {
         );
     });
 
-    it("prefers delegated override handleOpenFile resolution for test-created inputs", () => {
-        expect.assertions(1);
-
-        const { file, input } = createFileInput();
-        const overrideHandleOpenFile = vi.fn<() => void>();
-        const asyncHandleOpenFile = vi.fn<() => void>();
-        const delegatedHandler = createDelegatedFileInputChangeHandler({
-            getHandleOpenFile: async () => asyncHandleOpenFile,
-            getOverrideHandleOpenFile: () => overrideHandleOpenFile,
-        });
-
-        registerDelegatedFileInputChangeListener(
-            document,
-            window,
-            delegatedHandler
-        );
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-
-        expect(overrideHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
-    });
-
-    it("falls back to async handleOpenFile resolution when no override handler is available", async () => {
+    it("uses async handleOpenFile resolution for delegated file inputs", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput();
         const asyncHandleOpenFile = vi.fn<() => void>();
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             getHandleOpenFile: async () => asyncHandleOpenFile,
-            getOverrideHandleOpenFile: () => undefined,
         });
 
         registerDelegatedFileInputChangeListener(

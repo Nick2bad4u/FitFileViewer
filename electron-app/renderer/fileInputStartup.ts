@@ -17,7 +17,6 @@ export type RendererFileInputEventTarget = Pick<
 
 export interface RendererFileInputStartupOptions {
     getHandleOpenFile: () => Promise<RendererFileOpenHandler | undefined>;
-    getOverrideHandleOpenFile?: () => RendererFileOpenHandler | undefined;
     logRenderer?: RendererFileInputLogger;
 }
 
@@ -88,17 +87,6 @@ export function createDelegatedFileInputChangeHandler(
             const firstFile =
                 target === null ? undefined : getFirstSelectedFile(target);
             if (target?.id === "fileInput" && firstFile !== undefined) {
-                try {
-                    const handleOpenFileFn =
-                        options.getOverrideHandleOpenFile?.();
-                    if (handleOpenFileFn !== undefined) {
-                        handleOpenFileFn(firstFile);
-                        return;
-                    }
-                } catch {
-                    /* Ignore errors */
-                }
-
                 void handleDelegatedFileInputChange(firstFile, options);
             }
         } catch {

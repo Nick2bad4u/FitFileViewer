@@ -54,9 +54,6 @@ const migratedRendererFileInputStartupRuntimeFiles = [
     "electron-app/renderer/fileInputWiring.ts",
     "electron-app/renderer/fileInputStartup.ts",
 ] as const;
-const migratedRendererTestOnlyBootstrapRuntimeFiles = [
-    "electron-app/renderer/testOnlyBootstrap.ts",
-] as const;
 const migratedRendererVendorBundleLoaderRuntimeFiles = [
     "electron-app/renderer/vendorBundleLoader.ts",
 ] as const;
@@ -1370,10 +1367,6 @@ const directRendererFileInputStartupRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererFileInputStartupRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.(?:AbortController|HTMLInputElement)\b/u;
-const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
-const directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern =
-    /\breturn\s+globalThis\.AbortController\b/u;
 const directLastAnimLogRuntimeGlobalPattern =
     /\bDate\.now\b|\bperformance\.now\b/u;
 const directLastAnimLogRuntimeAmbientGetterPattern =
@@ -5943,7 +5936,6 @@ describe("architecture boundaries", () => {
             "electron-app/renderer/importTimeBootstrap.ts",
             "electron-app/renderer/lifecycleCleanup.ts",
             "electron-app/renderer/rendererDiagnosticsWiring.ts",
-            "electron-app/renderer/testOnlyBootstrap.ts",
         ];
         const anonymousOpeningStateRefPattern =
             /isOpeningFileRef:\s*\{\s*value:\s*boolean\s*\}/u;
@@ -6030,7 +6022,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file input wiring on its handle-open dependency", () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const fileInputWiringSource = stripComments(
             readRepositoryFile("electron-app/renderer/fileInputWiring.ts")
@@ -6064,6 +6056,15 @@ describe("architecture boundaries", () => {
         expect(fileInputWiringSource).not.toContain(
             "readonly ensureCoreModules: () => Promise<RendererCoreModules>"
         );
+        expect(fileInputWiringSource).not.toContain(
+            "resolveExactRendererCoreTestOverride"
+        );
+        expect(fileInputWiringSource).not.toContain(
+            "resolveRendererCoreTestOverride"
+        );
+        expect(fileInputWiringSource).not.toContain(
+            "getOverrideHandleOpenFile"
+        );
         expect(fileInputWiringTestSource).not.toContain(
             "RendererFileInputCoreModules"
         );
@@ -6071,6 +6072,9 @@ describe("architecture boundaries", () => {
         expect(fileInputWiringTestSource).not.toContain("RendererCoreModules");
         expect(fileInputWiringTestSource).not.toContain("AppActions");
         expect(fileInputWiringTestSource).not.toContain("masterStateManager");
+        expect(fileInputWiringTestSource).not.toContain(
+            "resolveExactRendererCoreTestOverride"
+        );
         expect(rendererEntrypointSource).toContain(
             "handleOpenFile as openFitFileFromDialog"
         );
@@ -6224,68 +6228,34 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer core module resolution off app-domain state services", () => {
-        expect.assertions(21);
+    it("keeps retired renderer core module resolution deleted", () => {
+        expect.assertions(7);
 
-        const coreModuleResolutionSource = stripComments(
-            readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
+        const applicationStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const importTimeBootstrapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
+        );
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
         );
 
-        expect(coreModuleResolutionSource).not.toContain(
-            "state/domain/appDomainState.js"
+        expect(
+            hasRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
+        ).toBe(false);
+        expect(applicationStartupSource).toContain(
+            'from "./startupCallbackTypes.js"'
         );
-        expect(coreModuleResolutionSource).not.toContain(
-            "type ResolvedRendererCoreModules = Readonly<{"
+        expect(importTimeBootstrapSource).toContain(
+            'from "./startupCallbackTypes.js"'
         );
-        expect(coreModuleResolutionSource).not.toContain("ensureCoreModules");
-        expect(coreModuleResolutionSource).not.toContain(
-            "importRendererModule"
+        expect(applicationStartupSource).not.toContain("coreModuleResolution");
+        expect(importTimeBootstrapSource).not.toContain("coreModuleResolution");
+        expect(rendererEntrypointSource).not.toContain("coreModuleResolution");
+        expect(rendererEntrypointSource).not.toContain(
+            "resolveExactRendererCoreTestOverride"
         );
-        expect(coreModuleResolutionSource).not.toContain(
-            "Unsupported renderer module import"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "export interface RendererCoreModules"
-        );
-        expect(coreModuleResolutionSource).not.toContain("AppStartTimeGetter");
-        expect(coreModuleResolutionSource).not.toContain(
-            "AppOpeningFileSubscriber"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "AppStartTimeSubscriber"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "getAppStartTime: AppStartTimeGetter | undefined"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "subscribeToAppOpeningFile: AppOpeningFileSubscriber | undefined"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "subscribeToAppStartTime: AppStartTimeSubscriber | undefined"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "getAppDomainState: undefined | UnknownRendererFunction"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "state/domain/appState.js"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "__vitest_manual_mocks__"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "resolveExactManualMock"
-        );
-        expect(coreModuleResolutionSource).not.toContain("resolveManualMock");
-        expect(coreModuleResolutionSource).not.toContain(
-            "toManualMockPathSuffix"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "export function toModuleRecord"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "[exportName: string]: unknown"
-        );
-        expect(coreModuleResolutionSource).not.toContain("globalThis");
     });
 
     it("keeps app-domain facade timestamps behind the runtime facade", () => {
@@ -20490,7 +20460,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input startup off the generic function bridge", () => {
-        expect.assertions(20);
+        expect.assertions(21);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -20515,16 +20485,16 @@ describe("architecture boundaries", () => {
             "handleOpenFile?.(selectedFile)"
         );
         expect(fileInputWiringSource).toContain("RendererFileOpenHandler");
-        expect(fileInputWiringSource).toContain(
+        expect(fileInputWiringSource).not.toContain(
             "type RendererFileInputHandleOpenFileOverrideModule = Readonly<{"
         );
-        expect(fileInputWiringSource).toContain(
+        expect(fileInputWiringSource).not.toContain(
             "type RendererFileInputHandleOpenFileDefaultExport = Readonly<{"
         );
-        expect(fileInputWiringSource).toContain(
+        expect(fileInputWiringSource).not.toContain(
             "readonly default?: RendererFileInputHandleOpenFileDefaultExport | undefined;"
         );
-        expect(fileInputWiringSource).toContain(
+        expect(fileInputWiringSource).not.toContain(
             "readonly handleOpenFile?: RendererFileOpenHandler | undefined;"
         );
         expect(fileInputWiringSource).not.toContain(
@@ -20533,8 +20503,11 @@ describe("architecture boundaries", () => {
         expect(fileInputWiringSource).not.toContain(
             "readonly handleOpenFile?: unknown;"
         );
-        expect(fileInputWiringSource).toContain(
+        expect(fileInputWiringSource).not.toContain(
             "toRendererFileInputHandleOpenFileOverrideModule("
+        );
+        expect(fileInputWiringSource).not.toContain(
+            "getOverrideHandleOpenFile"
         );
         expect(fileInputWiringSource).not.toContain("toOverrideRecord");
         expect(fileInputWiringSource).not.toContain(
@@ -20594,77 +20567,32 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer test-only bootstrap off the generic function bridge", () => {
-        expect.assertions(25);
+    it("keeps the retired renderer test-only bootstrap deleted", () => {
+        expect.assertions(5);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
         );
-        const testOnlyBootstrapSource = stripComments(
-            readRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
-        );
 
-        expect(testOnlyBootstrapSource).not.toContain("callUnknownFunction");
-        expect(testOnlyBootstrapSource).toContain(
-            "type RendererTestSetupListeners ="
+        expect(
+            hasRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
+        ).toBe(false);
+        expect(
+            hasRepositoryFile(
+                "electron-app/renderer/testOnlyBootstrapRuntime.ts"
+            )
+        ).toBe(false);
+        expect(rendererEntrypointSource).not.toContain("testOnlyBootstrap");
+        expect(rendererEntrypointSource).not.toContain(
+            "registerRendererTestOnlyBootstrap"
         );
-        expect(testOnlyBootstrapSource).toContain(
-            "type RendererTestSetupTheme ="
-        );
-        expect(testOnlyBootstrapSource).toContain("setupListenersFn?.({");
-        expect(testOnlyBootstrapSource).toContain(
-            "setupThemeFn(\n                    themeOverrides.applyTheme,\n                    themeOverrides.listenForThemeChange\n                )"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "getTestSetupListenersOverride"
-        );
-        expect(testOnlyBootstrapSource).toContain("getTestThemeOverrides");
-        expect(testOnlyBootstrapSource).toContain(
-            "toRendererTestSetupListeners"
-        );
-        expect(testOnlyBootstrapSource).toContain("toRendererTestSetupTheme");
-        expect(testOnlyBootstrapSource).toContain(
-            "type RendererTestSetupListenersOverrideModule = Readonly<{"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "readonly setupListeners?: RendererTestSetupListeners | undefined;"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "readonly setupTheme?: RendererTestSetupTheme | undefined;"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "readonly applyTheme?: (() => void) | undefined;"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "readonly listenForThemeChange?: (() => void) | undefined;"
-        );
-        expect(testOnlyBootstrapSource).not.toContain(
-            "setupListeners?: unknown;"
-        );
-        expect(testOnlyBootstrapSource).not.toContain("setupTheme?: unknown;");
-        expect(testOnlyBootstrapSource).not.toContain("applyTheme?: unknown;");
-        expect(testOnlyBootstrapSource).not.toContain(
-            "listenForThemeChange?: unknown;"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "toTestSetupListenersOverrideModule"
-        );
-        expect(testOnlyBootstrapSource).toContain(
-            "toTestSetupThemeOverrideModule"
-        );
-        expect(testOnlyBootstrapSource).toContain("toTestThemeOverrideModule");
-        expect(testOnlyBootstrapSource).not.toContain(
-            "isTestOverrideModuleRecord"
-        );
-        expect(testOnlyBootstrapSource).not.toContain("override as { readonly");
-        expect(testOnlyBootstrapSource).not.toContain("toModuleRecord");
         expect(rendererEntrypointSource).not.toContain(
             "testOnlyBootstrapOptions = {\n    callUnknownFunction,"
         );
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(78);
+        expect.assertions(59);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -20672,57 +20600,19 @@ describe("architecture boundaries", () => {
         const applicationStartupTestSource = stripComments(
             readRepositoryFile("tests/unit/renderer/applicationStartup.test.ts")
         );
-        const coreModuleResolutionSource = stripComments(
-            readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
-        );
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
         );
 
-        expect(coreModuleResolutionSource).not.toContain(
-            "handleOpenFile: RendererHandleOpenFile | undefined"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "setupListeners: RendererSetupListeners | undefined"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "setupTheme: RendererSetupTheme | undefined"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "handleOpenFile: undefined | UnknownRendererFunction"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "setupListeners: undefined | UnknownRendererFunction"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "setupTheme: undefined | UnknownRendererFunction"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "SetupListenersOptions"
-        );
-        expect(coreModuleResolutionSource).not.toContain("RendererSetupTheme");
+        expect(
+            hasRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
+        ).toBe(false);
         expect(applicationStartupSource).not.toContain(
             "export type RendererApplicationStartupCoreModules = Readonly<{"
         );
         expect(applicationStartupSource).not.toContain("ensureCoreModules");
         expect(applicationStartupSource).not.toContain("RendererCoreModules");
         expect(applicationStartupSource).not.toContain("Pick<");
-        expect(coreModuleResolutionSource).not.toContain(
-            "export type RendererAppCleanupActions = Pick<"
-        );
-        expect(coreModuleResolutionSource).not.toContain("typeof AppActions,");
-        expect(coreModuleResolutionSource).not.toContain(
-            '"setFileOpening" | "setInitialized"'
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "export type RendererAppInitializationActions"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "readonly AppActions: RendererAppCleanupActions | undefined;"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "): RendererAppCleanupActions | undefined {"
-        );
         expect(applicationStartupSource).toContain(
             "export type RendererApplicationStartupActions = Readonly<{"
         );
@@ -20736,9 +20626,6 @@ describe("architecture boundaries", () => {
             "readonly AppActions: RendererApplicationStartupActions | undefined;"
         );
         expect(applicationStartupSource).not.toContain(
-            "readonly AppActions: Record<string, unknown> | undefined;"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
             "readonly AppActions: Record<string, unknown> | undefined;"
         );
         expect(applicationStartupSource).toContain(
@@ -20853,30 +20740,14 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("showUpdateNotification,");
         expect(rendererEntrypointSource).toContain("setupListeners,");
         expect(rendererEntrypointSource).toContain("setupTheme,");
-        expect(coreModuleResolutionSource).not.toContain(
-            '"../utils/app/lifecycle/listeners.js"'
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "readonly applyTheme: ApplyTheme | undefined;"
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "readonly listenForThemeChange: ListenForThemeChange | undefined;"
-        );
-        expect(coreModuleResolutionSource).not.toContain("const themeMod");
-        expect(coreModuleResolutionSource).not.toContain(
-            '"../utils/theming/core/theme.js"'
-        );
         expect(applicationStartupSource).not.toContain(
             "handleImmediateFileInputChange"
         );
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(64);
+        expect.assertions(60);
 
-        const coreModuleResolutionSource = stripComments(
-            readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
-        );
         const importTimeBootstrapSource = stripComments(
             readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
         );
@@ -20889,7 +20760,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer.ts")
         );
 
-        expect(coreModuleResolutionSource).not.toContain("callUnknownFunction");
+        expect(
+            hasRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
+        ).toBe(false);
         expect(importTimeBootstrapSource).not.toContain("callUnknownFunction");
         expect(importTimeBootstrapSource).not.toContain(
             "export type RendererImportTimeCoreModules = Readonly<{"
@@ -21033,16 +20906,6 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("setupListeners,");
         expect(rendererEntrypointSource).toContain("setupTheme,");
         expect(rendererEntrypointSource).toContain("subscribeToAppStartTime,");
-        expect(coreModuleResolutionSource).not.toContain(
-            '"../utils/app/lifecycle/listeners.js"'
-        );
-        expect(coreModuleResolutionSource).not.toContain("const themeMod");
-        expect(coreModuleResolutionSource).not.toContain(
-            '"../utils/theming/core/theme.js"'
-        );
-        expect(coreModuleResolutionSource).not.toContain(
-            "export async function ensureCoreModules()"
-        );
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
@@ -26863,62 +26726,17 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
-        expect.assertions(15);
+    it("keeps retired renderer test-only bootstrap runtime deleted", () => {
+        expect.assertions(2);
 
-        const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
-            .filter((relativeFile) =>
-                directRendererTestOnlyBootstrapRuntimeGlobalPattern.test(
-                    stripComments(readRepositoryFile(relativeFile))
-                )
-            )
-            .sort();
-        const testOnlyBootstrapSource = stripComments(
-            readRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
-        );
-        const testOnlyBootstrapRuntimeSource = stripComments(
-            readRepositoryFile(
+        expect(
+            hasRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
+        ).toBe(false);
+        expect(
+            hasRepositoryFile(
                 "electron-app/renderer/testOnlyBootstrapRuntime.ts"
             )
-        );
-
-        expect(violations).toStrictEqual([]);
-        expect(testOnlyBootstrapSource).toContain(
-            "testOnlyBootstrapRuntime.js"
-        );
-        expect(testOnlyBootstrapSource).toContain("rendererEventTarget");
-        expect(testOnlyBootstrapSource).not.toContain("globalEventTarget");
-        expect(testOnlyBootstrapSource).not.toContain("windowTarget");
-        expect(testOnlyBootstrapRuntimeSource).toContain(
-            "defaultRendererTestOnlyBootstrapRuntimeScope"
-        );
-        expect(testOnlyBootstrapRuntimeSource).toContain(
-            "../utils/runtime/browserRuntime.js"
-        );
-        expect(testOnlyBootstrapRuntimeSource).toContain(
-            "type BrowserAbortControllerConstructor"
-        );
-        expect(testOnlyBootstrapRuntimeSource).toContain(
-            "getAbortController: getBrowserAbortController"
-        );
-        expect(testOnlyBootstrapRuntimeSource).not.toContain(
-            "getAbortController: () => globalThis.AbortController"
-        );
-        expect(testOnlyBootstrapRuntimeSource).not.toMatch(
-            directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern
-        );
-        expect(testOnlyBootstrapRuntimeSource).not.toContain(
-            "readonly AbortController?:"
-        );
-        expect(testOnlyBootstrapRuntimeSource).not.toContain(
-            "scope.AbortController"
-        );
-        expect(testOnlyBootstrapRuntimeSource).not.toContain(
-            "): typeof AbortController"
-        );
-        expect(testOnlyBootstrapRuntimeSource).not.toContain(
-            "| (() => typeof AbortController | undefined)"
-        );
+        ).toBe(false);
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {

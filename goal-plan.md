@@ -1568,12 +1568,8 @@ coverage blocking the broad helper from returning.
 Browser listing and scan state normalization now narrows persisted browser-branch payloads through explicit
 listing/scan candidate shapes instead of casting unknown values to a broad `Record<string, unknown>`, with unit and
 architecture coverage blocking that generic state bucket from returning.
-Renderer test-only bootstrap DOMContentLoaded and window-load listener cleanup now creates abort controllers through
-`testOnlyBootstrapRuntime.ts` instead of constructing `AbortController` directly in `testOnlyBootstrap.ts`, with
-focused runtime coverage and architecture coverage blocking direct test-only bootstrap abort-controller construction
-from returning. The test-only bootstrap runtime contract now reuses the shared browser-runtime AbortController alias.
-Renderer test-only bootstrap window-load registration now receives the startup-provided `rendererEventTarget`
-directly instead of preserving the retired `globalEventTarget` test-only bootstrap option name.
+Renderer test-only bootstrap and its runtime have now been deleted entirely; renderer startup tests rely on direct
+module mocks and normal startup wiring instead of production-only test bootstrap listeners or override resolvers.
 Network utility fetch, AbortController creation, and fetch-timeout scheduling now route through
 `networkUtilsRuntime.ts` instead of calling network or timer globals directly in `networkUtils.ts`, with adapter
 tests and architecture coverage blocking direct network utility globals from returning. Explicit network runtime
@@ -2088,7 +2084,10 @@ Renderer application startup and import-time bootstrap now also receive `handleO
 `setupTheme` directly from the renderer entrypoint, so those startup paths no longer call `ensureCoreModules` and the
 broad resolver no longer imports the lifecycle listener module for startup setup.
 Renderer development diagnostics now receive explicit debug function and state-module bags from the renderer entrypoint,
-and the old dynamic `ensureCoreModules` aggregate has been removed from `coreModuleResolution.ts`.
+and the old dynamic `ensureCoreModules` aggregate has been removed with the deleted core-module resolver.
+The retired `coreModuleResolution.ts` and renderer test-only bootstrap files have now been deleted entirely; startup
+callback types live in `startupCallbackTypes.ts`, file-input wiring uses only the injected handler, and focused renderer
+tests rely on direct module mocks instead of production test override resolvers.
 Renderer Electron menu callbacks now receive typed `applyTheme` and `showAboutModal` services directly from the
 renderer entrypoint instead of resolving them through the broad renderer core-module aggregate.
 Renderer error handling now receives the typed `showNotification` service directly from the renderer entrypoint instead

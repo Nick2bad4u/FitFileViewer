@@ -18,7 +18,7 @@ import type {
     ListenForThemeChange,
     ShowNotification,
     ShowUpdateNotification,
-} from "./coreModuleResolution.js";
+} from "./startupCallbackTypes.js";
 import type { SetupListenersOptions } from "../utils/app/lifecycle/listeners.js";
 import type { SetupThemeOptions } from "../utils/theming/core/setupTheme.js";
 import type { AppStartTimeGetter } from "../utils/state/domain/appDomainState.js";

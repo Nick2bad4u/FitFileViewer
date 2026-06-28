@@ -44,10 +44,6 @@ import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
 } from "./renderer/startupPerformanceMonitor.js";
-import {
-    resolveExactRendererCoreTestOverride,
-    resolveRendererCoreTestOverride,
-} from "./renderer/coreModuleResolution.js";
 import { installRendererElectronApiWiring } from "./renderer/electronApiWiring.js";
 import { createRendererErrorEventHandlers } from "./renderer/errorHandling.js";
 import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
@@ -62,7 +58,6 @@ import {
 } from "./renderer/importTimeBootstrap.js";
 import { initializeRendererDiagnostics } from "./renderer/rendererDiagnosticsWiring.js";
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
-import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
 import { createRendererDomAccess } from "./renderer/domElementAccess.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
@@ -126,8 +121,7 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     setupTheme,
     subscribeToAppStartTime,
 });
-const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
-    importTimeBootstrap;
+const { scheduleImportTimeStateInitialization } = importTimeBootstrap;
 
 const fileInputWiring = createRendererFileInputWiring({
     getFileInput: domAccess.getFileInput,
@@ -142,18 +136,7 @@ const fileInputWiring = createRendererFileInputWiring({
             { electronApiScope: getRendererElectronApiScope() }
         ),
     logRenderer,
-    resolveExactRendererCoreTestOverride,
-    resolveRendererCoreTestOverride,
 });
-
-const testOnlyBootstrapOptions = {
-    getOpenFileButton: domAccess.getOpenFileButton,
-    isOpeningFileRef,
-    resolveExactRendererCoreTestOverride,
-    resolveRendererCoreTestOverride,
-    scheduleImportTimeThemeSetup,
-    setLoading,
-};
 
 // ==========================================
 // Error Handling
@@ -273,12 +256,6 @@ installRendererElectronApiWiring({
     logRenderer,
     scheduleStateInitialization: scheduleImportTimeStateInitialization,
     showAboutModal,
-});
-
-registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
-    documentTarget: runtimeEnvironment.documentTarget,
-    rendererEventTarget: runtimeEnvironment.rendererEventTarget,
-    unloadTarget: runtimeEnvironment.rendererEventTarget,
 });
 
 fileInputWiring.registerDelegatedFileInputChangeListener(
