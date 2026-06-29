@@ -26160,7 +26160,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(32);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -26188,6 +26188,8 @@ describe("architecture boundaries", () => {
                 "const defaultAltFitSenderRuntimeScope"
             )
         );
+        const optionalAltFitSenderProviderAccessPattern =
+            /\bscope\.get(?:AbortController|Console|Document|Location)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(altFitSenderSource).toContain("altFitSenderRuntime.js");
@@ -26230,17 +26232,36 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly console?:");
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly location?:");
+        expect(altFitSenderRuntimeSource).not.toMatch(
+            optionalAltFitSenderProviderAccessPattern
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "type AltFitSenderRuntimeProvider<T> ="
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(altFitSenderRuntimeSource).toContain("providerName: string");
+        expect(altFitSenderRuntimeSource).toContain(
+            "Alt FIT sender requires ${providerName} provider"
+        );
         expect(altFitSenderRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(altFitSenderRuntimeSource).not.toContain("scope.console");
         expect(altFitSenderRuntimeSource).not.toContain("scope.document");
         expect(altFitSenderRuntimeSource).not.toContain("scope.location");
-        expect(altFitSenderRuntimeSource).toContain(
-            "return scope.getAbortController?.();"
+        expect(altFitSenderRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController/u
         );
-        expect(altFitSenderRuntimeSource).toContain(
-            "return scope.getLocation?.();"
+        expect(altFitSenderRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getConsole/u
+        );
+        expect(altFitSenderRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(altFitSenderRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocation/u
         );
     });
 
