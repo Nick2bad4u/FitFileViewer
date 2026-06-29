@@ -13,6 +13,20 @@ import {
     type TabStateManagerHandlersRuntimeScope,
 } from "../../../../../electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<TabStateManagerHandlersRuntimeScope> = {}
+): TabStateManagerHandlersRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getCancelAnimationFrame: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getTabStateManagerHandlersRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -30,9 +44,11 @@ describe("getTabStateManagerHandlersRuntime", () => {
         );
         const AbortControllerConstructor =
             AbortControllerConstructorMock as unknown as BrowserAbortControllerConstructor;
-        const runtime = getTabStateManagerHandlersRuntime({
-            getAbortController: () => AbortControllerConstructor,
-        });
+        const runtime = getTabStateManagerHandlersRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => AbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructorMock).toHaveBeenCalledTimes(1);
@@ -96,9 +112,11 @@ describe("getTabStateManagerHandlersRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 31);
-        const runtime = getTabStateManagerHandlersRuntime({
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
+        const runtime = getTabStateManagerHandlersRuntime(
+            createUnavailableRuntimeScope({
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            })
+        );
 
         expect(runtime.requestAnimationFrame(callback)).toBe(31);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -109,7 +127,9 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getTabStateManagerHandlersRuntime({}).requestAnimationFrame(vi.fn())
+            getTabStateManagerHandlersRuntime(
+                createUnavailableRuntimeScope()
+            ).requestAnimationFrame(vi.fn())
         ).toBeUndefined();
     });
 
@@ -117,9 +137,11 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const runtime = getTabStateManagerHandlersRuntime({
-            getCancelAnimationFrame: () => cancelAnimationFrame,
-        });
+        const runtime = getTabStateManagerHandlersRuntime(
+            createUnavailableRuntimeScope({
+                getCancelAnimationFrame: () => cancelAnimationFrame,
+            })
+        );
 
         runtime.cancelAnimationFrame(19);
 
@@ -131,7 +153,9 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getTabStateManagerHandlersRuntime({}).cancelAnimationFrame(19)
+            getTabStateManagerHandlersRuntime(
+                createUnavailableRuntimeScope()
+            ).cancelAnimationFrame(19)
         ).not.toThrow();
     });
 
@@ -142,9 +166,11 @@ describe("getTabStateManagerHandlersRuntime", () => {
             createElement: document.createElement.bind(document),
             createTextNode: document.createTextNode.bind(document),
         } as unknown as Document;
-        const runtime = getTabStateManagerHandlersRuntime({
-            getDocument: () => runtimeDocument,
-        });
+        const runtime = getTabStateManagerHandlersRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => runtimeDocument,
+            })
+        );
         const iframe = runtime.createElement("iframe");
         const textNode = runtime.createTextNode("ZwiftMap did not load.");
 
@@ -160,10 +186,12 @@ describe("getTabStateManagerHandlersRuntime", () => {
         const fallbackDelayMs = Number("75");
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 47);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const runtime = getTabStateManagerHandlersRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getTabStateManagerHandlersRuntime(
+            createUnavailableRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, fallbackDelayMs)).toBe(47);
         expect(setTimeout).toHaveBeenCalledWith(callback, fallbackDelayMs);
@@ -177,7 +205,9 @@ describe("getTabStateManagerHandlersRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(5);
 
-        const runtime = getTabStateManagerHandlersRuntime({});
+        const runtime = getTabStateManagerHandlersRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "tabStateManagerHandlers requires an AbortController runtime"
@@ -224,22 +254,26 @@ describe("getTabStateManagerHandlersRuntime", () => {
             setTimeout,
         } as unknown as TabStateManagerHandlersRuntimeScope);
 
-        expect(runtime.requestAnimationFrame(callback)).toBeUndefined();
-        expect(() => runtime.cancelAnimationFrame(41)).not.toThrow();
+        expect(() => runtime.requestAnimationFrame(callback)).toThrow(
+            "tabStateManagerHandlers requires a requestAnimationFrame provider"
+        );
+        expect(() => runtime.cancelAnimationFrame(41)).toThrow(
+            "tabStateManagerHandlers requires a cancelAnimationFrame provider"
+        );
         expect(() => runtime.createAbortController()).toThrow(
-            "tabStateManagerHandlers requires an AbortController runtime"
+            "tabStateManagerHandlers requires an AbortController provider"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
-            "tabStateManagerHandlers requires a setTimeout runtime"
+            "tabStateManagerHandlers requires a setTimeout provider"
         );
         expect(() => runtime.clearTimeout(53)).toThrow(
-            "tabStateManagerHandlers requires a clearTimeout runtime"
+            "tabStateManagerHandlers requires a clearTimeout provider"
         );
         expect(() => runtime.createElement("iframe")).toThrow(
-            "tabStateManagerHandlers requires a document runtime"
+            "tabStateManagerHandlers requires a document provider"
         );
         expect(() => runtime.createTextNode("ZwiftMap")).toThrow(
-            "tabStateManagerHandlers requires a document runtime"
+            "tabStateManagerHandlers requires a document provider"
         );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();

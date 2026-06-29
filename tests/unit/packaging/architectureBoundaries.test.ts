@@ -29381,7 +29381,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(70);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -29444,6 +29444,12 @@ describe("architecture boundaries", () => {
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "tabStateManagerHandlers requires a document runtime"
         );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "type TabStateManagerHandlersRuntimeProvider<T>"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "`tabStateManagerHandlers requires ${article} ${providerName} provider`"
+        );
         expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -29461,6 +29467,24 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "scope.AbortController"
@@ -29556,22 +29580,40 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "const AbortControllerConstructor = getRequiredProvider("
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "return new AbortControllerConstructor();"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
-            "scope.getCancelAnimationFrame?.()?.(handle);"
+            "scope.getCancelAnimationFrame,"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "const clearTimeoutRef = getRequiredProvider("
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
-            "const requestAnimationFrameRef = scope.getRequestAnimationFrame?.();"
+            "const requestAnimationFrameRef = getRequiredProvider("
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = getRequiredProvider("
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.getCancelAnimationFrame?.()"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.getRequestAnimationFrame?.()"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "return getRequiredDocument(scope).createElement(tagName);"
