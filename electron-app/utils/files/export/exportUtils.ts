@@ -3008,7 +3008,7 @@ body {
             hasCredentials = Boolean(config.clientId && config.clientSecret),
             isAuthenticated = exportUtils.isGyazoAuthenticated(),
             // Create modal overlay
-            overlay = document.createElement("div");
+            overlay = exportUtilsRuntime().createElement("div");
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -3024,7 +3024,7 @@ body {
         `;
 
         // Create modal content
-        const modal = document.createElement("div");
+        const modal = exportUtilsRuntime().createElement("div");
         modal.className = "gyazo-account-manager-modal";
         modal.style.cssText = `
             background: var(--color-modal-bg);
@@ -3038,17 +3038,17 @@ body {
             box-shadow: var(--color-box-shadow);
         `;
 
-        const title = document.createElement("h3");
+        const title = exportUtilsRuntime().createElement("h3");
         title.style.cssText =
             "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
         title.textContent = "📸 Gyazo Settings";
         modal.append(title);
 
-        const statusSection = document.createElement("div"),
-            authStatusWrap = document.createElement("div"),
-            authStatus = document.createElement("span"),
-            credsStatusWrap = document.createElement("div"),
-            credsStatus = document.createElement("span");
+        const statusSection = exportUtilsRuntime().createElement("div"),
+            authStatusWrap = exportUtilsRuntime().createElement("div"),
+            authStatus = exportUtilsRuntime().createElement("span"),
+            credsStatusWrap = exportUtilsRuntime().createElement("div"),
+            credsStatus = exportUtilsRuntime().createElement("span");
         statusSection.style.cssText =
             "margin-bottom: 20px; text-align: center;";
         authStatusWrap.style.cssText = "margin-bottom: 12px;";
@@ -3084,10 +3084,10 @@ body {
         statusSection.append(authStatusWrap, credsStatusWrap);
         modal.append(statusSection);
 
-        const gettingStarted = document.createElement("div"),
-            gettingStartedTitle = document.createElement("h4"),
-            gettingStartedCopy = document.createElement("p"),
-            connectStrong = document.createElement("strong");
+        const gettingStarted = exportUtilsRuntime().createElement("div"),
+            gettingStartedTitle = exportUtilsRuntime().createElement("h4"),
+            gettingStartedCopy = exportUtilsRuntime().createElement("p"),
+            connectStrong = exportUtilsRuntime().createElement("strong");
         gettingStarted.style.cssText =
             "margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;";
         gettingStartedTitle.style.cssText =
@@ -3104,16 +3104,16 @@ body {
         gettingStarted.append(gettingStartedTitle, gettingStartedCopy);
         modal.append(gettingStarted);
 
-        const details = document.createElement("details"),
-            summary = document.createElement("summary"),
-            advancedPanel = document.createElement("div"),
-            advancedCopy = document.createElement("p"),
-            advancedSteps = document.createElement("ol"),
-            appStep = document.createElement("li"),
+        const details = exportUtilsRuntime().createElement("details"),
+            summary = exportUtilsRuntime().createElement("summary"),
+            advancedPanel = exportUtilsRuntime().createElement("div"),
+            advancedCopy = exportUtilsRuntime().createElement("p"),
+            advancedSteps = exportUtilsRuntime().createElement("ol"),
+            appStep = exportUtilsRuntime().createElement("li"),
             appLink = exportUtilsRuntime().createElement("a"),
-            redirectStep = document.createElement("li"),
-            redirectCode = document.createElement("code"),
-            credentialsStep = document.createElement("li");
+            redirectStep = exportUtilsRuntime().createElement("li"),
+            redirectCode = exportUtilsRuntime().createElement("code"),
+            credentialsStep = exportUtilsRuntime().createElement("li");
         details.style.cssText = "margin-bottom: 20px;";
         summary.style.cssText = `
             color: var(--color-fg-alt);
@@ -3143,13 +3143,13 @@ body {
         credentialsStep.textContent = "Enter your credentials below";
         advancedSteps.append(appStep, redirectStep, credentialsStep);
 
-        const clientIdField = document.createElement("div"),
-            clientIdLabel = document.createElement("label"),
-            clientIdInput = document.createElement("input"),
-            clientSecretField = document.createElement("div"),
-            clientSecretLabel = document.createElement("label"),
-            clientSecretInput = document.createElement("input"),
-            saveCredsBtn = document.createElement("button");
+        const clientIdField = exportUtilsRuntime().createElement("div"),
+            clientIdLabel = exportUtilsRuntime().createElement("label"),
+            clientIdInput = exportUtilsRuntime().createElement("input"),
+            clientSecretField = exportUtilsRuntime().createElement("div"),
+            clientSecretLabel = exportUtilsRuntime().createElement("label"),
+            clientSecretInput = exportUtilsRuntime().createElement("input"),
+            saveCredsBtn = exportUtilsRuntime().createElement("button");
         clientIdField.style.cssText = "margin-bottom: 12px;";
         clientSecretField.style.cssText = "margin-bottom: 12px;";
         clientIdLabel.style.cssText =
@@ -3202,11 +3202,11 @@ body {
         details.append(summary, advancedPanel);
         modal.append(details);
 
-        const actionPanel = document.createElement("div"),
-            connectBtn = document.createElement("button"),
-            disconnectBtn = document.createElement("button"),
-            clearDataBtn = document.createElement("button"),
-            closeBtn = document.createElement("button");
+        const actionPanel = exportUtilsRuntime().createElement("div"),
+            connectBtn = exportUtilsRuntime().createElement("button"),
+            disconnectBtn = exportUtilsRuntime().createElement("button"),
+            clearDataBtn = exportUtilsRuntime().createElement("button"),
+            closeBtn = exportUtilsRuntime().createElement("button");
         actionPanel.style.cssText =
             "display: flex; flex-direction: column; gap: 8px;";
         connectBtn.id = "gyazo-connect";
