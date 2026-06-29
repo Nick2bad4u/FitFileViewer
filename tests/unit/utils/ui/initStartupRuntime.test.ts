@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { getInitStartupRuntime } from "../../../../electron-app/utils/ui/initStartupRuntime.js";
+import {
+    getInitStartupRuntime,
+    type InitStartupRuntimeScope,
+} from "../../../../electron-app/utils/ui/initStartupRuntime.js";
+
+const unavailableInitStartupRuntimeScope = {
+    getDocumentTarget: () => undefined,
+} satisfies InitStartupRuntimeScope;
 
 describe("getInitStartupRuntime", () => {
     it("returns the document target through the injected provider", () => {
@@ -23,9 +30,23 @@ describe("getInitStartupRuntime", () => {
     it("returns undefined when the document target runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getInitStartupRuntime({});
+        const runtime = getInitStartupRuntime(
+            unavailableInitStartupRuntimeScope
+        );
 
         expect(runtime.getDocumentTarget()).toBeUndefined();
+    });
+
+    it("fails clearly when explicit scopes omit the document target provider", () => {
+        expect.assertions(1);
+
+        const runtime = getInitStartupRuntime(
+            {} as unknown as InitStartupRuntimeScope
+        );
+
+        expect(() => runtime.getDocumentTarget()).toThrow(
+            "initStartup requires a document target provider"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -33,6 +54,7 @@ describe("getInitStartupRuntime", () => {
 
         const target = new EventTarget();
         const runtime = getInitStartupRuntime({
+            ...unavailableInitStartupRuntimeScope,
             documentTarget: target,
         } as unknown as Parameters<typeof getInitStartupRuntime>[0]);
 

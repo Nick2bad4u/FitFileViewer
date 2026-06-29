@@ -1,7 +1,7 @@
 import { getBrowserDocument } from "../runtime/browserRuntime.js";
 
 export interface InitStartupRuntimeScope {
-    readonly getDocumentTarget?: (() => EventTarget | undefined) | undefined;
+    readonly getDocumentTarget: (() => EventTarget | undefined) | undefined;
 }
 
 export interface InitStartupRuntime {
@@ -15,7 +15,11 @@ const defaultInitStartupRuntimeScope: InitStartupRuntimeScope = {
 function getDocumentTarget(
     scope: InitStartupRuntimeScope
 ): EventTarget | undefined {
-    return scope.getDocumentTarget?.();
+    if (typeof scope.getDocumentTarget !== "function") {
+        throw new TypeError("initStartup requires a document target provider");
+    }
+
+    return scope.getDocumentTarget();
 }
 
 export function getInitStartupRuntime(
