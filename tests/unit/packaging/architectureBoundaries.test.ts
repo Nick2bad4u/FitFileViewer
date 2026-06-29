@@ -25487,7 +25487,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-chart DOM helper creation behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(40);
 
         const violations = migratedRenderChartDomHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -25590,10 +25590,24 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getHTMLElement?:");
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
-        expect(runtimeSource).toContain("scope.getDocument?.()");
-        expect(runtimeSource).toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).toContain(
+            "const runtimeDocument = scope.getDocument();"
+        );
+        expect(runtimeSource).toContain(
+            "const HTMLElementConstructor = scope.getHTMLElement();"
+        );
+        expect(runtimeSource).not.toContain("scope.getDocument?.()");
+        expect(runtimeSource).not.toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).toContain(
+            "renderChartDomHelpers requires a document provider"
+        );
+        expect(runtimeSource).toContain(
+            "renderChartDomHelpers requires an HTMLElement provider"
+        );
         expect(runtimeSource).toContain(
             "renderChartDomHelpers requires a document runtime"
         );

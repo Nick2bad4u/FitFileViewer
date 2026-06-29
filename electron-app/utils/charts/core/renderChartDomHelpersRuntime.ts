@@ -7,12 +7,8 @@ import {
 type RenderChartDomHelpersDocument = Pick<Document, "createElement">;
 
 export interface RenderChartDomHelpersRuntimeScope {
-    readonly getDocument?:
-        | (() => RenderChartDomHelpersDocument | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
+    readonly getDocument: () => RenderChartDomHelpersDocument | undefined;
+    readonly getHTMLElement: () => BrowserHTMLElementConstructor | undefined;
 }
 
 export interface RenderChartDomHelpersRuntime {
@@ -31,7 +27,13 @@ const defaultRenderChartDomHelpersRuntimeScope: RenderChartDomHelpersRuntimeScop
 function getRequiredDocument(
     scope: RenderChartDomHelpersRuntimeScope
 ): RenderChartDomHelpersDocument {
-    const runtimeDocument = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "renderChartDomHelpers requires a document provider"
+        );
+    }
+
+    const runtimeDocument = scope.getDocument();
     if (!runtimeDocument) {
         throw new TypeError(
             "renderChartDomHelpers requires a document runtime"
@@ -57,7 +59,13 @@ export function getRenderChartDomHelpersRuntime(
 function getHTMLElementConstructor(
     scope: RenderChartDomHelpersRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof scope.getHTMLElement !== "function") {
+        throw new TypeError(
+            "renderChartDomHelpers requires an HTMLElement provider"
+        );
+    }
+
+    const HTMLElementConstructor = scope.getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "renderChartDomHelpers requires an HTMLElement runtime"

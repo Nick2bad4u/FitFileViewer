@@ -13,6 +13,11 @@ import {
     type RenderChartDomHelpersRuntimeScope,
 } from "../../../../../electron-app/utils/charts/core/renderChartDomHelpersRuntime.js";
 
+const unavailableDomHelpersScope = {
+    getDocument: () => undefined,
+    getHTMLElement: () => undefined,
+} satisfies RenderChartDomHelpersRuntimeScope;
+
 describe("renderChartDomHelpers", () => {
     it("uses browser runtime providers for production defaults", () => {
         expect.assertions(3);
@@ -70,6 +75,7 @@ describe("renderChartDomHelpers", () => {
             tagName === "div" ? element : document.createElement(tagName)
         );
         const utils = getRenderChartDomHelpersRuntime({
+            ...unavailableDomHelpersScope,
             getDocument: () => ({ createElement }),
         });
 
@@ -84,6 +90,7 @@ describe("renderChartDomHelpers", () => {
         expect.assertions(2);
 
         const utils = getRenderChartDomHelpersRuntime({
+            ...unavailableDomHelpersScope,
             getHTMLElement: () => HTMLElement,
         });
 
@@ -94,7 +101,9 @@ describe("renderChartDomHelpers", () => {
     it("requires explicit document providers for explicit scopes", () => {
         expect.assertions(2);
 
-        const utils = getRenderChartDomHelpersRuntime({});
+        const utils = getRenderChartDomHelpersRuntime(
+            unavailableDomHelpersScope
+        );
 
         expect(() => utils.createElement("div")).toThrow(
             "renderChartDomHelpers requires a document runtime"
@@ -104,6 +113,21 @@ describe("renderChartDomHelpers", () => {
         ).toThrow("renderChartDomHelpers requires an HTMLElement runtime");
     });
 
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(2);
+
+        const omittedProviderScope =
+            {} as unknown as RenderChartDomHelpersRuntimeScope;
+        const utils = getRenderChartDomHelpersRuntime(omittedProviderScope);
+
+        expect(() => utils.createElement("div")).toThrow(
+            "renderChartDomHelpers requires a document provider"
+        );
+        expect(() =>
+            utils.isHTMLElement(document.createElement("div"))
+        ).toThrow("renderChartDomHelpers requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct document scope properties", () => {
         expect.assertions(3);
 
@@ -111,6 +135,7 @@ describe("renderChartDomHelpers", () => {
             document.createElement("div")
         );
         const utils = getRenderChartDomHelpersRuntime({
+            ...unavailableDomHelpersScope,
             document: { createElement },
             HTMLElement,
         } as unknown as RenderChartDomHelpersRuntimeScope);
