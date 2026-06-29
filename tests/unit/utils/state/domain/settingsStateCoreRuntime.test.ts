@@ -4,6 +4,18 @@ import type { BrowserAbortControllerConstructor } from "../../../../../electron-
 import type { SettingsStateCoreRuntimeScope } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 import { getSettingsStateCoreRuntime } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 
+function createRuntimeScope(
+    overrides: Partial<SettingsStateCoreRuntimeScope> = {}
+): SettingsStateCoreRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getAddEventListener: () => undefined,
+        getDateNow: () => undefined,
+        getLocalStorage: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getSettingsStateCoreRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -14,9 +26,11 @@ describe("getSettingsStateCoreRuntime", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn<() => number>(() => 1234);
-        const runtime = getSettingsStateCoreRuntime({
-            getDateNow: () => dateNow,
-        });
+        const runtime = getSettingsStateCoreRuntime(
+            createRuntimeScope({
+                getDateNow: () => dateNow,
+            })
+        );
 
         expect(runtime.dateNow()).toBe(1234);
         expect(dateNow).toHaveBeenCalledOnce();
@@ -36,6 +50,7 @@ describe("getSettingsStateCoreRuntime", () => {
 
         expect(
             getSettingsStateCoreRuntime({
+                ...createRuntimeScope(),
                 getLocalStorage: () => storage,
             }).getLocalStorage()
         ).toBe(storage);
@@ -51,6 +66,7 @@ describe("getSettingsStateCoreRuntime", () => {
 
         expect(
             getSettingsStateCoreRuntime({
+                ...createRuntimeScope(),
                 getAddEventListener: () => addEventListener,
             }).addStorageEventListener(listener, signal)
         ).toBe(true);
@@ -91,12 +107,25 @@ describe("getSettingsStateCoreRuntime", () => {
         const controller = new AbortController();
 
         expect(
-            getSettingsStateCoreRuntime({}).addStorageEventListener(
-                vi.fn(),
-                controller.signal
-            )
+            getSettingsStateCoreRuntime(
+                createRuntimeScope({
+                    getAddEventListener: () => undefined,
+                })
+            ).addStorageEventListener(vi.fn(), controller.signal)
         ).toBe(false);
         controller.abort();
+    });
+
+    it("returns undefined when localStorage is unavailable", () => {
+        expect.assertions(1);
+
+        expect(
+            getSettingsStateCoreRuntime(
+                createRuntimeScope({
+                    getLocalStorage: () => undefined,
+                })
+            ).getLocalStorage()
+        ).toBeUndefined();
     });
 
     it("creates abort controllers through the injected runtime", () => {
@@ -108,10 +137,12 @@ describe("getSettingsStateCoreRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getSettingsStateCoreRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getSettingsStateCoreRuntime(
+            createRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -148,7 +179,11 @@ describe("getSettingsStateCoreRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getSettingsStateCoreRuntime({});
+        const runtime = getSettingsStateCoreRuntime(
+            createRuntimeScope({
+                getAbortController: () => undefined,
+            })
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "settingsStateCore requires an AbortController runtime"
@@ -176,17 +211,43 @@ describe("getSettingsStateCoreRuntime", () => {
         } as unknown as SettingsStateCoreRuntimeScope;
         const runtime = getSettingsStateCoreRuntime(legacyScope);
 
-        expect(runtime.getLocalStorage()).toBeUndefined();
-        expect(
+        expect(runtime.getLocalStorage).toThrow(
+            "settingsStateCore requires a localStorage provider"
+        );
+        expect(() =>
             runtime.addStorageEventListener(vi.fn(), controller.signal)
-        ).toBe(false);
+        ).toThrow("settingsStateCore requires an addEventListener provider");
         expect(() => runtime.createAbortController()).toThrow(
-            "settingsStateCore requires an AbortController runtime"
+            "settingsStateCore requires an AbortController provider"
         );
         expect(() => runtime.dateNow()).toThrow(
-            "settingsStateCore requires dateNow"
+            "settingsStateCore requires a dateNow provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
+
+        controller.abort();
+    });
+
+    it("fails clearly when named providers are omitted", () => {
+        expect.assertions(4);
+
+        const runtime = getSettingsStateCoreRuntime(
+            {} as unknown as SettingsStateCoreRuntimeScope
+        );
+        const controller = new AbortController();
+
+        expect(runtime.getLocalStorage).toThrow(
+            "settingsStateCore requires a localStorage provider"
+        );
+        expect(() =>
+            runtime.addStorageEventListener(vi.fn(), controller.signal)
+        ).toThrow("settingsStateCore requires an addEventListener provider");
+        expect(() => runtime.createAbortController()).toThrow(
+            "settingsStateCore requires an AbortController provider"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "settingsStateCore requires a dateNow provider"
+        );
 
         controller.abort();
     });
@@ -194,8 +255,12 @@ describe("getSettingsStateCoreRuntime", () => {
     it("fails clearly when date clocks are unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getSettingsStateCoreRuntime({}).dateNow()).toThrow(
-            "settingsStateCore requires dateNow"
-        );
+        expect(() =>
+            getSettingsStateCoreRuntime(
+                createRuntimeScope({
+                    getDateNow: () => undefined,
+                })
+            ).dateNow()
+        ).toThrow("settingsStateCore requires dateNow");
     });
 });
