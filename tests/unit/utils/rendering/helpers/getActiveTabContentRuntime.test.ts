@@ -59,42 +59,39 @@ describe("getGetActiveTabContentRuntime", () => {
     });
 
     it("fails clearly when explicit scopes omit the document provider", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
-        const runtime = getGetActiveTabContentRuntime(
-            {} as unknown as GetActiveTabContentRuntimeScope
-        );
+        expect(() =>
+            getGetActiveTabContentRuntime(
+                {} as unknown as GetActiveTabContentRuntimeScope
+            )
+        ).toThrow("getActiveTabContent requires a document provider");
+    });
 
-        expect(() => runtime.queryTabContents(".tab-content")).toThrow(
-            "getActiveTabContent requires a document provider"
-        );
-        expect(() => runtime.querySelector(".tab-content.active")).toThrow(
-            "getActiveTabContent requires a document provider"
-        );
-        expect(() => runtime.getElementByIdFlexible("content-summary")).toThrow(
-            "getActiveTabContent requires a document provider"
-        );
+    it("fails clearly when the document provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getGetActiveTabContentRuntime({
+                getDocument: undefined,
+            })
+        ).toThrow("getActiveTabContent requires a document provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const querySelector = vi.fn<Document["querySelector"]>();
         const querySelectorAll = vi.fn<Document["querySelectorAll"]>();
-        const runtime = getGetActiveTabContentRuntime({
-            ...unavailableGetActiveTabContentRuntimeScope,
-            document: {
-                querySelector,
-                querySelectorAll,
-            },
-        } as unknown as GetActiveTabContentRuntimeScope);
 
-        expect(() => runtime.queryTabContents(".tab-content")).toThrow(
-            "getActiveTabContent requires a document runtime"
-        );
-        expect(() => runtime.querySelector(".tab-content.active")).toThrow(
-            "getActiveTabContent requires a document runtime"
-        );
+        expect(() =>
+            getGetActiveTabContentRuntime({
+                document: {
+                    querySelector,
+                    querySelectorAll,
+                },
+            } as unknown as GetActiveTabContentRuntimeScope)
+        ).toThrow("getActiveTabContent requires a document provider");
         expect(querySelector).not.toHaveBeenCalled();
         expect(querySelectorAll).not.toHaveBeenCalled();
     });
