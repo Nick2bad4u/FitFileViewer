@@ -12,15 +12,13 @@ type MainProcessPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
 
+type MainProcessStateRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface MainProcessStateRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getPerformance?:
-        | (() => MainProcessPerformanceRuntime | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getClearTimeout: MainProcessStateRuntimeProvider<BrowserClearTimeout>;
+    readonly getDateNow: MainProcessStateRuntimeProvider<() => number>;
+    readonly getPerformance: MainProcessStateRuntimeProvider<MainProcessPerformanceRuntime>;
+    readonly getSetTimeout: MainProcessStateRuntimeProvider<BrowserSetTimeout>;
 }
 
 export type MainProcessStateTimer = BrowserTimerHandle;
@@ -42,8 +40,21 @@ const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: MainProcessStateRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `mainProcessStateRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getRequiredDateNow(scope: MainProcessStateRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNow === "function") {
         return dateNow;
     }
@@ -54,7 +65,10 @@ function getRequiredDateNow(scope: MainProcessStateRuntimeScope): () => number {
 function getRequiredMonotonicNow(
     scope: MainProcessStateRuntimeScope
 ): () => number {
-    const performance = scope.getPerformance?.();
+    const performance = getRequiredProvider(
+        scope.getPerformance,
+        "performance"
+    )();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
@@ -68,7 +82,10 @@ export function getMainProcessStateRuntime(
 ): MainProcessStateRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mainProcessStateRuntime requires clearTimeout"
@@ -84,7 +101,10 @@ export function getMainProcessStateRuntime(
             return getRequiredMonotonicNow(scope)();
         },
         setTimeout(callback, delayMs): MainProcessStateTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mainProcessStateRuntime requires setTimeout"

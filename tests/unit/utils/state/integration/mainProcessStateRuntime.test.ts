@@ -6,8 +6,21 @@ import type {
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getMainProcessStateRuntime,
+    type MainProcessStateRuntimeScope,
     type MainProcessStateTimer,
 } from "../../../../../electron-app/utils/state/integration/mainProcessStateRuntime.js";
+
+function createMainProcessStateRuntimeScope(
+    overrides: Partial<MainProcessStateRuntimeScope> = {}
+): MainProcessStateRuntimeScope {
+    return {
+        getClearTimeout: () => undefined,
+        getDateNow: () => undefined,
+        getPerformance: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("mainProcessStateRuntime", () => {
     afterEach(() => {
@@ -18,10 +31,12 @@ describe("mainProcessStateRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getMainProcessStateRuntime({
-                getDateNow: () => () => 123,
-                getPerformance: () => ({ now: () => 45.5 }),
-            }).monotonicNowMs()
+            getMainProcessStateRuntime(
+                createMainProcessStateRuntimeScope({
+                    getDateNow: () => () => 123,
+                    getPerformance: () => ({ now: () => 45.5 }),
+                })
+            ).monotonicNowMs()
         ).toBe(45.5);
     });
 
@@ -29,9 +44,11 @@ describe("mainProcessStateRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getMainProcessStateRuntime({
-                getDateNow: () => () => 123,
-            }).monotonicNowMs()
+            getMainProcessStateRuntime(
+                createMainProcessStateRuntimeScope({
+                    getDateNow: () => () => 123,
+                })
+            ).monotonicNowMs()
         ).toBe(123);
     });
 
@@ -39,21 +56,27 @@ describe("mainProcessStateRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getMainProcessStateRuntime({
-                getDateNow: () => () => 123,
-            }).dateNow()
+            getMainProcessStateRuntime(
+                createMainProcessStateRuntimeScope({
+                    getDateNow: () => () => 123,
+                })
+            ).dateNow()
         ).toBe(123);
     });
 
     it("does not borrow ambient clocks for explicit scopes", () => {
         expect.assertions(2);
 
-        expect(() => getMainProcessStateRuntime({}).monotonicNowMs()).toThrow(
-            "mainProcessStateRuntime requires a date clock"
-        );
-        expect(() => getMainProcessStateRuntime({}).dateNow()).toThrow(
-            "mainProcessStateRuntime requires a date clock"
-        );
+        expect(() =>
+            getMainProcessStateRuntime(
+                createMainProcessStateRuntimeScope()
+            ).monotonicNowMs()
+        ).toThrow("mainProcessStateRuntime requires a date clock");
+        expect(() =>
+            getMainProcessStateRuntime(
+                createMainProcessStateRuntimeScope()
+            ).dateNow()
+        ).toThrow("mainProcessStateRuntime requires a date clock");
     });
 
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -73,10 +96,12 @@ describe("mainProcessStateRuntime", () => {
         const clearTimeout: BrowserClearTimeout = (handle) => {
             clearedTimer = handle;
         };
-        const runtime = getMainProcessStateRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getMainProcessStateRuntime(
+            createMainProcessStateRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -97,24 +122,25 @@ describe("mainProcessStateRuntime", () => {
         const dateNow = vi.fn<() => number>(() => 123);
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const performanceNow = vi.fn<() => number>(() => 45.5);
-        const runtime = getMainProcessStateRuntime({
+        const legacyScope = {
             clearTimeout,
             dateNow,
             performance: { now: performanceNow },
             setTimeout,
-        } as unknown as Parameters<typeof getMainProcessStateRuntime>[0]);
+        } as unknown as Parameters<typeof getMainProcessStateRuntime>[0];
+        const runtime = getMainProcessStateRuntime(legacyScope);
 
         expect(() => runtime.monotonicNowMs()).toThrow(
-            "mainProcessStateRuntime requires a date clock"
+            "mainProcessStateRuntime requires performance provider"
         );
         expect(() => runtime.dateNow()).toThrow(
-            "mainProcessStateRuntime requires a date clock"
+            "mainProcessStateRuntime requires dateNow provider"
         );
         expect(() => runtime.setTimeout(callback, 50)).toThrow(
-            "mainProcessStateRuntime requires setTimeout"
+            "mainProcessStateRuntime requires setTimeout provider"
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
-            "mainProcessStateRuntime requires clearTimeout"
+            "mainProcessStateRuntime requires clearTimeout provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();
@@ -125,7 +151,9 @@ describe("mainProcessStateRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getMainProcessStateRuntime({});
+        const runtime = getMainProcessStateRuntime(
+            createMainProcessStateRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "mainProcessStateRuntime requires setTimeout"
@@ -133,6 +161,27 @@ describe("mainProcessStateRuntime", () => {
         expect(() => {
             runtime.clearTimeout(67 as MainProcessStateTimer);
         }).toThrow("mainProcessStateRuntime requires clearTimeout");
+    });
+
+    it("fails clearly when provider slots are omitted", () => {
+        expect.assertions(4);
+
+        const runtime = getMainProcessStateRuntime(
+            {} as unknown as MainProcessStateRuntimeScope
+        );
+
+        expect(() => runtime.clearTimeout(67 as MainProcessStateTimer)).toThrow(
+            "mainProcessStateRuntime requires clearTimeout provider"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "mainProcessStateRuntime requires dateNow provider"
+        );
+        expect(() => runtime.monotonicNowMs()).toThrow(
+            "mainProcessStateRuntime requires performance provider"
+        );
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "mainProcessStateRuntime requires setTimeout provider"
+        );
     });
 
     it("resolves default timers and performance clock when runtime operations run", () => {

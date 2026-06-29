@@ -3466,7 +3466,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(41);
+        expect.assertions(57);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -3578,7 +3578,46 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
         );
         expect(mainProcessStateRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "type MainProcessStateRuntimeProvider<T>"
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*MainProcessStateRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*MainProcessStateRuntimeProvider<\(\) => number>/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*MainProcessStateRuntimeProvider<MainProcessPerformanceRuntime>/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*MainProcessStateRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(mainProcessStateRuntimeSource).not.toMatch(
+            /scope\.get(?:ClearTimeout|DateNow|Performance|SetTimeout)\?\.\(/u
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "mainProcessStateRuntime requires ${providerName} provider"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /const\s+dateNow\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
         expect(mainProcessStateRuntimeSource).toContain("dateNow(): number");
         expect(mainProcessStateRuntimeSource).not.toContain(
