@@ -18839,7 +18839,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(66);
+        expect.assertions(80);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -18857,6 +18857,8 @@ describe("architecture boundaries", () => {
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
         const directLifecycleListenersAmbientScopePattern =
             /\bscope\.(?:AbortController|clearTimeout|document|print|process|processEnvironmentValue|setTimeout|URL)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
+        const optionalLifecycleListenersProviderAccessPattern =
+            /\bscope\.get(?:AbortController|ClearTimeout|Document|Print|SetTimeout|URL)\?\.\(|\bscope\.getProcessEnvironmentValue\?\.\(/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
@@ -18891,8 +18893,29 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).not.toMatch(
             directLifecycleListenersAmbientScopePattern
         );
+        expect(lifecycleListenersRuntimeSource).not.toMatch(
+            optionalLifecycleListenersProviderAccessPattern
+        );
         expect(lifecycleListenersRuntimeSource).toContain(
             "defaultLifecycleListenersRuntimeScope"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "type LifecycleListenersRuntimeProvider<T> ="
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "lifecycle listeners require ${providerName} provider"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "lifecycle listeners require processEnvironmentValue provider"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getRequiredEnvironmentProvider("
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "scope: LifecycleListenersRuntimeScope = globalThis"
@@ -18999,7 +19022,28 @@ describe("architecture boundaries", () => {
             "const printRef = globalThis.print;"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
-            'scope.getProcessEnvironmentValue?.("NODE_ENV") === "test"'
+            'scope.getProcessEnvironmentValue'
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            '("NODE_ENV") === "test"'
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController/u
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout/u
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPrint/u
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout/u
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getURL/u
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "process")'

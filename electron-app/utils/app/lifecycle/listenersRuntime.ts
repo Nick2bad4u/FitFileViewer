@@ -20,23 +20,18 @@ type LifecycleListenersURL = Pick<
     typeof URL,
     "createObjectURL" | "revokeObjectURL"
 >;
+type LifecycleListenersRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface LifecycleListenersRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?:
-        | (() => LifecycleListenersDocument | undefined)
-        | undefined;
-    readonly getPrint?: (() => LifecycleListenersPrint | undefined) | undefined;
-    readonly getProcessEnvironmentValue?:
+    readonly getAbortController: LifecycleListenersRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: LifecycleListenersRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: LifecycleListenersRuntimeProvider<LifecycleListenersDocument>;
+    readonly getPrint: LifecycleListenersRuntimeProvider<LifecycleListenersPrint>;
+    readonly getProcessEnvironmentValue:
         | ((name: string) => string | undefined)
         | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly getURL?: (() => LifecycleListenersURL | undefined) | undefined;
+    readonly getSetTimeout: LifecycleListenersRuntimeProvider<BrowserSetTimeout>;
+    readonly getURL: LifecycleListenersRuntimeProvider<LifecycleListenersURL>;
 }
 
 export interface LifecycleListenersRuntime {
@@ -68,10 +63,35 @@ const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope = {
     getURL: getBrowserURL,
 };
 
+function getRequiredProvider<T>(
+    provider: LifecycleListenersRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `lifecycle listeners require ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
+function getRequiredEnvironmentProvider(
+    provider: LifecycleListenersRuntimeScope["getProcessEnvironmentValue"]
+): (name: string) => string | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            "lifecycle listeners require processEnvironmentValue provider"
+        );
+    }
+
+    return provider;
+}
+
 function getRequiredDocument(
     scope: LifecycleListenersRuntimeScope
 ): LifecycleListenersDocument {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError("lifecycle listeners require a document runtime");
     }
@@ -82,7 +102,7 @@ function getRequiredDocument(
 function getRequiredURL(
     scope: LifecycleListenersRuntimeScope
 ): LifecycleListenersURL {
-    const URLRef = scope.getURL?.();
+    const URLRef = getRequiredProvider(scope.getURL, "URL")();
     if (
         typeof URLRef?.createObjectURL !== "function" ||
         typeof URLRef.revokeObjectURL !== "function"
@@ -101,7 +121,10 @@ export function getLifecycleListenersRuntime(
             getRequiredDocument(scope).body.append(element);
         },
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require a clearTimeout runtime"
@@ -111,7 +134,10 @@ export function getLifecycleListenersRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const AbortControllerConstructor = getRequiredProvider(
+                scope.getAbortController,
+                "AbortController"
+            )();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require an AbortController runtime"
@@ -127,10 +153,14 @@ export function getLifecycleListenersRuntime(
             return getRequiredURL(scope).createObjectURL(blob);
         },
         isTestEnvironment(): boolean {
-            return scope.getProcessEnvironmentValue?.("NODE_ENV") === "test";
+            return (
+                getRequiredEnvironmentProvider(
+                    scope.getProcessEnvironmentValue
+                )("NODE_ENV") === "test"
+            );
         },
         print(): void {
-            const printRef = scope.getPrint?.();
+            const printRef = getRequiredProvider(scope.getPrint, "print")();
             if (typeof printRef !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require a print runtime"
@@ -150,7 +180,10 @@ export function getLifecycleListenersRuntime(
             }
         },
         setTimeout(callback, delayMs): LifecycleListenersTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require a setTimeout runtime"

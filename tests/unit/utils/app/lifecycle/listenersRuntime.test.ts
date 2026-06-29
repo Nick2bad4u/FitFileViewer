@@ -11,6 +11,21 @@ import type {
     BrowserTimerHandle,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createLifecycleListenersRuntimeScope(
+    overrides: Partial<LifecycleListenersRuntimeScope> = {}
+): LifecycleListenersRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getPrint: () => undefined,
+        getProcessEnvironmentValue: () => undefined,
+        getSetTimeout: () => undefined,
+        getURL: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getLifecycleListenersRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -26,10 +41,12 @@ describe("getLifecycleListenersRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getLifecycleListenersRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -46,7 +63,9 @@ describe("getLifecycleListenersRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getLifecycleListenersRuntime({});
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "lifecycle listeners require an AbortController runtime"
@@ -70,10 +89,12 @@ describe("getLifecycleListenersRuntime", () => {
         const clearTimeout: BrowserClearTimeout = (handle) => {
             clearedTimer = handle;
         };
-        const runtime = getLifecycleListenersRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -113,11 +134,13 @@ describe("getLifecycleListenersRuntime", () => {
         expect.assertions(2);
 
         const print = vi.fn<() => void>();
-        const runtime = getLifecycleListenersRuntime({
-            getPrint: () => print,
-            getProcessEnvironmentValue: (name) =>
-                name === "NODE_ENV" ? "test" : undefined,
-        });
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope({
+                getPrint: () => print,
+                getProcessEnvironmentValue: (name) =>
+                    name === "NODE_ENV" ? "test" : undefined,
+            })
+        );
 
         runtime.print();
 
@@ -136,16 +159,18 @@ describe("getLifecycleListenersRuntime", () => {
         const blobUrl = "blob:lifecycle-listeners-test";
         const createObjectURL = vi.fn<(blob: Blob) => string>(() => blobUrl);
         const revokeObjectURL = vi.fn<(url: string) => void>();
-        const runtime = getLifecycleListenersRuntime({
-            getDocument: () => ({
-                body: document.body,
-                createElement,
-            }),
-            getURL: () => ({
-                createObjectURL,
-                revokeObjectURL,
-            }),
-        });
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope({
+                getDocument: () => ({
+                    body: document.body,
+                    createElement,
+                }),
+                getURL: () => ({
+                    createObjectURL,
+                    revokeObjectURL,
+                }),
+            })
+        );
         const blob = new Blob(["test"]);
 
         expect(runtime.createDownloadAnchor()).toBe(anchor);
@@ -201,12 +226,14 @@ describe("getLifecycleListenersRuntime", () => {
 
         const body = document.createElement("body");
         body.classList.add("font-small", "high-contrast");
-        const runtime = getLifecycleListenersRuntime({
-            getDocument: () => ({
-                body,
-                createElement: document.createElement.bind(document),
-            }),
-        });
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope({
+                getDocument: () => ({
+                    body,
+                    createElement: document.createElement.bind(document),
+                }),
+            })
+        );
 
         runtime.replaceBodyClasses(["font-small", "font-medium"], "font-large");
 
@@ -219,7 +246,9 @@ describe("getLifecycleListenersRuntime", () => {
     it("throws when print is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getLifecycleListenersRuntime({});
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope()
+        );
 
         expect(() => runtime.print()).toThrow(
             "lifecycle listeners require a print runtime"
@@ -229,7 +258,9 @@ describe("getLifecycleListenersRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(7);
 
-        const runtime = getLifecycleListenersRuntime({});
+        const runtime = getLifecycleListenersRuntime(
+            createLifecycleListenersRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "lifecycle listeners require a setTimeout runtime"
@@ -254,8 +285,41 @@ describe("getLifecycleListenersRuntime", () => {
         );
     });
 
+    it("fails clearly when lifecycle listener provider slots are omitted", () => {
+        expect.assertions(8);
+
+        const runtime = getLifecycleListenersRuntime(
+            {} as unknown as LifecycleListenersRuntimeScope
+        );
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "lifecycle listeners require AbortController provider"
+        );
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "lifecycle listeners require setTimeout provider"
+        );
+        expect(() => {
+            runtime.clearTimeout(23 as BrowserTimerHandle);
+        }).toThrow("lifecycle listeners require clearTimeout provider");
+        expect(() => runtime.print()).toThrow(
+            "lifecycle listeners require print provider"
+        );
+        expect(() => runtime.isTestEnvironment()).toThrow(
+            "lifecycle listeners require processEnvironmentValue provider"
+        );
+        expect(() => runtime.createDownloadAnchor()).toThrow(
+            "lifecycle listeners require document provider"
+        );
+        expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
+            "lifecycle listeners require URL provider"
+        );
+        expect(() => runtime.revokeObjectURL("blob:test")).toThrow(
+            "lifecycle listeners require URL provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -263,16 +327,18 @@ describe("getLifecycleListenersRuntime", () => {
                 return controller;
             }
         );
+        const clearTimeout = vi.fn<BrowserClearTimeout>();
         const print = vi.fn<() => void>();
         const timer = 23 as BrowserTimerHandle;
+        const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const legacyScope = {
             AbortController:
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-            clearTimeout: vi.fn<BrowserClearTimeout>(),
+            clearTimeout,
             print,
             processEnvironmentValue: (name: string) =>
                 name === "NODE_ENV" ? "test" : undefined,
-            setTimeout: vi.fn<BrowserSetTimeout>(() => timer),
+            setTimeout,
             URL: {
                 createObjectURL: vi.fn<(blob: Blob) => string>(
                     () => "blob:legacy"
@@ -284,30 +350,34 @@ describe("getLifecycleListenersRuntime", () => {
         const runtime = getLifecycleListenersRuntime(legacyScope);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "lifecycle listeners require an AbortController runtime"
+            "lifecycle listeners require AbortController provider"
         );
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
-            "lifecycle listeners require a setTimeout runtime"
+            "lifecycle listeners require setTimeout provider"
         );
         expect(() => runtime.print()).toThrow(
-            "lifecycle listeners require a print runtime"
+            "lifecycle listeners require print provider"
+        );
+        expect(() => runtime.isTestEnvironment()).toThrow(
+            "lifecycle listeners require processEnvironmentValue provider"
         );
         expect(() => runtime.createDownloadAnchor()).toThrow(
-            "lifecycle listeners require a document runtime"
+            "lifecycle listeners require document provider"
         );
         expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
-            "lifecycle listeners require a document runtime"
+            "lifecycle listeners require document provider"
         );
         expect(() =>
             runtime.replaceBodyClasses(["font-small"], "font-large")
-        ).toThrow("lifecycle listeners require a document runtime");
+        ).toThrow("lifecycle listeners require document provider");
         expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
-            "lifecycle listeners require a URL runtime"
+            "lifecycle listeners require URL provider"
         );
         expect(() => runtime.revokeObjectURL("blob:legacy")).toThrow(
-            "lifecycle listeners require a URL runtime"
+            "lifecycle listeners require URL provider"
         );
-        expect(runtime.isTestEnvironment()).toBe(false);
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
     });
 });
