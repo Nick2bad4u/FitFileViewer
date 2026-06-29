@@ -28,15 +28,9 @@ type LoadSharedConfigurationSetTimeout = (
 ) => ReturnType<BrowserSetTimeout> | number;
 
 export interface LoadSharedConfigurationRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => LoadSharedConfigurationClearTimeout | undefined)
-        | undefined;
-    readonly getLocation?:
-        | (() => SharedConfigurationLocation | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => LoadSharedConfigurationSetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: LoadSharedConfigurationRuntimeProvider<LoadSharedConfigurationClearTimeout>;
+    readonly getLocation: LoadSharedConfigurationRuntimeProvider<SharedConfigurationLocation>;
+    readonly getSetTimeout: LoadSharedConfigurationRuntimeProvider<LoadSharedConfigurationSetTimeout>;
 }
 
 const defaultLoadSharedConfigurationRuntimeScope: LoadSharedConfigurationRuntimeScope =
@@ -46,12 +40,39 @@ const defaultLoadSharedConfigurationRuntimeScope: LoadSharedConfigurationRuntime
         getSetTimeout: getBrowserSetTimeout,
     };
 
+type LoadSharedConfigurationRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
+function getRequiredProvider<T>(
+    provider: LoadSharedConfigurationRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `loadSharedConfigurationRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getLoadSharedConfigurationRuntime(
     scope: LoadSharedConfigurationRuntimeScope = defaultLoadSharedConfigurationRuntimeScope
 ): LoadSharedConfigurationRuntime {
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    );
+    const getLocation = getRequiredProvider(scope.getLocation, "location");
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "loadSharedConfigurationRuntime requires clearTimeout"
@@ -60,9 +81,9 @@ export function getLoadSharedConfigurationRuntime(
 
             clearTimeoutRef(handle);
         },
-        locationSearch: scope.getLocation?.()?.search ?? "",
+        locationSearch: getLocation()?.search ?? "",
         setTimeout(callback, timeout): LoadSharedConfigurationTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "loadSharedConfigurationRuntime requires setTimeout"

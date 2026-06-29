@@ -25946,7 +25946,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(38);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -26046,13 +26046,46 @@ describe("architecture boundaries", () => {
             "getBrowserSetTimeout"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "type LoadSharedConfigurationRuntimeProvider<T>"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*LoadSharedConfigurationRuntimeProvider<LoadSharedConfigurationClearTimeout>/u
+        );
+        expect(loadSharedConfigurationRuntimeSource).toMatch(
+            /readonly\s+getLocation:\s*LoadSharedConfigurationRuntimeProvider<SharedConfigurationLocation>/u
+        );
+        expect(loadSharedConfigurationRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*LoadSharedConfigurationRuntimeProvider<LoadSharedConfigurationSetTimeout>/u
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
-            "scope.getLocation?.()?.search"
+            "function getRequiredProvider"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(loadSharedConfigurationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocation,\s*"location"\s*\)/u
+        );
+        expect(loadSharedConfigurationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toMatch(
+            /scope\.get(?:ClearTimeout|Location|SetTimeout)\?\.\(/u
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "loadSharedConfigurationRuntime requires ${providerName} provider"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "const clearTimeoutRef = getClearTimeout();"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "locationSearch: getLocation()?.search ?? \"\""
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "const setTimeoutRef = getSetTimeout();"
         );
     });
 

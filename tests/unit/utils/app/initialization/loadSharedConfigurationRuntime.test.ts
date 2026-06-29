@@ -12,6 +12,17 @@ import {
 } from "../../../../../electron-app/utils/app/initialization/loadSharedConfigurationRuntime.js";
 
 describe("getLoadSharedConfigurationRuntime", () => {
+    function createLoadSharedConfigurationRuntimeScope(
+        overrides: Partial<LoadSharedConfigurationRuntimeScope> = {}
+    ): LoadSharedConfigurationRuntimeScope {
+        return {
+            getClearTimeout: () => undefined,
+            getLocation: () => undefined,
+            getSetTimeout: () => undefined,
+            ...overrides,
+        };
+    }
+
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
@@ -20,11 +31,13 @@ describe("getLoadSharedConfigurationRuntime", () => {
     it("reads the current location search from an injected runtime scope", () => {
         expect.assertions(1);
 
-        const runtime = getLoadSharedConfigurationRuntime({
-            getLocation: () => ({
-                search: "?chartConfig=abc",
-            }),
-        });
+        const runtime = getLoadSharedConfigurationRuntime(
+            createLoadSharedConfigurationRuntimeScope({
+                getLocation: () => ({
+                    search: "?chartConfig=abc",
+                }),
+            })
+        );
 
         expect(runtime.locationSearch).toBe("?chartConfig=abc");
     });
@@ -44,7 +57,11 @@ describe("getLoadSharedConfigurationRuntime", () => {
     it("uses an empty search string when no location is available", () => {
         expect.assertions(1);
 
-        expect(getLoadSharedConfigurationRuntime({}).locationSearch).toBe("");
+        expect(
+            getLoadSharedConfigurationRuntime(
+                createLoadSharedConfigurationRuntimeScope()
+            ).locationSearch
+        ).toBe("");
     });
 
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -57,10 +74,12 @@ describe("getLoadSharedConfigurationRuntime", () => {
             () => timer as BrowserTimerHandle
         );
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const runtime = getLoadSharedConfigurationRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getLoadSharedConfigurationRuntime(
+            createLoadSharedConfigurationRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -96,7 +115,9 @@ describe("getLoadSharedConfigurationRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getLoadSharedConfigurationRuntime({});
+        const runtime = getLoadSharedConfigurationRuntime(
+            createLoadSharedConfigurationRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "loadSharedConfigurationRuntime requires setTimeout"
@@ -106,8 +127,20 @@ describe("getLoadSharedConfigurationRuntime", () => {
         ).toThrow("loadSharedConfigurationRuntime requires clearTimeout");
     });
 
-    it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(3);
+    it("requires explicit provider slots", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getLoadSharedConfigurationRuntime(
+                {} as LoadSharedConfigurationRuntimeScope
+            )
+        ).toThrow(
+            "loadSharedConfigurationRuntime requires clearTimeout provider"
+        );
+    });
+
+    it("requires explicit provider slots and ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
 
         const callback = vi.fn<() => void>();
         const timer = 23 as BrowserTimerHandle;
@@ -120,7 +153,15 @@ describe("getLoadSharedConfigurationRuntime", () => {
             },
             setTimeout: legacySetTimeout,
         } as unknown as LoadSharedConfigurationRuntimeScope;
-        const runtime = getLoadSharedConfigurationRuntime(legacyScope);
+
+        expect(() => getLoadSharedConfigurationRuntime(legacyScope)).toThrow(
+            "loadSharedConfigurationRuntime requires clearTimeout provider"
+        );
+
+        const runtime = getLoadSharedConfigurationRuntime({
+            ...legacyScope,
+            ...createLoadSharedConfigurationRuntimeScope(),
+        });
 
         expect(runtime.locationSearch).toBe("");
         expect(() => runtime.setTimeout(callback, 1)).toThrow(
