@@ -6,8 +6,20 @@ import type {
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getSetupThemeRuntime,
+    type SetupThemeRuntimeScope,
     type SetupThemeTimer,
 } from "../../../../../electron-app/utils/theming/core/setupThemeRuntime.js";
+
+function createSetupThemeRuntimeScope(
+    overrides: Partial<SetupThemeRuntimeScope> = {}
+): SetupThemeRuntimeScope {
+    return {
+        getClearTimeout: () => undefined,
+        getLocalStorage: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getSetupThemeRuntime", () => {
     afterEach(() => {
@@ -26,10 +38,12 @@ describe("getSetupThemeRuntime", () => {
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
-        } = getSetupThemeRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        } = getSetupThemeRuntime(
+            createSetupThemeRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
         clearScheduledTimeout(timer);
@@ -51,10 +65,12 @@ describe("getSetupThemeRuntime", () => {
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
-        } = getSetupThemeRuntime({
-            getClearTimeout,
-            getSetTimeout,
-        });
+        } = getSetupThemeRuntime(
+            createSetupThemeRuntimeScope({
+                getClearTimeout,
+                getSetTimeout,
+            })
+        );
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
         clearScheduledTimeout(timer);
@@ -92,7 +108,7 @@ describe("getSetupThemeRuntime", () => {
     it("does not borrow ambient timers or storage for explicit scopes", () => {
         expect.assertions(3);
 
-        const runtime = getSetupThemeRuntime({});
+        const runtime = getSetupThemeRuntime(createSetupThemeRuntimeScope());
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "setupThemeRuntime requires setTimeout"
@@ -114,9 +130,11 @@ describe("getSetupThemeRuntime", () => {
             setItem: vi.fn(),
         };
         const getLocalStorage = vi.fn(() => storage);
-        const runtime = getSetupThemeRuntime({
-            getLocalStorage,
-        });
+        const runtime = getSetupThemeRuntime(
+            createSetupThemeRuntimeScope({
+                getLocalStorage,
+            })
+        );
 
         expect(runtime.getStorageItem("ffv-theme")).toBe("light");
         runtime.setStorageItem("ffv-theme", "dark");
@@ -126,6 +144,24 @@ describe("getSetupThemeRuntime", () => {
         expect(storage.getItem).toHaveBeenCalledWith("ffv-theme");
         expect(storage.setItem).toHaveBeenCalledWith("ffv-theme", "dark");
         expect(storage.removeItem).toHaveBeenCalledWith("fitFileViewer_theme");
+    });
+
+    it("fails clearly when setup theme provider slots are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getSetupThemeRuntime(
+            {} as unknown as SetupThemeRuntimeScope
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "setupThemeRuntime requires setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(1 as SetupThemeTimer)).toThrow(
+            "setupThemeRuntime requires clearTimeout provider"
+        );
+        expect(() => runtime.getStorageItem("ffv-theme")).toThrow(
+            "setupThemeRuntime requires localStorage provider"
+        );
     });
 
     it("ignores legacy direct runtime scope timer and storage properties", () => {
@@ -147,13 +183,13 @@ describe("getSetupThemeRuntime", () => {
         } as unknown as Parameters<typeof getSetupThemeRuntime>[0]);
 
         expect(() => runtime.setTimeout(callback, 1)).toThrow(
-            "setupThemeRuntime requires setTimeout"
+            "setupThemeRuntime requires setTimeout provider"
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
-            "setupThemeRuntime requires clearTimeout"
+            "setupThemeRuntime requires clearTimeout provider"
         );
         expect(() => runtime.getStorageItem("ffv-theme")).toThrow(
-            "setupThemeRuntime requires localStorage"
+            "setupThemeRuntime requires localStorage provider"
         );
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();

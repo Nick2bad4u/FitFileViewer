@@ -27685,7 +27685,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(45);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -27702,6 +27702,16 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/theming/core/setupThemeRuntime.ts"
             )
         );
+        const setupThemeRuntimeScopeSource = setupThemeRuntimeSource.slice(
+            setupThemeRuntimeSource.indexOf(
+                "export interface SetupThemeRuntimeScope"
+            ),
+            setupThemeRuntimeSource.indexOf(
+                "export interface SetupThemeRuntime"
+            )
+        );
+        const optionalSetupThemeProviderAccessPattern =
+            /\bscope\.get(?:ClearTimeout|LocalStorage|SetTimeout)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(setupThemeSource).toContain("setupThemeRuntime.js");
@@ -27761,11 +27771,39 @@ describe("architecture boundaries", () => {
             "readonly localStorage?:"
         );
         expect(setupThemeRuntimeSource).not.toContain("readonly setTimeout?:");
+        expect(setupThemeRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(setupThemeRuntimeScopeSource).not.toContain(
+            "readonly getLocalStorage?:"
+        );
+        expect(setupThemeRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
         expect(setupThemeRuntimeSource).not.toContain("scope.clearTimeout");
         expect(setupThemeRuntimeSource).not.toContain("scope.localStorage");
         expect(setupThemeRuntimeSource).not.toContain("scope.setTimeout");
+        expect(setupThemeRuntimeSource).not.toMatch(
+            optionalSetupThemeProviderAccessPattern
+        );
         expect(setupThemeRuntimeSource).toContain(
-            "const setTimeoutRef = getScopeSetTimeout(scope);"
+            "type SetupThemeRuntimeProvider<T> ="
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(setupThemeRuntimeSource).toContain("providerName: string");
+        expect(setupThemeRuntimeSource).toContain(
+            "setupThemeRuntime requires ${providerName} provider"
+        );
+        expect(setupThemeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout/u
+        );
+        expect(setupThemeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocalStorage/u
+        );
+        expect(setupThemeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout/u
         );
         expect(setupThemeRuntimeSource).toContain(
             "setupThemeRuntime requires localStorage"

@@ -9,15 +9,12 @@ import {
 
 export type SetupThemeTimer = BrowserTimerHandle;
 type SetupThemeStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
+type SetupThemeRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface SetupThemeRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getLocalStorage?:
-        | (() => SetupThemeStorage | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getClearTimeout: SetupThemeRuntimeProvider<BrowserClearTimeout>;
+    readonly getLocalStorage: SetupThemeRuntimeProvider<SetupThemeStorage>;
+    readonly getSetTimeout: SetupThemeRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface SetupThemeRuntime {
@@ -34,16 +31,32 @@ const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: SetupThemeRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `setupThemeRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeClearTimeout(
     scope: SetupThemeRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getRequiredLocalStorage(
     scope: SetupThemeRuntimeScope
 ): SetupThemeStorage {
-    const storage = scope.getLocalStorage?.();
+    const storage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    )();
     if (!storage) {
         throw new TypeError("setupThemeRuntime requires localStorage");
     }
@@ -54,7 +67,7 @@ function getRequiredLocalStorage(
 function getScopeSetTimeout(
     scope: SetupThemeRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 export function getSetupThemeRuntime(
