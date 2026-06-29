@@ -9320,7 +9320,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(34);
+        expect.assertions(40);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -9422,6 +9422,12 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(chartTabIntegrationRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(chartTabIntegrationRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
         expect(chartTabIntegrationRuntimeSource).not.toContain(
             "): typeof HTMLElement"
         );
@@ -9434,14 +9440,26 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationRuntimeSource).not.toContain(
             "scope.HTMLElement"
         );
-        expect(chartTabIntegrationRuntimeSource).toContain(
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
             "scope.getHTMLElement?.()"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "return getHTMLElement();"
         );
         expect(chartTabIntegrationRuntimeSource).not.toContain(
             "defaultView?.HTMLElement"
         );
         expect(chartTabIntegrationRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "chartTabIntegration requires a document provider"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "chartTabIntegration requires an HTMLElement provider"
         );
     });
 

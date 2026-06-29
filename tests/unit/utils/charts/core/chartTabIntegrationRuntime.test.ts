@@ -11,6 +11,11 @@ function cleanupFixture(): void {
 }
 
 describe("getChartTabIntegrationRuntime", () => {
+    const unavailableChartTabIntegrationRuntimeScope = {
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+    } satisfies ChartTabIntegrationRuntimeScope;
+
     it("resolves chart tab buttons through the injected document", () => {
         expect.assertions(2);
 
@@ -65,6 +70,7 @@ describe("getChartTabIntegrationRuntime", () => {
                             querySelector: (selector: string) =>
                                 document.querySelector(selector),
                         }) as unknown as Document,
+                    getHTMLElement: () => undefined,
                 }).querySelector('[data-tab="chart"]')
             ).toBeNull();
             expect(
@@ -79,6 +85,38 @@ describe("getChartTabIntegrationRuntime", () => {
         } finally {
             cleanupFixture();
         }
+    });
+
+    it("returns empty results when runtime providers are unavailable", () => {
+        expect.assertions(3);
+
+        const runtime = getChartTabIntegrationRuntime(
+            unavailableChartTabIntegrationRuntimeScope
+        );
+        const tab = document.createElement("button");
+
+        expect(runtime.querySelector('[data-tab="chart"]')).toBeNull();
+        expect(runtime.queryChartTabButton()).toBeNull();
+        expect(runtime.isHTMLElement(tab)).toBe(false);
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getChartTabIntegrationRuntime(
+            {} as unknown as ChartTabIntegrationRuntimeScope
+        );
+        const tab = document.createElement("button");
+
+        expect(() => runtime.querySelector('[data-tab="chart"]')).toThrow(
+            "chartTabIntegration requires a document provider"
+        );
+        expect(() => runtime.queryChartTabButton()).toThrow(
+            "chartTabIntegration requires a document provider"
+        );
+        expect(() => runtime.isHTMLElement(tab)).toThrow(
+            "chartTabIntegration requires an HTMLElement provider"
+        );
     });
 
     it("resolves production DOM defaults through browser runtime providers", () => {
@@ -107,6 +145,7 @@ describe("getChartTabIntegrationRuntime", () => {
             tab.dataset.tab = "chart";
             document.body.append(tab);
             const runtime = getChartTabIntegrationRuntime({
+                ...unavailableChartTabIntegrationRuntimeScope,
                 document,
                 HTMLElement,
             } as unknown as ChartTabIntegrationRuntimeScope);

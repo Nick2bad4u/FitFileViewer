@@ -7,10 +7,10 @@ import {
 type ChartTabIntegrationDocument = Pick<Document, "querySelector">;
 
 export interface ChartTabIntegrationRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => ChartTabIntegrationDocument | undefined)
         | undefined;
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -38,7 +38,14 @@ const defaultChartTabIntegrationRuntimeScope: ChartTabIntegrationRuntimeScope =
 function getHTMLElementConstructor(
     scope: ChartTabIntegrationRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError(
+            "chartTabIntegration requires an HTMLElement provider"
+        );
+    }
+
+    return getHTMLElement();
 }
 
 function isHTMLElement(
@@ -56,7 +63,12 @@ function queryHTMLElement(
     scope: ChartTabIntegrationRuntimeScope,
     selector: string
 ): HTMLElement | null {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("chartTabIntegration requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         return null;
     }
