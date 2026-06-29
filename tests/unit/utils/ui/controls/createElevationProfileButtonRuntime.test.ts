@@ -2,7 +2,22 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import { chartOverlayColorPalette } from "../../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js";
-import { getCreateElevationProfileButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButtonRuntime.js";
+import {
+    getCreateElevationProfileButtonRuntime,
+    type CreateElevationProfileButtonRuntimeScope,
+} from "../../../../../electron-app/utils/ui/controls/createElevationProfileButtonRuntime.js";
+
+function createUnavailableRuntimeScope(
+    overrides: Partial<CreateElevationProfileButtonRuntimeScope> = {}
+): CreateElevationProfileButtonRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getChartOverlayColorPalette: () => undefined,
+        getDocument: () => undefined,
+        getOpen: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getCreateElevationProfileButtonRuntime", () => {
     afterEach(() => {
@@ -15,9 +30,11 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         const popupDocument =
             document.implementation.createHTMLDocument("elevation popup");
         const createElement = vi.spyOn(popupDocument, "createElement");
-        const runtime = getCreateElevationProfileButtonRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getCreateElevationProfileButtonRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+            })
+        );
         const popupElement = runtime.createDocumentElement(
             popupDocument,
             "div"
@@ -37,10 +54,12 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
-        const runtime = getCreateElevationProfileButtonRuntime({
-            getAbortController: () => AbortController,
-            getDocument: () => document,
-        });
+        const runtime = getCreateElevationProfileButtonRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+            })
+        );
         const controller = runtime.createAbortController();
 
         expect(controller).toBeInstanceOf(AbortController);
@@ -60,9 +79,11 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         document.body.classList.remove("theme-dark");
 
-        const runtime = getCreateElevationProfileButtonRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getCreateElevationProfileButtonRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+            })
+        );
 
         expect(runtime.isDarkTheme()).toBe(false);
 
@@ -80,15 +101,17 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         let openedTarget = "";
         let openedFeatures = "";
         const popup = {} as Window;
-        const runtime = getCreateElevationProfileButtonRuntime({
-            getOpen: () =>
-                function open(url, target, features): Window {
-                    openedUrl = String(url);
-                    openedTarget = target ?? "";
-                    openedFeatures = features ?? "";
-                    return popup;
-                },
-        });
+        const runtime = getCreateElevationProfileButtonRuntime(
+            createUnavailableRuntimeScope({
+                getOpen: () =>
+                    function open(url, target, features): Window {
+                        openedUrl = String(url);
+                        openedTarget = target ?? "";
+                        openedFeatures = features ?? "";
+                        return popup;
+                    },
+            })
+        );
 
         const result = runtime.openPopupWindow(
             "",
@@ -106,11 +129,9 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getCreateElevationProfileButtonRuntime({}).openPopupWindow(
-                "",
-                "Elevation Profile",
-                "width=900,height=600"
-            )
+            getCreateElevationProfileButtonRuntime(
+                createUnavailableRuntimeScope()
+            ).openPopupWindow("", "Elevation Profile", "width=900,height=600")
         ).toBeNull();
     });
 
@@ -120,9 +141,11 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         const palette = ["#ff0000", "#00ff00"];
 
         expect(
-            getCreateElevationProfileButtonRuntime({
-                getChartOverlayColorPalette: () => palette,
-            }).getChartOverlayColorPalette()
+            getCreateElevationProfileButtonRuntime(
+                createUnavailableRuntimeScope({
+                    getChartOverlayColorPalette: () => palette,
+                })
+            ).getChartOverlayColorPalette()
         ).toBe(palette);
     });
 
@@ -166,22 +189,28 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     it("fails clearly when document-backed operations lack a document", () => {
         expect.assertions(4);
 
-        const runtime = getCreateElevationProfileButtonRuntime({});
+        const runtime = getCreateElevationProfileButtonRuntime(
+            createUnavailableRuntimeScope()
+        );
         const runtimeWithoutAbortController =
-            getCreateElevationProfileButtonRuntime({
-                getDocument: () =>
-                    ({
-                        defaultView: {
-                            AbortController,
-                        },
-                    }) as Document,
-            });
+            getCreateElevationProfileButtonRuntime(
+                createUnavailableRuntimeScope({
+                    getDocument: () =>
+                        ({
+                            defaultView: {
+                                AbortController,
+                            },
+                        }) as Document,
+                })
+            );
         const runtimeWithInvalidAbortController =
-            getCreateElevationProfileButtonRuntime({
-                getAbortController: () =>
-                    "AbortController" as unknown as BrowserAbortControllerConstructor,
-                getDocument: () => document,
-            });
+            getCreateElevationProfileButtonRuntime(
+                createUnavailableRuntimeScope({
+                    getAbortController: () =>
+                        "AbortController" as unknown as BrowserAbortControllerConstructor,
+                    getDocument: () => document,
+                })
+            );
 
         expect(() => runtime.createButton()).toThrow(
             "createElevationProfileButton requires a document runtime"
@@ -198,6 +227,47 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         );
         expect(() => runtime.isDarkTheme()).toThrow(
             "createElevationProfileButton requires a document runtime"
+        );
+    });
+
+    it("fails clearly when required runtime providers are missing", () => {
+        expect.assertions(4);
+
+        expect(() =>
+            getCreateElevationProfileButtonRuntime({
+                getAbortController: () => AbortController,
+                getChartOverlayColorPalette: () => chartOverlayColorPalette,
+                getOpen: () => undefined,
+            } as unknown as CreateElevationProfileButtonRuntimeScope).createButton()
+        ).toThrow("createElevationProfileButton requires a document provider");
+        expect(() =>
+            getCreateElevationProfileButtonRuntime({
+                getChartOverlayColorPalette: () => chartOverlayColorPalette,
+                getDocument: () => document,
+                getOpen: () => undefined,
+            } as unknown as CreateElevationProfileButtonRuntimeScope).createAbortController()
+        ).toThrow(
+            "createElevationProfileButton requires an AbortController provider"
+        );
+        expect(() =>
+            getCreateElevationProfileButtonRuntime({
+                getAbortController: () => AbortController,
+                getChartOverlayColorPalette: () => chartOverlayColorPalette,
+                getDocument: () => document,
+            } as unknown as CreateElevationProfileButtonRuntimeScope).openPopupWindow(
+                "",
+                "Elevation Profile",
+                "width=900"
+            )
+        ).toThrow("createElevationProfileButton requires an open provider");
+        expect(() =>
+            getCreateElevationProfileButtonRuntime({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+                getOpen: () => undefined,
+            } as unknown as CreateElevationProfileButtonRuntimeScope).getChartOverlayColorPalette()
+        ).toThrow(
+            "createElevationProfileButton requires a chartOverlayColorPalette provider"
         );
     });
 
@@ -221,26 +291,26 @@ describe("getCreateElevationProfileButtonRuntime", () => {
             chartOverlayColorPalette: legacyPalette,
             document: legacyDocument as unknown as Document,
             open: legacyOpen,
-        } as unknown as Parameters<
-            typeof getCreateElevationProfileButtonRuntime
-        >[0]);
+        } as unknown as CreateElevationProfileButtonRuntimeScope);
 
         expect(() => runtime.createButton()).toThrow(
-            "createElevationProfileButton requires a document runtime"
+            "createElevationProfileButton requires a document provider"
         );
         expect(runtime.createDocumentElement(document, "div")).toBeInstanceOf(
             HTMLDivElement
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
-            "createElevationProfileButton requires a document runtime"
+            "createElevationProfileButton requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createElevationProfileButton requires an AbortController runtime"
+            "createElevationProfileButton requires an AbortController provider"
         );
-        expect(runtime.getChartOverlayColorPalette()).toBeUndefined();
-        expect(
+        expect(() => runtime.getChartOverlayColorPalette()).toThrow(
+            "createElevationProfileButton requires a chartOverlayColorPalette provider"
+        );
+        expect(() =>
             runtime.openPopupWindow("", "Elevation Profile", "width=900")
-        ).toBeNull();
+        ).toThrow("createElevationProfileButton requires an open provider");
         expect(legacyDocument.createElement).not.toHaveBeenCalled();
         expect(legacyDocument.createElementNS).not.toHaveBeenCalled();
         expect(legacyOpen).not.toHaveBeenCalled();

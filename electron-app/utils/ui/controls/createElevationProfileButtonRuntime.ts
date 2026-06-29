@@ -17,14 +17,15 @@ type CreateElevationProfileOpen =
           features?: string
       ) => ElevationProfilePopupWindow)
     | undefined;
+type CreateElevationProfileButtonRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreateElevationProfileButtonRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getChartOverlayColorPalette?: (() => unknown) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getOpen?: (() => CreateElevationProfileOpen) | undefined;
+    readonly getAbortController: CreateElevationProfileButtonRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getChartOverlayColorPalette: CreateElevationProfileButtonRuntimeProvider<unknown>;
+    readonly getDocument: CreateElevationProfileButtonRuntimeProvider<Document>;
+    readonly getOpen: CreateElevationProfileButtonRuntimeProvider<CreateElevationProfileOpen>;
 }
 
 export interface CreateElevationProfileButtonRuntime {
@@ -57,10 +58,28 @@ const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileBut
         getOpen: getBrowserOpen,
     };
 
+function getRequiredProvider<T>(
+    provider: CreateElevationProfileButtonRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createElevationProfileButton requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createElevationProfileButton requires an AbortController runtime"
@@ -86,13 +105,13 @@ function getDocument(
 function getScopeDocument(
     scope: CreateElevationProfileButtonRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getScopeOpen(
     scope: CreateElevationProfileButtonRuntimeScope
 ): CreateElevationProfileOpen {
-    return scope.getOpen?.();
+    return getRequiredProvider(scope.getOpen, "open")();
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
@@ -132,7 +151,10 @@ export function getCreateElevationProfileButtonRuntime(
             return createSvgElement(scope, tagName);
         },
         getChartOverlayColorPalette(): unknown {
-            return scope.getChartOverlayColorPalette?.();
+            return getRequiredProvider(
+                scope.getChartOverlayColorPalette,
+                "chartOverlayColorPalette"
+            )();
         },
         isDarkTheme(): boolean {
             return getDocument(scope).body.classList.contains("theme-dark");

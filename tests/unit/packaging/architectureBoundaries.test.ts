@@ -24164,7 +24164,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(42);
+        expect.assertions(58);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -24189,7 +24189,7 @@ describe("architecture boundaries", () => {
                     "export interface CreateElevationProfileButtonRuntimeScope"
                 ),
                 createElevationProfileButtonRuntimeSource.indexOf(
-                    "export interface CreateElevationProfileButtonRuntime"
+                    "export interface CreateElevationProfileButtonRuntime {"
                 )
             );
 
@@ -24272,6 +24272,26 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly open?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getChartOverlayColorPalette?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getOpen?:");
+        expect(runtimeScopeSource).toContain(
+            "readonly getAbortController: CreateElevationProfileButtonRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getChartOverlayColorPalette: CreateElevationProfileButtonRuntimeProvider<unknown>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getDocument: CreateElevationProfileButtonRuntimeProvider<Document>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getOpen: CreateElevationProfileButtonRuntimeProvider<CreateElevationProfileOpen>;"
+        );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -24288,13 +24308,37 @@ describe("architecture boundaries", () => {
             "defaultView?.AbortController"
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
-            "return scope.getDocument?.();"
+            "type CreateElevationProfileButtonRuntimeProvider<T> ="
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
-            "return scope.getOpen?.();"
+            "function getRequiredProvider<T>("
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
-            "return scope.getChartOverlayColorPalette?.();"
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            'getRequiredProvider(scope.getOpen, "open")()'
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.getOpen?.()"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            'scope.getChartOverlayColorPalette,\n                "chartOverlayColorPalette"'
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.getChartOverlayColorPalette?.()"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "createElevationProfileButton requires ${article} ${providerName} provider"
         );
         expect(createElevationProfileButtonSource).toContain(
             "createElevationProfileButtonRuntime.js"
