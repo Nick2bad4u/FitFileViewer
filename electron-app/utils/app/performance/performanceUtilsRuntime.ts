@@ -9,9 +9,7 @@ import {
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
 
-export type PerformanceUtilsTimerHandle =
-    | BrowserTimerHandle
-    | number;
+export type PerformanceUtilsTimerHandle = BrowserTimerHandle | number;
 export type PerformanceUtilsIdleCallbackHandle = PerformanceUtilsTimerHandle;
 
 type PerformanceUtilsCancelIdleCallback = (handle: number) => void;
@@ -21,22 +19,14 @@ type PerformanceUtilsRequestIdleCallback = (
     callback: () => void,
     options?: Readonly<IdleRequestOptions>
 ) => number;
+type PerformanceUtilsRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface PerformanceUtilsRuntimeScope {
-    readonly getCancelIdleCallback?:
-        | (() => PerformanceUtilsCancelIdleCallback | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => PerformanceUtilsClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?:
-        | (() => PerformanceUtilsDateNow | undefined)
-        | undefined;
-    readonly getRequestIdleCallback?:
-        | (() => PerformanceUtilsRequestIdleCallback | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getCancelIdleCallback: PerformanceUtilsRuntimeProvider<PerformanceUtilsCancelIdleCallback>;
+    readonly getClearTimeout: PerformanceUtilsRuntimeProvider<PerformanceUtilsClearTimeout>;
+    readonly getDateNow: PerformanceUtilsRuntimeProvider<PerformanceUtilsDateNow>;
+    readonly getRequestIdleCallback: PerformanceUtilsRuntimeProvider<PerformanceUtilsRequestIdleCallback>;
+    readonly getSetTimeout: PerformanceUtilsRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface PerformanceUtilsRuntime {
@@ -65,12 +55,43 @@ function getDefaultPerformanceUtilsRuntimeScope(): PerformanceUtilsRuntimeScope 
     };
 }
 
+function getRequiredProvider<T>(
+    provider: PerformanceUtilsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `performanceUtils requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getPerformanceUtilsRuntime(
     scope: PerformanceUtilsRuntimeScope = getDefaultPerformanceUtilsRuntimeScope()
 ): PerformanceUtilsRuntime {
+    const getCancelIdleCallback = getRequiredProvider(
+        scope.getCancelIdleCallback,
+        "cancelIdleCallback"
+    );
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    );
+    const getDateNow = getRequiredProvider(scope.getDateNow, "dateNow");
+    const getRequestIdleCallback = getRequiredProvider(
+        scope.getRequestIdleCallback,
+        "requestIdleCallback"
+    );
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         cancelIdleCallback(handle): void {
-            const cancelIdleCallback = scope.getCancelIdleCallback?.();
+            const cancelIdleCallback = getCancelIdleCallback();
             if (
                 typeof handle === "number" &&
                 typeof cancelIdleCallback === "function"
@@ -82,7 +103,7 @@ export function getPerformanceUtilsRuntime(
             this.clearTimeout(handle);
         },
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError("performanceUtils requires clearTimeout");
             }
@@ -90,7 +111,7 @@ export function getPerformanceUtilsRuntime(
             clearTimeoutRef(handle);
         },
         now(): number {
-            const dateNow = scope.getDateNow?.();
+            const dateNow = getDateNow();
             if (typeof dateNow !== "function") {
                 throw new TypeError("performanceUtils requires dateNow");
             }
@@ -101,7 +122,7 @@ export function getPerformanceUtilsRuntime(
             callback,
             options
         ): PerformanceUtilsIdleCallbackHandle {
-            const requestIdleCallback = scope.getRequestIdleCallback?.();
+            const requestIdleCallback = getRequestIdleCallback();
             if (typeof requestIdleCallback === "function") {
                 return requestIdleCallback(callback, options);
             }
@@ -109,7 +130,7 @@ export function getPerformanceUtilsRuntime(
             return this.setTimeout(callback, options?.timeout ?? 1);
         },
         setTimeout(callback, timeout): PerformanceUtilsTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError("performanceUtils requires setTimeout");
             }

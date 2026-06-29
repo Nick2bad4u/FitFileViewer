@@ -31465,7 +31465,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(51);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -31551,6 +31551,60 @@ describe("architecture boundaries", () => {
         );
         expect(performanceUtilsRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "type PerformanceUtilsRuntimeProvider<T>"
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /readonly\s+getCancelIdleCallback:\s*PerformanceUtilsRuntimeProvider<PerformanceUtilsCancelIdleCallback>/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*PerformanceUtilsRuntimeProvider<PerformanceUtilsClearTimeout>/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*PerformanceUtilsRuntimeProvider<PerformanceUtilsDateNow>/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /readonly\s+getRequestIdleCallback:\s*PerformanceUtilsRuntimeProvider<PerformanceUtilsRequestIdleCallback>/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*PerformanceUtilsRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelIdleCallback,\s*"cancelIdleCallback"\s*\)/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestIdleCallback,\s*"requestIdleCallback"\s*\)/u
+        );
+        expect(performanceUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(performanceUtilsRuntimeSource).not.toMatch(
+            /scope\.get(?:CancelIdleCallback|ClearTimeout|DateNow|RequestIdleCallback|SetTimeout)\?\.\(/u
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "performanceUtils requires ${providerName} provider"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "const cancelIdleCallback = getCancelIdleCallback();"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "const clearTimeoutRef = getClearTimeout();"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "const requestIdleCallback = getRequestIdleCallback();"
         );
         expect(performanceUtilsRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"

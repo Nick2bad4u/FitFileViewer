@@ -6,6 +6,19 @@ import {
 } from "../../../../../electron-app/utils/app/performance/performanceUtilsRuntime.js";
 
 describe("getPerformanceUtilsRuntime", () => {
+    function createPerformanceUtilsRuntimeScope(
+        overrides: Partial<PerformanceUtilsRuntimeScope> = {}
+    ): PerformanceUtilsRuntimeScope {
+        return {
+            getCancelIdleCallback: () => undefined,
+            getClearTimeout: () => undefined,
+            getDateNow: () => undefined,
+            getRequestIdleCallback: () => undefined,
+            getSetTimeout: () => undefined,
+            ...overrides,
+        };
+    }
+
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
@@ -43,18 +56,20 @@ describe("getPerformanceUtilsRuntime", () => {
         const scheduledCalls: { callback: () => void; timeout?: number }[] = [];
         const clearedHandles: unknown[] = [];
         const timeoutMs = Number("25");
-        const runtime = getPerformanceUtilsRuntime({
-            getClearTimeout: () => (handle) => {
-                clearedHandles.push(handle);
-            },
-            getSetTimeout: () => (scheduledCallback, timeout) => {
-                scheduledCalls.push({
-                    callback: scheduledCallback,
-                    timeout,
-                });
-                return 42;
-            },
-        });
+        const runtime = getPerformanceUtilsRuntime(
+            createPerformanceUtilsRuntimeScope({
+                getClearTimeout: () => (handle) => {
+                    clearedHandles.push(handle);
+                },
+                getSetTimeout: () => (scheduledCallback, timeout) => {
+                    scheduledCalls.push({
+                        callback: scheduledCallback,
+                        timeout,
+                    });
+                    return 42;
+                },
+            })
+        );
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(42);
         expect(scheduledCalls).toStrictEqual([
@@ -70,11 +85,13 @@ describe("getPerformanceUtilsRuntime", () => {
         expect.assertions(1);
 
         const canceledHandles: number[] = [];
-        const runtime = getPerformanceUtilsRuntime({
-            getCancelIdleCallback: () => (handle) => {
-                canceledHandles.push(handle);
-            },
-        });
+        const runtime = getPerformanceUtilsRuntime(
+            createPerformanceUtilsRuntimeScope({
+                getCancelIdleCallback: () => (handle) => {
+                    canceledHandles.push(handle);
+                },
+            })
+        );
 
         runtime.cancelIdleCallback(9);
 
@@ -85,11 +102,13 @@ describe("getPerformanceUtilsRuntime", () => {
         expect.assertions(1);
 
         const clearedHandles: unknown[] = [];
-        const runtime = getPerformanceUtilsRuntime({
-            getClearTimeout: () => (handle) => {
-                clearedHandles.push(handle);
-            },
-        });
+        const runtime = getPerformanceUtilsRuntime(
+            createPerformanceUtilsRuntimeScope({
+                getClearTimeout: () => (handle) => {
+                    clearedHandles.push(handle);
+                },
+            })
+        );
 
         runtime.cancelIdleCallback(11);
 
@@ -105,12 +124,14 @@ describe("getPerformanceUtilsRuntime", () => {
             callback: () => void;
             options?: IdleRequestOptions;
         }[] = [];
-        const runtime = getPerformanceUtilsRuntime({
-            getRequestIdleCallback: () => (scheduledCallback, options) => {
-                idleRequests.push({ callback: scheduledCallback, options });
-                return 17;
-            },
-        });
+        const runtime = getPerformanceUtilsRuntime(
+            createPerformanceUtilsRuntimeScope({
+                getRequestIdleCallback: () => (scheduledCallback, options) => {
+                    idleRequests.push({ callback: scheduledCallback, options });
+                    return 17;
+                },
+            })
+        );
 
         expect(
             runtime.requestIdleCallback(callback, { timeout: timeoutMs })
@@ -155,15 +176,17 @@ describe("getPerformanceUtilsRuntime", () => {
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("75");
         const scheduledCalls: { callback: () => void; timeout?: number }[] = [];
-        const runtime = getPerformanceUtilsRuntime({
-            getSetTimeout: () => (scheduledCallback, timeout) => {
-                scheduledCalls.push({
-                    callback: scheduledCallback,
-                    timeout,
-                });
-                return 28;
-            },
-        });
+        const runtime = getPerformanceUtilsRuntime(
+            createPerformanceUtilsRuntimeScope({
+                getSetTimeout: () => (scheduledCallback, timeout) => {
+                    scheduledCalls.push({
+                        callback: scheduledCallback,
+                        timeout,
+                    });
+                    return 28;
+                },
+            })
+        );
 
         expect(
             runtime.requestIdleCallback(callback, { timeout: timeoutMs })
@@ -177,14 +200,20 @@ describe("getPerformanceUtilsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getPerformanceUtilsRuntime({ getDateNow: () => () => 123 }).now()
+            getPerformanceUtilsRuntime(
+                createPerformanceUtilsRuntimeScope({
+                    getDateNow: () => () => 123,
+                })
+            ).now()
         ).toBe(123);
     });
 
     it("does not borrow ambient timers or clocks for explicit scopes", () => {
         expect.assertions(3);
 
-        const runtime = getPerformanceUtilsRuntime({});
+        const runtime = getPerformanceUtilsRuntime(
+            createPerformanceUtilsRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "performanceUtils requires setTimeout"
@@ -197,8 +226,16 @@ describe("getPerformanceUtilsRuntime", () => {
         );
     });
 
-    it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+    it("requires explicit provider slots", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getPerformanceUtilsRuntime({} as PerformanceUtilsRuntimeScope)
+        ).toThrow("performanceUtils requires cancelIdleCallback provider");
+    });
+
+    it("requires explicit provider slots and ignores legacy direct runtime scope properties", () => {
+        expect.assertions(5);
 
         const legacyScope = {
             cancelIdleCallback: vi.fn(),
@@ -207,7 +244,15 @@ describe("getPerformanceUtilsRuntime", () => {
             requestIdleCallback: vi.fn(() => 17),
             setTimeout: vi.fn(() => 42),
         } as unknown as PerformanceUtilsRuntimeScope;
-        const runtime = getPerformanceUtilsRuntime(legacyScope);
+
+        expect(() => getPerformanceUtilsRuntime(legacyScope)).toThrow(
+            "performanceUtils requires cancelIdleCallback provider"
+        );
+
+        const runtime = getPerformanceUtilsRuntime({
+            ...legacyScope,
+            ...createPerformanceUtilsRuntimeScope(),
+        });
 
         expect(() => runtime.setTimeout(() => undefined, 1)).toThrow(
             "performanceUtils requires setTimeout"
