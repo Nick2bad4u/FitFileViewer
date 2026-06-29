@@ -10,8 +10,26 @@ import type {
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getThemeRuntime,
+    type ThemeRuntimeScope,
     type ThemeRuntimeTimer,
 } from "../../../../../electron-app/utils/theming/core/themeRuntime.js";
+
+function createThemeRuntimeScope(
+    overrides: Partial<ThemeRuntimeScope> = {}
+): ThemeRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getBrowserEventTarget: () => undefined,
+        getClearTimeout: () => undefined,
+        getComputedStyle: () => undefined,
+        getCustomEvent: () => undefined,
+        getDocument: () => undefined,
+        getLocalStorage: () => undefined,
+        getMatchMedia: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getThemeRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -23,10 +41,12 @@ describe("getThemeRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getThemeRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -62,7 +82,7 @@ describe("getThemeRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getThemeRuntime({});
+        const runtime = getThemeRuntime(createThemeRuntimeScope());
 
         expect(() => runtime.createAbortController()).toThrow(
             "theme core requires an AbortController runtime"
@@ -80,10 +100,12 @@ describe("getThemeRuntime", () => {
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
-        } = getThemeRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        } = getThemeRuntime(
+            createThemeRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
         clearScheduledTimeout(timer);
@@ -130,15 +152,17 @@ describe("getThemeRuntime", () => {
         const getBrowserEventTarget = vi.fn(() => browserEventTarget);
         const getMatchMedia = vi.fn(() => matchMedia);
         const getSetTimeout = vi.fn(() => setTimeout);
-        const runtime = getThemeRuntime({
-            getAbortController,
-            getClearTimeout,
-            getCustomEvent,
-            getDocument,
-            getBrowserEventTarget,
-            getMatchMedia,
-            getSetTimeout,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getAbortController,
+                getBrowserEventTarget,
+                getClearTimeout,
+                getCustomEvent,
+                getDocument,
+                getMatchMedia,
+                getSetTimeout,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -184,7 +208,7 @@ describe("getThemeRuntime", () => {
     it("does not borrow ambient timers or storage for explicit scopes", () => {
         expect.assertions(4);
 
-        const utils = getThemeRuntime({});
+        const utils = getThemeRuntime(createThemeRuntimeScope());
 
         expect(() => utils.setTimeout(() => {}, 0)).toThrow(
             "theme core requires a setTimeout runtime"
@@ -209,9 +233,11 @@ describe("getThemeRuntime", () => {
             setItem: vi.fn(),
         };
         const getLocalStorage = vi.fn(() => storage);
-        const runtime = getThemeRuntime({
-            getLocalStorage,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getLocalStorage,
+            })
+        );
 
         expect(runtime.getStorageItem("ffv-theme")).toBe("dark");
         runtime.setStorageItem("ffv-theme", "light");
@@ -232,9 +258,11 @@ describe("getThemeRuntime", () => {
                 super(`test:${type}`, init);
             }
         }
-        const runtime = getThemeRuntime({
-            getCustomEvent: () => TestCustomEvent,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getCustomEvent: () => TestCustomEvent,
+            })
+        );
         const event = runtime.createThemeChangeEvent(detail);
 
         expect(event).toBeInstanceOf(TestCustomEvent);
@@ -253,13 +281,19 @@ describe("getThemeRuntime", () => {
 
         expect(
             getThemeRuntime({
-                getMatchMedia: () => scopedMatchMedia,
+                ...createThemeRuntimeScope({
+                    getMatchMedia: () => scopedMatchMedia,
+                }),
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
         expect(scopedMatchMedia).toHaveBeenCalledWith(
             "(prefers-color-scheme: dark)"
         );
-        expect(getThemeRuntime({}).getSystemThemeMediaQuery()).toBeNull();
+        expect(
+            getThemeRuntime(
+                createThemeRuntimeScope()
+            ).getSystemThemeMediaQuery()
+        ).toBeNull();
     });
 
     it("updates theme DOM elements through the injected document runtime", () => {
@@ -267,9 +301,11 @@ describe("getThemeRuntime", () => {
 
         const documentRef =
             document.implementation.createHTMLDocument("theme dom");
-        const runtime = getThemeRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.ensureThemeTransitionStyles(".theme-transitioning{color:red}");
         runtime.ensureThemeTransitionStyles(".theme-transitioning{color:blue}");
@@ -304,10 +340,12 @@ describe("getThemeRuntime", () => {
         const getComputedStyle = vi.fn<BrowserGetComputedStyle>((element) =>
             window.getComputedStyle(element)
         );
-        const runtime = getThemeRuntime({
-            getComputedStyle: () => getComputedStyle,
-            getDocument: () => documentRef,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getComputedStyle: () => getComputedStyle,
+                getDocument: () => documentRef,
+            })
+        );
 
         expect(runtime.getDocumentEventTarget()).toBe(documentRef);
         expect(runtime.getBodyElement()).toBe(documentRef.body);
@@ -316,9 +354,11 @@ describe("getThemeRuntime", () => {
         );
         expect(getComputedStyle).toHaveBeenCalledWith(documentRef.body);
 
-        const missingRuntime = getThemeRuntime({
-            getDocument: () => ({ body: null }) as unknown as Document,
-        });
+        const missingRuntime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getDocument: () => ({ body: null }) as unknown as Document,
+            })
+        );
 
         expect(missingRuntime.getDocumentEventTarget()).toEqual({
             body: null,
@@ -327,13 +367,15 @@ describe("getThemeRuntime", () => {
         expect(missingRuntime.getBodyComputedStyleProperty("color-bg")).toBe(
             ""
         );
-        expect(getThemeRuntime({}).getDocumentEventTarget()).toBeNull();
+        expect(
+            getThemeRuntime(createThemeRuntimeScope()).getDocumentEventTarget()
+        ).toBeNull();
     });
 
     it("does not borrow ambient documents for explicit DOM scopes", () => {
         expect.assertions(5);
 
-        const runtime = getThemeRuntime({});
+        const runtime = getThemeRuntime(createThemeRuntimeScope());
 
         expect(() => runtime.addBodyClass("theme-dark")).toThrow(
             "theme core requires a document runtime"
@@ -386,11 +428,74 @@ describe("getThemeRuntime", () => {
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
         } as unknown as EventTarget;
-        const runtime = getThemeRuntime({
-            getBrowserEventTarget: () => browserEventTarget,
-        });
+        const runtime = getThemeRuntime(
+            createThemeRuntimeScope({
+                getBrowserEventTarget: () => browserEventTarget,
+            })
+        );
 
         expect(runtime.getBrowserEventTarget()).toBe(browserEventTarget);
+    });
+
+    it("fails clearly when required theme runtime providers are omitted", () => {
+        expect.assertions(9);
+
+        const scope = createThemeRuntimeScope();
+
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow("theme core requires AbortController provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getBrowserEventTarget: undefined,
+            }).getBrowserEventTarget()
+        ).toThrow("theme core requires browserEventTarget provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getClearTimeout: undefined,
+            }).clearTimeout(1 as ThemeRuntimeTimer)
+        ).toThrow("theme core requires clearTimeout provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getComputedStyle: undefined,
+            }).getBodyComputedStyleProperty("color-bg")
+        ).toThrow("theme core requires computedStyle provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getCustomEvent: undefined,
+            }).createThemeChangeEvent({})
+        ).toThrow("theme core requires CustomEvent provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getDocument: undefined,
+            }).getDocumentEventTarget()
+        ).toThrow("theme core requires document provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getLocalStorage: undefined,
+            }).getStorageItem("ffv-theme")
+        ).toThrow("theme core requires localStorage provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getMatchMedia: undefined,
+            }).getSystemThemeMediaQuery()
+        ).toThrow("theme core requires matchMedia provider");
+        expect(() =>
+            getThemeRuntime({
+                ...scope,
+                getSetTimeout: undefined,
+            }).setTimeout(() => {}, 1)
+        ).toThrow("theme core requires setTimeout provider");
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
@@ -417,6 +522,7 @@ describe("getThemeRuntime", () => {
             removeEventListener: vi.fn(),
         } as unknown as EventTarget;
         const runtime = getThemeRuntime({
+            ...createThemeRuntimeScope(),
             AbortController:
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             CustomEvent:

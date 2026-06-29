@@ -19,29 +19,18 @@ import {
 
 export type ThemeRuntimeTimer = BrowserTimerHandle;
 type ThemeRuntimeStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
+type ThemeRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface ThemeRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getComputedStyle?:
-        | (() => BrowserGetComputedStyle | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getBrowserEventTarget?:
-        | (() => EventTarget | undefined)
-        | undefined;
-    readonly getLocalStorage?:
-        | (() => ThemeRuntimeStorage | undefined)
-        | undefined;
-    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: ThemeRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getBrowserEventTarget: ThemeRuntimeProvider<EventTarget>;
+    readonly getClearTimeout: ThemeRuntimeProvider<BrowserClearTimeout>;
+    readonly getComputedStyle: ThemeRuntimeProvider<BrowserGetComputedStyle>;
+    readonly getCustomEvent: ThemeRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDocument: ThemeRuntimeProvider<Document>;
+    readonly getLocalStorage: ThemeRuntimeProvider<ThemeRuntimeStorage>;
+    readonly getMatchMedia: ThemeRuntimeProvider<BrowserMatchMedia>;
+    readonly getSetTimeout: ThemeRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface ThemeRuntime {
@@ -79,28 +68,42 @@ const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: ThemeRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`theme core requires ${providerName} provider`);
+    }
+
+    return provider;
+}
+
 function getScopeAbortController(
     scope: ThemeRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getScopeClearTimeout(
     scope: ThemeRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getScopeComputedStyle(
     scope: ThemeRuntimeScope
 ): BrowserGetComputedStyle | undefined {
-    return scope.getComputedStyle?.();
+    return getRequiredProvider(scope.getComputedStyle, "computedStyle")();
 }
 
 function getRequiredCustomEvent(
     scope: ThemeRuntimeScope
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    )();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("theme core requires a CustomEvent runtime");
     }
@@ -109,7 +112,7 @@ function getRequiredCustomEvent(
 }
 
 function getScopeDocument(scope: ThemeRuntimeScope): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getRequiredDocument(scope: ThemeRuntimeScope): Document {
@@ -124,13 +127,19 @@ function getRequiredDocument(scope: ThemeRuntimeScope): Document {
 function getScopeBrowserEventTarget(
     scope: ThemeRuntimeScope
 ): EventTarget | undefined {
-    return scope.getBrowserEventTarget?.();
+    return getRequiredProvider(
+        scope.getBrowserEventTarget,
+        "browserEventTarget"
+    )();
 }
 
 function getRequiredLocalStorage(
     scope: ThemeRuntimeScope
 ): ThemeRuntimeStorage {
-    const storage = scope.getLocalStorage?.();
+    const storage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    )();
     if (!storage) {
         throw new TypeError("theme core requires a localStorage runtime");
     }
@@ -141,13 +150,13 @@ function getRequiredLocalStorage(
 function getScopeMatchMedia(
     scope: ThemeRuntimeScope
 ): BrowserMatchMedia | undefined {
-    return scope.getMatchMedia?.();
+    return getRequiredProvider(scope.getMatchMedia, "matchMedia")();
 }
 
 function getScopeSetTimeout(
     scope: ThemeRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 function getScopeBodyElement(scope: ThemeRuntimeScope): HTMLElement | null {

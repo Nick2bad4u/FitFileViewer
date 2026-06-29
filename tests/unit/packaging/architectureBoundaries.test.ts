@@ -27736,7 +27736,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(113);
+        expect.assertions(143);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -27878,6 +27878,21 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).not.toContain("readonly matchMedia?:");
         expect(themeRuntimeSource).not.toContain("readonly setTimeout?:");
+        expect(themeRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(themeRuntimeSource).not.toContain(
+            "readonly getBrowserEventTarget?:"
+        );
+        expect(themeRuntimeSource).not.toContain("readonly getClearTimeout?:");
+        expect(themeRuntimeSource).not.toContain(
+            "readonly getComputedStyle?:"
+        );
+        expect(themeRuntimeSource).not.toContain("readonly getCustomEvent?:");
+        expect(themeRuntimeSource).not.toContain("readonly getDocument?:");
+        expect(themeRuntimeSource).not.toContain("readonly getLocalStorage?:");
+        expect(themeRuntimeSource).not.toContain("readonly getMatchMedia?:");
+        expect(themeRuntimeSource).not.toContain("readonly getSetTimeout?:");
         expect(themeRuntimeSource).not.toContain("typeof globalThis &");
         expect(themeRuntimeSource).not.toContain("globalThis as Partial");
         expect(themeRuntimeSource).not.toContain("Pick<typeof globalThis");
@@ -27918,7 +27933,56 @@ describe("architecture boundaries", () => {
             "theme core requires a localStorage runtime"
         );
         expect(themeRuntimeSource).toContain(
-            "const CustomEventConstructor = scope.getCustomEvent?.();"
+            "type ThemeRuntimeProvider<T>"
+        );
+        expect(themeRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(themeRuntimeSource).toContain(
+            "theme core requires ${providerName} provider"
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getAbortController, "AbortController"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getBrowserEventTarget,\n        "browserEventTarget"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getClearTimeout, "clearTimeout"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getComputedStyle, "computedStyle"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getCustomEvent,\n        "CustomEvent"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getDocument, "document"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getLocalStorage,\n        "localStorage"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getMatchMedia, "matchMedia"'
+        );
+        expect(themeRuntimeSource).toContain(
+            'scope.getSetTimeout, "setTimeout"'
+        );
+        expect(themeRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(themeRuntimeSource).not.toContain(
+            "scope.getBrowserEventTarget?.()"
+        );
+        expect(themeRuntimeSource).not.toContain("scope.getClearTimeout?.()");
+        expect(themeRuntimeSource).not.toContain("scope.getComputedStyle?.()");
+        expect(themeRuntimeSource).not.toContain("scope.getCustomEvent?.()");
+        expect(themeRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(themeRuntimeSource).not.toContain("scope.getLocalStorage?.()");
+        expect(themeRuntimeSource).not.toContain("scope.getMatchMedia?.()");
+        expect(themeRuntimeSource).not.toContain("scope.getSetTimeout?.()");
+        expect(themeRuntimeSource).toContain(
+            "const CustomEventConstructor = getRequiredProvider("
         );
         expect(themeRuntimeSource).toContain(
             'new (getRequiredCustomEvent(scope))("themechange"'
