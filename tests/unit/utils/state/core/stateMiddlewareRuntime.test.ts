@@ -11,6 +11,11 @@ describe("getStateMiddlewareRuntime", () => {
         vi.unstubAllGlobals();
     });
 
+    const stateMiddlewareRuntimeScope = {
+        getDateNow: () => Date.now,
+        getPerformance: () => performance,
+    } satisfies StateMiddlewareRuntimeScope;
+
     it("reads wall-clock and performance time through injected providers", () => {
         expect.assertions(4);
 
@@ -41,6 +46,23 @@ describe("getStateMiddlewareRuntime", () => {
         expect(() => runtime.performanceNow()).toThrow(
             "stateMiddleware requires a performance provider"
         );
+    });
+
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getStateMiddlewareRuntime({
+                ...stateMiddlewareRuntimeScope,
+                getDateNow: undefined,
+            }).dateNow()
+        ).toThrow("stateMiddleware requires a dateNow provider");
+        expect(() =>
+            getStateMiddlewareRuntime({
+                ...stateMiddlewareRuntimeScope,
+                getPerformance: undefined,
+            }).performanceNow()
+        ).toThrow("stateMiddleware requires a performance provider");
     });
 
     it("fails clearly when explicit providers return unavailable clocks", () => {

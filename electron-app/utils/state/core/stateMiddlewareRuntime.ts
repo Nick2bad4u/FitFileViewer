@@ -10,11 +10,11 @@ export interface StateMiddlewarePerformance {
 }
 
 export interface StateMiddlewareRuntimeScope {
-    readonly getDateNow: (() => StateMiddlewareDateNow | undefined) | undefined;
-    readonly getPerformance:
-        | (() => StateMiddlewarePerformance | undefined)
-        | undefined;
+    readonly getDateNow: StateMiddlewareRuntimeProvider<StateMiddlewareDateNow>;
+    readonly getPerformance: StateMiddlewareRuntimeProvider<StateMiddlewarePerformance>;
 }
+
+type StateMiddlewareRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface StateMiddlewareRuntime {
     readonly dateNow: () => number;
@@ -31,13 +31,7 @@ export function getStateMiddlewareRuntime(
 ): StateMiddlewareRuntime {
     return {
         dateNow(): number {
-            if (typeof scope.getDateNow !== "function") {
-                throw new TypeError(
-                    "stateMiddleware requires a dateNow provider"
-                );
-            }
-
-            const dateNow = scope.getDateNow();
+            const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
             if (typeof dateNow !== "function") {
                 throw new TypeError("stateMiddleware requires dateNow");
             }
@@ -45,13 +39,10 @@ export function getStateMiddlewareRuntime(
             return dateNow();
         },
         performanceNow(): number {
-            if (typeof scope.getPerformance !== "function") {
-                throw new TypeError(
-                    "stateMiddleware requires a performance provider"
-                );
-            }
-
-            const performance = scope.getPerformance();
+            const performance = getRequiredProvider(
+                scope.getPerformance,
+                "performance"
+            )();
             const performanceNow = performance?.now;
             if (typeof performanceNow !== "function") {
                 throw new TypeError("stateMiddleware requires performance.now");
@@ -60,4 +51,17 @@ export function getStateMiddlewareRuntime(
             return performanceNow.call(performance);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: StateMiddlewareRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `stateMiddleware requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

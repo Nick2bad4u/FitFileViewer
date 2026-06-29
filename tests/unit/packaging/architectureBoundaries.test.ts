@@ -5858,7 +5858,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state middleware performance history and timing behind typed boundaries", () => {
-        expect.assertions(33);
+        expect.assertions(37);
 
         const scannedFiles = [
             "electron-app/utils/state/core/stateMiddleware.ts",
@@ -5937,17 +5937,27 @@ describe("architecture boundaries", () => {
             "scope.getPerformance?.()"
         );
         expect(stateMiddlewareRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow();"
+            "type StateMiddlewareRuntimeProvider"
+        );
+        expect(stateMiddlewareRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*StateMiddlewareRuntimeProvider<StateMiddlewareDateNow>/u
+        );
+        expect(stateMiddlewareRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*StateMiddlewareRuntimeProvider<StateMiddlewarePerformance>/u
         );
         expect(stateMiddlewareRuntimeSource).toContain(
-            "const performance = scope.getPerformance();"
+            "function getRequiredProvider"
+        );
+        expect(stateMiddlewareRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(stateMiddlewareRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
         );
         expect(stateMiddlewareRuntimeSource).toContain(
-            "stateMiddleware requires a dateNow provider"
+            "stateMiddleware requires a ${providerName} provider"
         );
-        expect(stateMiddlewareRuntimeSource).toContain(
-            "stateMiddleware requires a performance provider"
-        );
+        expect(stateMiddlewareRuntimeSource).toContain("providerName: string");
         expect(stateMiddlewareRuntimeSource).toContain(
             "stateMiddleware requires dateNow"
         );
