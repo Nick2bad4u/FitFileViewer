@@ -2,7 +2,7 @@ import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 
 export interface GetActiveTabContentRuntimeScope {
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface GetActiveTabContentRuntime {
@@ -19,7 +19,11 @@ const defaultGetActiveTabContentRuntimeScope: GetActiveTabContentRuntimeScope =
     };
 
 function getRequiredDocument(scope: GetActiveTabContentRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError("getActiveTabContent requires a document provider");
+    }
+
+    const runtimeDocument = scope.getDocument();
     if (!runtimeDocument) {
         throw new TypeError("getActiveTabContent requires a document runtime");
     }

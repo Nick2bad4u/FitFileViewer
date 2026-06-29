@@ -18067,7 +18067,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab content DOM lookups behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(22);
 
         const violations = migratedGetActiveTabContentRuntimeFiles
             .filter((relativeFile) =>
@@ -18127,7 +18127,13 @@ describe("architecture boundaries", () => {
         expect(activeTabContentRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(activeTabContentRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(activeTabContentRuntimeSource).not.toContain("scope.document");
+        expect(activeTabContentRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(activeTabContentRuntimeSource).not.toContain(
             "scope: GetActiveTabContentRuntimeScope = globalThis"
         );
@@ -18138,7 +18144,10 @@ describe("architecture boundaries", () => {
             /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
         );
         expect(activeTabContentRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = scope.getDocument();"
+        );
+        expect(activeTabContentRuntimeSource).toContain(
+            "getActiveTabContent requires a document provider"
         );
         expect(activeTabContentRuntimeSource).toContain(
             "getActiveTabContent requires a document runtime"
