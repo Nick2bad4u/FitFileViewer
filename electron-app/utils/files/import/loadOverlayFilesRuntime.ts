@@ -4,11 +4,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface LoadOverlayFilesRuntimeScope {
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getNavigator?:
-        | (() => Pick<Navigator, "hardwareConcurrency"> | undefined)
-        | undefined;
+    readonly getDocument: LoadOverlayFilesRuntimeProvider<Document>;
+    readonly getNavigator: LoadOverlayFilesRuntimeProvider<
+        Pick<Navigator, "hardwareConcurrency">
+    >;
 }
+
+type LoadOverlayFilesRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface LoadOverlayFilesRuntime {
     getActiveTabButton: () => HTMLElement | null;
@@ -20,22 +22,39 @@ const defaultLoadOverlayFilesRuntimeScope: LoadOverlayFilesRuntimeScope = {
     getNavigator: getBrowserNavigator,
 };
 
+function getRequiredProvider<T>(
+    provider: LoadOverlayFilesRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `loadOverlayFiles requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getLoadOverlayFilesRuntime(
     scope: LoadOverlayFilesRuntimeScope = defaultLoadOverlayFilesRuntimeScope
 ): LoadOverlayFilesRuntime {
     return {
         getActiveTabButton(): HTMLElement | null {
-            const documentRef = scope.getDocument?.();
+            const documentRef = getRequiredProvider(
+                scope.getDocument,
+                "document"
+            )();
             if (!documentRef) {
                 return null;
             }
-            return documentRef.querySelector<HTMLElement>(
-                ".tab-button.active"
-            );
+            return documentRef.querySelector<HTMLElement>(".tab-button.active");
         },
         getHardwareConcurrency(): number | undefined {
             try {
-                return scope.getNavigator?.()?.hardwareConcurrency;
+                return getRequiredProvider(scope.getNavigator, "navigator")()
+                    ?.hardwareConcurrency;
             } catch {
                 return undefined;
             }

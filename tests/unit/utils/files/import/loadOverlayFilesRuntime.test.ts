@@ -5,6 +5,16 @@ import {
     type LoadOverlayFilesRuntimeScope,
 } from "../../../../../electron-app/utils/files/import/loadOverlayFilesRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<LoadOverlayFilesRuntimeScope> = {}
+): LoadOverlayFilesRuntimeScope {
+    return {
+        getDocument: () => undefined,
+        getNavigator: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getLoadOverlayFilesRuntime", () => {
     afterEach(() => {
         document.body.replaceChildren();
@@ -14,6 +24,7 @@ describe("getLoadOverlayFilesRuntime", () => {
         expect.assertions(1);
 
         const view = getLoadOverlayFilesRuntime({
+            ...createUnavailableRuntimeScope(),
             getNavigator: () => ({ hardwareConcurrency: 8 }),
         });
 
@@ -37,7 +48,9 @@ describe("getLoadOverlayFilesRuntime", () => {
     it("returns undefined when navigator metadata is unavailable", () => {
         expect.assertions(1);
 
-        const view = getLoadOverlayFilesRuntime({});
+        const view = getLoadOverlayFilesRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(view.getHardwareConcurrency()).toBeUndefined();
     });
@@ -45,7 +58,9 @@ describe("getLoadOverlayFilesRuntime", () => {
     it("returns null for active tab lookup when document access is unavailable", () => {
         expect.assertions(1);
 
-        const view = getLoadOverlayFilesRuntime({});
+        const view = getLoadOverlayFilesRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(view.getActiveTabButton()).toBeNull();
     });
@@ -59,6 +74,7 @@ describe("getLoadOverlayFilesRuntime", () => {
         button.id = "tab_map";
         documentRef.body.append(button);
         const view = getLoadOverlayFilesRuntime({
+            ...createUnavailableRuntimeScope(),
             getDocument: () => documentRef,
         });
 
@@ -69,6 +85,7 @@ describe("getLoadOverlayFilesRuntime", () => {
         expect.assertions(1);
 
         const view = getLoadOverlayFilesRuntime({
+            ...createUnavailableRuntimeScope(),
             getNavigator() {
                 throw new Error("navigator unavailable");
             },
@@ -89,7 +106,9 @@ describe("getLoadOverlayFilesRuntime", () => {
             navigator: { hardwareConcurrency: 16 },
         } as unknown as LoadOverlayFilesRuntimeScope);
 
+        expect(() => view.getActiveTabButton()).toThrow(
+            "loadOverlayFiles requires a document provider"
+        );
         expect(view.getHardwareConcurrency()).toBeUndefined();
-        expect(view.getActiveTabButton()).toBeNull();
     });
 });

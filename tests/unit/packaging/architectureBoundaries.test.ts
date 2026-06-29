@@ -5434,7 +5434,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps dependency validation on the scheduled release gate", () => {
-        expect.assertions(25);
+        expect.assertions(34);
 
         const dependencyValidationWorkflow = readRepositoryFile(
             ".github/workflows/dependency-validation.yml"
@@ -11689,7 +11689,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification DOM access behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(32);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -23558,7 +23558,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(32);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -23617,14 +23617,33 @@ describe("architecture boundaries", () => {
         expect(loadOverlayFilesRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "type LoadOverlayFilesRuntimeProvider<T>"
+        );
+        expect(loadOverlayFilesRuntimeSource).toContain("getRequiredProvider(");
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "loadOverlayFiles requires ${article} ${providerName} provider"
+        );
         expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
         expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
             "readonly navigator?:"
         );
+        expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
+            "readonly getNavigator?:"
+        );
         expect(loadOverlayFilesRuntimeSource).not.toContain("scope.document");
         expect(loadOverlayFilesRuntimeSource).not.toContain("scope.navigator");
+        expect(loadOverlayFilesRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(loadOverlayFilesRuntimeSource).not.toContain(
+            "scope.getNavigator?.()"
+        );
         expect(loadOverlayFilesRuntimeSource).not.toContain(
             "scope: LoadOverlayFilesRuntimeScope = globalThis"
         );
@@ -23650,7 +23669,7 @@ describe("architecture boundaries", () => {
             "documentRef.querySelector<HTMLElement>"
         );
         expect(loadOverlayFilesRuntimeSource).toContain(
-            "return scope.getNavigator?.()?.hardwareConcurrency;"
+            'getRequiredProvider(scope.getNavigator, "navigator")()'
         );
     });
 
