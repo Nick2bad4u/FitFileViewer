@@ -27673,7 +27673,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(29);
 
         const violations = migratedCancellationTokenRuntimeFiles
             .filter((relativeFile) =>
@@ -27736,11 +27736,23 @@ describe("architecture boundaries", () => {
         expect(cancellationTokenRuntimeSource).not.toContain(
             "CancellationTokenRuntimeScope =\nglobalThis"
         );
+        expect(cancellationTokenRuntimeSource).toContain(
+            "cancellationTokenRuntime requires a clearTimeout provider"
+        );
+        expect(cancellationTokenRuntimeSource).toContain(
+            "cancellationTokenRuntime requires a setTimeout provider"
+        );
         expect(cancellationTokenRuntimeScopeSource).not.toContain(
             "readonly clearTimeout?:"
         );
         expect(cancellationTokenRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
+        );
+        expect(cancellationTokenRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(cancellationTokenRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
         );
         expect(cancellationTokenRuntimeSource).not.toContain(
             "scope.clearTimeout"
@@ -27764,10 +27776,16 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(cancellationTokenRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "const clearTimeoutRef = scope.getClearTimeout();"
         );
         expect(cancellationTokenRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = scope.getSetTimeout();"
+        );
+        expect(cancellationTokenRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(cancellationTokenRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
         );
     });
 

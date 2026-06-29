@@ -62,16 +62,34 @@ describe("getCancellationTokenRuntime", () => {
         expect(clearedHandles).toStrictEqual([31]);
     });
 
-    it("does not borrow ambient timers for explicit scopes", () => {
+    it("fails clearly when timer providers return unavailable", () => {
         expect.assertions(2);
 
-        const runtime = getCancellationTokenRuntime({});
+        const runtime = getCancellationTokenRuntime({
+            getClearTimeout: () => undefined,
+            getSetTimeout: () => undefined,
+        });
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "cancellationTokenRuntime requires setTimeout"
         );
         expect(() => runtime.clearTimeout(1)).toThrow(
             "cancellationTokenRuntime requires clearTimeout"
+        );
+    });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getCancellationTokenRuntime(
+            {} as unknown as CancellationTokenRuntimeScope
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "cancellationTokenRuntime requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(1)).toThrow(
+            "cancellationTokenRuntime requires a clearTimeout provider"
         );
     });
 
@@ -86,10 +104,10 @@ describe("getCancellationTokenRuntime", () => {
         } as unknown as CancellationTokenRuntimeScope);
 
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
-            "cancellationTokenRuntime requires setTimeout"
+            "cancellationTokenRuntime requires a setTimeout provider"
         );
         expect(() => runtime.clearTimeout(43)).toThrow(
-            "cancellationTokenRuntime requires clearTimeout"
+            "cancellationTokenRuntime requires a clearTimeout provider"
         );
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();

@@ -9,12 +9,8 @@ import {
 export type CancellationTokenTimerHandle = BrowserTimerHandle | number;
 
 export interface CancellationTokenRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
+    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
 }
 
 export interface CancellationTokenRuntime {
@@ -35,7 +31,13 @@ export function getCancellationTokenRuntime(
 ): CancellationTokenRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            if (typeof scope.getClearTimeout !== "function") {
+                throw new TypeError(
+                    "cancellationTokenRuntime requires a clearTimeout provider"
+                );
+            }
+
+            const clearTimeoutRef = scope.getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "cancellationTokenRuntime requires clearTimeout"
@@ -45,7 +47,13 @@ export function getCancellationTokenRuntime(
             clearTimeoutRef(handle);
         },
         setTimeout(callback, timeout): CancellationTokenTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            if (typeof scope.getSetTimeout !== "function") {
+                throw new TypeError(
+                    "cancellationTokenRuntime requires a setTimeout provider"
+                );
+            }
+
+            const setTimeoutRef = scope.getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "cancellationTokenRuntime requires setTimeout"
