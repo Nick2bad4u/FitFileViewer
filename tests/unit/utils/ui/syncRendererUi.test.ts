@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { NotificationTimerRuntime } from "../../../../electron-app/utils/ui/notifications/notificationTimerRuntime.js";
+import type { SyncRendererNotificationsRuntime } from "../../../../electron-app/utils/ui/notifications/syncRendererNotificationsRuntime.js";
 
 type StateListener = (
     newValue: unknown,
@@ -165,8 +166,8 @@ describe("sync renderer UI helpers", () => {
         expect(notification.style.display).toBe("none");
     });
 
-    it("showNotification schedules and clears through an injected timer runtime", async () => {
-        expect.assertions(8);
+    it("showNotification schedules and clears through injected runtimes", async () => {
+        expect.assertions(9);
 
         resetTestState();
 
@@ -177,12 +178,20 @@ describe("sync renderer UI helpers", () => {
             dateNow: vi.fn(() => timestamp),
             setTimeout: vi.fn(() => timeoutHandle),
         };
+        const notification = requireHTMLElement("notification");
+        const notificationRuntime: SyncRendererNotificationsRuntime = {
+            getNotificationElement: vi.fn(() => notification),
+        };
         const { clearNotification, getCurrentNotification, showNotification } =
             await importSyncRendererNotifications();
 
-        showNotification("Injected timer", "warning", 2500, runtime);
-
-        const notification = requireHTMLElement("notification");
+        showNotification(
+            "Injected timer",
+            "warning",
+            2500,
+            runtime,
+            notificationRuntime
+        );
 
         expect(notification.textContent).toBe("Injected timer");
         expect(notification.style.display).toBe("block");
@@ -195,11 +204,14 @@ describe("sync renderer UI helpers", () => {
             expect.objectContaining({ timestamp })
         );
 
-        clearNotification();
+        clearNotification(runtime, notificationRuntime);
 
         expect(runtime.clearTimeout).toHaveBeenCalledExactlyOnceWith(
             timeoutHandle
         );
+        expect(
+            notificationRuntime.getNotificationElement
+        ).toHaveBeenCalledTimes(2);
         expect(notification.style.display).toBe("none");
         expect(getCurrentNotification()).toBeNull();
     });

@@ -13303,8 +13303,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(43);
+    it("keeps update and state-synced notification timers behind runtime facades", () => {
+        expect.assertions(54);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -13325,6 +13325,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/notifications/syncRendererNotifications.ts"
             )
         );
+        const syncRendererNotificationsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/syncRendererNotificationsRuntime.ts"
+            )
+        );
+        const syncRendererNotificationsRuntimeScopeSource =
+            syncRendererNotificationsRuntimeSource.slice(
+                syncRendererNotificationsRuntimeSource.indexOf(
+                    "export interface SyncRendererNotificationsRuntimeScope"
+                ),
+                syncRendererNotificationsRuntimeSource.indexOf(
+                    "export interface SyncRendererNotificationsRuntime {"
+                )
+            );
         const showUpdateNotificationSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/notifications/showUpdateNotification.ts"
@@ -13349,6 +13363,15 @@ describe("architecture boundaries", () => {
         );
         expect(syncRendererNotificationsSource).toContain(
             "timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()"
+        );
+        expect(syncRendererNotificationsSource).toContain(
+            "type SyncRendererNotificationsRuntime"
+        );
+        expect(syncRendererNotificationsSource).toContain(
+            "notificationRuntime: SyncRendererNotificationsRuntime = getSyncRendererNotificationsRuntime()"
+        );
+        expect(syncRendererNotificationsSource).not.toContain(
+            "querySelectorByIdFlexible(document,"
         );
         expect(syncRendererNotificationsSource).toContain(
             "timestamp: timerRuntime.dateNow(),"
@@ -13456,6 +13479,30 @@ describe("architecture boundaries", () => {
         );
         expect(notificationTimerRuntimeSource).toContain(
             "notification timers require clearTimeout provider"
+        );
+        expect(syncRendererNotificationsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
+        expect(syncRendererNotificationsRuntimeSource).toContain(
+            'querySelectorByIdFlexible(documentRef, "#notification")'
+        );
+        expect(syncRendererNotificationsRuntimeSource).toContain(
+            "syncRendererNotifications requires a document provider"
+        );
+        expect(syncRendererNotificationsRuntimeSource).toContain(
+            "syncRendererNotifications requires a document runtime"
+        );
+        expect(syncRendererNotificationsRuntimeScopeSource).toContain(
+            "readonly getDocument:"
+        );
+        expect(syncRendererNotificationsRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(syncRendererNotificationsRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(syncRendererNotificationsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
         );
     });
 

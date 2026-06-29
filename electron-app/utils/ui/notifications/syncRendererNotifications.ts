@@ -6,12 +6,15 @@ import {
     type NotificationType,
     type RendererNotification,
 } from "../../state/domain/rendererNotificationState.js";
-import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import {
     getNotificationTimerRuntime,
     type NotificationTimerHandle,
     type NotificationTimerRuntime,
 } from "./notificationTimerRuntime.js";
+import {
+    getSyncRendererNotificationsRuntime,
+    type SyncRendererNotificationsRuntime,
+} from "./syncRendererNotificationsRuntime.js";
 
 export type {
     NotificationType,
@@ -25,14 +28,12 @@ let notificationHideTimeoutRuntime: NotificationTimerRuntime | undefined;
  * Clear current notification.
  */
 export function clearNotification(
-    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime(),
+    notificationRuntime: SyncRendererNotificationsRuntime = getSyncRendererNotificationsRuntime()
 ): void {
     clearNotificationHideTimeout(timerRuntime);
 
-    const notificationElement = querySelectorByIdFlexible(
-        document,
-        "#notification"
-    );
+    const notificationElement = notificationRuntime.getNotificationElement();
 
     if (notificationElement) {
         notificationElement.style.display = "none";
@@ -69,12 +70,10 @@ export function showNotification(
     message: string,
     type: NotificationType = "error",
     timeout = 5000,
-    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime()
+    timerRuntime: NotificationTimerRuntime = getNotificationTimerRuntime(),
+    notificationRuntime: SyncRendererNotificationsRuntime = getSyncRendererNotificationsRuntime()
 ): void {
-    const notificationElement = querySelectorByIdFlexible(
-        document,
-        "#notification"
-    );
+    const notificationElement = notificationRuntime.getNotificationElement();
 
     if (!notificationElement) {
         console.warn("[RendererUtils] Notification element not found");
@@ -144,11 +143,11 @@ function clearNotificationHideTimeout(
     }
 }
 
-function updateNotificationUI(notification: RendererNotification): void {
-    const notificationElement = querySelectorByIdFlexible(
-        document,
-        "#notification"
-    );
+function updateNotificationUI(
+    notification: RendererNotification,
+    notificationRuntime: SyncRendererNotificationsRuntime = getSyncRendererNotificationsRuntime()
+): void {
+    const notificationElement = notificationRuntime.getNotificationElement();
 
     if (!notificationElement) {
         return;
