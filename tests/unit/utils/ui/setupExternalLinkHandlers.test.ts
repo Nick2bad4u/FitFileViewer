@@ -49,6 +49,8 @@ describe(setupExternalLinkHandlers, () => {
         expect.assertions(5);
 
         const nextCleanup = resetExternalLinkHandlerMocks();
+        const root =
+            document.implementation.createHTMLDocument("external link root");
         let cleanedPrevious = false;
         let installedCleanup: CleanupFunction | null = null;
         const previousCleanup = (): void => {
@@ -60,6 +62,7 @@ describe(setupExternalLinkHandlers, () => {
 
         setupExternalLinkHandlers({
             cleanupExternalLinkHandlers: previousCleanup,
+            root,
             setCleanup,
         });
 
@@ -70,7 +73,7 @@ describe(setupExternalLinkHandlers, () => {
             .calls[0] as [AttachExternalLinkHandlersOptions];
         expect(attachOptions).toStrictEqual({
             onOpenExternalError: attachOptions.onOpenExternalError,
-            root: document,
+            root,
         });
         expect(attachOptions.onOpenExternalError).toBeTypeOf("function");
     });
@@ -89,6 +92,7 @@ describe(setupExternalLinkHandlers, () => {
 
         setupExternalLinkHandlers({
             cleanupExternalLinkHandlers: previousCleanup,
+            root: document,
             setCleanup,
         });
 
@@ -115,6 +119,7 @@ describe(setupExternalLinkHandlers, () => {
 
         setupExternalLinkHandlers({
             cleanupExternalLinkHandlers: null,
+            root: document,
             setCleanup: vi.fn<(cleanup: CleanupFunction | null) => void>(),
         });
         onOpenExternalError?.(

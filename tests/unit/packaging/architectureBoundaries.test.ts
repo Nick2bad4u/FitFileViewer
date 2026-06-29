@@ -25244,7 +25244,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(54);
+        expect.assertions(58);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -25262,6 +25262,14 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/utils/ui/links/externalLinkHandlersRuntime.ts"
             )
+        );
+        const setupExternalLinkHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/setupExternalLinkHandlers.ts"
+            )
+        );
+        const mainUiExternalLinksSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiExternalLinks.ts")
         );
         const runtimeScopeSource = externalLinkHandlersRuntimeSource.slice(
             externalLinkHandlersRuntimeSource.indexOf(
@@ -25418,6 +25426,12 @@ describe("architecture boundaries", () => {
         expect(externalLinkHandlersRuntimeSource).not.toContain(
             "getOpen: () => globalThis.open"
         );
+        expect(setupExternalLinkHandlersSource).toContain(
+            "readonly root: EventTarget | null | undefined;"
+        );
+        expect(setupExternalLinkHandlersSource).toContain("root,");
+        expect(setupExternalLinkHandlersSource).not.toMatch(/\bdocument\b/u);
+        expect(mainUiExternalLinksSource).toContain("root: documentRef");
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {

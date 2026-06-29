@@ -7,6 +7,7 @@ type CleanupFunction = () => void;
 type SetupExternalLinkHandlersOptions = {
     readonly cleanupExternalLinkHandlers: CleanupFunction | null;
     readonly electronApiScope?: RendererElectronApiScope | undefined;
+    readonly root: EventTarget | null | undefined;
     readonly setCleanup: (cleanup: CleanupFunction | null) => void;
 };
 
@@ -18,6 +19,7 @@ type SetupExternalLinkHandlersOptions = {
 export function setupExternalLinkHandlers({
     cleanupExternalLinkHandlers,
     electronApiScope,
+    root,
     setCleanup,
 }: SetupExternalLinkHandlersOptions): void {
     try {
@@ -33,7 +35,7 @@ export function setupExternalLinkHandlers({
                 "error"
             );
         },
-        root: document,
+        root,
     };
     const cleanup = attachExternalLinkHandlers(
         electronApiScope === undefined

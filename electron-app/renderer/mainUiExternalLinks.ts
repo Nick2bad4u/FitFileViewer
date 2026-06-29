@@ -22,6 +22,7 @@ export function createMainUiExternalLinkLifecycle({
         setupExternalLinkHandlers({
             cleanupExternalLinkHandlers,
             electronApiScope,
+            root: documentRef,
             setCleanup: (cleanup) => {
                 cleanupExternalLinkHandlers = cleanup;
             },
