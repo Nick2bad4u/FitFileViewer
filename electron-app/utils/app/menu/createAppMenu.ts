@@ -8,9 +8,10 @@ import {
     loadRecentFiles,
 } from "../../files/recent/recentFiles.js";
 import {
-    getProcessEnvironmentValue,
-    getProcessStringValue,
-} from "../../runtime/processEnvironment.js";
+    getCreateAppMenuRuntime,
+    type CreateAppMenuProcessStringName,
+    type CreateAppMenuRuntime,
+} from "./createAppMenuRuntime.js";
 
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
@@ -234,6 +235,10 @@ function getConf(): ConfLike {
 let mainMenu: unknown = null;
 let recentFilesOverrideForTests: null | string[] = null;
 
+function createAppMenuRuntime(): CreateAppMenuRuntime {
+    return getCreateAppMenuRuntime();
+}
+
 export function setCreateAppMenuRecentFilesOverrideForTests(
     files: null | readonly string[]
 ): void {
@@ -248,7 +253,13 @@ function getRecentFilesOverrideForTests(): null | string[] {
 
 // Determine if verbose createAppMenu debug logging should be enabled.
 function getMenuProcessEnvironmentValue(name: string): string | undefined {
-    return getProcessEnvironmentValue(name);
+    return createAppMenuRuntime().getProcessEnvironmentValue(name);
+}
+
+function getMenuProcessStringValue(
+    name: CreateAppMenuProcessStringName
+): string | undefined {
+    return createAppMenuRuntime().getProcessStringValue(name);
 }
 
 function shouldLogMenuDebug() {
@@ -391,7 +402,7 @@ export function createAppMenu(
                   clearRecentMenuItem,
               ]
             : [...recentMenuItems, clearRecentMenuItem];
-    const platform = getProcessStringValue("platform");
+    const platform = getMenuProcessStringValue("platform");
     const revealLabel =
         platform === "darwin"
             ? "Reveal in Finder"
@@ -1023,7 +1034,7 @@ function getPlatformAppMenu(
     mainWindow: BrowserWindowLike | null | undefined
 ): MenuItemLike[] {
     const { app, BrowserWindow } = getElectron();
-    if (getProcessStringValue("platform") === "darwin") {
+    if (getMenuProcessStringValue("platform") === "darwin") {
         return [
             {
                 label: (app && app.name) || "App",

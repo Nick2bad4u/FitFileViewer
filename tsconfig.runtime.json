@@ -299,6 +299,7 @@
         "electron-app/utils/app/lifecycle/resourceManager.ts",
         "electron-app/utils/app/lifecycle/index.ts",
         "electron-app/utils/app/menu/createAppMenu.ts",
+        "electron-app/utils/app/menu/createAppMenuRuntime.ts",
         "electron-app/utils/app/menu/index.ts",
         "electron-app/utils/app/events.ts",
         "electron-app/utils/app/index.ts",
