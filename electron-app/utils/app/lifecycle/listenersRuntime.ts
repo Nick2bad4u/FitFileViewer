@@ -10,7 +10,10 @@ import {
     getBrowserSetTimeout,
     getBrowserURL,
 } from "../../runtime/browserRuntime.js";
-import { getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
+import {
+    getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue,
+    isDevelopmentEnvironment as isRuntimeDevelopmentEnvironment,
+} from "../../runtime/processEnvironment.js";
 
 export type LifecycleListenersTimer = BrowserTimerHandle;
 
@@ -26,6 +29,7 @@ export interface LifecycleListenersRuntimeScope {
     readonly getAbortController: LifecycleListenersRuntimeProvider<BrowserAbortControllerConstructor>;
     readonly getClearTimeout: LifecycleListenersRuntimeProvider<BrowserClearTimeout>;
     readonly getDocument: LifecycleListenersRuntimeProvider<LifecycleListenersDocument>;
+    readonly getIsDevelopmentEnvironment: LifecycleListenersRuntimeProvider<boolean>;
     readonly getPrint: LifecycleListenersRuntimeProvider<LifecycleListenersPrint>;
     readonly getProcessEnvironmentValue:
         | ((name: string) => string | undefined)
@@ -40,6 +44,10 @@ export interface LifecycleListenersRuntime {
     readonly createAbortController: () => AbortController;
     readonly createDownloadAnchor: () => HTMLAnchorElement;
     readonly createObjectURL: (blob: Blob) => string;
+    readonly getProcessEnvironmentValue: (
+        name: string
+    ) => string | undefined;
+    readonly isDevelopmentEnvironment: () => boolean;
     readonly isTestEnvironment: () => boolean;
     readonly print: () => void;
     readonly revokeObjectURL: (url: string) => void;
@@ -57,6 +65,7 @@ const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
     getDocument: getBrowserDocument,
+    getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment,
     getPrint: getBrowserPrint,
     getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue,
     getSetTimeout: getBrowserSetTimeout,
@@ -151,6 +160,19 @@ export function getLifecycleListenersRuntime(
         },
         createObjectURL(blob): string {
             return getRequiredURL(scope).createObjectURL(blob);
+        },
+        getProcessEnvironmentValue(name): string | undefined {
+            return getRequiredEnvironmentProvider(
+                scope.getProcessEnvironmentValue
+            )(name);
+        },
+        isDevelopmentEnvironment(): boolean {
+            return (
+                getRequiredProvider(
+                    scope.getIsDevelopmentEnvironment,
+                    "isDevelopmentEnvironment"
+                )() === true
+            );
         },
         isTestEnvironment(): boolean {
             return (

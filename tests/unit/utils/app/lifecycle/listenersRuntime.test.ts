@@ -18,6 +18,7 @@ function createLifecycleListenersRuntimeScope(
         getAbortController: () => undefined,
         getClearTimeout: () => undefined,
         getDocument: () => undefined,
+        getIsDevelopmentEnvironment: () => undefined,
         getPrint: () => undefined,
         getProcessEnvironmentValue: () => undefined,
         getSetTimeout: () => undefined,
@@ -130,22 +131,30 @@ describe("getLifecycleListenersRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledOnce();
     });
 
-    it("routes print and test-environment checks through the injected runtime scope", () => {
-        expect.assertions(2);
+    it("routes print and environment checks through the injected runtime scope", () => {
+        expect.assertions(5);
 
         const print = vi.fn<() => void>();
         const runtime = getLifecycleListenersRuntime(
             createLifecycleListenersRuntimeScope({
+                getIsDevelopmentEnvironment: () => true,
                 getPrint: () => print,
                 getProcessEnvironmentValue: (name) =>
-                    name === "NODE_ENV" ? "test" : undefined,
+                    name === "NODE_ENV"
+                        ? "test"
+                        : name === "FFV_DEBUG_MENU"
+                          ? "1"
+                          : undefined,
             })
         );
 
         runtime.print();
 
         expect(print).toHaveBeenCalledOnce();
+        expect(runtime.isDevelopmentEnvironment()).toBe(true);
         expect(runtime.isTestEnvironment()).toBe(true);
+        expect(runtime.getProcessEnvironmentValue("FFV_DEBUG_MENU")).toBe("1");
+        expect(runtime.getProcessEnvironmentValue("OTHER")).toBe(undefined);
     });
 
     it("routes download DOM and URL helpers through injected runtime providers", () => {
@@ -286,7 +295,7 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("fails clearly when lifecycle listener provider slots are omitted", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const runtime = getLifecycleListenersRuntime(
             {} as unknown as LifecycleListenersRuntimeScope
@@ -307,6 +316,12 @@ describe("getLifecycleListenersRuntime", () => {
         expect(() => runtime.isTestEnvironment()).toThrow(
             "lifecycle listeners require processEnvironmentValue provider"
         );
+        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+            "lifecycle listeners require processEnvironmentValue provider"
+        );
+        expect(() => runtime.isDevelopmentEnvironment()).toThrow(
+            "lifecycle listeners require isDevelopmentEnvironment provider"
+        );
         expect(() => runtime.createDownloadAnchor()).toThrow(
             "lifecycle listeners require document provider"
         );
@@ -319,7 +334,7 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(12);
+        expect.assertions(16);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -329,15 +344,19 @@ describe("getLifecycleListenersRuntime", () => {
         );
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const print = vi.fn<() => void>();
+        const isDevelopmentEnvironment = vi.fn<() => boolean>(() => true);
+        const processEnvironmentValue = vi.fn<(name: string) => string>(
+            () => "test"
+        );
         const timer = 23 as BrowserTimerHandle;
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const legacyScope = {
             AbortController:
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             clearTimeout,
+            isDevelopmentEnvironment,
             print,
-            processEnvironmentValue: (name: string) =>
-                name === "NODE_ENV" ? "test" : undefined,
+            processEnvironmentValue,
             setTimeout,
             URL: {
                 createObjectURL: vi.fn<(blob: Blob) => string>(
@@ -361,6 +380,12 @@ describe("getLifecycleListenersRuntime", () => {
         expect(() => runtime.isTestEnvironment()).toThrow(
             "lifecycle listeners require processEnvironmentValue provider"
         );
+        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+            "lifecycle listeners require processEnvironmentValue provider"
+        );
+        expect(() => runtime.isDevelopmentEnvironment()).toThrow(
+            "lifecycle listeners require isDevelopmentEnvironment provider"
+        );
         expect(() => runtime.createDownloadAnchor()).toThrow(
             "lifecycle listeners require document provider"
         );
@@ -379,5 +404,7 @@ describe("getLifecycleListenersRuntime", () => {
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
+        expect(isDevelopmentEnvironment).not.toHaveBeenCalled();
+        expect(processEnvironmentValue).not.toHaveBeenCalled();
     });
 });

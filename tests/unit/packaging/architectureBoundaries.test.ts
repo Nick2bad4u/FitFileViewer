@@ -19337,7 +19337,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(80);
+        expect.assertions(90);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -19354,9 +19354,9 @@ describe("architecture boundaries", () => {
         const directLifecycleListenersAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
         const directLifecycleListenersAmbientScopePattern =
-            /\bscope\.(?:AbortController|clearTimeout|document|print|process|processEnvironmentValue|setTimeout|URL)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
+            /\bscope\.(?:AbortController|clearTimeout|document|isDevelopmentEnvironment|print|process|processEnvironmentValue|setTimeout|URL)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
         const optionalLifecycleListenersProviderAccessPattern =
-            /\bscope\.get(?:AbortController|ClearTimeout|Document|Print|SetTimeout|URL)\?\.\(|\bscope\.getProcessEnvironmentValue\?\.\(/u;
+            /\bscope\.get(?:AbortController|ClearTimeout|Document|IsDevelopmentEnvironment|Print|SetTimeout|URL)\?\.\(|\bscope\.getProcessEnvironmentValue\?\.\(/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
@@ -19366,6 +19366,18 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersSource).toContain(
             "runtime.replaceBodyClasses"
+        );
+        expect(lifecycleListenersSource).toContain(
+            'lifecycleRuntime.getProcessEnvironmentValue("FFV_DEBUG_MENU")'
+        );
+        expect(lifecycleListenersSource).toContain(
+            "lifecycleRuntime.isDevelopmentEnvironment()"
+        );
+        expect(lifecycleListenersSource).toContain(
+            'runtime.getProcessEnvironmentValue("NODE_ENV")'
+        );
+        expect(lifecycleListenersSource).not.toContain(
+            "../../runtime/processEnvironment.js"
         );
         expect(lifecycleListenersSource).not.toContain("lifecycleGlobal");
         expect(lifecycleListenersSource).toContain(
@@ -19440,6 +19452,9 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly isDevelopmentEnvironment?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
             "readonly print?:"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
@@ -19462,6 +19477,9 @@ describe("architecture boundaries", () => {
             "scope.clearTimeout"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.document");
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope.isDevelopmentEnvironment"
+        );
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.print");
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.process");
         expect(lifecycleListenersRuntimeSource).not.toContain(
@@ -19501,6 +19519,9 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment"
+        );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -19512,6 +19533,12 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "isDevelopmentEnvironment(): boolean"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getProcessEnvironmentValue(name): string | undefined"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "const processRef: unknown = globalThis.process;"
@@ -19533,6 +19560,9 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(lifecycleListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsDevelopmentEnvironment,\s*"isDevelopmentEnvironment"\s*\)/u
         );
         expect(lifecycleListenersRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getPrint/u

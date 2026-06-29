@@ -16,10 +16,6 @@ import {
     sanitizeFileExtension,
 } from "../../files/sanitizeFilename.js";
 import {
-    getProcessEnvironmentValue,
-    isDevelopmentEnvironment,
-} from "../../runtime/processEnvironment.js";
-import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
@@ -530,8 +526,8 @@ function registerNamedLifecycleIpcListeners({
     trackUnsubscribe,
 }: NamedLifecycleIpcDependencies): void {
     const debugMenuEnabled =
-        getProcessEnvironmentValue("FFV_DEBUG_MENU") === "1" ||
-        isDevelopmentEnvironment();
+        lifecycleRuntime.getProcessEnvironmentValue("FFV_DEBUG_MENU") ===
+            "1" || lifecycleRuntime.isDevelopmentEnvironment();
     const debugMenuLog = (...args: unknown[]) => {
         if (!debugMenuEnabled) return;
         try {
@@ -753,8 +749,10 @@ export function setupListeners({
 
                     // Debug logging for development
                     if (
-                        getProcessEnvironmentValue("NODE_ENV") !== undefined &&
-                        getProcessEnvironmentValue("NODE_ENV") !== "production"
+                        runtime.getProcessEnvironmentValue("NODE_ENV") !==
+                            undefined &&
+                        runtime.getProcessEnvironmentValue("NODE_ENV") !==
+                            "production"
                     ) {
                         console.log(
                             "[DEBUG] Recent file parse result:",
