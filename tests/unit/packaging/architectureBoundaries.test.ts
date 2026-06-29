@@ -17889,7 +17889,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(78);
+        expect.assertions(86);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -18078,13 +18078,35 @@ describe("architecture boundaries", () => {
             "getPerformance: () => globalThis.performance"
         );
         expect(appActionsRuntimeSource).toContain(
-            "const performance = scope.getPerformance?.();"
+            "type AppActionsRuntimeProvider<T>"
+        );
+        expect(appActionsRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*AppActionsRuntimeProvider<AppActionsPerformance>/u
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(appActionsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(appActionsRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
+        expect(appActionsRuntimeSource).toContain(
+            "AppActions requires ${providerName} provider"
+        );
+        expect(appActionsRuntimeSource).toContain("providerName: string");
+        expect(appActionsRuntimeSource).toContain(
+            "const performance = getPerformance();"
         );
         expect(appActionsRuntimeSource).toContain(
             "AppActions requires performance.now"
         );
         expect(appActionsRuntimeSource).not.toContain("readonly dateNow?:");
         expect(appActionsRuntimeSource).not.toContain("readonly performance?:");
+        expect(appActionsRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
         expect(appActionsRuntimeSource).not.toContain("scope.dateNow");
         expect(appActionsRuntimeSource).not.toContain("scope.performance");
     });
