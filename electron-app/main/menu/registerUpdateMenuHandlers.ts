@@ -8,9 +8,9 @@ import {
 } from "../state/appState.js";
 import { resolveAutoUpdaterAsync as defaultResolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import {
-    getProcessStringValue as defaultGetProcessStringValue,
-    type RuntimeProcessStringPropertyName,
-} from "../../utils/runtime/processEnvironment.js";
+    getRegisterUpdateMenuHandlersRuntime,
+    type RegisterUpdateMenuHandlersProcessStringName,
+} from "./registerUpdateMenuHandlersRuntime.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
 type MainProcessIpcEventChannel =
@@ -60,7 +60,7 @@ interface RegisterUpdateMenuHandlersOptions {
     constants?: UpdateMenuConstants;
     dialogRef?: () => DialogLike | undefined;
     getProcessStringValue?: (
-        property: RuntimeProcessStringPropertyName
+        property: RegisterUpdateMenuHandlersProcessStringName
     ) => string | undefined;
     isAutoUpdaterInitialized?: () => boolean;
     isAutoUpdaterUpdateDownloaded?: () => boolean;
@@ -88,6 +88,14 @@ const defaultDialogRef = electronDialogRef as () => DialogLike | undefined;
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
+}
+
+function defaultGetProcessStringValue(
+    property: RegisterUpdateMenuHandlersProcessStringName
+): string | undefined {
+    return getRegisterUpdateMenuHandlersRuntime().getProcessStringValue(
+        property
+    );
 }
 
 function getBrowserWindowFromEvent(

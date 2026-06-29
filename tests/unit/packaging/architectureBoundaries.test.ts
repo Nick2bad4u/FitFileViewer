@@ -3712,7 +3712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(463);
+        expect.assertions(467);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3856,6 +3856,11 @@ describe("architecture boundaries", () => {
         const registerUpdateMenuHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/registerUpdateMenuHandlers.ts"
+            )
+        );
+        const registerUpdateMenuHandlersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerUpdateMenuHandlersRuntime.ts"
             )
         );
         const setupIpcHandlersSource = stripComments(
@@ -4396,6 +4401,18 @@ describe("architecture boundaries", () => {
         );
         expect(registerUpdateMenuHandlersSource).toContain(
             "isAutoUpdaterUpdateDownloaded"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "registerUpdateMenuHandlersRuntime.js"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "getRegisterUpdateMenuHandlersRuntime().getProcessStringValue("
+        );
+        expect(registerUpdateMenuHandlersSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(registerUpdateMenuHandlersRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'getAppState("autoUpdaterInitialized")'

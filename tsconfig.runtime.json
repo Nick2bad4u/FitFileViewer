@@ -127,6 +127,7 @@
         "electron-app/main/logging/logWithContextRuntime.ts",
         "electron-app/main/logging/logWithContext.ts",
         "electron-app/main/menu/registerDevtoolsInjectMenuHandlerRuntime.ts",
+        "electron-app/main/menu/registerUpdateMenuHandlersRuntime.ts",
         "electron-app/main/menu/safeCreateAppMenuRuntime.ts",
         "electron-app/main/menu/safeCreateAppMenu.ts",
         "electron-app/main/menu/setupMenuAndEventHandlers.ts",
