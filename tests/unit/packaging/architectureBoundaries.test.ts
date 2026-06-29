@@ -3643,7 +3643,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(433);
+        expect.assertions(443);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -4370,6 +4370,30 @@ describe("architecture boundaries", () => {
         expect(fitParserIntegrationRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
         );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "type FitParserIntegrationRuntimeProvider<T>"
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(fitParserIntegrationRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*FitParserIntegrationRuntimeProvider<\(\) => number>/u
+        );
+        expect(fitParserIntegrationRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*FitParserIntegrationRuntimeProvider<FitParserIntegrationPerformanceRuntime>/u
+        );
+        expect(fitParserIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"date clock"\s*\)/u
+        );
+        expect(fitParserIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toMatch(
+            /scope\.get(?:DateNow|Performance)\?\.\(/u
+        );
+        expect(fitParserIntegrationRuntimeSource).toContain(
+            "fitParserIntegrationRuntime requires ${providerName} provider"
+        );
         expect(fitParserIntegrationRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
@@ -4378,6 +4402,12 @@ describe("architecture boundaries", () => {
         );
         expect(fitParserIntegrationRuntimeSource).toContain(
             "fitParserIntegrationRuntime requires a date clock"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(fitParserIntegrationRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
         );
         expect(fitParserIntegrationRuntimeSource).not.toContain(
             "readonly dateNow?:"

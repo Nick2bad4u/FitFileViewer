@@ -7,11 +7,11 @@ type FitParserIntegrationPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
 
+type FitParserIntegrationRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface FitParserIntegrationRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getPerformance?:
-        | (() => FitParserIntegrationPerformanceRuntime | undefined)
-        | undefined;
+    readonly getDateNow: FitParserIntegrationRuntimeProvider<() => number>;
+    readonly getPerformance: FitParserIntegrationRuntimeProvider<FitParserIntegrationPerformanceRuntime>;
 }
 
 export interface FitParserIntegrationRuntime {
@@ -26,9 +26,9 @@ const defaultFitParserIntegrationRuntimeScope: FitParserIntegrationRuntimeScope 
     };
 
 function getRequiredDateNow(
-    scope: FitParserIntegrationRuntimeScope
+    getDateNow: () => (() => number) | undefined
 ): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getDateNow();
     if (typeof dateNow === "function") {
         return dateNow;
     }
@@ -37,26 +37,46 @@ function getRequiredDateNow(
 }
 
 function getRequiredMonotonicNow(
-    scope: FitParserIntegrationRuntimeScope
+    getDateNow: () => (() => number) | undefined,
+    getPerformance: () => FitParserIntegrationPerformanceRuntime | undefined
 ): () => number {
-    const performance = scope.getPerformance?.();
+    const performance = getPerformance();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
     }
 
-    return getRequiredDateNow(scope);
+    return getRequiredDateNow(getDateNow);
 }
 
 export function getFitParserIntegrationRuntime(
     scope: FitParserIntegrationRuntimeScope = defaultFitParserIntegrationRuntimeScope
 ): FitParserIntegrationRuntime {
+    const getDateNow = getRequiredProvider(scope.getDateNow, "date clock");
+    const getPerformance = getRequiredProvider(
+        scope.getPerformance,
+        "performance"
+    );
+
     return {
         dateNow(): number {
-            return getRequiredDateNow(scope)();
+            return getRequiredDateNow(getDateNow)();
         },
         monotonicNowMs(): number {
-            return getRequiredMonotonicNow(scope)();
+            return getRequiredMonotonicNow(getDateNow, getPerformance)();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: FitParserIntegrationRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `fitParserIntegrationRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
