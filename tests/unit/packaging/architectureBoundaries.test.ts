@@ -28253,7 +28253,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(77);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -28275,6 +28275,8 @@ describe("architecture boundaries", () => {
         const mapThemeToggleRuntimeSource = stripComments(
             readRepositoryFile(mapThemeToggleRuntimeSourceFile)
         );
+        const optionalMapThemeToggleProviderAccessPattern =
+            /\bscope\.get(?:AbortController|ClearTimeout|CustomEvent|Document|SetTimeout)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(mapThemeToggleStateSource).toContain("mapThemeToggleRuntime.js");
@@ -28331,6 +28333,19 @@ describe("architecture boundaries", () => {
         );
         expect(mapThemeToggleRuntimeSource).toContain(
             "defaultMapThemeToggleRuntimeScope"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toMatch(
+            optionalMapThemeToggleProviderAccessPattern
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "type MapThemeToggleRuntimeProvider<T> ="
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(mapThemeToggleRuntimeSource).toContain("providerName: string");
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "mapThemeToggle requires ${providerName} provider"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
@@ -28397,14 +28412,41 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly getCustomEvent?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.CustomEvent");
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.clearTimeout");
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.document");
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.setTimeout");
-        expect(mapThemeToggleRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+        expect(mapThemeToggleRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController/u
+        );
+        expect(mapThemeToggleRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout/u
+        );
+        expect(mapThemeToggleRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCustomEvent/u
+        );
+        expect(mapThemeToggleRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(mapThemeToggleRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout/u
         );
         expect(mapThemeToggleRuntimeSource).toContain(
             "getDocument(scope).createElement(tagName)"
@@ -28416,9 +28458,6 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleRuntimeSource).not.toContain("createElementNS");
         expect(mapThemeToggleRuntimeSource).not.toMatch(
             directMapThemeToggleRuntimeAmbientFallbackPattern
-        );
-        expect(mapThemeToggleRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 

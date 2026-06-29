@@ -19,20 +19,14 @@ type MapThemeToggleSetTimeout = (
     timeout: number
 ) => MapThemeToggleTimerHandle;
 
+type MapThemeToggleRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface MapThemeToggleRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => MapThemeToggleSetTimeout | undefined)
-        | undefined;
+    readonly getAbortController: MapThemeToggleRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: MapThemeToggleRuntimeProvider<BrowserClearTimeout>;
+    readonly getCustomEvent: MapThemeToggleRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDocument: MapThemeToggleRuntimeProvider<Document>;
+    readonly getSetTimeout: MapThemeToggleRuntimeProvider<MapThemeToggleSetTimeout>;
 }
 
 export interface MapThemeToggleRuntime {
@@ -65,7 +59,10 @@ export interface MapThemeToggleRuntime {
 function getCustomEventConstructor(
     scope: MapThemeToggleRuntimeScope
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    )();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("mapThemeToggle requires a CustomEvent runtime");
     }
@@ -74,7 +71,10 @@ function getCustomEventConstructor(
 }
 
 function getDocument(scope: MapThemeToggleRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("mapThemeToggle requires a document runtime");
     }
@@ -89,6 +89,17 @@ const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope = {
     getDocument: getBrowserDocument,
     getSetTimeout: getBrowserSetTimeout,
 };
+
+function getRequiredProvider<T>(
+    provider: MapThemeToggleRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (provider === undefined) {
+        throw new TypeError(`mapThemeToggle requires ${providerName} provider`);
+    }
+
+    return provider;
+}
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
     scope: MapThemeToggleRuntimeScope,
@@ -115,7 +126,10 @@ export function getMapThemeToggleRuntime(
             });
         },
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapThemeToggle requires a clearTimeout runtime"
@@ -125,7 +139,10 @@ export function getMapThemeToggleRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const AbortControllerConstructor = getRequiredProvider(
+                scope.getAbortController,
+                "AbortController"
+            )();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "mapThemeToggle requires an AbortController runtime"
@@ -161,7 +178,10 @@ export function getMapThemeToggleRuntime(
             return getDocument(scope).body.classList.contains("theme-dark");
         },
         setTimeout(callback, timeout): MapThemeToggleTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapThemeToggle requires a setTimeout runtime"
