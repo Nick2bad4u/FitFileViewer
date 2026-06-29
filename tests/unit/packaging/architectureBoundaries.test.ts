@@ -14718,7 +14718,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(53);
+        expect.assertions(63);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -14752,6 +14752,33 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).toContain(
             "defaultRenderMapRuntimeScope"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "type RenderMapRuntimeProvider"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(renderMapRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"an AbortController"\s*\)/u
+        );
+        expect(renderMapRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"a clearTimeout"\s*\)/u
+        );
+        expect(renderMapRuntimeSource).toMatch(
+            /getRequiredProvider\(scope\.getDocument,\s*"a document"\)/u
+        );
+        expect(renderMapRuntimeSource).toMatch(
+            /getRequiredProvider\(scope\.getEvent,\s*"an Event"\)/u
+        );
+        expect(renderMapRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame,\s*"a requestAnimationFrame"\s*\)/u
+        );
+        expect(renderMapRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"a setTimeout"\s*\)/u
+        );
+        expect(renderMapRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
         );
         expect(renderMapRuntimeSource).not.toContain(
             "scope: RenderMapRuntimeScope = globalThis"
@@ -14841,22 +14868,22 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).not.toContain("scope.setTimeout");
         expect(renderMapRuntimeSource).toContain(
-            "return scope.getAbortController?.();"
+            "return getAbortController();"
         );
         expect(renderMapRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "const clearTimeoutRef = getClearTimeout();"
         );
         expect(renderMapRuntimeSource).toContain(
-            "const documentRef = scope.getDocument?.();"
+            "const documentRef = getDocument();"
         );
         expect(renderMapRuntimeSource).toContain(
-            "const EventConstructor = scope.getEvent?.();"
+            "const EventConstructor = getEvent();"
         );
         expect(renderMapRuntimeSource).toContain(
-            'new (getRequiredEvent(scope))("change")'
+            'new (getRequiredEvent(getEvent))("change")'
         );
         expect(renderMapRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = getSetTimeout();"
         );
         expect(renderMapRuntimeSource).not.toMatch(
             directRenderMapRuntimeAmbientTimerFallbackPattern
@@ -14866,6 +14893,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).toContain(
             "renderMap requires a setTimeout runtime"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "renderMap requires ${providerLabel} provider"
         );
         expect(renderMapRuntimeSource).toContain(
             "renderMap requires an Event runtime"

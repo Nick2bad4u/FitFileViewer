@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     getRenderMapRuntime,
     type RenderMapTimer,
+    type RenderMapRuntimeScope,
 } from "../../../../electron-app/utils/maps/core/renderMapRuntime.js";
 import type {
     BrowserAbortControllerConstructor,
@@ -10,6 +11,20 @@ import type {
     BrowserRequestAnimationFrame,
     BrowserSetTimeout,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createRenderMapRuntimeScope(
+    overrides: Partial<RenderMapRuntimeScope> = {}
+): RenderMapRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getEvent: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getRenderMapRuntime", () => {
     afterEach(() => {
@@ -25,9 +40,11 @@ describe("getRenderMapRuntime", () => {
         const mapContainer = documentRef.createElement("div");
         mapContainer.id = "leaflet-map";
         documentRef.body.append(mapContainer);
-        const utils = getRenderMapRuntime({
-            getDocument: () => documentRef,
-        });
+        const utils = getRenderMapRuntime(
+            createRenderMapRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         expect(utils.getMapContainerFallback("#leaflet-map")).toBe(
             mapContainer
@@ -46,12 +63,12 @@ describe("getRenderMapRuntime", () => {
 
         const staleDocument =
             document.implementation.createHTMLDocument("stale");
-        const utils = getRenderMapRuntime({
+        const legacyScope = {
             document: staleDocument,
-        } as unknown as Parameters<typeof getRenderMapRuntime>[0]);
+        } as unknown as RenderMapRuntimeScope;
 
-        expect(() => utils.getMapContainerFallback("#leaflet-map")).toThrow(
-            "renderMap requires a document runtime"
+        expect(() => getRenderMapRuntime(legacyScope)).toThrow(
+            "renderMap requires an AbortController provider"
         );
         expect(staleDocument.body.id).toBe("");
     });
@@ -78,14 +95,16 @@ describe("getRenderMapRuntime", () => {
             }
         }
         const getEvent = vi.fn(() => TestEvent);
-        const utils = getRenderMapRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-            getClearTimeout: () => clearTimeout,
-            getEvent,
-            getRequestAnimationFrame: () => requestAnimationFrame,
-            getSetTimeout: () => setTimeout,
-        });
+        const utils = getRenderMapRuntime(
+            createRenderMapRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+                getClearTimeout: () => clearTimeout,
+                getEvent,
+                getRequestAnimationFrame: () => requestAnimationFrame,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(utils.createAbortController()).toBe(controller);
         utils.clearTimeout(timeout);
@@ -171,10 +190,65 @@ describe("getRenderMapRuntime", () => {
     it("fails clearly when the Event runtime is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRenderMapRuntime({});
+        const utils = getRenderMapRuntime(createRenderMapRuntimeScope());
 
         expect(() => utils.createChangeEvent()).toThrow(
             "renderMap requires an Event runtime"
         );
+    });
+
+    it("fails clearly when runtime provider slots are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getRenderMapRuntime({} as unknown as RenderMapRuntimeScope)
+        ).toThrow("renderMap requires an AbortController provider");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(6);
+
+        expect(() =>
+            getRenderMapRuntime(
+                createRenderMapRuntimeScope({
+                    getAbortController: undefined,
+                })
+            )
+        ).toThrow("renderMap requires an AbortController provider");
+        expect(() =>
+            getRenderMapRuntime(
+                createRenderMapRuntimeScope({
+                    getClearTimeout: undefined,
+                })
+            )
+        ).toThrow("renderMap requires a clearTimeout provider");
+        expect(() =>
+            getRenderMapRuntime(
+                createRenderMapRuntimeScope({
+                    getDocument: undefined,
+                })
+            )
+        ).toThrow("renderMap requires a document provider");
+        expect(() =>
+            getRenderMapRuntime(
+                createRenderMapRuntimeScope({
+                    getEvent: undefined,
+                })
+            )
+        ).toThrow("renderMap requires an Event provider");
+        expect(() =>
+            getRenderMapRuntime(
+                createRenderMapRuntimeScope({
+                    getRequestAnimationFrame: undefined,
+                })
+            )
+        ).toThrow("renderMap requires a requestAnimationFrame provider");
+        expect(() =>
+            getRenderMapRuntime(
+                createRenderMapRuntimeScope({
+                    getSetTimeout: undefined,
+                })
+            )
+        ).toThrow("renderMap requires a setTimeout provider");
     });
 });
