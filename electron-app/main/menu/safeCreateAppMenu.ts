@@ -1,6 +1,9 @@
 import { logWithContext } from "../logging/logWithContext.js";
 import { createAppMenu } from "../../utils/app/menu/createAppMenu.js";
-import { getProcessEnvironmentValue } from "../../utils/runtime/processEnvironment.js";
+import {
+    getSafeCreateAppMenuRuntime,
+    type SafeCreateAppMenuRuntime,
+} from "./safeCreateAppMenuRuntime.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -19,8 +22,11 @@ interface MainWindowLike {
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
+const safeCreateAppMenuRuntime = (): SafeCreateAppMenuRuntime =>
+    getSafeCreateAppMenuRuntime();
+
 const getNodeEnvironment = (): string | undefined =>
-    getProcessEnvironmentValue("NODE_ENV");
+    safeCreateAppMenuRuntime().getProcessEnvironmentValue("NODE_ENV");
 
 /**
  * Lazily creates the application menu. The helper is intentionally defensive so

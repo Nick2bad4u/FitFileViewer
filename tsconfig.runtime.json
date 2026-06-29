@@ -126,6 +126,7 @@
         "electron-app/main/ipc/setupIPCHandlers.ts",
         "electron-app/main/logging/logWithContextRuntime.ts",
         "electron-app/main/logging/logWithContext.ts",
+        "electron-app/main/menu/safeCreateAppMenuRuntime.ts",
         "electron-app/main/menu/safeCreateAppMenu.ts",
         "electron-app/main/menu/setupMenuAndEventHandlers.ts",
         "electron-app/main/oauth/gyazoOAuthServer.ts",

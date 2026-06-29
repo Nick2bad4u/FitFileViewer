@@ -3712,7 +3712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(457);
+        expect.assertions(460);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3727,6 +3727,11 @@ describe("architecture boundaries", () => {
         );
         const safeCreateAppMenuSource = stripComments(
             readRepositoryFile("electron-app/main/menu/safeCreateAppMenu.ts")
+        );
+        const safeCreateAppMenuRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/safeCreateAppMenuRuntime.ts"
+            )
         );
         const setupBlockedRequestsSource = stripComments(
             readRepositoryFile(
@@ -3968,7 +3973,18 @@ describe("architecture boundaries", () => {
         expect(logWithContextRuntimeSource).toContain(
             "../../utils/runtime/processEnvironment.js"
         );
-        expect(safeCreateAppMenuSource).toContain("getProcessEnvironmentValue");
+        expect(safeCreateAppMenuSource).toContain(
+            "safeCreateAppMenuRuntime.js"
+        );
+        expect(safeCreateAppMenuSource).toContain(
+            'safeCreateAppMenuRuntime().getProcessEnvironmentValue("NODE_ENV")'
+        );
+        expect(safeCreateAppMenuSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(safeCreateAppMenuRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
         expect(windowStateUtilsSource).toContain("windowStateRuntime.js");
         expect(windowStateUtilsSource).toContain(
             "windowStateRuntime().getProcessEnvironmentValue(key)"
@@ -4065,7 +4081,7 @@ describe("architecture boundaries", () => {
             "../../utils/runtime/processEnvironment.js"
         );
         expect(logWithContextSource).not.toContain("export default");
-        expect(safeCreateAppMenuSource).toContain(
+        expect(safeCreateAppMenuRuntimeSource).toContain(
             "../../utils/runtime/processEnvironment.js"
         );
         expect(setupBlockedRequestsSource).not.toContain("module.exports");
