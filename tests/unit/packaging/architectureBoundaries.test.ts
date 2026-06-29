@@ -27181,7 +27181,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(60);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -27212,7 +27212,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadVersionInfoSource).toContain("loadVersionInfoRuntime.js");
-        expect(loadVersionInfoSource).toContain("processEnvironment.js");
+        expect(loadVersionInfoSource).not.toContain("processEnvironment.js");
         expect(loadVersionInfoSource).toContain("ElectronAppInfoApi");
         expect(loadVersionInfoSource).not.toContain(
             "Partial<ElectronAppInfoApi>"
@@ -27264,6 +27264,12 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoSource).not.toContain("process.versions");
         expect(loadVersionInfoSource).toContain("getProcessStringValue");
         expect(loadVersionInfoSource).toContain("getProcessVersionValue");
+        expect(loadVersionInfoSource).toContain(
+            'runtime.getProcessVersionValue("electron")'
+        );
+        expect(loadVersionInfoSource).toContain(
+            'runtime.getProcessStringValue("platform")'
+        );
         expect(loadVersionInfoSource).toContain("type LoadVersionInfoRuntime");
         expect(loadVersionInfoSource).toContain(
             "return getLoadVersionInfoRuntime();"
@@ -27282,10 +27288,25 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(loadVersionInfoRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "getProcessStringValue: getRuntimeProcessStringValue"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "getProcessVersionValue: getRuntimeProcessVersionValue"
         );
         expect(loadVersionInfoRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "getProcessStringValue: () => process."
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "getProcessVersionValue: () => process."
         );
         expect(loadVersionInfoRuntimeScopeSource).not.toContain(
             "readonly document?:"
@@ -27293,9 +27314,27 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoRuntimeScopeSource).not.toContain(
             "readonly getDocument?:"
         );
+        expect(loadVersionInfoRuntimeScopeSource).not.toContain(
+            "readonly processStringValue?:"
+        );
+        expect(loadVersionInfoRuntimeScopeSource).not.toContain(
+            "readonly processVersionValue?:"
+        );
         expect(loadVersionInfoRuntimeSource).not.toContain("scope.document");
         expect(loadVersionInfoRuntimeSource).not.toContain(
+            "scope.processStringValue"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "scope.processVersionValue"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
             "scope.getDocument?.()"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "scope.getProcessStringValue?.("
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "scope.getProcessVersionValue?.("
         );
         expect(loadVersionInfoRuntimeSource).not.toContain(
             "scope: LoadVersionInfoRuntimeScope = globalThis"
@@ -27307,13 +27346,19 @@ describe("architecture boundaries", () => {
             /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
         );
         expect(loadVersionInfoRuntimeSource).toContain(
-            "const runtimeDocument = getDocument();"
+            'scope.getDocument,\n        "document provider"'
         );
         expect(loadVersionInfoRuntimeSource).toContain(
-            "loadVersionInfo requires a document provider"
+            "loadVersionInfo requires a ${providerName}"
         );
         expect(loadVersionInfoRuntimeSource).toContain(
             "loadVersionInfo requires a document runtime"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "loadVersionInfo requires a process string provider"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "loadVersionInfo requires a process version provider"
         );
     });
 

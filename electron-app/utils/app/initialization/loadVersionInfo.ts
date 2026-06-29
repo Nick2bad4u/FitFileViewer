@@ -4,10 +4,6 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import {
-    getProcessStringValue,
-    getProcessVersionValue,
-} from "../../runtime/processEnvironment.js";
-import {
     getLoadVersionInfoRuntime,
     type LoadVersionInfoRuntime,
 } from "./loadVersionInfoRuntime.js";
@@ -97,13 +93,14 @@ function createDefaultSystemInfo(): VersionSystemInfo {
 function getFallbackSystemInfo(): VersionSystemInfo {
     logWithContext("warn", "Using fallback system information");
 
+    const runtime = loadVersionInfoRuntime();
     const systemInfo = createDefaultSystemInfo();
 
-    const electronVersion = getProcessVersionValue("electron");
-    const nodeVersion = getProcessVersionValue("node");
-    const chromeVersion = getProcessVersionValue("chrome");
-    const platform = getProcessStringValue("platform");
-    const architecture = getProcessStringValue("arch");
+    const electronVersion = runtime.getProcessVersionValue("electron");
+    const nodeVersion = runtime.getProcessVersionValue("node");
+    const chromeVersion = runtime.getProcessVersionValue("chrome");
+    const platform = runtime.getProcessStringValue("platform");
+    const architecture = runtime.getProcessStringValue("arch");
 
     if (electronVersion || nodeVersion || chromeVersion) {
         systemInfo.electron = electronVersion ?? DEFAULT_VALUES.electron;
