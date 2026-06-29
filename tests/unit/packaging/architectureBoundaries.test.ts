@@ -6665,7 +6665,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(114);
+        expect.assertions(135);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -6807,7 +6807,7 @@ describe("architecture boundaries", () => {
             "getDocument: getBrowserDocument"
         );
         expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "getDocumentEventTarget: getBrowserDocument"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
@@ -6887,6 +6887,30 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeScopeSource).not.toContain(
             "readonly openPrintWindow?:"
         );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getConfirmDangerousAction?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getDocumentEventTarget?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getOpenPrintWindow?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getSecureRandomCrypto?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getStorage?:"
+        );
         expect(exportUtilsRuntimeSource).not.toContain("scope.AbortController");
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope.confirmDangerousAction"
@@ -6899,16 +6923,55 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).not.toContain("scope.localStorage");
         expect(exportUtilsRuntimeSource).not.toContain("scope.openPrintWindow");
         expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getAbortController?.();"
+            "type ExportUtilsRuntimeProvider<T>"
         );
         expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getConfirmDangerousAction?.();"
+            "function getRequiredProvider<T>"
         );
         expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "exportUtils requires ${providerName} provider"
         );
         expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getHTMLElement?.();"
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getConfirmDangerousAction,\n        "confirmDangerousAction"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getDocumentEventTarget,\n        "documentEventTarget"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getHTMLElement,\n        "HTMLElement"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getOpenPrintWindow,\n        "openPrintWindow"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getSecureRandomCrypto,\n        "secureRandomCrypto"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'getRequiredProvider(scope.getStorage, "storage")'
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getConfirmDangerousAction?.()"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getDocumentEventTarget() ?? getDocument()"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getDocumentEventTarget?.()"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "documentRef.activeElement instanceof HTMLElementConstructor"
@@ -6916,18 +6979,16 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain(
             "documentRef.body.append(element)"
         );
-        expect(exportUtilsRuntimeSource).toContain(
-            "return scope.getOpenPrintWindow?.();"
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getOpenPrintWindow?.()"
         );
-        expect(exportUtilsRuntimeSource).toContain(
-            "const cryptoObject = scope.getSecureRandomCrypto?.();"
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getSecureRandomCrypto?.()"
         );
         expect(exportUtilsRuntimeSource).toContain(
             'typeof cryptoObject.getRandomValues === "function"'
         );
-        expect(exportUtilsRuntimeSource).toContain(
-            "const storage = scope.getStorage?.();"
-        );
+        expect(exportUtilsRuntimeSource).not.toContain("scope.getStorage?.()");
     });
 
     it("keeps renderChartJS comprehensive tests off module-cache require bridges", () => {

@@ -17,6 +17,7 @@ type OpenPrintWindowFunction = (
     target?: string,
     features?: string
 ) => Window | null;
+type ExportUtilsRuntimeProvider<T> = (() => T) | undefined;
 
 export type ExportStorageLike = {
     getItem?: (key: string) => null | string;
@@ -31,24 +32,26 @@ export type SecureRandomScope = {
 };
 
 export interface ExportUtilsRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getConfirmDangerousAction?:
-        | (() => ConfirmDangerousActionFunction | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getOpenPrintWindow?:
-        | (() => OpenPrintWindowFunction | undefined)
-        | undefined;
-    readonly getSecureRandomCrypto?:
-        | (() => Pick<Crypto, "getRandomValues"> | undefined)
-        | undefined;
-    readonly getStorage?: ExportStorageProvider | undefined;
+    readonly getAbortController: ExportUtilsRuntimeProvider<
+        BrowserAbortControllerConstructor | undefined
+    >;
+    readonly getConfirmDangerousAction: ExportUtilsRuntimeProvider<
+        ConfirmDangerousActionFunction | undefined
+    >;
+    readonly getDocument: ExportUtilsRuntimeProvider<Document | undefined>;
+    readonly getDocumentEventTarget: ExportUtilsRuntimeProvider<
+        Document | undefined
+    >;
+    readonly getHTMLElement: ExportUtilsRuntimeProvider<
+        BrowserHTMLElementConstructor | undefined
+    >;
+    readonly getOpenPrintWindow: ExportUtilsRuntimeProvider<
+        OpenPrintWindowFunction | undefined
+    >;
+    readonly getSecureRandomCrypto: ExportUtilsRuntimeProvider<
+        Pick<Crypto, "getRandomValues"> | undefined
+    >;
+    readonly getStorage: ExportUtilsRuntimeProvider<ExportStorageLike | null>;
 }
 
 export interface ExportUtilsRuntime {
@@ -70,55 +73,68 @@ export interface ExportUtilsRuntime {
 }
 
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
-    getConfirmDangerousAction: getBrowserConfirm,
     getAbortController: getBrowserAbortController,
+    getConfirmDangerousAction: getBrowserConfirm,
     getDocument: getBrowserDocument,
+    getDocumentEventTarget: getBrowserDocument,
     getHTMLElement: getBrowserHTMLElement,
     getOpenPrintWindow: getBrowserOpen,
     getSecureRandomCrypto: getBrowserCrypto,
     getStorage: () => getBrowserLocalStorage() ?? null,
 };
 
+function getRequiredProvider<T>(
+    provider: ExportUtilsRuntimeProvider<T>,
+    providerName: string
+): () => T {
+    if (typeof provider !== "function") {
+        throw new TypeError(`exportUtils requires ${providerName} provider`);
+    }
+
+    return provider;
+}
+
 function getScopeAbortController(
-    scope: ExportUtilsRuntimeScope
+    getAbortController: () => BrowserAbortControllerConstructor | undefined
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getAbortController();
 }
 
 function getScopeConfirmDangerousAction(
-    scope: ExportUtilsRuntimeScope
+    getConfirmDangerousAction: () => ConfirmDangerousActionFunction | undefined
 ): ConfirmDangerousActionFunction | undefined {
-    return scope.getConfirmDangerousAction?.();
+    return getConfirmDangerousAction();
 }
 
 function getScopeDocumentEventTarget(
-    scope: ExportUtilsRuntimeScope
+    getDocumentEventTarget: () => Document | undefined,
+    getDocument: () => Document | undefined
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return getDocumentEventTarget() ?? getDocument();
 }
 
 function getScopeDocument(
-    scope: ExportUtilsRuntimeScope
+    getDocument: () => Document | undefined
 ): Document | undefined {
-    return scope.getDocument?.();
+    return getDocument();
 }
 
 function getScopeHTMLElement(
-    scope: ExportUtilsRuntimeScope
+    getHTMLElement: () => BrowserHTMLElementConstructor | undefined
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getHTMLElement();
 }
 
 function getScopeOpenPrintWindow(
-    scope: ExportUtilsRuntimeScope
+    getOpenPrintWindow: () => OpenPrintWindowFunction | undefined
 ): OpenPrintWindowFunction | undefined {
-    return scope.getOpenPrintWindow?.();
+    return getOpenPrintWindow();
 }
 
 function getScopeSecureRandomCrypto(
-    scope: ExportUtilsRuntimeScope
+    getSecureRandomCrypto: () => Pick<Crypto, "getRandomValues"> | undefined
 ): Pick<Crypto, "getRandomValues"> | undefined {
-    const cryptoObject = scope.getSecureRandomCrypto?.();
+    const cryptoObject = getSecureRandomCrypto();
     return cryptoObject &&
         typeof cryptoObject === "object" &&
         typeof cryptoObject.getRandomValues === "function"
@@ -127,9 +143,9 @@ function getScopeSecureRandomCrypto(
 }
 
 function getScopeStorage(
-    scope: ExportUtilsRuntimeScope
+    getStorage: () => ExportStorageLike | null
 ): ExportStorageLike | null {
-    const storage = scope.getStorage?.();
+    const storage = getStorage();
 
     return storage &&
         typeof storage === "object" &&
@@ -143,9 +159,39 @@ function getScopeStorage(
 export function getExportUtilsRuntime(
     scope: ExportUtilsRuntimeScope = defaultExportUtilsRuntimeScope
 ): ExportUtilsRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    );
+    const getConfirmDangerousAction = getRequiredProvider(
+        scope.getConfirmDangerousAction,
+        "confirmDangerousAction"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getDocumentEventTarget = getRequiredProvider(
+        scope.getDocumentEventTarget,
+        "documentEventTarget"
+    );
+    const getHTMLElement = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    );
+    const getOpenPrintWindow = getRequiredProvider(
+        scope.getOpenPrintWindow,
+        "openPrintWindow"
+    );
+    const getSecureRandomCrypto = getRequiredProvider(
+        scope.getSecureRandomCrypto,
+        "secureRandomCrypto"
+    );
+    const getStorage = getRequiredProvider(scope.getStorage, "storage");
+
     return {
         addDocumentKeydownListener(listener, options): void {
-            const documentEventTarget = getScopeDocumentEventTarget(scope);
+            const documentEventTarget = getScopeDocumentEventTarget(
+                getDocumentEventTarget,
+                getDocument
+            );
             if (!documentEventTarget) {
                 throw new TypeError(
                     "exportUtils requires a document event-target runtime"
@@ -157,7 +203,7 @@ export function getExportUtilsRuntime(
         },
 
         appendToBody(element): void {
-            const documentRef = getScopeDocument(scope);
+            const documentRef = getScopeDocument(getDocument);
             if (!documentRef) {
                 throw new TypeError("exportUtils requires a document runtime");
             }
@@ -166,13 +212,15 @@ export function getExportUtilsRuntime(
         },
 
         confirmDangerousAction(message: string): boolean {
-            const confirmDangerousAction =
-                getScopeConfirmDangerousAction(scope);
+            const confirmDangerousAction = getScopeConfirmDangerousAction(
+                getConfirmDangerousAction
+            );
             return confirmDangerousAction?.(message) ?? false;
         },
 
         createAbortController(): AbortController {
-            const AbortControllerConstructor = getScopeAbortController(scope);
+            const AbortControllerConstructor =
+                getScopeAbortController(getAbortController);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "exportUtils requires an AbortController runtime"
@@ -183,12 +231,12 @@ export function getExportUtilsRuntime(
         },
 
         getActiveElement(): HTMLElement | null {
-            const documentRef = getScopeDocument(scope);
+            const documentRef = getScopeDocument(getDocument);
             if (!documentRef) {
                 throw new TypeError("exportUtils requires a document runtime");
             }
 
-            const HTMLElementConstructor = getScopeHTMLElement(scope);
+            const HTMLElementConstructor = getScopeHTMLElement(getHTMLElement);
             if (typeof HTMLElementConstructor !== "function") {
                 throw new TypeError(
                     "exportUtils requires an HTMLElement runtime"
@@ -201,16 +249,18 @@ export function getExportUtilsRuntime(
         },
 
         getSecureRandomScope(): SecureRandomScope {
-            const cryptoObject = getScopeSecureRandomCrypto(scope);
+            const cryptoObject = getScopeSecureRandomCrypto(
+                getSecureRandomCrypto
+            );
             return cryptoObject ? { crypto: cryptoObject } : {};
         },
 
         getStorage(): ExportStorageLike | null {
-            return getScopeStorage(scope);
+            return getScopeStorage(getStorage);
         },
 
         openPrintWindow(url, target, features): Window | null {
-            const openPrintWindow = getScopeOpenPrintWindow(scope);
+            const openPrintWindow = getScopeOpenPrintWindow(getOpenPrintWindow);
             return openPrintWindow?.(url, target, features) ?? null;
         },
     };

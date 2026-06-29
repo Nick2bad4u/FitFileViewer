@@ -7,6 +7,22 @@ import {
 } from "../../../../../electron-app/utils/files/export/exportUtilsRuntime.js";
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createExportUtilsRuntimeScope(
+    overrides: Partial<ExportUtilsRuntimeScope> = {}
+): ExportUtilsRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getConfirmDangerousAction: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getHTMLElement: () => undefined,
+        getOpenPrintWindow: () => undefined,
+        getSecureRandomCrypto: () => undefined,
+        getStorage: () => null,
+        ...overrides,
+    };
+}
+
 describe("exportUtilsRuntime", () => {
     afterEach(() => {
         document.body.replaceChildren();
@@ -46,9 +62,11 @@ describe("exportUtilsRuntime", () => {
         expect.assertions(2);
 
         const confirmDangerousAction = vi.fn(() => true),
-            runtime = getExportUtilsRuntime({
-                getConfirmDangerousAction: () => confirmDangerousAction,
-            });
+            runtime = getExportUtilsRuntime(
+                createExportUtilsRuntimeScope({
+                    getConfirmDangerousAction: () => confirmDangerousAction,
+                })
+            );
 
         expect(
             runtime.confirmDangerousAction("Clear saved export tokens?")
@@ -62,9 +80,9 @@ describe("exportUtilsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getExportUtilsRuntime({}).confirmDangerousAction(
-                "Clear saved export tokens?"
-            )
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).confirmDangerousAction("Clear saved export tokens?")
         ).toBe(false);
     });
 
@@ -73,9 +91,11 @@ describe("exportUtilsRuntime", () => {
 
         const popup = {} as Window;
         const openPrintWindow = vi.fn(() => popup);
-        const runtime = getExportUtilsRuntime({
-            getOpenPrintWindow: () => openPrintWindow,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getOpenPrintWindow: () => openPrintWindow,
+            })
+        );
 
         expect(
             runtime.openPrintWindow("", "_blank", "noopener,noreferrer")
@@ -95,9 +115,11 @@ describe("exportUtilsRuntime", () => {
             removeItem: vi.fn<Storage["removeItem"]>(),
             setItem: vi.fn<Storage["setItem"]>(),
         };
-        const runtime = getExportUtilsRuntime({
-            getStorage: () => storage,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getStorage: () => storage,
+            })
+        );
 
         expect(runtime.getStorage()).toBe(storage);
     });
@@ -105,17 +127,21 @@ describe("exportUtilsRuntime", () => {
     it("ignores invalid scoped storage runtimes", () => {
         expect.assertions(2);
 
-        const runtime = getExportUtilsRuntime({
-            getStorage: () => ({}) as Storage,
-        });
-        const malformedMethodRuntime = getExportUtilsRuntime({
-            getStorage: () =>
-                ({
-                    getItem: "not-a-function",
-                    removeItem: "not-a-function",
-                    setItem: "not-a-function",
-                }) as unknown as Storage,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getStorage: () => ({}) as Storage,
+            })
+        );
+        const malformedMethodRuntime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getStorage: () =>
+                    ({
+                        getItem: "not-a-function",
+                        removeItem: "not-a-function",
+                        setItem: "not-a-function",
+                    }) as unknown as Storage,
+            })
+        );
 
         expect(runtime.getStorage()).toBeNull();
         expect(malformedMethodRuntime.getStorage()).toBeNull();
@@ -127,9 +153,11 @@ describe("exportUtilsRuntime", () => {
         const crypto = {
             getRandomValues: vi.fn<Crypto["getRandomValues"]>(),
         };
-        const runtime = getExportUtilsRuntime({
-            getSecureRandomCrypto: () => crypto,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getSecureRandomCrypto: () => crypto,
+            })
+        );
 
         expect(runtime.getSecureRandomScope()).toStrictEqual({ crypto });
     });
@@ -137,15 +165,19 @@ describe("exportUtilsRuntime", () => {
     it("ignores invalid scoped secure-random runtimes", () => {
         expect.assertions(2);
 
-        const runtime = getExportUtilsRuntime({
-            getSecureRandomCrypto: () => ({}) as Crypto,
-        });
-        const malformedMethodRuntime = getExportUtilsRuntime({
-            getSecureRandomCrypto: () =>
-                ({
-                    getRandomValues: "not-a-function",
-                }) as unknown as Crypto,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getSecureRandomCrypto: () => ({}) as Crypto,
+            })
+        );
+        const malformedMethodRuntime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getSecureRandomCrypto: () =>
+                    ({
+                        getRandomValues: "not-a-function",
+                    }) as unknown as Crypto,
+            })
+        );
 
         expect(runtime.getSecureRandomScope()).toStrictEqual({});
         expect(malformedMethodRuntime.getSecureRandomScope()).toStrictEqual({});
@@ -155,11 +187,9 @@ describe("exportUtilsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getExportUtilsRuntime({}).openPrintWindow(
-                "",
-                "_blank",
-                "noopener,noreferrer"
-            )
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).openPrintWindow("", "_blank", "noopener,noreferrer")
         ).toBeNull();
     });
 
@@ -174,10 +204,12 @@ describe("exportUtilsRuntime", () => {
             }
         }
 
-        const runtime = getExportUtilsRuntime({
-            getAbortController: () =>
-                TestAbortController as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getAbortController: () =>
+                    TestAbortController as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -220,10 +252,12 @@ describe("exportUtilsRuntime", () => {
         const listener = () => {
             keydownCount += 1;
         };
-        const runtime = getExportUtilsRuntime({
-            getDocument: () => documentEventTarget,
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getDocument: () => documentEventTarget,
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -249,9 +283,11 @@ describe("exportUtilsRuntime", () => {
         const documentRef = document.implementation.createHTMLDocument();
         const addEventListener = vi.spyOn(documentRef, "addEventListener");
         let keydownCount = 0;
-        const runtime = getExportUtilsRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentKeydownListener(
             () => {
@@ -282,9 +318,11 @@ describe("exportUtilsRuntime", () => {
         const documentEventTarget =
             document.implementation.createHTMLDocument();
         let keydownCount = 0;
-        const runtime = getExportUtilsRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(
             () => {
@@ -305,10 +343,12 @@ describe("exportUtilsRuntime", () => {
 
         const button = document.createElement("button");
         let activeElement: Element | null = button;
-        const runtime = getExportUtilsRuntime({
-            getDocument: () => ({ activeElement }) as unknown as Document,
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getDocument: () => ({ activeElement }) as unknown as Document,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         expect(runtime.getActiveElement()).toBe(button);
 
@@ -339,6 +379,7 @@ describe("exportUtilsRuntime", () => {
         const confirmDangerousAction = vi.fn(() => true);
         const openPrintWindow = vi.fn(() => ({}) as Window);
         const runtime = getExportUtilsRuntime({
+            ...createExportUtilsRuntimeScope(),
             AbortController,
             confirmDangerousAction,
             crypto,
@@ -376,26 +417,88 @@ describe("exportUtilsRuntime", () => {
     it("throws when explicit runtime dependencies are unavailable", () => {
         expect.assertions(5);
 
-        expect(() => getExportUtilsRuntime({}).createAbortController()).toThrow(
-            "exportUtils requires an AbortController runtime"
-        );
         expect(() =>
-            getExportUtilsRuntime({}).addDocumentKeydownListener(
-                () => undefined,
-                {}
-            )
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).createAbortController()
+        ).toThrow("exportUtils requires an AbortController runtime");
+        expect(() =>
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).addDocumentKeydownListener(() => undefined, {})
         ).toThrow("exportUtils requires a document event-target runtime");
         expect(() =>
-            getExportUtilsRuntime({}).appendToBody(document.createElement("a"))
+            getExportUtilsRuntime(createExportUtilsRuntimeScope()).appendToBody(
+                document.createElement("a")
+            )
         ).toThrow("exportUtils requires a document runtime");
-        expect(() => getExportUtilsRuntime({}).getActiveElement()).toThrow(
-            "exportUtils requires a document runtime"
-        );
+        expect(() =>
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).getActiveElement()
+        ).toThrow("exportUtils requires a document runtime");
+        expect(() =>
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope({
+                    getDocument: () => document,
+                })
+            ).getActiveElement()
+        ).toThrow("exportUtils requires an HTMLElement runtime");
+    });
+
+    it("throws when required runtime providers are omitted", () => {
+        expect.assertions(8);
+
+        const scope = createExportUtilsRuntimeScope();
+
         expect(() =>
             getExportUtilsRuntime({
-                getDocument: () => document,
-            }).getActiveElement()
-        ).toThrow("exportUtils requires an HTMLElement runtime");
+                ...scope,
+                getAbortController: undefined,
+            })
+        ).toThrow("exportUtils requires AbortController provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getConfirmDangerousAction: undefined,
+            })
+        ).toThrow("exportUtils requires confirmDangerousAction provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getDocument: undefined,
+            })
+        ).toThrow("exportUtils requires document provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getDocumentEventTarget: undefined,
+            })
+        ).toThrow("exportUtils requires documentEventTarget provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getHTMLElement: undefined,
+            })
+        ).toThrow("exportUtils requires HTMLElement provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getOpenPrintWindow: undefined,
+            })
+        ).toThrow("exportUtils requires openPrintWindow provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getSecureRandomCrypto: undefined,
+            })
+        ).toThrow("exportUtils requires secureRandomCrypto provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getStorage: undefined,
+            })
+        ).toThrow("exportUtils requires storage provider");
     });
 
     it("resolves default storage and crypto providers when runtime operations run", () => {
