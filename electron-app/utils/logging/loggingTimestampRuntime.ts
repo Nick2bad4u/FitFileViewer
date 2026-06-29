@@ -1,29 +1,23 @@
 type LoggingTimestampDateConstructor = new () => { toISOString: () => string };
 
 export interface LoggingTimestampRuntimeScope {
-    readonly getDateConstructor: () =>
-        | LoggingTimestampDateConstructor
-        | undefined;
+    readonly getDateConstructor: LoggingTimestampRuntimeProvider<LoggingTimestampDateConstructor>;
 }
 
 export interface LoggingTimestampRuntime {
     isoNow: () => string;
 }
 
+type LoggingTimestampRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultLoggingTimestampRuntimeScope: LoggingTimestampRuntimeScope = {
     getDateConstructor: () => Date,
 };
 
 function getRequiredDateConstructor(
-    scope: LoggingTimestampRuntimeScope
+    getDateConstructor: () => LoggingTimestampDateConstructor | undefined
 ): LoggingTimestampDateConstructor {
-    if (typeof scope.getDateConstructor !== "function") {
-        throw new TypeError(
-            "loggingTimestampRuntime requires a date constructor provider"
-        );
-    }
-
-    const DateConstructor = scope.getDateConstructor();
+    const DateConstructor = getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }
@@ -34,10 +28,29 @@ function getRequiredDateConstructor(
 export function loggingTimestampRuntime(
     scope: LoggingTimestampRuntimeScope = defaultLoggingTimestampRuntimeScope
 ): LoggingTimestampRuntime {
+    const getDateConstructor = getRequiredProvider(
+        scope.getDateConstructor,
+        "date constructor"
+    );
+
     return {
         isoNow(): string {
-            const DateConstructor = getRequiredDateConstructor(scope);
+            const DateConstructor =
+                getRequiredDateConstructor(getDateConstructor);
             return new DateConstructor().toISOString();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: LoggingTimestampRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `loggingTimestampRuntime requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

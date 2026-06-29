@@ -71,6 +71,30 @@ describe("loggingTimestampRuntime", () => {
         );
     });
 
+    it("fails clearly when explicit scopes omit the date constructor provider", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            loggingTimestampRuntime(
+                {} as unknown as LoggingTimestampRuntimeScope
+            )
+        ).toThrow(
+            "loggingTimestampRuntime requires a date constructor provider"
+        );
+    });
+
+    it("fails clearly when the date constructor provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            loggingTimestampRuntime({
+                getDateConstructor: undefined,
+            })
+        ).toThrow(
+            "loggingTimestampRuntime requires a date constructor provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
@@ -86,11 +110,11 @@ describe("loggingTimestampRuntime", () => {
             }
         }
 
-        const utils = loggingTimestampRuntime({
-            Date: DateConstructor,
-        } as unknown as Parameters<typeof loggingTimestampRuntime>[0]);
-
-        expect(() => utils.isoNow()).toThrow(
+        expect(() =>
+            loggingTimestampRuntime({
+                Date: DateConstructor,
+            } as unknown as Parameters<typeof loggingTimestampRuntime>[0])
+        ).toThrow(
             "loggingTimestampRuntime requires a date constructor provider"
         );
         expect(constructedCount).toBe(0);

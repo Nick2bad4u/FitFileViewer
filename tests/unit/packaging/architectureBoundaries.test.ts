@@ -16218,7 +16218,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer logging timestamps behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(23);
 
         const loggingIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/logging/index.ts")
@@ -16253,13 +16253,28 @@ describe("architecture boundaries", () => {
             "getDateConstructor: () => Date"
         );
         expect(loggingTimestampRuntimeSource).toContain(
+            "type LoggingTimestampRuntimeProvider"
+        );
+        expect(loggingTimestampRuntimeSource).toMatch(
+            /readonly\s+getDateConstructor:\s*LoggingTimestampRuntimeProvider<LoggingTimestampDateConstructor>/u
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(loggingTimestampRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateConstructor,\s*"date constructor"\s*\)/u
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
+            "const DateConstructor = getDateConstructor();"
+        );
+        expect(loggingTimestampRuntimeSource).toContain(
             "new DateConstructor().toISOString()"
         );
         expect(loggingTimestampRuntimeSource).toContain(
             "loggingTimestampRuntime requires a date constructor"
         );
         expect(loggingTimestampRuntimeSource).toContain(
-            "loggingTimestampRuntime requires a date constructor provider"
+            "loggingTimestampRuntime requires a ${providerName} provider"
         );
         expect(loggingTimestampRuntimeSource).not.toContain("readonly Date?:");
         expect(loggingTimestampRuntimeSource).not.toContain(
@@ -16267,6 +16282,9 @@ describe("architecture boundaries", () => {
         );
         expect(loggingTimestampRuntimeSource).not.toContain(
             "scope.getDateConstructor?.()"
+        );
+        expect(loggingTimestampRuntimeSource).not.toContain(
+            "scope.getDateConstructor()"
         );
         expect(loggingTimestampRuntimeSource).not.toContain("scope.Date");
         expect(loggingTimestampRuntimeSource).not.toContain(
