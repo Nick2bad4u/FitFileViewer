@@ -5,12 +5,8 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ModalFocusTrapRuntimeScope {
-    readonly getDocument:
-        | (() => ModalFocusTrapDocument | undefined)
-        | undefined;
-    readonly getKeyboardEvent:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
+    readonly getDocument: ModalFocusTrapRuntimeProvider<ModalFocusTrapDocument>;
+    readonly getKeyboardEvent: ModalFocusTrapRuntimeProvider<BrowserKeyboardEventConstructor>;
 }
 
 export interface ModalFocusTrapRuntime {
@@ -20,6 +16,7 @@ export interface ModalFocusTrapRuntime {
 }
 
 type ModalFocusTrapDocument = Pick<Document, "activeElement"> & EventTarget;
+type ModalFocusTrapRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 const defaultModalFocusTrapRuntimeScope: ModalFocusTrapRuntimeScope = {
     getDocument: getBrowserDocument,
