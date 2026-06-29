@@ -318,8 +318,7 @@ function fitMapToMainPolyline(
 // Export map theme toggle for map controls
 
 /**
- * Center the map viewport on the main (index 0) polyline if available. Provides
- * fallbacks and defensive guards for optional globals.
+ * Center the map viewport on the main (index 0) polyline if available.
  */
 function _centerMapOnMainFile(): void {
     try {
@@ -365,13 +364,8 @@ function _centerMapOnMainFile(): void {
 }
 
 /**
- * Sets up interactive functionality for the active file name element Makes the
- * file name clickable to center map on the main file
- */
-/**
  * Adds click/hover actions to the active file name element allowing centering
- * and highlighting on the primary (index 0) map overlay. Safely guards all
- * window global usages with casts to avoid type errors under checkJs.
+ * and highlighting on the primary (index 0) map overlay.
  */
 export function setupActiveFileNameMapActions(): void {
     try {

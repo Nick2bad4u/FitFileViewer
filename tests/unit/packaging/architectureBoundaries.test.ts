@@ -5542,6 +5542,11 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain("workflow_dispatch:");
         expect(dependencyValidationWorkflow).toContain("permissions:");
         expect(dependencyValidationWorkflow).toContain("contents: read");
+        expect(dependencyValidationWorkflow).toContain(
+            "step-security/harden-runner"
+        );
+        expect(dependencyValidationWorkflow).toContain("timeout-minutes: 60");
+        expect(dependencyValidationWorkflow).toContain("node-version: 24");
         expect(dependencyValidationWorkflow).toContain('".node-version"');
         expect(dependencyValidationWorkflow).toContain('".nvmrc"');
         expect(dependencyValidationWorkflow).toContain('"package.json"');
@@ -5565,12 +5570,17 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain(
             "node-version-files-check.log"
         );
+        expect(dependencyValidationWorkflow).toContain("npm-ci-app.log");
+        expect(dependencyValidationWorkflow).toContain(
+            "npm-ci-docusaurus.log"
+        );
         expect(dependencyValidationWorkflow).toContain(
             "npm ci --prefix docusaurus --no-audit --no-fund"
         );
         expect(dependencyValidationWorkflow).toContain(
             "xvfb-run -a npm run release:verify"
         );
+        expect(dependencyValidationWorkflow).toContain("release-verify.log");
         expect(dependencyValidationWorkflow).toContain(
             "Verify unsigned package artifacts"
         );
@@ -5583,6 +5593,13 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain("repository-nvmrc.txt");
         expect(dependencyValidationWorkflow).toContain(
             "dependency-validation-diagnostics"
+        );
+        expect(dependencyValidationWorkflow).toContain("actions/upload-artifact");
+        expect(dependencyValidationWorkflow).toContain(
+            "if-no-files-found: error"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "include-hidden-files: true"
         );
     });
 
@@ -24808,7 +24825,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {
-        expect.assertions(67);
+        expect.assertions(69);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -24849,6 +24866,8 @@ describe("architecture boundaries", () => {
         expect(mapActionButtonsSource).not.toContain("hideLoadingOverlay");
         expect(mapActionButtonsSource).not.toContain("showLoadingOverlay");
         expect(mapActionButtonsSource).not.toContain("backward compatibility");
+        expect(mapActionButtonsSource).not.toContain("optional globals");
+        expect(mapActionButtonsSource).not.toContain("window global usages");
         expect(mapActionButtonsSource).toContain(
             "getMapActionButtonsRuntime().dateNow()"
         );
