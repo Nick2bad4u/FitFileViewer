@@ -7956,7 +7956,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(44);
+        expect.assertions(59);
 
         const rendererEnvironmentRawSource = readRepositoryFile(
             "electron-app/utils/app/initialization/rendererEnvironment.ts"
@@ -8050,8 +8050,53 @@ describe("architecture boundaries", () => {
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "getElectronAPI: getGlobalElectronAPI"
         );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "type RendererEnvironmentRuntimeProvider<T>"
+        );
+        expect(rendererEnvironmentRuntimeSource).toMatch(
+            /readonly\s+getDevelopmentFlag:\s*RendererEnvironmentRuntimeProvider<unknown>/u
+        );
+        expect(rendererEnvironmentRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*RendererEnvironmentRuntimeProvider<unknown>/u
+        );
+        expect(rendererEnvironmentRuntimeSource).toMatch(
+            /readonly\s+getLocation:\s*RendererEnvironmentRuntimeProvider<unknown>/u
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(rendererEnvironmentRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDevelopmentFlag,\s*"developmentFlag"\s*\)/u
+        );
+        expect(rendererEnvironmentRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(rendererEnvironmentRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocation,\s*"location"\s*\)/u
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toMatch(
+            /scope\.get(?:DevelopmentFlag|Document|Location)\?\.\(/u
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "rendererEnvironment requires ${providerName} provider"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "developmentFlag: getDevelopmentFlag()"
+        );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "readonly getElectronAPI?:"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "readonly getDevelopmentFlag?:"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "readonly getLocation?:"
         );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "electronAPI: scope.getElectronAPI?.()"

@@ -11,9 +11,9 @@ export interface RendererEnvironmentInput {
 }
 
 export interface RendererEnvironmentRuntimeScope {
-    readonly getDevelopmentFlag?: (() => unknown) | undefined;
-    readonly getDocument?: (() => unknown) | undefined;
-    readonly getLocation?: (() => unknown) | undefined;
+    readonly getDevelopmentFlag: RendererEnvironmentRuntimeProvider<unknown>;
+    readonly getDocument: RendererEnvironmentRuntimeProvider<unknown>;
+    readonly getLocation: RendererEnvironmentRuntimeProvider<unknown>;
 }
 
 export interface RendererEnvironmentRuntime {
@@ -27,15 +27,37 @@ const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
         getLocation: getBrowserLocation,
     };
 
+type RendererEnvironmentRuntimeProvider<T> = (() => T | undefined) | undefined;
+
+function getRequiredProvider<T>(
+    provider: RendererEnvironmentRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `rendererEnvironment requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getRendererEnvironmentRuntime(
     scope: RendererEnvironmentRuntimeScope = defaultRendererEnvironmentRuntimeScope
 ): RendererEnvironmentRuntime {
+    const getDevelopmentFlag = getRequiredProvider(
+        scope.getDevelopmentFlag,
+        "developmentFlag"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getLocation = getRequiredProvider(scope.getLocation, "location");
+
     return {
         getDefaultRendererEnvironmentInput(): RendererEnvironmentInput {
             return {
-                developmentFlag: scope.getDevelopmentFlag?.(),
-                document: scope.getDocument?.(),
-                location: scope.getLocation?.(),
+                developmentFlag: getDevelopmentFlag(),
+                document: getDocument(),
+                location: getLocation(),
             };
         },
     };

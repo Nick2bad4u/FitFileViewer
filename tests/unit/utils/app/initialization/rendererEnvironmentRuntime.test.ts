@@ -1,8 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRendererEnvironmentRuntime } from "../../../../../electron-app/utils/app/initialization/rendererEnvironmentRuntime.js";
+import {
+    getRendererEnvironmentRuntime,
+    type RendererEnvironmentRuntimeScope,
+} from "../../../../../electron-app/utils/app/initialization/rendererEnvironmentRuntime.js";
 
 describe("rendererEnvironmentRuntime", () => {
+    function createRendererEnvironmentRuntimeScope(
+        overrides: Partial<RendererEnvironmentRuntimeScope> = {}
+    ): RendererEnvironmentRuntimeScope {
+        return {
+            getDevelopmentFlag: () => undefined,
+            getDocument: () => undefined,
+            getLocation: () => undefined,
+            ...overrides,
+        };
+    }
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -15,21 +29,25 @@ describe("rendererEnvironmentRuntime", () => {
             document: { documentElement: { dataset: {} } },
             location: { hostname: "localhost" },
         };
-        const utils = getRendererEnvironmentRuntime({
-            getDevelopmentFlag: () => environmentInput.developmentFlag,
-            getDocument: () => environmentInput.document,
-            getLocation: () => environmentInput.location,
-        });
+        const utils = getRendererEnvironmentRuntime(
+            createRendererEnvironmentRuntimeScope({
+                getDevelopmentFlag: () => environmentInput.developmentFlag,
+                getDocument: () => environmentInput.document,
+                getLocation: () => environmentInput.location,
+            })
+        );
 
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual(
             environmentInput
         );
     });
 
-    it("falls back to an empty input when no providers are available", () => {
+    it("falls back to an empty input when providers return no runtime values", () => {
         expect.assertions(1);
 
-        const utils = getRendererEnvironmentRuntime({});
+        const utils = getRendererEnvironmentRuntime(
+            createRendererEnvironmentRuntimeScope()
+        );
 
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
             developmentFlag: undefined,
@@ -55,17 +73,34 @@ describe("rendererEnvironmentRuntime", () => {
         expect(location).toBe(globalThis.location);
     });
 
-    it("ignores legacy direct global scope properties", () => {
+    it("requires explicit provider slots", () => {
         expect.assertions(1);
+
+        expect(() =>
+            getRendererEnvironmentRuntime({} as RendererEnvironmentRuntimeScope)
+        ).toThrow("rendererEnvironment requires developmentFlag provider");
+    });
+
+    it("requires explicit provider slots and ignores legacy direct global scope properties", () => {
+        expect.assertions(2);
 
         const globalScope = {
             location: {
                 hostname: "legacy.localhost",
             },
         };
-        const utils = getRendererEnvironmentRuntime({
+        const legacyScope = {
             globalScope,
-        } as unknown as Parameters<typeof getRendererEnvironmentRuntime>[0]);
+        } as unknown as RendererEnvironmentRuntimeScope;
+
+        expect(() => getRendererEnvironmentRuntime(legacyScope)).toThrow(
+            "rendererEnvironment requires developmentFlag provider"
+        );
+
+        const utils = getRendererEnvironmentRuntime({
+            ...legacyScope,
+            ...createRendererEnvironmentRuntimeScope(),
+        });
 
         expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
             developmentFlag: undefined,
