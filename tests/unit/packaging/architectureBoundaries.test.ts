@@ -18562,7 +18562,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(77);
+        expect.assertions(97);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -18686,16 +18686,76 @@ describe("architecture boundaries", () => {
             "dateNow: () => number;"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "type RecentFilesContextMenuRuntimeProvider<T>"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*RecentFilesContextMenuRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*RecentFilesContextMenuRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*RecentFilesContextMenuRuntimeProvider<\(\) => number>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*RecentFilesContextMenuRuntimeProvider<Document>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getDocumentEventTarget:\s*RecentFilesContextMenuRuntimeProvider<Document>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getNode:\s*RecentFilesContextMenuRuntimeProvider<BrowserNodeConstructor>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*RecentFilesContextMenuRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getViewport:\s*RecentFilesContextMenuRuntimeProvider<RecentFilesContextMenuViewportSource>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocumentEventTarget,\s*"document event-target"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getNode,\s*"Node"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getViewport,\s*"viewport"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toMatch(
+            /scope\.get(?:AbortController|ClearTimeout|DateNow|Document|DocumentEventTarget|Node|SetTimeout|Viewport)\?\.\(/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires ${providerName} provider"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /const\s+dateNow\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
-        );
-        expect(recentFilesContextMenuRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "getNode: getBrowserNode"

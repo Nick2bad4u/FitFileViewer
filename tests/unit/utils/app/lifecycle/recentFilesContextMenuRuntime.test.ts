@@ -1,12 +1,31 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRecentFilesContextMenuRuntime } from "../../../../../electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.js";
+import {
+    getRecentFilesContextMenuRuntime,
+    type RecentFilesContextMenuRuntimeScope,
+} from "../../../../../electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.js";
 import type {
     BrowserAbortControllerConstructor,
     BrowserClearTimeout,
     BrowserSetTimeout,
     BrowserTimerHandle,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createRecentFilesContextMenuRuntimeScope(
+    overrides: Partial<RecentFilesContextMenuRuntimeScope> = {}
+): RecentFilesContextMenuRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getNode: () => undefined,
+        getSetTimeout: () => undefined,
+        getViewport: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("recentFilesContextMenuRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -18,10 +37,12 @@ describe("recentFilesContextMenuRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getRecentFilesContextMenuRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -38,10 +59,48 @@ describe("recentFilesContextMenuRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getRecentFilesContextMenuRuntime({});
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "recent files context menu requires an AbortController runtime"
+        );
+    });
+
+    it("fails clearly when provider slots are omitted", () => {
+        expect.assertions(8);
+
+        const runtime = getRecentFilesContextMenuRuntime(
+            {} as unknown as RecentFilesContextMenuRuntimeScope
+        );
+        const element = document.createElement("div");
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "recent files context menu requires AbortController provider"
+        );
+        expect(() => runtime.clearTimeout(31 as BrowserTimerHandle)).toThrow(
+            "recent files context menu requires clearTimeout provider"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "recent files context menu requires dateNow provider"
+        );
+        expect(() =>
+            runtime.addDocumentMousedownListener(() => undefined, {})
+        ).toThrow(
+            "recent files context menu requires document event-target provider"
+        );
+        expect(() => runtime.appendToBody(element)).toThrow(
+            "recent files context menu requires document provider"
+        );
+        expect(() => runtime.isNode(element)).toThrow(
+            "recent files context menu requires Node provider"
+        );
+        expect(() => runtime.setTimeout(() => undefined, 0)).toThrow(
+            "recent files context menu requires setTimeout provider"
+        );
+        expect(() => runtime.getViewport()).toThrow(
+            "recent files context menu requires viewport provider"
         );
     });
 
@@ -49,12 +108,14 @@ describe("recentFilesContextMenuRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getRecentFilesContextMenuRuntime({
-                getViewport: () => ({
-                    height: 720,
-                    width: 1280,
-                }),
-            }).getViewport()
+            getRecentFilesContextMenuRuntime(
+                createRecentFilesContextMenuRuntimeScope({
+                    getViewport: () => ({
+                        height: 720,
+                        width: 1280,
+                    }),
+                })
+            ).getViewport()
         ).toStrictEqual({
             height: 720,
             width: 1280,
@@ -65,7 +126,9 @@ describe("recentFilesContextMenuRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getRecentFilesContextMenuRuntime({}).getViewport()
+            getRecentFilesContextMenuRuntime(
+                createRecentFilesContextMenuRuntimeScope()
+            ).getViewport()
         ).toStrictEqual({
             height: 0,
             width: 0,
@@ -76,12 +139,14 @@ describe("recentFilesContextMenuRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getRecentFilesContextMenuRuntime({
-                getViewport: () => ({
-                    height: Number.NaN,
-                    width: Number.POSITIVE_INFINITY,
-                }),
-            }).getViewport()
+            getRecentFilesContextMenuRuntime(
+                createRecentFilesContextMenuRuntimeScope({
+                    getViewport: () => ({
+                        height: Number.NaN,
+                        width: Number.POSITIVE_INFINITY,
+                    }),
+                })
+            ).getViewport()
         ).toStrictEqual({
             height: 0,
             width: 0,
@@ -98,11 +163,13 @@ describe("recentFilesContextMenuRuntime", () => {
         const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const runtime = getRecentFilesContextMenuRuntime({
-            getClearTimeout: () => clearTimeout,
-            getDateNow: () => dateNow,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getDateNow: () => dateNow,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.dateNow()).toBe(timestamp);
         expect(dateNow).toHaveBeenCalledOnce();
@@ -136,16 +203,18 @@ describe("recentFilesContextMenuRuntime", () => {
                 controllerCount += 1;
             }
         }
-        const runtime = getRecentFilesContextMenuRuntime({
-            getAbortController: () => TestAbortController,
-            getClearTimeout: () => clearTimeout,
-            getDateNow: () => dateNow,
-            getDocument: () => documentEventTarget,
-            getDocumentEventTarget: () => documentEventTarget,
-            getNode: () => Node,
-            getSetTimeout: () => setTimeout,
-            getViewport: () => ({ height: 900, width: 1440 }),
-        });
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope({
+                getAbortController: () => TestAbortController,
+                getClearTimeout: () => clearTimeout,
+                getDateNow: () => dateNow,
+                getDocument: () => documentEventTarget,
+                getDocumentEventTarget: () => documentEventTarget,
+                getNode: () => Node,
+                getSetTimeout: () => setTimeout,
+                getViewport: () => ({ height: 900, width: 1440 }),
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -190,7 +259,9 @@ describe("recentFilesContextMenuRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(13);
 
-        const runtime = getRecentFilesContextMenuRuntime({});
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope()
+        );
         const element = document.createElement("div");
 
         expect(() => runtime.dateNow()).toThrow(
@@ -250,9 +321,11 @@ describe("recentFilesContextMenuRuntime", () => {
             mousedownCount += 1;
         };
         const controller = new AbortController();
-        const runtime = getRecentFilesContextMenuRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentMousedownListener(listener, {
             signal: controller.signal,
@@ -276,9 +349,11 @@ describe("recentFilesContextMenuRuntime", () => {
             mousedownCount += 1;
         };
         const controller = new AbortController();
-        const runtime = getRecentFilesContextMenuRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentMousedownListener(listener, {
             signal: controller.signal,
@@ -323,50 +398,52 @@ describe("recentFilesContextMenuRuntime", () => {
         } as unknown as Parameters<typeof getRecentFilesContextMenuRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "recent files context menu requires an AbortController runtime"
+            "recent files context menu requires AbortController provider"
         );
         expect(() => runtime.dateNow()).toThrow(
-            "recent files context menu requires a dateNow runtime"
+            "recent files context menu requires dateNow provider"
         );
         expect(() =>
             runtime.addDocumentMousedownListener(() => undefined, {})
         ).toThrow(
-            "recent files context menu requires a document event-target runtime"
+            "recent files context menu requires document event-target provider"
         );
         expect(() => runtime.setTimeout(callback, 0)).toThrow(
-            "recent files context menu requires a setTimeout runtime"
+            "recent files context menu requires setTimeout provider"
         );
         expect(() => runtime.clearTimeout(31 as BrowserTimerHandle)).toThrow(
-            "recent files context menu requires a clearTimeout runtime"
+            "recent files context menu requires clearTimeout provider"
         );
         expect(() => runtime.appendToBody(document.body)).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.bodyContains(document.body)).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.createMenuElement()).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.findRecentFilesMenu()).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.getBodyDebugInfo()).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.hasRecentFilesMenu()).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.insertBeforeBodyFirstChild(document.body)).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.isBodyParent(document.body)).toThrow(
-            "recent files context menu requires a document runtime"
+            "recent files context menu requires document provider"
         );
         expect(() => runtime.isNode(document.body)).toThrow(
-            "recent files context menu requires a Node runtime"
+            "recent files context menu requires Node provider"
         );
-        expect(runtime.getViewport()).toStrictEqual({ height: 0, width: 0 });
+        expect(() => runtime.getViewport()).toThrow(
+            "recent files context menu requires viewport provider"
+        );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
         expect(createElement).not.toHaveBeenCalled();

@@ -13,21 +13,19 @@ import {
     getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
 
+type RecentFilesContextMenuRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 export interface RecentFilesContextMenuRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly getViewport?:
-        | (() => RecentFilesContextMenuViewportSource | undefined)
-        | undefined;
+    readonly getAbortController: RecentFilesContextMenuRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: RecentFilesContextMenuRuntimeProvider<BrowserClearTimeout>;
+    readonly getDateNow: RecentFilesContextMenuRuntimeProvider<() => number>;
+    readonly getDocument: RecentFilesContextMenuRuntimeProvider<Document>;
+    readonly getDocumentEventTarget: RecentFilesContextMenuRuntimeProvider<Document>;
+    readonly getNode: RecentFilesContextMenuRuntimeProvider<BrowserNodeConstructor>;
+    readonly getSetTimeout: RecentFilesContextMenuRuntimeProvider<BrowserSetTimeout>;
+    readonly getViewport: RecentFilesContextMenuRuntimeProvider<RecentFilesContextMenuViewportSource>;
 }
 
 export type RecentFilesContextMenuTimer = BrowserTimerHandle;
@@ -88,27 +86,41 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
         getClearTimeout: getBrowserClearTimeout,
         getDateNow: getBrowserDateNow,
         getDocument: getBrowserDocument,
+        getDocumentEventTarget: () => undefined,
         getNode: getBrowserNode,
         getSetTimeout: getBrowserSetTimeout,
         getViewport: getBrowserViewport,
     };
 
+function getRequiredProvider<T>(
+    provider: RecentFilesContextMenuRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `recent files context menu requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortController(
     scope: RecentFilesContextMenuRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getClearTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getRequiredDateNow(
     scope: RecentFilesContextMenuRuntimeScope
 ): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNow !== "function") {
         throw new TypeError(
             "recent files context menu requires a dateNow runtime"
@@ -121,13 +133,18 @@ function getRequiredDateNow(
 function getDocumentEventTarget(
     scope: RecentFilesContextMenuRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "document event-target"
+        )() ?? getRequiredProvider(scope.getDocument, "document")()
+    );
 }
 
 function getNodeConstructor(
     scope: RecentFilesContextMenuRuntimeScope
 ): BrowserNodeConstructor {
-    const NodeConstructor = scope.getNode?.();
+    const NodeConstructor = getRequiredProvider(scope.getNode, "Node")();
     if (typeof NodeConstructor !== "function") {
         throw new TypeError(
             "recent files context menu requires a Node runtime"
@@ -140,7 +157,7 @@ function getNodeConstructor(
 function getRuntimeDocument(
     scope: RecentFilesContextMenuRuntimeScope
 ): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError(
             "recent files context menu requires a document runtime"
@@ -153,13 +170,13 @@ function getRuntimeDocument(
 function getSetTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 function getViewport(
     scope: RecentFilesContextMenuRuntimeScope
 ): RecentFilesContextMenuViewportSource | undefined {
-    return scope.getViewport?.();
+    return getRequiredProvider(scope.getViewport, "viewport")();
 }
 
 export function getRecentFilesContextMenuRuntime(
