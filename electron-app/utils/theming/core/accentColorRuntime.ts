@@ -6,13 +6,12 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 type AccentColorDocument = Pick<Document, "body" | "documentElement">;
+type AccentColorRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface AccentColorRuntimeScope {
-    readonly getDocument?: (() => AccentColorDocument | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getStorage?: (() => Storage | undefined) | undefined;
+    readonly getDocument: AccentColorRuntimeProvider<AccentColorDocument>;
+    readonly getHTMLElement: AccentColorRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getStorage: AccentColorRuntimeProvider<Storage>;
 }
 
 export interface AccentColorRuntime {
@@ -26,20 +25,33 @@ const defaultAccentColorRuntimeScope: AccentColorRuntimeScope = {
     getStorage: getBrowserLocalStorage,
 };
 
+function getRequiredProvider<T>(
+    provider: AccentColorRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `accentColorRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getDocument(
     scope: AccentColorRuntimeScope
 ): AccentColorDocument | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getHTMLElement(
     scope: AccentColorRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
 }
 
 function getStorage(scope: AccentColorRuntimeScope): Storage | undefined {
-    return scope.getStorage?.();
+    return getRequiredProvider(scope.getStorage, "storage")();
 }
 
 export function getAccentColorRuntime(

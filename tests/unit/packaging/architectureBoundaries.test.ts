@@ -27594,7 +27594,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(35);
 
         const violations = migratedAccentColorRuntimeFiles
             .filter((relativeFile) =>
@@ -27619,6 +27619,8 @@ describe("architecture boundaries", () => {
                 "export interface AccentColorRuntime"
             )
         );
+        const optionalAccentColorProviderAccessPattern =
+            /\bscope\.get(?:Document|HTMLElement|Storage)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(accentColorSource).toContain("accentColorRuntime.js");
@@ -27673,14 +27675,39 @@ describe("architecture boundaries", () => {
         expect(accentColorRuntimeScopeSource).not.toContain(
             "readonly localStorage?:"
         );
+        expect(accentColorRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(accentColorRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(accentColorRuntimeScopeSource).not.toContain(
+            "readonly getStorage?:"
+        );
         expect(accentColorRuntimeSource).not.toContain("scope.document");
         expect(accentColorRuntimeSource).not.toContain("scope.HTMLElement");
         expect(accentColorRuntimeSource).not.toContain("scope.localStorage");
-        expect(accentColorRuntimeSource).toContain(
-            "return scope.getDocument?.();"
+        expect(accentColorRuntimeSource).not.toMatch(
+            optionalAccentColorProviderAccessPattern
         );
         expect(accentColorRuntimeSource).toContain(
-            "return scope.getStorage?.();"
+            "type AccentColorRuntimeProvider<T> ="
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(accentColorRuntimeSource).toContain("providerName: string");
+        expect(accentColorRuntimeSource).toContain(
+            "accentColorRuntime requires ${providerName} provider"
+        );
+        expect(accentColorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(accentColorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement/u
+        );
+        expect(accentColorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getStorage/u
         );
     });
 

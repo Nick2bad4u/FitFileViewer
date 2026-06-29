@@ -5,15 +5,28 @@ import {
     type AccentColorRuntimeScope,
 } from "../../../../../electron-app/utils/theming/core/accentColorRuntime.js";
 
+function createAccentColorRuntimeScope(
+    overrides: Partial<AccentColorRuntimeScope> = {}
+): AccentColorRuntimeScope {
+    return {
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getStorage: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getAccentColorRuntime", () => {
     it("resolves accent color targets and storage through providers", () => {
         expect.assertions(3);
 
-        const utils = getAccentColorRuntime({
-            getDocument: () => document,
-            getHTMLElement: () => HTMLElement,
-            getStorage: () => localStorage,
-        });
+        const utils = getAccentColorRuntime(
+            createAccentColorRuntimeScope({
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+                getStorage: () => localStorage,
+            })
+        );
 
         expect(utils.getAccentColorTargets()).toStrictEqual([
             document.documentElement,
@@ -39,21 +52,48 @@ describe("getAccentColorRuntime", () => {
         expect.assertions(2);
 
         expect(
-            getAccentColorRuntime({
-                getDocument: () => document,
-            }).getAccentColorTargets()
+            getAccentColorRuntime(
+                createAccentColorRuntimeScope({
+                    getDocument: () => document,
+                })
+            ).getAccentColorTargets()
         ).toStrictEqual([]);
         expect(
-            getAccentColorRuntime({
-                getHTMLElement: () => HTMLElement,
-            }).getAccentColorTargets()
+            getAccentColorRuntime(
+                createAccentColorRuntimeScope({
+                    getHTMLElement: () => HTMLElement,
+                })
+            ).getAccentColorTargets()
         ).toStrictEqual([]);
     });
 
     it("returns no storage when the storage provider is unavailable", () => {
         expect.assertions(1);
 
-        expect(getAccentColorRuntime({}).getStorage()).toBeUndefined();
+        expect(
+            getAccentColorRuntime(createAccentColorRuntimeScope()).getStorage()
+        ).toBeUndefined();
+    });
+
+    it("fails clearly when accent color provider slots are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getAccentColorRuntime(
+            {} as unknown as AccentColorRuntimeScope
+        );
+        const documentOnlyRuntime = getAccentColorRuntime({
+            getDocument: () => document,
+        } as unknown as AccentColorRuntimeScope);
+
+        expect(() => runtime.getAccentColorTargets()).toThrow(
+            "accentColorRuntime requires document provider"
+        );
+        expect(() => runtime.getStorage()).toThrow(
+            "accentColorRuntime requires storage provider"
+        );
+        expect(() => documentOnlyRuntime.getAccentColorTargets()).toThrow(
+            "accentColorRuntime requires HTMLElement provider"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -65,7 +105,11 @@ describe("getAccentColorRuntime", () => {
             localStorage,
         } as unknown as AccentColorRuntimeScope);
 
-        expect(utils.getAccentColorTargets()).toStrictEqual([]);
-        expect(utils.getStorage()).toBeUndefined();
+        expect(() => utils.getAccentColorTargets()).toThrow(
+            "accentColorRuntime requires document provider"
+        );
+        expect(() => utils.getStorage()).toThrow(
+            "accentColorRuntime requires storage provider"
+        );
     });
 });
