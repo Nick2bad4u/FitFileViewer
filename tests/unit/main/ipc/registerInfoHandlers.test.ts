@@ -2,7 +2,10 @@
 import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { setRuntimeProcess } from "../../../../electron-app/utils/runtime/processEnvironment.js";
+import {
+    getRuntimeProcess,
+    setRuntimeProcess,
+} from "../../../../electron-app/utils/runtime/processEnvironment.js";
 
 type InfoInvokeChannel =
     | "getAppVersion"
@@ -57,7 +60,7 @@ type RegisterInfoHandlersModule = {
     registerInfoHandlers: RegisterInfoHandlers;
 };
 
-const originalProcess = globalThis.process;
+const originalProcess = getRuntimeProcess();
 
 describe("registerInfoHandlers", () => {
     let registerInfoHandlers: RegisterInfoHandlers;

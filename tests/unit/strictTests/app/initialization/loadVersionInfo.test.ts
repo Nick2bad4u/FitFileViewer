@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { setRuntimeProcess } from "../../../../../electron-app/utils/runtime/processEnvironment.js";
+import {
+    getRuntimeProcess,
+    setRuntimeProcess,
+} from "../../../../../electron-app/utils/runtime/processEnvironment.js";
 
 type VersionInfoElectronAPI = {
     getAppVersion?: () => Promise<string>;
@@ -14,7 +17,7 @@ type VersionInfoElectronAPI = {
 type LoadVersionInfoModule =
     typeof import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js");
 
-const originalProcess = globalThis.process;
+const originalProcess = getRuntimeProcess();
 
 const h = vi.hoisted(() => ({
     getErrorInfo: vi.fn<
