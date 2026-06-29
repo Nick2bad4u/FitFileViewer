@@ -1,6 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getQuickColorSwitcherRuntime } from "../../../../electron-app/utils/ui/quickColorSwitcherRuntime.js";
+import {
+    getQuickColorSwitcherRuntime,
+    type QuickColorSwitcherRuntimeScope,
+} from "../../../../electron-app/utils/ui/quickColorSwitcherRuntime.js";
+
+function createQuickColorSwitcherRuntimeScope(
+    overrides: Partial<QuickColorSwitcherRuntimeScope> = {}
+): QuickColorSwitcherRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getNode: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getQuickColorSwitcherRuntime", () => {
     afterEach(() => {
@@ -23,9 +39,11 @@ describe("getQuickColorSwitcherRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getQuickColorSwitcherRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const runtime = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -36,7 +54,9 @@ describe("getQuickColorSwitcherRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getQuickColorSwitcherRuntime({});
+        const runtime = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope()
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -54,9 +74,11 @@ describe("getQuickColorSwitcherRuntime", () => {
             clicked = true;
         };
         const controller = new AbortController();
-        const runtime = getQuickColorSwitcherRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentClickListener(listener, {
             signal: controller.signal,
@@ -73,10 +95,12 @@ describe("getQuickColorSwitcherRuntime", () => {
         const documentRef = document.implementation.createHTMLDocument(
             "quick color switcher dom"
         );
-        const runtime = getQuickColorSwitcherRuntime({
-            getDocument: () => documentRef,
-            getNode: () => Node,
-        });
+        const runtime = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope({
+                getDocument: () => documentRef,
+                getNode: () => Node,
+            })
+        );
         const switcher = runtime.createElement("div");
         const icon = runtime.createSvgElement("svg");
         const textNode = runtime.createTextNode("More Options");
@@ -104,7 +128,9 @@ describe("getQuickColorSwitcherRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(6);
 
-        const utils = getQuickColorSwitcherRuntime({});
+        const utils = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope()
+        );
         const controller = new AbortController();
 
         expect(() => {
@@ -138,10 +164,12 @@ describe("getQuickColorSwitcherRuntime", () => {
         const timer = 37 as ReturnType<typeof globalThis.setTimeout>;
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const runtime = getQuickColorSwitcherRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -151,7 +179,7 @@ describe("getQuickColorSwitcherRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(11);
+        expect.assertions(2);
 
         class TestAbortController implements AbortController {
             public readonly signal = Symbol(
@@ -168,54 +196,79 @@ describe("getQuickColorSwitcherRuntime", () => {
         const nodeConstructor = Node;
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>();
-        const runtime = getQuickColorSwitcherRuntime({
+        const legacyScope = {
             AbortController: TestAbortController,
             clearTimeout,
             document: documentRef,
             Node: nodeConstructor,
             setTimeout,
-        } as unknown as Parameters<typeof getQuickColorSwitcherRuntime>[0]);
+        } as unknown as QuickColorSwitcherRuntimeScope;
         const controller = new AbortController();
 
-        expect(() => runtime.createAbortController()).toThrow(
-            "quickColorSwitcher requires an AbortController runtime"
+        expect(() => getQuickColorSwitcherRuntime(legacyScope)).toThrow(
+            "quickColorSwitcher requires an AbortController provider"
         );
-        expect(() => {
-            runtime.addDocumentClickListener(() => undefined, {
-                signal: controller.signal,
-            });
-        }).toThrow("quickColorSwitcher requires a document runtime");
-        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
-            "quickColorSwitcher requires a setTimeout runtime"
-        );
-        expect(() => runtime.clearTimeout(0)).toThrow(
-            "quickColorSwitcher requires a clearTimeout runtime"
-        );
-        expect(() => runtime.createElement("div")).toThrow(
-            "quickColorSwitcher requires a document runtime"
-        );
-        expect(() => runtime.createSvgElement("svg")).toThrow(
-            "quickColorSwitcher requires a document runtime"
-        );
-        expect(() => runtime.createTextNode("More Options")).toThrow(
-            "quickColorSwitcher requires a document runtime"
-        );
-        expect(() => runtime.querySelector("#quick-color-switcher")).toThrow(
-            "quickColorSwitcher requires a document runtime"
-        );
-        expect(() =>
-            runtime.appendToHead(document.createElement("style"))
-        ).toThrow("quickColorSwitcher requires a document runtime");
-        expect(runtime.isNode(document.createElement("div"))).toBe(false);
         expect(clearTimeout).not.toHaveBeenCalled();
 
         controller.abort();
     });
 
+    it("fails clearly when runtime provider slots are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getQuickColorSwitcherRuntime(
+                {} as unknown as QuickColorSwitcherRuntimeScope
+            )
+        ).toThrow("quickColorSwitcher requires an AbortController provider");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(5);
+
+        expect(() =>
+            getQuickColorSwitcherRuntime(
+                createQuickColorSwitcherRuntimeScope({
+                    getAbortController: undefined,
+                })
+            )
+        ).toThrow("quickColorSwitcher requires an AbortController provider");
+        expect(() =>
+            getQuickColorSwitcherRuntime(
+                createQuickColorSwitcherRuntimeScope({
+                    getClearTimeout: undefined,
+                })
+            )
+        ).toThrow("quickColorSwitcher requires a clearTimeout provider");
+        expect(() =>
+            getQuickColorSwitcherRuntime(
+                createQuickColorSwitcherRuntimeScope({
+                    getDocument: undefined,
+                })
+            )
+        ).toThrow("quickColorSwitcher requires a document provider");
+        expect(() =>
+            getQuickColorSwitcherRuntime(
+                createQuickColorSwitcherRuntimeScope({
+                    getNode: undefined,
+                })
+            )
+        ).toThrow("quickColorSwitcher requires a Node provider");
+        expect(() =>
+            getQuickColorSwitcherRuntime(
+                createQuickColorSwitcherRuntimeScope({
+                    getSetTimeout: undefined,
+                })
+            )
+        ).toThrow("quickColorSwitcher requires a setTimeout provider");
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getQuickColorSwitcherRuntime({});
+        const runtime = getQuickColorSwitcherRuntime(
+            createQuickColorSwitcherRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "quickColorSwitcher requires a setTimeout runtime"

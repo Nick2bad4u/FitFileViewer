@@ -31846,7 +31846,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher browser APIs behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(54);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -31886,16 +31886,40 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherSource).toContain("querySelector");
         expect(quickColorSwitcherSource).toContain("isNode");
         expect(quickColorSwitcherRuntimeSource).toContain(
-            "const runtimeDocument = getDocument(scope);"
+            "const runtimeDocument = getDocument(getDocumentRef);"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
             "defaultQuickColorSwitcherRuntimeScope"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
+            "type QuickColorSwitcherRuntimeProvider"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(quickColorSwitcherRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"an AbortController"\s*\)/u
+        );
+        expect(quickColorSwitcherRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"a clearTimeout"\s*\)/u
+        );
+        expect(quickColorSwitcherRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"a document"\s*\)/u
+        );
+        expect(quickColorSwitcherRuntimeSource).toMatch(
+            /getRequiredProvider\(scope\.getNode,\s*"a Node"\)/u
+        );
+        expect(quickColorSwitcherRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"a setTimeout"\s*\)/u
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
             "iconFactoryRuntime.js"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
-            "return createSvgElement(scope, tagName);"
+            "return createSvgElement(getDocumentRef, tagName);"
         );
         expect(quickColorSwitcherRuntimeSource).not.toContain(
             "createElementNS"
@@ -31965,6 +31989,9 @@ describe("architecture boundaries", () => {
         );
         expect(quickColorSwitcherRuntimeSource).not.toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "quickColorSwitcher requires ${providerLabel} provider"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
             "quickColorSwitcher requires a setTimeout runtime"
