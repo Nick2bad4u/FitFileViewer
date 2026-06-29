@@ -8,18 +8,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 type HRZoneControlsStorage = Pick<Storage, "getItem" | "setItem">;
+type HRZoneControlsRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface HRZoneControlsRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getLocalStorage?:
-        | (() => HRZoneControlsStorage | undefined)
-        | undefined;
+    readonly getAbortController: HRZoneControlsRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: HRZoneControlsRuntimeProvider<Document>;
+    readonly getHTMLElement: HRZoneControlsRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getLocalStorage: HRZoneControlsRuntimeProvider<HRZoneControlsStorage>;
 }
 
 export interface HRZoneControlsRuntime {
@@ -40,16 +35,34 @@ const defaultHRZoneControlsRuntimeScope: HRZoneControlsRuntimeScope = {
     getLocalStorage: getBrowserLocalStorage,
 };
 
+function getRequiredProvider<T>(
+    provider: HRZoneControlsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createHRZoneControls requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeDocument(
     scope: HRZoneControlsRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getAbortControllerConstructor(
     scope: HRZoneControlsRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createHRZoneControls requires an AbortController runtime"
@@ -71,7 +84,10 @@ function getDocument(scope: HRZoneControlsRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: HRZoneControlsRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "createHRZoneControls requires an HTMLElement runtime"
@@ -84,7 +100,10 @@ function getHTMLElementConstructor(
 function getLocalStorage(
     scope: HRZoneControlsRuntimeScope
 ): HRZoneControlsStorage {
-    const storage = scope.getLocalStorage?.();
+    const storage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    )();
     if (
         !storage ||
         typeof storage.getItem !== "function" ||

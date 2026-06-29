@@ -20200,7 +20200,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(46);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -20217,6 +20217,14 @@ describe("architecture boundaries", () => {
         const hrZoneControlsRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/controls/createHRZoneControlsRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = hrZoneControlsRuntimeSource.slice(
+            hrZoneControlsRuntimeSource.indexOf(
+                "export interface HRZoneControlsRuntimeScope"
+            ),
+            hrZoneControlsRuntimeSource.indexOf(
+                "export interface HRZoneControlsRuntime {"
             )
         );
 
@@ -20241,6 +20249,24 @@ describe("architecture boundaries", () => {
         );
         expect(hrZoneControlsRuntimeSource).not.toContain(
             "readonly localStorage?:"
+        );
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getHTMLElement?:");
+        expect(runtimeScopeSource).not.toContain("readonly getLocalStorage?:");
+        expect(runtimeScopeSource).toContain(
+            "readonly getAbortController: HRZoneControlsRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getDocument: HRZoneControlsRuntimeProvider<Document>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getHTMLElement: HRZoneControlsRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getLocalStorage: HRZoneControlsRuntimeProvider<HRZoneControlsStorage>;"
         );
         expect(hrZoneControlsRuntimeSource).not.toContain(
             "scope.AbortController"
@@ -20292,6 +20318,39 @@ describe("architecture boundaries", () => {
         );
         expect(hrZoneControlsRuntimeSource).not.toContain(
             "getLocalStorage: () => globalThis.localStorage"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "type HRZoneControlsRuntimeProvider<T> ="
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            'scope.getHTMLElement,\n        "HTMLElement"'
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            'scope.getLocalStorage,\n        "localStorage"'
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "scope.getLocalStorage?.()"
+        );
+        expect(hrZoneControlsRuntimeSource).toContain(
+            "createHRZoneControls requires ${article} ${providerName} provider"
         );
     });
 
