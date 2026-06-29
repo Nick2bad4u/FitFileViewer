@@ -154,6 +154,37 @@ describe("getUpdateTabVisibilityRuntime", () => {
         );
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(4);
+
+        expect(() =>
+            getUpdateTabVisibilityRuntime({
+                ...createRuntimeScope(),
+                getDocument: undefined,
+            }).getDocument()
+        ).toThrow("updateTabVisibility requires a document provider");
+        expect(() =>
+            getUpdateTabVisibilityRuntime({
+                ...createRuntimeScope(),
+                getRequestAnimationFrame: undefined,
+            }).requestAnimationFrame(() => {})
+        ).toThrow(
+            "updateTabVisibility requires a requestAnimationFrame provider"
+        );
+        expect(() =>
+            getUpdateTabVisibilityRuntime({
+                ...createRuntimeScope(),
+                getSetTimeout: undefined,
+            }).setTimeout(() => {}, 0)
+        ).toThrow("updateTabVisibility requires a setTimeout provider");
+        expect(() =>
+            getUpdateTabVisibilityRuntime({
+                ...createRuntimeScope(),
+                getClearTimeout: undefined,
+            }).clearTimeout(0)
+        ).toThrow("updateTabVisibility requires a clearTimeout provider");
+    });
+
     it("does not borrow ambient timers for unavailable provider values", () => {
         expect.assertions(2);
 

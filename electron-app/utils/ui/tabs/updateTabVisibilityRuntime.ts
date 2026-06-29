@@ -18,18 +18,18 @@ type UpdateTabVisibilitySetTimeout = (
     callback: () => void,
     timeout?: number
 ) => ReturnType<BrowserSetTimeout> | number;
+type UpdateTabVisibilityRuntimeProvider<T> = (() => T | undefined) | undefined;
+type UpdateTabVisibilityRuntimeProviderName =
+    | "clearTimeout"
+    | "document"
+    | "requestAnimationFrame"
+    | "setTimeout";
 
 export interface UpdateTabVisibilityRuntimeScope {
-    readonly getClearTimeout:
-        | (() => UpdateTabVisibilityClearTimeout | undefined)
-        | undefined;
-    readonly getDocument: (() => Document | undefined) | undefined;
-    readonly getRequestAnimationFrame:
-        | (() => UpdateTabVisibilityRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getSetTimeout:
-        | (() => UpdateTabVisibilitySetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: UpdateTabVisibilityRuntimeProvider<UpdateTabVisibilityClearTimeout>;
+    readonly getDocument: UpdateTabVisibilityRuntimeProvider<Document>;
+    readonly getRequestAnimationFrame: UpdateTabVisibilityRuntimeProvider<UpdateTabVisibilityRequestAnimationFrame>;
+    readonly getSetTimeout: UpdateTabVisibilityRuntimeProvider<UpdateTabVisibilitySetTimeout>;
 }
 
 export interface UpdateTabVisibilityRuntime {
@@ -52,26 +52,22 @@ const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope =
         getSetTimeout: getBrowserSetTimeout,
     };
 
+function getRequiredProvider<T>(
+    provider: UpdateTabVisibilityRuntimeProvider<T>,
+    providerName: UpdateTabVisibilityRuntimeProviderName
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `updateTabVisibility requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getUpdateTabVisibilityRuntime(
     scope: UpdateTabVisibilityRuntimeScope = defaultUpdateTabVisibilityRuntimeScope
 ): UpdateTabVisibilityRuntime {
-    function getRequiredProvider<T>(
-        provider: (() => T | undefined) | undefined,
-        name:
-            | "clearTimeout"
-            | "document"
-            | "requestAnimationFrame"
-            | "setTimeout"
-    ): () => T | undefined {
-        if (!provider) {
-            throw new TypeError(
-                `updateTabVisibility requires a ${name} provider`
-            );
-        }
-
-        return provider;
-    }
-
     return {
         clearTimeout(handle: UpdateTabVisibilityTimerHandle): void {
             const clearTimeoutRef = getRequiredProvider(
