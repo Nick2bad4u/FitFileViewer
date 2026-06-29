@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getChartThemeListenerRuntime,
+    type ChartThemeListenerRuntimeScope,
     type ChartThemeListenerTimerHandle,
 } from "../../../../../electron-app/utils/charts/theming/chartThemeListenerRuntime.js";
 import type {
@@ -12,6 +13,14 @@ import type {
     BrowserSetTimeout,
     BrowserTimerHandle,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+const unavailableChartThemeListenerScope = {
+    getAbortController: () => undefined,
+    getClearTimeout: () => undefined,
+    getCustomEvent: () => undefined,
+    getDocument: () => undefined,
+    getSetTimeout: () => undefined,
+} satisfies ChartThemeListenerRuntimeScope;
 
 describe("getChartThemeListenerRuntime", () => {
     afterEach(() => {
@@ -77,6 +86,7 @@ describe("getChartThemeListenerRuntime", () => {
         expect.assertions(2);
 
         const runtime = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             getAbortController: () => AbortController,
             getDocument: () => document,
         });
@@ -101,6 +111,7 @@ describe("getChartThemeListenerRuntime", () => {
         expect.assertions(3);
 
         const runtime = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             getCustomEvent: () => CustomEvent,
             getDocument: () => document,
         });
@@ -111,6 +122,7 @@ describe("getChartThemeListenerRuntime", () => {
         expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
         expect(
             getChartThemeListenerRuntime({
+                ...unavailableChartThemeListenerScope,
                 getCustomEvent: () =>
                     "CustomEvent" as unknown as BrowserCustomEventConstructor,
                 getDocument: () => document,
@@ -129,6 +141,7 @@ describe("getChartThemeListenerRuntime", () => {
         const clearTimeoutMock = vi.fn<BrowserClearTimeout>();
         const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
         const runtime = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             getClearTimeout: () => clearTimeoutMock,
             getDocument: () => document,
             getSetTimeout: () => setTimeoutMock,
@@ -144,6 +157,7 @@ describe("getChartThemeListenerRuntime", () => {
         expect.assertions(2);
 
         const runtime = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             getDocument: () => document,
         });
 
@@ -167,6 +181,7 @@ describe("getChartThemeListenerRuntime", () => {
             ownerDocument: {},
         } as unknown as HTMLElement;
         const runtime = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             getDocument: () => ({ body }),
         });
 
@@ -181,8 +196,11 @@ describe("getChartThemeListenerRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getChartThemeListenerRuntime({});
+        const runtime = getChartThemeListenerRuntime(
+            unavailableChartThemeListenerScope
+        );
         const runtimeWithInvalidAbortController = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             getAbortController: () =>
                 "AbortController" as unknown as BrowserAbortControllerConstructor,
             getDocument: () => document,
@@ -198,6 +216,35 @@ describe("getChartThemeListenerRuntime", () => {
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow("chartThemeListener requires an AbortController");
         expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(5);
+
+        const omittedProviderScope =
+            {} as unknown as ChartThemeListenerRuntimeScope;
+        const runtime = getChartThemeListenerRuntime(omittedProviderScope);
+        const timer = Symbol(
+            "theme-listener-timer"
+        ) as unknown as ChartThemeListenerTimerHandle;
+
+        expect(() =>
+            runtime.addThemeChangeListener(() => undefined, {
+                signal: new AbortController().signal,
+            })
+        ).toThrow("chartThemeListener requires a document provider");
+        expect(() => runtime.createAbortController()).toThrow(
+            "chartThemeListener requires an AbortController provider"
+        );
+        expect(() => runtime.isCustomEvent(new Event("themechange"))).toThrow(
+            "chartThemeListener requires a CustomEvent provider"
+        );
+        expect(() => runtime.setTimeout(() => undefined, 1)).toThrow(
+            "chartThemeListener requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "chartThemeListener requires a clearTimeout provider"
+        );
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
@@ -225,6 +272,7 @@ describe("getChartThemeListenerRuntime", () => {
             },
         } as unknown as HTMLElement;
         const runtime = getChartThemeListenerRuntime({
+            ...unavailableChartThemeListenerScope,
             AbortController: TestAbortController,
             clearTimeout: clearTimeoutMock,
             CustomEvent,

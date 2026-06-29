@@ -24539,7 +24539,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(59);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -24556,6 +24556,14 @@ describe("architecture boundaries", () => {
         const chartThemeListenerRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/theming/chartThemeListenerRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = chartThemeListenerRuntimeSource.slice(
+            chartThemeListenerRuntimeSource.indexOf(
+                "export interface ChartThemeListenerRuntimeScope"
+            ),
+            chartThemeListenerRuntimeSource.indexOf(
+                "export interface ChartThemeListenerRuntime"
             )
         );
 
@@ -24623,6 +24631,13 @@ describe("architecture boundaries", () => {
         expect(chartThemeListenerRuntimeSource).not.toContain(
             "ChartThemeListenerRuntimeScope = globalThis"
         );
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getClearTimeout?:");
+        expect(runtimeScopeSource).not.toContain("readonly getCustomEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getSetTimeout?:");
         expect(chartThemeListenerRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -24652,7 +24667,49 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const body = scope.getDocument()?.body;"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController();"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "return scope.getCustomEvent();"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "const clearTimeoutRef = scope.getClearTimeout();"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout();"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "chartThemeListener requires a document provider"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "chartThemeListener requires an AbortController provider"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "chartThemeListener requires a CustomEvent provider"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "chartThemeListener requires a clearTimeout provider"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "chartThemeListener requires a setTimeout provider"
         );
         expect(chartThemeListenerRuntimeSource).not.toContain(
             "): typeof AbortController"

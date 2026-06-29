@@ -14,19 +14,13 @@ import {
 export type ChartThemeListenerTimerHandle = BrowserTimerHandle;
 
 export interface ChartThemeListenerRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?:
-        | (() => Pick<Document, "body"> | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
+    readonly getCustomEvent: () => BrowserCustomEventConstructor | undefined;
+    readonly getDocument: () => Pick<Document, "body"> | undefined;
+    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
 }
 
 export interface ChartThemeListenerRuntime {
@@ -52,7 +46,11 @@ const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope = {
 };
 
 function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
-    const body = scope.getDocument?.()?.body;
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError("chartThemeListener requires a document provider");
+    }
+
+    const body = scope.getDocument()?.body;
     if (!body) {
         throw new TypeError("chartThemeListener requires a document body");
     }
@@ -63,7 +61,13 @@ function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
 function getAbortControllerConstructor(
     scope: ChartThemeListenerRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError(
+            "chartThemeListener requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = scope.getAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartThemeListener requires an AbortController");
     }
@@ -74,7 +78,13 @@ function getAbortControllerConstructor(
 function getCustomEventConstructor(
     scope: ChartThemeListenerRuntimeScope
 ): BrowserCustomEventConstructor | undefined {
-    return scope.getCustomEvent?.();
+    if (typeof scope.getCustomEvent !== "function") {
+        throw new TypeError(
+            "chartThemeListener requires a CustomEvent provider"
+        );
+    }
+
+    return scope.getCustomEvent();
 }
 
 export function getChartThemeListenerRuntime(
@@ -91,7 +101,13 @@ export function getChartThemeListenerRuntime(
             });
         },
         clearTimeout(handle: ChartThemeListenerTimerHandle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            if (typeof scope.getClearTimeout !== "function") {
+                throw new TypeError(
+                    "chartThemeListener requires a clearTimeout provider"
+                );
+            }
+
+            const clearTimeoutRef = scope.getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "chartThemeListener requires a clearTimeout runtime"
@@ -114,7 +130,13 @@ export function getChartThemeListenerRuntime(
             handler: () => void,
             timeout: number
         ): ChartThemeListenerTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            if (typeof scope.getSetTimeout !== "function") {
+                throw new TypeError(
+                    "chartThemeListener requires a setTimeout provider"
+                );
+            }
+
+            const setTimeoutRef = scope.getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "chartThemeListener requires a setTimeout runtime"
