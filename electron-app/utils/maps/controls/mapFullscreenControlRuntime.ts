@@ -15,16 +15,18 @@ export type MapFullscreenControlTimer = BrowserTimerHandle;
 type MapFullscreenControlDocument = Document;
 
 export interface MapFullscreenControlRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?:
-        | (() => MapFullscreenControlDocument | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: MapFullscreenControlRuntimeProvider<
+        BrowserAbortControllerConstructor
+    >;
+    readonly getClearTimeout: MapFullscreenControlRuntimeProvider<
+        BrowserClearTimeout
+    >;
+    readonly getDocument: MapFullscreenControlRuntimeProvider<
+        MapFullscreenControlDocument
+    >;
+    readonly getSetTimeout: MapFullscreenControlRuntimeProvider<
+        BrowserSetTimeout
+    >;
 }
 
 export interface MapFullscreenControlRuntime {
@@ -59,10 +61,14 @@ const defaultMapFullscreenControlRuntimeScope: MapFullscreenControlRuntimeScope 
         getSetTimeout: getBrowserSetTimeout,
     };
 
+type MapFullscreenControlRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 function getRuntimeDocument(
-    scope: MapFullscreenControlRuntimeScope
+    getDocument: () => MapFullscreenControlDocument | undefined
 ): MapFullscreenControlDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("mapFullscreenControl requires a document runtime");
     }
@@ -71,10 +77,10 @@ function getRuntimeDocument(
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
-    scope: MapFullscreenControlRuntimeScope,
+    getDocument: () => MapFullscreenControlDocument | undefined,
     tagName: K
 ): SVGElementTagNameMap[K] {
-    const runtimeDocument = getRuntimeDocument(scope);
+    const runtimeDocument = getRuntimeDocument(getDocument);
     return getIconFactoryRuntime({
         getDocument: () => runtimeDocument,
     }).createSvgElement(tagName);
@@ -83,9 +89,23 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(
 export function getMapFullscreenControlRuntime(
     scope: MapFullscreenControlRuntimeScope = defaultMapFullscreenControlRuntimeScope
 ): MapFullscreenControlRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "an AbortController"
+    );
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "a clearTimeout"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "a document");
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "a setTimeout"
+    );
+
     return {
         addDocumentFullscreenChangeListener(listener, options): void {
-            const runtimeDocument = getRuntimeDocument(scope);
+            const runtimeDocument = getRuntimeDocument(getDocument);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener(
@@ -95,7 +115,7 @@ export function getMapFullscreenControlRuntime(
             );
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapFullscreenControl requires a clearTimeout runtime"
@@ -105,7 +125,7 @@ export function getMapFullscreenControlRuntime(
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "mapFullscreenControl requires an AbortController runtime"
@@ -115,33 +135,35 @@ export function getMapFullscreenControlRuntime(
             return new AbortControllerConstructor();
         },
         createElement(tagName) {
-            return getRuntimeDocument(scope).createElement(tagName);
+            return getRuntimeDocument(getDocument).createElement(tagName);
         },
         createSvgElement(tagName) {
-            return createSvgElement(scope, tagName);
+            return createSvgElement(getDocument, tagName);
         },
         documentBodyContains(element): boolean {
-            return getRuntimeDocument(scope).body.contains(element);
+            return getRuntimeDocument(getDocument).body.contains(element);
         },
         exitFullscreen(): Promise<void> | void {
-            const runtimeDocument = getRuntimeDocument(scope);
+            const runtimeDocument = getRuntimeDocument(getDocument);
             return runtimeDocument.exitFullscreen();
         },
         getLegacyFullscreenButton(): Element | null {
-            return getRuntimeDocument(scope).querySelector(
+            return getRuntimeDocument(getDocument).querySelector(
                 "#map-controls #fullscreen-btn"
             );
         },
         getMapContainer(): HTMLElement | null {
-            return getRuntimeDocument(scope).querySelector<HTMLElement>(
+            return getRuntimeDocument(getDocument).querySelector<HTMLElement>(
                 "#leaflet-map"
             );
         },
         isFullscreenElement(element): boolean {
-            return getRuntimeDocument(scope).fullscreenElement === element;
+            return (
+                getRuntimeDocument(getDocument).fullscreenElement === element
+            );
         },
         setTimeout(callback, delayMs): MapFullscreenControlTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapFullscreenControl requires a setTimeout runtime"
@@ -151,4 +173,17 @@ export function getMapFullscreenControlRuntime(
             return setTimeoutRef(callback, delayMs);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: MapFullscreenControlRuntimeProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `mapFullscreenControl requires ${providerLabel} provider`
+        );
+    }
+
+    return provider;
 }

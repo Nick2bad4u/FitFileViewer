@@ -24062,7 +24062,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(53);
+        expect.assertions(61);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -24122,6 +24122,27 @@ describe("architecture boundaries", () => {
         expect(mapFullscreenControlRuntimeSource).toContain(
             "defaultMapFullscreenControlRuntimeScope"
         );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "type MapFullscreenControlRuntimeProvider"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(mapFullscreenControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"an AbortController"\s*\)/u
+        );
+        expect(mapFullscreenControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"a clearTimeout"\s*\)/u
+        );
+        expect(mapFullscreenControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"a document"\s*\)/u
+        );
+        expect(mapFullscreenControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"a setTimeout"\s*\)/u
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
         expect(mapFullscreenControlRuntimeSource).not.toContain(
             "scope: MapFullscreenControlRuntimeScope = globalThis"
         );
@@ -24169,19 +24190,22 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
         );
         expect(mapFullscreenControlRuntimeSource).not.toMatch(
             directMapFullscreenControlRuntimeAmbientFallbackPattern
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = getSetTimeout();"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "const clearTimeoutRef = getClearTimeout();"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "const AbortControllerConstructor = getAbortController();"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "mapFullscreenControl requires ${providerLabel} provider"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "createElement: <K extends keyof HTMLElementTagNameMap>"
@@ -24190,13 +24214,13 @@ describe("architecture boundaries", () => {
             "createSvgElement: <K extends keyof SVGElementTagNameMap>"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "getRuntimeDocument(scope).createElement(tagName)"
+            "getRuntimeDocument(getDocument).createElement(tagName)"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "iconFactoryRuntime.js"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "return createSvgElement(scope, tagName);"
+            "return createSvgElement(getDocument, tagName);"
         );
         expect(mapFullscreenControlRuntimeSource).not.toContain(
             "createElementNS"
