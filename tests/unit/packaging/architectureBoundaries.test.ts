@@ -17058,7 +17058,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(131);
+        expect.assertions(161);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -17208,20 +17208,20 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(masterStateRuntimeSource).toContain(
+        expect(masterStateRuntimeSource).not.toContain(
             "readonly getDocument?: (() => Document | undefined) | undefined;"
         );
         expect(masterStateRuntimeSource).toContain(
-            "return scope.getDocumentBody?.() ?? getScopeDocument(scope)?.body;"
+            'scope.getDocumentBody, "documentBody"'
         );
         expect(masterStateRuntimeSource).toContain(
-            "scope.getDocumentElement?.() ?? getScopeDocument(scope)?.documentElement"
+            'scope.getDocumentElement, "documentElement"'
         );
         expect(masterStateRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? getScopeDocument(scope);"
+            'scope.getDocumentEventTarget,\n            "documentEventTarget"'
         );
         expect(masterStateRuntimeSource).toContain(
-            "return scope.getDocumentQueryScope?.() ?? getScopeDocument(scope);"
+            'scope.getDocumentQueryScope,\n            "documentQueryScope"'
         );
         expect(masterStateRuntimeSource).not.toContain(
             "function getGlobalDocument"
@@ -17274,6 +17274,48 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "master state manager requires setInterval runtime"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "type MasterStateRuntimeProvider<T>"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "master state manager requires ${providerName} provider"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getAbortController, "AbortController"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getAddEventListener, "addEventListener"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getClearInterval,\n        "clearInterval"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getCustomEvent,\n        "CustomEvent"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getDateNow, "dateNow"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getDevelopmentFlag, "developmentFlag"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getDispatchEvent, "dispatchEvent"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getEventTarget, "eventTarget"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getLocation, "location"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getPerformanceMemory,\n                "performanceMemory"'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'scope.getSetInterval,\n        "setInterval"'
         );
         expect(masterStateRuntimeSource).not.toContain(
             'Reflect.get(globalThis, "__DEVELOPMENT__")'
@@ -17362,10 +17404,54 @@ describe("architecture boundaries", () => {
             "querySelectorAll<HTMLElement>"
         );
         expect(masterStateRuntimeSource).toContain(
-            "const CustomEventConstructor = scope.getCustomEvent?.();"
+            "const CustomEventConstructor = getRequiredProvider("
         );
         expect(masterStateRuntimeSource).toContain(
             'new (getRequiredCustomEvent(scope))("themeChanged"'
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getAddEventListener?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getClearInterval?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain("scope.getDateNow?.()");
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDevelopmentFlag?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDocumentBody?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDocumentElement?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDocumentEventTarget?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDocumentQueryScope?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getDispatchEvent?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getEventTarget?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain("scope.getLocation?.()");
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getPerformanceMemory?.()"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.getSetInterval?.()"
         );
         expect(masterStateRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(masterStateRuntimeSource).not.toContain("scope.eventTarget");

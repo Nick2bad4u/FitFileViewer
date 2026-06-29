@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getMasterStateRuntime } from "../../../../../electron-app/utils/state/core/masterStateRuntime.js";
+import {
+    getMasterStateRuntime,
+    type MasterStateRuntimeScope,
+} from "../../../../../electron-app/utils/state/core/masterStateRuntime.js";
 import type {
     BrowserAbortControllerConstructor,
     BrowserClearInterval,
@@ -8,12 +11,42 @@ import type {
     BrowserSetInterval,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createMasterStateRuntimeScope(
+    overrides: Partial<MasterStateRuntimeScope> = {}
+): MasterStateRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getAddEventListener: () => undefined,
+        getClearInterval: () => undefined,
+        getCustomEvent: () => undefined,
+        getDateNow: () => undefined,
+        getDevelopmentFlag: () => undefined,
+        getDocument: () => undefined,
+        getDocumentBody: () => undefined,
+        getDocumentElement: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getDocumentQueryScope: () => undefined,
+        getDispatchEvent: () => undefined,
+        getEventTarget: () => undefined,
+        getLocation: () => undefined,
+        getPerformanceMemory: () => undefined,
+        getSetInterval: () => undefined,
+        ...overrides,
+    };
+}
+
+function getScopedMasterStateRuntime(
+    overrides: Partial<MasterStateRuntimeScope> = {}
+): ReturnType<typeof getMasterStateRuntime> {
+    return getMasterStateRuntime(createMasterStateRuntimeScope(overrides));
+}
+
 describe("masterStateRuntime", () => {
     it("reads timestamps through the injected provider", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn<() => number>(() => 1234);
-        const utils = getMasterStateRuntime({
+        const utils = getScopedMasterStateRuntime({
             getDateNow: () => dateNow,
         });
 
@@ -41,7 +74,7 @@ describe("masterStateRuntime", () => {
             () => setInterval as unknown as BrowserSetInterval
         );
         const callback = vi.fn();
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getClearInterval,
             getPerformanceMemory,
             getSetInterval,
@@ -63,7 +96,7 @@ describe("masterStateRuntime", () => {
         expect.assertions(4);
 
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 getLocation: () => ({
                     hostname: "localhost",
                     protocol: "http:",
@@ -72,7 +105,7 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 getLocation: () => ({
                     hostname: "127.0.0.1",
                     protocol: "http:",
@@ -81,7 +114,7 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 getLocation: () => ({
                     hostname: "app-dev.local",
                     protocol: "https:",
@@ -90,7 +123,7 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 getLocation: () => ({ hostname: "app", protocol: "file:" }),
                 getEventTarget: () => ({ addEventListener: vi.fn() }),
             }).isDevelopmentScope()
@@ -109,7 +142,7 @@ describe("masterStateRuntime", () => {
         };
 
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 ...rendererScope,
                 getLocation: () => ({
                     hostname: "example.com",
@@ -119,7 +152,7 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 ...rendererScope,
                 getLocation: () => ({
                     hash: "#debug",
@@ -129,13 +162,13 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 ...rendererScope,
                 getDevelopmentFlag: () => true,
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getMasterStateRuntime(rendererScope).isDevelopmentScope({
+            getScopedMasterStateRuntime(rendererScope).isDevelopmentScope({
                 hasDevelopmentModeAttribute: true,
             })
         ).toBe(true);
@@ -145,7 +178,7 @@ describe("masterStateRuntime", () => {
         expect.assertions(3);
 
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 getLocation: () => ({
                     hostname: "example.com",
                     protocol: "https:",
@@ -154,7 +187,7 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
-            getMasterStateRuntime({
+            getScopedMasterStateRuntime({
                 getEventTarget: () => undefined,
                 getLocation: () => ({
                     hostname: "localhost",
@@ -163,7 +196,8 @@ describe("masterStateRuntime", () => {
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
-            getMasterStateRuntime({ getDevelopmentFlag: () => false }).location
+            getScopedMasterStateRuntime({ getDevelopmentFlag: () => false })
+                .location
         ).toStrictEqual({});
     });
 
@@ -174,7 +208,7 @@ describe("masterStateRuntime", () => {
         const addGlobalEventListener = vi.fn();
         const addWindowEventListener = vi.fn();
         const dispatchGlobalEvent = vi.fn(() => true);
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getAddEventListener: () => addGlobalEventListener,
             getDocumentEventTarget: () => ({
                 addEventListener: addDocumentEventListener,
@@ -222,7 +256,7 @@ describe("masterStateRuntime", () => {
                     : ([] as unknown as NodeListOf<Element>)
             ),
         };
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getDocumentQueryScope: () => queryScope,
         });
 
@@ -233,9 +267,9 @@ describe("masterStateRuntime", () => {
             ".loading-sensitive"
         );
         expect(queryScope.querySelectorAll.mock.contexts[0]).toBe(queryScope);
-        expect(getMasterStateRuntime({}).getLoadingSensitiveElements()).toEqual(
-            []
-        );
+        expect(
+            getScopedMasterStateRuntime({}).getLoadingSensitiveElements()
+        ).toEqual([]);
     });
 
     it("derives default document operations from a scoped document provider", () => {
@@ -251,7 +285,7 @@ describe("masterStateRuntime", () => {
             scopedDocument,
             "addEventListener"
         );
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getDocument: () => scopedDocument,
         });
         const listener = vi.fn();
@@ -292,7 +326,7 @@ describe("masterStateRuntime", () => {
         };
         const getDocumentBody = vi.fn(() => documentBody);
         const getDocumentElement = vi.fn(() => documentElement);
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getDocumentBody,
             getDocumentElement,
         });
@@ -350,7 +384,7 @@ describe("masterStateRuntime", () => {
         const getDispatchEvent = vi.fn(() => dispatchGlobalEvent);
         const getLocation = vi.fn(() => location);
         const getEventTarget = vi.fn(() => eventTarget);
-        const utils = getMasterStateRuntime({
+        const utils = getScopedMasterStateRuntime({
             getAbortController,
             getAddEventListener,
             getCustomEvent,
@@ -421,7 +455,7 @@ describe("masterStateRuntime", () => {
                 super(`test:${type}`, init);
             }
         }
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getCustomEvent: () => TestCustomEvent,
         });
         const event = runtime.createThemeChangedEvent("system");
@@ -436,7 +470,7 @@ describe("masterStateRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getMasterStateRuntime({}).createThemeChangedEvent("dark")
+            getScopedMasterStateRuntime({}).createThemeChangedEvent("dark")
         ).toThrow("master state manager requires a CustomEvent runtime");
     });
 
@@ -444,7 +478,7 @@ describe("masterStateRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getMasterStateRuntime({}).addDocumentEventListener(
+            getScopedMasterStateRuntime({}).addDocumentEventListener(
                 "keydown",
                 vi.fn()
             )
@@ -463,7 +497,7 @@ describe("masterStateRuntime", () => {
                 created = true;
             }
         }
-        const runtime = getMasterStateRuntime({
+        const runtime = getScopedMasterStateRuntime({
             getAbortController: () =>
                 TestAbortController as unknown as BrowserAbortControllerConstructor,
         });
@@ -555,6 +589,7 @@ describe("masterStateRuntime", () => {
         const removeBodyClass = vi.fn();
         const setInterval = vi.fn();
         const runtime = getMasterStateRuntime({
+            ...createMasterStateRuntimeScope(),
             __DEVELOPMENT__: true,
             AbortController:
                 TestAbortController as unknown as BrowserAbortControllerConstructor,
@@ -640,15 +675,15 @@ describe("masterStateRuntime", () => {
     it("throws when abort controllers are unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getMasterStateRuntime({}).createAbortController()).toThrow(
-            "master state manager requires an AbortController runtime"
-        );
+        expect(() =>
+            getScopedMasterStateRuntime({}).createAbortController()
+        ).toThrow("master state manager requires an AbortController runtime");
     });
 
     it("throws when date clocks are unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getMasterStateRuntime({}).dateNow()).toThrow(
+        expect(() => getScopedMasterStateRuntime({}).dateNow()).toThrow(
             "master state manager requires dateNow"
         );
     });
@@ -656,11 +691,115 @@ describe("masterStateRuntime", () => {
     it("throws when interval primitives are unavailable", () => {
         expect.assertions(2);
 
-        expect(() => getMasterStateRuntime({}).clearInterval(123)).toThrow(
-            "master state manager requires clearInterval runtime"
-        );
-        expect(() => getMasterStateRuntime({}).setInterval(vi.fn(), 1)).toThrow(
-            "master state manager requires setInterval runtime"
-        );
+        expect(() =>
+            getScopedMasterStateRuntime({}).clearInterval(123)
+        ).toThrow("master state manager requires clearInterval runtime");
+        expect(() =>
+            getScopedMasterStateRuntime({}).setInterval(vi.fn(), 1)
+        ).toThrow("master state manager requires setInterval runtime");
+    });
+
+    it("throws when required master state runtime providers are omitted", () => {
+        expect.assertions(16);
+
+        const scope = createMasterStateRuntimeScope();
+
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow("master state manager requires AbortController provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getAddEventListener: undefined,
+            }).addGlobalEventListener("error", vi.fn())
+        ).toThrow("master state manager requires addEventListener provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getClearInterval: undefined,
+            }).clearInterval(1)
+        ).toThrow("master state manager requires clearInterval provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getCustomEvent: undefined,
+            }).createThemeChangedEvent("dark")
+        ).toThrow("master state manager requires CustomEvent provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDateNow: undefined,
+            }).dateNow()
+        ).toThrow("master state manager requires dateNow provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDevelopmentFlag: undefined,
+            }).isDevelopmentScope()
+        ).toThrow("master state manager requires developmentFlag provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDocument: undefined,
+            }).getLoadingSensitiveElements()
+        ).toThrow("master state manager requires document provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDocumentBody: undefined,
+            }).addBodyClass("drag-over")
+        ).toThrow("master state manager requires documentBody provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDocumentElement: undefined,
+            }).hasDevelopmentModeAttribute()
+        ).toThrow("master state manager requires documentElement provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDocumentEventTarget: undefined,
+            }).addDocumentEventListener("keydown", vi.fn())
+        ).toThrow("master state manager requires documentEventTarget provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDocumentQueryScope: undefined,
+            }).getLoadingSensitiveElements()
+        ).toThrow("master state manager requires documentQueryScope provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getDispatchEvent: undefined,
+            }).dispatchGlobalEvent(new Event("stateChanged"))
+        ).toThrow("master state manager requires dispatchEvent provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getEventTarget: undefined,
+            }).addWindowEventListener("resize", vi.fn())
+        ).toThrow("master state manager requires eventTarget provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getEventTarget: () => ({ addEventListener: vi.fn() }),
+                getLocation: undefined,
+            }).isDevelopmentScope()
+        ).toThrow("master state manager requires location provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getPerformanceMemory: undefined,
+            }).getPerformanceMemory()
+        ).toThrow("master state manager requires performanceMemory provider");
+        expect(() =>
+            getMasterStateRuntime({
+                ...scope,
+                getSetInterval: undefined,
+            }).setInterval(vi.fn(), 1)
+        ).toThrow("master state manager requires setInterval provider");
     });
 });

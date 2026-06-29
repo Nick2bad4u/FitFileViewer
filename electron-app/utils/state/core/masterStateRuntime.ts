@@ -45,48 +45,25 @@ type MasterStatePerformance = Performance & {
     readonly memory?: MasterStatePerformanceMemory | undefined;
 };
 type MasterStateQueryScope = Pick<Document, "querySelectorAll">;
+type MasterStateRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface MasterStateRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getAddEventListener?:
-        | (() => BrowserAddEventListener | undefined)
-        | undefined;
-    readonly getClearInterval?:
-        | (() => BrowserClearInterval | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?:
-        | (() => MasterStateEventTarget | undefined)
-        | undefined;
-    readonly getDocumentBody?:
-        | (() => MasterStateDocumentBody | undefined)
-        | undefined;
-    readonly getDocumentElement?:
-        | (() => MasterStateDocumentElement | undefined)
-        | undefined;
-    readonly getDocumentQueryScope?:
-        | (() => MasterStateQueryScope | undefined)
-        | undefined;
-    readonly getDispatchEvent?:
-        | (() => BrowserDispatchEvent | undefined)
-        | undefined;
-    readonly getEventTarget?:
-        | (() => MasterStateEventTarget | undefined)
-        | undefined;
-    readonly getLocation?: (() => LocationLike | undefined) | undefined;
-    readonly getPerformanceMemory?:
-        | (() => MasterStatePerformanceMemory | undefined)
-        | undefined;
-    readonly getSetInterval?:
-        | (() => BrowserSetInterval | undefined)
-        | undefined;
+    readonly getAbortController: MasterStateRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getAddEventListener: MasterStateRuntimeProvider<BrowserAddEventListener>;
+    readonly getClearInterval: MasterStateRuntimeProvider<BrowserClearInterval>;
+    readonly getCustomEvent: MasterStateRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDateNow: MasterStateRuntimeProvider<() => number>;
+    readonly getDevelopmentFlag: MasterStateRuntimeProvider<boolean>;
+    readonly getDocument: MasterStateRuntimeProvider<Document>;
+    readonly getDocumentEventTarget: MasterStateRuntimeProvider<MasterStateEventTarget>;
+    readonly getDocumentBody: MasterStateRuntimeProvider<MasterStateDocumentBody>;
+    readonly getDocumentElement: MasterStateRuntimeProvider<MasterStateDocumentElement>;
+    readonly getDocumentQueryScope: MasterStateRuntimeProvider<MasterStateQueryScope>;
+    readonly getDispatchEvent: MasterStateRuntimeProvider<BrowserDispatchEvent>;
+    readonly getEventTarget: MasterStateRuntimeProvider<MasterStateEventTarget>;
+    readonly getLocation: MasterStateRuntimeProvider<LocationLike>;
+    readonly getPerformanceMemory: MasterStateRuntimeProvider<MasterStatePerformanceMemory>;
+    readonly getSetInterval: MasterStateRuntimeProvider<BrowserSetInterval>;
 }
 
 export interface MasterStateDevelopmentOptions {
@@ -145,7 +122,12 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getClearInterval: getBrowserClearInterval,
     getCustomEvent: getBrowserCustomEvent,
     getDateNow: getBrowserDateNow,
+    getDevelopmentFlag: () => undefined,
     getDocument: getBrowserDocument,
+    getDocumentBody: () => undefined,
+    getDocumentElement: () => undefined,
+    getDocumentEventTarget: () => undefined,
+    getDocumentQueryScope: () => undefined,
     getDispatchEvent: getBrowserDispatchEvent,
     getEventTarget: getBrowserEventTarget,
     getLocation: getBrowserLocation,
@@ -160,22 +142,38 @@ function getBrowserMasterStatePerformanceMemory():
         ?.memory;
 }
 
+function getRequiredProvider<T>(
+    provider: MasterStateRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `master state manager requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeAbortController(
     scope: MasterStateRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getScopeAddEventListener(
     scope: MasterStateRuntimeScope
 ): BrowserAddEventListener | undefined {
-    return scope.getAddEventListener?.();
+    return getRequiredProvider(scope.getAddEventListener, "addEventListener")();
 }
 
 function getRequiredClearInterval(
     scope: MasterStateRuntimeScope
 ): BrowserClearInterval {
-    const clearIntervalRef = scope.getClearInterval?.();
+    const clearIntervalRef = getRequiredProvider(
+        scope.getClearInterval,
+        "clearInterval"
+    )();
     if (typeof clearIntervalRef !== "function") {
         throw new TypeError(
             "master state manager requires clearInterval runtime"
@@ -188,7 +186,10 @@ function getRequiredClearInterval(
 function getRequiredCustomEvent(
     scope: MasterStateRuntimeScope
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    )();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "master state manager requires a CustomEvent runtime"
@@ -201,11 +202,11 @@ function getRequiredCustomEvent(
 function getScopeDevelopmentFlag(
     scope: MasterStateRuntimeScope
 ): boolean | undefined {
-    return scope.getDevelopmentFlag?.();
+    return getRequiredProvider(scope.getDevelopmentFlag, "developmentFlag")();
 }
 
 function getRequiredDateNow(scope: MasterStateRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNow !== "function") {
         throw new TypeError("master state manager requires dateNow");
     }
@@ -216,33 +217,47 @@ function getRequiredDateNow(scope: MasterStateRuntimeScope): () => number {
 function getScopeDocumentEventTarget(
     scope: MasterStateRuntimeScope
 ): MasterStateEventTarget | undefined {
-    return scope.getDocumentEventTarget?.() ?? getScopeDocument(scope);
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "documentEventTarget"
+        )() ?? getScopeDocument(scope)
+    );
 }
 
 function getScopeDocumentBody(
     scope: MasterStateRuntimeScope
 ): MasterStateDocumentBody | undefined {
-    return scope.getDocumentBody?.() ?? getScopeDocument(scope)?.body;
+    return (
+        getRequiredProvider(scope.getDocumentBody, "documentBody")() ??
+        getScopeDocument(scope)?.body
+    );
 }
 
 function getScopeDocumentElement(
     scope: MasterStateRuntimeScope
 ): MasterStateDocumentElement | undefined {
     return (
-        scope.getDocumentElement?.() ?? getScopeDocument(scope)?.documentElement
+        getRequiredProvider(scope.getDocumentElement, "documentElement")() ??
+        getScopeDocument(scope)?.documentElement
     );
 }
 
 function getScopeDocumentQueryScope(
     scope: MasterStateRuntimeScope
 ): MasterStateQueryScope | undefined {
-    return scope.getDocumentQueryScope?.() ?? getScopeDocument(scope);
+    return (
+        getRequiredProvider(
+            scope.getDocumentQueryScope,
+            "documentQueryScope"
+        )() ?? getScopeDocument(scope)
+    );
 }
 
 function getScopeDocument(
     scope: MasterStateRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getRequiredDocumentBody(
@@ -274,25 +289,28 @@ function getRequiredDocumentEventTarget(
 function getScopeDispatchEvent(
     scope: MasterStateRuntimeScope
 ): BrowserDispatchEvent | undefined {
-    return scope.getDispatchEvent?.();
+    return getRequiredProvider(scope.getDispatchEvent, "dispatchEvent")();
 }
 
 function getScopeEventTarget(
     scope: MasterStateRuntimeScope
 ): MasterStateEventTarget | undefined {
-    return scope.getEventTarget?.();
+    return getRequiredProvider(scope.getEventTarget, "eventTarget")();
 }
 
 function getScopeLocation(
     scope: MasterStateRuntimeScope
 ): LocationLike | undefined {
-    return scope.getLocation?.();
+    return getRequiredProvider(scope.getLocation, "location")();
 }
 
 function getRequiredSetInterval(
     scope: MasterStateRuntimeScope
 ): BrowserSetInterval {
-    const setIntervalRef = scope.getSetInterval?.();
+    const setIntervalRef = getRequiredProvider(
+        scope.getSetInterval,
+        "setInterval"
+    )();
     if (typeof setIntervalRef !== "function") {
         throw new TypeError(
             "master state manager requires setInterval runtime"
@@ -376,7 +394,10 @@ export function getMasterStateRuntime(
             );
         },
         getPerformanceMemory(): MasterStatePerformanceMemory | undefined {
-            return scope.getPerformanceMemory?.();
+            return getRequiredProvider(
+                scope.getPerformanceMemory,
+                "performanceMemory"
+            )();
         },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();
