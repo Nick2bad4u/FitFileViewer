@@ -16,6 +16,21 @@ class FakeIntersectionObserver implements IntersectionObserver {
     unobserve = vi.fn<(target: Element) => void>();
 }
 
+function createLazyRenderingRuntimeScope(
+    overrides: Partial<LazyRenderingRuntimeScope> = {}
+): LazyRenderingRuntimeScope {
+    return {
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getIntersectionObserver: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getRequestIdleCallback: () => undefined,
+        getSetTimeout: () => undefined,
+        getViewport: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getLazyRenderingRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -29,9 +44,11 @@ describe("getLazyRenderingRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 12);
-        const utils = getLazyRenderingRuntime({
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
+        const utils = getLazyRenderingRuntime(
+            createLazyRenderingRuntimeScope({
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            })
+        );
 
         expect(utils.requestAnimationFrame(callback)).toBe(12);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -41,17 +58,21 @@ describe("getLazyRenderingRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getLazyRenderingRuntime({}).requestAnimationFrame(() => {})
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope()
+            ).requestAnimationFrame(() => {})
         ).toBeUndefined();
     });
 
     it("creates intersection observers when available", () => {
         expect.assertions(1);
 
-        const utils = getLazyRenderingRuntime({
-            getIntersectionObserver: () =>
-                FakeIntersectionObserver as unknown as typeof IntersectionObserver,
-        });
+        const utils = getLazyRenderingRuntime(
+            createLazyRenderingRuntimeScope({
+                getIntersectionObserver: () =>
+                    FakeIntersectionObserver as unknown as typeof IntersectionObserver,
+            })
+        );
 
         expect(
             utils.createIntersectionObserver(() => {}, {
@@ -65,7 +86,9 @@ describe("getLazyRenderingRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getLazyRenderingRuntime({}).createIntersectionObserver(() => {}, {})
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope()
+            ).createIntersectionObserver(() => {}, {})
         ).toBeUndefined();
     });
 
@@ -73,15 +96,17 @@ describe("getLazyRenderingRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getLazyRenderingRuntime({
-                getDocument: () => ({
-                    documentElement: {
-                        clientHeight: 720,
-                        clientWidth: 960,
-                    },
-                }),
-                getViewport: () => ({ height: 800, width: 1200 }),
-            }).getViewport()
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope({
+                    getDocument: () => ({
+                        documentElement: {
+                            clientHeight: 720,
+                            clientWidth: 960,
+                        },
+                    }),
+                    getViewport: () => ({ height: 800, width: 1200 }),
+                })
+            ).getViewport()
         ).toStrictEqual({ height: 800, width: 1200 });
     });
 
@@ -89,14 +114,16 @@ describe("getLazyRenderingRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getLazyRenderingRuntime({
-                getDocument: () => ({
-                    documentElement: {
-                        clientHeight: 720,
-                        clientWidth: 960,
-                    },
-                }),
-            }).getViewport()
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope({
+                    getDocument: () => ({
+                        documentElement: {
+                            clientHeight: 720,
+                            clientWidth: 960,
+                        },
+                    }),
+                })
+            ).getViewport()
         ).toStrictEqual({ height: 720, width: 960 });
     });
 
@@ -106,11 +133,17 @@ describe("getLazyRenderingRuntime", () => {
         const element = document.createElement("div");
 
         expect(
-            getLazyRenderingRuntime({
-                getHTMLElement: () => HTMLElement,
-            }).isHTMLElement(element)
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope({
+                    getHTMLElement: () => HTMLElement,
+                })
+            ).isHTMLElement(element)
         ).toBe(true);
-        expect(getLazyRenderingRuntime({}).isHTMLElement(element)).toBe(false);
+        expect(
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope()
+            ).isHTMLElement(element)
+        ).toBe(false);
     });
 
     it("requests idle callbacks when available", () => {
@@ -123,9 +156,11 @@ describe("getLazyRenderingRuntime", () => {
                 options?: IdleRequestOptions
             ) => number
         >(() => 44);
-        const utils = getLazyRenderingRuntime({
-            getRequestIdleCallback: () => requestIdleCallback,
-        });
+        const utils = getLazyRenderingRuntime(
+            createLazyRenderingRuntimeScope({
+                getRequestIdleCallback: () => requestIdleCallback,
+            })
+        );
 
         expect(utils.requestIdleCallback(callback, { timeout: 50 })).toBe(44);
         expect(requestIdleCallback).toHaveBeenCalledWith(callback, {
@@ -143,9 +178,11 @@ describe("getLazyRenderingRuntime", () => {
             scheduledCallback();
             return 9;
         });
-        const utils = getLazyRenderingRuntime({
-            getSetTimeout: () => setTimeout,
-        });
+        const utils = getLazyRenderingRuntime(
+            createLazyRenderingRuntimeScope({
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(utils.setTimeout(callback)).toBe(9);
         expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
@@ -210,9 +247,46 @@ describe("getLazyRenderingRuntime", () => {
     it("does not borrow the ambient timeout fallback for explicit scopes", () => {
         expect.assertions(1);
 
-        expect(() => getLazyRenderingRuntime({}).setTimeout(() => {})).toThrow(
-            "lazyRenderingRuntime requires setTimeout"
+        expect(() =>
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope()
+            ).setTimeout(() => {})
+        ).toThrow("lazyRenderingRuntime requires setTimeout");
+    });
+
+    it("fails clearly when explicit runtime provider slots are omitted", () => {
+        expect.assertions(7);
+
+        const runtime = getLazyRenderingRuntime(
+            {} as unknown as LazyRenderingRuntimeScope
         );
+
+        expect(() => runtime.createIntersectionObserver(() => {}, {})).toThrow(
+            "lazyRenderingRuntime requires IntersectionObserver provider"
+        );
+        expect(() => runtime.getViewport()).toThrow(
+            "lazyRenderingRuntime requires document provider"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("lazyRenderingRuntime requires HTMLElement provider");
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "lazyRenderingRuntime requires requestAnimationFrame provider"
+        );
+        expect(() =>
+            runtime.requestIdleCallback(() => {}, { timeout: 50 })
+        ).toThrow("lazyRenderingRuntime requires requestIdleCallback provider");
+        expect(() => runtime.setTimeout(() => {})).toThrow(
+            "lazyRenderingRuntime requires setTimeout provider"
+        );
+        expect(() =>
+            getLazyRenderingRuntime(
+                createLazyRenderingRuntimeScope({
+                    getDocument: () => undefined,
+                    getViewport: undefined,
+                })
+            ).getViewport()
+        ).toThrow("lazyRenderingRuntime requires viewport provider");
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -251,15 +325,23 @@ describe("getLazyRenderingRuntime", () => {
         } as unknown as LazyRenderingRuntimeScope;
         const utils = getLazyRenderingRuntime(legacyScope);
 
-        expect(utils.createIntersectionObserver(() => {}, {})).toBeUndefined();
-        expect(utils.getViewport()).toStrictEqual({ height: 0, width: 0 });
-        expect(utils.isHTMLElement(document.createElement("div"))).toBe(false);
-        expect(utils.requestAnimationFrame(animationCallback)).toBeUndefined();
-        expect(
+        expect(() => utils.createIntersectionObserver(() => {}, {})).toThrow(
+            "lazyRenderingRuntime requires IntersectionObserver provider"
+        );
+        expect(() => utils.getViewport()).toThrow(
+            "lazyRenderingRuntime requires document provider"
+        );
+        expect(() =>
+            utils.isHTMLElement(document.createElement("div"))
+        ).toThrow("lazyRenderingRuntime requires HTMLElement provider");
+        expect(() => utils.requestAnimationFrame(animationCallback)).toThrow(
+            "lazyRenderingRuntime requires requestAnimationFrame provider"
+        );
+        expect(() =>
             utils.requestIdleCallback(idleCallback, { timeout: 50 })
-        ).toBeUndefined();
+        ).toThrow("lazyRenderingRuntime requires requestIdleCallback provider");
         expect(() => utils.setTimeout(timeoutCallback)).toThrow(
-            "lazyRenderingRuntime requires setTimeout"
+            "lazyRenderingRuntime requires setTimeout provider"
         );
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(requestIdleCallback).not.toHaveBeenCalled();

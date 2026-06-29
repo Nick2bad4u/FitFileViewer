@@ -26846,7 +26846,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(54);
+        expect.assertions(72);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -26874,6 +26874,8 @@ describe("architecture boundaries", () => {
                     "export interface LazyRenderingViewport"
                 )
             );
+        const optionalLazyRenderingProviderAccessPattern =
+            /\bscope\.get(?:Document|HTMLElement|IntersectionObserver|RequestAnimationFrame|RequestIdleCallback|SetTimeout|Viewport)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
@@ -26904,8 +26906,18 @@ describe("architecture boundaries", () => {
         expect(lazyRenderingRuntimeSource).not.toContain(
             "getScopeSetTimeout(scope)"
         );
+        expect(lazyRenderingRuntimeSource).not.toMatch(
+            optionalLazyRenderingProviderAccessPattern
+        );
         expect(lazyRenderingRuntimeSource).toContain(
-            "const timeout = scope.getSetTimeout?.();"
+            "type LazyRenderingRuntimeProvider<T> ="
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(lazyRenderingRuntimeSource).toContain("providerName: string");
+        expect(lazyRenderingRuntimeSource).toContain(
+            "lazyRenderingRuntime requires ${providerName} provider"
         );
         expect(lazyRenderingRuntimeSource).toContain(
             "defaultLazyRenderingRuntimeScope"
@@ -26996,6 +27008,48 @@ describe("architecture boundaries", () => {
         );
         expect(lazyRenderingRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getIntersectionObserver?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getRequestIdleCallback?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly getViewport?:"
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIntersectionObserver/u
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getViewport/u
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement/u
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame/u
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestIdleCallback/u
+        );
+        expect(lazyRenderingRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout/u
         );
         expect(lazyRenderingRuntimeSource).not.toContain("scope.document");
         expect(lazyRenderingRuntimeSource).not.toContain("scope.HTMLElement");

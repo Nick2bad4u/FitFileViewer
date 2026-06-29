@@ -1,5 +1,6 @@
 import {
     type BrowserHTMLElementConstructor,
+    type BrowserSetTimeout,
     type BrowserTimerHandle,
     getBrowserDocument,
     getBrowserHTMLElement,
@@ -21,11 +22,6 @@ type LazyRenderingRequestIdleCallback = (
     options?: Readonly<IdleRequestOptions>
 ) => number;
 
-type LazyRenderingSetTimeout = (
-    callback: () => void,
-    timeout?: number
-) => LazyRenderingTimeoutHandle;
-
 export interface LazyRenderingRuntimeDocument {
     readonly documentElement?:
         | {
@@ -35,26 +31,18 @@ export interface LazyRenderingRuntimeDocument {
         | undefined;
 }
 
+type LazyRenderingRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface LazyRenderingRuntimeScope {
-    readonly getDocument?:
-        | (() => LazyRenderingRuntimeDocument | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getIntersectionObserver?:
-        | (() => typeof IntersectionObserver | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => LazyRenderingRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getRequestIdleCallback?:
-        | (() => LazyRenderingRequestIdleCallback | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => LazyRenderingSetTimeout | undefined)
-        | undefined;
-    readonly getViewport?: (() => LazyRenderingViewport | undefined) | undefined;
+    readonly getDocument: LazyRenderingRuntimeProvider<LazyRenderingRuntimeDocument>;
+    readonly getHTMLElement: LazyRenderingRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getIntersectionObserver: LazyRenderingRuntimeProvider<
+        typeof IntersectionObserver
+    >;
+    readonly getRequestAnimationFrame: LazyRenderingRuntimeProvider<LazyRenderingRequestAnimationFrame>;
+    readonly getRequestIdleCallback: LazyRenderingRuntimeProvider<LazyRenderingRequestIdleCallback>;
+    readonly getSetTimeout: LazyRenderingRuntimeProvider<BrowserSetTimeout>;
+    readonly getViewport: LazyRenderingRuntimeProvider<LazyRenderingViewport>;
 }
 
 export interface LazyRenderingViewport {
@@ -104,6 +92,19 @@ const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
     getViewport: getBrowserViewport,
 };
 
+function getRequiredProvider<T>(
+    provider: LazyRenderingRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (provider === undefined) {
+        throw new TypeError(
+            `lazyRenderingRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getLazyRenderingRuntime(
     scope: LazyRenderingRuntimeScope = defaultLazyRenderingRuntimeScope
 ): LazyRenderingRuntime {
@@ -112,7 +113,10 @@ export function getLazyRenderingRuntime(
             callback: IntersectionObserverCallback,
             options: Readonly<IntersectionObserverInit>
         ): IntersectionObserver | undefined {
-            const Observer = scope.getIntersectionObserver?.();
+            const Observer = getRequiredProvider(
+                scope.getIntersectionObserver,
+                "IntersectionObserver"
+            )();
             if (typeof Observer !== "function") {
                 return undefined;
             }
@@ -120,8 +124,14 @@ export function getLazyRenderingRuntime(
             return new Observer(callback, options);
         },
         getViewport(): LazyRenderingViewport {
-            const document = scope.getDocument?.();
-            const viewport = scope.getViewport?.();
+            const document = getRequiredProvider(
+                scope.getDocument,
+                "document"
+            )();
+            const viewport = getRequiredProvider(
+                scope.getViewport,
+                "viewport"
+            )();
             return {
                 height: resolveViewportDimension(
                     viewport?.height,
@@ -134,7 +144,10 @@ export function getLazyRenderingRuntime(
             };
         },
         isHTMLElement(element: Readonly<Element>): element is HTMLElement {
-            const HTMLElementConstructor = scope.getHTMLElement?.();
+            const HTMLElementConstructor = getRequiredProvider(
+                scope.getHTMLElement,
+                "HTMLElement"
+            )();
             return (
                 typeof HTMLElementConstructor === "function" &&
                 element instanceof HTMLElementConstructor
@@ -143,7 +156,10 @@ export function getLazyRenderingRuntime(
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): number | undefined {
-            const requestAnimationFrame = scope.getRequestAnimationFrame?.();
+            const requestAnimationFrame = getRequiredProvider(
+                scope.getRequestAnimationFrame,
+                "requestAnimationFrame"
+            )();
             if (typeof requestAnimationFrame !== "function") {
                 return undefined;
             }
@@ -154,7 +170,10 @@ export function getLazyRenderingRuntime(
             callback: IdleRequestCallback,
             options: Readonly<IdleRequestOptions>
         ): number | undefined {
-            const requestIdleCallback = scope.getRequestIdleCallback?.();
+            const requestIdleCallback = getRequiredProvider(
+                scope.getRequestIdleCallback,
+                "requestIdleCallback"
+            )();
             if (typeof requestIdleCallback !== "function") {
                 return undefined;
             }
@@ -162,7 +181,10 @@ export function getLazyRenderingRuntime(
             return requestIdleCallback(callback, options);
         },
         setTimeout(callback: () => void): LazyRenderingTimeoutHandle {
-            const timeout = scope.getSetTimeout?.();
+            const timeout = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof timeout !== "function") {
                 throw new TypeError("lazyRenderingRuntime requires setTimeout");
             }
