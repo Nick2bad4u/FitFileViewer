@@ -7,10 +7,10 @@ import {
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateAddFitFileToMapButtonRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface CreateAddFitFileToMapButtonRuntime {
@@ -33,13 +33,27 @@ const defaultCreateAddFitFileToMapButtonRuntimeScope: CreateAddFitFileToMapButto
 function getScopeDocument(
     scope: CreateAddFitFileToMapButtonRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "createAddFitFileToMapButton requires a document provider"
+        );
+    }
+
+    return getRuntimeDocument();
 }
 
 function getAbortControllerConstructor(
     scope: CreateAddFitFileToMapButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const getRuntimeAbortController = scope.getAbortController;
+    if (typeof getRuntimeAbortController !== "function") {
+        throw new TypeError(
+            "createAddFitFileToMapButton requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = getRuntimeAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createAddFitFileToMapButton requires an AbortController runtime"

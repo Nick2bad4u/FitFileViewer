@@ -19077,7 +19077,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(25);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -19120,10 +19120,22 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.document"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "defaultView?.AbortController"
@@ -19151,6 +19163,12 @@ describe("architecture boundaries", () => {
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "createAddFitFileToMapButton requires an AbortController provider"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "createAddFitFileToMapButton requires a document provider"
         );
     });
 

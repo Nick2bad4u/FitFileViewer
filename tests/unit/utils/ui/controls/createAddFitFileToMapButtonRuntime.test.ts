@@ -4,6 +4,11 @@ import type { BrowserAbortControllerConstructor } from "../../../../../electron-
 import { getCreateAddFitFileToMapButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createAddFitFileToMapButtonRuntime.js";
 
 describe("getCreateAddFitFileToMapButtonRuntime", () => {
+    const unavailableAddFitFileToMapButtonRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+    } satisfies Parameters<typeof getCreateAddFitFileToMapButtonRuntime>[0];
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -12,6 +17,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         expect.assertions(3);
 
         const runtime = getCreateAddFitFileToMapButtonRuntime({
+            getAbortController: () => undefined,
             getDocument: () => document,
         });
 
@@ -62,18 +68,17 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getCreateAddFitFileToMapButtonRuntime({});
+        const runtime = getCreateAddFitFileToMapButtonRuntime(
+            unavailableAddFitFileToMapButtonRuntimeScope
+        );
         const runtimeWithoutAbortController =
             getCreateAddFitFileToMapButtonRuntime({
-                getDocument: () =>
-                    ({
-                        defaultView: {
-                            AbortController,
-                        },
-                    }) as Document,
+                ...unavailableAddFitFileToMapButtonRuntimeScope,
+                getDocument: () => document,
             });
         const runtimeWithInvalidAbortController =
             getCreateAddFitFileToMapButtonRuntime({
+                ...unavailableAddFitFileToMapButtonRuntimeScope,
                 getAbortController: () =>
                     "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
@@ -94,6 +99,23 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(2);
+
+        const runtime = getCreateAddFitFileToMapButtonRuntime(
+            {} as unknown as Parameters<
+                typeof getCreateAddFitFileToMapButtonRuntime
+            >[0]
+        );
+
+        expect(() => runtime.createButton()).toThrow(
+            "createAddFitFileToMapButton requires a document provider"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createAddFitFileToMapButton requires an AbortController provider"
+        );
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(5);
 
@@ -105,6 +127,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
             },
         };
         const runtime = getCreateAddFitFileToMapButtonRuntime({
+            ...unavailableAddFitFileToMapButtonRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
