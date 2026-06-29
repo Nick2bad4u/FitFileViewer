@@ -8,11 +8,9 @@ import {
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export interface CreatePrintButtonRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getPrint?: (() => (() => void) | undefined) | undefined;
+    readonly getAbortController: CreatePrintButtonRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: CreatePrintButtonRuntimeProvider<Document>;
+    readonly getPrint: CreatePrintButtonRuntimeProvider<CreatePrintButtonPrint>;
 }
 
 export interface CreatePrintButtonRuntime {
@@ -27,8 +25,46 @@ export interface CreatePrintButtonRuntime {
     print: () => void;
 }
 
+type CreatePrintButtonPrint = () => void;
+
+type CreatePrintButtonRuntimeProvider<T> = (() => T | undefined) | undefined;
+
+function getRequiredProvider<T>(
+    provider: CreatePrintButtonRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createPrintButton requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
+function getAbortControllerConstructor(
+    scope: CreatePrintButtonRuntimeScope
+): BrowserAbortControllerConstructor {
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "createPrintButton requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
+}
+
 function getDocument(scope: CreatePrintButtonRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("createPrintButton requires a document runtime");
     }
@@ -57,14 +93,7 @@ export function getCreatePrintButtonRuntime(
 ): CreatePrintButtonRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
-            if (typeof AbortControllerConstructor !== "function") {
-                throw new TypeError(
-                    "createPrintButton requires an AbortController runtime"
-                );
-            }
-
-            return new AbortControllerConstructor();
+            return new (getAbortControllerConstructor(scope))();
         },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
@@ -80,7 +109,7 @@ export function getCreatePrintButtonRuntime(
             return createSvgElement(scope, tagName);
         },
         print(): void {
-            scope.getPrint?.()?.();
+            getRequiredProvider(scope.getPrint, "print")()?.();
         },
     };
 }

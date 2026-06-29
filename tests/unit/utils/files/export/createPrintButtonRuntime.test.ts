@@ -5,6 +5,17 @@ import {
     type CreatePrintButtonRuntimeScope,
 } from "../../../../../electron-app/utils/files/export/createPrintButtonRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<CreatePrintButtonRuntimeScope> = {}
+): CreatePrintButtonRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getPrint: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getCreatePrintButtonRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -26,9 +37,11 @@ describe("getCreatePrintButtonRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getCreatePrintButtonRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const runtime = getCreatePrintButtonRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -66,7 +79,9 @@ describe("getCreatePrintButtonRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getCreatePrintButtonRuntime({});
+        const runtime = getCreatePrintButtonRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -76,9 +91,11 @@ describe("getCreatePrintButtonRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreatePrintButtonRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getCreatePrintButtonRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+            })
+        );
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
@@ -93,7 +110,9 @@ describe("getCreatePrintButtonRuntime", () => {
             printed = true;
         };
 
-        getCreatePrintButtonRuntime({ getPrint: () => print }).print();
+        getCreatePrintButtonRuntime(
+            createUnavailableRuntimeScope({ getPrint: () => print })
+        ).print();
 
         expect(printed).toBe(true);
     });
@@ -101,7 +120,32 @@ describe("getCreatePrintButtonRuntime", () => {
     it("does nothing when print is unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getCreatePrintButtonRuntime({}).print()).not.toThrow();
+        expect(() =>
+            getCreatePrintButtonRuntime(createUnavailableRuntimeScope()).print()
+        ).not.toThrow();
+    });
+
+    it("fails clearly when required runtime providers are missing", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getCreatePrintButtonRuntime({
+                getDocument: () => document,
+                getPrint: () => undefined,
+            } as unknown as CreatePrintButtonRuntimeScope).createAbortController()
+        ).toThrow("createPrintButton requires an AbortController provider");
+        expect(() =>
+            getCreatePrintButtonRuntime({
+                getAbortController: () => AbortController,
+                getPrint: () => undefined,
+            } as unknown as CreatePrintButtonRuntimeScope).createButton()
+        ).toThrow("createPrintButton requires a document provider");
+        expect(() =>
+            getCreatePrintButtonRuntime({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+            } as unknown as CreatePrintButtonRuntimeScope).print()
+        ).toThrow("createPrintButton requires a print provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -118,12 +162,14 @@ describe("getCreatePrintButtonRuntime", () => {
         const runtime = getCreatePrintButtonRuntime(legacyScope);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "createPrintButton requires an AbortController runtime"
+            "createPrintButton requires an AbortController provider"
         );
         expect(() => runtime.createButton()).toThrow(
-            "createPrintButton requires a document runtime"
+            "createPrintButton requires a document provider"
         );
-        expect(() => runtime.print()).not.toThrow();
+        expect(() => runtime.print()).toThrow(
+            "createPrintButton requires a print provider"
+        );
         expect(printed).toBe(false);
     });
 });

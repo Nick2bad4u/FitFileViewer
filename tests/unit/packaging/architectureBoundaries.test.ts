@@ -18956,7 +18956,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(38);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -18980,7 +18980,7 @@ describe("architecture boundaries", () => {
                 "export interface CreatePrintButtonRuntimeScope"
             ),
             createPrintButtonRuntimeSource.indexOf(
-                "export interface CreatePrintButtonRuntime"
+                "export interface CreatePrintButtonRuntime {"
             )
         );
 
@@ -19005,6 +19005,20 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly print?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getPrint?:");
+        expect(runtimeScopeSource).toContain(
+            "readonly getAbortController: CreatePrintButtonRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getDocument: CreatePrintButtonRuntimeProvider<Document>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getPrint: CreatePrintButtonRuntimeProvider<CreatePrintButtonPrint>;"
+        );
         expect(createPrintButtonRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -19038,13 +19052,31 @@ describe("architecture boundaries", () => {
             "getPrint: () => globalThis.print"
         );
         expect(createPrintButtonRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "type CreatePrintButtonRuntimeProvider<T> ="
         );
         expect(createPrintButtonRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "function getRequiredProvider<T>("
         );
         expect(createPrintButtonRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            'scope.getDocument,\n        "document"'
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            'getRequiredProvider(scope.getPrint, "print")()?.();'
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain(
             "scope.getPrint?.()?.();"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "createPrintButton requires ${article} ${providerName} provider"
         );
     });
 
