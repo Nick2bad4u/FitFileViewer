@@ -88,4 +88,21 @@ describe("animation debug logging", () => {
             "[AnimPerf@1500.00ms] frame (1499.00ms)"
         );
     });
+
+    it("accepts partial logger runtime overrides", () => {
+        expect.assertions(2);
+
+        const consoleLog = vi.fn<(...args: unknown[]) => void>();
+        const logger = createAnimationDebugLogger({
+            getConsole: () => ({ log: consoleLog }),
+            isDevelopmentEnvironment: () => true,
+        });
+
+        const result = logger.criticalAnimLog("partial override");
+
+        expect(result).toBeUndefined();
+        expect(consoleLog).toHaveBeenCalledExactlyOnceWith(
+            "[AnimCritical] partial override"
+        );
+    });
 });

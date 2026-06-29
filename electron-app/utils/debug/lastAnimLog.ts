@@ -24,14 +24,6 @@ export interface AnimationDebugLogger {
 }
 
 export interface AnimationDebugLoggerRuntime {
-    readonly getConsole?: (() => AnimationDebugConsole | undefined) | undefined;
-    readonly getLastAnimLogRuntime?: (() => LastAnimLogRuntime) | undefined;
-    readonly getRendererDebugRuntime?: (() => RendererDebugRuntime) | undefined;
-    readonly isDevelopmentEnvironment?: (() => boolean) | undefined;
-    readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
-}
-
-interface ResolvedAnimationDebugLoggerRuntime {
     readonly getConsole: () => AnimationDebugConsole | undefined;
     readonly getLastAnimLogRuntime: () => LastAnimLogRuntime;
     readonly getRendererDebugRuntime: () => RendererDebugRuntime;
@@ -39,7 +31,9 @@ interface ResolvedAnimationDebugLoggerRuntime {
     readonly isRendererDebugLoggingEnabled: () => boolean;
 }
 
-const defaultAnimationDebugLoggerRuntime: ResolvedAnimationDebugLoggerRuntime = {
+type AnimationDebugLoggerOptions = Partial<AnimationDebugLoggerRuntime>;
+
+const defaultAnimationDebugLoggerRuntime: AnimationDebugLoggerRuntime = {
     getConsole: () => console,
     getLastAnimLogRuntime,
     getRendererDebugRuntime,
@@ -48,8 +42,8 @@ const defaultAnimationDebugLoggerRuntime: ResolvedAnimationDebugLoggerRuntime = 
 };
 
 function resolveAnimationDebugLoggerRuntime(
-    runtime: AnimationDebugLoggerRuntime
-): ResolvedAnimationDebugLoggerRuntime {
+    runtime: AnimationDebugLoggerOptions
+): AnimationDebugLoggerRuntime {
     return {
         getConsole:
             runtime.getConsole ?? defaultAnimationDebugLoggerRuntime.getConsole,
@@ -74,15 +68,14 @@ function resolveAnimationDebugLoggerRuntime(
  * @returns True when development logging is enabled.
  */
 function isDevelopmentMode(
-    runtime: ResolvedAnimationDebugLoggerRuntime
+    runtime: AnimationDebugLoggerRuntime
 ): boolean {
     return (
         runtime
             .getRendererDebugRuntime()
             .isRendererDebugLoggingAvailable(
                 runtime.isRendererDebugLoggingEnabled()
-            ) ||
-        runtime.isDevelopmentEnvironment()
+            ) || runtime.isDevelopmentEnvironment()
     );
 }
 
@@ -90,10 +83,11 @@ function isDevelopmentMode(
  * Creates throttled animation debug loggers with explicit runtime providers.
  *
  * @param options - Optional runtime provider overrides.
+ *
  * @returns Animation debug logger functions.
  */
 export function createAnimationDebugLogger(
-    options: AnimationDebugLoggerRuntime = {}
+    options: AnimationDebugLoggerOptions = {}
 ): AnimationDebugLogger {
     const runtime = resolveAnimationDebugLoggerRuntime(options);
     let lastAnimLogTimestamp = 0;
@@ -130,7 +124,10 @@ export function createAnimationDebugLogger(
 
             try {
                 const now = runtime.getLastAnimLogRuntime().performanceNow();
-                if (now - lastPerfLogTimestamp > PERFORMANCE_THROTTLE_INTERVAL_MS) {
+                if (
+                    now - lastPerfLogTimestamp >
+                    PERFORMANCE_THROTTLE_INTERVAL_MS
+                ) {
                     const duration = startTime
                         ? ` (${(now - startTime).toFixed(2)}ms)`
                         : "";
