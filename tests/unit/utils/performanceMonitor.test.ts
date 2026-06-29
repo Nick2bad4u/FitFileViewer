@@ -4,6 +4,18 @@ import {
     PerformanceMonitor,
     performanceMonitor,
 } from "../../../electron-app/utils/performance/performanceMonitor.js";
+import type { PerformanceMonitorRuntime } from "../../../electron-app/utils/performance/performanceMonitorRuntime.js";
+
+function createRuntime(
+    overrides: Partial<PerformanceMonitorRuntime> = {}
+): PerformanceMonitorRuntime {
+    return {
+        getProcessEnvironmentValue: () => undefined,
+        isDevelopmentEnvironment: () => false,
+        nowPerformance: () => 0,
+        ...overrides,
+    };
+}
 
 function getRequiredTimer(
     timer: ReturnType<PerformanceMonitor["getTimer"]>,
@@ -43,9 +55,11 @@ describe(PerformanceMonitor, () => {
             .fn<() => number>()
             .mockReturnValueOnce(100)
             .mockReturnValueOnce(142.5);
-        const monitor = new PerformanceMonitor({
-            nowPerformance: now,
-        });
+        const monitor = new PerformanceMonitor(
+            createRuntime({
+                nowPerformance: now,
+            })
+        );
         const consoleLog = vi
             .spyOn(console, "log")
             .mockImplementation(() => {});
@@ -75,6 +89,27 @@ describe(PerformanceMonitor, () => {
         } finally {
             vi.restoreAllMocks();
         }
+    });
+
+    it("enables monitoring from injected runtime environment providers", () => {
+        expect.assertions(3);
+
+        expect(
+            new PerformanceMonitor(
+                createRuntime({
+                    isDevelopmentEnvironment: () => true,
+                })
+            ).isEnabled()
+        ).toBe(true);
+        expect(
+            new PerformanceMonitor(
+                createRuntime({
+                    getProcessEnvironmentValue: (name) =>
+                        name === "PERFORMANCE_MONITORING" ? "true" : undefined,
+                })
+            ).isEnabled()
+        ).toBe(true);
+        expect(new PerformanceMonitor(createRuntime()).isEnabled()).toBe(false);
     });
 
     it("warns and returns null for missing timers", () => {

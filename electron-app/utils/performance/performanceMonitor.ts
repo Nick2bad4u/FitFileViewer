@@ -1,8 +1,4 @@
 import {
-    getProcessEnvironmentValue,
-    isDevelopmentEnvironment,
-} from "../runtime/processEnvironment.js";
-import {
     getPerformanceMonitorRuntime,
     type PerformanceMonitorRuntime,
 } from "./performanceMonitorRuntime.js";
@@ -20,16 +16,19 @@ export type PerformanceTimer = {
  * Tracks operation timings when performance monitoring is enabled.
  */
 export class PerformanceMonitor {
-    private enabled =
-        isDevelopmentEnvironment() ||
-        getProcessEnvironmentValue("PERFORMANCE_MONITORING") === "true";
+    private enabled: boolean;
 
     private readonly timers = new Map<string, PerformanceTimer>();
 
     constructor(
         private readonly runtime: PerformanceMonitorRuntime =
             getPerformanceMonitorRuntime()
-    ) {}
+    ) {
+        this.enabled =
+            runtime.isDevelopmentEnvironment() ||
+            runtime.getProcessEnvironmentValue("PERFORMANCE_MONITORING") ===
+                "true";
+    }
 
     /**
      * Clear all tracked timers.

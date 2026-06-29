@@ -10393,7 +10393,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared performance monitor timing behind its runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(33);
 
         const performanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -10415,9 +10415,27 @@ describe("architecture boundaries", () => {
         expect(performanceMonitorSource).toContain(
             "this.runtime.nowPerformance()"
         );
+        expect(performanceMonitorSource).toContain(
+            "runtime.isDevelopmentEnvironment()"
+        );
+        expect(performanceMonitorSource).toContain(
+            'runtime.getProcessEnvironmentValue("PERFORMANCE_MONITORING")'
+        );
+        expect(performanceMonitorSource).not.toContain(
+            "../runtime/processEnvironment.js"
+        );
         expect(performanceMonitorSource).not.toContain("performance.now");
         expect(performanceMonitorRuntimeSource).toContain(
             "defaultPerformanceMonitorRuntimeScope"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "../runtime/processEnvironment.js"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
         );
         expect(performanceMonitorRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
@@ -10428,11 +10446,23 @@ describe("architecture boundaries", () => {
         expect(performanceMonitorRuntimeSource).toMatch(
             /readonly\s+getPerformance:\s*PerformanceMonitorRuntimeProvider<PerformanceMonitorPerformanceRuntime>/u
         );
+        expect(performanceMonitorRuntimeSource).toMatch(
+            /readonly\s+getIsDevelopmentEnvironment:\s*PerformanceMonitorRuntimeProvider<boolean>/u
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "getProcessEnvironmentValue:"
+        );
         expect(performanceMonitorRuntimeSource).toContain(
             "function getRequiredProvider"
         );
         expect(performanceMonitorRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(performanceMonitorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsDevelopmentEnvironment,\s*"isDevelopmentEnvironment"\s*\)/u
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "getRequiredProcessEnvironmentProvider("
         );
         expect(performanceMonitorRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
@@ -10445,6 +10475,9 @@ describe("architecture boundaries", () => {
         );
         expect(performanceMonitorRuntimeSource).toContain(
             "performanceMonitorRuntime requires performance.now"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "performanceMonitorRuntime requires a processEnvironmentValue provider"
         );
         expect(performanceMonitorRuntimeSource).not.toContain(
             "readonly performance?:"
