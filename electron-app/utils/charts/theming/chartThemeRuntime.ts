@@ -7,17 +7,13 @@ import {
 export type ChartTheme = "dark" | "light";
 
 export interface ChartThemeRuntimeScope {
-    readonly getDocument:
-        | (() => Pick<Document, "body"> | undefined)
-        | undefined;
-    readonly getLocalStorage:
-        | (() => Pick<Storage, "getItem"> | undefined)
-        | undefined;
-    readonly getMatchMedia:
-        | (() =>
-              | ((query: string) => Pick<MediaQueryList, "matches">)
-              | undefined)
-        | undefined;
+    readonly getDocument: ChartThemeRuntimeProvider<Pick<Document, "body">>;
+    readonly getLocalStorage: ChartThemeRuntimeProvider<
+        Pick<Storage, "getItem">
+    >;
+    readonly getMatchMedia: ChartThemeRuntimeProvider<
+        (query: string) => Pick<MediaQueryList, "matches">
+    >;
 }
 
 export interface ChartThemeRuntime {
@@ -28,6 +24,8 @@ export interface ChartThemeRuntime {
 
 const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
 
+type ChartThemeRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = {
     getDocument: getBrowserDocument,
     getLocalStorage: getBrowserLocalStorage,
@@ -35,54 +33,70 @@ const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = {
 };
 
 function getScopeDocument(
-    scope: ChartThemeRuntimeScope
+    getDocument: () => Pick<Document, "body"> | undefined
 ): Pick<Document, "body"> | undefined {
-    if (typeof scope.getDocument !== "function") {
-        throw new TypeError("chartThemeRuntime requires a document provider");
-    }
-
-    return scope.getDocument();
+    return getDocument();
 }
 
 function getScopeLocalStorage(
-    scope: ChartThemeRuntimeScope
+    getLocalStorage: () => Pick<Storage, "getItem"> | undefined
 ): Pick<Storage, "getItem"> | undefined {
-    if (typeof scope.getLocalStorage !== "function") {
-        throw new TypeError(
-            "chartThemeRuntime requires a localStorage provider"
-        );
-    }
-
-    return scope.getLocalStorage();
+    return getLocalStorage();
 }
 
 function getScopeMatchMedia(
-    scope: ChartThemeRuntimeScope
+    getMatchMedia: () =>
+        | ((query: string) => Pick<MediaQueryList, "matches">)
+        | undefined
 ): ((query: string) => Pick<MediaQueryList, "matches">) | undefined {
-    if (typeof scope.getMatchMedia !== "function") {
-        throw new TypeError("chartThemeRuntime requires a matchMedia provider");
-    }
-
-    return scope.getMatchMedia();
+    return getMatchMedia();
 }
 
 export function getChartThemeRuntime(
     scope: ChartThemeRuntimeScope = defaultChartThemeRuntimeScope
 ): ChartThemeRuntime {
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getLocalStorage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    );
+    const getMatchMedia = getRequiredProvider(
+        scope.getMatchMedia,
+        "matchMedia"
+    );
+
     return {
         getSavedTheme(): null | string {
-            return getScopeLocalStorage(scope)?.getItem("ffv-theme") ?? null;
+            return (
+                getScopeLocalStorage(getLocalStorage)?.getItem("ffv-theme") ??
+                null
+            );
         },
         getSystemPreferredTheme(): ChartTheme {
-            return getScopeMatchMedia(scope)?.(DARK_SCHEME_QUERY).matches
+            return getScopeMatchMedia(getMatchMedia)?.(DARK_SCHEME_QUERY)
+                .matches
                 ? "dark"
                 : "light";
         },
         hasBodyThemeClass(themeClass: string): boolean {
             return (
-                getScopeDocument(scope)?.body.classList.contains(themeClass) ??
-                false
+                getScopeDocument(getDocument)?.body.classList.contains(
+                    themeClass
+                ) ?? false
             );
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: ChartThemeRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `chartThemeRuntime requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

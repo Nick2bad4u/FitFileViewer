@@ -26398,7 +26398,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(39);
 
         const violations = migratedChartThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -26441,6 +26441,30 @@ describe("architecture boundaries", () => {
         expect(chartThemeRuntimeSource).toContain(
             "getMatchMedia: getBrowserMatchMedia"
         );
+        expect(chartThemeRuntimeSource).toContain(
+            "type ChartThemeRuntimeProvider"
+        );
+        expect(chartThemeRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*ChartThemeRuntimeProvider<\s*Pick<Document,\s*"body">\s*>/u
+        );
+        expect(chartThemeRuntimeSource).toMatch(
+            /readonly\s+getLocalStorage:\s*ChartThemeRuntimeProvider<\s*Pick<Storage,\s*"getItem">\s*>/u
+        );
+        expect(chartThemeRuntimeSource).toMatch(
+            /readonly\s+getMatchMedia:\s*ChartThemeRuntimeProvider<\s*\(query:\s*string\)\s*=>\s*Pick<MediaQueryList,\s*"matches">\s*>/u
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(chartThemeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(chartThemeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocalStorage,\s*"localStorage"\s*\)/u
+        );
+        expect(chartThemeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMatchMedia,\s*"matchMedia"\s*\)/u
+        );
         expect(chartThemeRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -26469,23 +26493,20 @@ describe("architecture boundaries", () => {
         expect(chartThemeRuntimeSource).not.toContain(
             "scope.getMatchMedia?.()"
         );
-        expect(chartThemeRuntimeSource).toContain(
+        expect(chartThemeRuntimeSource).toContain("return getDocument();");
+        expect(chartThemeRuntimeSource).not.toContain(
             "return scope.getDocument();"
         );
-        expect(chartThemeRuntimeSource).toContain(
+        expect(chartThemeRuntimeSource).toContain("return getLocalStorage();");
+        expect(chartThemeRuntimeSource).not.toContain(
             "return scope.getLocalStorage();"
         );
-        expect(chartThemeRuntimeSource).toContain(
+        expect(chartThemeRuntimeSource).toContain("return getMatchMedia();");
+        expect(chartThemeRuntimeSource).not.toContain(
             "return scope.getMatchMedia();"
         );
         expect(chartThemeRuntimeSource).toContain(
-            "chartThemeRuntime requires a document provider"
-        );
-        expect(chartThemeRuntimeSource).toContain(
-            "chartThemeRuntime requires a localStorage provider"
-        );
-        expect(chartThemeRuntimeSource).toContain(
-            "chartThemeRuntime requires a matchMedia provider"
+            "chartThemeRuntime requires a ${providerName} provider"
         );
         expect(chartThemeRuntimeSource).not.toContain("scope.document");
         expect(chartThemeRuntimeSource).not.toContain("scope.localStorage");

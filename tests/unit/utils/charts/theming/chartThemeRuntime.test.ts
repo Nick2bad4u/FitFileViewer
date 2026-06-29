@@ -143,35 +143,78 @@ describe("getChartThemeRuntime", () => {
     });
 
     it("fails clearly when explicit scopes omit providers", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
-        const runtime = getChartThemeRuntime(
-            {} as unknown as ChartThemeRuntimeScope
-        );
-
-        expect(() => runtime.hasBodyThemeClass("theme-dark")).toThrow(
-            "chartThemeRuntime requires a document provider"
-        );
-        expect(() => runtime.getSavedTheme()).toThrow(
-            "chartThemeRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.getSystemPreferredTheme()).toThrow(
-            "chartThemeRuntime requires a matchMedia provider"
-        );
+        expect(() =>
+            getChartThemeRuntime({} as unknown as ChartThemeRuntimeScope)
+        ).toThrow("chartThemeRuntime requires a document provider");
     });
 
-    it("falls back to light when runtime browser providers return unavailable APIs", () => {
+    it("fails clearly when provider slots are undefined", () => {
         expect.assertions(3);
 
-        const runtime = getChartThemeRuntime(createUnavailableScope());
+        expect(() =>
+            getChartThemeRuntime({
+                getDocument: undefined,
+                getLocalStorage: () => undefined,
+                getMatchMedia: () => undefined,
+            })
+        ).toThrow("chartThemeRuntime requires a document provider");
+        expect(() =>
+            getChartThemeRuntime({
+                getDocument: () => undefined,
+                getLocalStorage: undefined,
+                getMatchMedia: () => undefined,
+            })
+        ).toThrow("chartThemeRuntime requires a localStorage provider");
+        expect(() =>
+            getChartThemeRuntime({
+                getDocument: () => undefined,
+                getLocalStorage: () => undefined,
+                getMatchMedia: undefined,
+            })
+        ).toThrow("chartThemeRuntime requires a matchMedia provider");
+    });
+
+    it("fails clearly when individual providers are missing", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getChartThemeRuntime({
+                getLocalStorage: () => undefined,
+                getMatchMedia: () => undefined,
+            } as unknown as ChartThemeRuntimeScope)
+        ).toThrow("chartThemeRuntime requires a document provider");
+        expect(() =>
+            getChartThemeRuntime({
+                getDocument: () => undefined,
+                getMatchMedia: () => undefined,
+            } as unknown as ChartThemeRuntimeScope)
+        ).toThrow("chartThemeRuntime requires a localStorage provider");
+        expect(() =>
+            getChartThemeRuntime({
+                getDocument: () => undefined,
+                getLocalStorage: () => undefined,
+            } as unknown as ChartThemeRuntimeScope)
+        ).toThrow("chartThemeRuntime requires a matchMedia provider");
+    });
+
+    it("keeps unavailable browser APIs behind provider functions", () => {
+        expect.assertions(3);
+
+        const runtime = getChartThemeRuntime({
+            getDocument: () => undefined,
+            getLocalStorage: () => undefined,
+            getMatchMedia: () => undefined,
+        });
 
         expect(runtime.hasBodyThemeClass("theme-dark")).toBe(false);
         expect(runtime.getSavedTheme()).toBeNull();
         expect(runtime.getSystemPreferredTheme()).toBe("light");
     });
 
-    it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(6);
+    it("fails clearly when legacy direct runtime primitive properties are provided without providers", () => {
+        expect.assertions(4);
 
         const classList = {
             contains: vi.fn<(themeClass: string) => boolean>(
@@ -182,29 +225,32 @@ describe("getChartThemeRuntime", () => {
         const matchMedia = vi.fn<
             (query: string) => Pick<MediaQueryList, "matches">
         >(() => ({ matches: true }));
-        const runtime = getChartThemeRuntime({
-            document: {
-                body: {
-                    classList,
-                } as HTMLElement,
-            },
-            localStorage: {
-                getItem,
-            },
-            matchMedia,
-        } as unknown as Parameters<typeof getChartThemeRuntime>[0]);
 
-        expect(() => runtime.hasBodyThemeClass("theme-dark")).toThrow(
-            "chartThemeRuntime requires a document provider"
-        );
-        expect(() => runtime.getSavedTheme()).toThrow(
-            "chartThemeRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.getSystemPreferredTheme()).toThrow(
-            "chartThemeRuntime requires a matchMedia provider"
-        );
+        expect(() =>
+            getChartThemeRuntime({
+                document: {
+                    body: {
+                        classList,
+                    } as HTMLElement,
+                },
+                localStorage: {
+                    getItem,
+                },
+                matchMedia,
+            } as unknown as Parameters<typeof getChartThemeRuntime>[0])
+        ).toThrow("chartThemeRuntime requires a document provider");
         expect(classList.contains).not.toHaveBeenCalled();
         expect(getItem).not.toHaveBeenCalled();
         expect(matchMedia).not.toHaveBeenCalled();
+    });
+
+    it("falls back to light when runtime browser providers return unavailable APIs", () => {
+        expect.assertions(3);
+
+        const runtime = getChartThemeRuntime(createUnavailableScope());
+
+        expect(runtime.hasBodyThemeClass("theme-dark")).toBe(false);
+        expect(runtime.getSavedTheme()).toBeNull();
+        expect(runtime.getSystemPreferredTheme()).toBe("light");
     });
 });
