@@ -1,7 +1,27 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getBrowserRendererRuntimeEnvironmentScope } from "../../../electron-app/renderer/rendererBrowserRuntime.js";
-import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "../../../electron-app/renderer/runtimeEnvironment.js";
+import {
+    createRendererRuntimeEnvironment as createRuntimeEnvironment,
+    type RendererRuntimeEnvironmentScope,
+} from "../../../electron-app/renderer/runtimeEnvironment.js";
+
+function createRendererRuntimeEnvironmentScope(
+    overrides: Partial<RendererRuntimeEnvironmentScope> = {}
+): RendererRuntimeEnvironmentScope {
+    return {
+        getAddEventListener: () => undefined,
+        getClearInterval: () => undefined,
+        getConsole: () => undefined,
+        getDocument: () => undefined,
+        getElectronAPI: () => undefined,
+        getRemoveEventListener: () => undefined,
+        getRendererEventTarget: () => undefined,
+        getSetInterval: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("renderer runtime environment", () => {
     afterEach(() => {
@@ -135,20 +155,26 @@ describe("renderer runtime environment", () => {
     it("throws when required runtime providers are unavailable", () => {
         expect.assertions(3);
 
-        expect(() => createRuntimeEnvironment({})).toThrow(
-            "renderer runtime environment requires addEventListener"
+        expect(() =>
+            createRuntimeEnvironment(
+                {} as unknown as RendererRuntimeEnvironmentScope
+            )
+        ).toThrow(
+            "renderer runtime environment requires addEventListener provider"
         );
         expect(() =>
-            createRuntimeEnvironment({
-                getAddEventListener: () => vi.fn(),
-                getClearInterval: () => vi.fn(),
-                getConsole: () => console,
-                getDocument: () => document,
-                getElectronAPI: () => undefined,
-                getRemoveEventListener: () => vi.fn(),
-                getSetInterval: () => vi.fn(),
-                getSetTimeout: () => vi.fn(),
-            })
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getAddEventListener: () => vi.fn(),
+                    getClearInterval: () => vi.fn(),
+                    getConsole: () => console,
+                    getDocument: () => document,
+                    getElectronAPI: () => undefined,
+                    getRemoveEventListener: () => vi.fn(),
+                    getSetInterval: () => vi.fn(),
+                    getSetTimeout: () => vi.fn(),
+                })
+            )
         ).toThrow(
             "renderer runtime environment requires a renderer event target"
         );
@@ -162,10 +188,88 @@ describe("renderer runtime environment", () => {
                 getRendererEventTarget: () => globalThis,
                 getSetInterval: () => vi.fn(),
                 getSetTimeout: () => vi.fn(),
-            } as unknown as Parameters<typeof createRuntimeEnvironment>[0])
+            } as unknown as RendererRuntimeEnvironmentScope)
         ).toThrow(
-            "renderer runtime environment requires an electron API provider"
+            "renderer runtime environment requires electron API provider"
         );
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(9);
+
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getAddEventListener: undefined,
+                })
+            )
+        ).toThrow(
+            "renderer runtime environment requires addEventListener provider"
+        );
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getClearInterval: undefined,
+                })
+            )
+        ).toThrow(
+            "renderer runtime environment requires clearInterval provider"
+        );
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getConsole: undefined,
+                })
+            )
+        ).toThrow("renderer runtime environment requires console provider");
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getDocument: undefined,
+                })
+            )
+        ).toThrow("renderer runtime environment requires document provider");
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getElectronAPI: undefined,
+                })
+            )
+        ).toThrow(
+            "renderer runtime environment requires electron API provider"
+        );
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getRemoveEventListener: undefined,
+                })
+            )
+        ).toThrow(
+            "renderer runtime environment requires removeEventListener provider"
+        );
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getRendererEventTarget: undefined,
+                })
+            )
+        ).toThrow(
+            "renderer runtime environment requires renderer event target provider"
+        );
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getSetInterval: undefined,
+                })
+            )
+        ).toThrow("renderer runtime environment requires setInterval provider");
+        expect(() =>
+            createRuntimeEnvironment(
+                createRendererRuntimeEnvironmentScope({
+                    getSetTimeout: undefined,
+                })
+            )
+        ).toThrow("renderer runtime environment requires setTimeout provider");
     });
 
     it("ignores legacy direct scoped timer and DOM providers", () => {
@@ -211,11 +315,11 @@ describe("renderer runtime environment", () => {
 
         expect(() =>
             createRuntimeEnvironment(
-                legacyDirectScope as unknown as Parameters<
-                    typeof createRuntimeEnvironment
-                >[0]
+                legacyDirectScope as unknown as RendererRuntimeEnvironmentScope
             )
-        ).toThrow("renderer runtime environment requires addEventListener");
+        ).toThrow(
+            "renderer runtime environment requires addEventListener provider"
+        );
 
         const environment = createRuntimeEnvironment({
             ...legacyDirectScope,

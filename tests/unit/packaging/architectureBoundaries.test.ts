@@ -7209,7 +7209,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(209);
+        expect.assertions(223);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -7346,7 +7346,49 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "readonly getElectronAPI: () => unknown"
+            "type RendererRuntimeEnvironmentProvider"
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /readonly\s+getElectronAPI:\s*RendererRuntimeEnvironmentProvider<unknown>/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAddEventListener,\s*"addEventListener"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearInterval,\s*"clearInterval"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getConsole,\s*"console"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getElectronAPI,\s*"electron API"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRemoveEventListener,\s*"removeEventListener"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRendererEventTarget,\s*"renderer event target"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetInterval,\s*"setInterval"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(rendererRuntimeEnvironmentSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "renderer runtime environment requires ${providerLabel} provider"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "providerLabel: string"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
             "getRendererEventTarget"
@@ -7372,7 +7414,7 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).toContain(
             "electronApiScope: createRendererElectronApiScope("
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "renderer runtime environment requires an electron API provider"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(

@@ -34,26 +34,30 @@ export type RendererRuntimeEnvironment = {
 };
 
 export type RendererRuntimeEnvironmentScope = {
-    readonly getAddEventListener?:
-        | (() => RendererAddEventListener | undefined)
-        | undefined;
-    readonly getClearInterval?:
-        | (() => RendererClearInterval | undefined)
-        | undefined;
-    readonly getConsole?: (() => Console | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getElectronAPI: () => unknown;
-    readonly getRemoveEventListener?:
-        | (() => RendererRemoveEventListener | undefined)
-        | undefined;
-    readonly getRendererEventTarget?:
-        | (() => RendererRuntimeEventTarget | undefined)
-        | undefined;
-    readonly getSetInterval?:
-        | (() => RendererSetInterval | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => RendererSetTimeout | undefined) | undefined;
+    readonly getAddEventListener: RendererRuntimeEnvironmentProvider<
+        RendererAddEventListener
+    >;
+    readonly getClearInterval: RendererRuntimeEnvironmentProvider<
+        RendererClearInterval
+    >;
+    readonly getConsole: RendererRuntimeEnvironmentProvider<Console>;
+    readonly getDocument: RendererRuntimeEnvironmentProvider<Document>;
+    readonly getElectronAPI: RendererRuntimeEnvironmentProvider<unknown>;
+    readonly getRemoveEventListener: RendererRuntimeEnvironmentProvider<
+        RendererRemoveEventListener
+    >;
+    readonly getRendererEventTarget: RendererRuntimeEnvironmentProvider<
+        RendererRuntimeEventTarget
+    >;
+    readonly getSetInterval: RendererRuntimeEnvironmentProvider<
+        RendererSetInterval
+    >;
+    readonly getSetTimeout: RendererRuntimeEnvironmentProvider<
+        RendererSetTimeout
+    >;
 };
+
+type RendererRuntimeEnvironmentProvider<T> = (() => T | undefined) | undefined;
 
 function getRequiredRuntimeValue<T>(value: T | undefined, message: string): T {
     if (value === undefined) {
@@ -66,44 +70,83 @@ function getRequiredRuntimeValue<T>(value: T | undefined, message: string): T {
 export function createRendererRuntimeEnvironment(
     scope: RendererRuntimeEnvironmentScope
 ): RendererRuntimeEnvironment {
+    const getAddEventListener = getRequiredProvider(
+        scope.getAddEventListener,
+        "addEventListener"
+    );
+    const getClearInterval = getRequiredProvider(
+        scope.getClearInterval,
+        "clearInterval"
+    );
+    const getConsole = getRequiredProvider(scope.getConsole, "console");
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getElectronAPI = getRequiredProvider(
+        scope.getElectronAPI,
+        "electron API"
+    );
+    const getRemoveEventListener = getRequiredProvider(
+        scope.getRemoveEventListener,
+        "removeEventListener"
+    );
+    const getRendererEventTarget = getRequiredProvider(
+        scope.getRendererEventTarget,
+        "renderer event target"
+    );
+    const getSetInterval = getRequiredProvider(
+        scope.getSetInterval,
+        "setInterval"
+    );
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         addEventListener: getRequiredRuntimeValue(
-            scope.getAddEventListener?.(),
+            getAddEventListener(),
             "renderer runtime environment requires addEventListener"
         ),
         clearInterval: getRequiredRuntimeValue(
-            scope.getClearInterval?.(),
+            getClearInterval(),
             "renderer runtime environment requires clearInterval"
         ),
         console: getRequiredRuntimeValue(
-            scope.getConsole?.(),
+            getConsole(),
             "renderer runtime environment requires a console reference"
         ),
         documentTarget: getRequiredRuntimeValue(
-            scope.getDocument?.(),
+            getDocument(),
             "renderer runtime environment requires a document reference"
         ),
-        electronApiScope: createRendererElectronApiScope(
-            getRequiredRuntimeValue(
-                scope.getElectronAPI,
-                "renderer runtime environment requires an electron API provider"
-            )
-        ),
+        electronApiScope: createRendererElectronApiScope(getElectronAPI),
         removeEventListener: getRequiredRuntimeValue(
-            scope.getRemoveEventListener?.(),
+            getRemoveEventListener(),
             "renderer runtime environment requires removeEventListener"
         ),
         rendererEventTarget: getRequiredRuntimeValue(
-            scope.getRendererEventTarget?.(),
+            getRendererEventTarget(),
             "renderer runtime environment requires a renderer event target"
         ),
         setInterval: getRequiredRuntimeValue(
-            scope.getSetInterval?.(),
+            getSetInterval(),
             "renderer runtime environment requires setInterval"
         ),
         setTimeout: getRequiredRuntimeValue(
-            scope.getSetTimeout?.(),
+            getSetTimeout(),
             "renderer runtime environment requires setTimeout"
         ),
     };
+}
+
+function getRequiredProvider<T>(
+    provider: RendererRuntimeEnvironmentProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `renderer runtime environment requires ${providerLabel} provider`
+        );
+    }
+
+    return provider;
 }
