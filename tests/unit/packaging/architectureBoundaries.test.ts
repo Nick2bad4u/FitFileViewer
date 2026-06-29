@@ -11695,7 +11695,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(43);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -11773,7 +11773,13 @@ describe("architecture boundaries", () => {
             "readonly dateNow: () => number;"
         );
         expect(notificationTimerRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "notification timers require dateNow provider"
         );
         expect(notificationTimerRuntimeSource).toContain(
             "notification timers require dateNow"
@@ -11786,6 +11792,15 @@ describe("architecture boundaries", () => {
         );
         expect(notificationTimerRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
+        );
+        expect(notificationTimerRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(notificationTimerRuntimeScopeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(notificationTimerRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
         );
         expect(notificationTimerRuntimeSource).not.toContain(
             "scope.clearTimeout"
@@ -11816,7 +11831,22 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(notificationTimerRuntimeSource).toContain(
-            "const scheduleTimer = scope.getSetTimeout?.();"
+            "const scheduleTimer = scope.getSetTimeout();"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "const clearTimer = scope.getClearTimeout();"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "notification timers require setTimeout provider"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "notification timers require clearTimeout provider"
         );
     });
 

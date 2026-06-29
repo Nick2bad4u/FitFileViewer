@@ -10,13 +10,9 @@ import {
 export type NotificationTimerHandle = BrowserTimerHandle;
 
 export interface NotificationTimerRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
 }
 
 export interface NotificationTimerRuntime {
@@ -34,8 +30,14 @@ const defaultNotificationTimerRuntimeScope: NotificationTimerRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
-function getRequiredDateNow(scope: NotificationTimerRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+function getRequiredDateNow(
+    scope: NotificationTimerRuntimeScope
+): () => number {
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError("notification timers require dateNow provider");
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("notification timers require dateNow");
     }
@@ -48,7 +50,13 @@ export function getNotificationTimerRuntime(
 ): NotificationTimerRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimer = scope.getClearTimeout?.();
+            if (typeof scope.getClearTimeout !== "function") {
+                throw new TypeError(
+                    "notification timers require clearTimeout provider"
+                );
+            }
+
+            const clearTimer = scope.getClearTimeout();
             if (typeof clearTimer !== "function") {
                 throw new TypeError("notification timers require clearTimeout");
             }
@@ -58,7 +66,13 @@ export function getNotificationTimerRuntime(
             return getRequiredDateNow(scope)();
         },
         setTimeout(callback, delay): NotificationTimerHandle {
-            const scheduleTimer = scope.getSetTimeout?.();
+            if (typeof scope.getSetTimeout !== "function") {
+                throw new TypeError(
+                    "notification timers require setTimeout provider"
+                );
+            }
+
+            const scheduleTimer = scope.getSetTimeout();
             if (typeof scheduleTimer !== "function") {
                 throw new TypeError("notification timers require setTimeout");
             }

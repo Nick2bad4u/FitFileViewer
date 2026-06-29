@@ -10,6 +10,12 @@ import {
     type NotificationTimerRuntimeScope,
 } from "../../../../../electron-app/utils/ui/notifications/notificationTimerRuntime.js";
 
+const unavailableNotificationTimerRuntimeScope = {
+    getClearTimeout: () => undefined,
+    getDateNow: () => undefined,
+    getSetTimeout: () => undefined,
+} satisfies NotificationTimerRuntimeScope;
+
 describe("notificationTimerRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -52,6 +58,7 @@ describe("notificationTimerRuntime", () => {
         const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn(() => timer);
         const runtime = getNotificationTimerRuntime({
+            ...unavailableNotificationTimerRuntimeScope,
             getClearTimeout: () => clearTimeout,
             getDateNow: () => dateNow,
             getSetTimeout: () => setTimeout,
@@ -72,7 +79,9 @@ describe("notificationTimerRuntime", () => {
     it("fails fast when timer APIs are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getNotificationTimerRuntime({});
+        const runtime = getNotificationTimerRuntime(
+            unavailableNotificationTimerRuntimeScope
+        );
 
         expect(() => runtime.dateNow()).toThrow(
             "notification timers require dateNow"
@@ -85,10 +94,29 @@ describe("notificationTimerRuntime", () => {
         );
     });
 
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getNotificationTimerRuntime(
+            {} as unknown as NotificationTimerRuntimeScope
+        );
+
+        expect(() => runtime.dateNow()).toThrow(
+            "notification timers require dateNow provider"
+        );
+        expect(() => runtime.setTimeout(() => undefined, 0)).toThrow(
+            "notification timers require setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(1)).toThrow(
+            "notification timers require clearTimeout provider"
+        );
+    });
+
     it("ignores legacy direct timer and clock scope properties", () => {
         expect.assertions(3);
 
         const runtime = getNotificationTimerRuntime({
+            ...unavailableNotificationTimerRuntimeScope,
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
