@@ -20355,7 +20355,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(46);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -20372,6 +20372,14 @@ describe("architecture boundaries", () => {
         const powerZoneControlsRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/controls/createPowerZoneControlsRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = powerZoneControlsRuntimeSource.slice(
+            powerZoneControlsRuntimeSource.indexOf(
+                "export interface PowerZoneControlsRuntimeScope"
+            ),
+            powerZoneControlsRuntimeSource.indexOf(
+                "export interface PowerZoneControlsRuntime {"
             )
         );
 
@@ -20396,6 +20404,24 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "readonly localStorage?:"
+        );
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getHTMLElement?:");
+        expect(runtimeScopeSource).not.toContain("readonly getLocalStorage?:");
+        expect(runtimeScopeSource).toContain(
+            "readonly getAbortController: PowerZoneControlsRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getDocument: PowerZoneControlsRuntimeProvider<Document>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getHTMLElement: PowerZoneControlsRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getLocalStorage: PowerZoneControlsRuntimeProvider<PowerZoneControlsStorage>;"
         );
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "scope.AbortController"
@@ -20451,6 +20477,39 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsRuntimeSource).not.toContain(
             "getLocalStorage: () => globalThis.localStorage"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "type PowerZoneControlsRuntimeProvider<T> ="
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            'scope.getHTMLElement,\n        "HTMLElement"'
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            'scope.getLocalStorage,\n        "localStorage"'
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.getLocalStorage?.()"
+        );
+        expect(powerZoneControlsRuntimeSource).toContain(
+            "createPowerZoneControls requires ${article} ${providerName} provider"
         );
     });
 

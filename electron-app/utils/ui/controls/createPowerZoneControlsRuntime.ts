@@ -8,18 +8,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 type PowerZoneControlsStorage = Pick<Storage, "getItem" | "setItem">;
+type PowerZoneControlsRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface PowerZoneControlsRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getLocalStorage?:
-        | (() => PowerZoneControlsStorage | undefined)
-        | undefined;
+    readonly getAbortController: PowerZoneControlsRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: PowerZoneControlsRuntimeProvider<Document>;
+    readonly getHTMLElement: PowerZoneControlsRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getLocalStorage: PowerZoneControlsRuntimeProvider<PowerZoneControlsStorage>;
 }
 
 export interface PowerZoneControlsRuntime {
@@ -40,16 +35,34 @@ const defaultPowerZoneControlsRuntimeScope: PowerZoneControlsRuntimeScope = {
     getLocalStorage: getBrowserLocalStorage,
 };
 
+function getRequiredProvider<T>(
+    provider: PowerZoneControlsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createPowerZoneControls requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeDocument(
     scope: PowerZoneControlsRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getAbortControllerConstructor(
     scope: PowerZoneControlsRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControls requires an AbortController runtime"
@@ -73,7 +86,10 @@ function getDocument(scope: PowerZoneControlsRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: PowerZoneControlsRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControls requires an HTMLElement runtime"
@@ -86,7 +102,10 @@ function getHTMLElementConstructor(
 function getLocalStorage(
     scope: PowerZoneControlsRuntimeScope
 ): PowerZoneControlsStorage {
-    const storage = scope.getLocalStorage?.();
+    const storage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    )();
     if (
         !storage ||
         typeof storage.getItem !== "function" ||
