@@ -4,16 +4,22 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface RenderChartPerformanceMonitorRuntimeScope {
-    readonly getDateNow: (() => (() => number) | undefined) | undefined;
-    readonly getPerformance:
-        | (() => Pick<Performance, "now"> | undefined)
-        | undefined;
+    readonly getDateNow: RenderChartPerformanceMonitorRuntimeProvider<
+        () => number
+    >;
+    readonly getPerformance: RenderChartPerformanceMonitorRuntimeProvider<
+        Pick<Performance, "now">
+    >;
 }
 
 export interface RenderChartPerformanceMonitorRuntime {
     readonly dateNow: () => number;
     readonly nowPerformance: () => number;
 }
+
+type RenderChartPerformanceMonitorRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 const defaultRenderChartPerformanceMonitorRuntimeScope: RenderChartPerformanceMonitorRuntimeScope =
     {
@@ -22,15 +28,9 @@ const defaultRenderChartPerformanceMonitorRuntimeScope: RenderChartPerformanceMo
     };
 
 function getRequiredDateNow(
-    scope: RenderChartPerformanceMonitorRuntimeScope
+    getDateNow: () => (() => number) | undefined
 ): () => number {
-    if (typeof scope.getDateNow !== "function") {
-        throw new TypeError(
-            "renderChartPerformanceMonitorRuntime requires a dateNow provider"
-        );
-    }
-
-    const dateNow = scope.getDateNow();
+    const dateNow = getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError(
             "renderChartPerformanceMonitorRuntime requires dateNow"
@@ -41,15 +41,9 @@ function getRequiredDateNow(
 }
 
 function getRequiredPerformanceNow(
-    scope: RenderChartPerformanceMonitorRuntimeScope
+    getPerformance: () => Pick<Performance, "now"> | undefined
 ): () => number {
-    if (typeof scope.getPerformance !== "function") {
-        throw new TypeError(
-            "renderChartPerformanceMonitorRuntime requires a performance provider"
-        );
-    }
-
-    const performance = scope.getPerformance();
+    const performance = getPerformance();
     const performanceNow = performance?.now;
     if (typeof performanceNow !== "function") {
         throw new TypeError(
@@ -63,12 +57,33 @@ function getRequiredPerformanceNow(
 export function getRenderChartPerformanceMonitorRuntime(
     scope: RenderChartPerformanceMonitorRuntimeScope = defaultRenderChartPerformanceMonitorRuntimeScope
 ): RenderChartPerformanceMonitorRuntime {
+    const getDateNow = getRequiredProvider(scope.getDateNow, "dateNow");
+    const getPerformance = getRequiredProvider(
+        scope.getPerformance,
+        "performance"
+    );
+
     return {
         dateNow(): number {
-            return getRequiredDateNow(scope)();
+            return getRequiredDateNow(getDateNow)();
         },
         nowPerformance(): number {
-            return getRequiredPerformanceNow(scope)();
+            return getRequiredPerformanceNow(getPerformance)();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: RenderChartPerformanceMonitorRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `renderChartPerformanceMonitorRuntime requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

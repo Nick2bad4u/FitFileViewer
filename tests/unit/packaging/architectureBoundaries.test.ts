@@ -9991,7 +9991,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart performance monitoring on the chart performance state facade", () => {
-        expect.assertions(26);
+        expect.assertions(32);
 
         const chartPerformanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -10052,19 +10052,37 @@ describe("architecture boundaries", () => {
             "scope.getPerformance?.()"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow();"
+            "type RenderChartPerformanceMonitorRuntimeProvider"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*RenderChartPerformanceMonitorRuntimeProvider<\s*\(\)\s*=>\s*number\s*>/u
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*RenderChartPerformanceMonitorRuntimeProvider<\s*Pick<Performance,\s*"now">\s*>/u
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
-            "const performance = scope.getPerformance();"
+            "function getRequiredProvider"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "renderChartPerformanceMonitorRuntime requires ${article} ${providerName} provider"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "const dateNow = getDateNow();"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "const performance = getPerformance();"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
             "renderChartPerformanceMonitorRuntime requires performance.now"
-        );
-        expect(chartPerformanceMonitorRuntimeSource).toContain(
-            "renderChartPerformanceMonitorRuntime requires a dateNow provider"
-        );
-        expect(chartPerformanceMonitorRuntimeSource).toContain(
-            "renderChartPerformanceMonitorRuntime requires a performance provider"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
             "renderChartPerformanceMonitorRuntime requires dateNow"

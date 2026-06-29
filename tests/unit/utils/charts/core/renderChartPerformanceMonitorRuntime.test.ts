@@ -56,14 +56,39 @@ describe("renderChartPerformanceMonitorRuntime", () => {
     it("fails clearly when explicit scopes omit providers", () => {
         expect.assertions(2);
 
-        const runtime = getRenderChartPerformanceMonitorRuntime(
-            {} as unknown as RenderChartPerformanceMonitorRuntimeScope
-        );
-
-        expect(() => runtime.dateNow()).toThrow(
+        expect(() =>
+            getRenderChartPerformanceMonitorRuntime({
+                getPerformance: () => undefined,
+            } as unknown as RenderChartPerformanceMonitorRuntimeScope)
+        ).toThrow(
             "renderChartPerformanceMonitorRuntime requires a dateNow provider"
         );
-        expect(() => runtime.nowPerformance()).toThrow(
+        expect(() =>
+            getRenderChartPerformanceMonitorRuntime({
+                getDateNow: () => undefined,
+            } as unknown as RenderChartPerformanceMonitorRuntimeScope)
+        ).toThrow(
+            "renderChartPerformanceMonitorRuntime requires a performance provider"
+        );
+    });
+
+    it("fails clearly when provider slots are undefined", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getRenderChartPerformanceMonitorRuntime({
+                getDateNow: undefined,
+                getPerformance: () => undefined,
+            })
+        ).toThrow(
+            "renderChartPerformanceMonitorRuntime requires a dateNow provider"
+        );
+        expect(() =>
+            getRenderChartPerformanceMonitorRuntime({
+                getDateNow: () => undefined,
+                getPerformance: undefined,
+            })
+        ).toThrow(
             "renderChartPerformanceMonitorRuntime requires a performance provider"
         );
     });
@@ -89,15 +114,22 @@ describe("renderChartPerformanceMonitorRuntime", () => {
 
         const dateNow = vi.fn<() => number>(() => 1234);
         const now = vi.fn<() => number>(() => 42);
-        const utils = getRenderChartPerformanceMonitorRuntime({
-            dateNow,
-            performance: { now },
-        } as unknown as RenderChartPerformanceMonitorRuntimeScope);
 
-        expect(() => utils.dateNow()).toThrow(
+        expect(() =>
+            getRenderChartPerformanceMonitorRuntime({
+                dateNow,
+                performance: { now },
+            } as unknown as RenderChartPerformanceMonitorRuntimeScope)
+        ).toThrow(
             "renderChartPerformanceMonitorRuntime requires a dateNow provider"
         );
-        expect(() => utils.nowPerformance()).toThrow(
+        expect(() =>
+            getRenderChartPerformanceMonitorRuntime({
+                dateNow: () => undefined,
+                getDateNow: () => undefined,
+                performance: { now },
+            } as unknown as RenderChartPerformanceMonitorRuntimeScope)
+        ).toThrow(
             "renderChartPerformanceMonitorRuntime requires a performance provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
