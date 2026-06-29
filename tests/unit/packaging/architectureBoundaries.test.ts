@@ -12344,7 +12344,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {
-        expect.assertions(28);
+        expect.assertions(36);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
@@ -12406,13 +12406,35 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabRuntimeSource).not.toContain(
             "readonly KeyboardEvent?:"
         );
+        expect(updateActiveTabRuntimeSource).toContain("readonly getDocument:");
+        expect(updateActiveTabRuntimeSource).toContain(
+            "readonly getKeyboardEvent:"
+        );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
         expect(updateActiveTabRuntimeSource).not.toContain("scope.document");
         expect(updateActiveTabRuntimeSource).not.toContain(
             "scope.KeyboardEvent"
         );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "scope.getKeyboardEvent?.()"
+        );
         expect(updateActiveTabRuntimeSource).not.toContain("getScopeDocument");
         expect(updateActiveTabRuntimeSource).not.toContain("scope.window");
         expect(updateActiveTabRuntimeSource).not.toContain("window?:");
+        expect(updateActiveTabRuntimeSource).toContain(
+            "updateActiveTab requires a document provider"
+        );
+        expect(updateActiveTabRuntimeSource).toContain(
+            "updateActiveTab requires a KeyboardEvent provider"
+        );
         expect(updateActiveTabRuntimeSource).toContain(
             "updateActiveTab requires a KeyboardEvent runtime"
         );

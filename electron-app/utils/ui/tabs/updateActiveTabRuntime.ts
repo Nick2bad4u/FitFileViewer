@@ -5,8 +5,8 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface UpdateActiveTabRuntimeScope {
-    readonly getDocument?: (() => unknown) | undefined;
-    readonly getKeyboardEvent?:
+    readonly getDocument: (() => unknown) | undefined;
+    readonly getKeyboardEvent:
         | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
 }
@@ -35,8 +35,13 @@ const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope = {
 function getProviderDocument(
     scope: UpdateActiveTabRuntimeScope
 ): Document | undefined {
+    const getDocument = scope.getDocument;
+    if (!getDocument) {
+        throw new TypeError("updateActiveTab requires a document provider");
+    }
+
     try {
-        const candidate = scope.getDocument?.();
+        const candidate = getDocument();
 
         return isDocumentLike(candidate) ? candidate : undefined;
     } catch {
@@ -47,7 +52,14 @@ function getProviderDocument(
 function getKeyboardEventConstructor(
     scope: UpdateActiveTabRuntimeScope
 ): BrowserKeyboardEventConstructor {
-    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    const getKeyboardEvent = scope.getKeyboardEvent;
+    if (!getKeyboardEvent) {
+        throw new TypeError(
+            "updateActiveTab requires a KeyboardEvent provider"
+        );
+    }
+
+    const KeyboardEventConstructor = getKeyboardEvent();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError("updateActiveTab requires a KeyboardEvent runtime");
     }
@@ -60,10 +72,11 @@ export function getUpdateActiveTabRuntime(
 ): UpdateActiveTabRuntime {
     return {
         getDocument(testDocument?: Readonly<Document>): Document | undefined {
-            const candidates: readonly unknown[] = [
-                testDocument,
-                getProviderDocument(scope),
-            ];
+            if (isDocumentLike(testDocument)) {
+                return testDocument;
+            }
+
+            const candidates: readonly unknown[] = [getProviderDocument(scope)];
 
             return candidates.find(isDocumentLike);
         },

@@ -9,15 +9,27 @@ function createDocument(): Document {
     return document.implementation.createHTMLDocument("active tab runtime");
 }
 
+function createRuntimeScope(
+    overrides: Partial<UpdateActiveTabRuntimeScope> = {}
+): UpdateActiveTabRuntimeScope {
+    return {
+        getDocument: () => undefined,
+        getKeyboardEvent: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("updateActiveTabRuntime", () => {
     it("prefers an explicit test document over runtime provider documents", () => {
         expect.assertions(1);
 
         const testDocument = createDocument();
         const providerDocument = createDocument();
-        const runtime = getUpdateActiveTabRuntime({
-            getDocument: () => providerDocument,
-        });
+        const runtime = getUpdateActiveTabRuntime(
+            createRuntimeScope({
+                getDocument: () => providerDocument,
+            })
+        );
 
         expect(runtime.getDocument(testDocument)).toBe(testDocument);
     });
@@ -26,9 +38,11 @@ describe("updateActiveTabRuntime", () => {
         expect.assertions(1);
 
         const providerDocument = createDocument();
-        const runtime = getUpdateActiveTabRuntime({
-            getDocument: () => providerDocument,
-        });
+        const runtime = getUpdateActiveTabRuntime(
+            createRuntimeScope({
+                getDocument: () => providerDocument,
+            })
+        );
 
         expect(runtime.getDocument()).toBe(providerDocument);
     });
@@ -49,9 +63,11 @@ describe("updateActiveTabRuntime", () => {
     it("checks keyboard events through the runtime provider", () => {
         expect.assertions(3);
 
-        const runtime = getUpdateActiveTabRuntime({
-            getKeyboardEvent: () => KeyboardEvent,
-        });
+        const runtime = getUpdateActiveTabRuntime(
+            createRuntimeScope({
+                getKeyboardEvent: () => KeyboardEvent,
+            })
+        );
 
         expect(
             runtime.isKeyboardEvent(
@@ -65,9 +81,11 @@ describe("updateActiveTabRuntime", () => {
     it("ignores invalid document candidates", () => {
         expect.assertions(1);
 
-        const runtime = getUpdateActiveTabRuntime({
-            getDocument: () => ({ getElementById: "not a function" }),
-        });
+        const runtime = getUpdateActiveTabRuntime(
+            createRuntimeScope({
+                getDocument: () => ({ getElementById: "not a function" }),
+            })
+        );
 
         expect(runtime.getDocument()).toBeUndefined();
     });
@@ -81,18 +99,46 @@ describe("updateActiveTabRuntime", () => {
         } as unknown as UpdateActiveTabRuntimeScope;
         const runtime = getUpdateActiveTabRuntime(legacyScope);
 
-        expect(runtime.getDocument()).toBeUndefined();
+        expect(() => runtime.getDocument()).toThrow(
+            "updateActiveTab requires a document provider"
+        );
         expect(() =>
             runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
-        ).toThrow("updateActiveTab requires a KeyboardEvent runtime");
+        ).toThrow("updateActiveTab requires a KeyboardEvent provider");
         expect(
             (runtime as unknown as { KeyboardEvent?: unknown }).KeyboardEvent
         ).toBeUndefined();
     });
 
-    it("does not borrow ambient documents for explicit empty scopes", () => {
+    it("uses an explicit test document before consulting document providers", () => {
+        expect.assertions(1);
+
+        const testDocument = createDocument();
+        const runtime = getUpdateActiveTabRuntime({
+            ...createRuntimeScope(),
+            getDocument: undefined,
+        } as unknown as UpdateActiveTabRuntimeScope);
+
+        expect(runtime.getDocument(testDocument)).toBe(testDocument);
+    });
+
+    it("fails clearly when providers are omitted", () => {
         expect.assertions(2);
-        const runtime = getUpdateActiveTabRuntime({});
+        const runtime = getUpdateActiveTabRuntime(
+            {} as UpdateActiveTabRuntimeScope
+        );
+
+        expect(() => runtime.getDocument()).toThrow(
+            "updateActiveTab requires a document provider"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "updateActiveTab requires a KeyboardEvent provider"
+        );
+    });
+
+    it("does not borrow ambient documents for unavailable provider values", () => {
+        expect.assertions(2);
+        const runtime = getUpdateActiveTabRuntime(createRuntimeScope());
 
         expect(runtime.getDocument()).toBeUndefined();
         expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
