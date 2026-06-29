@@ -3643,7 +3643,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(427);
+        expect.assertions(433);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3988,6 +3988,24 @@ describe("architecture boundaries", () => {
         );
         expect(autoUpdaterAccessRuntimeSource).toContain(
             "getBrowserVitestImportMockCandidate"
+        );
+        expect(autoUpdaterAccessRuntimeSource).toContain(
+            "type AutoUpdaterAccessRuntimeProvider<T>"
+        );
+        expect(autoUpdaterAccessRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(autoUpdaterAccessRuntimeSource).toMatch(
+            /readonly\s+getVitestImportMockCandidate:\s*AutoUpdaterAccessRuntimeProvider<\s*unknown\s*>/u
+        );
+        expect(autoUpdaterAccessRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getVitestImportMockCandidate,\s*"Vitest import mock candidate"\s*\)/u
+        );
+        expect(autoUpdaterAccessRuntimeSource).not.toContain(
+            "scope.getVitestImportMockCandidate?.()"
+        );
+        expect(autoUpdaterAccessRuntimeSource).toContain(
+            "autoUpdaterAccessRuntime requires ${providerName} provider"
         );
         expect(autoUpdaterAccessRuntimeSource).not.toContain(
             "getBrowserGlobalProperty"

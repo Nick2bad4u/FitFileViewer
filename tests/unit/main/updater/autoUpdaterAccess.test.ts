@@ -6,6 +6,7 @@ import { resolveAutoUpdaterAsync } from "../../../../electron-app/main/updater/a
 import {
     getAutoUpdaterAccessRuntime,
     type AutoUpdaterAccessRuntime,
+    type AutoUpdaterAccessRuntimeScope,
 } from "../../../../electron-app/main/updater/autoUpdaterAccessRuntime.js";
 
 describe("autoUpdaterAccess", () => {
@@ -23,6 +24,28 @@ describe("autoUpdaterAccess", () => {
         expect(
             getAutoUpdaterAccessRuntime().getVitestImportMockCandidate()
         ).toStrictEqual({ importMock });
+    });
+
+    it("allows the Vitest import mock provider to report no candidate", () => {
+        expect.assertions(1);
+
+        expect(
+            getAutoUpdaterAccessRuntime({
+                getVitestImportMockCandidate: () => undefined,
+            }).getVitestImportMockCandidate()
+        ).toBeUndefined();
+    });
+
+    it("fails clearly when the Vitest import mock provider is omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getAutoUpdaterAccessRuntime(
+                {} as unknown as AutoUpdaterAccessRuntimeScope
+            )
+        ).toThrow(
+            "autoUpdaterAccessRuntime requires Vitest import mock candidate provider"
+        );
     });
 
     it("resolves Vitest electron-updater mocks through the injected runtime provider", async () => {
