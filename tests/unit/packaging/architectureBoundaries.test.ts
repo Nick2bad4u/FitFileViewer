@@ -5721,7 +5721,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(26);
+        expect.assertions(31);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -5767,11 +5767,23 @@ describe("architecture boundaries", () => {
         expect(stateStorageRuntimeSource).toContain(
             "getLocalStorage: getBrowserLocalStorage"
         );
+        expect(stateStorageRuntimeSource).toContain(
+            "type StateStorageRuntimeProvider"
+        );
+        expect(stateStorageRuntimeSource).toMatch(
+            /readonly\s+getLocalStorage:\s*StateStorageRuntimeProvider<Storage>/u
+        );
+        expect(stateStorageRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(stateStorageRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocalStorage,\s*"localStorage"\s*\)/u
+        );
         expect(stateStorageRuntimeSource).not.toContain(
             "getLocalStorage: () => globalThis.localStorage"
         );
         expect(stateStorageRuntimeSource).toContain(
-            "stateStorageRuntime requires a localStorage provider"
+            "stateStorageRuntime requires a ${providerName} provider"
         );
         expect(stateStorageRuntimeSource).not.toContain(
             "readonly localStorage?:"
@@ -5783,6 +5795,9 @@ describe("architecture boundaries", () => {
             "scope.getLocalStorage?.()"
         );
         expect(stateStorageRuntimeSource).toContain(
+            "return getLocalStorage();"
+        );
+        expect(stateStorageRuntimeSource).not.toContain(
             "return scope.getLocalStorage();"
         );
         expect(stateStorageRuntimeSource).not.toContain("scope.localStorage");

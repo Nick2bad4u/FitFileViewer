@@ -1,7 +1,7 @@
 import { getBrowserLocalStorage } from "../../runtime/browserRuntime.js";
 
 export interface StateStorageRuntimeScope {
-    readonly getLocalStorage: () => Storage | undefined;
+    readonly getLocalStorage: StateStorageRuntimeProvider<Storage>;
 }
 
 export interface StateStorageRuntime {
@@ -11,36 +11,37 @@ export interface StateStorageRuntime {
     setItem: (key: string, value: string) => boolean;
 }
 
+type StateStorageRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultStateStorageRuntimeScope: StateStorageRuntimeScope = {
     getLocalStorage: getBrowserLocalStorage,
 };
 
 function getScopeLocalStorage(
-    scope: StateStorageRuntimeScope
+    getLocalStorage: () => Storage | undefined
 ): Storage | undefined {
-    if (typeof scope.getLocalStorage !== "function") {
-        throw new TypeError(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-    }
-
-    return scope.getLocalStorage();
+    return getLocalStorage();
 }
 
 export function getStateStorageRuntime(
     scope: StateStorageRuntimeScope = defaultStateStorageRuntimeScope
 ): StateStorageRuntime {
+    const getLocalStorage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    );
+
     return {
         getItem(key): null | string {
-            return getScopeLocalStorage(scope)?.getItem(key) ?? null;
+            return getScopeLocalStorage(getLocalStorage)?.getItem(key) ?? null;
         },
 
         getLocalStorage(): Storage | undefined {
-            return getScopeLocalStorage(scope);
+            return getScopeLocalStorage(getLocalStorage);
         },
 
         removeItem(key): boolean {
-            const storage = getScopeLocalStorage(scope);
+            const storage = getScopeLocalStorage(getLocalStorage);
             if (storage === undefined) {
                 return false;
             }
@@ -50,7 +51,7 @@ export function getStateStorageRuntime(
         },
 
         setItem(key, value): boolean {
-            const storage = getScopeLocalStorage(scope);
+            const storage = getScopeLocalStorage(getLocalStorage);
             if (storage === undefined) {
                 return false;
             }
@@ -59,4 +60,17 @@ export function getStateStorageRuntime(
             return true;
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: StateStorageRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `stateStorageRuntime requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

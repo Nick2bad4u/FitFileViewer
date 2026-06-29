@@ -52,25 +52,15 @@ describe("stateStorageRuntime", () => {
     });
 
     it("ignores legacy direct localStorage runtime properties", () => {
-        expect.assertions(7);
+        expect.assertions(4);
 
         const storage = createStorage();
-        const runtime = getStateStorageRuntime({
-            localStorage: storage,
-        } as unknown as StateStorageRuntimeScope);
 
-        expect(runtime.getLocalStorage).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.getItem("fitFileViewer_state")).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.setItem("fitFileViewer_state", "{}")).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.removeItem("fitFileViewer_state")).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
+        expect(() =>
+            getStateStorageRuntime({
+                localStorage: storage,
+            } as unknown as StateStorageRuntimeScope)
+        ).toThrow("stateStorageRuntime requires a localStorage provider");
         expect(storage.getItem).not.toHaveBeenCalled();
         expect(storage.setItem).not.toHaveBeenCalled();
         expect(storage.removeItem).not.toHaveBeenCalled();
@@ -89,24 +79,21 @@ describe("stateStorageRuntime", () => {
     });
 
     it("fails clearly when explicit scopes omit the storage provider", () => {
-        expect.assertions(4);
+        expect.assertions(1);
 
-        const runtime = getStateStorageRuntime(
-            {} as unknown as StateStorageRuntimeScope
-        );
+        expect(() =>
+            getStateStorageRuntime({} as unknown as StateStorageRuntimeScope)
+        ).toThrow("stateStorageRuntime requires a localStorage provider");
+    });
 
-        expect(runtime.getLocalStorage).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.getItem("fitFileViewer_state")).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.setItem("fitFileViewer_state", "{}")).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
-        expect(() => runtime.removeItem("fitFileViewer_state")).toThrow(
-            "stateStorageRuntime requires a localStorage provider"
-        );
+    it("fails clearly when the storage provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getStateStorageRuntime({
+                getLocalStorage: undefined,
+            })
+        ).toThrow("stateStorageRuntime requires a localStorage provider");
     });
 
     it("resolves default localStorage when storage operations run", () => {
