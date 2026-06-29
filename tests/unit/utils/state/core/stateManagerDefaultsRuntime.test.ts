@@ -1,6 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getStateManagerDefaultsRuntime } from "../../../../../electron-app/utils/state/core/stateManagerDefaultsRuntime.js";
+import {
+    getStateManagerDefaultsRuntime,
+    type StateManagerDefaultsRuntimeScope,
+} from "../../../../../electron-app/utils/state/core/stateManagerDefaultsRuntime.js";
+
+function createRuntimeScope(
+    overrides: Partial<StateManagerDefaultsRuntimeScope> = {}
+): StateManagerDefaultsRuntimeScope {
+    return {
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getPerformance: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("stateManagerDefaultsRuntime", () => {
     afterEach(() => {
@@ -12,10 +26,12 @@ describe("stateManagerDefaultsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getStateManagerDefaultsRuntime({
-                getDateNow: () => () => 123,
-                getPerformance: () => ({ now: () => 45.5 }),
-            }).getStartTime()
+            getStateManagerDefaultsRuntime(
+                createRuntimeScope({
+                    getDateNow: () => () => 123,
+                    getPerformance: () => ({ now: () => 45.5 }),
+                })
+            ).getStartTime()
         ).toBe(45.5);
     });
 
@@ -23,35 +39,50 @@ describe("stateManagerDefaultsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getStateManagerDefaultsRuntime({
-                getDateNow: () => () => 123,
-            }).getStartTime()
+            getStateManagerDefaultsRuntime(
+                createRuntimeScope({
+                    getDateNow: () => () => 123,
+                })
+            ).getStartTime()
         ).toBe(123);
     });
 
     it("does not borrow ambient clocks for explicit scopes", () => {
         expect.assertions(1);
 
-        expect(() => getStateManagerDefaultsRuntime({}).getStartTime()).toThrow(
-            "stateManagerDefaultsRuntime requires a clock"
-        );
+        expect(() =>
+            getStateManagerDefaultsRuntime(
+                createRuntimeScope({
+                    getDateNow: () => undefined,
+                    getPerformance: () => undefined,
+                })
+            ).getStartTime()
+        ).toThrow("stateManagerDefaultsRuntime requires a clock");
     });
 
     it("resolves document titles with the default fallback", () => {
         expect.assertions(3);
 
         expect(
-            getStateManagerDefaultsRuntime({
-                getDocument: () => ({ title: "Activity Viewer" }),
-            }).getDefaultDocumentTitle()
+            getStateManagerDefaultsRuntime(
+                createRuntimeScope({
+                    getDocument: () => ({ title: "Activity Viewer" }),
+                })
+            ).getDefaultDocumentTitle()
         ).toBe("Activity Viewer");
         expect(
-            getStateManagerDefaultsRuntime({
-                getDocument: () => ({ title: "" }),
-            }).getDefaultDocumentTitle()
+            getStateManagerDefaultsRuntime(
+                createRuntimeScope({
+                    getDocument: () => ({ title: "" }),
+                })
+            ).getDefaultDocumentTitle()
         ).toBe("Fit File Viewer");
         expect(
-            getStateManagerDefaultsRuntime({}).getDefaultDocumentTitle()
+            getStateManagerDefaultsRuntime(
+                createRuntimeScope({
+                    getDocument: () => undefined,
+                })
+            ).getDefaultDocumentTitle()
         ).toBe("Fit File Viewer");
     });
 
@@ -66,12 +97,29 @@ describe("stateManagerDefaultsRuntime", () => {
             performance: { now: performanceNow },
         } as unknown as Parameters<typeof getStateManagerDefaultsRuntime>[0]);
 
-        expect(runtime.getDefaultDocumentTitle()).toBe("Fit File Viewer");
+        expect(runtime.getDefaultDocumentTitle).toThrow(
+            "stateManagerDefaultsRuntime requires a document provider"
+        );
         expect(() => runtime.getStartTime()).toThrow(
-            "stateManagerDefaultsRuntime requires a clock"
+            "stateManagerDefaultsRuntime requires a performance provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when explicit scopes omit provider functions", () => {
+        expect.assertions(2);
+
+        const runtime = getStateManagerDefaultsRuntime(
+            {} as unknown as StateManagerDefaultsRuntimeScope
+        );
+
+        expect(runtime.getDefaultDocumentTitle).toThrow(
+            "stateManagerDefaultsRuntime requires a document provider"
+        );
+        expect(() => runtime.getStartTime()).toThrow(
+            "stateManagerDefaultsRuntime requires a performance provider"
+        );
     });
 
     it("resolves default document and performance when runtime operations run", () => {

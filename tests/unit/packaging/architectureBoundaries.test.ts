@@ -14107,7 +14107,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state-manager defaults on scoped runtime access", () => {
-        expect.assertions(25);
+        expect.assertions(34);
 
         const stateManagerDefaultsSource = stripComments(
             readRepositoryFile(
@@ -14183,6 +14183,15 @@ describe("architecture boundaries", () => {
             "readonly dateNow?:"
         );
         expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
             "scope.dateNow"
         );
         expect(stateManagerDefaultsRuntimeSource).not.toContain(
@@ -14190,6 +14199,24 @@ describe("architecture boundaries", () => {
         );
         expect(stateManagerDefaultsRuntimeSource).not.toContain(
             "scope.performance"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "stateManagerDefaultsRuntime requires a dateNow provider"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "stateManagerDefaultsRuntime requires a document provider"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "stateManagerDefaultsRuntime requires a performance provider"
         );
     });
 

@@ -13,11 +13,11 @@ type StateManagerDefaultsPerformanceRuntime = {
 };
 
 export interface StateManagerDefaultsRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?:
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getDocument:
         | (() => StateManagerDefaultsDocumentRuntime | undefined)
         | undefined;
-    readonly getPerformance?:
+    readonly getPerformance:
         | (() => StateManagerDefaultsPerformanceRuntime | undefined)
         | undefined;
 }
@@ -37,13 +37,13 @@ const defaultStateManagerDefaultsRuntimeScope: StateManagerDefaultsRuntimeScope 
 function getRequiredStartClock(
     scope: StateManagerDefaultsRuntimeScope
 ): () => number {
-    const performance = scope.getPerformance?.();
+    const performance = getScopedPerformance(scope);
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
     }
 
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getScopedDateNow(scope);
     if (typeof dateNow === "function") {
         return dateNow;
     }
@@ -51,12 +51,48 @@ function getRequiredStartClock(
     throw new TypeError("stateManagerDefaultsRuntime requires a clock");
 }
 
+function getScopedDateNow(
+    scope: StateManagerDefaultsRuntimeScope
+): (() => number) | undefined {
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError(
+            "stateManagerDefaultsRuntime requires a dateNow provider"
+        );
+    }
+
+    return scope.getDateNow();
+}
+
+function getScopedDocument(
+    scope: StateManagerDefaultsRuntimeScope
+): StateManagerDefaultsDocumentRuntime | undefined {
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "stateManagerDefaultsRuntime requires a document provider"
+        );
+    }
+
+    return scope.getDocument();
+}
+
+function getScopedPerformance(
+    scope: StateManagerDefaultsRuntimeScope
+): StateManagerDefaultsPerformanceRuntime | undefined {
+    if (typeof scope.getPerformance !== "function") {
+        throw new TypeError(
+            "stateManagerDefaultsRuntime requires a performance provider"
+        );
+    }
+
+    return scope.getPerformance();
+}
+
 export function getStateManagerDefaultsRuntime(
     scope: StateManagerDefaultsRuntimeScope = defaultStateManagerDefaultsRuntimeScope
 ): StateManagerDefaultsRuntime {
     return {
         getDefaultDocumentTitle(): string {
-            const document = scope.getDocument?.();
+            const document = getScopedDocument(scope);
             const title = document?.title;
             return typeof title === "string" && title.length > 0
                 ? title
