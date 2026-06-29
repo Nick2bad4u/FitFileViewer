@@ -1,6 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getChartThemeRuntime } from "../../../../../electron-app/utils/charts/theming/chartThemeRuntime.js";
+import {
+    type ChartThemeRuntimeScope,
+    getChartThemeRuntime,
+} from "../../../../../electron-app/utils/charts/theming/chartThemeRuntime.js";
+
+function createUnavailableScope(): ChartThemeRuntimeScope {
+    return {
+        getDocument: () => undefined,
+        getLocalStorage: () => undefined,
+        getMatchMedia: () => undefined,
+    };
+}
 
 describe("getChartThemeRuntime", () => {
     afterEach(() => {
@@ -21,6 +32,8 @@ describe("getChartThemeRuntime", () => {
                     classList,
                 } as HTMLElement,
             }),
+            getLocalStorage: () => undefined,
+            getMatchMedia: () => undefined,
         });
 
         expect(runtime.hasBodyThemeClass("theme-dark")).toBe(true);
@@ -32,9 +45,11 @@ describe("getChartThemeRuntime", () => {
 
         const getItem = vi.fn<(key: string) => null | string>(() => "auto");
         const runtime = getChartThemeRuntime({
+            getDocument: () => undefined,
             getLocalStorage: () => ({
                 getItem,
             }),
+            getMatchMedia: () => undefined,
         });
 
         expect(runtime.getSavedTheme()).toBe("auto");
@@ -48,6 +63,8 @@ describe("getChartThemeRuntime", () => {
             (query: string) => Pick<MediaQueryList, "matches">
         >(() => ({ matches: true }));
         const runtime = getChartThemeRuntime({
+            getDocument: () => undefined,
+            getLocalStorage: () => undefined,
             getMatchMedia: () => matchMedia,
         });
 
@@ -125,10 +142,28 @@ describe("getChartThemeRuntime", () => {
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
     });
 
-    it("falls back to light when runtime browser APIs are unavailable", () => {
+    it("fails clearly when explicit scopes omit providers", () => {
         expect.assertions(3);
 
-        const runtime = getChartThemeRuntime({});
+        const runtime = getChartThemeRuntime(
+            {} as unknown as ChartThemeRuntimeScope
+        );
+
+        expect(() => runtime.hasBodyThemeClass("theme-dark")).toThrow(
+            "chartThemeRuntime requires a document provider"
+        );
+        expect(() => runtime.getSavedTheme()).toThrow(
+            "chartThemeRuntime requires a localStorage provider"
+        );
+        expect(() => runtime.getSystemPreferredTheme()).toThrow(
+            "chartThemeRuntime requires a matchMedia provider"
+        );
+    });
+
+    it("falls back to light when runtime browser providers return unavailable APIs", () => {
+        expect.assertions(3);
+
+        const runtime = getChartThemeRuntime(createUnavailableScope());
 
         expect(runtime.hasBodyThemeClass("theme-dark")).toBe(false);
         expect(runtime.getSavedTheme()).toBeNull();
@@ -136,7 +171,7 @@ describe("getChartThemeRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(7);
+        expect.assertions(6);
 
         const classList = {
             contains: vi.fn<(themeClass: string) => boolean>(
@@ -159,14 +194,17 @@ describe("getChartThemeRuntime", () => {
             matchMedia,
         } as unknown as Parameters<typeof getChartThemeRuntime>[0]);
 
-        expect(runtime.hasBodyThemeClass("theme-dark")).toBe(false);
-        expect(runtime.getSavedTheme()).toBeNull();
-        expect(runtime.getSystemPreferredTheme()).toBe("light");
+        expect(() => runtime.hasBodyThemeClass("theme-dark")).toThrow(
+            "chartThemeRuntime requires a document provider"
+        );
+        expect(() => runtime.getSavedTheme()).toThrow(
+            "chartThemeRuntime requires a localStorage provider"
+        );
+        expect(() => runtime.getSystemPreferredTheme()).toThrow(
+            "chartThemeRuntime requires a matchMedia provider"
+        );
         expect(classList.contains).not.toHaveBeenCalled();
         expect(getItem).not.toHaveBeenCalled();
         expect(matchMedia).not.toHaveBeenCalled();
-        expect(getChartThemeRuntime({}).getSystemPreferredTheme()).toBe(
-            "light"
-        );
     });
 });

@@ -23983,7 +23983,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(30);
 
         const violations = migratedChartThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -24040,6 +24040,38 @@ describe("architecture boundaries", () => {
             "readonly localStorage?:"
         );
         expect(chartThemeRuntimeSource).not.toContain("readonly matchMedia?:");
+        expect(chartThemeRuntimeSource).not.toContain("readonly getDocument?:");
+        expect(chartThemeRuntimeSource).not.toContain(
+            "readonly getLocalStorage?:"
+        );
+        expect(chartThemeRuntimeSource).not.toContain(
+            "readonly getMatchMedia?:"
+        );
+        expect(chartThemeRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(chartThemeRuntimeSource).not.toContain(
+            "scope.getLocalStorage?.()"
+        );
+        expect(chartThemeRuntimeSource).not.toContain(
+            "scope.getMatchMedia?.()"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "return scope.getDocument();"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "return scope.getLocalStorage();"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "return scope.getMatchMedia();"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "chartThemeRuntime requires a document provider"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "chartThemeRuntime requires a localStorage provider"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "chartThemeRuntime requires a matchMedia provider"
+        );
         expect(chartThemeRuntimeSource).not.toContain("scope.document");
         expect(chartThemeRuntimeSource).not.toContain("scope.localStorage");
         expect(chartThemeRuntimeSource).not.toContain("scope.matchMedia");

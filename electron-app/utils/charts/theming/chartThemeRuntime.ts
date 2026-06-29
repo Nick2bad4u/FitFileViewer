@@ -7,13 +7,13 @@ import {
 export type ChartTheme = "dark" | "light";
 
 export interface ChartThemeRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => Pick<Document, "body"> | undefined)
         | undefined;
-    readonly getLocalStorage?:
+    readonly getLocalStorage:
         | (() => Pick<Storage, "getItem"> | undefined)
         | undefined;
-    readonly getMatchMedia?:
+    readonly getMatchMedia:
         | (() =>
               | ((query: string) => Pick<MediaQueryList, "matches">)
               | undefined)
@@ -37,19 +37,33 @@ const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = {
 function getScopeDocument(
     scope: ChartThemeRuntimeScope
 ): Pick<Document, "body"> | undefined {
-    return scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError("chartThemeRuntime requires a document provider");
+    }
+
+    return scope.getDocument();
 }
 
 function getScopeLocalStorage(
     scope: ChartThemeRuntimeScope
 ): Pick<Storage, "getItem"> | undefined {
-    return scope.getLocalStorage?.();
+    if (typeof scope.getLocalStorage !== "function") {
+        throw new TypeError(
+            "chartThemeRuntime requires a localStorage provider"
+        );
+    }
+
+    return scope.getLocalStorage();
 }
 
 function getScopeMatchMedia(
     scope: ChartThemeRuntimeScope
 ): ((query: string) => Pick<MediaQueryList, "matches">) | undefined {
-    return scope.getMatchMedia?.();
+    if (typeof scope.getMatchMedia !== "function") {
+        throw new TypeError("chartThemeRuntime requires a matchMedia provider");
+    }
+
+    return scope.getMatchMedia();
 }
 
 export function getChartThemeRuntime(
