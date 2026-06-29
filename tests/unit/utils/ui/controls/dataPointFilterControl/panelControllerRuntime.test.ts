@@ -6,6 +6,20 @@ import {
     type DataPointFilterPanelControllerRuntimeScope,
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/panelControllerRuntime.js";
 
+function createDataPointFilterPanelControllerRuntimeScope(
+    overrides: Partial<DataPointFilterPanelControllerRuntimeScope> = {}
+): DataPointFilterPanelControllerRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getCancelAnimationFrame: () => undefined,
+        getDocument: () => undefined,
+        getNode: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getViewport: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getDataPointFilterPanelControllerRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -14,15 +28,17 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
     it("reads body, viewport size, and Node checks from injected runtimes", () => {
         expect.assertions(4);
 
-        const runtime = getDataPointFilterPanelControllerRuntime({
-            getDocument: () => document,
-            getNode: () => Node,
-            getViewport: () => ({
-                addEventListener: vi.fn(),
-                innerHeight: 600,
-                innerWidth: 800,
-            }),
-        });
+        const runtime = getDataPointFilterPanelControllerRuntime(
+            createDataPointFilterPanelControllerRuntimeScope({
+                getDocument: () => document,
+                getNode: () => Node,
+                getViewport: () => ({
+                    addEventListener: vi.fn(),
+                    innerHeight: 600,
+                    innerWidth: 800,
+                }),
+            })
+        );
 
         expect(runtime.getBody()).toBe(document.body);
         expect(runtime.getViewportSize()).toStrictEqual({
@@ -41,11 +57,13 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
             innerHeight: 600,
             innerWidth: 800,
         });
-        const runtime = getDataPointFilterPanelControllerRuntime({
-            getDocument: () => document,
-            getNode: () => Node,
-            getViewport: () => viewport,
-        });
+        const runtime = getDataPointFilterPanelControllerRuntime(
+            createDataPointFilterPanelControllerRuntimeScope({
+                getDocument: () => document,
+                getNode: () => Node,
+                getViewport: () => viewport,
+            })
+        );
         let documentMouseDownCount = 0;
         let documentKeydownCount = 0;
         let viewportResizeCount = 0;
@@ -89,11 +107,13 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
             }
         );
         const cancelAnimationFrame = vi.fn();
-        const runtime = getDataPointFilterPanelControllerRuntime({
-            getCancelAnimationFrame: () => cancelAnimationFrame,
-            getDocument: () => document,
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
+        const runtime = getDataPointFilterPanelControllerRuntime(
+            createDataPointFilterPanelControllerRuntimeScope({
+                getCancelAnimationFrame: () => cancelAnimationFrame,
+                getDocument: () => document,
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            })
+        );
         const callback = vi.fn();
 
         const handle = runtime.requestAnimationFrame(callback);
@@ -108,10 +128,12 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
-        const runtime = getDataPointFilterPanelControllerRuntime({
-            getAbortController: () => AbortController,
-            getDocument: () => document,
-        });
+        const runtime = getDataPointFilterPanelControllerRuntime(
+            createDataPointFilterPanelControllerRuntimeScope({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+            })
+        );
         const controller = runtime.createAbortController();
 
         expect(controller).toBeInstanceOf(AbortController);
@@ -158,14 +180,19 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(5);
 
-        const runtime = getDataPointFilterPanelControllerRuntime({});
+        const runtime = getDataPointFilterPanelControllerRuntime(
+            createDataPointFilterPanelControllerRuntimeScope()
+        );
         const runtimeWithInvalidAbortController =
-            getDataPointFilterPanelControllerRuntime({
-                getAbortController: () =>
-                    "AbortController" as unknown as BrowserAbortControllerConstructor,
-                getDocument: () => document,
-            });
+            getDataPointFilterPanelControllerRuntime(
+                createDataPointFilterPanelControllerRuntimeScope({
+                    getAbortController: () =>
+                        "AbortController" as unknown as BrowserAbortControllerConstructor,
+                    getDocument: () => document,
+                })
+            );
         const runtimeWithoutNode = getDataPointFilterPanelControllerRuntime({
+            ...createDataPointFilterPanelControllerRuntimeScope(),
             getDocument: () =>
                 ({
                     addEventListener: vi.fn(),
@@ -186,21 +213,78 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         );
         expect(() =>
             getDataPointFilterPanelControllerRuntime({
-                getDocument: () => document,
-                getRequestAnimationFrame: () =>
-                    "requestAnimationFrame" as unknown as typeof requestAnimationFrame,
+                ...createDataPointFilterPanelControllerRuntimeScope({
+                    getDocument: () => document,
+                    getRequestAnimationFrame: () =>
+                        "requestAnimationFrame" as unknown as typeof requestAnimationFrame,
+                }),
             }).requestAnimationFrame(() => {})
         ).toThrow(
             "data point filter panel controller requires a requestAnimationFrame runtime"
         );
         expect(() =>
             getDataPointFilterPanelControllerRuntime({
-                getCancelAnimationFrame: () =>
-                    "cancelAnimationFrame" as unknown as typeof cancelAnimationFrame,
-                getDocument: () => document,
+                ...createDataPointFilterPanelControllerRuntimeScope({
+                    getCancelAnimationFrame: () =>
+                        "cancelAnimationFrame" as unknown as typeof cancelAnimationFrame,
+                    getDocument: () => document,
+                }),
             }).cancelAnimationFrame(1)
         ).toThrow(
             "data point filter panel controller requires a cancelAnimationFrame runtime"
+        );
+    });
+
+    it("fails clearly when required runtime providers are omitted", () => {
+        expect.assertions(6);
+
+        const scope = createDataPointFilterPanelControllerRuntimeScope();
+
+        expect(() =>
+            getDataPointFilterPanelControllerRuntime({
+                ...scope,
+                getAbortController: undefined,
+            })
+        ).toThrow(
+            "data point filter panel controller requires AbortController provider"
+        );
+        expect(() =>
+            getDataPointFilterPanelControllerRuntime({
+                ...scope,
+                getCancelAnimationFrame: undefined,
+            })
+        ).toThrow(
+            "data point filter panel controller requires cancelAnimationFrame provider"
+        );
+        expect(() =>
+            getDataPointFilterPanelControllerRuntime({
+                ...scope,
+                getDocument: undefined,
+            })
+        ).toThrow(
+            "data point filter panel controller requires document provider"
+        );
+        expect(() =>
+            getDataPointFilterPanelControllerRuntime({
+                ...scope,
+                getNode: undefined,
+            })
+        ).toThrow("data point filter panel controller requires Node provider");
+        expect(() =>
+            getDataPointFilterPanelControllerRuntime({
+                ...scope,
+                getRequestAnimationFrame: undefined,
+            })
+        ).toThrow(
+            "data point filter panel controller requires requestAnimationFrame provider"
+        );
+        expect(() =>
+            getDataPointFilterPanelControllerRuntime({
+                ...scope,
+                getViewport: undefined,
+            })
+        ).toThrow(
+            "data point filter panel controller requires viewport provider"
         );
     });
 
@@ -214,6 +298,7 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
             innerWidth: 800,
         });
         const legacyScope = {
+            ...createDataPointFilterPanelControllerRuntimeScope(),
             AbortController,
             cancelAnimationFrame,
             document,

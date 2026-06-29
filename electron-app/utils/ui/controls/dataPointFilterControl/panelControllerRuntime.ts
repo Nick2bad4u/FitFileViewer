@@ -21,6 +21,9 @@ type DataPointFilterPanelCancelAnimationFrame = (
 type DataPointFilterPanelRequestAnimationFrame = (
     callback: PanelFrameRequestCallback
 ) => DataPointFilterPanelAnimationFrameHandle;
+type DataPointFilterPanelControllerRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 type ViewportEventTarget = {
     readonly addEventListener: (
@@ -33,18 +36,12 @@ type ViewportEventTarget = {
 };
 
 export interface DataPointFilterPanelControllerRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getCancelAnimationFrame?:
-        | (() => DataPointFilterPanelCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => DataPointFilterPanelRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getViewport?: (() => ViewportEventTarget | undefined) | undefined;
+    readonly getAbortController: DataPointFilterPanelControllerRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getCancelAnimationFrame: DataPointFilterPanelControllerRuntimeProvider<DataPointFilterPanelCancelAnimationFrame>;
+    readonly getDocument: DataPointFilterPanelControllerRuntimeProvider<Document>;
+    readonly getNode: DataPointFilterPanelControllerRuntimeProvider<BrowserNodeConstructor>;
+    readonly getRequestAnimationFrame: DataPointFilterPanelControllerRuntimeProvider<DataPointFilterPanelRequestAnimationFrame>;
+    readonly getViewport: DataPointFilterPanelControllerRuntimeProvider<ViewportEventTarget>;
 }
 
 export interface DataPointFilterPanelControllerRuntime {
@@ -76,10 +73,23 @@ export interface DataPointFilterPanelControllerRuntime {
     ) => DataPointFilterPanelAnimationFrameHandle;
 }
 
+function getRequiredProvider<T>(
+    provider: DataPointFilterPanelControllerRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `data point filter panel controller requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
-    scope: DataPointFilterPanelControllerRuntimeScope
+    getAbortController: () => BrowserAbortControllerConstructor | undefined
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "data point filter panel controller requires an AbortController runtime"
@@ -90,9 +100,9 @@ function getAbortControllerConstructor(
 }
 
 function getDocument(
-    scope: DataPointFilterPanelControllerRuntimeScope
+    getDocumentProvider: () => Document | undefined
 ): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getDocumentProvider();
     if (!runtimeDocument) {
         throw new TypeError(
             "data point filter panel controller requires a document runtime"
@@ -103,9 +113,9 @@ function getDocument(
 }
 
 function getNodeConstructor(
-    scope: DataPointFilterPanelControllerRuntimeScope
+    getNode: () => BrowserNodeConstructor | undefined
 ): BrowserNodeConstructor {
-    const NodeConstructor = scope.getNode?.();
+    const NodeConstructor = getNode();
     if (typeof NodeConstructor !== "function") {
         throw new TypeError(
             "data point filter panel controller requires a Node runtime"
@@ -116,9 +126,9 @@ function getNodeConstructor(
 }
 
 function getViewport(
-    scope: DataPointFilterPanelControllerRuntimeScope
+    getViewportProvider: () => ViewportEventTarget | undefined
 ): ViewportEventTarget {
-    const viewport = scope.getViewport?.();
+    const viewport = getViewportProvider();
     if (!viewport) {
         throw new TypeError(
             "data point filter panel controller requires a viewport runtime"
@@ -129,11 +139,13 @@ function getViewport(
 }
 
 function getAnimationFrameRequester(
-    scope: DataPointFilterPanelControllerRuntimeScope
+    getRequestAnimationFrame: () =>
+        | DataPointFilterPanelRequestAnimationFrame
+        | undefined
 ): (
     callback: PanelFrameRequestCallback
 ) => DataPointFilterPanelAnimationFrameHandle {
-    const requestFrame = scope.getRequestAnimationFrame?.();
+    const requestFrame = getRequestAnimationFrame();
     if (typeof requestFrame !== "function") {
         throw new TypeError(
             "data point filter panel controller requires a requestAnimationFrame runtime"
@@ -144,9 +156,11 @@ function getAnimationFrameRequester(
 }
 
 function getAnimationFrameCanceler(
-    scope: DataPointFilterPanelControllerRuntimeScope
+    getCancelAnimationFrame: () =>
+        | DataPointFilterPanelCancelAnimationFrame
+        | undefined
 ): (handle: DataPointFilterPanelAnimationFrameHandle) => void {
-    const cancelFrame = scope.getCancelAnimationFrame?.();
+    const cancelFrame = getCancelAnimationFrame();
     if (typeof cancelFrame !== "function") {
         throw new TypeError(
             "data point filter panel controller requires a cancelAnimationFrame runtime"
@@ -169,60 +183,100 @@ const defaultDataPointFilterPanelControllerRuntimeScope: DataPointFilterPanelCon
 export function getDataPointFilterPanelControllerRuntime(
     scope: DataPointFilterPanelControllerRuntimeScope = defaultDataPointFilterPanelControllerRuntimeScope
 ): DataPointFilterPanelControllerRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    );
+    const getCancelAnimationFrame = getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    );
+    const getDocumentProvider = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    );
+    const getNode = getRequiredProvider(scope.getNode, "Node");
+    const getRequestAnimationFrame = getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    );
+    const getViewportProvider = getRequiredProvider(
+        scope.getViewport,
+        "viewport"
+    );
+
     return {
         createAbortController(): AbortController {
-            return new (getAbortControllerConstructor(scope))();
+            return new (getAbortControllerConstructor(getAbortController))();
         },
         addDocumentKeydownListener(
             listener: (event: Readonly<KeyboardEvent>) => void,
             options: PanelListenerOptions
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal owned by the open panel lifecycle.
-            getDocument(scope).addEventListener("keydown", listener, options);
+            getDocument(getDocumentProvider).addEventListener(
+                "keydown",
+                listener,
+                options
+            );
         },
         addDocumentMouseDownListener(
             listener: (event: Readonly<MouseEvent>) => void,
             options: PanelListenerOptions
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal owned by the open panel lifecycle.
-            getDocument(scope).addEventListener("mousedown", listener, options);
+            getDocument(getDocumentProvider).addEventListener(
+                "mousedown",
+                listener,
+                options
+            );
         },
         addViewportResizeListener(
             listener: PanelViewportListener,
             options: PanelListenerOptions
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal owned by the open panel lifecycle.
-            getViewport(scope).addEventListener("resize", listener, options);
+            getViewport(getViewportProvider).addEventListener(
+                "resize",
+                listener,
+                options
+            );
         },
         addViewportScrollListener(
             listener: PanelViewportListener,
             options: PanelListenerOptions
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal owned by the open panel lifecycle.
-            getViewport(scope).addEventListener("scroll", listener, options);
+            getViewport(getViewportProvider).addEventListener(
+                "scroll",
+                listener,
+                options
+            );
         },
         cancelAnimationFrame(
             handle: DataPointFilterPanelAnimationFrameHandle
         ): void {
-            getAnimationFrameCanceler(scope)(handle);
+            getAnimationFrameCanceler(getCancelAnimationFrame)(handle);
         },
         getBody(): HTMLElement | null {
-            return getDocument(scope).body;
+            return getDocument(getDocumentProvider).body;
         },
         getViewportSize(): { height: number; width: number } {
-            const viewport = getViewport(scope);
+            const viewport = getViewport(getViewportProvider);
             return {
                 height: viewport.innerHeight,
                 width: viewport.innerWidth,
             };
         },
         isNode(value: unknown): value is Node {
-            return value instanceof getNodeConstructor(scope);
+            return value instanceof getNodeConstructor(getNode);
         },
         requestAnimationFrame(
             callback: PanelFrameRequestCallback
         ): DataPointFilterPanelAnimationFrameHandle {
-            return getAnimationFrameRequester(scope)(callback);
+            return getAnimationFrameRequester(getRequestAnimationFrame)(
+                callback
+            );
         },
     };
 }

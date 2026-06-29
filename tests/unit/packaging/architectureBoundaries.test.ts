@@ -22535,7 +22535,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(57);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -22583,6 +22583,24 @@ describe("architecture boundaries", () => {
             "readonly viewport?:"
         );
         expect(panelControllerRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly getNode?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly getViewport?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(panelControllerRuntimeSource).not.toContain(
@@ -22594,9 +22612,52 @@ describe("architecture boundaries", () => {
             "scope.requestAnimationFrame"
         );
         expect(panelControllerRuntimeSource).not.toContain("scope.viewport");
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.getCancelAnimationFrame?.()"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(panelControllerRuntimeSource).not.toContain("scope.getNode?.()");
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.getRequestAnimationFrame?.()"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.getViewport?.()"
+        );
         expect(panelControllerRuntimeSource).not.toContain("defaultView");
         expect(panelControllerRuntimeSource).not.toMatch(
             directDataPointFilterPanelControllerRuntimeAmbientFallbackPattern
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "type DataPointFilterPanelControllerRuntimeProvider<T>"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "data point filter panel controller requires ${providerName} provider"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            'scope.getCancelAnimationFrame,\n        "cancelAnimationFrame"'
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            'scope.getDocument,\n        "document"'
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            'getRequiredProvider(scope.getNode, "Node")'
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            'scope.getRequestAnimationFrame,\n        "requestAnimationFrame"'
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            'scope.getViewport,\n        "viewport"'
         );
         expect(panelControllerRuntimeSource).toContain(
             "../../../runtime/browserRuntime.js"
