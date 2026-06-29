@@ -7075,7 +7075,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer startup performance timing behind its runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(22);
 
         const startupPerformanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -7110,13 +7110,25 @@ describe("architecture boundaries", () => {
             "getPerformance: getBrowserPerformance"
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
-            "readonly getPerformance: () =>"
+            "type StartupPerformanceMonitorRuntimeProvider"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*StartupPerformanceMonitorRuntimeProvider<StartupPerformanceMonitorPerformanceRuntime>/u
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
-            "startupPerformanceMonitorRuntime requires a performance provider"
+            "function getRequiredProvider"
         );
         expect(startupPerformanceMonitorRuntimeSource).toContain(
-            "scope.getPerformance()"
+            "startupPerformanceMonitorRuntime requires ${article} ${providerName} provider"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(startupPerformanceMonitorRuntimeSource).toContain(
+            "const performance = getPerformance();"
         );
         expect(startupPerformanceMonitorRuntimeSource).not.toContain(
             "scope.getPerformance?.()"

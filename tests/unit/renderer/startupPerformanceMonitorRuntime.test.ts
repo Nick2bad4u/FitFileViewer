@@ -66,6 +66,18 @@ describe("getStartupPerformanceMonitorRuntime", () => {
         );
     });
 
+    it("fails clearly when the performance provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getStartupPerformanceMonitorRuntime({
+                getPerformance: undefined,
+            })
+        ).toThrow(
+            "startupPerformanceMonitorRuntime requires a performance provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 

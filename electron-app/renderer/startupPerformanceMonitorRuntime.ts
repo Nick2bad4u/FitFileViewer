@@ -5,10 +5,12 @@ type StartupPerformanceMonitorPerformanceRuntime = {
 };
 
 export interface StartupPerformanceMonitorRuntimeScope {
-    readonly getPerformance: () =>
-        | StartupPerformanceMonitorPerformanceRuntime
-        | undefined;
+    readonly getPerformance: StartupPerformanceMonitorRuntimeProvider<StartupPerformanceMonitorPerformanceRuntime>;
 }
+
+type StartupPerformanceMonitorRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface StartupPerformanceMonitorRuntime {
     nowPerformance: () => number;
@@ -20,9 +22,11 @@ const defaultStartupPerformanceMonitorRuntimeScope: StartupPerformanceMonitorRun
     };
 
 function getRequiredPerformanceNow(
-    scope: StartupPerformanceMonitorRuntimeScope
+    getPerformance: () =>
+        | StartupPerformanceMonitorPerformanceRuntime
+        | undefined
 ): () => number {
-    const performance = scope.getPerformance();
+    const performance = getPerformance();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
@@ -36,15 +40,29 @@ function getRequiredPerformanceNow(
 export function getStartupPerformanceMonitorRuntime(
     scope: StartupPerformanceMonitorRuntimeScope = defaultStartupPerformanceMonitorRuntimeScope
 ): StartupPerformanceMonitorRuntime {
-    if (typeof scope.getPerformance !== "function") {
-        throw new TypeError(
-            "startupPerformanceMonitorRuntime requires a performance provider"
-        );
-    }
+    const getPerformance = getRequiredProvider(
+        scope.getPerformance,
+        "performance"
+    );
 
     return {
         nowPerformance(): number {
-            return getRequiredPerformanceNow(scope)();
+            return getRequiredPerformanceNow(getPerformance)();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: StartupPerformanceMonitorRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `startupPerformanceMonitorRuntime requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
