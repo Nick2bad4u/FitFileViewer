@@ -8015,7 +8015,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(39);
 
         const violations = migratedMainUiSummarySelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -8065,17 +8065,34 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.getDocument?.()");
         expect(runtimeSource).not.toContain("scope.getHTMLElement?.()");
         expect(runtimeSource).not.toContain("scope.getSetTimeout?.()");
-        expect(runtimeSource).toContain("scope.getDocument()");
-        expect(runtimeSource).toContain("scope.getHTMLElement()");
-        expect(runtimeSource).toContain("scope.getSetTimeout()");
         expect(runtimeSource).toContain(
-            "main UI summary selector requires a document provider"
+            "type MainUiSummaryColumnSelectorRuntimeProvider"
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getDocument:\s*MainUiSummaryColumnSelectorRuntimeProvider<Document>/u
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*MainUiSummaryColumnSelectorRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*MainUiSummaryColumnSelectorRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(runtimeSource).toContain("function getRequiredProvider");
+        expect(runtimeSource).toContain(
+            "main UI summary selector requires ${article} ${providerName} provider"
+        );
+        expect(runtimeSource).toContain("providerName: string");
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
         );
         expect(runtimeSource).toContain(
-            "main UI summary selector requires an HTMLElement provider"
-        );
-        expect(runtimeSource).toContain(
-            "main UI summary selector requires a setTimeout provider"
+            "const documentTarget = getDocument();"
         );
         expect(runtimeSource).toContain(
             "main UI summary selector requires setTimeout"

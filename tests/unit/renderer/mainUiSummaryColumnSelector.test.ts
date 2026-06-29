@@ -271,4 +271,32 @@ describe("main UI summary column selector", () => {
             } as unknown as MainUiSummaryColumnSelectorRuntimeScope)
         ).toThrow("main UI summary selector requires a setTimeout provider");
     });
+
+    it("fails clearly when browser runtime provider slots are undefined", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime({
+                getDocument: undefined,
+                getHTMLElement: () => HTMLElement,
+                getSetTimeout: () => setTimeout,
+            })
+        ).toThrow("main UI summary selector requires a document provider");
+
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime({
+                getDocument: () => document,
+                getHTMLElement: undefined,
+                getSetTimeout: () => setTimeout,
+            })
+        ).toThrow("main UI summary selector requires an HTMLElement provider");
+
+        expect(() =>
+            getMainUiSummaryColumnSelectorRuntime({
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+                getSetTimeout: undefined,
+            })
+        ).toThrow("main UI summary selector requires a setTimeout provider");
+    });
 });
