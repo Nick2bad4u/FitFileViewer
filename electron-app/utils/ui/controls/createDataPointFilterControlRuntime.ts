@@ -6,14 +6,16 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface CreateDataPointFilterControlRuntimeScope {
-    readonly getAbortController:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument: (() => Document | undefined) | undefined;
-    readonly getQueueMicrotask:
-        | (() => typeof queueMicrotask | undefined)
-        | undefined;
+    readonly getAbortController: CreateDataPointFilterControlRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: CreateDataPointFilterControlRuntimeProvider<Document>;
+    readonly getQueueMicrotask: CreateDataPointFilterControlRuntimeProvider<
+        typeof queueMicrotask
+    >;
 }
+
+type CreateDataPointFilterControlRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreateDataPointFilterControlRuntime {
     createAbortController: () => AbortController;
@@ -28,17 +30,28 @@ const defaultCreateDataPointFilterControlRuntimeScope: CreateDataPointFilterCont
         getQueueMicrotask: getBrowserQueueMicrotask,
     };
 
-function getAbortControllerConstructor(
-    scope: CreateDataPointFilterControlRuntimeScope
-): BrowserAbortControllerConstructor {
-    const getRuntimeAbortController = scope.getAbortController;
-    if (typeof getRuntimeAbortController !== "function") {
+function getRequiredProvider<T>(
+    provider: CreateDataPointFilterControlRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
         throw new TypeError(
-            "createDataPointFilterControl requires an AbortController provider"
+            `createDataPointFilterControl requires ${article} ${providerName} provider`
         );
     }
 
-    const AbortControllerConstructor = getRuntimeAbortController();
+    return provider;
+}
+
+function getAbortControllerConstructor(
+    scope: CreateDataPointFilterControlRuntimeScope
+): BrowserAbortControllerConstructor {
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createDataPointFilterControl requires an AbortController runtime"
@@ -51,14 +64,10 @@ function getAbortControllerConstructor(
 function getDocument(
     scope: CreateDataPointFilterControlRuntimeScope
 ): Document {
-    const getRuntimeDocument = scope.getDocument;
-    if (typeof getRuntimeDocument !== "function") {
-        throw new TypeError(
-            "createDataPointFilterControl requires a document provider"
-        );
-    }
-
-    const runtimeDocument = getRuntimeDocument();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "createDataPointFilterControl requires a document runtime"
@@ -81,14 +90,10 @@ export function getCreateDataPointFilterControlRuntime(
             return getDocument(scope).createElement("option");
         },
         scheduleMicrotask(callback: VoidFunction): void {
-            const getRuntimeQueueMicrotask = scope.getQueueMicrotask;
-            if (typeof getRuntimeQueueMicrotask !== "function") {
-                throw new TypeError(
-                    "createDataPointFilterControl requires a queueMicrotask provider"
-                );
-            }
-
-            const microtaskScheduler = getRuntimeQueueMicrotask();
+            const microtaskScheduler = getRequiredProvider(
+                scope.getQueueMicrotask,
+                "queueMicrotask"
+            )();
             if (typeof microtaskScheduler === "function") {
                 microtaskScheduler(callback);
                 return;

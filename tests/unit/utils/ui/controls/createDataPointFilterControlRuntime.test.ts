@@ -7,6 +7,11 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/createDataPointFilterControlRuntime.js";
 
 describe("getCreateDataPointFilterControlRuntime", () => {
+    const dataPointFilterControlRuntimeScope = {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+        getQueueMicrotask: () => queueMicrotask,
+    } satisfies Parameters<typeof getCreateDataPointFilterControlRuntime>[0];
     const unavailableDataPointFilterControlRuntimeScope = {
         getAbortController: () => undefined,
         getDocument: () => undefined,
@@ -149,14 +154,40 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         );
     });
 
-    it("ignores legacy direct runtime scope properties", async () => {
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getCreateDataPointFilterControlRuntime({
+                ...dataPointFilterControlRuntimeScope,
+                getDocument: undefined,
+            }).createOption()
+        ).toThrow("createDataPointFilterControl requires a document provider");
+        expect(() =>
+            getCreateDataPointFilterControlRuntime({
+                ...dataPointFilterControlRuntimeScope,
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow(
+            "createDataPointFilterControl requires an AbortController provider"
+        );
+        expect(() =>
+            getCreateDataPointFilterControlRuntime({
+                ...dataPointFilterControlRuntimeScope,
+                getQueueMicrotask: undefined,
+            }).scheduleMicrotask(() => {})
+        ).toThrow(
+            "createDataPointFilterControl requires a queueMicrotask provider"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(5);
 
         const queueMicrotaskMock = vi.fn((callback: VoidFunction) => {
             callback();
         });
         const legacyScope = {
-            ...unavailableDataPointFilterControlRuntimeScope,
             AbortController,
             document,
             queueMicrotask: queueMicrotaskMock,
@@ -165,19 +196,20 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         let scheduled = false;
 
         expect(() => runtime.createOption()).toThrow(
-            "createDataPointFilterControl requires a document runtime"
+            "createDataPointFilterControl requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createDataPointFilterControl requires an AbortController runtime"
+            "createDataPointFilterControl requires an AbortController provider"
         );
-
-        runtime.scheduleMicrotask(() => {
-            scheduled = true;
-        });
+        expect(() =>
+            runtime.scheduleMicrotask(() => {
+                scheduled = true;
+            })
+        ).toThrow(
+            "createDataPointFilterControl requires a queueMicrotask provider"
+        );
 
         expect(scheduled).toBe(false);
         expect(queueMicrotaskMock).not.toHaveBeenCalled();
-        await Promise.resolve();
-        expect(scheduled).toBe(true);
     });
 });

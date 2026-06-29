@@ -20740,7 +20740,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(39);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -20810,6 +20810,33 @@ describe("architecture boundaries", () => {
             "scope.getQueueMicrotask?.()"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
+            "type CreateDataPointFilterControlRuntimeProvider"
+        );
+        expect(dataPointFilterControlRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*CreateDataPointFilterControlRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(dataPointFilterControlRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*CreateDataPointFilterControlRuntimeProvider<Document>/u
+        );
+        expect(dataPointFilterControlRuntimeSource).toMatch(
+            /readonly\s+getQueueMicrotask:\s*CreateDataPointFilterControlRuntimeProvider<\s*typeof queueMicrotask\s*>/u
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(dataPointFilterControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(dataPointFilterControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(dataPointFilterControlRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getQueueMicrotask,\s*"queueMicrotask"\s*\)/u
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "Promise.resolve().then(callback)"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
@@ -20840,13 +20867,13 @@ describe("architecture boundaries", () => {
             "getQueueMicrotask: () => globalThis.queueMicrotask"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
-            "createDataPointFilterControl requires an AbortController provider"
+            "createDataPointFilterControl requires ${article} ${providerName} provider"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
-            "createDataPointFilterControl requires a document provider"
+            "createDataPointFilterControl requires an AbortController runtime"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
-            "createDataPointFilterControl requires a queueMicrotask provider"
+            "createDataPointFilterControl requires a document runtime"
         );
     });
 
