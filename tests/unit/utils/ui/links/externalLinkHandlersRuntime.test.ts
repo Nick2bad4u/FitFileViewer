@@ -2,6 +2,22 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getExternalLinkHandlersRuntime } from "../../../../../electron-app/utils/ui/links/externalLinkHandlersRuntime.js";
 
+type ExternalLinkHandlersRuntimeScope = NonNullable<
+    Parameters<typeof getExternalLinkHandlersRuntime>[0]
+>;
+
+function createRuntimeScope(
+    overrides: Partial<ExternalLinkHandlersRuntimeScope> = {}
+): ExternalLinkHandlersRuntimeScope {
+    return {
+        getElement: () => undefined,
+        getHTMLAnchorElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        getOpen: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getExternalLinkHandlersRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -14,15 +30,17 @@ describe("getExternalLinkHandlersRuntime", () => {
         let openedTarget = "";
         let openedFeatures = "";
         const openedWindow = {} as WindowProxy;
-        const runtime = getExternalLinkHandlersRuntime({
-            getOpen: () =>
-                function open(url, target, features): WindowProxy {
-                    openedUrl = String(url);
-                    openedTarget = target ?? "";
-                    openedFeatures = features ?? "";
-                    return openedWindow;
-                },
-        });
+        const runtime = getExternalLinkHandlersRuntime(
+            createRuntimeScope({
+                getOpen: () =>
+                    function open(url, target, features): WindowProxy {
+                        openedUrl = String(url);
+                        openedTarget = target ?? "";
+                        openedFeatures = features ?? "";
+                        return openedWindow;
+                    },
+            })
+        );
 
         const result = runtime.openBrowserWindow(
             "https://example.com",
@@ -45,11 +63,13 @@ describe("getExternalLinkHandlersRuntime", () => {
         const child = documentRef.createElement("span");
         const plainLink = documentRef.createElement("a");
         const keyboardEvent = new KeyboardEvent("keydown", { key: "Enter" });
-        const runtime = getExternalLinkHandlersRuntime({
-            getElement: () => Element,
-            getHTMLAnchorElement: () => HTMLAnchorElement,
-            getKeyboardEvent: () => KeyboardEvent,
-        });
+        const runtime = getExternalLinkHandlersRuntime(
+            createRuntimeScope({
+                getElement: () => Element,
+                getHTMLAnchorElement: () => HTMLAnchorElement,
+                getKeyboardEvent: () => KeyboardEvent,
+            })
+        );
 
         anchor.dataset.externalLink = "";
         anchor.append(child);
@@ -74,19 +94,19 @@ describe("getExternalLinkHandlersRuntime", () => {
         } as unknown as Parameters<typeof getExternalLinkHandlersRuntime>[0]);
         const target = document.createElement("span");
 
-        expect(
+        expect(() =>
             runtime.openBrowserWindow(
                 "https://example.com",
                 "_blank",
                 "noopener,noreferrer"
             )
-        ).toBeNull();
+        ).toThrow("externalLinkHandlers requires an open provider");
         expect(open).not.toHaveBeenCalled();
         expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
-            "externalLinkHandlers requires a KeyboardEvent runtime"
+            "externalLinkHandlers requires a KeyboardEvent provider"
         );
         expect(() => runtime.resolveExternalLinkAnchor(target)).toThrow(
-            "externalLinkHandlers requires an Element runtime"
+            "externalLinkHandlers requires an Element provider"
         );
         expect(
             (runtime as unknown as { Element?: unknown }).Element
@@ -101,9 +121,31 @@ describe("getExternalLinkHandlersRuntime", () => {
         expect(open).not.toHaveBeenCalled();
     });
 
+    it("fails clearly when providers are omitted", () => {
+        expect.assertions(4);
+        const runtime = getExternalLinkHandlersRuntime(
+            {} as ExternalLinkHandlersRuntimeScope
+        );
+
+        expect(() =>
+            runtime.openBrowserWindow(
+                "https://example.com",
+                "_blank",
+                "noopener,noreferrer"
+            )
+        ).toThrow("externalLinkHandlers requires an open provider");
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "externalLinkHandlers requires a KeyboardEvent provider"
+        );
+        expect(() =>
+            runtime.resolveExternalLinkAnchor(document.createElement("span"))
+        ).toThrow("externalLinkHandlers requires an Element provider");
+        expect(runtime.resolveExternalLinkAnchor(null)).toBeNull();
+    });
+
     it("returns null when a browser opener is unavailable", () => {
         expect.assertions(4);
-        const runtime = getExternalLinkHandlersRuntime({});
+        const runtime = getExternalLinkHandlersRuntime(createRuntimeScope());
 
         expect(
             runtime.openBrowserWindow(

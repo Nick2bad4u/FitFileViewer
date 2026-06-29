@@ -15,16 +15,16 @@ type BrowserWindowOpen = (
 ) => WindowProxy | null;
 
 export interface ExternalLinkHandlersRuntimeScope {
-    readonly getElement?:
+    readonly getElement:
         | (() => BrowserElementConstructor | undefined)
         | undefined;
-    readonly getHTMLAnchorElement?:
+    readonly getHTMLAnchorElement:
         | (() => BrowserHTMLAnchorElementConstructor | undefined)
         | undefined;
-    readonly getKeyboardEvent?:
+    readonly getKeyboardEvent:
         | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
-    readonly getOpen?: (() => BrowserWindowOpen | undefined) | undefined;
+    readonly getOpen: (() => BrowserWindowOpen | undefined) | undefined;
 }
 
 export interface ExternalLinkHandlersRuntime {
@@ -50,7 +50,14 @@ const defaultExternalLinkHandlersRuntimeScope: ExternalLinkHandlersRuntimeScope 
 function getElementConstructor(
     scope: ExternalLinkHandlersRuntimeScope
 ): BrowserElementConstructor {
-    const ElementConstructor = scope.getElement?.();
+    const getElement = scope.getElement;
+    if (!getElement) {
+        throw new TypeError(
+            "externalLinkHandlers requires an Element provider"
+        );
+    }
+
+    const ElementConstructor = getElement();
     if (typeof ElementConstructor !== "function") {
         throw new TypeError("externalLinkHandlers requires an Element runtime");
     }
@@ -61,7 +68,14 @@ function getElementConstructor(
 function getHTMLAnchorElementConstructor(
     scope: ExternalLinkHandlersRuntimeScope
 ): BrowserHTMLAnchorElementConstructor {
-    const HTMLAnchorElementConstructor = scope.getHTMLAnchorElement?.();
+    const getHTMLAnchorElement = scope.getHTMLAnchorElement;
+    if (!getHTMLAnchorElement) {
+        throw new TypeError(
+            "externalLinkHandlers requires an HTMLAnchorElement provider"
+        );
+    }
+
+    const HTMLAnchorElementConstructor = getHTMLAnchorElement();
     if (typeof HTMLAnchorElementConstructor !== "function") {
         throw new TypeError(
             "externalLinkHandlers requires an HTMLAnchorElement runtime"
@@ -74,7 +88,14 @@ function getHTMLAnchorElementConstructor(
 function getKeyboardEventConstructor(
     scope: ExternalLinkHandlersRuntimeScope
 ): BrowserKeyboardEventConstructor {
-    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    const getKeyboardEvent = scope.getKeyboardEvent;
+    if (!getKeyboardEvent) {
+        throw new TypeError(
+            "externalLinkHandlers requires a KeyboardEvent provider"
+        );
+    }
+
+    const KeyboardEventConstructor = getKeyboardEvent();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError(
             "externalLinkHandlers requires a KeyboardEvent runtime"
@@ -87,7 +108,12 @@ function getKeyboardEventConstructor(
 function getBrowserWindowOpen(
     scope: ExternalLinkHandlersRuntimeScope
 ): BrowserWindowOpen | undefined {
-    return scope.getOpen?.();
+    const getOpen = scope.getOpen;
+    if (!getOpen) {
+        throw new TypeError("externalLinkHandlers requires an open provider");
+    }
+
+    return getOpen();
 }
 
 export function getExternalLinkHandlersRuntime(

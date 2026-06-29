@@ -22096,7 +22096,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(54);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -22176,6 +22176,30 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly KeyboardEvent?:");
         expect(runtimeScopeSource).not.toContain("readonly open?:");
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "readonly getElement:"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "readonly getHTMLAnchorElement:"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "readonly getKeyboardEvent:"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "readonly getOpen:"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "readonly getElement?:"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "readonly getHTMLAnchorElement?:"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "readonly getOpen?:"
+        );
         expect(externalLinkHandlersRuntimeSource).not.toContain(
             "scope.Element"
         );
@@ -22186,8 +22210,41 @@ describe("architecture boundaries", () => {
             "scope.KeyboardEvent"
         );
         expect(externalLinkHandlersRuntimeSource).not.toContain("scope.open");
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.getElement?.()"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.getHTMLAnchorElement?.()"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.getKeyboardEvent?.()"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.getOpen?.()"
+        );
         expect(externalLinkHandlersRuntimeSource).toContain(
-            "return scope.getOpen?.();"
+            "const getElement = scope.getElement;"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "const getHTMLAnchorElement = scope.getHTMLAnchorElement;"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "const getKeyboardEvent = scope.getKeyboardEvent;"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "const getOpen = scope.getOpen;"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "externalLinkHandlers requires an Element provider"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "externalLinkHandlers requires an HTMLAnchorElement provider"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "externalLinkHandlers requires a KeyboardEvent provider"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "externalLinkHandlers requires an open provider"
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "getElement: getBrowserElement"
