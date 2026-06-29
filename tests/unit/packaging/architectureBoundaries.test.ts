@@ -3458,7 +3458,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(44);
+        expect.assertions(41);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -25773,7 +25773,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(41);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -25850,6 +25850,25 @@ describe("architecture boundaries", () => {
         expect(updateMapThemeRuntimeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "type UpdateMapThemeRuntimeProvider<T>"
+        );
+        expect(updateMapThemeRuntimeSource).toContain("getRequiredProvider(");
+        expect(updateMapThemeRuntimeSource).toContain(
+            "updateMapTheme requires ${article} ${providerName} provider"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "readonly getBeforeUnloadTarget?:"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
         expect(updateMapThemeRuntimeSource).not.toContain(
             "): typeof AbortController"
         );
@@ -25871,6 +25890,18 @@ describe("architecture boundaries", () => {
         expect(updateMapThemeRuntimeSource).not.toContain("scope.document");
         expect(updateMapThemeRuntimeSource).not.toContain("scope.HTMLElement");
         expect(updateMapThemeRuntimeSource).not.toContain("scope.window");
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "scope.getBeforeUnloadTarget?.()"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
     });
 
     it("keeps chart canvas creation behind the runtime facade", () => {

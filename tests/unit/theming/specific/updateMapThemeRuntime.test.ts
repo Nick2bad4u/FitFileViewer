@@ -1,6 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getUpdateMapThemeRuntime } from "../../../../electron-app/utils/theming/specific/updateMapThemeRuntime.js";
+import {
+    getUpdateMapThemeRuntime,
+    type UpdateMapThemeRuntimeScope,
+} from "../../../../electron-app/utils/theming/specific/updateMapThemeRuntime.js";
+
+function createUnavailableRuntimeScope(
+    overrides: Partial<UpdateMapThemeRuntimeScope> = {}
+): UpdateMapThemeRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getBeforeUnloadTarget: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getUpdateMapThemeRuntime", () => {
     afterEach(() => {
@@ -23,9 +38,11 @@ describe("getUpdateMapThemeRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getUpdateMapThemeRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const runtime = getUpdateMapThemeRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -86,7 +103,9 @@ describe("getUpdateMapThemeRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getUpdateMapThemeRuntime({});
+        const runtime = getUpdateMapThemeRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -103,6 +122,7 @@ describe("getUpdateMapThemeRuntime", () => {
 
             expect(
                 getUpdateMapThemeRuntime({
+                    ...createUnavailableRuntimeScope(),
                     getDocument: () => document,
                 }).queryLeafletMap()
             ).toBe(map);
@@ -124,6 +144,7 @@ describe("getUpdateMapThemeRuntime", () => {
             querySelector: vi.fn<Document["querySelector"]>(),
         } as unknown as Document;
         const runtime = getUpdateMapThemeRuntime({
+            ...createUnavailableRuntimeScope(),
             getDocument: () => documentLike,
         });
 
@@ -144,6 +165,7 @@ describe("getUpdateMapThemeRuntime", () => {
             eventCount += 1;
         };
         const runtime = getUpdateMapThemeRuntime({
+            ...createUnavailableRuntimeScope(),
             getBeforeUnloadTarget: () => ({
                 addEventListener:
                     eventTarget.addEventListener.bind(eventTarget),
@@ -176,6 +198,7 @@ describe("getUpdateMapThemeRuntime", () => {
             }
         }
         const runtime = getUpdateMapThemeRuntime({
+            ...createUnavailableRuntimeScope(),
             getAbortController: () => TestAbortController,
             getBeforeUnloadTarget: () => beforeUnloadTarget,
             getDocument: () => documentLike,
@@ -195,7 +218,11 @@ describe("getUpdateMapThemeRuntime", () => {
         expect(runtime.queryLeafletMap()).toBe(map);
         expect(runtime.isHTMLElement(map)).toBe(true);
         expect(unloadCount).toBe(1);
-        expect(getUpdateMapThemeRuntime({}).queryLeafletMap()).toBeNull();
+        expect(
+            getUpdateMapThemeRuntime(
+                createUnavailableRuntimeScope()
+            ).queryLeafletMap()
+        ).toBeNull();
     });
 
     it("checks HTMLElement instances through the injected constructor", () => {
@@ -205,14 +232,19 @@ describe("getUpdateMapThemeRuntime", () => {
 
         expect(
             getUpdateMapThemeRuntime({
+                ...createUnavailableRuntimeScope(),
                 getHTMLElement: () => HTMLElement,
             }).isHTMLElement(element)
         ).toBe(true);
-        expect(getUpdateMapThemeRuntime({}).isHTMLElement(element)).toBe(false);
+        expect(
+            getUpdateMapThemeRuntime(
+                createUnavailableRuntimeScope()
+            ).isHTMLElement(element)
+        ).toBe(false);
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -237,18 +269,25 @@ describe("getUpdateMapThemeRuntime", () => {
             HTMLElement,
         } as unknown as Parameters<typeof getUpdateMapThemeRuntime>[0]);
 
-        runtime.addDocumentListener("themechange", vi.fn(), {});
-        runtime.addWindowBeforeUnloadListener(vi.fn(), {});
+        expect(() => {
+            runtime.addDocumentListener("themechange", vi.fn(), {});
+        }).toThrow("updateMapTheme requires a document provider");
+        expect(() => {
+            runtime.addWindowBeforeUnloadListener(vi.fn(), {});
+        }).toThrow("updateMapTheme requires a beforeunload target provider");
 
         expect(() => runtime.createAbortController()).toThrow(
-            "updateMapTheme requires an AbortController runtime"
+            "updateMapTheme requires an AbortController provider"
         );
-        expect(runtime.queryLeafletMap()).toBeNull();
-        expect(runtime.isHTMLElement(map)).toBe(false);
+        expect(() => runtime.queryLeafletMap()).toThrow(
+            "updateMapTheme requires a document provider"
+        );
+        expect(() => runtime.isHTMLElement(map)).toThrow(
+            "updateMapTheme requires an HTMLElement provider"
+        );
         expect(documentLike.addEventListener).not.toHaveBeenCalled();
         expect(documentLike.querySelector).not.toHaveBeenCalled();
         expect(beforeUnloadTarget.addEventListener).not.toHaveBeenCalled();
         expect(controllerCount).toBe(0);
-        expect(getUpdateMapThemeRuntime({}).queryLeafletMap()).toBeNull();
     });
 });

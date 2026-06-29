@@ -10,17 +10,13 @@ import {
 type UpdateMapThemeEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface UpdateMapThemeRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getBeforeUnloadTarget?:
-        | (() => UpdateMapThemeEventTarget | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
+    readonly getAbortController: UpdateMapThemeRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getBeforeUnloadTarget: UpdateMapThemeRuntimeProvider<UpdateMapThemeEventTarget>;
+    readonly getDocument: UpdateMapThemeRuntimeProvider<Document>;
+    readonly getHTMLElement: UpdateMapThemeRuntimeProvider<BrowserHTMLElementConstructor>;
 }
+
+type UpdateMapThemeRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface UpdateMapThemeRuntime {
     addDocumentListener: (
@@ -55,26 +51,44 @@ const defaultUpdateMapThemeRuntimeScope: UpdateMapThemeRuntimeScope = {
     getHTMLElement: getBrowserHTMLElement,
 };
 
+function getRequiredProvider<T>(
+    provider: UpdateMapThemeRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `updateMapTheme requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortController(
     scope: UpdateMapThemeRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getBeforeUnloadTarget(
     scope: UpdateMapThemeRuntimeScope
 ): UpdateMapThemeEventTarget | undefined {
-    return scope.getBeforeUnloadTarget?.();
+    return getRequiredProvider(
+        scope.getBeforeUnloadTarget,
+        "beforeunload target"
+    )();
 }
 
 function getDocument(scope: UpdateMapThemeRuntimeScope): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getHTMLElement(
     scope: UpdateMapThemeRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
 }
 
 export function getUpdateMapThemeRuntime(
