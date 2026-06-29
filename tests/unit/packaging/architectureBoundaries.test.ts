@@ -32641,7 +32641,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(108);
+        expect.assertions(114);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -32786,6 +32786,24 @@ describe("architecture boundaries", () => {
         expect(leafletMeasureLiteRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "getDocumentEventTarget: getBrowserDocument"
+        );
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(leafletMeasureLiteRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(leafletMeasureLiteRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocumentEventTarget,\s*"document event-target"\s*\)/u
+        );
+        expect(leafletMeasureLiteRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "leafletMeasureLite requires ${providerLabel} provider"
+        );
         expect(leafletMeasureLiteRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -32796,7 +32814,7 @@ describe("architecture boundaries", () => {
             "scope.documentEventTarget"
         );
         expect(leafletMeasureLiteRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "return getDocumentEventTargetProvider() ?? getDocument();"
         );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");

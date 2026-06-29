@@ -2,14 +2,21 @@ import { getBrowserDocument } from "../utils/runtime/browserRuntime.js";
 
 const defaultLeafletMeasureLiteRuntimeScope = {
     getDocument: getBrowserDocument,
+    getDocumentEventTarget: getBrowserDocument,
 };
 
-function getDocumentEventTarget(scope) {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+function getDocumentEventTarget(getDocumentEventTargetProvider, getDocument) {
+    return getDocumentEventTargetProvider() ?? getDocument();
 }
 
-function getRequiredDocumentEventTarget(scope) {
-    const documentEventTarget = getDocumentEventTarget(scope);
+function getRequiredDocumentEventTarget(
+    getDocumentEventTargetProvider,
+    getDocument
+) {
+    const documentEventTarget = getDocumentEventTarget(
+        getDocumentEventTargetProvider,
+        getDocument
+    );
     if (documentEventTarget === undefined || documentEventTarget === null) {
         throw new TypeError(
             "leafletMeasureLite requires a document event-target runtime"
@@ -22,18 +29,34 @@ function getRequiredDocumentEventTarget(scope) {
 export function getLeafletMeasureLiteRuntime(
     scope = defaultLeafletMeasureLiteRuntimeScope
 ) {
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getDocumentEventTargetProvider = getRequiredProvider(
+        scope.getDocumentEventTarget,
+        "document event-target"
+    );
+
     return {
         addDocumentKeydownListener(listener) {
-            getRequiredDocumentEventTarget(scope).addEventListener(
-                "keydown",
-                listener
-            );
+            getRequiredDocumentEventTarget(
+                getDocumentEventTargetProvider,
+                getDocument
+            ).addEventListener("keydown", listener);
         },
         removeDocumentKeydownListener(listener) {
-            getRequiredDocumentEventTarget(scope).removeEventListener(
-                "keydown",
-                listener
-            );
+            getRequiredDocumentEventTarget(
+                getDocumentEventTargetProvider,
+                getDocument
+            ).removeEventListener("keydown", listener);
         },
     };
+}
+
+function getRequiredProvider(provider, providerLabel) {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `leafletMeasureLite requires ${providerLabel} provider`
+        );
+    }
+
+    return provider;
 }
