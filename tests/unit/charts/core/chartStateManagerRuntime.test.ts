@@ -10,6 +10,12 @@ import type {
 } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 import { getChartStateManagerRuntime } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 
+const unavailableTimerScope = {
+    getClearTimeout: () => undefined,
+    getDateNow: () => undefined,
+    getSetTimeout: () => undefined,
+} satisfies ChartStateManagerRuntimeScope;
+
 describe("getChartStateManagerRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -57,6 +63,7 @@ describe("getChartStateManagerRuntime", () => {
         document.body.appendChild(controlsPanel);
 
         const runtime = getChartStateManagerRuntime({
+            ...unavailableTimerScope,
             getDocument: () => document,
             getHTMLElement: () => HTMLElement,
         });
@@ -124,14 +131,42 @@ describe("getChartStateManagerRuntime", () => {
         const timeout = 1 as ChartStateManagerTimeout;
 
         expect(() =>
-            getChartStateManagerRuntime({}).setRenderTimeout(() => undefined, 0)
+            getChartStateManagerRuntime(unavailableTimerScope).setRenderTimeout(
+                () => undefined,
+                0
+            )
         ).toThrow("ChartStateManager requires setTimeout");
         expect(() =>
-            getChartStateManagerRuntime({}).clearRenderTimeout(timeout)
+            getChartStateManagerRuntime(
+                unavailableTimerScope
+            ).clearRenderTimeout(timeout)
         ).toThrow("ChartStateManager requires clearTimeout");
-        expect(() => getChartStateManagerRuntime({}).dateNow()).toThrow(
-            "ChartStateManager requires dateNow"
-        );
+        expect(() =>
+            getChartStateManagerRuntime(unavailableTimerScope).dateNow()
+        ).toThrow("ChartStateManager requires dateNow");
+    });
+
+    it("fails clearly when timer providers are omitted", () => {
+        expect.assertions(3);
+
+        const timeout = 1 as ChartStateManagerTimeout;
+        const omittedProviderScope =
+            {} as unknown as ChartStateManagerRuntimeScope;
+
+        expect(() =>
+            getChartStateManagerRuntime(omittedProviderScope).setRenderTimeout(
+                () => undefined,
+                0
+            )
+        ).toThrow("ChartStateManager requires a setTimeout provider");
+        expect(() =>
+            getChartStateManagerRuntime(
+                omittedProviderScope
+            ).clearRenderTimeout(timeout)
+        ).toThrow("ChartStateManager requires a clearTimeout provider");
+        expect(() =>
+            getChartStateManagerRuntime(omittedProviderScope).dateNow()
+        ).toThrow("ChartStateManager requires a dateNow provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -153,13 +188,13 @@ describe("getChartStateManagerRuntime", () => {
         expect(runtime.getChartRenderContainer()).toBeNull();
         expect(runtime.getControlsPanel()).toBeNull();
         expect(() => runtime.setRenderTimeout(() => undefined, 0)).toThrow(
-            "ChartStateManager requires setTimeout"
+            "ChartStateManager requires a setTimeout provider"
         );
         expect(() => runtime.clearRenderTimeout(timeout)).toThrow(
-            "ChartStateManager requires clearTimeout"
+            "ChartStateManager requires a clearTimeout provider"
         );
         expect(() => runtime.dateNow()).toThrow(
-            "ChartStateManager requires dateNow"
+            "ChartStateManager requires a dateNow provider"
         );
         expect(legacyScope.dateNow).not.toHaveBeenCalled();
 
