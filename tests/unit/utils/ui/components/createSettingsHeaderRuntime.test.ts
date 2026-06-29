@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getCreateSettingsHeaderRuntime } from "../../../../../electron-app/utils/ui/components/createSettingsHeaderRuntime.js";
+import {
+    getCreateSettingsHeaderRuntime,
+    type CreateSettingsHeaderRuntimeScope,
+} from "../../../../../electron-app/utils/ui/components/createSettingsHeaderRuntime.js";
 import type {
     BrowserClearTimeout,
     BrowserSetTimeout,
@@ -9,6 +12,20 @@ import type {
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getCreateSettingsHeaderRuntime", () => {
+    const createUnavailableSettingsHeaderRuntimeScope = (
+        overrides: Partial<CreateSettingsHeaderRuntimeScope> = {}
+    ) =>
+        ({
+            getAbortController: () => undefined,
+            getClearTimeout: () => undefined,
+            getDocument: () => undefined,
+            getDocumentEventTarget: () => undefined,
+            getEvent: () => undefined,
+            getSetTimeout: () => undefined,
+            getURL: () => undefined,
+            ...overrides,
+        }) satisfies CreateSettingsHeaderRuntimeScope;
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -22,6 +39,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
         });
@@ -38,6 +56,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
 
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getClearTimeout: () => clearTimeout,
         });
 
@@ -55,6 +74,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         const bodyAppend = vi.spyOn(documentRef.body, "append");
         const headAppend = vi.spyOn(documentRef.head, "append");
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getDocument: () => documentRef,
         });
 
@@ -82,6 +102,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
             }
         }
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getEvent: () => TestEvent,
         });
         const event = runtime.createChangeEvent();
@@ -99,6 +120,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
             () => "blob:settings"
         );
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getURL: () =>
                 ({ createObjectURL }) as Pick<
                     BrowserURLConstructor,
@@ -114,7 +136,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(8);
 
-        const runtime = getCreateSettingsHeaderRuntime({});
+        const runtime = getCreateSettingsHeaderRuntime(
+            createUnavailableSettingsHeaderRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "createSettingsHeader requires a setTimeout runtime"
@@ -144,6 +168,38 @@ describe("getCreateSettingsHeaderRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(7);
+
+        const runtime = getCreateSettingsHeaderRuntime(
+            {} as unknown as CreateSettingsHeaderRuntimeScope
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "createSettingsHeader requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "createSettingsHeader requires a clearTimeout provider"
+        );
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow(
+            "createSettingsHeader requires a document event-target provider"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "createSettingsHeader requires a document provider"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createSettingsHeader requires an AbortController provider"
+        );
+        expect(() => runtime.createChangeEvent()).toThrow(
+            "createSettingsHeader requires an Event provider"
+        );
+        expect(() => runtime.createObjectURL(new Blob(["settings"]))).toThrow(
+            "createSettingsHeader requires a URL provider"
+        );
+    });
+
     it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 
@@ -154,6 +210,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
             }
         );
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
@@ -231,7 +288,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getCreateSettingsHeaderRuntime({});
+        const runtime = getCreateSettingsHeaderRuntime(
+            createUnavailableSettingsHeaderRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "createSettingsHeader requires an AbortController runtime"
@@ -253,6 +312,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getDocumentEventTarget: () => documentEventTarget,
         });
 
@@ -281,7 +341,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getDocument: () => documentRef,
+            getDocumentEventTarget: () => undefined,
         });
 
         runtime.addDocumentKeydownListener(listener, {
@@ -349,6 +411,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
                 >
         );
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             getAbortController,
             getClearTimeout,
             getDocument,
@@ -416,6 +479,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
             () => "blob:legacy"
         );
         const runtime = getCreateSettingsHeaderRuntime({
+            ...createUnavailableSettingsHeaderRuntimeScope(),
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
             Event: EventConstructor as unknown as typeof Event,

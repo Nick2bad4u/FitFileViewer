@@ -18,21 +18,16 @@ type CreateSettingsHeaderURLRuntime = Pick<
     BrowserURLConstructor,
     "createObjectURL"
 >;
+type CreateSettingsHeaderRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface CreateSettingsHeaderRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly getURL?:
-        | (() => CreateSettingsHeaderURLRuntime | undefined)
-        | undefined;
+    readonly getAbortController: CreateSettingsHeaderRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: CreateSettingsHeaderRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: CreateSettingsHeaderRuntimeProvider<Document>;
+    readonly getDocumentEventTarget: CreateSettingsHeaderRuntimeProvider<Document>;
+    readonly getEvent: CreateSettingsHeaderRuntimeProvider<BrowserEventConstructor>;
+    readonly getSetTimeout: CreateSettingsHeaderRuntimeProvider<BrowserSetTimeout>;
+    readonly getURL: CreateSettingsHeaderRuntimeProvider<CreateSettingsHeaderURLRuntime>;
 }
 
 export interface CreateSettingsHeaderRuntime {
@@ -57,20 +52,41 @@ export interface CreateSettingsHeaderRuntime {
     ) => CreateSettingsHeaderTimer;
 }
 
+function getRequiredProvider<T>(
+    provider: CreateSettingsHeaderRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article =
+            providerName === "URL" || !/^[AEIOUHaeiou]/u.test(providerName)
+                ? "a"
+                : "an";
+
+        throw new TypeError(
+            `createSettingsHeader requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: CreateSettingsHeaderRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getClearTimeout(
     scope: CreateSettingsHeaderRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getDocument(scope: CreateSettingsHeaderRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("createSettingsHeader requires a document runtime");
     }
@@ -81,13 +97,18 @@ function getDocument(scope: CreateSettingsHeaderRuntimeScope): Document {
 function getDocumentEventTarget(
     scope: CreateSettingsHeaderRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "document event-target"
+        )() ?? getRequiredProvider(scope.getDocument, "document")()
+    );
 }
 
 function getEventConstructor(
     scope: CreateSettingsHeaderRuntimeScope
 ): BrowserEventConstructor {
-    const EventConstructor = scope.getEvent?.();
+    const EventConstructor = getRequiredProvider(scope.getEvent, "Event")();
     if (typeof EventConstructor !== "function") {
         throw new TypeError("createSettingsHeader requires an Event runtime");
     }
@@ -98,13 +119,13 @@ function getEventConstructor(
 function getSetTimeout(
     scope: CreateSettingsHeaderRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 function getURLRuntime(
     scope: CreateSettingsHeaderRuntimeScope
 ): CreateSettingsHeaderURLRuntime {
-    const urlRuntime = scope.getURL?.();
+    const urlRuntime = getRequiredProvider(scope.getURL, "URL")();
     if (typeof urlRuntime?.createObjectURL !== "function") {
         throw new TypeError("createSettingsHeader requires a URL runtime");
     }
@@ -117,6 +138,7 @@ const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope 
         getAbortController: getBrowserAbortController,
         getClearTimeout: getBrowserClearTimeout,
         getDocument: getBrowserDocument,
+        getDocumentEventTarget: getBrowserDocument,
         getEvent: getBrowserEvent,
         getSetTimeout: getBrowserSetTimeout,
         getURL: getBrowserURL,

@@ -8624,7 +8624,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(70);
+        expect.assertions(88);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -8728,6 +8728,52 @@ describe("architecture boundaries", () => {
         );
         expect(settingsHeaderRuntimeSource).not.toContain("readonly URL?:");
         expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly getDocumentEventTarget?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly getEvent?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain("readonly getURL?:");
+        expect(settingsHeaderRuntimeSource).toContain(
+            "type CreateSettingsHeaderRuntimeProvider<T> ="
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getAbortController: CreateSettingsHeaderRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getClearTimeout: CreateSettingsHeaderRuntimeProvider<BrowserClearTimeout>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getDocument: CreateSettingsHeaderRuntimeProvider<Document>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getDocumentEventTarget: CreateSettingsHeaderRuntimeProvider<Document>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getEvent: CreateSettingsHeaderRuntimeProvider<BrowserEventConstructor>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getSetTimeout: CreateSettingsHeaderRuntimeProvider<BrowserSetTimeout>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "readonly getURL: CreateSettingsHeaderRuntimeProvider<CreateSettingsHeaderURLRuntime>;"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(settingsHeaderRuntimeSource).not.toContain("scope.clearTimeout");
@@ -8762,11 +8808,14 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getDocumentEventTarget: getBrowserDocument"
+        );
         expect(settingsHeaderRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(settingsHeaderRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "scope.getDocumentEventTarget,"
         );
         expect(settingsHeaderRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
@@ -8792,6 +8841,9 @@ describe("architecture boundaries", () => {
         );
         expect(settingsHeaderRuntimeSource).toContain(
             "createSettingsHeader requires a URL runtime"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "createSettingsHeader requires ${article} ${providerName} provider"
         );
         expect(settingsHeaderRuntimeSource).toContain(
             "getDocument(scope).body.append(node)"
