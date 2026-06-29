@@ -28,6 +28,7 @@ describe("enhanceCreditsSection", () => {
     beforeEach(() => {
         document.body.replaceChildren();
         runtime = getCreditsMarqueeRuntime({
+            getAbortController: () => AbortController,
             getCancelAnimationFrame: () => vi.fn(),
             getDocument: () => document,
             getEventTarget: () => window,

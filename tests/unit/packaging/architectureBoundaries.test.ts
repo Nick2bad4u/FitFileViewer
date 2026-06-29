@@ -33682,7 +33682,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(43);
+        expect.assertions(71);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -33818,6 +33818,90 @@ describe("architecture boundaries", () => {
         );
         expect(creditsMarqueeRuntimeSource).not.toContain(
             "getResizeObserver: () => globalThis.ResizeObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "type CreditsMarqueeRuntimeProvider<T>"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*CreditsMarqueeRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getCancelAnimationFrame:\s*CreditsMarqueeRuntimeProvider<CreditsCancelAnimationFrame>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*CreditsMarqueeRuntimeProvider<Document>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getEventTarget:\s*CreditsMarqueeRuntimeProvider<CreditsMarqueeEventTarget>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*CreditsMarqueeRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getMutationObserver:\s*CreditsMarqueeRuntimeProvider<CreditsMutationObserverConstructor>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getRequestAnimationFrame:\s*CreditsMarqueeRuntimeProvider<CreditsRequestAnimationFrame>/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /readonly\s+getResizeObserver:\s*CreditsMarqueeRuntimeProvider<CreditsResizeObserverConstructor>/u
+        );
+        expect(creditsMarqueeRuntimeSource).not.toMatch(
+            /scope\.get(?:AbortController|CancelAnimationFrame|Document|EventTarget|HTMLElement|MutationObserver|RequestAnimationFrame|ResizeObserver)\?\.\(/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelAnimationFrame,\s*"cancelAnimationFrame"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getEventTarget,\s*"event target"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMutationObserver,\s*"MutationObserver"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame,\s*"requestAnimationFrame"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getResizeObserver,\s*"ResizeObserver"\s*\)/u
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "credits marquee requires ${providerName} provider"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getEventTarget?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getMutationObserver?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly getResizeObserver?:"
         );
     });
 

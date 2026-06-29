@@ -36,10 +36,12 @@ function createTestRuntime(
 
     return getCreditsMarqueeRuntime({
         getAbortController: () => AbortController,
+        getCancelAnimationFrame: () => undefined,
         getDocument: () => document,
         getEventTarget: () => window,
         getHTMLElement: () => HTMLElement,
         getMutationObserver: () => MutationObserver,
+        getRequestAnimationFrame: () => undefined,
         getResizeObserver: () => ResizeObserverConstructor,
     });
 }

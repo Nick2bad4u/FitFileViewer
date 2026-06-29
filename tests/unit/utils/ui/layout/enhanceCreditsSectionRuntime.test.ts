@@ -5,6 +5,22 @@ import {
     type CreditsMarqueeRuntimeScope,
 } from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
 
+function createCreditsMarqueeRuntimeScope(
+    overrides: Partial<CreditsMarqueeRuntimeScope> = {}
+): CreditsMarqueeRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getCancelAnimationFrame: () => undefined,
+        getDocument: () => undefined,
+        getEventTarget: () => undefined,
+        getHTMLElement: () => undefined,
+        getMutationObserver: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getResizeObserver: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getCreditsMarqueeRuntime", () => {
     afterEach(() => {
         document.body.replaceChildren();
@@ -21,10 +37,12 @@ describe("getCreditsMarqueeRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getCreditsMarqueeRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
-        });
+        const runtime = getCreditsMarqueeRuntime(
+            createCreditsMarqueeRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as typeof AbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -125,7 +143,9 @@ describe("getCreditsMarqueeRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getCreditsMarqueeRuntime({});
+        const runtime = getCreditsMarqueeRuntime(
+            createCreditsMarqueeRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "credits marquee requires an AbortController runtime"
@@ -140,10 +160,12 @@ describe("getCreditsMarqueeRuntime", () => {
             section.className = "credits-section";
             document.body.append(section);
 
-            const runtime = getCreditsMarqueeRuntime({
-                getDocument: () => document,
-                getHTMLElement: () => HTMLElement,
-            });
+            const runtime = getCreditsMarqueeRuntime(
+                createCreditsMarqueeRuntimeScope({
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
+                })
+            );
 
             expect(
                 runtime.queryCreditsSections("body > .credits-section")
@@ -162,9 +184,11 @@ describe("getCreditsMarqueeRuntime", () => {
         const listener = (): void => {
             resizeCount += 1;
         };
-        const runtime = getCreditsMarqueeRuntime({
-            getEventTarget: () => eventTarget,
-        });
+        const runtime = getCreditsMarqueeRuntime(
+            createCreditsMarqueeRuntimeScope({
+                getEventTarget: () => eventTarget,
+            })
+        );
 
         runtime.addResizeListener(listener, { passive: true });
         eventTarget.dispatchEvent(new Event("resize"));
@@ -206,10 +230,12 @@ describe("getCreditsMarqueeRuntime", () => {
 
         const resizeCallback = vi.fn<ResizeObserverCallback>();
         const mutationCallback = vi.fn<MutationCallback>();
-        const runtime = getCreditsMarqueeRuntime({
-            getMutationObserver: () => MutationObserverMock,
-            getResizeObserver: () => ResizeObserverMock,
-        });
+        const runtime = getCreditsMarqueeRuntime(
+            createCreditsMarqueeRuntimeScope({
+                getMutationObserver: () => MutationObserverMock,
+                getResizeObserver: () => ResizeObserverMock,
+            })
+        );
 
         expect(runtime.createResizeObserver(resizeCallback)).toBeInstanceOf(
             ResizeObserverMock
@@ -227,7 +253,9 @@ describe("getCreditsMarqueeRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getCreditsMarqueeRuntime({}).createResizeObserver(() => {})
+            getCreditsMarqueeRuntime(
+                createCreditsMarqueeRuntimeScope()
+            ).createResizeObserver(() => {})
         ).toBeUndefined();
     });
 
@@ -239,10 +267,12 @@ describe("getCreditsMarqueeRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => 21);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const runtime = getCreditsMarqueeRuntime({
-            getCancelAnimationFrame: () => cancelAnimationFrame,
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
+        const runtime = getCreditsMarqueeRuntime(
+            createCreditsMarqueeRuntimeScope({
+                getCancelAnimationFrame: () => cancelAnimationFrame,
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            })
+        );
 
         expect(runtime.requestAnimationFrame(callback)).toBe(21);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -268,6 +298,7 @@ describe("getCreditsMarqueeRuntime", () => {
         >(() => 21);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const legacyScope = {
+            ...createCreditsMarqueeRuntimeScope(),
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
             cancelAnimationFrame,
@@ -295,5 +326,58 @@ describe("getCreditsMarqueeRuntime", () => {
         expect(runtime.isHTMLElement(document.body)).toBe(false);
         expect(runtime.requestAnimationFrame(() => {})).toBeUndefined();
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when explicit runtime provider slots are omitted", () => {
+        expect.assertions(8);
+
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getAbortController: undefined,
+            })
+        ).toThrow("credits marquee requires AbortController provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getCancelAnimationFrame: undefined,
+            })
+        ).toThrow("credits marquee requires cancelAnimationFrame provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getDocument: undefined,
+            })
+        ).toThrow("credits marquee requires document provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getEventTarget: undefined,
+            })
+        ).toThrow("credits marquee requires event target provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getHTMLElement: undefined,
+            })
+        ).toThrow("credits marquee requires HTMLElement provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getMutationObserver: undefined,
+            })
+        ).toThrow("credits marquee requires MutationObserver provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getRequestAnimationFrame: undefined,
+            })
+        ).toThrow("credits marquee requires requestAnimationFrame provider");
+        expect(() =>
+            getCreditsMarqueeRuntime({
+                ...createCreditsMarqueeRuntimeScope(),
+                getResizeObserver: undefined,
+            })
+        ).toThrow("credits marquee requires ResizeObserver provider");
     });
 });
