@@ -5,11 +5,11 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface EventListenerManagerRuntimeScope {
-    readonly getAbortController:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getEventTarget: (() => EventTarget | undefined) | undefined;
+    readonly getAbortController: EventListenerManagerRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getEventTarget: EventListenerManagerRuntimeProvider<EventTarget>;
 }
+
+type EventListenerManagerRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface EventListenerManagerRuntime {
     createAbortController: () => AbortController;
@@ -25,27 +25,28 @@ const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope 
 function getAbortController(
     scope: EventListenerManagerRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    const getAbortControllerProvider = scope.getAbortController;
-    if (typeof getAbortControllerProvider !== "function") {
-        throw new TypeError(
-            "event listener manager requires an AbortController provider"
-        );
-    }
-
-    return getAbortControllerProvider();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getEventTarget(
     scope: EventListenerManagerRuntimeScope
 ): EventTarget | undefined {
-    const getEventTargetProvider = scope.getEventTarget;
-    if (typeof getEventTargetProvider !== "function") {
+    return getRequiredProvider(scope.getEventTarget, "event target")();
+}
+
+function getRequiredProvider<T>(
+    provider: EventListenerManagerRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
         throw new TypeError(
-            "event listener manager requires an event target provider"
+            `event listener manager requires ${article} ${providerName} provider`
         );
     }
 
-    return getEventTargetProvider();
+    return provider;
 }
 
 export function getEventListenerManagerRuntime(

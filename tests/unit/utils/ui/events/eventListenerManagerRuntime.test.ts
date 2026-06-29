@@ -147,6 +147,25 @@ describe("getEventListenerManagerRuntime", () => {
         }).toThrow("event listener manager requires an event target provider");
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(2);
+
+        expect(() => {
+            getEventListenerManagerRuntime({
+                ...unavailableEventListenerManagerRuntimeScope,
+                getAbortController: undefined,
+            }).createAbortController();
+        }).toThrow(
+            "event listener manager requires an AbortController provider"
+        );
+        expect(() => {
+            getEventListenerManagerRuntime({
+                ...unavailableEventListenerManagerRuntimeScope,
+                getEventTarget: undefined,
+            }).getDefaultDragDropTarget();
+        }).toThrow("event listener manager requires an event target provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 

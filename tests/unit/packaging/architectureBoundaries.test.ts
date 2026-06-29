@@ -35175,7 +35175,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(31);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -35220,6 +35220,24 @@ describe("architecture boundaries", () => {
         expect(eventListenerManagerRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "type EventListenerManagerRuntimeProvider"
+        );
+        expect(eventListenerManagerRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*EventListenerManagerRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(eventListenerManagerRuntimeSource).toMatch(
+            /readonly\s+getEventTarget:\s*EventListenerManagerRuntimeProvider<EventTarget>/u
+        );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(eventListenerManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(eventListenerManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getEventTarget,\s*"event target"\s*\)/u
+        );
         expect(eventListenerManagerRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
@@ -35258,10 +35276,10 @@ describe("architecture boundaries", () => {
             "scope.eventTarget"
         );
         expect(eventListenerManagerRuntimeSource).toContain(
-            "event listener manager requires an AbortController provider"
+            "event listener manager requires ${article} ${providerName} provider"
         );
         expect(eventListenerManagerRuntimeSource).toContain(
-            "event listener manager requires an event target provider"
+            "providerName: string"
         );
     });
 
