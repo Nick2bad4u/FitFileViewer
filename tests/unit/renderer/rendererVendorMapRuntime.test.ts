@@ -119,4 +119,14 @@ describe("rendererVendorMapRuntime", () => {
             )
         ).toThrow("rendererVendorMapRuntime requires a document provider");
     });
+
+    it("fails clearly when the document provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getRendererVendorMapRuntime({
+                getDocument: undefined,
+            })
+        ).toThrow("rendererVendorMapRuntime requires a document provider");
+    });
 });

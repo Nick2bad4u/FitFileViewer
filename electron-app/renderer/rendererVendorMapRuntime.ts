@@ -5,8 +5,12 @@ import {
 
 export interface RendererVendorMapRuntimeScope {
     readonly deleteTemporaryLeafletGlobals?: (() => void) | undefined;
-    readonly getDocument: () => Pick<Document, "documentElement"> | undefined;
+    readonly getDocument: RendererVendorMapRuntimeProvider<
+        Pick<Document, "documentElement">
+    >;
 }
+
+type RendererVendorMapRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface RendererVendorMapRuntime {
     hasDocumentElement: () => boolean;
@@ -19,24 +23,14 @@ const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
     getDocument: getBrowserDocument,
 };
 
-function getDocument(
-    scope: RendererVendorMapRuntimeScope
-): Pick<Document, "documentElement"> | undefined {
-    return scope.getDocument();
-}
-
 export function getRendererVendorMapRuntime(
     scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
-    if (typeof scope.getDocument !== "function") {
-        throw new TypeError(
-            "rendererVendorMapRuntime requires a document provider"
-        );
-    }
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
 
     return {
         hasDocumentElement(): boolean {
-            return getDocument(scope)?.documentElement !== undefined;
+            return getDocument()?.documentElement !== undefined;
         },
 
         removeTemporaryLeafletGlobals(): void {
@@ -44,10 +38,22 @@ export function getRendererVendorMapRuntime(
         },
 
         setDocumentElementStyleProperty(property: string, value: string): void {
-            getDocument(scope)?.documentElement.style.setProperty(
-                property,
-                value
-            );
+            getDocument()?.documentElement.style.setProperty(property, value);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: RendererVendorMapRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `rendererVendorMapRuntime requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
