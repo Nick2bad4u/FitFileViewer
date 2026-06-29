@@ -3,7 +3,7 @@ import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 export type AppDomainStateDateNow = () => number;
 
 export interface AppDomainStateRuntimeScope {
-    readonly getDateNow?: (() => AppDomainStateDateNow | undefined) | undefined;
+    readonly getDateNow: () => AppDomainStateDateNow | undefined;
 }
 
 export interface AppDomainStateRuntime {
@@ -19,7 +19,13 @@ export function getAppDomainStateRuntime(
 ): AppDomainStateRuntime {
     return {
         dateNow(): number {
-            const dateNow = scope.getDateNow?.();
+            if (typeof scope.getDateNow !== "function") {
+                throw new TypeError(
+                    "appDomainState requires a dateNow provider"
+                );
+            }
+
+            const dateNow = scope.getDateNow();
             if (typeof dateNow !== "function") {
                 throw new TypeError("appDomainState requires dateNow");
             }

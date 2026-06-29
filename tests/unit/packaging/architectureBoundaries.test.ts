@@ -5508,7 +5508,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT file state timestamps behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const fitFileStateSource = stripComments(
             readRepositoryFile(
@@ -5560,12 +5560,19 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(fitFileStateRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
         );
         expect(fitFileStateRuntimeSource).toContain(
             "fitFileState requires dateNow"
         );
+        expect(fitFileStateRuntimeSource).toContain(
+            "fitFileState requires a dateNow provider"
+        );
         expect(fitFileStateRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(fitFileStateRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(fitFileStateRuntimeSource).not.toContain("scope.getDateNow?.()");
         expect(fitFileStateRuntimeSource).not.toContain("scope.dateNow");
         expect(fitFileStateRuntimeSource).not.toContain(
             "scope: FitFileStateRuntimeScope = globalThis"
@@ -6347,7 +6354,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app-domain facade timestamps behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(22);
 
         const appDomainStateSource = stripComments(
             readRepositoryFile(
@@ -6394,12 +6401,21 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(appDomainStateRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
         );
         expect(appDomainStateRuntimeSource).toContain(
             "appDomainState requires dateNow"
         );
+        expect(appDomainStateRuntimeSource).toContain(
+            "appDomainState requires a dateNow provider"
+        );
         expect(appDomainStateRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(appDomainStateRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(appDomainStateRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
         expect(appDomainStateRuntimeSource).not.toContain("scope.dateNow");
         expect(appDomainStateRuntimeSource).not.toContain(
             "AppDomainStateRuntimeScope = globalThis"

@@ -22,12 +22,24 @@ describe("getFitFileStateRuntime", () => {
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
-    it("fails clearly when explicit scopes omit the clock", () => {
+    it("fails clearly when the clock provider returns unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getFitFileStateRuntime({}).dateNow()).toThrow(
-            "fitFileState requires dateNow"
-        );
+        expect(() =>
+            getFitFileStateRuntime({
+                getDateNow: () => undefined,
+            }).dateNow()
+        ).toThrow("fitFileState requires dateNow");
+    });
+
+    it("fails clearly when explicit scopes omit the clock provider", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getFitFileStateRuntime(
+                {} as unknown as FitFileStateRuntimeScope
+            ).dateNow()
+        ).toThrow("fitFileState requires a dateNow provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -39,7 +51,7 @@ describe("getFitFileStateRuntime", () => {
         } as unknown as FitFileStateRuntimeScope);
 
         expect(() => runtime.dateNow()).toThrow(
-            "fitFileState requires dateNow"
+            "fitFileState requires a dateNow provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
     });

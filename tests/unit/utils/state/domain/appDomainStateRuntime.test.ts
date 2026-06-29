@@ -22,12 +22,24 @@ describe("getAppDomainStateRuntime", () => {
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
-    it("fails clearly when explicit scopes omit the clock", () => {
+    it("fails clearly when the clock provider returns unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getAppDomainStateRuntime({}).dateNow()).toThrow(
-            "appDomainState requires dateNow"
-        );
+        expect(() =>
+            getAppDomainStateRuntime({
+                getDateNow: () => undefined,
+            }).dateNow()
+        ).toThrow("appDomainState requires dateNow");
+    });
+
+    it("fails clearly when explicit scopes omit the clock provider", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getAppDomainStateRuntime(
+                {} as unknown as AppDomainStateRuntimeScope
+            ).dateNow()
+        ).toThrow("appDomainState requires a dateNow provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -39,7 +51,7 @@ describe("getAppDomainStateRuntime", () => {
         } as unknown as AppDomainStateRuntimeScope);
 
         expect(() => runtime.dateNow()).toThrow(
-            "appDomainState requires dateNow"
+            "appDomainState requires a dateNow provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
     });

@@ -3,7 +3,7 @@ import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 export type FitFileStateDateNow = () => number;
 
 export interface FitFileStateRuntimeScope {
-    readonly getDateNow?: (() => FitFileStateDateNow | undefined) | undefined;
+    readonly getDateNow: () => FitFileStateDateNow | undefined;
 }
 
 export interface FitFileStateRuntime {
@@ -19,7 +19,11 @@ export function getFitFileStateRuntime(
 ): FitFileStateRuntime {
     return {
         dateNow(): number {
-            const dateNow = scope.getDateNow?.();
+            if (typeof scope.getDateNow !== "function") {
+                throw new TypeError("fitFileState requires a dateNow provider");
+            }
+
+            const dateNow = scope.getDateNow();
             if (typeof dateNow !== "function") {
                 throw new TypeError("fitFileState requires dateNow");
             }
