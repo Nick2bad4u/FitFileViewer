@@ -1,4 +1,3 @@
-import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
 import {
     getAutoUpdaterAccessRuntime,
     type AutoUpdaterAccessRuntime,
@@ -48,7 +47,7 @@ async function tryResolveVitestMock(
     if (cachedMockedAutoUpdater) {
         return cachedMockedAutoUpdater;
     }
-    if (!isTestEnvironment()) {
+    if (!runtime.isTestEnvironment()) {
         return null;
     }
 

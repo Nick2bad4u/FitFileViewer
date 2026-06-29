@@ -1,16 +1,22 @@
 import { getBrowserVitestImportMockCandidate } from "../../utils/runtime/browserRuntime.js";
+import { isTestEnvironment as isRuntimeTestEnvironment } from "../../utils/runtime/processEnvironment.js";
 
 export interface AutoUpdaterAccessRuntimeScope {
+    readonly getIsTestEnvironment: AutoUpdaterAccessRuntimeProvider<
+        () => boolean
+    >;
     readonly getVitestImportMockCandidate: AutoUpdaterAccessRuntimeProvider<unknown>;
 }
 
 export interface AutoUpdaterAccessRuntime {
     getVitestImportMockCandidate: () => unknown;
+    isTestEnvironment: () => boolean;
 }
 
 type AutoUpdaterAccessRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 const defaultAutoUpdaterAccessRuntimeScope: AutoUpdaterAccessRuntimeScope = {
+    getIsTestEnvironment: () => isRuntimeTestEnvironment,
     getVitestImportMockCandidate: getBrowserVitestImportMockCandidate,
 };
 
@@ -21,10 +27,24 @@ export function getAutoUpdaterAccessRuntime(
         scope.getVitestImportMockCandidate,
         "Vitest import mock candidate"
     );
+    const isTestEnvironment = getRequiredProvider(
+        scope.getIsTestEnvironment,
+        "test environment"
+    );
 
     return {
         getVitestImportMockCandidate(): unknown {
             return getVitestImportMockCandidate();
+        },
+        isTestEnvironment(): boolean {
+            const isTestRuntime = isTestEnvironment();
+            if (typeof isTestRuntime !== "function") {
+                throw new TypeError(
+                    "autoUpdaterAccessRuntime requires a test environment runtime"
+                );
+            }
+
+            return isTestRuntime();
         },
     };
 }

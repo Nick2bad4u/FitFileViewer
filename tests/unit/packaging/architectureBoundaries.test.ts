@@ -3712,7 +3712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(467);
+        expect.assertions(471);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -4146,8 +4146,20 @@ describe("architecture boundaries", () => {
         expect(autoUpdaterAccessSource).toContain(
             "autoUpdaterAccessRuntime.js"
         );
+        expect(autoUpdaterAccessSource).toContain(
+            "runtime.isTestEnvironment()"
+        );
+        expect(autoUpdaterAccessSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
         expect(autoUpdaterAccessRuntimeSource).toContain(
             "getVitestImportMockCandidate"
+        );
+        expect(autoUpdaterAccessRuntimeSource).toContain(
+            "isRuntimeTestEnvironment"
+        );
+        expect(autoUpdaterAccessRuntimeSource).toContain(
+            "getIsTestEnvironment"
         );
         expect(autoUpdaterAccessRuntimeSource).toContain(
             "getBrowserVitestImportMockCandidate"
@@ -4174,7 +4186,7 @@ describe("architecture boundaries", () => {
             "getBrowserGlobalProperty"
         );
         expect(autoUpdaterAccessRuntimeSource).not.toContain("Reflect.get");
-        expect(autoUpdaterAccessSource).toContain("isTestEnvironment");
+        expect(autoUpdaterAccessRuntimeSource).toContain("isTestEnvironment");
         expect(nodeModulesSource).not.toContain("module.exports");
         expect(nodeModulesSource).not.toContain("export default");
         expect(nodeModulesSource).toContain(
