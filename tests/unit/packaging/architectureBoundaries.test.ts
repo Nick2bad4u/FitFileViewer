@@ -15223,7 +15223,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(35);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
@@ -15253,11 +15253,25 @@ describe("architecture boundaries", () => {
         expect(lastAnimLogRuntimeSource).not.toContain(
             "readonly performance?:"
         );
+        expect(lastAnimLogRuntimeSource).not.toContain("readonly getDateNow?:");
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "readonly getPerformanceNow?:"
+        );
         expect(lastAnimLogRuntimeSource).not.toContain(
             "const performanceRef = globalThis.performance;"
         );
         expect(lastAnimLogRuntimeSource).not.toContain("scope.dateNow");
         expect(lastAnimLogRuntimeSource).not.toContain("scope.performance");
+        expect(lastAnimLogRuntimeSource).not.toContain("scope.getDateNow?.()");
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "scope.getPerformanceNow?.()"
+        );
         expect(lastAnimLogRuntimeSource).toContain(
             "../runtime/browserRuntime.js"
         );
@@ -15267,6 +15281,9 @@ describe("architecture boundaries", () => {
         expect(lastAnimLogRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
         );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "getPerformanceNow: () => undefined"
+        );
         expect(lastAnimLogRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
@@ -15274,7 +15291,23 @@ describe("architecture boundaries", () => {
             "getPerformance: () => globalThis.performance"
         );
         expect(lastAnimLogRuntimeSource).toContain(
-            "getScopedPerformanceNow(scope.getPerformance?.())"
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "const performanceNow = scope.getPerformanceNow();"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "const scopedPerformanceNow = getScopedPerformanceNow("
+        );
+        expect(lastAnimLogRuntimeSource).toContain("scope.getPerformance()");
+        expect(lastAnimLogRuntimeSource).toContain(
+            "lastAnimLogRuntime requires dateNow provider"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "lastAnimLogRuntime requires performance.now provider"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "lastAnimLogRuntime requires performance provider"
         );
         expect(lastAnimLogRuntimeSource).toContain(
             "lastAnimLogRuntime requires dateNow"

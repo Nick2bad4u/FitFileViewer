@@ -5,6 +5,12 @@ import {
     type LastAnimLogRuntimeScope,
 } from "../../../../electron-app/utils/debug/lastAnimLogRuntime.js";
 
+const unavailableLastAnimLogRuntimeScope = {
+    getDateNow: () => undefined,
+    getPerformance: () => undefined,
+    getPerformanceNow: () => undefined,
+} satisfies LastAnimLogRuntimeScope;
+
 describe("getLastAnimLogRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -15,7 +21,10 @@ describe("getLastAnimLogRuntime", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn(() => 1234);
-        const utils = getLastAnimLogRuntime({ getDateNow: () => dateNow });
+        const utils = getLastAnimLogRuntime({
+            ...unavailableLastAnimLogRuntimeScope,
+            getDateNow: () => dateNow,
+        });
 
         expect(utils.dateNow()).toBe(1234);
         expect(dateNow).toHaveBeenCalledOnce();
@@ -26,6 +35,7 @@ describe("getLastAnimLogRuntime", () => {
 
         const now = vi.fn(() => 56.78);
         const utils = getLastAnimLogRuntime({
+            ...unavailableLastAnimLogRuntimeScope,
             getPerformanceNow: () => now,
         });
 
@@ -44,6 +54,7 @@ describe("getLastAnimLogRuntime", () => {
             }),
         };
         const utils = getLastAnimLogRuntime({
+            ...unavailableLastAnimLogRuntimeScope,
             getPerformance: () => performanceRef,
         });
 
@@ -72,7 +83,7 @@ describe("getLastAnimLogRuntime", () => {
     it("does not borrow ambient clocks for explicit scopes", () => {
         expect.assertions(2);
 
-        const utils = getLastAnimLogRuntime({});
+        const utils = getLastAnimLogRuntime(unavailableLastAnimLogRuntimeScope);
 
         expect(() => utils.dateNow()).toThrow(
             "lastAnimLogRuntime requires dateNow"
@@ -82,10 +93,32 @@ describe("getLastAnimLogRuntime", () => {
         );
     });
 
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(3);
+
+        const utils = getLastAnimLogRuntime(
+            {} as unknown as LastAnimLogRuntimeScope
+        );
+
+        expect(() => utils.dateNow()).toThrow(
+            "lastAnimLogRuntime requires dateNow provider"
+        );
+        expect(() => utils.performanceNow()).toThrow(
+            "lastAnimLogRuntime requires performance.now provider"
+        );
+        expect(() =>
+            getLastAnimLogRuntime({
+                ...unavailableLastAnimLogRuntimeScope,
+                getPerformance: undefined,
+            } as unknown as LastAnimLogRuntimeScope).performanceNow()
+        ).toThrow("lastAnimLogRuntime requires performance provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
         const legacyScope = {
+            ...unavailableLastAnimLogRuntimeScope,
             dateNow: vi.fn(() => 1234),
             performance: { now: vi.fn(() => 56.78) },
         } as unknown as LastAnimLogRuntimeScope;
