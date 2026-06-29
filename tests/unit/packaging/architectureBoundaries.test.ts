@@ -3752,7 +3752,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(471);
+        expect.assertions(477);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3846,6 +3846,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/main/window/initializeMainWindow.ts"
             )
+        );
+        const mainWindowRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/main/window/mainWindowRuntime.ts")
         );
         const windowStateUtilsSource = stripComments(
             readRepositoryFile("electron-app/windowStateUtils.ts")
@@ -4047,8 +4050,26 @@ describe("architecture boundaries", () => {
         );
         expect(bootstrapMainWindowSource).not.toContain("process.env");
         expect(initializeMainWindowSource).not.toContain("process.env");
-        expect(bootstrapMainWindowSource).toContain("isTestEnvironment");
-        expect(initializeMainWindowSource).toContain("isTestEnvironment");
+        expect(bootstrapMainWindowSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(bootstrapMainWindowSource).toContain("mainWindowRuntime.js");
+        expect(initializeMainWindowSource).toContain("mainWindowRuntime.js");
+        expect(bootstrapMainWindowSource).toContain(
+            "mainWindowRuntime().isTestEnvironment()"
+        );
+        expect(initializeMainWindowSource).toContain(
+            "mainWindowRuntime().isTestEnvironment()"
+        );
+        expect(mainWindowRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(mainWindowRuntimeSource).toContain(
+            "../runtime/electronAccess.js"
+        );
         expect(setupApplicationEventHandlersSource).not.toContain(
             "process.env"
         );
@@ -7437,7 +7458,7 @@ describe("architecture boundaries", () => {
             "getFocusedWindow"
         );
         expect(mainWindowSelectionSource).toContain(
-            "../runtime/electronAccess.js"
+            "./mainWindowRuntime.js"
         );
         expect(mainWindowSelectionSource).toContain(
             "resolveExistingMainWindow"

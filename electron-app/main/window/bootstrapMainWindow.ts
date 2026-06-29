@@ -1,5 +1,4 @@
 import { createWindow } from "../../windowStateUtils.js";
-import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
 import type { MainAppStateWindowLike } from "../state/appState.js";
 import {
     callElectronWhenReadyForTests,
@@ -7,6 +6,10 @@ import {
     type MainWindowBrowserWindowApi,
     type MainWindowBrowserWindowConstructor,
 } from "./mainWindowSelection.js";
+import {
+    getMainWindowRuntime,
+    type MainWindowRuntime,
+} from "./mainWindowRuntime.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -90,6 +93,14 @@ function createFallbackWindow(): MainWindowLike {
             send: () => {},
         },
     };
+}
+
+function mainWindowRuntime(): MainWindowRuntime {
+    return getMainWindowRuntime();
+}
+
+function isTestEnvironment(): boolean {
+    return mainWindowRuntime().isTestEnvironment();
 }
 
 /**

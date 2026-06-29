@@ -1,8 +1,7 @@
 import {
-    appRef as electronAppRef,
-    browserWindowRef as electronBrowserWindowRef,
-} from "../runtime/electronAccess.js";
-import { isTestEnvironment } from "../../utils/runtime/processEnvironment.js";
+    getMainWindowRuntime,
+    type MainWindowRuntime,
+} from "./mainWindowRuntime.js";
 
 export interface MainWindowSelectionWindowLike {
     isDestroyed?: () => boolean;
@@ -23,10 +22,23 @@ type ElectronAppLike = {
     whenReady?: () => unknown;
 };
 
-const runtimeAppRef = electronAppRef as () => ElectronAppLike | undefined;
-const runtimeBrowserWindowRef = electronBrowserWindowRef as () =>
+function mainWindowRuntime(): MainWindowRuntime {
+    return getMainWindowRuntime();
+}
+
+function runtimeAppRef(): ElectronAppLike | undefined {
+    return mainWindowRuntime().appRef();
+}
+
+function runtimeBrowserWindowRef():
     | MainWindowBrowserWindowApi<MainWindowSelectionWindowLike>
-    | undefined;
+    | undefined {
+    return mainWindowRuntime().browserWindowRef();
+}
+
+function isTestEnvironment(): boolean {
+    return mainWindowRuntime().isTestEnvironment();
+}
 
 export function callElectronWhenReadyForTests(): void {
     if (!isTestEnvironment()) {
