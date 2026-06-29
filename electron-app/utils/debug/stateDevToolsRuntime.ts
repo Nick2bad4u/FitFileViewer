@@ -17,26 +17,18 @@ export type StateDevToolsPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
 
+type StateDevToolsLocationRuntime = {
+    readonly hostname?: string;
+    readonly protocol?: string;
+};
+
 export interface StateDevToolsRuntimeScope {
-    readonly getClearInterval?:
-        | (() => BrowserClearInterval | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getLocation?:
-        | (() =>
-              | {
-                    readonly hostname?: string;
-                    readonly protocol?: string;
-                }
-              | undefined)
-        | undefined;
-    readonly getPerformance?:
-        | (() => StateDevToolsPerformanceRuntime | undefined)
-        | undefined;
-    readonly getSetInterval?:
-        | (() => BrowserSetInterval | undefined)
-        | undefined;
-    readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
+    readonly getClearInterval: StateDevToolsRuntimeProvider<BrowserClearInterval>;
+    readonly getDateNow: StateDevToolsRuntimeProvider<() => number>;
+    readonly getLocation: StateDevToolsRuntimeProvider<StateDevToolsLocationRuntime>;
+    readonly getPerformance: StateDevToolsRuntimeProvider<StateDevToolsPerformanceRuntime>;
+    readonly getSetInterval: StateDevToolsRuntimeProvider<BrowserSetInterval>;
+    readonly getIsRendererScope: StateDevToolsRuntimeProvider<boolean>;
 }
 
 export interface StateDevToolsRuntime {
@@ -60,8 +52,25 @@ const defaultStateDevToolsRuntimeScope: StateDevToolsRuntimeScope = {
     getSetInterval: getBrowserSetInterval,
 };
 
-function getRequiredDateNow(scope: StateDevToolsRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+type StateDevToolsRuntimeProvider<T> = (() => T | undefined) | undefined;
+
+function getRequiredProvider<T>(
+    provider: StateDevToolsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `stateDevToolsRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
+function getRequiredDateNow(
+    getDateNow: () => (() => number) | undefined
+): () => number {
+    const dateNow = getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("stateDevToolsRuntime requires dateNow");
     }
@@ -70,9 +79,9 @@ function getRequiredDateNow(scope: StateDevToolsRuntimeScope): () => number {
 }
 
 function getRequiredPerformanceNow(
-    scope: StateDevToolsRuntimeScope
+    getPerformance: () => StateDevToolsPerformanceRuntime | undefined
 ): () => number {
-    const performance = scope.getPerformance?.();
+    const performance = getPerformance();
     const performanceNow = performance?.now;
     if (typeof performanceNow !== "function") {
         throw new TypeError("stateDevToolsRuntime requires performance.now");
@@ -82,28 +91,27 @@ function getRequiredPerformanceNow(
 }
 
 function getScopeClearInterval(
-    scope: StateDevToolsRuntimeScope
+    getClearInterval: () => BrowserClearInterval | undefined
 ): BrowserClearInterval | undefined {
-    return scope.getClearInterval?.();
+    return getClearInterval();
 }
 
-function getScopeLocation(scope: StateDevToolsRuntimeScope):
-    | {
-          readonly hostname?: string;
-          readonly protocol?: string;
-      }
-    | undefined {
-    return scope.getLocation?.();
+function getScopeLocation(
+    getLocation: () => StateDevToolsLocationRuntime | undefined
+): StateDevToolsLocationRuntime | undefined {
+    return getLocation();
 }
 
 function getScopeSetInterval(
-    scope: StateDevToolsRuntimeScope
+    getSetInterval: () => BrowserSetInterval | undefined
 ): BrowserSetInterval | undefined {
-    return scope.getSetInterval?.();
+    return getSetInterval();
 }
 
-function getIsRendererScope(scope: StateDevToolsRuntimeScope): boolean {
-    return scope.getIsRendererScope?.() ?? false;
+function getIsRendererScope(
+    getIsRendererScopeProvider: () => boolean | undefined
+): boolean {
+    return getIsRendererScopeProvider() ?? false;
 }
 
 function isLocalHost(hostname: unknown): boolean {
@@ -117,9 +125,29 @@ function isFileProtocol(protocol: unknown): boolean {
 export function getStateDevToolsRuntime(
     scope: StateDevToolsRuntimeScope = defaultStateDevToolsRuntimeScope
 ): StateDevToolsRuntime {
+    const getClearIntervalRef = getRequiredProvider(
+        scope.getClearInterval,
+        "clearInterval"
+    );
+    const getDateNow = getRequiredProvider(scope.getDateNow, "dateNow");
+    const getIsRendererScopeProvider = getRequiredProvider(
+        scope.getIsRendererScope,
+        "isRendererScope"
+    );
+    const getLocation = getRequiredProvider(scope.getLocation, "location");
+    const getPerformance = getRequiredProvider(
+        scope.getPerformance,
+        "performance"
+    );
+    const getSetIntervalRef = getRequiredProvider(
+        scope.getSetInterval,
+        "setInterval"
+    );
+
     return {
         clearInterval(handle): void {
-            const clearIntervalImplementation = getScopeClearInterval(scope);
+            const clearIntervalImplementation =
+                getScopeClearInterval(getClearIntervalRef);
             if (typeof clearIntervalImplementation !== "function") {
                 throw new TypeError(
                     "stateDevToolsRuntime requires clearInterval"
@@ -129,24 +157,25 @@ export function getStateDevToolsRuntime(
             clearIntervalImplementation(handle);
         },
         dateNow(): number {
-            return getRequiredDateNow(scope)();
+            return getRequiredDateNow(getDateNow)();
         },
         getPerformanceMemory(): unknown {
-            return scope.getPerformance?.()?.memory;
+            return getPerformance()?.memory;
         },
         isDevelopmentScope(): boolean {
-            const location = getScopeLocation(scope);
+            const location = getScopeLocation(getLocation);
             return (
-                getIsRendererScope(scope) &&
+                getIsRendererScope(getIsRendererScopeProvider) &&
                 (isLocalHost(location?.hostname) ||
                     isFileProtocol(location?.protocol))
             );
         },
         performanceNow(): number {
-            return getRequiredPerformanceNow(scope)();
+            return getRequiredPerformanceNow(getPerformance)();
         },
         setInterval(callback, delay): StateDevToolsIntervalHandle {
-            const setIntervalImplementation = getScopeSetInterval(scope);
+            const setIntervalImplementation =
+                getScopeSetInterval(getSetIntervalRef);
             if (typeof setIntervalImplementation !== "function") {
                 throw new TypeError(
                     "stateDevToolsRuntime requires setInterval"

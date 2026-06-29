@@ -8,9 +8,24 @@ import type {
 import {
     getStateDevToolsRuntime,
     type StateDevToolsIntervalHandle,
+    type StateDevToolsRuntimeScope,
 } from "../../../../electron-app/utils/debug/stateDevToolsRuntime.js";
 
 describe("stateDevToolsRuntime", () => {
+    function createStateDevToolsRuntimeScope(
+        overrides: Partial<StateDevToolsRuntimeScope> = {}
+    ): StateDevToolsRuntimeScope {
+        return {
+            getClearInterval: () => undefined,
+            getDateNow: () => undefined,
+            getIsRendererScope: () => undefined,
+            getLocation: () => undefined,
+            getPerformance: () => undefined,
+            getSetInterval: () => undefined,
+            ...overrides,
+        };
+    }
+
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
@@ -20,22 +35,26 @@ describe("stateDevToolsRuntime", () => {
         expect.assertions(2);
 
         expect(
-            getStateDevToolsRuntime({
-                getIsRendererScope: () => true,
-                getLocation: () => ({
-                    hostname: "localhost",
-                    protocol: "http:",
-                }),
-            }).isDevelopmentScope()
+            getStateDevToolsRuntime(
+                createStateDevToolsRuntimeScope({
+                    getIsRendererScope: () => true,
+                    getLocation: () => ({
+                        hostname: "localhost",
+                        protocol: "http:",
+                    }),
+                })
+            ).isDevelopmentScope()
         ).toBe(true);
         expect(
-            getStateDevToolsRuntime({
-                getIsRendererScope: () => true,
-                getLocation: () => ({
-                    hostname: "127.0.0.1",
-                    protocol: "http:",
-                }),
-            }).isDevelopmentScope()
+            getStateDevToolsRuntime(
+                createStateDevToolsRuntimeScope({
+                    getIsRendererScope: () => true,
+                    getLocation: () => ({
+                        hostname: "127.0.0.1",
+                        protocol: "http:",
+                    }),
+                })
+            ).isDevelopmentScope()
         ).toBe(true);
     });
 
@@ -43,10 +62,12 @@ describe("stateDevToolsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getStateDevToolsRuntime({
-                getIsRendererScope: () => true,
-                getLocation: () => ({ hostname: "app", protocol: "file:" }),
-            }).isDevelopmentScope()
+            getStateDevToolsRuntime(
+                createStateDevToolsRuntimeScope({
+                    getIsRendererScope: () => true,
+                    getLocation: () => ({ hostname: "app", protocol: "file:" }),
+                })
+            ).isDevelopmentScope()
         ).toBe(true);
     });
 
@@ -54,22 +75,26 @@ describe("stateDevToolsRuntime", () => {
         expect.assertions(2);
 
         expect(
-            getStateDevToolsRuntime({
-                getIsRendererScope: () => true,
-                getLocation: () => ({
-                    hostname: "example.com",
-                    protocol: "https:",
-                }),
-            }).isDevelopmentScope()
+            getStateDevToolsRuntime(
+                createStateDevToolsRuntimeScope({
+                    getIsRendererScope: () => true,
+                    getLocation: () => ({
+                        hostname: "example.com",
+                        protocol: "https:",
+                    }),
+                })
+            ).isDevelopmentScope()
         ).toBe(false);
         expect(
-            getStateDevToolsRuntime({
-                getIsRendererScope: () => false,
-                getLocation: () => ({
-                    hostname: "localhost",
-                    protocol: "http:",
-                }),
-            }).isDevelopmentScope()
+            getStateDevToolsRuntime(
+                createStateDevToolsRuntimeScope({
+                    getIsRendererScope: () => false,
+                    getLocation: () => ({
+                        hostname: "localhost",
+                        protocol: "http:",
+                    }),
+                })
+            ).isDevelopmentScope()
         ).toBe(false);
     });
 
@@ -80,10 +105,12 @@ describe("stateDevToolsRuntime", () => {
         const callback = vi.fn();
         const clearIntervalMock = vi.fn<BrowserClearInterval>();
         const setIntervalMock = vi.fn<BrowserSetInterval>(() => intervalHandle);
-        const runtime = getStateDevToolsRuntime({
-            getClearInterval: () => clearIntervalMock,
-            getSetInterval: () => setIntervalMock,
-        });
+        const runtime = getStateDevToolsRuntime(
+            createStateDevToolsRuntimeScope({
+                getClearInterval: () => clearIntervalMock,
+                getSetInterval: () => setIntervalMock,
+            })
+        );
         const handle = runtime.setInterval(callback, 1000);
 
         expect(handle).toBe(intervalHandle);
@@ -111,10 +138,12 @@ describe("stateDevToolsRuntime", () => {
         };
         const getDateNow = vi.fn(() => dateNow);
         const getPerformance = vi.fn(() => performance);
-        const utils = getStateDevToolsRuntime({
-            getDateNow,
-            getPerformance,
-        });
+        const utils = getStateDevToolsRuntime(
+            createStateDevToolsRuntimeScope({
+                getDateNow,
+                getPerformance,
+            })
+        );
 
         expect(utils.dateNow()).toBe(123);
         expect(utils.performanceNow()).toBe(456);
@@ -137,12 +166,14 @@ describe("stateDevToolsRuntime", () => {
         }));
         const getSetInterval = vi.fn(() => setIntervalMock);
         const getIsRendererScope = vi.fn(() => true);
-        const utils = getStateDevToolsRuntime({
-            getClearInterval,
-            getIsRendererScope,
-            getLocation,
-            getSetInterval,
-        });
+        const utils = getStateDevToolsRuntime(
+            createStateDevToolsRuntimeScope({
+                getClearInterval,
+                getIsRendererScope,
+                getLocation,
+                getSetInterval,
+            })
+        );
         const delay = 1000;
 
         expect(utils.isDevelopmentScope()).toBe(true);
@@ -204,7 +235,9 @@ describe("stateDevToolsRuntime", () => {
     it("does not borrow ambient intervals for explicit scopes", () => {
         expect.assertions(4);
 
-        const utils = getStateDevToolsRuntime({});
+        const utils = getStateDevToolsRuntime(
+            createStateDevToolsRuntimeScope()
+        );
 
         expect(() => utils.dateNow()).toThrow(
             "stateDevToolsRuntime requires dateNow"
@@ -220,10 +253,18 @@ describe("stateDevToolsRuntime", () => {
         }).toThrow("stateDevToolsRuntime requires clearInterval");
     });
 
-    it("ignores legacy direct renderer-scope properties", () => {
-        expect.assertions(1);
+    it("requires explicit provider slots and ignores legacy direct renderer-scope properties", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getStateDevToolsRuntime({
+                isRendererScope: true,
+                location: { hostname: "localhost", protocol: "http:" },
+            } as unknown as Parameters<typeof getStateDevToolsRuntime>[0])
+        ).toThrow("stateDevToolsRuntime requires clearInterval provider");
 
         const utils = getStateDevToolsRuntime({
+            ...createStateDevToolsRuntimeScope(),
             isRendererScope: true,
             location: { hostname: "localhost", protocol: "http:" },
         } as unknown as Parameters<typeof getStateDevToolsRuntime>[0]);
@@ -231,8 +272,8 @@ describe("stateDevToolsRuntime", () => {
         expect(utils.isDevelopmentScope()).toBe(false);
     });
 
-    it("ignores legacy direct interval, location, and clock properties", () => {
-        expect.assertions(10);
+    it("requires explicit provider slots and ignores legacy direct interval, location, and clock properties", () => {
+        expect.assertions(11);
 
         const clearIntervalMock = vi.fn<BrowserClearInterval>();
         const dateNow = vi.fn<() => number>(() => 123);
@@ -240,14 +281,24 @@ describe("stateDevToolsRuntime", () => {
         const setIntervalMock = vi.fn<BrowserSetInterval>(
             () => 123 as BrowserIntervalHandle
         );
-        const utils = getStateDevToolsRuntime({
+        const legacyDirectScope = {
             clearInterval: clearIntervalMock,
             dateNow,
             getIsRendererScope: () => true,
             location: { hostname: "localhost", protocol: "http:" },
             performance: { now: performanceNow },
             setInterval: setIntervalMock,
-        } as unknown as Parameters<typeof getStateDevToolsRuntime>[0]);
+        } as unknown as Parameters<typeof getStateDevToolsRuntime>[0];
+
+        expect(() => getStateDevToolsRuntime(legacyDirectScope)).toThrow(
+            "stateDevToolsRuntime requires clearInterval provider"
+        );
+
+        const utils = getStateDevToolsRuntime({
+            ...legacyDirectScope,
+            ...createStateDevToolsRuntimeScope(),
+            getIsRendererScope: () => true,
+        });
 
         expect(utils.isDevelopmentScope()).toBe(false);
         expect(() => utils.dateNow()).toThrow(

@@ -17228,7 +17228,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(52);
+        expect.assertions(75);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -17326,13 +17326,80 @@ describe("architecture boundaries", () => {
             "getSetInterval: () => globalThis.setInterval"
         );
         expect(stateDevToolsRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "type StateDevToolsRuntimeProvider<T>"
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /readonly\s+getClearInterval:\s*StateDevToolsRuntimeProvider<BrowserClearInterval>/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*StateDevToolsRuntimeProvider<\(\) => number>/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /readonly\s+getIsRendererScope:\s*StateDevToolsRuntimeProvider<boolean>/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /readonly\s+getLocation:\s*StateDevToolsRuntimeProvider<StateDevToolsLocationRuntime>/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*StateDevToolsRuntimeProvider<StateDevToolsPerformanceRuntime>/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /readonly\s+getSetInterval:\s*StateDevToolsRuntimeProvider<BrowserSetInterval>/u
         );
         expect(stateDevToolsRuntimeSource).toContain(
-            "const performance = scope.getPerformance?.();"
+            "function getRequiredProvider"
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearInterval,\s*"clearInterval"\s*\)/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsRendererScope,\s*"isRendererScope"\s*\)/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocation,\s*"location"\s*\)/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(stateDevToolsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetInterval,\s*"setInterval"\s*\)/u
+        );
+        expect(stateDevToolsRuntimeSource).not.toMatch(
+            /scope\.get(?:ClearInterval|DateNow|IsRendererScope|Location|Performance|SetInterval)\?\.\(/u
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "stateDevToolsRuntime requires ${providerName} provider"
+        );
+        expect(stateDevToolsRuntimeSource).toContain("providerName: string");
+        expect(stateDevToolsRuntimeSource).toContain(
+            "const dateNow = getDateNow();"
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "const performance = getPerformance();"
         );
         expect(stateDevToolsRuntimeSource).toContain(
             "return performanceNow.bind(performance);"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly getClearInterval?:"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly getIsRendererScope?:"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly getLocation?:"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "readonly getSetInterval?:"
         );
         expect(stateDevToolsRuntimeSource).not.toContain(
             "readonly clearInterval?:"
