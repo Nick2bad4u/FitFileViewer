@@ -1,5 +1,8 @@
 import { validateFitFilePathInput } from "../../shared/fitFilePathPolicy.js";
-import { isNodeEnvironment } from "../../utils/runtime/processEnvironment.js";
+import {
+    getFileAccessPolicyRuntime,
+    type FileAccessPolicyRuntime,
+} from "./fileAccessPolicyRuntime.js";
 import {
     getFileAccessPolicyState,
     resetFileAccessPolicyState,
@@ -15,6 +18,14 @@ interface ApprovalOptions {
 
 // Defensive cap: prevents unbounded growth if approval is triggered repeatedly.
 const MAX_APPROVED_FIT_FILES = 500;
+
+function fileAccessPolicyRuntime(): FileAccessPolicyRuntime {
+    return getFileAccessPolicyRuntime();
+}
+
+function isNodeEnvironment(expected: string): boolean {
+    return fileAccessPolicyRuntime().isNodeEnvironment(expected);
+}
 
 /**
  * TEST-ONLY: clears approvals to keep suites isolated.

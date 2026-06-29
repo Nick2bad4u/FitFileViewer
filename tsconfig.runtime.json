@@ -143,6 +143,7 @@
         "electron-app/main/runtime/primeTestEnvironment.ts",
         "electron-app/main/runtime/setupMainLifecycle.ts",
         "electron-app/main/security/fileAccessPolicy.ts",
+        "electron-app/main/security/fileAccessPolicyRuntime.ts",
         "electron-app/main/security/fileAccessPolicyState.ts",
         "electron-app/main/security/ipcSenderPolicy.ts",
         "electron-app/main/security/setupBlockedRequests.ts",
