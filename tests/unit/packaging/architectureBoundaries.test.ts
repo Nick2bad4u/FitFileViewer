@@ -15660,7 +15660,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(63);
+        expect.assertions(74);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -15686,7 +15686,12 @@ describe("architecture boundaries", () => {
         expect(renderMapSource).toContain("renderMapRuntime.js");
         expect(renderMapSource).toContain("createAbortController");
         expect(renderMapSource).toContain("createChangeEvent");
+        expect(renderMapSource).toContain("runtime.createElement");
+        expect(renderMapSource).toContain("runtime.querySelector");
+        expect(renderMapSource).toContain("runtime.querySelectorAll");
+        expect(renderMapSource).toContain("runtime.querySelectorByIdFlexible");
         expect(renderMapSource).toContain("getMapContainerFallback");
+        expect(renderMapSource).not.toMatch(/\bdocument\./u);
         expect(renderMapSource).not.toContain("document.body");
         expect(renderMapSource).not.toContain('new Event("change")');
         expect(directRenderMapTimingGlobalPattern.test(renderMapSource)).toBe(
@@ -15745,6 +15750,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).toContain(
             "type BrowserAbortControllerConstructor"
+        );
+        expect(renderMapRuntimeSource).toContain("createElement(tagName)");
+        expect(renderMapRuntimeSource).toContain("querySelector(selector)");
+        expect(renderMapRuntimeSource).toContain("querySelectorAll(selector)");
+        expect(renderMapRuntimeSource).toContain(
+            "querySelectorByIdFlexible(selector)"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "querySelectorByIdFlexibleFromDocument"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getRequiredDocument(getDocument).createElement(tagName)"
         );
         expect(renderMapRuntimeSource).toContain("type BrowserSetTimeout");
         expect(renderMapRuntimeSource).toContain("type BrowserTimerHandle");

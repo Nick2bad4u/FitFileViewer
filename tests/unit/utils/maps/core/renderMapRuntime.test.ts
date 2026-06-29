@@ -147,6 +147,42 @@ describe("getRenderMapRuntime", () => {
         expect(event.bubbles).toBe(false);
     });
 
+    it("routes DOM creation and queries through the injected document provider", () => {
+        expect.assertions(7);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("render map runtime");
+        documentRef.body.innerHTML = `
+            <main id="content_map">
+                <div id="leaflet-map"></div>
+                <span class="overlay-filename-tooltip"></span>
+                <span class="overlay-filename-tooltip"></span>
+            </main>
+        `;
+        const utils = getRenderMapRuntime(
+            createRenderMapRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
+
+        const button = utils.createElement("button");
+        const mapContainer = utils.querySelectorByIdFlexible("#content_map");
+        const leafletMap = utils.querySelector<HTMLElement>("#leaflet-map");
+        const tooltips = utils.querySelectorAll<HTMLElement>(
+            ".overlay-filename-tooltip"
+        );
+
+        expect(button.ownerDocument).toBe(documentRef);
+        expect(button.tagName).toBe("BUTTON");
+        expect(mapContainer?.id).toBe("content_map");
+        expect(leafletMap?.id).toBe("leaflet-map");
+        expect(tooltips).toHaveLength(2);
+        expect(utils.getMapContainerFallback("#leaflet-map")).toBe(leafletMap);
+        expect(utils.getMapContainerFallback("#missing")).toBe(
+            documentRef.body
+        );
+    });
+
     it("throws when change event creation is unavailable", () => {
         expect.assertions(1);
 
@@ -154,6 +190,28 @@ describe("getRenderMapRuntime", () => {
 
         expect(() => utils.createChangeEvent()).toThrow(
             "renderMap requires an Event runtime"
+        );
+    });
+
+    it("throws when DOM access is unavailable", () => {
+        expect.assertions(5);
+
+        const utils = getRenderMapRuntime(createRenderMapRuntimeScope());
+
+        expect(() => utils.createElement("div")).toThrow(
+            "renderMap requires a document runtime"
+        );
+        expect(() => utils.querySelector("#leaflet-map")).toThrow(
+            "renderMap requires a document runtime"
+        );
+        expect(() => utils.querySelectorAll(".overlay-filename-tooltip")).toThrow(
+            "renderMap requires a document runtime"
+        );
+        expect(() => utils.querySelectorByIdFlexible("#content_map")).toThrow(
+            "renderMap requires a document runtime"
+        );
+        expect(() => utils.getMapContainerFallback("#leaflet-map")).toThrow(
+            "renderMap requires a document runtime"
         );
     });
 

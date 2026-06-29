@@ -12,6 +12,7 @@ import {
     getBrowserRequestAnimationFrame,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
+import { querySelectorByIdFlexible as querySelectorByIdFlexibleFromDocument } from "../../ui/dom/elementIdUtils.js";
 
 export type RenderMapTimer = BrowserTimerHandle;
 
@@ -28,7 +29,19 @@ export interface RenderMapRuntime {
     readonly clearTimeout: (timer: RenderMapTimer) => void;
     readonly createAbortController: () => AbortController;
     readonly createChangeEvent: () => Event;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     readonly getMapContainerFallback: (selector: string) => HTMLElement;
+    readonly querySelector: <TElement extends Element = Element>(
+        selector: string
+    ) => TElement | null;
+    readonly querySelectorAll: <TElement extends Element = Element>(
+        selector: string
+    ) => NodeListOf<TElement>;
+    readonly querySelectorByIdFlexible: (
+        selector: string
+    ) => HTMLElement | null;
     readonly requestAnimationFrame: (
         frameCallback: FrameRequestCallback
     ) => void;
@@ -146,11 +159,26 @@ export function getRenderMapRuntime(
         createChangeEvent(): Event {
             return new (getRequiredEvent(getEvent))("change");
         },
+        createElement(tagName) {
+            return getRequiredDocument(getDocument).createElement(tagName);
+        },
         getMapContainerFallback(selector): HTMLElement {
             const documentRef = getRequiredDocument(getDocument);
             return (
                 documentRef.querySelector<HTMLElement>(selector) ??
                 documentRef.body
+            );
+        },
+        querySelector(selector) {
+            return getRequiredDocument(getDocument).querySelector(selector);
+        },
+        querySelectorAll(selector) {
+            return getRequiredDocument(getDocument).querySelectorAll(selector);
+        },
+        querySelectorByIdFlexible(selector) {
+            return querySelectorByIdFlexibleFromDocument(
+                getRequiredDocument(getDocument),
+                selector
             );
         },
         requestAnimationFrame(frameCallback): void {

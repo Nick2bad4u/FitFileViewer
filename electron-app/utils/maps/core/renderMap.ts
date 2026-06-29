@@ -56,7 +56,6 @@ import { createDataPointFilterControl } from "../../ui/controls/createDataPointF
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
 import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSelector.js";
 import { createPowerEstimationButton } from "../../ui/controls/createPowerEstimationButton.js";
-import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import {
     createMapThemeToggle,
     initializeActiveFileNameMapActions,
@@ -398,7 +397,7 @@ export function renderMap(): void {
             ? queueMicrotask
             : (callback: () => void) => Promise.resolve().then(callback);
 
-    const mapContainer = querySelectorByIdFlexible(document, "#content_map");
+    const mapContainer = runtime.querySelectorByIdFlexible("#content_map");
     if (!mapContainer) {
         return;
     }
@@ -406,7 +405,7 @@ export function renderMap(): void {
     // Defensive cleanup: overlay filename tooltips can become orphaned if the
     // overlay list or map is re-rendered while a tooltip is visible.
     try {
-        for (const el of document.querySelectorAll(
+        for (const el of runtime.querySelectorAll(
             ".overlay-filename-tooltip"
         )) {
             if (el instanceof HTMLElement) {
@@ -509,7 +508,7 @@ export function renderMap(): void {
     } catch {
         /* ignore */
     }
-    const oldMapDiv = document.querySelector("#leaflet-map");
+    const oldMapDiv = runtime.querySelector("#leaflet-map");
     if (oldMapDiv) {
         oldMapDiv.remove();
     }
@@ -517,14 +516,14 @@ export function renderMap(): void {
         mapContainer.firstChild.remove();
     }
 
-    const leafletMapDiv = document.createElement("div");
+    const leafletMapDiv = runtime.createElement("div");
     leafletMapDiv.id = "leaflet-map";
     mapContainer.append(leafletMapDiv);
 
-    const mapControlsDiv = document.createElement("div");
+    const mapControlsDiv = runtime.createElement("div");
     mapControlsDiv.id = "map-controls";
     mapControlsDiv.className = "map-controls-panel";
-    const primaryControlsContainer = document.createElement("div");
+    const primaryControlsContainer = runtime.createElement("div");
     primaryControlsContainer.className = "map-controls-panel__primary";
     mapControlsDiv.append(primaryControlsContainer);
     mapContainer.append(mapControlsDiv);
@@ -649,7 +648,7 @@ export function renderMap(): void {
     });
 
     // Add a custom floating label/button to indicate map type selection
-    const mapTypeBtn = document.createElement("button");
+    const mapTypeBtn = runtime.createElement("button");
     mapTypeBtn.type = "button";
     mapTypeBtn.className = "custom-maptype-btn leaflet-bar";
     mapTypeBtn.style.position = "absolute";
@@ -663,7 +662,7 @@ export function renderMap(): void {
         handleMapTypeButtonClick,
         listenerOptions
     );
-    const leafletMapDiv2 = document.querySelector("#leaflet-map");
+    const leafletMapDiv2 = runtime.querySelector("#leaflet-map");
     if (leafletMapDiv2) {
         leafletMapDiv2.append(mapTypeBtn);
     }
@@ -676,7 +675,7 @@ export function renderMap(): void {
     ensureMapDocumentListenersInstalled();
 
     function getLayersControlEl(): HTMLElement | null {
-        const el = document.querySelector(".leaflet-control-layers");
+        const el = runtime.querySelector(".leaflet-control-layers");
         return el instanceof HTMLElement ? el : null;
     }
 
@@ -813,8 +812,8 @@ export function renderMap(): void {
     }): void {
         const layersEl =
             layersControlEl ||
-            document.querySelector<HTMLElement>(".leaflet-control-layers");
-        const mapEl = document.querySelector("#leaflet-map");
+            runtime.querySelector<HTMLElement>(".leaflet-control-layers");
+        const mapEl = runtime.querySelector("#leaflet-map");
         if (!layersEl || !(layersEl instanceof HTMLElement) || !mapEl) {
             return;
         }
@@ -835,7 +834,7 @@ export function renderMap(): void {
 
         const mapTypeRect = mapTypeBtn.getBoundingClientRect();
         const mapRect = mapEl.getBoundingClientRect();
-        const minimapEl = document.querySelector(".leaflet-control-minimap");
+        const minimapEl = runtime.querySelector(".leaflet-control-minimap");
         const minimapRect =
             minimapEl instanceof HTMLElement
                 ? minimapEl.getBoundingClientRect()
@@ -911,7 +910,7 @@ export function renderMap(): void {
     // (Outside-click collapse is handled by a shared document listener)
 
     // --- Add a custom zoom slider bar (normalized 0-100%) ---
-    const zoomSliderBar = document.createElement("div");
+    const zoomSliderBar = runtime.createElement("div");
     zoomSliderBar.className = "custom-zoom-slider-bar";
     const maxZoom = map.getMaxZoom(),
         minZoom = map.getMinZoom(),
@@ -919,11 +918,11 @@ export function renderMap(): void {
             minZoom + ((maxZoom - minZoom) * percent) / 100,
         zoomToPercent = (zoom: number) =>
             ((zoom - minZoom) / (maxZoom - minZoom)) * 100;
-    const zoomLabel = document.createElement("div");
+    const zoomLabel = runtime.createElement("div");
     zoomLabel.className = "custom-zoom-slider-label";
     zoomLabel.textContent = "Zoom";
 
-    const zoomSlider = document.createElement("input");
+    const zoomSlider = runtime.createElement("input");
     zoomSlider.id = "zoom-slider-input";
     zoomSlider.type = "range";
     zoomSlider.min = "0";
@@ -931,26 +930,26 @@ export function renderMap(): void {
     zoomSlider.step = "1";
     zoomSlider.value = String(Math.round(zoomToPercent(map.getZoom())));
 
-    const values = document.createElement("div");
+    const values = runtime.createElement("div");
     values.className = "custom-zoom-slider-values";
 
-    const minSpan = document.createElement("span");
+    const minSpan = runtime.createElement("span");
     minSpan.id = "zoom-slider-min";
     minSpan.textContent = "0%";
 
-    const maxSpan = document.createElement("span");
+    const maxSpan = runtime.createElement("span");
     maxSpan.id = "zoom-slider-max";
     maxSpan.textContent = "100%";
 
-    const currentSpan = document.createElement("span");
+    const currentSpan = runtime.createElement("span");
     currentSpan.id = "zoom-slider-current";
     currentSpan.textContent = `${Math.round(zoomToPercent(map.getZoom()))}%`;
 
-    const sep1 = document.createElement("span");
+    const sep1 = runtime.createElement("span");
     sep1.className = "margin-horizontal";
     sep1.textContent = "|";
 
-    const sep2 = document.createElement("span");
+    const sep2 = runtime.createElement("span");
     sep2.className = "margin-horizontal";
     sep2.textContent = "|";
 
@@ -1027,10 +1026,8 @@ export function renderMap(): void {
     };
     map.on("zoomend zoomlevelschange", updateZoomSlider);
     updateZoomSlider();
-    const leafletMapContainer = querySelectorByIdFlexible(
-        document,
-        "#leaflet-map"
-    );
+    const leafletMapContainer =
+        runtime.querySelectorByIdFlexible("#leaflet-map");
     if (leafletMapContainer) {
         leafletMapContainer.append(zoomSliderBar);
     }
@@ -1043,7 +1040,7 @@ export function renderMap(): void {
     addLeafletLocatePluginControl(L, map);
 
     // --- Print/export button ---
-    const controlsDiv = document.querySelector<HTMLElement>("#map-controls");
+    const controlsDiv = runtime.querySelector<HTMLElement>("#map-controls");
     const primaryControls =
         controlsDiv?.querySelector<HTMLElement>(
             ".map-controls-panel__primary"
@@ -1056,7 +1053,7 @@ export function renderMap(): void {
             ".map-controls-panel__secondary"
         );
         if (!secondary) {
-            secondary = document.createElement("div");
+            secondary = runtime.createElement("div");
             secondary.className = "map-controls-panel__secondary";
             controlsDiv.append(secondary);
         }
@@ -1068,7 +1065,7 @@ export function renderMap(): void {
         | undefined;
 
     const resetLapSelectorSelection = () => {
-        const lapSelect = document.querySelector("#lap-select");
+        const lapSelect = runtime.querySelector("#lap-select");
         if (!(lapSelect instanceof HTMLSelectElement)) {
             return false;
         }
@@ -1212,8 +1209,7 @@ export function renderMap(): void {
             });
         }
     }
-    const leafletMapElement =
-        document.querySelector<HTMLElement>("#leaflet-map");
+    const leafletMapElement = runtime.querySelector<HTMLElement>("#leaflet-map");
     if (leafletMapElement) {
         addLapSelector(map, leafletMapElement, mapDrawLapsWrapper);
     }
@@ -1496,7 +1492,7 @@ export function renderMap(): void {
     // Enable/disable lap selector based on number of loaded files
     function updateLapSelectorEnabledState(): void {
         const lapSelect =
-            document.querySelector<HTMLSelectElement>("#lap-select");
+            runtime.querySelector<HTMLSelectElement>("#lap-select");
         if (lapSelect) {
             lapSelect.disabled = false;
         }
@@ -1530,7 +1526,7 @@ export function renderMap(): void {
     setCleanupTimeout(refreshMapLayout, 240);
 
     // --- Theme support (dark/light) ---
-    if (document.querySelector("#leaflet-map")) {
+    if (runtime.querySelector("#leaflet-map")) {
         installUpdateMapThemeListeners();
         updateMapTheme();
     }
