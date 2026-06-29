@@ -11851,7 +11851,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render notification timestamps behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(22);
 
         const violations = migratedShowRenderNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -11910,13 +11910,22 @@ describe("architecture boundaries", () => {
             "readonly dateNow: () => number;"
         );
         expect(showRenderNotificationRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(showRenderNotificationRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(showRenderNotificationRuntimeSource).toContain(
+            "render notification runtime requires dateNow provider"
         );
         expect(showRenderNotificationRuntimeSource).toContain(
             "render notification runtime requires dateNow"
         );
         expect(showRenderNotificationRuntimeScopeSource).not.toContain(
             "readonly dateNow?:"
+        );
+        expect(showRenderNotificationRuntimeScopeSource).not.toContain(
+            "readonly getDateNow?:"
         );
         expect(showRenderNotificationRuntimeSource).not.toContain(
             "scope.dateNow"

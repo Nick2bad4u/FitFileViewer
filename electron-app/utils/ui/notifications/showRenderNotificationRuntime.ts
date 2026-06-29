@@ -1,7 +1,7 @@
 import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 
 export interface ShowRenderNotificationRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
 }
 
 export interface ShowRenderNotificationRuntime {
@@ -16,7 +16,13 @@ const defaultShowRenderNotificationRuntimeScope: ShowRenderNotificationRuntimeSc
 function getRequiredDateNow(
     scope: ShowRenderNotificationRuntimeScope
 ): () => number {
-    const dateNow = scope.getDateNow?.();
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError(
+            "render notification runtime requires dateNow provider"
+        );
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("render notification runtime requires dateNow");
     }

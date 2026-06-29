@@ -5,6 +5,10 @@ import {
     type ShowRenderNotificationRuntimeScope,
 } from "../../../../../electron-app/utils/ui/notifications/showRenderNotificationRuntime.js";
 
+const unavailableShowRenderNotificationRuntimeScope = {
+    getDateNow: () => undefined,
+} satisfies ShowRenderNotificationRuntimeScope;
+
 describe("showRenderNotificationRuntime", () => {
     it("delegates timestamp reads through the scoped runtime", () => {
         expect.assertions(2);
@@ -12,6 +16,7 @@ describe("showRenderNotificationRuntime", () => {
         const timestamp = Number("2100");
         const dateNow = vi.fn<() => number>(() => timestamp);
         const utils = getShowRenderNotificationRuntime({
+            ...unavailableShowRenderNotificationRuntimeScope,
             getDateNow: () => dateNow,
         });
 
@@ -38,10 +43,24 @@ describe("showRenderNotificationRuntime", () => {
     it("fails fast when the clock provider is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getShowRenderNotificationRuntime({});
+        const utils = getShowRenderNotificationRuntime(
+            unavailableShowRenderNotificationRuntimeScope
+        );
 
         expect(() => utils.dateNow()).toThrow(
             "render notification runtime requires dateNow"
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        const utils = getShowRenderNotificationRuntime(
+            {} as unknown as ShowRenderNotificationRuntimeScope
+        );
+
+        expect(() => utils.dateNow()).toThrow(
+            "render notification runtime requires dateNow provider"
         );
     });
 
@@ -49,6 +68,7 @@ describe("showRenderNotificationRuntime", () => {
         expect.assertions(1);
 
         const utils = getShowRenderNotificationRuntime({
+            ...unavailableShowRenderNotificationRuntimeScope,
             dateNow() {
                 throw new Error("legacy dateNow should not run");
             },
