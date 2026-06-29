@@ -3,10 +3,8 @@ import { getBrowserDateNow } from "./utils/runtime/browserRuntime.js";
 type FitParserDateConstructor = new () => { toISOString: () => string };
 
 export interface FitParserRuntimeScope {
-    readonly getDateConstructor?:
-        | (() => FitParserDateConstructor | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getDateConstructor: () => FitParserDateConstructor | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
 }
 
 export interface FitParserRuntime {
@@ -22,7 +20,13 @@ const defaultFitParserRuntimeScope: FitParserRuntimeScope = {
 function getRequiredDateConstructor(
     scope: FitParserRuntimeScope
 ): FitParserDateConstructor {
-    const DateConstructor = scope.getDateConstructor?.();
+    if (typeof scope.getDateConstructor !== "function") {
+        throw new TypeError(
+            "fitParserRuntime requires a date constructor provider"
+        );
+    }
+
+    const DateConstructor = scope.getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }
@@ -31,7 +35,11 @@ function getRequiredDateConstructor(
 }
 
 function getRequiredDateNow(scope: FitParserRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError("fitParserRuntime requires a date clock provider");
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow === "function") {
         return dateNow;
     }

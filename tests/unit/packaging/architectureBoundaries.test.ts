@@ -3001,7 +3001,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
-        expect.assertions(24);
+        expect.assertions(32);
 
         const parserSource = stripComments(
             readRepositoryFile("electron-app/fitParser.ts")
@@ -3040,6 +3040,26 @@ describe("architecture boundaries", () => {
         expect(parserRuntimeSource).toContain("getDateNow: getBrowserDateNow");
         expect(parserRuntimeSource).not.toContain("getDateNow: () => Date.now");
         expect(parserRuntimeSource).toContain("getDateConstructor: () => Date");
+        expect(parserRuntimeSource).not.toContain("readonly getDateNow?:");
+        expect(parserRuntimeSource).not.toContain(
+            "readonly getDateConstructor?:"
+        );
+        expect(parserRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(parserRuntimeSource).toContain(
+            "const DateConstructor = scope.getDateConstructor();"
+        );
+        expect(parserRuntimeSource).not.toContain("scope.getDateNow?.()");
+        expect(parserRuntimeSource).not.toContain(
+            "scope.getDateConstructor?.()"
+        );
+        expect(parserRuntimeSource).toContain(
+            "fitParserRuntime requires a date clock provider"
+        );
+        expect(parserRuntimeSource).toContain(
+            "fitParserRuntime requires a date constructor provider"
+        );
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a date clock"
         );

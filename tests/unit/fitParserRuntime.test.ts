@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getFitParserRuntime } from "../../electron-app/fitParserRuntime.js";
+import {
+    getFitParserRuntime,
+    type FitParserRuntimeScope,
+} from "../../electron-app/fitParserRuntime.js";
+
+const unavailableFitParserRuntimeScope = {
+    getDateConstructor: () => undefined,
+    getDateNow: () => undefined,
+} satisfies FitParserRuntimeScope;
 
 describe("getFitParserRuntime", () => {
     it("reads wall-clock timestamps through the injected provider", () => {
@@ -8,6 +16,7 @@ describe("getFitParserRuntime", () => {
 
         const dateNow = vi.fn<() => number>(() => 1234);
         const utils = getFitParserRuntime({
+            ...unavailableFitParserRuntimeScope,
             getDateNow: () => dateNow,
         });
 
@@ -34,6 +43,7 @@ describe("getFitParserRuntime", () => {
         }
 
         const utils = getFitParserRuntime({
+            ...unavailableFitParserRuntimeScope,
             getDateConstructor: () => DateConstructor,
         });
 
@@ -45,13 +55,28 @@ describe("getFitParserRuntime", () => {
     it("fails clearly when clock providers are unavailable", () => {
         expect.assertions(2);
 
-        const utils = getFitParserRuntime({});
+        const utils = getFitParserRuntime(unavailableFitParserRuntimeScope);
 
         expect(() => utils.dateNow()).toThrow(
             "fitParserRuntime requires a date clock"
         );
         expect(() => utils.isoTimestamp()).toThrow(
             "fitParserRuntime requires a date constructor"
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(2);
+
+        const utils = getFitParserRuntime(
+            {} as unknown as FitParserRuntimeScope
+        );
+
+        expect(() => utils.dateNow()).toThrow(
+            "fitParserRuntime requires a date clock provider"
+        );
+        expect(() => utils.isoTimestamp()).toThrow(
+            "fitParserRuntime requires a date constructor provider"
         );
     });
 
@@ -75,6 +100,7 @@ describe("getFitParserRuntime", () => {
         }
 
         const utils = getFitParserRuntime({
+            ...unavailableFitParserRuntimeScope,
             Date: DateConstructor,
             dateNow,
         } as unknown as Parameters<typeof getFitParserRuntime>[0]);
