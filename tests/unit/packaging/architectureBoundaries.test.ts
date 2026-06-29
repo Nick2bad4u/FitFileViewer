@@ -35074,7 +35074,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(119);
+        expect.assertions(126);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -35091,6 +35091,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/renderer/leafletMeasureLiteRuntime.js"
             )
+        );
+        const leafletMeasureLiteSource = stripComments(
+            readRepositoryFile("electron-app/renderer/leafletMeasureLite.js")
         );
         const viteRendererConfig = stripComments(
             readRepositoryFile("vite.renderer.config.mjs")
@@ -35240,6 +35243,13 @@ describe("architecture boundaries", () => {
         expect(leafletMeasureLiteRuntimeSource).toContain(
             "function getRequiredProvider"
         );
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "createElement(tagName)"
+        );
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "createTextNode(data)"
+        );
+        expect(leafletMeasureLiteRuntimeSource).toContain("getDocumentRoot()");
         expect(leafletMeasureLiteRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
         );
@@ -35264,6 +35274,16 @@ describe("architecture boundaries", () => {
         expect(leafletMeasureLiteRuntimeSource).toContain(
             "return getDocumentEventTargetProvider() ?? getDocument();"
         );
+        expect(leafletMeasureLiteSource).toContain(
+            "leafletMeasureLiteRuntime.createElement"
+        );
+        expect(leafletMeasureLiteSource).toContain(
+            "leafletMeasureLiteRuntime.createTextNode"
+        );
+        expect(leafletMeasureLiteSource).toContain(
+            "leafletMeasureLiteRuntime.getDocumentRoot()"
+        );
+        expect(leafletMeasureLiteSource).not.toMatch(/\bdocument\./u);
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
         expect(leafletRuntimeSource).toContain("type BrowserTimerHandle");

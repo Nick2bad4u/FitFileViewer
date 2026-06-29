@@ -206,7 +206,7 @@ export function installLeafletMeasureLite(L) {
      * @returns {HTMLElement}
      */
     function createTextElement(tagName, className, text) {
-        const element = document.createElement(tagName);
+        const element = leafletMeasureLiteRuntime.createElement(tagName);
         if (className) {
             element.className = className;
         }
@@ -222,7 +222,7 @@ export function installLeafletMeasureLite(L) {
      * @returns {HTMLAnchorElement}
      */
     function createTaskLink(className, text) {
-        const link = document.createElement("a");
+        const link = leafletMeasureLiteRuntime.createElement("a");
         link.href = "#";
         link.className = className;
         link.textContent = text;
@@ -236,7 +236,7 @@ export function installLeafletMeasureLite(L) {
      * @returns {HTMLLIElement}
      */
     function createTaskItem(link) {
-        const item = document.createElement("li");
+        const item = leafletMeasureLiteRuntime.createElement("li");
         item.append(link);
 
         return item;
@@ -249,12 +249,15 @@ export function installLeafletMeasureLite(L) {
      * @returns {HTMLElement}
      */
     function createResultGroup(heading, value) {
-        const group = document.createElement("div");
+        const group = leafletMeasureLiteRuntime.createElement("div");
         group.className = "group";
 
-        const paragraph = document.createElement("p");
+        const paragraph = leafletMeasureLiteRuntime.createElement("p");
         const label = createTextElement("span", "heading", heading);
-        paragraph.append(label, document.createTextNode(` ${value}`));
+        paragraph.append(
+            label,
+            leafletMeasureLiteRuntime.createTextNode(` ${value}`)
+        );
         group.append(paragraph);
 
         return group;
@@ -276,16 +279,16 @@ export function installLeafletMeasureLite(L) {
         decPoint,
         thousandsSep
     ) {
-        const group = document.createElement("div");
+        const group = leafletMeasureLiteRuntime.createElement("div");
         group.className = "group";
 
-        const paragraph = document.createElement("p");
+        const paragraph = leafletMeasureLiteRuntime.createElement("p");
         paragraph.append(createTextElement("span", "heading", "Segments"));
 
-        const list = document.createElement("ol");
+        const list = leafletMeasureLiteRuntime.createElement("ol");
         list.className = "segments";
         segmentMeters.forEach((meters, index) => {
-            const item = document.createElement("li");
+            const item = leafletMeasureLiteRuntime.createElement("li");
             item.textContent = `Segment ${index + 1}: ${formatDistanceDual(
                 meters,
                 primaryUnit,
@@ -359,7 +362,7 @@ export function installLeafletMeasureLite(L) {
                 "startprompt js-startprompt",
                 interaction
             ));
-            const startTasks = document.createElement("ul");
+            const startTasks = leafletMeasureLiteRuntime.createElement("ul");
             startTasks.className = "tasks";
             startTasks.append(
                 createTaskItem(
@@ -382,9 +385,9 @@ export function installLeafletMeasureLite(L) {
                 "js-starthelp",
                 "Start creating a measurement by adding points to the map"
             );
-            const results = document.createElement("div");
+            const results = leafletMeasureLiteRuntime.createElement("div");
             results.className = "js-results results";
-            const measureTasks = document.createElement("ul");
+            const measureTasks = leafletMeasureLiteRuntime.createElement("ul");
             measureTasks.className = "js-measuretasks tasks";
             measureTasks.append(
                 createTaskItem(createTaskLink("js-cancel cancel", "Cancel")),
@@ -614,7 +617,7 @@ export function installLeafletMeasureLite(L) {
                 const root =
                     this._map && typeof this._map.getContainer === "function"
                         ? this._map.getContainer()
-                        : document;
+                        : leafletMeasureLiteRuntime.getDocumentRoot();
                 const popupBodies = root.querySelectorAll(
                     ".leaflet-measure-resultpopup"
                 );
@@ -1138,7 +1141,7 @@ export function installLeafletMeasureLite(L) {
          * @returns {HTMLElement}
          */
         _buildPopupHtml: function _buildPopupHtml(lengthMeters, areaSqMeters) {
-            const wrap = document.createElement("div");
+            const wrap = leafletMeasureLiteRuntime.createElement("div");
             wrap.className = "leaflet-measure-resultpopup";
 
             const primaryUnit =

@@ -11,6 +11,25 @@ function createLeafletMeasureLiteRuntimeScope(overrides = {}) {
 }
 
 describe("leafletMeasureLiteRuntime", () => {
+    it("routes DOM creation and document-root reads through the injected document provider", () => {
+        expect.assertions(4);
+
+        const documentRef = document.implementation.createHTMLDocument();
+        const runtime = getLeafletMeasureLiteRuntime(
+            createLeafletMeasureLiteRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
+
+        const element = runtime.createElement("div");
+        const textNode = runtime.createTextNode("segment");
+
+        expect(element.ownerDocument).toBe(documentRef);
+        expect(element.tagName).toBe("DIV");
+        expect(textNode.ownerDocument).toBe(documentRef);
+        expect(runtime.getDocumentRoot()).toBe(documentRef);
+    });
+
     it("routes keydown listeners through the injected document provider", () => {
         expect.assertions(1);
 
@@ -77,13 +96,22 @@ describe("leafletMeasureLiteRuntime", () => {
     });
 
     it("fails clearly when the document provider is unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const runtime = getLeafletMeasureLiteRuntime(
             createLeafletMeasureLiteRuntimeScope()
         );
         const listener = vi.fn();
 
+        expect(() => runtime.createElement("div")).toThrow(
+            "leafletMeasureLite requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("segment")).toThrow(
+            "leafletMeasureLite requires a document runtime"
+        );
+        expect(() => runtime.getDocumentRoot()).toThrow(
+            "leafletMeasureLite requires a document runtime"
+        );
         expect(() => runtime.addDocumentKeydownListener(listener)).toThrow(
             "leafletMeasureLite requires a document event-target runtime"
         );

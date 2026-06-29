@@ -42,6 +42,15 @@ export function getLeafletMeasureLiteRuntime(
                 getDocument
             ).addEventListener("keydown", listener);
         },
+        createElement(tagName) {
+            return getRequiredDocument(getDocument).createElement(tagName);
+        },
+        createTextNode(data) {
+            return getRequiredDocument(getDocument).createTextNode(data);
+        },
+        getDocumentRoot() {
+            return getRequiredDocument(getDocument);
+        },
         removeDocumentKeydownListener(listener) {
             getRequiredDocumentEventTarget(
                 getDocumentEventTargetProvider,
@@ -49,6 +58,15 @@ export function getLeafletMeasureLiteRuntime(
             ).removeEventListener("keydown", listener);
         },
     };
+}
+
+function getRequiredDocument(getDocument) {
+    const documentRef = getDocument();
+    if (documentRef === undefined || documentRef === null) {
+        throw new TypeError("leafletMeasureLite requires a document runtime");
+    }
+
+    return documentRef;
 }
 
 function getRequiredProvider(provider, providerLabel) {
