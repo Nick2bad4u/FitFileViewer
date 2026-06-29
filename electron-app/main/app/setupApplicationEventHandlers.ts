@@ -165,23 +165,34 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
     type SessionHandlerRegistration = "download" | "permissions";
 
-    type PropertyLookupTarget = object & Record<PropertyKey, unknown>;
+    type PermissionDetailStringKey =
+        | "requestingOrigin"
+        | "requestingURL"
+        | "requestingUrl";
 
-    function asPropertyLookupTarget(
-        value: unknown
-    ): PropertyLookupTarget | null {
-        return value &&
-            (typeof value === "object" || typeof value === "function")
-            ? (value as PropertyLookupTarget)
-            : null;
+    interface PermissionDetailsStringCandidate {
+        readonly requestingOrigin?: unknown;
+        readonly requestingURL?: unknown;
+        readonly requestingUrl?: unknown;
     }
 
-    function getStringProperty(
+    function isPermissionDetailsStringCandidate(
+        value: unknown
+    ): value is PermissionDetailsStringCandidate {
+        return (
+            typeof value === "object" && value !== null && !Array.isArray(value)
+        );
+    }
+
+    function getPermissionDetailString(
         value: unknown,
-        key: string
+        key: PermissionDetailStringKey
     ): string | undefined {
-        const record = asPropertyLookupTarget(value);
-        const property = record ? record[key] : undefined;
+        if (!isPermissionDetailsStringCandidate(value)) {
+            return undefined;
+        }
+
+        const property = value[key];
         return typeof property === "string" ? property : undefined;
     }
 
@@ -244,9 +255,9 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         }
 
         const requestingUrl =
-            getStringProperty(details, "requestingUrl") ??
-            getStringProperty(details, "requestingURL") ??
-            getStringProperty(details, "requestingOrigin") ??
+            getPermissionDetailString(details, "requestingUrl") ??
+            getPermissionDetailString(details, "requestingURL") ??
+            getPermissionDetailString(details, "requestingOrigin") ??
             "";
 
         const parsed = requestingUrl ? safeParseUrl(requestingUrl) : null;
@@ -334,7 +345,10 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
         if (!allow) {
             logWithContext("warn", "Geolocation permission denied by user", {
-                requestingUrl: getStringProperty(details, "requestingUrl"),
+                requestingUrl: getPermissionDetailString(
+                    details,
+                    "requestingUrl"
+                ),
             });
         }
 

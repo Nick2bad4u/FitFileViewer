@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "node:events";
+import { pathToFileURL } from "node:url";
 import type { Mock } from "vitest";
 
 type AppEventHandler = (...args: unknown[]) => void;
@@ -24,7 +25,8 @@ type PermissionDecisionCallback = (allowed: boolean) => void;
 type PermissionRequestHandler = (
     webContents: unknown,
     permission: string,
-    callback: PermissionDecisionCallback
+    callback: PermissionDecisionCallback,
+    details?: PermissionDetailsLike
 ) => void;
 type PermissionDetailsLike =
     | {
@@ -238,6 +240,92 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             checkHandler({}, "geolocation", "about:blank", {
                 requestingUrl: "about:blank",
             })
+        ).toBe(false);
+    });
+
+    it("trusts only app-local permission detail URL variants", async () => {
+        expect.assertions(3);
+
+        process.env.NODE_ENV = "production";
+        vi.resetModules();
+
+        const handlers = new Map<string, AppEventHandler>();
+        const mockSession: MockSession = {
+            setPermissionRequestHandler:
+                vi.fn<(handler: PermissionRequestHandler) => void>(),
+            setPermissionCheckHandler:
+                vi.fn<(handler: CheckPermissionHandler) => void>(),
+        };
+
+        await setElectronOverrideForTest({
+            app: {
+                getAppPath: vi.fn<() => string>(() => "C:\\mock\\app"),
+                on: vi.fn<
+                    (eventName: string, callback: AppEventHandler) => void
+                >((eventName, callback) => {
+                    handlers.set(eventName, callback);
+                }),
+                quit: vi.fn<() => void>(),
+            },
+            shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
+        });
+
+        const { setupApplicationEventHandlers } = await importSetupHandlers();
+        setupApplicationEventHandlers();
+        (await importAppState()).setGeolocationPermissionAllowed(true);
+
+        const webContentsCreatedHandler = handlers.get("web-contents-created");
+        assertFunction<WebContentsCreatedHandler>(
+            webContentsCreatedHandler,
+            "web-contents-created handler"
+        );
+
+        webContentsCreatedHandler(
+            {},
+            {
+                on: vi.fn<
+                    (eventName: string, handler: AppEventHandler) => void
+                >(),
+                session: mockSession,
+                setWindowOpenHandler:
+                    vi.fn<(handler: AppEventHandler) => void>(),
+            }
+        );
+
+        const checkHandler =
+            mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
+        assertFunction<CheckPermissionHandler>(
+            checkHandler,
+            "permission check handler"
+        );
+
+        const allowedFileUrl = pathToFileURL(
+            "C:\\mock\\app\\index.html"
+        ).toString();
+        const disallowedFileUrl = pathToFileURL(
+            "C:\\outside\\index.html"
+        ).toString();
+        const arrayShapedDetails = Object.assign([], {
+            requestingUrl: allowedFileUrl,
+        }) as unknown as PermissionDetailsLike;
+
+        expect(
+            checkHandler({}, "geolocation", "about:blank", {
+                requestingURL: allowedFileUrl,
+            })
+        ).toBe(true);
+        expect(
+            checkHandler({}, "geolocation", "about:blank", {
+                requestingOrigin: disallowedFileUrl,
+            })
+        ).toBe(false);
+        expect(
+            checkHandler(
+                {},
+                "geolocation",
+                "about:blank",
+                arrayShapedDetails
+            )
         ).toBe(false);
     });
 

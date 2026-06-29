@@ -3643,7 +3643,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(443);
+        expect.assertions(447);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3900,8 +3900,20 @@ describe("architecture boundaries", () => {
         expect(setupApplicationEventHandlersSource).not.toContain(
             "Reflect.get("
         );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            "PropertyLookupTarget"
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            "Record<PropertyKey, unknown>"
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            "asPropertyLookupTarget"
+        );
         expect(setupApplicationEventHandlersSource).toContain(
-            "const property = record ? record[key] : undefined;"
+            "interface PermissionDetailsStringCandidate"
+        );
+        expect(setupApplicationEventHandlersSource).toContain(
+            "const property = value[key];"
         );
         expect(setupMainLifecycleSource).not.toContain("process.env");
         expect(setupMainLifecycleSource).not.toContain("process.argv");
