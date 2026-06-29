@@ -3,25 +3,23 @@ import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 type ChartCanvasDocument = Pick<Document, "createElement">;
 
 export interface CreateChartCanvasRuntimeScope {
-    readonly getDocument: () => ChartCanvasDocument | undefined;
+    readonly getDocument: CreateChartCanvasRuntimeProvider<ChartCanvasDocument>;
 }
 
 export interface CreateChartCanvasRuntime {
     readonly createCanvas: () => HTMLCanvasElement;
 }
 
+type CreateChartCanvasRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultCreateChartCanvasRuntimeScope: CreateChartCanvasRuntimeScope = {
     getDocument: getBrowserDocument,
 };
 
 function getRequiredDocument(
-    scope: CreateChartCanvasRuntimeScope
+    getDocument: () => ChartCanvasDocument | undefined
 ): ChartCanvasDocument {
-    if (typeof scope.getDocument !== "function") {
-        throw new TypeError("createChartCanvas requires a document provider");
-    }
-
-    const runtimeDocument = scope.getDocument();
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("createChartCanvas requires a document runtime");
     }
@@ -32,9 +30,24 @@ function getRequiredDocument(
 export function getCreateChartCanvasRuntime(
     scope: CreateChartCanvasRuntimeScope = defaultCreateChartCanvasRuntimeScope
 ): CreateChartCanvasRuntime {
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+
     return {
         createCanvas(): HTMLCanvasElement {
-            return getRequiredDocument(scope).createElement("canvas");
+            return getRequiredDocument(getDocument).createElement("canvas");
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: CreateChartCanvasRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `createChartCanvas requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

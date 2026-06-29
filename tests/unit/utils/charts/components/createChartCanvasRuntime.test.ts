@@ -52,11 +52,20 @@ describe("getCreateChartCanvasRuntime", () => {
 
         const omittedProviderScope =
             {} as unknown as CreateChartCanvasRuntimeScope;
-        const runtime = getCreateChartCanvasRuntime(omittedProviderScope);
 
-        expect(() => runtime.createCanvas()).toThrow(
+        expect(() => getCreateChartCanvasRuntime(omittedProviderScope)).toThrow(
             "createChartCanvas requires a document provider"
         );
+    });
+
+    it("fails clearly when the document provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getCreateChartCanvasRuntime({
+                getDocument: undefined,
+            })
+        ).toThrow("createChartCanvas requires a document provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -67,13 +76,11 @@ describe("getCreateChartCanvasRuntime", () => {
         );
         const createElement = vi.spyOn(documentRef, "createElement");
         const legacyScope = {
-            ...unavailableChartCanvasScope,
             document: documentRef,
         } as unknown as CreateChartCanvasRuntimeScope;
-        const runtime = getCreateChartCanvasRuntime(legacyScope);
 
-        expect(() => runtime.createCanvas()).toThrow(
-            "createChartCanvas requires a document runtime"
+        expect(() => getCreateChartCanvasRuntime(legacyScope)).toThrow(
+            "createChartCanvas requires a document provider"
         );
         expect(createElement).not.toHaveBeenCalled();
     });

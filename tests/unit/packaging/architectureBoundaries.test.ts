@@ -27293,7 +27293,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart canvas creation behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(27);
 
         const violations = migratedCreateChartCanvasRuntimeFiles
             .filter((relativeFile) =>
@@ -27336,16 +27336,29 @@ describe("architecture boundaries", () => {
         expect(canvasSource).toContain("runtime.createCanvas()");
         expect(runtimeSource).toContain("defaultCreateChartCanvasRuntimeScope");
         expect(runtimeSource).toContain("getDocument: getBrowserDocument");
+        expect(runtimeSource).toContain(
+            "type CreateChartCanvasRuntimeProvider"
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getDocument:\s*CreateChartCanvasRuntimeProvider<ChartCanvasDocument>/u
+        );
+        expect(runtimeSource).toContain("function getRequiredProvider");
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
         expect(runtimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(runtimeSource).not.toContain("readonly getDocument?:");
         expect(runtimeSource).toContain(
+            "const runtimeDocument = getDocument();"
+        );
+        expect(runtimeSource).not.toContain(
             "const runtimeDocument = scope.getDocument();"
         );
         expect(runtimeSource).not.toContain("scope.getDocument?.()");
         expect(runtimeSource).toContain(
-            "createChartCanvas requires a document provider"
+            "createChartCanvas requires a ${providerName} provider"
         );
         expect(runtimeSource).toContain(
             "createChartCanvas requires a document runtime"
