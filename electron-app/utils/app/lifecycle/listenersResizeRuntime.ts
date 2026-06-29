@@ -39,33 +39,18 @@ export interface ListenersResizeRuntimeWindow {
 }
 
 type ListenersResizeElementConstructor = BrowserElementConstructor;
+type ListenersResizeRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface ListenersResizeRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?:
-        | (() => ListenersResizeRuntimeDocument | undefined)
-        | undefined;
-    readonly getElement?:
-        | (() => BrowserElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLCanvasElement?:
-        | (() => BrowserHTMLCanvasElementConstructor | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getResizeTarget?:
-        | (() => ListenersResizeRuntimeWindow | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: ListenersResizeRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getCancelAnimationFrame: ListenersResizeRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getClearTimeout: ListenersResizeRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: ListenersResizeRuntimeProvider<ListenersResizeRuntimeDocument>;
+    readonly getElement: ListenersResizeRuntimeProvider<BrowserElementConstructor>;
+    readonly getHTMLCanvasElement: ListenersResizeRuntimeProvider<BrowserHTMLCanvasElementConstructor>;
+    readonly getRequestAnimationFrame: ListenersResizeRuntimeProvider<BrowserRequestAnimationFrame>;
+    readonly getResizeTarget: ListenersResizeRuntimeProvider<ListenersResizeRuntimeWindow>;
+    readonly getSetTimeout: ListenersResizeRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface ListenersResizeRuntime {
@@ -112,58 +97,80 @@ const defaultListenersResizeRuntimeScope: ListenersResizeRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: ListenersResizeRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `listenersResize requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortController(
     scope: ListenersResizeRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getCancelAnimationFrame(
     scope: ListenersResizeRuntimeScope
 ): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    )();
 }
 
 function getClearTimeout(
     scope: ListenersResizeRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getDocument(
     scope: ListenersResizeRuntimeScope
 ): ListenersResizeRuntimeDocument | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getElement(
     scope: ListenersResizeRuntimeScope
 ): BrowserElementConstructor | undefined {
-    return scope.getElement?.();
+    return getRequiredProvider(scope.getElement, "Element")();
 }
 
 function getHTMLCanvasElement(
     scope: ListenersResizeRuntimeScope
 ): BrowserHTMLCanvasElementConstructor | undefined {
-    return scope.getHTMLCanvasElement?.();
+    return getRequiredProvider(
+        scope.getHTMLCanvasElement,
+        "HTMLCanvasElement"
+    )();
 }
 
 function getRequestAnimationFrame(
     scope: ListenersResizeRuntimeScope
 ): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    )();
 }
 
 function getResizeTarget(
     scope: ListenersResizeRuntimeScope
 ): ListenersResizeRuntimeWindow | undefined {
-    return scope.getResizeTarget?.();
+    return getRequiredProvider(scope.getResizeTarget, "resizeTarget")();
 }
 
 function getSetTimeout(
     scope: ListenersResizeRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 export function getListenersResizeRuntime(

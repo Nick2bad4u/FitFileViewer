@@ -26970,7 +26970,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(75);
+        expect.assertions(80);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -26998,6 +26998,8 @@ describe("architecture boundaries", () => {
                     "export interface ListenersResizeRuntime {"
                 )
             );
+        const optionalListenersResizeProviderAccessPattern =
+            /\bscope\.get(?:AbortController|CancelAnimationFrame|ClearTimeout|Document|Element|HTMLCanvasElement|RequestAnimationFrame|ResizeTarget|SetTimeout)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(listenersResizeSource).toContain("listenersResizeRuntime.js");
@@ -27129,7 +27131,20 @@ describe("architecture boundaries", () => {
         expect(listenersResizeRuntimeSource).not.toContain(
             "ListenersResizeRuntimeScope = globalThis"
         );
+        expect(listenersResizeRuntimeSource).not.toMatch(
+            optionalListenersResizeProviderAccessPattern
+        );
         expect(listenersResizeRuntimeSource).not.toContain("scope.window");
+        expect(listenersResizeRuntimeSource).toContain(
+            "type ListenersResizeRuntimeProvider<T> ="
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(listenersResizeRuntimeSource).toContain("providerName: string");
+        expect(listenersResizeRuntimeSource).toContain(
+            "listenersResize requires ${providerName} provider"
+        );
         expect(listenersResizeRuntimeSource).toContain(
             "listenersResize requires a setTimeout runtime"
         );
@@ -27181,32 +27196,32 @@ describe("architecture boundaries", () => {
             "scope.resizeTarget"
         );
         expect(listenersResizeRuntimeSource).not.toContain("scope.setTimeout");
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getAbortController?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getCancelAnimationFrame?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelAnimationFrame/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getClearTimeout?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getDocument?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getElement?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getElement/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getHTMLCanvasElement?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLCanvasElement/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getRequestAnimationFrame?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getResizeTarget?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getResizeTarget/u
         );
-        expect(listenersResizeRuntimeSource).toContain(
-            "return scope.getSetTimeout?.();"
+        expect(listenersResizeRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout/u
         );
     });
 
