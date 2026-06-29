@@ -21750,7 +21750,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(84);
+        expect.assertions(115);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -21885,6 +21885,9 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "getDocumentEventTarget: getBrowserDocument"
+        );
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -21945,7 +21948,7 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
-        expect(fullscreenButtonRuntimeSource).toContain(
+        expect(fullscreenButtonRuntimeSource).not.toContain(
             "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
@@ -21965,6 +21968,96 @@ describe("architecture boundaries", () => {
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "readonly windowEventTarget?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getDocumentEventTarget?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getWindowEventTarget?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly getMutationObserver?:"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "type AddFullScreenButtonRuntimeProvider"
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*AddFullScreenButtonRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getDocumentEventTarget:\s*AddFullScreenButtonRuntimeProvider<AddFullScreenButtonEventTarget>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*AddFullScreenButtonRuntimeProvider<Document>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getWindowEventTarget:\s*AddFullScreenButtonRuntimeProvider<AddFullScreenButtonEventTarget>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*AddFullScreenButtonRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getKeyboardEvent:\s*AddFullScreenButtonRuntimeProvider<BrowserKeyboardEventConstructor>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /readonly\s+getMutationObserver:\s*AddFullScreenButtonRuntimeProvider<BrowserMutationObserverConstructor>/u
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocumentEventTarget,\s*"document event-target"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getWindowEventTarget,\s*"window event-target"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getKeyboardEvent,\s*"KeyboardEvent"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMutationObserver,\s*"MutationObserver"\s*\)/u
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getDocumentEventTarget?.()"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getWindowEventTarget?.()"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getKeyboardEvent?.()"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.getMutationObserver?.()"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain(
             "scope.AbortController"

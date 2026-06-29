@@ -3,11 +3,42 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     FULLSCREEN_BUTTON_SVG_NAMESPACE,
     getAddFullScreenButtonRuntime,
+    type AddFullScreenButtonRuntimeScope,
 } from "../../../../../electron-app/utils/ui/controls/addFullScreenButtonRuntime.js";
 import type {
     BrowserAbortControllerConstructor,
     BrowserMutationObserverConstructor,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createAddFullScreenButtonRuntimeScope(
+    overrides: Partial<AddFullScreenButtonRuntimeScope> = {}
+): AddFullScreenButtonRuntimeScope {
+    return {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+        getDocumentEventTarget: () => document,
+        getHTMLElement: () => HTMLElement,
+        getKeyboardEvent: () => KeyboardEvent,
+        getMutationObserver: () => MutationObserver,
+        getWindowEventTarget: () => globalThis,
+        ...overrides,
+    };
+}
+
+function createUnavailableAddFullScreenButtonRuntimeScope(
+    overrides: Partial<AddFullScreenButtonRuntimeScope> = {}
+): AddFullScreenButtonRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getHTMLElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        getMutationObserver: () => undefined,
+        getWindowEventTarget: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getAddFullScreenButtonRuntime", () => {
     afterEach(() => {
@@ -20,10 +51,12 @@ describe("getAddFullScreenButtonRuntime", () => {
 
         const documentEventTarget = new EventTarget();
         const windowEventTarget = new EventTarget();
-        const runtime = getAddFullScreenButtonRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-            getWindowEventTarget: () => windowEventTarget,
-        });
+        const runtime = getAddFullScreenButtonRuntime(
+            createAddFullScreenButtonRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+                getWindowEventTarget: () => windowEventTarget,
+            })
+        );
         const handledEventTypes: string[] = [];
         const listener = (event: Event): void => {
             handledEventTypes.push(event.type);
@@ -57,7 +90,9 @@ describe("getAddFullScreenButtonRuntime", () => {
     it("ignores missing event targets", () => {
         expect.assertions(1);
 
-        const runtime = getAddFullScreenButtonRuntime({ AbortController });
+        const runtime = getAddFullScreenButtonRuntime(
+            createUnavailableAddFullScreenButtonRuntimeScope()
+        );
         const listener = vi.fn();
 
         expect(() => {
@@ -69,7 +104,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const staleDocument = document.implementation.createHTMLDocument(
             "stale fullscreen button runtime"
@@ -110,37 +145,47 @@ describe("getAddFullScreenButtonRuntime", () => {
             handledEventTypes.push(event.type);
         };
 
-        runtime.addDocumentEventListener("fullscreenchange", listener);
-        runtime.addWindowEventListener("keydown", listener);
+        expect(() =>
+            runtime.addDocumentEventListener("fullscreenchange", listener)
+        ).toThrow(
+            "addFullScreenButton requires a document event-target provider"
+        );
+        expect(() =>
+            runtime.addWindowEventListener("keydown", listener)
+        ).toThrow(
+            "addFullScreenButton requires a window event-target provider"
+        );
         staleDocumentEventTarget.dispatchEvent(new Event("fullscreenchange"));
         staleWindowEventTarget.dispatchEvent(new Event("keydown"));
 
         expect(handledEventTypes).toStrictEqual([]);
         expect(() => runtime.getElementById("global-fullscreen-btn")).toThrow(
-            "addFullScreenButton requires a document runtime"
+            "addFullScreenButton requires a document provider"
         );
         expect(() => runtime.hasBodyClass("app-has-file")).toThrow(
-            "addFullScreenButton requires a document runtime"
+            "addFullScreenButton requires a document provider"
         );
         expect(() => runtime.createElement("button")).toThrow(
-            "addFullScreenButton requires a document runtime"
+            "addFullScreenButton requires a document provider"
         );
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
-        ).toThrow("addFullScreenButton requires a document runtime");
+        ).toThrow("addFullScreenButton requires a document provider");
         expect(() =>
             runtime.observeBody({ observe: vi.fn() }, { attributes: true })
-        ).toThrow("addFullScreenButton requires a document runtime");
+        ).toThrow("addFullScreenButton requires a document provider");
         expect(() => runtime.createSvgElement("svg")).toThrow(
-            "addFullScreenButton requires a document runtime"
+            "addFullScreenButton requires a document provider"
         );
         expect(() => runtime.createMutationObserver(() => undefined)).toThrow(
-            "addFullScreenButton requires a MutationObserver runtime"
+            "addFullScreenButton requires a MutationObserver provider"
         );
-        expect(runtime.isHTMLElement(element)).toBe(false);
-        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
-            false
+        expect(() => runtime.isHTMLElement(element)).toThrow(
+            "addFullScreenButton requires an HTMLElement provider"
         );
+        expect(() =>
+            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toThrow("addFullScreenButton requires a KeyboardEvent provider");
         expect(staleDocumentAddEventListener).not.toHaveBeenCalled();
         expect(staleWindowAddEventListener).not.toHaveBeenCalled();
     });
@@ -161,9 +206,12 @@ describe("getAddFullScreenButtonRuntime", () => {
         const listener = (event: Event): void => {
             handledEventTypes.push(event.type);
         };
-        const runtime = getAddFullScreenButtonRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getAddFullScreenButtonRuntime(
+            createAddFullScreenButtonRuntimeScope({
+                getDocument: () => documentRef,
+                getDocumentEventTarget: () => undefined,
+            })
+        );
 
         runtime.addDocumentEventListener("fullscreenchange", listener, {
             signal: cleanupController.signal,
@@ -192,10 +240,12 @@ describe("getAddFullScreenButtonRuntime", () => {
         document.body.classList.remove("app-has-file");
         document.body.replaceChildren();
         const documentRef = document;
-        const runtime = getAddFullScreenButtonRuntime({
-            getDocument: () => documentRef,
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getAddFullScreenButtonRuntime(
+            createAddFullScreenButtonRuntimeScope({
+                getDocument: () => documentRef,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
         const button = runtime.createElement("button");
         button.id = "global-fullscreen-btn";
         runtime.appendToBody(button);
@@ -227,10 +277,12 @@ describe("getAddFullScreenButtonRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getAddFullScreenButtonRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getAddFullScreenButtonRuntime(
+            createAddFullScreenButtonRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -275,11 +327,13 @@ describe("getAddFullScreenButtonRuntime", () => {
             return observer;
         });
         const keyboardEvent = new KeyboardEvent("keydown", { key: "F11" });
-        const runtime = getAddFullScreenButtonRuntime({
-            getKeyboardEvent: () => KeyboardEvent,
-            getMutationObserver: () =>
-                MutationObserverConstructor as unknown as BrowserMutationObserverConstructor,
-        });
+        const runtime = getAddFullScreenButtonRuntime(
+            createAddFullScreenButtonRuntimeScope({
+                getKeyboardEvent: () => KeyboardEvent,
+                getMutationObserver: () =>
+                    MutationObserverConstructor as unknown as BrowserMutationObserverConstructor,
+            })
+        );
 
         expect(runtime.createMutationObserver(callback)).toBe(observer);
         expect(MutationObserverConstructor).toHaveBeenCalledOnce();
@@ -293,9 +347,11 @@ describe("getAddFullScreenButtonRuntime", () => {
             "fullscreen button svg runtime"
         );
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
-        const runtime = getAddFullScreenButtonRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getAddFullScreenButtonRuntime(
+            createAddFullScreenButtonRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         const icon = runtime.createSvgElement("svg");
 
@@ -311,12 +367,78 @@ describe("getAddFullScreenButtonRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getAddFullScreenButtonRuntime({
-            AbortController,
-        } as unknown as Parameters<typeof getAddFullScreenButtonRuntime>[0]);
+        const runtime = getAddFullScreenButtonRuntime(
+            createUnavailableAddFullScreenButtonRuntimeScope({
+                getAbortController: () => undefined,
+            })
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "addFullScreenButton requires an AbortController runtime"
+        );
+    });
+
+    it("fails clearly when provider slots are omitted", () => {
+        expect.assertions(7);
+
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow("addFullScreenButton requires an AbortController provider");
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getDocument: undefined,
+            }).getDocument()
+        ).toThrow("addFullScreenButton requires a document provider");
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getDocumentEventTarget: undefined,
+            }).addDocumentEventListener("fullscreenchange", vi.fn())
+        ).toThrow(
+            "addFullScreenButton requires a document event-target provider"
+        );
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getWindowEventTarget: undefined,
+            }).addWindowEventListener("keydown", vi.fn())
+        ).toThrow(
+            "addFullScreenButton requires a window event-target provider"
+        );
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getHTMLElement: undefined,
+            }).isHTMLElement(document.body)
+        ).toThrow("addFullScreenButton requires an HTMLElement provider");
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getKeyboardEvent: undefined,
+            }).isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toThrow("addFullScreenButton requires a KeyboardEvent provider");
+        expect(() =>
+            getAddFullScreenButtonRuntime({
+                ...createAddFullScreenButtonRuntimeScope(),
+                getMutationObserver: undefined,
+            }).createMutationObserver(vi.fn())
+        ).toThrow("addFullScreenButton requires a MutationObserver provider");
+    });
+
+    it("preserves unavailable runtime fallbacks for optional classifiers", () => {
+        expect.assertions(2);
+
+        const runtime = getAddFullScreenButtonRuntime(
+            createUnavailableAddFullScreenButtonRuntimeScope()
+        );
+
+        expect(runtime.isHTMLElement(document.body)).toBe(false);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            false
         );
     });
 });

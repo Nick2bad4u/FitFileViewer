@@ -15,25 +15,13 @@ import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 export { SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE } from "../icons/iconFactoryRuntime.js";
 
 export interface AddFullScreenButtonRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocumentEventTarget?:
-        | (() => AddFullScreenButtonEventTarget | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getWindowEventTarget?:
-        | (() => AddFullScreenButtonEventTarget | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
-    readonly getMutationObserver?:
-        | (() => BrowserMutationObserverConstructor | undefined)
-        | undefined;
+    readonly getAbortController: AddFullScreenButtonRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocumentEventTarget: AddFullScreenButtonRuntimeProvider<AddFullScreenButtonEventTarget>;
+    readonly getDocument: AddFullScreenButtonRuntimeProvider<Document>;
+    readonly getWindowEventTarget: AddFullScreenButtonRuntimeProvider<AddFullScreenButtonEventTarget>;
+    readonly getHTMLElement: AddFullScreenButtonRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getKeyboardEvent: AddFullScreenButtonRuntimeProvider<BrowserKeyboardEventConstructor>;
+    readonly getMutationObserver: AddFullScreenButtonRuntimeProvider<BrowserMutationObserverConstructor>;
 }
 
 type AddFullScreenButtonEventTarget = Pick<
@@ -41,6 +29,7 @@ type AddFullScreenButtonEventTarget = Pick<
     "addEventListener" | "removeEventListener"
 >;
 type AddFullScreenButtonMutationObserver = Pick<MutationObserver, "observe">;
+type AddFullScreenButtonRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface AddFullScreenButtonRuntime {
     addDocumentEventListener: (
@@ -81,10 +70,28 @@ export interface AddFullScreenButtonRuntime {
     removeWindowEventListener: (type: string, listener: EventListener) => void;
 }
 
+function getRequiredProvider<T>(
+    provider: AddFullScreenButtonRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `addFullScreenButton requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: AddFullScreenButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addFullScreenButton requires an AbortController runtime"
@@ -97,11 +104,19 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "document event-target"
+        )() ?? getRequiredProvider(scope.getDocument, "document")()
+    );
 }
 
 function getDocument(scope: AddFullScreenButtonRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("addFullScreenButton requires a document runtime");
     }
@@ -112,25 +127,31 @@ function getDocument(scope: AddFullScreenButtonRuntimeScope): Document {
 function getWindowEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
-    return scope.getWindowEventTarget?.();
+    return getRequiredProvider(
+        scope.getWindowEventTarget,
+        "window event-target"
+    )();
 }
 
 function getHTMLElementConstructor(
     scope: AddFullScreenButtonRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
 }
 
 function getKeyboardEventConstructor(
     scope: AddFullScreenButtonRuntimeScope
 ): BrowserKeyboardEventConstructor | undefined {
-    return scope.getKeyboardEvent?.();
+    return getRequiredProvider(scope.getKeyboardEvent, "KeyboardEvent")();
 }
 
 function getMutationObserverConstructor(
     scope: AddFullScreenButtonRuntimeScope
 ): BrowserMutationObserverConstructor {
-    const MutationObserverConstructor = scope.getMutationObserver?.();
+    const MutationObserverConstructor = getRequiredProvider(
+        scope.getMutationObserver,
+        "MutationObserver"
+    )();
     if (typeof MutationObserverConstructor !== "function") {
         throw new TypeError(
             "addFullScreenButton requires a MutationObserver runtime"
@@ -144,6 +165,7 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
         getDocument: getBrowserDocument,
+        getDocumentEventTarget: getBrowserDocument,
         getWindowEventTarget: getBrowserEventTarget,
         getHTMLElement: getBrowserHTMLElement,
         getKeyboardEvent: getBrowserKeyboardEvent,
