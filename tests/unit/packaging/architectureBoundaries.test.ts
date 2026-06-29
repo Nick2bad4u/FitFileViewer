@@ -11888,7 +11888,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings modal browser APIs behind the runtime facade", () => {
-        expect.assertions(79);
+        expect.assertions(102);
 
         const timingViolations = migratedSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -11910,6 +11910,8 @@ describe("architecture boundaries", () => {
         const settingsModalRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/settingsModalRuntime.ts")
         );
+        const optionalSettingsModalProviderAccessPattern =
+            /\bscope\.get(?:CancelAnimationFrame|ClearTimeout|Document|HTMLElement|HTMLInputElement|HTMLSelectElement|KeyboardEvent|RequestAnimationFrame|SetTimeout)\?\.\(/u;
 
         expect(timingViolations).toStrictEqual([]);
         expect(browserViolations).toStrictEqual([]);
@@ -11953,6 +11955,19 @@ describe("architecture boundaries", () => {
         );
         expect(settingsModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(settingsModalRuntimeSource).not.toMatch(
+            optionalSettingsModalProviderAccessPattern
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "type SettingsModalRuntimeProvider<T> ="
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(settingsModalRuntimeSource).toContain("providerName: string");
+        expect(settingsModalRuntimeSource).toContain(
+            "settingsModalRuntime requires ${providerName} provider"
         );
         expect(settingsModalRuntimeSource).toContain(
             "defaultSettingsModalRuntimeScope"
@@ -12044,6 +12059,33 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getHTMLSelectElement?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"
         );
         expect(settingsModalRuntimeSource).not.toContain("scope.clearTimeout");
@@ -12060,6 +12102,33 @@ describe("architecture boundaries", () => {
             "scope.HTMLSelectElement"
         );
         expect(settingsModalRuntimeSource).not.toContain("scope.KeyboardEvent");
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelAnimationFrame/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLInputElement/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLSelectElement/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getKeyboardEvent/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame/u
+        );
+        expect(settingsModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout/u
+        );
         expect(settingsModalRuntimeSource).toContain(
             "getCancelAnimationFrame: getBrowserCancelAnimationFrame"
         );

@@ -22,30 +22,18 @@ import {
 
 export type SettingsModalTimerHandle = BrowserTimerHandle;
 
+type SettingsModalRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface SettingsModalRuntimeScope {
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLSelectElement?:
-        | (() => BrowserHTMLSelectElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getCancelAnimationFrame: SettingsModalRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getClearTimeout: SettingsModalRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: SettingsModalRuntimeProvider<Document>;
+    readonly getHTMLElement: SettingsModalRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getHTMLInputElement: SettingsModalRuntimeProvider<BrowserHTMLInputElementConstructor>;
+    readonly getHTMLSelectElement: SettingsModalRuntimeProvider<BrowserHTMLSelectElementConstructor>;
+    readonly getKeyboardEvent: SettingsModalRuntimeProvider<BrowserKeyboardEventConstructor>;
+    readonly getRequestAnimationFrame: SettingsModalRuntimeProvider<BrowserRequestAnimationFrame>;
+    readonly getSetTimeout: SettingsModalRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface SettingsModalRuntime {
@@ -90,20 +78,36 @@ const defaultSettingsModalRuntimeScope: SettingsModalRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: SettingsModalRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (provider === undefined) {
+        throw new TypeError(
+            `settingsModalRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeCancelAnimationFrame(
     scope: SettingsModalRuntimeScope
 ): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    )();
 }
 
 function getScopeClearTimeout(
     scope: SettingsModalRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getScopeDocument(scope: SettingsModalRuntimeScope): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError("settingsModalRuntime requires a document runtime");
     }
@@ -113,37 +117,43 @@ function getScopeDocument(scope: SettingsModalRuntimeScope): Document {
 function getScopeHTMLElement(
     scope: SettingsModalRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
 }
 
 function getScopeHTMLInputElement(
     scope: SettingsModalRuntimeScope
 ): BrowserHTMLInputElementConstructor | undefined {
-    return scope.getHTMLInputElement?.();
+    return getRequiredProvider(scope.getHTMLInputElement, "HTMLInputElement")();
 }
 
 function getScopeHTMLSelectElement(
     scope: SettingsModalRuntimeScope
 ): BrowserHTMLSelectElementConstructor | undefined {
-    return scope.getHTMLSelectElement?.();
+    return getRequiredProvider(
+        scope.getHTMLSelectElement,
+        "HTMLSelectElement"
+    )();
 }
 
 function getScopeKeyboardEvent(
     scope: SettingsModalRuntimeScope
 ): BrowserKeyboardEventConstructor | undefined {
-    return scope.getKeyboardEvent?.();
+    return getRequiredProvider(scope.getKeyboardEvent, "KeyboardEvent")();
 }
 
 function getScopeRequestAnimationFrame(
     scope: SettingsModalRuntimeScope
 ): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    )();
 }
 
 function getScopeSetTimeout(
     scope: SettingsModalRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(

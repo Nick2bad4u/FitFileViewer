@@ -6,7 +6,27 @@ import type {
     BrowserRequestAnimationFrame,
     BrowserSetTimeout,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
-import { getSettingsModalRuntime } from "../../../../electron-app/utils/ui/settingsModalRuntime.js";
+import {
+    getSettingsModalRuntime,
+    type SettingsModalRuntimeScope,
+} from "../../../../electron-app/utils/ui/settingsModalRuntime.js";
+
+function createSettingsModalRuntimeScope(
+    overrides: Partial<SettingsModalRuntimeScope> = {}
+): SettingsModalRuntimeScope {
+    return {
+        getCancelAnimationFrame: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getHTMLInputElement: () => undefined,
+        getHTMLSelectElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getSettingsModalRuntime", () => {
     afterEach(() => {
@@ -23,10 +43,10 @@ describe("getSettingsModalRuntime", () => {
         const delayMs = Number("300");
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 17);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const scope = {
+        const scope = createSettingsModalRuntimeScope({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
-        };
+        });
         const {
             clearTimeout: clearCloseTimer,
             setTimeout: scheduleCloseTimer,
@@ -57,12 +77,14 @@ describe("getSettingsModalRuntime", () => {
         const getClearTimeout = vi.fn(() => clearTimeout);
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
         const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
-        const utils = getSettingsModalRuntime({
-            getCancelAnimationFrame,
-            getClearTimeout,
-            getRequestAnimationFrame,
-            getSetTimeout,
-        });
+        const utils = getSettingsModalRuntime(
+            createSettingsModalRuntimeScope({
+                getCancelAnimationFrame,
+                getClearTimeout,
+                getRequestAnimationFrame,
+                getSetTimeout,
+            })
+        );
 
         expect(utils.setTimeout(callback, delayMs)).toBe(42);
         utils.clearTimeout(42);
@@ -84,7 +106,9 @@ describe("getSettingsModalRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getSettingsModalRuntime({});
+        const runtime = getSettingsModalRuntime(
+            createSettingsModalRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "settingsModalRuntime requires a setTimeout runtime"
@@ -146,7 +170,9 @@ describe("getSettingsModalRuntime", () => {
         document.head.replaceChildren();
 
         const getDocument = vi.fn(() => document);
-        const runtime = getSettingsModalRuntime({ getDocument });
+        const runtime = getSettingsModalRuntime(
+            createSettingsModalRuntimeScope({ getDocument })
+        );
 
         const bodyNode = runtime.createElement("div");
         bodyNode.id = "settings-modal-runtime-body";
@@ -193,13 +219,15 @@ describe("getSettingsModalRuntime", () => {
         document.body.append(button);
         button.focus();
 
-        const runtime = getSettingsModalRuntime({
-            getDocument: () => document,
-            getHTMLElement: () => HTMLElement,
-            getHTMLInputElement: () => HTMLInputElement,
-            getHTMLSelectElement: () => HTMLSelectElement,
-            getKeyboardEvent: () => KeyboardEvent,
-        });
+        const runtime = getSettingsModalRuntime(
+            createSettingsModalRuntimeScope({
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+                getHTMLInputElement: () => HTMLInputElement,
+                getHTMLSelectElement: () => HTMLSelectElement,
+                getKeyboardEvent: () => KeyboardEvent,
+            })
+        );
 
         const input = document.createElement("input");
         const select = document.createElement("select");
@@ -214,6 +242,7 @@ describe("getSettingsModalRuntime", () => {
         expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
         expect(
             getSettingsModalRuntime({
+                ...createSettingsModalRuntimeScope(),
                 getDocument: () => document,
             }).getActiveHTMLElement()
         ).toBeUndefined();
@@ -224,7 +253,9 @@ describe("getSettingsModalRuntime", () => {
     it("requires a document provider for document-backed operations", () => {
         expect.assertions(6);
 
-        const runtime = getSettingsModalRuntime({});
+        const runtime = getSettingsModalRuntime(
+            createSettingsModalRuntimeScope()
+        );
 
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
@@ -246,6 +277,46 @@ describe("getSettingsModalRuntime", () => {
         );
     });
 
+    it("fails clearly when explicit runtime provider slots are omitted", () => {
+        expect.assertions(9);
+
+        const runtime = getSettingsModalRuntime(
+            {} as unknown as SettingsModalRuntimeScope
+        );
+
+        expect(() => runtime.cancelAnimationFrame(4)).toThrow(
+            "settingsModalRuntime requires cancelAnimationFrame provider"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "settingsModalRuntime requires clearTimeout provider"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "settingsModalRuntime requires document provider"
+        );
+        expect(() =>
+            getSettingsModalRuntime({
+                ...createSettingsModalRuntimeScope(),
+                getHTMLElement: undefined,
+                getDocument: () => document,
+            }).getActiveHTMLElement()
+        ).toThrow("settingsModalRuntime requires HTMLElement provider");
+        expect(() =>
+            runtime.isHTMLInputElement(document.createElement("input"))
+        ).toThrow("settingsModalRuntime requires HTMLInputElement provider");
+        expect(() =>
+            runtime.isHTMLSelectElement(document.createElement("select"))
+        ).toThrow("settingsModalRuntime requires HTMLSelectElement provider");
+        expect(() =>
+            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toThrow("settingsModalRuntime requires KeyboardEvent provider");
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "settingsModalRuntime requires requestAnimationFrame provider"
+        );
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "settingsModalRuntime requires setTimeout provider"
+        );
+    });
+
     it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
@@ -253,9 +324,9 @@ describe("getSettingsModalRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 9);
-        const scope = {
+        const scope = createSettingsModalRuntimeScope({
             getRequestAnimationFrame: () => requestAnimationFrame,
-        };
+        });
         const utils = getSettingsModalRuntime(scope);
 
         expect(utils.requestAnimationFrame(callback)).toBe(9);
@@ -269,7 +340,9 @@ describe("getSettingsModalRuntime", () => {
         const callback = vi.fn<FrameRequestCallback>();
 
         expect(
-            getSettingsModalRuntime({}).requestAnimationFrame(callback)
+            getSettingsModalRuntime(
+                createSettingsModalRuntimeScope()
+            ).requestAnimationFrame(callback)
         ).toBe(null);
         expect(callback).toHaveBeenCalledWith(0);
     });
@@ -278,9 +351,9 @@ describe("getSettingsModalRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const scope = {
+        const scope = createSettingsModalRuntimeScope({
             getCancelAnimationFrame: () => cancelAnimationFrame,
-        };
+        });
         const utils = getSettingsModalRuntime(scope);
 
         utils.cancelAnimationFrame(24);
@@ -290,7 +363,7 @@ describe("getSettingsModalRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -310,35 +383,41 @@ describe("getSettingsModalRuntime", () => {
         } as unknown as Parameters<typeof getSettingsModalRuntime>[0]);
 
         expect(() => runtime.setTimeout(callback, 0)).toThrow(
-            "settingsModalRuntime requires a setTimeout runtime"
+            "settingsModalRuntime requires setTimeout provider"
         );
         expect(() => runtime.clearTimeout(21)).toThrow(
-            "settingsModalRuntime requires a clearTimeout runtime"
+            "settingsModalRuntime requires clearTimeout provider"
         );
-        expect(runtime.requestAnimationFrame(frameCallback)).toBe(null);
-        runtime.cancelAnimationFrame(34);
+        expect(() => runtime.requestAnimationFrame(frameCallback)).toThrow(
+            "settingsModalRuntime requires requestAnimationFrame provider"
+        );
+        expect(() => runtime.cancelAnimationFrame(34)).toThrow(
+            "settingsModalRuntime requires cancelAnimationFrame provider"
+        );
 
-        expect(frameCallback).toHaveBeenCalledWith(0);
+        expect(frameCallback).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(() => runtime.createElement("div")).toThrow(
-            "settingsModalRuntime requires a document runtime"
+            "settingsModalRuntime requires document provider"
         );
         expect(() => runtime.getActiveHTMLElement()).toThrow(
-            "settingsModalRuntime requires a document runtime"
+            "settingsModalRuntime requires document provider"
         );
-        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
-            false
-        );
+        expect(() =>
+            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toThrow("settingsModalRuntime requires KeyboardEvent provider");
     });
 
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {
         expect.assertions(1);
 
         expect(() =>
-            getSettingsModalRuntime({}).cancelAnimationFrame(4)
+            getSettingsModalRuntime(
+                createSettingsModalRuntimeScope()
+            ).cancelAnimationFrame(4)
         ).not.toThrow();
     });
 });
