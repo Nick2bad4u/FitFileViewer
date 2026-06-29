@@ -12192,7 +12192,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(60);
+        expect.assertions(79);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -12209,6 +12209,8 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/dragDropHandlerRuntime.ts"
             )
         );
+        const optionalDragDropProviderAccessPattern =
+            /\bscope\.get(?:AbortController|CancelAnimationFrame|DateNow|Document|EventTarget|FileReader|RequestAnimationFrame)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
@@ -12262,6 +12264,19 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerRuntimeSource).not.toContain("globalThis.");
         expect(dragDropHandlerRuntimeSource).toContain(
             "defaultDragDropHandlerRuntimeScope"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toMatch(
+            optionalDragDropProviderAccessPattern
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "type DragDropHandlerRuntimeProvider<T> ="
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(dragDropHandlerRuntimeSource).toContain("providerName: string");
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "dragDropHandler requires ${providerName} provider"
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "../runtime/browserRuntime.js"
@@ -12330,6 +12345,27 @@ describe("architecture boundaries", () => {
             "readonly requestAnimationFrame?:"
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getEventTarget?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getFileReader?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(dragDropHandlerRuntimeSource).not.toContain(
@@ -12341,6 +12377,27 @@ describe("architecture boundaries", () => {
         expect(dragDropHandlerRuntimeSource).not.toContain("scope.FileReader");
         expect(dragDropHandlerRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController/u
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelAnimationFrame/u
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow/u
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getEventTarget/u
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getFileReader/u
+        );
+        expect(dragDropHandlerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame/u
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "const FileReaderConstructor = getFileReaderConstructor(scope);"

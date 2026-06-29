@@ -12,22 +12,16 @@ import {
     getBrowserRequestAnimationFrame,
 } from "../runtime/browserRuntime.js";
 
+type DragDropHandlerRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface DragDropHandlerRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
-    readonly getFileReader?:
-        | (() => BrowserFileReaderConstructor | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
+    readonly getAbortController: DragDropHandlerRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getCancelAnimationFrame: DragDropHandlerRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getDateNow: DragDropHandlerRuntimeProvider<() => number>;
+    readonly getDocument: DragDropHandlerRuntimeProvider<Document>;
+    readonly getEventTarget: DragDropHandlerRuntimeProvider<EventTarget>;
+    readonly getFileReader: DragDropHandlerRuntimeProvider<BrowserFileReaderConstructor>;
+    readonly getRequestAnimationFrame: DragDropHandlerRuntimeProvider<BrowserRequestAnimationFrame>;
 }
 
 export interface DragDropHandlerRuntime {
@@ -52,20 +46,36 @@ const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
     getRequestAnimationFrame: getBrowserRequestAnimationFrame,
 };
 
+function getRequiredProvider<T>(
+    provider: DragDropHandlerRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (provider === undefined) {
+        throw new TypeError(
+            `dragDropHandler requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: DragDropHandlerRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getCancelAnimationFrame(
     scope: DragDropHandlerRuntimeScope
 ): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    )();
 }
 
 function getDateNow(scope: DragDropHandlerRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "date clock")();
     if (typeof dateNow !== "function") {
         throw new TypeError("dragDropHandler requires a date clock runtime");
     }
@@ -74,25 +84,28 @@ function getDateNow(scope: DragDropHandlerRuntimeScope): () => number {
 }
 
 function getDocument(scope: DragDropHandlerRuntimeScope): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getEventTarget(
     scope: DragDropHandlerRuntimeScope
 ): EventTarget | undefined {
-    return scope.getEventTarget?.();
+    return getRequiredProvider(scope.getEventTarget, "event target")();
 }
 
 function getFileReaderConstructor(
     scope: DragDropHandlerRuntimeScope
 ): BrowserFileReaderConstructor | undefined {
-    return scope.getFileReader?.();
+    return getRequiredProvider(scope.getFileReader, "FileReader")();
 }
 
 function getRequestAnimationFrame(
     scope: DragDropHandlerRuntimeScope
 ): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    )();
 }
 
 export function getDragDropHandlerRuntime(

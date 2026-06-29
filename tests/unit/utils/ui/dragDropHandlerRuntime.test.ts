@@ -1,6 +1,24 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getDragDropHandlerRuntime } from "../../../../electron-app/utils/ui/dragDropHandlerRuntime.js";
+import {
+    getDragDropHandlerRuntime,
+    type DragDropHandlerRuntimeScope,
+} from "../../../../electron-app/utils/ui/dragDropHandlerRuntime.js";
+
+function createDragDropHandlerRuntimeScope(
+    overrides: Partial<DragDropHandlerRuntimeScope> = {}
+): DragDropHandlerRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getCancelAnimationFrame: () => undefined,
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getEventTarget: () => undefined,
+        getFileReader: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getDragDropHandlerRuntime", () => {
     afterEach(() => {
@@ -17,10 +35,12 @@ describe("getDragDropHandlerRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getDragDropHandlerRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as typeof AbortController,
-        });
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as typeof AbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -41,10 +61,12 @@ describe("getDragDropHandlerRuntime", () => {
         const FileReaderConstructor = vi.fn(function FakeFileReader() {
             return reader;
         });
-        const runtime = getDragDropHandlerRuntime({
-            getFileReader: () =>
-                FileReaderConstructor as unknown as typeof FileReader,
-        });
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope({
+                getFileReader: () =>
+                    FileReaderConstructor as unknown as typeof FileReader,
+            })
+        );
 
         expect(runtime.createFileReader()).toBe(reader);
         expect(FileReaderConstructor).toHaveBeenCalledOnce();
@@ -53,7 +75,9 @@ describe("getDragDropHandlerRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getDragDropHandlerRuntime({});
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "dragDropHandler requires an AbortController runtime"
@@ -63,7 +87,9 @@ describe("getDragDropHandlerRuntime", () => {
     it("throws when file reader creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getDragDropHandlerRuntime({});
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope()
+        );
 
         expect(() => runtime.createFileReader()).toThrow(
             "dragDropHandler requires a FileReader runtime"
@@ -77,9 +103,9 @@ describe("getDragDropHandlerRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 42);
-        const scope = {
+        const scope = createDragDropHandlerRuntimeScope({
             getRequestAnimationFrame: () => requestAnimationFrame,
-        };
+        });
         const runtime = getDragDropHandlerRuntime(scope);
 
         expect(runtime.requestAnimationFrame(callback)).toBe(42);
@@ -91,7 +117,9 @@ describe("getDragDropHandlerRuntime", () => {
         expect.assertions(2);
 
         const callback = vi.fn<FrameRequestCallback>();
-        const runtime = getDragDropHandlerRuntime({});
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope()
+        );
 
         expect(runtime.requestAnimationFrame(callback)).toBe(null);
         expect(callback).toHaveBeenCalledWith(0);
@@ -101,9 +129,9 @@ describe("getDragDropHandlerRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const scope = {
+        const scope = createDragDropHandlerRuntimeScope({
             getCancelAnimationFrame: () => cancelAnimationFrame,
-        };
+        });
         const runtime = getDragDropHandlerRuntime(scope);
 
         runtime.cancelAnimationFrame(17);
@@ -116,9 +144,11 @@ describe("getDragDropHandlerRuntime", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn(() => 123_456);
-        const runtime = getDragDropHandlerRuntime({
-            getDateNow: () => dateNow,
-        });
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope({
+                getDateNow: () => dateNow,
+            })
+        );
 
         expect(runtime.dateNow()).toBe(123_456);
         expect(dateNow).toHaveBeenCalledOnce();
@@ -127,7 +157,9 @@ describe("getDragDropHandlerRuntime", () => {
     it("throws when date clock resolution is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getDragDropHandlerRuntime({});
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope()
+        );
 
         expect(() => runtime.dateNow()).toThrow(
             "dragDropHandler requires a date clock runtime"
@@ -139,10 +171,12 @@ describe("getDragDropHandlerRuntime", () => {
 
         const documentTarget = document.implementation.createHTMLDocument();
         const eventTarget = new EventTarget();
-        const runtime = getDragDropHandlerRuntime({
-            getDocument: () => documentTarget,
-            getEventTarget: () => eventTarget,
-        });
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope({
+                getDocument: () => documentTarget,
+                getEventTarget: () => eventTarget,
+            })
+        );
 
         expect(runtime.getDocument()).toBe(documentTarget);
         expect(runtime.getEventTarget()).toBe(eventTarget);
@@ -151,7 +185,9 @@ describe("getDragDropHandlerRuntime", () => {
     it("throws when event target resolution is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getDragDropHandlerRuntime({});
+        const runtime = getDragDropHandlerRuntime(
+            createDragDropHandlerRuntimeScope()
+        );
 
         expect(() => runtime.getEventTarget()).toThrow(
             "dragDropHandler requires an event target runtime"
@@ -162,8 +198,40 @@ describe("getDragDropHandlerRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getDragDropHandlerRuntime({}).cancelAnimationFrame(17)
+            getDragDropHandlerRuntime(
+                createDragDropHandlerRuntimeScope()
+            ).cancelAnimationFrame(17)
         ).not.toThrow();
+    });
+
+    it("fails clearly when explicit runtime provider slots are omitted", () => {
+        expect.assertions(7);
+
+        const runtime = getDragDropHandlerRuntime(
+            {} as unknown as DragDropHandlerRuntimeScope
+        );
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "dragDropHandler requires AbortController provider"
+        );
+        expect(() => runtime.cancelAnimationFrame(17)).toThrow(
+            "dragDropHandler requires cancelAnimationFrame provider"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "dragDropHandler requires date clock provider"
+        );
+        expect(() => runtime.getDocument()).toThrow(
+            "dragDropHandler requires document provider"
+        );
+        expect(() => runtime.getEventTarget()).toThrow(
+            "dragDropHandler requires event target provider"
+        );
+        expect(() => runtime.createFileReader()).toThrow(
+            "dragDropHandler requires FileReader provider"
+        );
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "dragDropHandler requires requestAnimationFrame provider"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -199,30 +267,35 @@ describe("getDragDropHandlerRuntime", () => {
         } as unknown as Parameters<typeof getDragDropHandlerRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "dragDropHandler requires an AbortController runtime"
+            "dragDropHandler requires AbortController provider"
         );
         expect(() => runtime.createFileReader()).toThrow(
-            "dragDropHandler requires a FileReader runtime"
+            "dragDropHandler requires FileReader provider"
         );
         expect(() => runtime.dateNow()).toThrow(
-            "dragDropHandler requires a date clock runtime"
+            "dragDropHandler requires date clock provider"
         );
-        expect(runtime.getDocument()).toBeNull();
+        expect(() => runtime.getDocument()).toThrow(
+            "dragDropHandler requires document provider"
+        );
         expect(() => runtime.getEventTarget()).toThrow(
-            "dragDropHandler requires an event target runtime"
+            "dragDropHandler requires event target provider"
         );
-        expect(runtime.requestAnimationFrame(callback)).toBe(null);
-        runtime.cancelAnimationFrame(53);
+        expect(() => runtime.requestAnimationFrame(callback)).toThrow(
+            "dragDropHandler requires requestAnimationFrame provider"
+        );
+        expect(() => runtime.cancelAnimationFrame(53)).toThrow(
+            "dragDropHandler requires cancelAnimationFrame provider"
+        );
 
-        expect(callback).toHaveBeenCalledWith(0);
+        expect(callback).not.toHaveBeenCalled();
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(FileReaderConstructor).not.toHaveBeenCalled();
         expect(dateNow).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
-        expect(runtime.getDocument()).not.toBe(documentTarget);
         expect(() => runtime.getEventTarget()).toThrow(
-            "dragDropHandler requires an event target runtime"
+            "dragDropHandler requires event target provider"
         );
     });
 
