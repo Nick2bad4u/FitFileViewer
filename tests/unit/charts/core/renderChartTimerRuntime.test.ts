@@ -108,22 +108,60 @@ describe("getRenderChartTimerRuntime", () => {
     });
 
     it("fails clearly when explicit scopes omit timer providers", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getChartTimerRuntime({} as unknown as RenderChartTimerRuntimeScope)
+        ).toThrow("render chart timers require a clearTimeout provider");
+    });
+
+    it("fails clearly when individual timer providers are omitted", () => {
         expect.assertions(3);
 
-        const timeoutId = 9 as BrowserTimerHandle;
-        const runtime = getChartTimerRuntime(
-            {} as unknown as RenderChartTimerRuntimeScope
-        );
+        expect(() =>
+            getChartTimerRuntime({
+                getDateNow: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as RenderChartTimerRuntimeScope)
+        ).toThrow("render chart timers require a clearTimeout provider");
+        expect(() =>
+            getChartTimerRuntime({
+                getClearTimeout: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as RenderChartTimerRuntimeScope)
+        ).toThrow("render chart timers require a dateNow provider");
+        expect(() =>
+            getChartTimerRuntime({
+                getClearTimeout: () => undefined,
+                getDateNow: () => undefined,
+            } as unknown as RenderChartTimerRuntimeScope)
+        ).toThrow("render chart timers require a setTimeout provider");
+    });
 
-        expect(() => runtime.setTimeout(() => undefined, 0)).toThrow(
-            "render chart timers require a setTimeout provider"
-        );
-        expect(() => runtime.clearTimeout(timeoutId)).toThrow(
-            "render chart timers require a clearTimeout provider"
-        );
-        expect(() => runtime.dateNow()).toThrow(
-            "render chart timers require a dateNow provider"
-        );
+    it("fails clearly when timer provider slots are undefined", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getChartTimerRuntime({
+                getClearTimeout: undefined,
+                getDateNow: () => undefined,
+                getSetTimeout: () => undefined,
+            })
+        ).toThrow("render chart timers require a clearTimeout provider");
+        expect(() =>
+            getChartTimerRuntime({
+                getClearTimeout: () => undefined,
+                getDateNow: undefined,
+                getSetTimeout: () => undefined,
+            })
+        ).toThrow("render chart timers require a dateNow provider");
+        expect(() =>
+            getChartTimerRuntime({
+                getClearTimeout: () => undefined,
+                getDateNow: () => undefined,
+                getSetTimeout: undefined,
+            })
+        ).toThrow("render chart timers require a setTimeout provider");
     });
 
     it("fails clearly when explicit providers return unavailable timer functions", () => {
@@ -148,29 +186,21 @@ describe("getRenderChartTimerRuntime", () => {
     });
 
     it("ignores legacy direct timer scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(2);
 
-        const timeoutId = 11 as BrowserTimerHandle;
         const legacyDateNow = vi.fn<() => number>(() => 1);
-        const timerRuntime = getChartTimerRuntime({
-            clearTimeout() {
-                throw new Error("legacy clearTimeout should not run");
-            },
-            dateNow: legacyDateNow,
-            setTimeout() {
-                throw new Error("legacy setTimeout should not run");
-            },
-        } as unknown as RenderChartTimerRuntimeScope);
 
-        expect(() => timerRuntime.setTimeout(() => undefined, 0)).toThrow(
-            "render chart timers require a setTimeout provider"
-        );
-        expect(() => timerRuntime.clearTimeout(timeoutId)).toThrow(
-            "render chart timers require a clearTimeout provider"
-        );
-        expect(() => timerRuntime.dateNow()).toThrow(
-            "render chart timers require a dateNow provider"
-        );
+        expect(() =>
+            getChartTimerRuntime({
+                clearTimeout() {
+                    throw new Error("legacy clearTimeout should not run");
+                },
+                dateNow: legacyDateNow,
+                setTimeout() {
+                    throw new Error("legacy setTimeout should not run");
+                },
+            } as unknown as RenderChartTimerRuntimeScope)
+        ).toThrow("render chart timers require a clearTimeout provider");
         expect(legacyDateNow).not.toHaveBeenCalled();
     });
 });

@@ -28480,7 +28480,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(65);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -28576,6 +28576,26 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly getClearTimeout?:");
         expect(runtimeScopeSource).not.toContain("readonly getDateNow?:");
         expect(runtimeScopeSource).not.toContain("readonly getSetTimeout?:");
+        expect(runtimeSource).toContain("type RenderChartTimerRuntimeProvider");
+        expect(runtimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*RenderChartTimerRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getDateNow:\s*RenderChartTimerRuntimeProvider<\(\)\s*=>\s*number>/u
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*RenderChartTimerRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(runtimeSource).toContain("function getRequiredProvider");
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
         expect(runtimeSource).not.toContain("scope.clearTimeout");
         expect(runtimeSource).not.toContain("scope.dateNow");
         expect(runtimeSource).not.toContain("scope.setTimeout");
@@ -28583,12 +28603,17 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.getDateNow?.()");
         expect(runtimeSource).not.toContain("scope.getSetTimeout?.()");
         expect(runtimeSource).toContain(
+            "const clearTimeout = getClearTimeout();"
+        );
+        expect(runtimeSource).toContain("const dateNowRef = getDateNow();");
+        expect(runtimeSource).toContain("const setTimeout = getSetTimeout();");
+        expect(runtimeSource).not.toContain(
             "const clearTimeout = scope.getClearTimeout();"
         );
-        expect(runtimeSource).toContain(
+        expect(runtimeSource).not.toContain(
             "const dateNowRef = scope.getDateNow();"
         );
-        expect(runtimeSource).toContain(
+        expect(runtimeSource).not.toContain(
             "const setTimeout = scope.getSetTimeout();"
         );
         expect(runtimeSource).not.toContain(
@@ -28602,13 +28627,7 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain("render chart timers require dateNow");
         expect(runtimeSource).toContain(
-            "render chart timers require a clearTimeout provider"
-        );
-        expect(runtimeSource).toContain(
-            "render chart timers require a dateNow provider"
-        );
-        expect(runtimeSource).toContain(
-            "render chart timers require a setTimeout provider"
+            "render chart timers require a ${providerName} provider"
         );
         expect(runtimeSource).toContain("dateNow: () => number;");
         expect(runtimeSource).toContain("../../runtime/browserRuntime.js");
@@ -28629,10 +28648,10 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(runtimeSource).toContain(
-            "const dateNowRef = scope.getDateNow();"
+            "const getDateNow = getRequiredProvider"
         );
         expect(runtimeSource).toContain(
-            "const setTimeout = scope.getSetTimeout();"
+            "const getSetTimeout = getRequiredProvider"
         );
     });
 
