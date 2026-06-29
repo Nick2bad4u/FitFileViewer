@@ -1,9 +1,7 @@
 type ChartUpdaterDateConstructor = new () => { toISOString: () => string };
 
 export interface ChartUpdaterRuntimeScope {
-    readonly getDateConstructor?:
-        | (() => ChartUpdaterDateConstructor | undefined)
-        | undefined;
+    readonly getDateConstructor: () => ChartUpdaterDateConstructor | undefined;
 }
 
 export interface ChartUpdaterRuntime {
@@ -17,7 +15,13 @@ const defaultChartUpdaterRuntimeScope: ChartUpdaterRuntimeScope = {
 function getRequiredDateConstructor(
     scope: ChartUpdaterRuntimeScope
 ): ChartUpdaterDateConstructor {
-    const DateConstructor = scope.getDateConstructor?.();
+    if (typeof scope.getDateConstructor !== "function") {
+        throw new TypeError(
+            "chartUpdaterRuntime requires a date constructor provider"
+        );
+    }
+
+    const DateConstructor = scope.getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }

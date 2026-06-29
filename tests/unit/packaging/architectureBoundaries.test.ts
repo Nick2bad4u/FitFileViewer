@@ -9682,7 +9682,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart updater timestamps behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(16);
 
         const chartUpdaterSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartUpdater.ts")
@@ -9707,6 +9707,18 @@ describe("architecture boundaries", () => {
         );
         expect(chartUpdaterRuntimeSource).toContain(
             "chartUpdaterRuntime requires a date constructor"
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "chartUpdaterRuntime requires a date constructor provider"
+        );
+        expect(chartUpdaterRuntimeSource).not.toContain(
+            "readonly getDateConstructor?:"
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "const DateConstructor = scope.getDateConstructor();"
+        );
+        expect(chartUpdaterRuntimeSource).not.toContain(
+            "scope.getDateConstructor?.()"
         );
         expect(chartUpdaterRuntimeSource).not.toContain("readonly Date?:");
         expect(chartUpdaterRuntimeSource).not.toContain("scope.Date");

@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { ChartUpdaterRuntimeScope } from "../../../../../electron-app/utils/charts/core/chartUpdaterRuntime.js";
 import { chartUpdaterRuntime } from "../../../../../electron-app/utils/charts/core/chartUpdaterRuntime.js";
+
+const unavailableChartUpdaterScope = {
+    getDateConstructor: () => undefined,
+} satisfies ChartUpdaterRuntimeScope;
 
 describe("chartUpdaterRuntime", () => {
     it("builds ISO timestamps through the injected date constructor", () => {
@@ -48,10 +53,22 @@ describe("chartUpdaterRuntime", () => {
     it("fails clearly when date construction is unavailable", () => {
         expect.assertions(1);
 
-        const utils = chartUpdaterRuntime({});
+        const utils = chartUpdaterRuntime(unavailableChartUpdaterScope);
 
         expect(() => utils.isoNow()).toThrow(
             "chartUpdaterRuntime requires a date constructor"
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        const utils = chartUpdaterRuntime(
+            {} as unknown as ChartUpdaterRuntimeScope
+        );
+
+        expect(() => utils.isoNow()).toThrow(
+            "chartUpdaterRuntime requires a date constructor provider"
         );
     });
 
@@ -71,8 +88,9 @@ describe("chartUpdaterRuntime", () => {
         }
 
         const utils = chartUpdaterRuntime({
+            ...unavailableChartUpdaterScope,
             Date: DateConstructor,
-        } as unknown as Parameters<typeof chartUpdaterRuntime>[0]);
+        } as unknown as ChartUpdaterRuntimeScope);
 
         expect(() => utils.isoNow()).toThrow(
             "chartUpdaterRuntime requires a date constructor"
