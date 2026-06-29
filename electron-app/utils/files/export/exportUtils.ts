@@ -3820,7 +3820,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         const config = exportUtils.getImgurConfig();
         const isConfigured = exportUtils.isImgurConfigured();
 
-        const overlay = document.createElement("div");
+        const overlay = exportUtilsRuntime().createElement("div");
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -3835,7 +3835,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             z-index: 10000;
         `;
 
-        const modal = document.createElement("div");
+        const modal = exportUtilsRuntime().createElement("div");
         modal.className = "imgur-account-manager-modal";
         modal.style.cssText = `
             background: var(--color-modal-bg);
@@ -3849,15 +3849,15 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             box-shadow: var(--color-box-shadow);
         `;
 
-        const title = document.createElement("h3");
+        const title = exportUtilsRuntime().createElement("h3");
         title.style.cssText =
             "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
         title.textContent = "📸 Imgur Settings";
         modal.append(title);
 
-        const statusSection = document.createElement("div"),
-            statusWrap = document.createElement("div"),
-            statusElement = document.createElement("span");
+        const statusSection = exportUtilsRuntime().createElement("div"),
+            statusWrap = exportUtilsRuntime().createElement("div"),
+            statusElement = exportUtilsRuntime().createElement("span");
         statusSection.style.cssText =
             "margin-bottom: 20px; text-align: center;";
         statusWrap.style.cssText = "margin-bottom: 12px;";
@@ -3878,10 +3878,10 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         statusSection.append(statusWrap);
         modal.append(statusSection);
 
-        const setupInstructions = document.createElement("div"),
-            setupTitle = document.createElement("h4"),
-            setupCopy = document.createElement("p"),
-            setupGuideLabel = document.createElement("strong");
+        const setupInstructions = exportUtilsRuntime().createElement("div"),
+            setupTitle = exportUtilsRuntime().createElement("h4"),
+            setupCopy = exportUtilsRuntime().createElement("p"),
+            setupGuideLabel = exportUtilsRuntime().createElement("strong");
         setupInstructions.style.cssText =
             "margin-bottom: 20px; padding: 16px; background: var(--color-glass); border-radius: 8px;";
         setupTitle.style.cssText =
@@ -3898,11 +3898,11 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         setupInstructions.append(setupTitle, setupCopy);
         modal.append(setupInstructions);
 
-        const configForm = document.createElement("div"),
-            inputField = document.createElement("div"),
-            clientIdLabel = document.createElement("label"),
-            clientIdInput = document.createElement("input"),
-            saveBtn = document.createElement("button");
+        const configForm = exportUtilsRuntime().createElement("div"),
+            inputField = exportUtilsRuntime().createElement("div"),
+            clientIdLabel = exportUtilsRuntime().createElement("label"),
+            clientIdInput = exportUtilsRuntime().createElement("input"),
+            saveBtn = exportUtilsRuntime().createElement("button");
         configForm.style.cssText = "margin-bottom: 20px;";
         inputField.style.cssText = "margin-bottom: 12px;";
         clientIdLabel.style.cssText =
@@ -3940,10 +3940,10 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         configForm.append(inputField, saveBtn);
         modal.append(configForm);
 
-        const actions = document.createElement("div"),
-            setupGuideBtn = document.createElement("button"),
-            clearBtn = document.createElement("button"),
-            closeBtn = document.createElement("button");
+        const actions = exportUtilsRuntime().createElement("div"),
+            setupGuideBtn = exportUtilsRuntime().createElement("button"),
+            clearBtn = exportUtilsRuntime().createElement("button"),
+            closeBtn = exportUtilsRuntime().createElement("button");
         actions.style.cssText =
             "display: flex; flex-direction: column; gap: 8px;";
         setupGuideBtn.id = "imgur-setup-guide";

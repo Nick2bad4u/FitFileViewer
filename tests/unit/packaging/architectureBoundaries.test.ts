@@ -6987,7 +6987,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(171);
+        expect.assertions(172);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -7014,6 +7014,9 @@ describe("architecture boundaries", () => {
         const showGyazoAccountManagerStart = exportUtilsSource.indexOf(
             "    showGyazoAccountManager()"
         );
+        const showImgurAccountManagerStart = exportUtilsSource.indexOf(
+            "    showImgurAccountManager()"
+        );
         const createGyazoAuthModalSource = exportUtilsSource.slice(
             createGyazoAuthModalStart,
             exportUtilsSource.indexOf(
@@ -7033,6 +7036,13 @@ describe("architecture boundaries", () => {
             exportUtilsSource.indexOf(
                 "    showGyazoSetupGuide()",
                 showGyazoAccountManagerStart
+            )
+        );
+        const showImgurAccountManagerSource = exportUtilsSource.slice(
+            showImgurAccountManagerStart,
+            exportUtilsSource.indexOf(
+                "    showImgurSetupGuide()",
+                showImgurAccountManagerStart
             )
         );
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
@@ -7107,6 +7117,9 @@ describe("architecture boundaries", () => {
             "document.createElement"
         );
         expect(showGyazoAccountManagerSource).not.toContain(
+            "document.createElement"
+        );
+        expect(showImgurAccountManagerSource).not.toContain(
             "document.createElement"
         );
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
