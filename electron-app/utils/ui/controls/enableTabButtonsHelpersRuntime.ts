@@ -18,18 +18,15 @@ type EnableTabButtonsHelpersGetComputedStyle = (
     element: Readonly<Element>,
     pseudoElement?: null | string
 ) => CSSStyleDeclaration;
+type EnableTabButtonsHelpersRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface EnableTabButtonsHelpersRuntimeScope {
-    readonly getDocument?:
-        | (() => EnableTabButtonsHelpersRuntimeDocument | undefined)
-        | undefined;
-    readonly getComputedStyleFunction?:
-        | (() => EnableTabButtonsHelpersGetComputedStyle | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly isRendererScope?: (() => boolean) | undefined;
+    readonly getDocument: EnableTabButtonsHelpersRuntimeProvider<EnableTabButtonsHelpersRuntimeDocument>;
+    readonly getComputedStyleFunction: EnableTabButtonsHelpersRuntimeProvider<EnableTabButtonsHelpersGetComputedStyle>;
+    readonly getHTMLElement: EnableTabButtonsHelpersRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly isRendererScope: EnableTabButtonsHelpersRuntimeProvider<boolean>;
 }
 
 export interface EnableTabButtonsHelpersRuntime {
@@ -47,22 +44,43 @@ const defaultEnableTabButtonsHelpersRuntimeScope: EnableTabButtonsHelpersRuntime
         isRendererScope: () => getBrowserDocument() !== undefined,
     };
 
+function getRequiredProvider<T>(
+    provider: EnableTabButtonsHelpersRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `enableTabButtonsHelpers requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getComputedStyleFunction(
     scope: EnableTabButtonsHelpersRuntimeScope
 ): EnableTabButtonsHelpersGetComputedStyle | undefined {
-    return scope.getComputedStyleFunction?.();
+    return getRequiredProvider(
+        scope.getComputedStyleFunction,
+        "getComputedStyle"
+    )();
 }
 
 function getDocument(
     scope: EnableTabButtonsHelpersRuntimeScope
 ): EnableTabButtonsHelpersRuntimeDocument | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function getHTMLElementConstructor(
     scope: EnableTabButtonsHelpersRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "enableTabButtonsHelpers requires an HTMLElement runtime"
@@ -73,7 +91,9 @@ function getHTMLElementConstructor(
 }
 
 function isRendererScope(scope: EnableTabButtonsHelpersRuntimeScope): boolean {
-    return scope.isRendererScope?.() === true;
+    return (
+        getRequiredProvider(scope.isRendererScope, "isRendererScope")() === true
+    );
 }
 
 function toHTMLElementArray(

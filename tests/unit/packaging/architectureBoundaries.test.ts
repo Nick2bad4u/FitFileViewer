@@ -28454,7 +28454,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(47);
 
         const violations = migratedEnableTabButtonsHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -28544,6 +28544,30 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly getComputedStyleFunction?:"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly isRendererScope?:"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).toContain(
+            "readonly getDocument: EnableTabButtonsHelpersRuntimeProvider<EnableTabButtonsHelpersRuntimeDocument>;"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).toContain(
+            "readonly getComputedStyleFunction: EnableTabButtonsHelpersRuntimeProvider<EnableTabButtonsHelpersGetComputedStyle>;"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).toContain(
+            "readonly getHTMLElement: EnableTabButtonsHelpersRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).toContain(
+            "readonly isRendererScope: EnableTabButtonsHelpersRuntimeProvider<boolean>;"
+        );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "scope.document"
         );
@@ -28557,13 +28581,37 @@ describe("architecture boundaries", () => {
             /\belement\s+instanceof\s+HTMLElement\b/u
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
-            "return scope.getDocument?.();"
+            "type EnableTabButtonsHelpersRuntimeProvider<T> ="
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
-            "return scope.getComputedStyleFunction?.();"
+            "function getRequiredProvider<T>("
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
-            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            'scope.getComputedStyleFunction,\n        "getComputedStyle"'
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.getComputedStyleFunction?.()"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            'scope.getHTMLElement,\n        "HTMLElement"'
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            'getRequiredProvider(scope.isRendererScope, "isRendererScope")() === true'
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.isRendererScope?.()"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "enableTabButtonsHelpers requires ${article} ${providerName} provider"
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
             "enableTabButtonsHelpers requires an HTMLElement runtime"

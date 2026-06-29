@@ -5,6 +5,18 @@ import {
     type EnableTabButtonsHelpersRuntimeScope,
 } from "../../../../../electron-app/utils/ui/controls/enableTabButtonsHelpersRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<EnableTabButtonsHelpersRuntimeScope> = {}
+): EnableTabButtonsHelpersRuntimeScope {
+    return {
+        getComputedStyleFunction: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        isRendererScope: () => false,
+        ...overrides,
+    };
+}
+
 describe("getEnableTabButtonsHelpersRuntime", () => {
     it("returns computed style when runtime APIs are available", () => {
         expect.assertions(2);
@@ -14,10 +26,12 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         const getComputedStyle = vi.fn<
             (element: Element) => CSSStyleDeclaration
         >(() => style);
-        const runtime = getEnableTabButtonsHelpersRuntime({
-            getComputedStyleFunction: () => getComputedStyle,
-            isRendererScope: () => true,
-        });
+        const runtime = getEnableTabButtonsHelpersRuntime(
+            createUnavailableRuntimeScope({
+                getComputedStyleFunction: () => getComputedStyle,
+                isRendererScope: () => true,
+            })
+        );
 
         expect(runtime.getComputedStyle(element)).toBe(style);
         expect(getComputedStyle).toHaveBeenCalledWith(element);
@@ -36,12 +50,14 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         const querySelectorAll = vi.fn(
             () => [first, second] as unknown as NodeListOf<Element>
         );
-        const runtime = getEnableTabButtonsHelpersRuntime({
-            getComputedStyleFunction: () => getComputedStyle,
-            getDocument: () => ({ querySelectorAll }),
-            getHTMLElement: () => HTMLElement,
-            isRendererScope: () => true,
-        });
+        const runtime = getEnableTabButtonsHelpersRuntime(
+            createUnavailableRuntimeScope({
+                getComputedStyleFunction: () => getComputedStyle,
+                getDocument: () => ({ querySelectorAll }),
+                getHTMLElement: () => HTMLElement,
+                isRendererScope: () => true,
+            })
+        );
 
         expect(runtime.getComputedStyle(element)).toBe(style);
         expect(getComputedStyle).toHaveBeenCalledWith(element);
@@ -53,9 +69,9 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getEnableTabButtonsHelpersRuntime({}).getComputedStyle(
-                document.createElement("button")
-            )
+            getEnableTabButtonsHelpersRuntime(
+                createUnavailableRuntimeScope()
+            ).getComputedStyle(document.createElement("button"))
         ).toBeUndefined();
     });
 
@@ -64,13 +80,15 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
 
         const first = document.createElement("button");
         const second = document.createElement("button");
-        const runtime = getEnableTabButtonsHelpersRuntime({
-            getDocument: () => ({
-                querySelectorAll: () =>
-                    [first, second] as unknown as NodeListOf<Element>,
-            }),
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getEnableTabButtonsHelpersRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => ({
+                    querySelectorAll: () =>
+                        [first, second] as unknown as NodeListOf<Element>,
+                }),
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         expect(runtime.queryTabButtons()).toStrictEqual([first, second]);
     });
@@ -79,13 +97,15 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         expect.assertions(1);
 
         const button = document.createElement("button");
-        const runtime = getEnableTabButtonsHelpersRuntime({
-            getDocument: () => ({
-                getElementsByClassName: () =>
-                    [button] as unknown as HTMLCollectionOf<Element>,
-            }),
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getEnableTabButtonsHelpersRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => ({
+                    getElementsByClassName: () =>
+                        [button] as unknown as HTMLCollectionOf<Element>,
+                }),
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         expect(runtime.queryTabButtons()).toStrictEqual([button]);
     });
@@ -94,12 +114,14 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         expect.assertions(1);
 
         const button = document.createElement("button");
-        const runtime = getEnableTabButtonsHelpersRuntime({
-            getDocument: () => ({
-                querySelectorAll: () =>
-                    [button] as unknown as NodeListOf<Element>,
-            }),
-        });
+        const runtime = getEnableTabButtonsHelpersRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => ({
+                    querySelectorAll: () =>
+                        [button] as unknown as NodeListOf<Element>,
+                }),
+            })
+        );
 
         expect(() => runtime.queryTabButtons()).toThrow(
             "enableTabButtonsHelpers requires an HTMLElement runtime"
@@ -110,8 +132,56 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getEnableTabButtonsHelpersRuntime({}).queryTabButtons()
+            getEnableTabButtonsHelpersRuntime(
+                createUnavailableRuntimeScope()
+            ).queryTabButtons()
         ).toStrictEqual([]);
+    });
+
+    it("throws clearly when required runtime providers are missing", () => {
+        expect.assertions(4);
+
+        expect(() =>
+            getEnableTabButtonsHelpersRuntime({
+                getComputedStyleFunction: () => undefined,
+                getHTMLElement: () => HTMLElement,
+                isRendererScope: () => false,
+            } as unknown as EnableTabButtonsHelpersRuntimeScope).queryTabButtons()
+        ).toThrow("enableTabButtonsHelpers requires a document provider");
+        expect(() =>
+            getEnableTabButtonsHelpersRuntime({
+                getDocument: () => undefined,
+                getHTMLElement: () => HTMLElement,
+                isRendererScope: () => true,
+            } as unknown as EnableTabButtonsHelpersRuntimeScope).getComputedStyle(
+                document.createElement("button")
+            )
+        ).toThrow(
+            "enableTabButtonsHelpers requires a getComputedStyle provider"
+        );
+        expect(() =>
+            getEnableTabButtonsHelpersRuntime({
+                getComputedStyleFunction: () => undefined,
+                getDocument: () => ({
+                    querySelectorAll: () =>
+                        [
+                            document.createElement("button"),
+                        ] as unknown as NodeListOf<Element>,
+                }),
+                isRendererScope: () => false,
+            } as unknown as EnableTabButtonsHelpersRuntimeScope).queryTabButtons()
+        ).toThrow("enableTabButtonsHelpers requires an HTMLElement provider");
+        expect(() =>
+            getEnableTabButtonsHelpersRuntime({
+                getComputedStyleFunction: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => HTMLElement,
+            } as unknown as EnableTabButtonsHelpersRuntimeScope).getComputedStyle(
+                document.createElement("button")
+            )
+        ).toThrow(
+            "enableTabButtonsHelpers requires an isRendererScope provider"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -133,8 +203,12 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
             isRendererScope: () => true,
         } as unknown as EnableTabButtonsHelpersRuntimeScope);
 
-        expect(runtime.getComputedStyle(element)).toBeUndefined();
-        expect(runtime.queryTabButtons()).toStrictEqual([]);
+        expect(() => runtime.getComputedStyle(element)).toThrow(
+            "enableTabButtonsHelpers requires a getComputedStyle provider"
+        );
+        expect(() => runtime.queryTabButtons()).toThrow(
+            "enableTabButtonsHelpers requires a document provider"
+        );
         expect(getComputedStyle).not.toHaveBeenCalled();
         expect(querySelectorAll).not.toHaveBeenCalled();
     });
