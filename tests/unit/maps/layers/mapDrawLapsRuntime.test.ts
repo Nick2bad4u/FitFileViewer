@@ -7,10 +7,18 @@ import type {
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getMapDrawLapsRuntime,
+    type MapDrawLapsRuntimeScope,
     type MapDrawLapsTimer,
 } from "../../../../electron-app/utils/maps/layers/mapDrawLapsRuntime.js";
 
 describe("getMapDrawLapsRuntime", () => {
+    const unavailableMapDrawLapsRuntimeScope = {
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getSetTimeout: () => undefined,
+        getSVGElement: () => undefined,
+    } satisfies MapDrawLapsRuntimeScope;
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -25,7 +33,9 @@ describe("getMapDrawLapsRuntime", () => {
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapDrawLapsRuntime({
             getClearTimeout: () => clearTimeout,
+            getDocument: () => document,
             getSetTimeout: () => setTimeout,
+            getSVGElement: () => SVGElement,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -47,7 +57,9 @@ describe("getMapDrawLapsRuntime", () => {
         const getClearTimeout = vi.fn(() => clearTimeout);
         const runtime = getMapDrawLapsRuntime({
             getClearTimeout,
+            getDocument: () => document,
             getSetTimeout,
+            getSVGElement: () => SVGElement,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -135,7 +147,9 @@ describe("getMapDrawLapsRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(5);
 
-        const runtime = getMapDrawLapsRuntime({});
+        const runtime = getMapDrawLapsRuntime(
+            unavailableMapDrawLapsRuntimeScope
+        );
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapDrawLapsRuntime requires setTimeout"
@@ -154,6 +168,30 @@ describe("getMapDrawLapsRuntime", () => {
         ).toThrow("mapDrawLapsRuntime requires SVGElement");
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(5);
+
+        const runtime = getMapDrawLapsRuntime(
+            {} as unknown as MapDrawLapsRuntimeScope
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapDrawLapsRuntime requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "mapDrawLapsRuntime requires a clearTimeout provider"
+        );
+        expect(() => runtime.createElement("p")).toThrow(
+            "mapDrawLapsRuntime requires a document provider"
+        );
+        expect(() => runtime.createTextNode("Lap 1")).toThrow(
+            "mapDrawLapsRuntime requires a document provider"
+        );
+        expect(() =>
+            runtime.isSVGElement(document.createElement("div"))
+        ).toThrow("mapDrawLapsRuntime requires an SVGElement provider");
+    });
+
     it("ignores legacy direct runtime scope timer properties", () => {
         expect.assertions(7);
 
@@ -162,11 +200,12 @@ describe("getMapDrawLapsRuntime", () => {
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapDrawLapsRuntime({
+            ...unavailableMapDrawLapsRuntimeScope,
             clearTimeout,
             document,
             setTimeout,
             SVGElement,
-        } as unknown as Parameters<typeof getMapDrawLapsRuntime>[0]);
+        } as unknown as MapDrawLapsRuntimeScope);
 
         expect(() => runtime.setTimeout(callback, 1)).toThrow(
             "mapDrawLapsRuntime requires setTimeout"

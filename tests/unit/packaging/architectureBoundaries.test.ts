@@ -22837,7 +22837,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(42);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -22909,11 +22909,45 @@ describe("architecture boundaries", () => {
         );
         expect(mapDrawLapsRuntimeSource).not.toContain("readonly document?:");
         expect(mapDrawLapsRuntimeSource).not.toContain("readonly setTimeout?:");
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "readonly getSVGElement?:"
+        );
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.clearTimeout");
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.document");
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.setTimeout");
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "scope.getSVGElement?.()"
+        );
         expect(mapDrawLapsRuntimeSource).toContain(
             "const setTimeoutRef = getScopeSetTimeout(scope);"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "mapDrawLapsRuntime requires a clearTimeout provider"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "mapDrawLapsRuntime requires a document provider"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "mapDrawLapsRuntime requires a setTimeout provider"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "mapDrawLapsRuntime requires an SVGElement provider"
         );
         expect(mapDrawLapsSource).not.toContain("document.createElement");
         expect(mapDrawLapsSource).not.toContain("document.createTextNode");
@@ -30202,7 +30236,7 @@ describe("architecture boundaries", () => {
         );
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.SVGElement");
         expect(mapDrawLapsRuntimeSource).toContain(
-            "const SVGElementConstructor = scope.getSVGElement?.();"
+            "const SVGElementConstructor = getSVGElement();"
         );
         expect(mapDrawLapsRuntimeSource).toContain(
             "mapDrawLapsRuntime requires SVGElement"

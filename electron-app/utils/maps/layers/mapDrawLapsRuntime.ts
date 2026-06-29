@@ -14,10 +14,12 @@ export type MapDrawLapsTimer = BrowserTimerHandle;
 type MapDrawLapsDocument = Pick<Document, "createElement" | "createTextNode">;
 
 export interface MapDrawLapsRuntimeScope {
-    readonly getClearTimeout?: (() => BrowserClearTimeout | undefined) | undefined;
-    readonly getDocument?: (() => MapDrawLapsDocument | undefined) | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly getSVGElement?:
+    readonly getClearTimeout:
+        | (() => BrowserClearTimeout | undefined)
+        | undefined;
+    readonly getDocument: (() => MapDrawLapsDocument | undefined) | undefined;
+    readonly getSetTimeout: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getSVGElement:
         | (() => BrowserSVGElementConstructor | undefined)
         | undefined;
 }
@@ -42,25 +44,51 @@ const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = {
 function getScopeClearTimeout(
     scope: MapDrawLapsRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    const getClearTimeout = scope.getClearTimeout;
+    if (typeof getClearTimeout !== "function") {
+        throw new TypeError(
+            "mapDrawLapsRuntime requires a clearTimeout provider"
+        );
+    }
+
+    return getClearTimeout();
 }
 
 function getScopeDocument(
     scope: MapDrawLapsRuntimeScope
 ): MapDrawLapsDocument | undefined {
-    return scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("mapDrawLapsRuntime requires a document provider");
+    }
+
+    return getDocument();
 }
 
 function getScopeSetTimeout(
     scope: MapDrawLapsRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    const getSetTimeout = scope.getSetTimeout;
+    if (typeof getSetTimeout !== "function") {
+        throw new TypeError(
+            "mapDrawLapsRuntime requires a setTimeout provider"
+        );
+    }
+
+    return getSetTimeout();
 }
 
 function getRequiredSVGElement(
     scope: MapDrawLapsRuntimeScope
 ): BrowserSVGElementConstructor {
-    const SVGElementConstructor = scope.getSVGElement?.();
+    const getSVGElement = scope.getSVGElement;
+    if (typeof getSVGElement !== "function") {
+        throw new TypeError(
+            "mapDrawLapsRuntime requires an SVGElement provider"
+        );
+    }
+
+    const SVGElementConstructor = getSVGElement();
     if (typeof SVGElementConstructor !== "function") {
         throw new TypeError("mapDrawLapsRuntime requires SVGElement");
     }
