@@ -22632,7 +22632,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(57);
+        expect.assertions(72);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -22750,14 +22750,44 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.clearTimeout");
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.document");
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.HTMLElement");
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.setTimeout");
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
         expect(mapMeasureToolRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
         );
         expect(mapMeasureToolRuntimeSource).toContain("iconFactoryRuntime.js");
         expect(mapMeasureToolRuntimeSource).toContain(
@@ -22768,13 +22798,28 @@ describe("architecture boundaries", () => {
             directMapMeasureToolRuntimeAmbientFallbackPattern
         );
         expect(mapMeasureToolRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = getSetTimeout();"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "const clearTimeoutRef = getClearTimeout();"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "const AbortControllerConstructor = getAbortController();"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "mapMeasureTool requires an AbortController provider"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "mapMeasureTool requires a clearTimeout provider"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "mapMeasureTool requires a document provider"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "mapMeasureTool requires an HTMLElement provider"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "mapMeasureTool requires a setTimeout provider"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
             "runtimeDocument.removeEventListener"

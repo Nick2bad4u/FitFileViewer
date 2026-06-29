@@ -18,19 +18,19 @@ type MapMeasureToolDocument = Document;
 type MapMeasureToolKeydownListener = (event: Readonly<KeyboardEvent>) => void;
 
 export interface MapMeasureToolRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getClearTimeout?:
+    readonly getClearTimeout:
         | (() => BrowserClearTimeout | undefined)
         | undefined;
-    readonly getDocument?:
+    readonly getDocument:
         | (() => MapMeasureToolDocument | undefined)
         | undefined;
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getSetTimeout: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface MapMeasureToolRuntime {
@@ -68,7 +68,12 @@ const defaultMapMeasureToolRuntimeScope: MapMeasureToolRuntimeScope = {
 function getRequiredDocument(
     scope: MapMeasureToolRuntimeScope
 ): MapMeasureToolDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("mapMeasureTool requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("mapMeasureTool requires a document runtime");
     }
@@ -79,7 +84,12 @@ function getRequiredDocument(
 function getRequiredHTMLElement(
     scope: MapMeasureToolRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError("mapMeasureTool requires an HTMLElement provider");
+    }
+
+    const HTMLElementConstructor = getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("mapMeasureTool requires an HTMLElement runtime");
     }
@@ -108,7 +118,14 @@ export function getMapMeasureToolRuntime(
             runtimeDocument.addEventListener("keydown", listener, options);
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const getClearTimeout = scope.getClearTimeout;
+            if (typeof getClearTimeout !== "function") {
+                throw new TypeError(
+                    "mapMeasureTool requires a clearTimeout provider"
+                );
+            }
+
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapMeasureTool requires a clearTimeout runtime"
@@ -118,7 +135,14 @@ export function getMapMeasureToolRuntime(
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const getAbortController = scope.getAbortController;
+            if (typeof getAbortController !== "function") {
+                throw new TypeError(
+                    "mapMeasureTool requires an AbortController provider"
+                );
+            }
+
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "mapMeasureTool requires an AbortController runtime"
@@ -145,7 +169,14 @@ export function getMapMeasureToolRuntime(
             runtimeDocument.removeEventListener("keydown", listener);
         },
         setTimeout(callback, delayMs): MapMeasureToolTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const getSetTimeout = scope.getSetTimeout;
+            if (typeof getSetTimeout !== "function") {
+                throw new TypeError(
+                    "mapMeasureTool requires a setTimeout provider"
+                );
+            }
+
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapMeasureTool requires a setTimeout runtime"

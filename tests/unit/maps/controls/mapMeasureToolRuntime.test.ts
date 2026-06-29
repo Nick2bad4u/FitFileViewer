@@ -11,6 +11,14 @@ import type {
 import { getMapMeasureToolRuntime } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 
 describe("getMapMeasureToolRuntime", () => {
+    const unavailableMapMeasureToolRuntimeScope = {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getSetTimeout: () => undefined,
+    } satisfies MapMeasureToolRuntimeScope;
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -33,6 +41,10 @@ describe("getMapMeasureToolRuntime", () => {
         }
         const runtime = getMapMeasureToolRuntime({
             getAbortController: () => TestAbortController,
+            getClearTimeout: () => undefined,
+            getDocument: () => undefined,
+            getHTMLElement: () => undefined,
+            getSetTimeout: () => undefined,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -84,7 +96,9 @@ describe("getMapMeasureToolRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getMapMeasureToolRuntime({});
+        const runtime = getMapMeasureToolRuntime(
+            unavailableMapMeasureToolRuntimeScope
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -104,6 +118,7 @@ describe("getMapMeasureToolRuntime", () => {
             lastKey = event.key;
         };
         const runtime = getMapMeasureToolRuntime({
+            ...unavailableMapMeasureToolRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -126,6 +141,7 @@ describe("getMapMeasureToolRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("map measure nodes");
         const runtime = getMapMeasureToolRuntime({
+            ...unavailableMapMeasureToolRuntimeScope,
             getDocument: () => documentRef,
         });
         const button = runtime.createElement("button");
@@ -148,6 +164,7 @@ describe("getMapMeasureToolRuntime", () => {
         expect.assertions(2);
 
         const runtime = getMapMeasureToolRuntime({
+            ...unavailableMapMeasureToolRuntimeScope,
             getHTMLElement: () => HTMLElement,
         });
         const button = document.createElement("button");
@@ -161,7 +178,9 @@ describe("getMapMeasureToolRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(5);
 
-        const runtime = getMapMeasureToolRuntime({});
+        const runtime = getMapMeasureToolRuntime(
+            unavailableMapMeasureToolRuntimeScope
+        );
         const controller = new AbortController();
         const listener = (): void => undefined;
         const missingDocumentMessage =
@@ -190,7 +209,9 @@ describe("getMapMeasureToolRuntime", () => {
     it("fails clearly when the HTMLElement runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getMapMeasureToolRuntime({});
+        const runtime = getMapMeasureToolRuntime(
+            unavailableMapMeasureToolRuntimeScope
+        );
 
         expect(() =>
             runtime.isHTMLElement(document.createElement("button"))
@@ -206,6 +227,7 @@ describe("getMapMeasureToolRuntime", () => {
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getMapMeasureToolRuntime({
+            ...unavailableMapMeasureToolRuntimeScope,
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
         });
@@ -241,7 +263,9 @@ describe("getMapMeasureToolRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getMapMeasureToolRuntime({});
+        const runtime = getMapMeasureToolRuntime(
+            unavailableMapMeasureToolRuntimeScope
+        );
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapMeasureTool requires a setTimeout runtime"
@@ -249,6 +273,43 @@ describe("getMapMeasureToolRuntime", () => {
         expect(() => runtime.clearTimeout(1 as MapMeasureToolTimer)).toThrow(
             "mapMeasureTool requires a clearTimeout runtime"
         );
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(9);
+
+        const runtime = getMapMeasureToolRuntime(
+            {} as unknown as MapMeasureToolRuntimeScope
+        );
+        const listener = (): void => undefined;
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "mapMeasureTool requires an AbortController provider"
+        );
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapMeasureTool requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(1 as MapMeasureToolTimer)).toThrow(
+            "mapMeasureTool requires a clearTimeout provider"
+        );
+        expect(() => runtime.addDocumentKeydownListener(listener, {})).toThrow(
+            "mapMeasureTool requires a document provider"
+        );
+        expect(() => runtime.removeDocumentKeydownListener(listener)).toThrow(
+            "mapMeasureTool requires a document provider"
+        );
+        expect(() => runtime.createElement("button")).toThrow(
+            "mapMeasureTool requires a document provider"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "mapMeasureTool requires a document provider"
+        );
+        expect(() => runtime.createTextNode("distance")).toThrow(
+            "mapMeasureTool requires a document provider"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow("mapMeasureTool requires an HTMLElement provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -261,6 +322,7 @@ describe("getMapMeasureToolRuntime", () => {
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
         const createTextNode = vi.spyOn(documentRef, "createTextNode");
         const legacyScope = {
+            ...unavailableMapMeasureToolRuntimeScope,
             AbortController,
             clearTimeout: vi.fn<BrowserClearTimeout>(),
             document: documentRef,
