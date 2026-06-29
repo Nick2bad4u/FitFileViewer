@@ -28201,7 +28201,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(58);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -28306,6 +28306,30 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(enableTabButtonsRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).not.toContain(
+            "readonly getMutationObserver?:"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).not.toContain(
+            "readonly isRendererScope?:"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).toContain(
+            "readonly getClearTimeout: EnableTabButtonsRuntimeProvider<BrowserClearTimeout>;"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).toContain(
+            "readonly getMutationObserver: EnableTabButtonsRuntimeProvider<MutationObserverConstructorLike>;"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).toContain(
+            "readonly getSetTimeout: EnableTabButtonsRuntimeProvider<BrowserSetTimeout>;"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).toContain(
+            "readonly isRendererScope: EnableTabButtonsRuntimeProvider<boolean>;"
+        );
         expect(enableTabButtonsRuntimeSource).not.toContain(
             "scope.compatibilityMutationObserver"
         );
@@ -28326,10 +28350,37 @@ describe("architecture boundaries", () => {
             "runtime.createCompatibilityMutationObserver"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
-            "const candidate = scope.getMutationObserver?.();"
+            "type EnableTabButtonsRuntimeProvider<T> ="
         );
         expect(enableTabButtonsRuntimeSource).toContain(
-            "const clearTimer = scope.getClearTimeout?.();"
+            "function getRequiredProvider<T>("
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            'scope.getMutationObserver,\n        "MutationObserver"'
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "scope.getMutationObserver?.()"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            'scope.getClearTimeout,\n        "clearTimeout"'
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            'scope.getSetTimeout,\n        "setTimeout"'
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            'getRequiredProvider(scope.isRendererScope, "isRendererScope")() === true'
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "scope.isRendererScope?.()"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            "enableTabButtons requires ${article} ${providerName} provider"
         );
         expect(enableTabButtonsRuntimeSource).toContain(
             "enableTabButtons requires a setTimeout runtime"

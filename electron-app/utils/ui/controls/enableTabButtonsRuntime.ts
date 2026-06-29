@@ -19,16 +19,13 @@ export type TabButtonObserver = {
 export type MutationObserverConstructorLike = new (
     callback: MutationCallback
 ) => TabButtonObserver;
+type EnableTabButtonsRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface EnableTabButtonsRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getMutationObserver?:
-        | (() => MutationObserverConstructorLike | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly isRendererScope?: (() => boolean) | undefined;
+    readonly getClearTimeout: EnableTabButtonsRuntimeProvider<BrowserClearTimeout>;
+    readonly getMutationObserver: EnableTabButtonsRuntimeProvider<MutationObserverConstructorLike>;
+    readonly getSetTimeout: EnableTabButtonsRuntimeProvider<BrowserSetTimeout>;
+    readonly isRendererScope: EnableTabButtonsRuntimeProvider<boolean>;
 }
 
 export interface EnableTabButtonsRuntime {
@@ -50,10 +47,28 @@ const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope = {
     isRendererScope: () => getBrowserDocument() !== undefined,
 };
 
+function getRequiredProvider<T>(
+    provider: EnableTabButtonsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `enableTabButtons requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getMutationObserverConstructor(
     scope: EnableTabButtonsRuntimeScope
 ): MutationObserverConstructorLike | undefined {
-    const candidate = scope.getMutationObserver?.();
+    const candidate = getRequiredProvider(
+        scope.getMutationObserver,
+        "MutationObserver"
+    )();
 
     return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
 }
@@ -67,7 +82,10 @@ function isMutationObserverConstructorLike(
 function getRequiredClearTimeout(
     scope: EnableTabButtonsRuntimeScope
 ): BrowserClearTimeout {
-    const clearTimer = scope.getClearTimeout?.();
+    const clearTimer = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    )();
     if (typeof clearTimer !== "function") {
         throw new TypeError("enableTabButtons requires a clearTimeout runtime");
     }
@@ -78,7 +96,10 @@ function getRequiredClearTimeout(
 function getRequiredSetTimeout(
     scope: EnableTabButtonsRuntimeScope
 ): BrowserSetTimeout {
-    const scheduleTimer = scope.getSetTimeout?.();
+    const scheduleTimer = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
     if (typeof scheduleTimer !== "function") {
         throw new TypeError("enableTabButtons requires a setTimeout runtime");
     }
@@ -87,7 +108,9 @@ function getRequiredSetTimeout(
 }
 
 function isRendererScope(scope: EnableTabButtonsRuntimeScope): boolean {
-    return scope.isRendererScope?.() === true;
+    return (
+        getRequiredProvider(scope.isRendererScope, "isRendererScope")() === true
+    );
 }
 
 export function getEnableTabButtonsRuntime(
