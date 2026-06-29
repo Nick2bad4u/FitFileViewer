@@ -9443,7 +9443,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart performance monitoring on the chart performance state facade", () => {
-        expect.assertions(18);
+        expect.assertions(26);
 
         const chartPerformanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -9491,11 +9491,35 @@ describe("architecture boundaries", () => {
         expect(chartPerformanceMonitorRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "const performance = scope.getPerformance();"
         );
         expect(chartPerformanceMonitorRuntimeSource).toContain(
             "renderChartPerformanceMonitorRuntime requires performance.now"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "renderChartPerformanceMonitorRuntime requires a dateNow provider"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "renderChartPerformanceMonitorRuntime requires a performance provider"
+        );
+        expect(chartPerformanceMonitorRuntimeSource).toContain(
+            "renderChartPerformanceMonitorRuntime requires dateNow"
         );
         expect(chartPerformanceMonitorRuntimeSource).not.toContain(
             "readonly dateNow?:"
