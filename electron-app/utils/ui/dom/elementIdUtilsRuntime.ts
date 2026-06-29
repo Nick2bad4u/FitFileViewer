@@ -4,10 +4,10 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ElementIdUtilsRuntimeScope {
-    readonly getHTMLElement:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
+    readonly getHTMLElement: ElementIdUtilsRuntimeProvider<BrowserHTMLElementConstructor>;
 }
+
+type ElementIdUtilsRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface ElementIdUtilsRuntime {
     isHTMLElement: (value: unknown) => value is HTMLElement;
@@ -20,17 +20,30 @@ const defaultElementIdUtilsRuntimeScope: ElementIdUtilsRuntimeScope = {
 function getHTMLElementConstructor(
     scope: ElementIdUtilsRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const getHTMLElement = scope.getHTMLElement;
-    if (typeof getHTMLElement !== "function") {
-        throw new TypeError("elementIdUtils requires an HTMLElement provider");
-    }
-
-    const HTMLElementConstructor = getHTMLElement();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("elementIdUtils requires an HTMLElement runtime");
     }
 
     return HTMLElementConstructor;
+}
+
+function getRequiredProvider<T>(
+    provider: ElementIdUtilsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `elementIdUtils requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
 
 export function getElementIdUtilsRuntime(

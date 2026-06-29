@@ -57,6 +57,18 @@ describe("elementIdUtilsRuntime", () => {
         ).toThrow("elementIdUtils requires an HTMLElement provider");
     });
 
+    it("fails clearly when the HTMLElement provider slot is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getElementIdUtilsRuntime({
+            getHTMLElement: undefined,
+        });
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("elementIdUtils requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(2);
 

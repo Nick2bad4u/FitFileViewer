@@ -12866,7 +12866,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps flexible element-id HTMLElement checks behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(24);
 
         const elementIdUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/dom/elementIdUtils.ts")
@@ -12904,6 +12904,18 @@ describe("architecture boundaries", () => {
         expect(elementIdUtilsRuntimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "type ElementIdUtilsRuntimeProvider"
+        );
+        expect(elementIdUtilsRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*ElementIdUtilsRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(elementIdUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
         expect(elementIdUtilsRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
@@ -12928,13 +12940,11 @@ describe("architecture boundaries", () => {
             "elementIdUtils requires an HTMLElement runtime"
         );
         expect(elementIdUtilsRuntimeSource).toContain(
-            "elementIdUtils requires an HTMLElement provider"
+            "elementIdUtils requires ${article} ${providerName} provider"
         );
+        expect(elementIdUtilsRuntimeSource).toContain("providerName: string");
         expect(elementIdUtilsRuntimeSource).toContain(
             "return value instanceof getHTMLElementConstructor(scope)"
-        );
-        expect(elementIdUtilsRuntimeSource).toContain(
-            "const HTMLElementConstructor = getHTMLElement();"
         );
     });
 
