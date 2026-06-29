@@ -18250,7 +18250,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup, timer clearing, and clocks behind the runtime adapter", () => {
-        expect.assertions(63);
+        expect.assertions(78);
 
         const appIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/app/index.ts")
@@ -18377,7 +18377,52 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).toContain("getBrowserDateNow");
         expect(resourceManagerRuntimeSource).toContain("getBrowserEventTarget");
         expect(resourceManagerRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "type ResourceManagerRuntimeProvider<T>"
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*ResourceManagerRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /readonly\s+getClearInterval:\s*ResourceManagerRuntimeProvider<BrowserClearInterval>/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*ResourceManagerRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*ResourceManagerRuntimeProvider<\(\) => number>/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /readonly\s+getEventTarget:\s*ResourceManagerRuntimeProvider<ResourceManagerEventTarget>/u
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearInterval,\s*"clearInterval"\s*\)/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getEventTarget,\s*"eventTarget"\s*\)/u
+        );
+        expect(resourceManagerRuntimeSource).not.toMatch(
+            /scope\.get(?:AbortController|ClearInterval|ClearTimeout|DateNow|EventTarget)\?\.\(/u
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "resourceManager requires ${providerName} provider"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(resourceManagerRuntimeSource).toMatch(
+            /const\s+dateNow\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
         expect(resourceManagerRuntimeSource).not.toContain(
             "readonly AbortController?:"

@@ -16,20 +16,14 @@ type ResourceManagerEventTarget = Pick<
     "addEventListener" | "removeEventListener"
 >;
 
+type ResourceManagerRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface ResourceManagerRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearInterval?:
-        | (() => BrowserClearInterval | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getEventTarget?:
-        | (() => ResourceManagerEventTarget | undefined)
-        | undefined;
+    readonly getAbortController: ResourceManagerRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearInterval: ResourceManagerRuntimeProvider<BrowserClearInterval>;
+    readonly getClearTimeout: ResourceManagerRuntimeProvider<BrowserClearTimeout>;
+    readonly getDateNow: ResourceManagerRuntimeProvider<() => number>;
+    readonly getEventTarget: ResourceManagerRuntimeProvider<ResourceManagerEventTarget>;
 }
 
 export type ResourceManagerInterval = BrowserIntervalHandle;
@@ -43,26 +37,39 @@ const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
     getEventTarget: getBrowserEventTarget,
 };
 
+function getRequiredProvider<T>(
+    provider: ResourceManagerRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `resourceManager requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortController(
     scope: ResourceManagerRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getClearTimeout(
     scope: ResourceManagerRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getClearInterval(
     scope: ResourceManagerRuntimeScope
 ): BrowserClearInterval | undefined {
-    return scope.getClearInterval?.();
+    return getRequiredProvider(scope.getClearInterval, "clearInterval")();
 }
 
 function getRequiredDateNow(scope: ResourceManagerRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNow !== "function") {
         throw new TypeError("resourceManager requires dateNow");
     }
@@ -73,7 +80,7 @@ function getRequiredDateNow(scope: ResourceManagerRuntimeScope): () => number {
 function getEventTarget(
     scope: ResourceManagerRuntimeScope
 ): ResourceManagerEventTarget | undefined {
-    return scope.getEventTarget?.();
+    return getRequiredProvider(scope.getEventTarget, "eventTarget")();
 }
 
 export function clearResourceManagerInterval(

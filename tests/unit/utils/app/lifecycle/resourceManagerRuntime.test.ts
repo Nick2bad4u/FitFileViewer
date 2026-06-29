@@ -13,8 +13,22 @@ import {
     getResourceManagerDateNow,
     registerResourceManagerUnloadCleanup,
     type ResourceManagerInterval,
+    type ResourceManagerRuntimeScope,
     type ResourceManagerTimer,
 } from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
+
+function createResourceManagerRuntimeScope(
+    overrides: Partial<ResourceManagerRuntimeScope> = {}
+): ResourceManagerRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearInterval: () => undefined,
+        getClearTimeout: () => undefined,
+        getDateNow: () => undefined,
+        getEventTarget: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("resourceManagerRuntime", () => {
     afterEach(() => {
@@ -31,9 +45,12 @@ describe("resourceManagerRuntime", () => {
             clearedTimer = handle;
         };
 
-        clearResourceManagerTimer(timer, {
-            getClearTimeout: () => clearTimeout,
-        });
+        clearResourceManagerTimer(
+            timer,
+            createResourceManagerRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+            })
+        );
 
         expect(clearedTimer).toBe(timer);
     });
@@ -47,26 +64,49 @@ describe("resourceManagerRuntime", () => {
             clearedInterval = handle;
         };
 
-        clearResourceManagerInterval(interval, {
-            getClearInterval: () => clearInterval,
-        });
+        clearResourceManagerInterval(
+            interval,
+            createResourceManagerRuntimeScope({
+                getClearInterval: () => clearInterval,
+            })
+        );
 
         expect(clearedInterval).toBe(interval);
     });
 
     it("fails clearly when the timer cleanup runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         expect(() => {
-            clearResourceManagerTimer(17 as BrowserTimerHandle, {});
+            clearResourceManagerTimer(
+                17 as BrowserTimerHandle,
+                {} as unknown as ResourceManagerRuntimeScope
+            );
+        }).toThrow("resourceManager requires clearTimeout provider");
+
+        expect(() => {
+            clearResourceManagerTimer(
+                17 as BrowserTimerHandle,
+                createResourceManagerRuntimeScope()
+            );
         }).toThrow("resourceManager requires clearTimeout");
     });
 
     it("fails clearly when the interval cleanup runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         expect(() => {
-            clearResourceManagerInterval(18 as BrowserIntervalHandle, {});
+            clearResourceManagerInterval(
+                18 as BrowserIntervalHandle,
+                {} as unknown as ResourceManagerRuntimeScope
+            );
+        }).toThrow("resourceManager requires clearInterval provider");
+
+        expect(() => {
+            clearResourceManagerInterval(
+                18 as BrowserIntervalHandle,
+                createResourceManagerRuntimeScope()
+            );
         }).toThrow("resourceManager requires clearInterval");
     });
 
@@ -76,16 +116,26 @@ describe("resourceManagerRuntime", () => {
         const dateNow = vi.fn(() => 123_456);
         const getDateNow = vi.fn(() => dateNow);
 
-        expect(getResourceManagerDateNow({ getDateNow })).toBe(123_456);
+        expect(
+            getResourceManagerDateNow(
+                createResourceManagerRuntimeScope({ getDateNow })
+            )
+        ).toBe(123_456);
         expect(getDateNow).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when the clock runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        expect(() => getResourceManagerDateNow({})).toThrow(
-            "resourceManager requires dateNow"
-        );
+        expect(() =>
+            getResourceManagerDateNow(
+                {} as unknown as ResourceManagerRuntimeScope
+            )
+        ).toThrow("resourceManager requires dateNow provider");
+
+        expect(() =>
+            getResourceManagerDateNow(createResourceManagerRuntimeScope())
+        ).toThrow("resourceManager requires dateNow");
     });
 
     it("registers beforeunload cleanup through the scoped event target", () => {
@@ -109,11 +159,17 @@ describe("resourceManagerRuntime", () => {
             }
         }
 
-        const unregister = registerResourceManagerUnloadCleanup(cleanup, {
-            getAbortController: () =>
-                AbortControllerFixture as unknown as BrowserAbortControllerConstructor,
-            getEventTarget: () => ({ addEventListener, removeEventListener }),
-        });
+        const unregister = registerResourceManagerUnloadCleanup(
+            cleanup,
+            createResourceManagerRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerFixture as unknown as BrowserAbortControllerConstructor,
+                getEventTarget: () => ({
+                    addEventListener,
+                    removeEventListener,
+                }),
+            })
+        );
         const [
             ,
             listener,
@@ -198,11 +254,22 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("skips registration outside event-target scopes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const cleanup = vi.fn();
 
-        expect(registerResourceManagerUnloadCleanup(cleanup, {})).toBeNull();
+        expect(() =>
+            registerResourceManagerUnloadCleanup(
+                cleanup,
+                {} as unknown as ResourceManagerRuntimeScope
+            )
+        ).toThrow("resourceManager requires eventTarget provider");
+        expect(
+            registerResourceManagerUnloadCleanup(
+                cleanup,
+                createResourceManagerRuntimeScope()
+            )
+        ).toBeNull();
         expect(cleanup).not.toHaveBeenCalled();
     });
 
@@ -212,12 +279,15 @@ describe("resourceManagerRuntime", () => {
         const cleanup = vi.fn();
         const addEventListener = vi.fn();
 
-        const unregister = registerResourceManagerUnloadCleanup(cleanup, {
-            getEventTarget: () => ({
-                addEventListener,
-                removeEventListener: vi.fn(),
-            }),
-        });
+        const unregister = registerResourceManagerUnloadCleanup(
+            cleanup,
+            createResourceManagerRuntimeScope({
+                getEventTarget: () => ({
+                    addEventListener,
+                    removeEventListener: vi.fn(),
+                }),
+            })
+        );
         const [
             ,
             listener,
@@ -257,12 +327,23 @@ describe("resourceManagerRuntime", () => {
             removeEventListener,
         }));
 
-        clearResourceManagerInterval(interval, { getClearInterval });
-        clearResourceManagerTimer(timer, { getClearTimeout });
-        expect(getResourceManagerDateNow({ getDateNow })).toBe(654_321);
-        const unregister = registerResourceManagerUnloadCleanup(cleanup, {
-            getEventTarget,
-        });
+        clearResourceManagerInterval(
+            interval,
+            createResourceManagerRuntimeScope({ getClearInterval })
+        );
+        clearResourceManagerTimer(
+            timer,
+            createResourceManagerRuntimeScope({ getClearTimeout })
+        );
+        expect(
+            getResourceManagerDateNow(
+                createResourceManagerRuntimeScope({ getDateNow })
+            )
+        ).toBe(654_321);
+        const unregister = registerResourceManagerUnloadCleanup(
+            cleanup,
+            createResourceManagerRuntimeScope({ getEventTarget })
+        );
         expect(typeof unregister).toBe("function");
         unregister?.();
 
@@ -285,7 +366,7 @@ describe("resourceManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const cleanup = vi.fn();
         const interval = 24 as BrowserIntervalHandle;
@@ -313,15 +394,23 @@ describe("resourceManagerRuntime", () => {
 
         expect(() =>
             clearResourceManagerInterval(interval, legacyScope)
-        ).toThrow("resourceManager requires clearInterval");
+        ).toThrow("resourceManager requires clearInterval provider");
         expect(() => clearResourceManagerTimer(timer, legacyScope)).toThrow(
-            "resourceManager requires clearTimeout"
+            "resourceManager requires clearTimeout provider"
         );
         expect(() => getResourceManagerDateNow(legacyScope)).toThrow(
-            "resourceManager requires dateNow"
+            "resourceManager requires dateNow provider"
         );
-        expect(
+        expect(() =>
             registerResourceManagerUnloadCleanup(cleanup, legacyScope)
+        ).toThrow("resourceManager requires eventTarget provider");
+        expect(
+            registerResourceManagerUnloadCleanup(
+                cleanup,
+                createResourceManagerRuntimeScope(
+                    legacyScope as Partial<ResourceManagerRuntimeScope>
+                )
+            )
         ).toBeNull();
         expect(clearInterval).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
