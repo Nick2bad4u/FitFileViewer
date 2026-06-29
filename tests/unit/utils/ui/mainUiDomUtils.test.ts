@@ -229,6 +229,25 @@ describe("mainUiDomUtils", () => {
         resetTestState();
     });
 
+    it("resolves elements through the injected runtime", () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const element = document.createElement("div");
+        const runtime = {
+            createAbortController: vi.fn(() => new AbortController()),
+            getElementByIdFlexible: vi.fn(() => element),
+        };
+
+        expect(validateElement("alt_fit_iframe", runtime)).toBe(element);
+        expect(runtime.getElementByIdFlexible).toHaveBeenCalledWith(
+            "alt_fit_iframe"
+        );
+
+        resetTestState();
+    });
+
     it("warns when an element cannot be found", () => {
         expect.assertions(2);
 

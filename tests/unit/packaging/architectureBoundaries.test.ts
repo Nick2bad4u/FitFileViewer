@@ -38264,7 +38264,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(44);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -38278,6 +38278,15 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
         expect(mainUiDomUtilsSource).toContain("ElectronFileApi");
+        expect(mainUiDomUtilsSource).toContain(
+            "runtime.getElementByIdFlexible(id)"
+        );
+        expect(mainUiDomUtilsSource).not.toContain(
+            "getElementByIdFlexible(document"
+        );
+        expect(mainUiDomUtilsSource).not.toMatch(
+            /\bgetElementByIdFlexible\(\s*document\b/u
+        );
         expect(mainUiDomUtilsSource).not.toContain(
             "interface ElectronApiCandidate"
         );
@@ -38334,23 +38343,42 @@ describe("architecture boundaries", () => {
         expect(mainUiDomUtilsRuntimeSource).toContain(
             "type BrowserAbortControllerConstructor"
         );
+        expect(mainUiDomUtilsRuntimeSource).toContain("getBrowserDocument");
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "./dom/elementIdUtils.js"
+        );
         expect(mainUiDomUtilsRuntimeSource).toContain(
             "type MainUiDomUtilsRuntimeProvider"
         );
         expect(mainUiDomUtilsRuntimeSource).toMatch(
             /readonly\s+getAbortController:\s*MainUiDomUtilsRuntimeProvider<BrowserAbortControllerConstructor>/u
         );
+        expect(mainUiDomUtilsRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*MainUiDomUtilsRuntimeProvider<Document>/u
+        );
         expect(mainUiDomUtilsRuntimeSource).toContain(
             "function getRequiredProvider"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "function getRequiredDocument"
         );
         expect(mainUiDomUtilsRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(
+            "getElementByIdFlexible("
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
         );
         expect(mainUiDomUtilsRuntimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(mainUiDomUtilsRuntimeSource).not.toContain(
             "typeof AbortController | undefined"

@@ -2,7 +2,6 @@
  * DOM utilities used by the main UI and drag-and-drop handlers.
  */
 
-import { getElementByIdFlexible } from "./dom/elementIdUtils.js";
 import {
     getMainUiDomUtilsRuntime,
     type MainUiDomUtilsRuntime,
@@ -114,8 +113,11 @@ function readElectronApiValue(readValue: () => unknown): unknown {
 /**
  * Fetch an element by id and warn if missing.
  */
-export function validateElement(id: string): HTMLElement | null {
-    const element = getElementByIdFlexible(document, id);
+export function validateElement(
+    id: string,
+    runtime: MainUiDomUtilsRuntime = getMainUiDomUtilsRuntime()
+): HTMLElement | null {
+    const element = runtime.getElementByIdFlexible(id);
     if (!element) {
         console.warn(`Element with ID "${id}" not found`);
     }

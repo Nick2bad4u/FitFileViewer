@@ -24,12 +24,30 @@ describe("getMainUiDomUtilsRuntime", () => {
         }
         const utils = getMainUiDomUtilsRuntime({
             getAbortController: () => TestAbortController,
+            getDocument: () => document,
         });
 
         expect(utils.createAbortController()).toBeInstanceOf(
             TestAbortController
         );
         expect(controllerCount).toBe(1);
+    });
+
+    it("resolves flexible element ids through the injected document provider", () => {
+        expect.assertions(2);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("main UI DOM utils");
+        const element = documentRef.createElement("div");
+        element.id = "alt-fit-iframe";
+        documentRef.body.append(element);
+        const utils = getMainUiDomUtilsRuntime({
+            getAbortController: () => AbortController,
+            getDocument: () => documentRef,
+        });
+
+        expect(utils.getElementByIdFlexible("alt_fit_iframe")).toBe(element);
+        expect(utils.getElementByIdFlexible("altFitIframe")).toBe(element);
     });
 
     it("uses browser runtime providers for production AbortController defaults", () => {
@@ -45,11 +63,25 @@ describe("getMainUiDomUtilsRuntime", () => {
 
         const utils = getMainUiDomUtilsRuntime({
             getAbortController: () => undefined,
+            getDocument: () => document,
         });
 
         expect(() => {
             utils.createAbortController();
         }).toThrow("main UI DOM utilities require an AbortController runtime");
+    });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getMainUiDomUtilsRuntime({
+            getAbortController: () => AbortController,
+            getDocument: () => undefined,
+        });
+
+        expect(() => {
+            utils.getElementByIdFlexible("alt_fit_iframe");
+        }).toThrow("main UI DOM utilities require a document runtime");
     });
 
     it("fails clearly when the AbortController provider is omitted", () => {
