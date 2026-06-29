@@ -27493,7 +27493,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab render lifecycle clocks behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(34);
 
         const violations = migratedTabRenderingManagerRuntimeFiles
             .filter((relativeFile) =>
@@ -27553,6 +27553,9 @@ describe("architecture boundaries", () => {
         expect(tabRenderingManagerRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
         );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "getPerformanceNow: () => undefined"
+        );
         expect(tabRenderingManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
@@ -27570,6 +27573,42 @@ describe("architecture boundaries", () => {
         );
         expect(tabRenderingManagerRuntimeScopeSource).not.toContain(
             "readonly performance?:"
+        );
+        expect(tabRenderingManagerRuntimeScopeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(tabRenderingManagerRuntimeScopeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(tabRenderingManagerRuntimeScopeSource).not.toContain(
+            "readonly getPerformanceNow?:"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
+        expect(tabRenderingManagerRuntimeSource).not.toContain(
+            "scope.getPerformanceNow?.()"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "const performanceNow = scope.getPerformanceNow();"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "scope.getPerformance()"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "tabRenderingManager requires dateNow provider"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "tabRenderingManager requires performance.now provider"
+        );
+        expect(tabRenderingManagerRuntimeSource).toContain(
+            "tabRenderingManager requires performance provider"
         );
         expect(tabRenderingManagerRuntimeSource).toContain(
             "tabRenderingManager requires dateNow"

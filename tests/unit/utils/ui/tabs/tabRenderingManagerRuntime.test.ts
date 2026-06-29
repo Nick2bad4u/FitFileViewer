@@ -5,6 +5,12 @@ import {
     type TabRenderingManagerRuntimeScope,
 } from "../../../../../electron-app/utils/ui/tabs/tabRenderingManagerRuntime.js";
 
+const unavailableTabRenderingManagerRuntimeScope = {
+    getDateNow: () => undefined,
+    getPerformance: () => undefined,
+    getPerformanceNow: () => undefined,
+} satisfies TabRenderingManagerRuntimeScope;
+
 describe("tabRenderingManagerRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -15,6 +21,7 @@ describe("tabRenderingManagerRuntime", () => {
 
         const dateNow = vi.fn(() => 12_345);
         const utils = getTabRenderingManagerRuntime({
+            ...unavailableTabRenderingManagerRuntimeScope,
             getDateNow: () => dateNow,
         });
 
@@ -27,6 +34,7 @@ describe("tabRenderingManagerRuntime", () => {
 
         const performanceNow = vi.fn(() => 67.89);
         const utils = getTabRenderingManagerRuntime({
+            ...unavailableTabRenderingManagerRuntimeScope,
             getPerformanceNow: () => performanceNow,
         });
 
@@ -60,7 +68,9 @@ describe("tabRenderingManagerRuntime", () => {
     it("does not borrow ambient clocks for explicit scopes", () => {
         expect.assertions(2);
 
-        const utils = getTabRenderingManagerRuntime({});
+        const utils = getTabRenderingManagerRuntime(
+            unavailableTabRenderingManagerRuntimeScope
+        );
 
         expect(() => utils.dateNow()).toThrow(
             "tabRenderingManager requires dateNow"
@@ -70,10 +80,32 @@ describe("tabRenderingManagerRuntime", () => {
         );
     });
 
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(3);
+
+        const utils = getTabRenderingManagerRuntime(
+            {} as unknown as TabRenderingManagerRuntimeScope
+        );
+
+        expect(() => utils.dateNow()).toThrow(
+            "tabRenderingManager requires dateNow provider"
+        );
+        expect(() => utils.performanceNow()).toThrow(
+            "tabRenderingManager requires performance.now provider"
+        );
+        expect(() =>
+            getTabRenderingManagerRuntime({
+                ...unavailableTabRenderingManagerRuntimeScope,
+                getPerformance: undefined,
+            } as unknown as TabRenderingManagerRuntimeScope).performanceNow()
+        ).toThrow("tabRenderingManager requires performance provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
         const utils = getTabRenderingManagerRuntime({
+            ...unavailableTabRenderingManagerRuntimeScope,
             dateNow: vi.fn(() => 12_345),
             performance: { now: vi.fn(() => 67.89) },
         } as unknown as TabRenderingManagerRuntimeScope);

@@ -4,11 +4,11 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface TabRenderingManagerRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getPerformance?:
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getPerformance:
         | (() => Pick<Performance, "now"> | undefined)
         | undefined;
-    readonly getPerformanceNow?: (() => (() => number) | undefined) | undefined;
+    readonly getPerformanceNow: (() => (() => number) | undefined) | undefined;
 }
 
 export interface TabRenderingManagerRuntime {
@@ -27,15 +27,21 @@ function getScopedPerformanceNow(
     return () => performanceNow.call(performanceRef);
 }
 
-const defaultTabRenderingManagerRuntimeScope: TabRenderingManagerRuntimeScope = {
-    getDateNow: getBrowserDateNow,
-    getPerformance: getBrowserPerformance,
-};
+const defaultTabRenderingManagerRuntimeScope: TabRenderingManagerRuntimeScope =
+    {
+        getDateNow: getBrowserDateNow,
+        getPerformance: getBrowserPerformance,
+        getPerformanceNow: () => undefined,
+    };
 
 function getRequiredDateNow(
     scope: TabRenderingManagerRuntimeScope
 ): () => number {
-    const dateNow = scope.getDateNow?.();
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError("tabRenderingManager requires dateNow provider");
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("tabRenderingManager requires dateNow");
     }
@@ -46,14 +52,31 @@ function getRequiredDateNow(
 function getRequiredPerformanceNow(
     scope: TabRenderingManagerRuntimeScope
 ): () => number {
-    const performanceNow =
-        scope.getPerformanceNow?.() ??
-        getScopedPerformanceNow(scope.getPerformance?.());
-    if (typeof performanceNow !== "function") {
+    if (typeof scope.getPerformanceNow !== "function") {
+        throw new TypeError(
+            "tabRenderingManager requires performance.now provider"
+        );
+    }
+
+    const performanceNow = scope.getPerformanceNow();
+    if (typeof performanceNow === "function") {
+        return performanceNow;
+    }
+
+    if (typeof scope.getPerformance !== "function") {
+        throw new TypeError(
+            "tabRenderingManager requires performance provider"
+        );
+    }
+
+    const scopedPerformanceNow = getScopedPerformanceNow(
+        scope.getPerformance()
+    );
+    if (typeof scopedPerformanceNow !== "function") {
         throw new TypeError("tabRenderingManager requires performance.now");
     }
 
-    return performanceNow;
+    return scopedPerformanceNow;
 }
 
 export function getTabRenderingManagerRuntime(
