@@ -29364,7 +29364,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(80);
+        expect.assertions(100);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -29409,7 +29409,7 @@ describe("architecture boundaries", () => {
         expect(sourcesMissingRuntimeResolver).toStrictEqual([]);
         expect(sourcesCapturingRuntime).toStrictEqual([]);
         expect(shownFilesListRuntimeSource).toContain(
-            "const body = scope.getDocument?.()?.body;"
+            "const body = getScopeDocument(scope)?.body;"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "defaultShownFilesListRuntimeScope"
@@ -29448,6 +29448,27 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getEventTarget?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly getViewport?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(shownFilesListRuntimeSource).not.toContain(
@@ -29459,6 +29480,27 @@ describe("architecture boundaries", () => {
         expect(shownFilesListRuntimeSource).not.toContain("scope.innerHeight");
         expect(shownFilesListRuntimeSource).not.toContain("scope.innerWidth");
         expect(shownFilesListRuntimeSource).not.toContain("scope.setTimeout");
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getEventTarget?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.getViewport?.()"
+        );
         expect(shownFilesListRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
@@ -29548,11 +29590,29 @@ describe("architecture boundaries", () => {
         expect(shownFilesListRuntimeSource).toContain(
             '.classList.contains(\n                "theme-dark"'
         );
-        expect(shownFilesListRuntimeSource).toContain(
-            "scope.getHTMLElement?.()"
-        );
         expect(shownFilesListRuntimeSource).not.toContain(
             "defaultView?.HTMLElement"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires an AbortController provider"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires a clearTimeout provider"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires a document provider"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires an event target provider"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires an HTMLElement provider"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires a setTimeout provider"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires a viewport provider"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "shownFilesList requires an HTMLElement runtime"

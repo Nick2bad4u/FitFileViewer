@@ -37,21 +37,21 @@ interface ShownFilesListMouseMoveEventTarget {
 }
 
 export interface ShownFilesListRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getClearTimeout?:
+    readonly getClearTimeout:
         | (() => BrowserClearTimeout | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getEventTarget?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getEventTarget:
         | (() => ShownFilesListMouseMoveEventTarget | undefined)
         | undefined;
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly getViewport?:
+    readonly getSetTimeout: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getViewport:
         | (() => ShownFilesListViewport | undefined)
         | undefined;
 }
@@ -112,7 +112,7 @@ const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope = {
 };
 
 function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getScopeDocument(scope);
     if (!documentRef) {
         throw new TypeError("shownFilesList requires a document runtime");
     }
@@ -123,12 +123,28 @@ function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: ShownFilesListRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError("shownFilesList requires an HTMLElement provider");
+    }
+
+    const HTMLElementConstructor = getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("shownFilesList requires an HTMLElement runtime");
     }
 
     return HTMLElementConstructor;
+}
+
+function getScopeDocument(
+    scope: ShownFilesListRuntimeScope
+): Document | undefined {
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("shownFilesList requires a document provider");
+    }
+
+    return getDocument();
 }
 
 export function getShownFilesListRuntime(
@@ -139,7 +155,7 @@ export function getShownFilesListRuntime(
             listener: EventListener,
             options: ShownFilesListListenerOptions
         ): void {
-            const body = scope.getDocument?.()?.body;
+            const body = getScopeDocument(scope)?.body;
             if (!body) {
                 throw new TypeError(
                     "shownFilesList requires a document body runtime"
@@ -155,7 +171,14 @@ export function getShownFilesListRuntime(
             listener: ShownFilesListMouseMoveListener,
             options: ShownFilesListListenerOptions
         ): void {
-            const eventTarget = scope.getEventTarget?.();
+            const getEventTarget = scope.getEventTarget;
+            if (typeof getEventTarget !== "function") {
+                throw new TypeError(
+                    "shownFilesList requires an event target provider"
+                );
+            }
+
+            const eventTarget = getEventTarget();
             if (!eventTarget) {
                 throw new TypeError(
                     "shownFilesList requires an event target runtime"
@@ -168,7 +191,14 @@ export function getShownFilesListRuntime(
             });
         },
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const getClearTimeout = scope.getClearTimeout;
+            if (typeof getClearTimeout !== "function") {
+                throw new TypeError(
+                    "shownFilesList requires a clearTimeout provider"
+                );
+            }
+
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "shownFilesList requires a clearTimeout runtime"
@@ -180,7 +210,14 @@ export function getShownFilesListRuntime(
             getRequiredDocument(scope).body.append(element);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const getAbortController = scope.getAbortController;
+            if (typeof getAbortController !== "function") {
+                throw new TypeError(
+                    "shownFilesList requires an AbortController provider"
+                );
+            }
+
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "shownFilesList requires an AbortController runtime"
@@ -193,7 +230,14 @@ export function getShownFilesListRuntime(
             return getRequiredDocument(scope).createElement(tagName);
         },
         getViewport(): ShownFilesListViewport {
-            const viewport = scope.getViewport?.();
+            const getViewport = scope.getViewport;
+            if (typeof getViewport !== "function") {
+                throw new TypeError(
+                    "shownFilesList requires a viewport provider"
+                );
+            }
+
+            const viewport = getViewport();
             const width = viewport?.width;
             const height = viewport?.height;
             if (typeof width !== "number" || typeof height !== "number") {
@@ -216,7 +260,14 @@ export function getShownFilesListRuntime(
             return getRequiredDocument(scope).querySelectorAll(selector);
         },
         setTimeout(callback, timeout): ShownFilesListTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const getSetTimeout = scope.getSetTimeout;
+            if (typeof getSetTimeout !== "function") {
+                throw new TypeError(
+                    "shownFilesList requires a setTimeout provider"
+                );
+            }
+
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "shownFilesList requires a setTimeout runtime"

@@ -12,6 +12,16 @@ import type {
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
 describe("getShownFilesListRuntime", () => {
+    const unavailableShownFilesListRuntimeScope = {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getEventTarget: () => undefined,
+        getHTMLElement: () => undefined,
+        getSetTimeout: () => undefined,
+        getViewport: () => undefined,
+    } satisfies ShownFilesListRuntimeScope;
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -29,6 +39,7 @@ describe("getShownFilesListRuntime", () => {
             }
         }
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getAbortController: () => TestAbortController,
         });
 
@@ -49,7 +60,9 @@ describe("getShownFilesListRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getShownFilesListRuntime({});
+        const runtime = getShownFilesListRuntime(
+            unavailableShownFilesListRuntimeScope
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -67,6 +80,7 @@ describe("getShownFilesListRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -82,7 +96,9 @@ describe("getShownFilesListRuntime", () => {
     it("fails clearly when the document body runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getShownFilesListRuntime({});
+        const runtime = getShownFilesListRuntime(
+            unavailableShownFilesListRuntimeScope
+        );
         const controller = new AbortController();
 
         expect(() => {
@@ -99,6 +115,7 @@ describe("getShownFilesListRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("shown files");
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -122,6 +139,7 @@ describe("getShownFilesListRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("shown files");
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -134,6 +152,7 @@ describe("getShownFilesListRuntime", () => {
         expect.assertions(2);
 
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getHTMLElement: () => HTMLElement,
         });
 
@@ -149,6 +168,7 @@ describe("getShownFilesListRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("shown files");
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getDocument: () =>
                 ({
                     ...documentRef,
@@ -166,7 +186,9 @@ describe("getShownFilesListRuntime", () => {
     it("does not borrow ambient documents for explicit DOM scopes", () => {
         expect.assertions(5);
 
-        const runtime = getShownFilesListRuntime({});
+        const runtime = getShownFilesListRuntime(
+            unavailableShownFilesListRuntimeScope
+        );
 
         expect(() => runtime.createElement("div")).toThrow(
             "shownFilesList requires a document runtime"
@@ -208,6 +230,7 @@ describe("getShownFilesListRuntime", () => {
             },
         };
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getEventTarget: () => eventTarget,
         });
 
@@ -229,7 +252,9 @@ describe("getShownFilesListRuntime", () => {
     it("fails clearly when the mousemove listener runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getShownFilesListRuntime({});
+        const runtime = getShownFilesListRuntime(
+            unavailableShownFilesListRuntimeScope
+        );
         const controller = new AbortController();
 
         expect(() => {
@@ -244,6 +269,7 @@ describe("getShownFilesListRuntime", () => {
         expect.assertions(1);
 
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getViewport: () => ({
                 height: 600,
                 width: 800,
@@ -259,7 +285,9 @@ describe("getShownFilesListRuntime", () => {
     it("does not borrow ambient viewport dimensions for explicit scopes", () => {
         expect.assertions(1);
 
-        const runtime = getShownFilesListRuntime({});
+        const runtime = getShownFilesListRuntime(
+            unavailableShownFilesListRuntimeScope
+        );
 
         expect(() => runtime.getViewport()).toThrow(
             "shownFilesList requires a viewport runtime"
@@ -275,6 +303,7 @@ describe("getShownFilesListRuntime", () => {
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const runtime = getShownFilesListRuntime({
+            ...unavailableShownFilesListRuntimeScope,
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
         });
@@ -289,7 +318,9 @@ describe("getShownFilesListRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getShownFilesListRuntime({});
+        const runtime = getShownFilesListRuntime(
+            unavailableShownFilesListRuntimeScope
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "shownFilesList requires a setTimeout runtime"
@@ -297,6 +328,46 @@ describe("getShownFilesListRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "shownFilesList requires a clearTimeout runtime"
         );
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(8);
+
+        const runtime = getShownFilesListRuntime(
+            {} as unknown as ShownFilesListRuntimeScope
+        );
+        const controller = new AbortController();
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "shownFilesList requires an AbortController provider"
+        );
+        expect(() =>
+            runtime.addBodyThemeChangeListener(() => undefined, {
+                signal: controller.signal,
+            })
+        ).toThrow("shownFilesList requires a document provider");
+        expect(() => runtime.createElement("div")).toThrow(
+            "shownFilesList requires a document provider"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("shownFilesList requires an HTMLElement provider");
+        expect(() =>
+            runtime.addMouseMoveListener(() => undefined, {
+                signal: controller.signal,
+            })
+        ).toThrow("shownFilesList requires an event target provider");
+        expect(() => runtime.getViewport()).toThrow(
+            "shownFilesList requires a viewport provider"
+        );
+        expect(() => runtime.setTimeout(() => undefined, 0)).toThrow(
+            "shownFilesList requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "shownFilesList requires a clearTimeout provider"
+        );
+
+        controller.abort();
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -309,6 +380,7 @@ describe("getShownFilesListRuntime", () => {
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const setTimeout = vi.fn<BrowserSetTimeout>();
         const legacyScope = {
+            ...unavailableShownFilesListRuntimeScope,
             AbortController:
                 TestAbortController as unknown as BrowserAbortControllerConstructor,
             addEventListener,
