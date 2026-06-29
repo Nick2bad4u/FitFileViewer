@@ -30825,7 +30825,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps network fetch and timeout APIs behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(43);
 
         const violations = migratedNetworkUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -30855,6 +30855,24 @@ describe("architecture boundaries", () => {
         );
         expect(networkUtilsRuntimeSource).toContain(
             "defaultNetworkUtilsRuntimeScope"
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "type NetworkUtilsRuntimeProvider"
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(networkUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"an AbortController"\s*\)/u
+        );
+        expect(networkUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"a clearTimeout"\s*\)/u
+        );
+        expect(networkUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(scope\.getFetch,\s*"a fetch"\)/u
+        );
+        expect(networkUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"a setTimeout"\s*\)/u
         );
         expect(networkUtilsRuntimeSource).not.toContain(
             "const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = globalThis"
@@ -30888,8 +30906,9 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(networkUtilsRuntimeSource).toContain(
-            "const fetchRef = getScopeFetch(scope);"
+            "const fetchRef = getFetch();"
         );
+        expect(networkUtilsRuntimeSource).not.toContain("function getScope");
         expect(networkUtilsRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -30921,7 +30940,7 @@ describe("architecture boundaries", () => {
             "scope.getSetTimeout?.()"
         );
         expect(networkUtilsRuntimeSource).toContain(
-            "networkUtils requires an AbortController provider"
+            "networkUtils requires ${providerLabel} provider"
         );
         expect(networkUtilsRuntimeSource).not.toContain(
             "scope.AbortController"

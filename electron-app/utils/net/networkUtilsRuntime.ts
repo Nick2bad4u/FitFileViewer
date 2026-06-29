@@ -17,12 +17,10 @@ export type NetworkUtilsFetchInit =
 export type NetworkUtilsTimerHandle = BrowserTimerHandle;
 
 export interface NetworkUtilsRuntimeScope {
-    readonly getAbortController: () =>
-        | BrowserAbortControllerConstructor
-        | undefined;
-    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
-    readonly getFetch: () => BrowserFetch | undefined;
-    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
+    readonly getAbortController: NetworkUtilsRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: NetworkUtilsRuntimeProvider<BrowserClearTimeout>;
+    readonly getFetch: NetworkUtilsRuntimeProvider<BrowserFetch>;
+    readonly getSetTimeout: NetworkUtilsRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface NetworkUtilsRuntime {
@@ -38,6 +36,8 @@ export interface NetworkUtilsRuntime {
     ) => NetworkUtilsTimerHandle;
 }
 
+type NetworkUtilsRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getClearTimeout: getBrowserClearTimeout,
@@ -45,54 +45,26 @@ const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
-function getScopeAbortController(
-    scope: NetworkUtilsRuntimeScope
-): BrowserAbortControllerConstructor | undefined {
-    if (typeof scope.getAbortController !== "function") {
-        throw new TypeError(
-            "networkUtils requires an AbortController provider"
-        );
-    }
-
-    return scope.getAbortController();
-}
-
-function getScopeClearTimeout(
-    scope: NetworkUtilsRuntimeScope
-): BrowserClearTimeout | undefined {
-    if (typeof scope.getClearTimeout !== "function") {
-        throw new TypeError("networkUtils requires clearTimeout");
-    }
-
-    return scope.getClearTimeout();
-}
-
-function getScopeFetch(
-    scope: NetworkUtilsRuntimeScope
-): BrowserFetch | undefined {
-    if (typeof scope.getFetch !== "function") {
-        throw new TypeError("networkUtils requires fetch");
-    }
-
-    return scope.getFetch();
-}
-
-function getScopeSetTimeout(
-    scope: NetworkUtilsRuntimeScope
-): BrowserSetTimeout | undefined {
-    if (typeof scope.getSetTimeout !== "function") {
-        throw new TypeError("networkUtils requires setTimeout");
-    }
-
-    return scope.getSetTimeout();
-}
-
 export function getNetworkUtilsRuntime(
     scope: NetworkUtilsRuntimeScope = defaultNetworkUtilsRuntimeScope
 ): NetworkUtilsRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "an AbortController"
+    );
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "a clearTimeout"
+    );
+    const getFetch = getRequiredProvider(scope.getFetch, "a fetch");
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "a setTimeout"
+    );
+
     return {
         clearTimeout(handle: NetworkUtilsTimerHandle): void {
-            const clearTimeoutRef = getScopeClearTimeout(scope);
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError("networkUtils requires clearTimeout");
             }
@@ -100,7 +72,7 @@ export function getNetworkUtilsRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController | undefined {
-            const AbortControllerRef = getScopeAbortController(scope);
+            const AbortControllerRef = getAbortController();
             if (typeof AbortControllerRef !== "function") {
                 return undefined;
             }
@@ -111,7 +83,7 @@ export function getNetworkUtilsRuntime(
             input: NetworkUtilsFetchInput,
             init?: NetworkUtilsFetchInit
         ): Promise<Response> {
-            const fetchRef = getScopeFetch(scope);
+            const fetchRef = getFetch();
             if (typeof fetchRef !== "function") {
                 throw new TypeError("networkUtils requires fetch");
             }
@@ -122,7 +94,7 @@ export function getNetworkUtilsRuntime(
             callback: () => void,
             delay: number
         ): NetworkUtilsTimerHandle {
-            const setTimeoutRef = getScopeSetTimeout(scope);
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError("networkUtils requires setTimeout");
             }
@@ -130,4 +102,15 @@ export function getNetworkUtilsRuntime(
             return setTimeoutRef(callback, delay);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: NetworkUtilsRuntimeProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`networkUtils requires ${providerLabel} provider`);
+    }
+
+    return provider;
 }

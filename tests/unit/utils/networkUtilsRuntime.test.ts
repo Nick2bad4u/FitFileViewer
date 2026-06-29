@@ -102,30 +102,61 @@ describe("getNetworkUtilsRuntime", () => {
         );
     });
 
-    it("ignores legacy direct runtime scope properties", async () => {
+    it("fails clearly when runtime provider slots are undefined", () => {
         expect.assertions(4);
+
+        expect(() =>
+            getNetworkUtilsRuntime(
+                createNetworkUtilsRuntimeScope({
+                    getAbortController: undefined,
+                })
+            )
+        ).toThrow("networkUtils requires an AbortController provider");
+        expect(() =>
+            getNetworkUtilsRuntime(
+                createNetworkUtilsRuntimeScope({
+                    getFetch: undefined,
+                })
+            )
+        ).toThrow("networkUtils requires a fetch provider");
+        expect(() =>
+            getNetworkUtilsRuntime(
+                createNetworkUtilsRuntimeScope({
+                    getSetTimeout: undefined,
+                })
+            )
+        ).toThrow("networkUtils requires a setTimeout provider");
+        expect(() =>
+            getNetworkUtilsRuntime(
+                createNetworkUtilsRuntimeScope({
+                    getClearTimeout: undefined,
+                })
+            )
+        ).toThrow("networkUtils requires a clearTimeout provider");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(1);
 
         const fetch = vi.fn<typeof globalThis.fetch>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 37);
-        const utils = getNetworkUtilsRuntime({
-            AbortController,
-            clearTimeout,
-            fetch,
-            setTimeout,
-        } as unknown as Parameters<typeof getNetworkUtilsRuntime>[0]);
 
-        expect(() => utils.createAbortController()).toThrow(
-            "networkUtils requires an AbortController provider"
-        );
-        await expect(utils.fetch("https://example.test")).rejects.toThrow(
-            "networkUtils requires fetch"
-        );
-        expect(() => utils.setTimeout(() => {}, 1)).toThrow(
-            "networkUtils requires setTimeout"
-        );
-        expect(() => utils.clearTimeout(1)).toThrow(
-            "networkUtils requires clearTimeout"
-        );
+        expect(() =>
+            getNetworkUtilsRuntime({
+                AbortController,
+                clearTimeout,
+                fetch,
+                setTimeout,
+            } as unknown as Parameters<typeof getNetworkUtilsRuntime>[0])
+        ).toThrow("networkUtils requires an AbortController provider");
+    });
+
+    it("fails clearly when runtime provider slots are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getNetworkUtilsRuntime({} as unknown as NetworkUtilsRuntimeScope)
+        ).toThrow("networkUtils requires an AbortController provider");
     });
 });
