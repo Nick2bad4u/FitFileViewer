@@ -19,27 +19,17 @@ import {
 export type ShowNotificationTimerHandle = BrowserTimerHandle | number;
 
 export type ShowNotificationRuntimeScope = {
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?:
-        | (() => ShowNotificationDocument | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getCancelAnimationFrame: ShowNotificationRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getClearTimeout: ShowNotificationRuntimeProvider<BrowserClearTimeout>;
+    readonly getDateNow: ShowNotificationRuntimeProvider<() => number>;
+    readonly getDocument: ShowNotificationRuntimeProvider<ShowNotificationDocument>;
+    readonly getHTMLElement: ShowNotificationRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getKeyboardEvent: ShowNotificationRuntimeProvider<BrowserKeyboardEventConstructor>;
+    readonly getRequestAnimationFrame: ShowNotificationRuntimeProvider<BrowserRequestAnimationFrame>;
+    readonly getSetTimeout: ShowNotificationRuntimeProvider<BrowserSetTimeout>;
 };
+
+type ShowNotificationRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export type ShowNotificationRuntime = {
     readonly cancelAnimationFrame: (frame: number) => void;
@@ -79,19 +69,21 @@ const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
 };
 
 function getCancelAnimationFrame(
-    scope: ShowNotificationRuntimeScope
+    getCancelAnimationFrameRef: () => BrowserCancelAnimationFrame | undefined
 ): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
+    return getCancelAnimationFrameRef();
 }
 
 function getClearTimeout(
-    scope: ShowNotificationRuntimeScope
+    getClearTimeoutRef: () => BrowserClearTimeout | undefined
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getClearTimeoutRef();
 }
 
-function getRequiredDateNow(scope: ShowNotificationRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+function getRequiredDateNow(
+    getDateNow: () => (() => number) | undefined
+): () => number {
+    const dateNow = getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("show notification runtime requires dateNow");
     }
@@ -100,9 +92,9 @@ function getRequiredDateNow(scope: ShowNotificationRuntimeScope): () => number {
 }
 
 function getRequiredDocument(
-    scope: ShowNotificationRuntimeScope
+    getDocument: () => ShowNotificationDocument | undefined
 ): ShowNotificationDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("show notification runtime requires document");
     }
@@ -111,9 +103,9 @@ function getRequiredDocument(
 }
 
 function getHTMLElementConstructor(
-    scope: ShowNotificationRuntimeScope
+    getHTMLElement: () => BrowserHTMLElementConstructor | undefined
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("show notification runtime requires HTMLElement");
     }
@@ -122,9 +114,9 @@ function getHTMLElementConstructor(
 }
 
 function getKeyboardEventConstructor(
-    scope: ShowNotificationRuntimeScope
+    getKeyboardEvent: () => BrowserKeyboardEventConstructor | undefined
 ): BrowserKeyboardEventConstructor {
-    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    const KeyboardEventConstructor = getKeyboardEvent();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError("show notification runtime requires KeyboardEvent");
     }
@@ -133,30 +125,59 @@ function getKeyboardEventConstructor(
 }
 
 function getRequestAnimationFrame(
-    scope: ShowNotificationRuntimeScope
+    getRequestAnimationFrameRef: () => BrowserRequestAnimationFrame | undefined
 ): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    return getRequestAnimationFrameRef();
 }
 
 function getSetTimeout(
-    scope: ShowNotificationRuntimeScope
+    getSetTimeoutRef: () => BrowserSetTimeout | undefined
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getSetTimeoutRef();
 }
 
 export function getShowNotificationRuntime(
     scope: ShowNotificationRuntimeScope = defaultShowNotificationRuntimeScope
 ): ShowNotificationRuntime {
+    const getCancelAnimationFrameRef = getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    );
+    const getClearTimeoutRef = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    );
+    const getDateNow = getRequiredProvider(scope.getDateNow, "dateNow");
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getHTMLElement = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    );
+    const getKeyboardEvent = getRequiredProvider(
+        scope.getKeyboardEvent,
+        "KeyboardEvent"
+    );
+    const getRequestAnimationFrameRef = getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    );
+    const getSetTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         cancelAnimationFrame(frame) {
-            const cancelFrame = getCancelAnimationFrame(scope);
+            const cancelFrame = getCancelAnimationFrame(
+                getCancelAnimationFrameRef
+            );
             if (typeof cancelFrame !== "function") {
                 return;
             }
             cancelFrame.call(scope, frame);
         },
         clearTimeout(timer) {
-            const clearTimer = getClearTimeout(scope);
+            const clearTimer = getClearTimeout(getClearTimeoutRef);
             if (typeof clearTimer !== "function") {
                 throw new TypeError(
                     "show notification runtime requires clearTimeout"
@@ -165,22 +186,26 @@ export function getShowNotificationRuntime(
             clearTimer.call(scope, timer);
         },
         createElement(tagName) {
-            return getRequiredDocument(scope).createElement(tagName);
+            return getRequiredDocument(getDocument).createElement(tagName);
         },
         dateNow() {
-            return getRequiredDateNow(scope)();
+            return getRequiredDateNow(getDateNow)();
         },
         queryElement(selector) {
-            return getRequiredDocument(scope).querySelector(selector);
+            return getRequiredDocument(getDocument).querySelector(selector);
         },
         isHTMLElement(value) {
-            return value instanceof getHTMLElementConstructor(scope);
+            return value instanceof getHTMLElementConstructor(getHTMLElement);
         },
         isKeyboardEvent(value) {
-            return value instanceof getKeyboardEventConstructor(scope);
+            return (
+                value instanceof getKeyboardEventConstructor(getKeyboardEvent)
+            );
         },
         requestAnimationFrame(onFrame) {
-            const requestFrame = getRequestAnimationFrame(scope);
+            const requestFrame = getRequestAnimationFrame(
+                getRequestAnimationFrameRef
+            );
             if (typeof requestFrame !== "function") {
                 onFrame(0);
                 return null;
@@ -188,7 +213,7 @@ export function getShowNotificationRuntime(
             return requestFrame.call(scope, onFrame);
         },
         setTimeout(callback, duration) {
-            const setTimer = getSetTimeout(scope);
+            const setTimer = getSetTimeout(getSetTimeoutRef);
             if (typeof setTimer !== "function") {
                 throw new TypeError(
                     "show notification runtime requires setTimeout"
@@ -197,4 +222,17 @@ export function getShowNotificationRuntime(
             return setTimer.call(scope, callback, duration);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: ShowNotificationRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `show notification runtime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

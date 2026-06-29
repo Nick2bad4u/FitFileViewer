@@ -5,6 +5,22 @@ import {
     type ShowNotificationRuntimeScope,
 } from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
+function createShowNotificationRuntimeScope(
+    overrides: Partial<ShowNotificationRuntimeScope> = {}
+): ShowNotificationRuntimeScope {
+    return {
+        getCancelAnimationFrame: () => undefined,
+        getClearTimeout: () => undefined,
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("showNotificationRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -37,9 +53,9 @@ describe("showNotificationRuntime", () => {
 
         const callback = vi.fn();
         const requestAnimationFrame = vi.fn(() => 23);
-        const scopeRuntime = {
+        const scopeRuntime = createShowNotificationRuntimeScope({
             getRequestAnimationFrame: () => requestAnimationFrame,
-        };
+        });
 
         const frame =
             getShowNotificationRuntime(scopeRuntime).requestAnimationFrame(
@@ -55,9 +71,9 @@ describe("showNotificationRuntime", () => {
 
         const callback = vi.fn();
 
-        const frame = getShowNotificationRuntime({}).requestAnimationFrame(
-            callback
-        );
+        const frame = getShowNotificationRuntime(
+            createShowNotificationRuntimeScope()
+        ).requestAnimationFrame(callback);
 
         expect(frame).toBeNull();
         expect(callback).toHaveBeenCalledWith(0);
@@ -67,14 +83,16 @@ describe("showNotificationRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn();
-        const scopeRuntime = {
+        const scopeRuntime = createShowNotificationRuntimeScope({
             getCancelAnimationFrame: () => cancelAnimationFrame,
-        };
+        });
 
         getShowNotificationRuntime(scopeRuntime).cancelAnimationFrame(29);
 
         expect(() =>
-            getShowNotificationRuntime({}).cancelAnimationFrame(31)
+            getShowNotificationRuntime(
+                createShowNotificationRuntimeScope()
+            ).cancelAnimationFrame(31)
         ).not.toThrow();
         expect(cancelAnimationFrame).toHaveBeenCalledWith(29);
     });
@@ -89,11 +107,11 @@ describe("showNotificationRuntime", () => {
         const clearTimeout = vi.fn();
         const dateNow = vi.fn<() => number>(() => timestamp);
         const setTimeout = vi.fn(() => timer);
-        const scopeRuntime = {
+        const scopeRuntime = createShowNotificationRuntimeScope({
             getClearTimeout: () => clearTimeout,
             getDateNow: () => dateNow,
             getSetTimeout: () => setTimeout,
-        };
+        });
         const runtime = getShowNotificationRuntime(scopeRuntime);
 
         const currentTimestamp = runtime.dateNow();
@@ -116,9 +134,11 @@ describe("showNotificationRuntime", () => {
         const host = documentRef.createElement("div");
         host.id = "notification";
         documentRef.body.append(host);
-        const utils = getShowNotificationRuntime({
-            getDocument: () => documentRef,
-        });
+        const utils = getShowNotificationRuntime(
+            createShowNotificationRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         const queried = utils.queryElement("#notification");
         const button = utils.createElement("button");
@@ -132,7 +152,9 @@ describe("showNotificationRuntime", () => {
     it("fails clearly when notification document access is unavailable", () => {
         expect.assertions(2);
 
-        const utils = getShowNotificationRuntime({});
+        const utils = getShowNotificationRuntime(
+            createShowNotificationRuntimeScope()
+        );
 
         expect(() => utils.queryElement("#notification")).toThrow(
             "show notification runtime requires document"
@@ -143,7 +165,7 @@ describe("showNotificationRuntime", () => {
     });
 
     it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const callback = vi.fn();
         const frameCallback = vi.fn();
@@ -152,12 +174,25 @@ describe("showNotificationRuntime", () => {
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const requestAnimationFrame = vi.fn(() => 43);
         const cancelAnimationFrame = vi.fn();
-        const runtime = getShowNotificationRuntime({
+        const legacyDirectScope = {
             cancelAnimationFrame,
             clearTimeout,
             dateNow,
             requestAnimationFrame,
             setTimeout,
+        };
+
+        expect(() =>
+            getShowNotificationRuntime(
+                legacyDirectScope as unknown as ShowNotificationRuntimeScope
+            )
+        ).toThrow(
+            "show notification runtime requires cancelAnimationFrame provider"
+        );
+
+        const runtime = getShowNotificationRuntime({
+            ...legacyDirectScope,
+            ...createShowNotificationRuntimeScope(),
         } as unknown as Parameters<typeof getShowNotificationRuntime>[0]);
 
         expect(() => runtime.setTimeout(callback, 0)).toThrow(
@@ -182,12 +217,25 @@ describe("showNotificationRuntime", () => {
     });
 
     it("ignores legacy direct document runtime properties", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const querySelector = vi.fn<Document["querySelector"]>();
         const createElement = vi.fn<Document["createElement"]>();
-        const utils = getShowNotificationRuntime({
+        const legacyDirectScope = {
             document: { createElement, querySelector },
+        };
+
+        expect(() =>
+            getShowNotificationRuntime(
+                legacyDirectScope as unknown as ShowNotificationRuntimeScope
+            )
+        ).toThrow(
+            "show notification runtime requires cancelAnimationFrame provider"
+        );
+
+        const utils = getShowNotificationRuntime({
+            ...legacyDirectScope,
+            ...createShowNotificationRuntimeScope(),
         } as unknown as ShowNotificationRuntimeScope);
 
         expect(() => utils.queryElement("#notification")).toThrow(

@@ -12198,7 +12198,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(59);
+        expect.assertions(81);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -12319,7 +12319,50 @@ describe("architecture boundaries", () => {
             "readonly dateNow: () => number;"
         );
         expect(notificationRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "type ShowNotificationRuntimeProvider"
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getCancelAnimationFrame:\s*ShowNotificationRuntimeProvider<BrowserCancelAnimationFrame>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*ShowNotificationRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*ShowNotificationRuntimeProvider<\(\) => number>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getRequestAnimationFrame:\s*ShowNotificationRuntimeProvider<BrowserRequestAnimationFrame>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*ShowNotificationRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(notificationRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelAnimationFrame,\s*"cancelAnimationFrame"\s*\)/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame,\s*"requestAnimationFrame"\s*\)/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(notificationRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
+        expect(notificationRuntimeSource).toContain(
+            "show notification runtime requires ${providerName} provider"
+        );
+        expect(notificationRuntimeSource).toContain("providerName: string");
+        expect(notificationRuntimeSource).toContain(
+            "const dateNow = getDateNow();"
         );
         expect(notificationRuntimeSource).toContain(
             "show notification runtime requires dateNow"
@@ -12339,8 +12382,29 @@ describe("architecture boundaries", () => {
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
         expect(notificationRuntimeSource).not.toContain(
             "readonly cancelAnimationFrame?:"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
         );
         expect(notificationRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
@@ -12378,7 +12442,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification DOM access behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(35);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -12450,6 +12514,36 @@ describe("architecture boundaries", () => {
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly KeyboardEvent?:"
         );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*ShowNotificationRuntimeProvider<ShowNotificationDocument>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*ShowNotificationRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /readonly\s+getKeyboardEvent:\s*ShowNotificationRuntimeProvider<BrowserKeyboardEventConstructor>/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(notificationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getKeyboardEvent,\s*"KeyboardEvent"\s*\)/u
+        );
+        expect(notificationRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
         expect(notificationRuntimeSource).not.toContain("scope.document");
         expect(notificationRuntimeSource).not.toContain("scope.HTMLElement");
         expect(notificationRuntimeSource).not.toContain("scope.KeyboardEvent");
@@ -12460,7 +12554,7 @@ describe("architecture boundaries", () => {
             /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
         );
         expect(notificationRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
         );
         expect(notificationRuntimeSource).toContain(
             "show notification runtime requires document"
