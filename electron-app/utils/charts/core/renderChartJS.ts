@@ -406,10 +406,11 @@ export async function renderChartJS(
     }
 
     try {
+        const doc = renderChartRuntime().documentRef;
         const renderSession = await beginChartRenderSession(
             {
                 clearChartRenderState: clearRendererChartRenderState,
-                doc: document,
+                doc,
                 getChartLifecycleActions,
                 isLoadingStateSuppressed,
                 now: renderChartRuntime().nowPerformance,
@@ -426,7 +427,7 @@ export async function renderChartJS(
 
         const preparedData = await prepareChartRenderData(
             {
-                doc: document,
+                doc,
                 getConverters: getConvertersSafe,
                 getSetupZoneData: getSetupZoneDataSafe,
                 getThemeConfig: getThemeConfigSafe,
@@ -484,7 +485,10 @@ export async function renderChartJS(
         safeCompleteRendering(false);
 
         await renderChartErrorPlaceholder(
-            { doc: document, getThemeConfig: getThemeConfigSafe },
+            {
+                doc: renderChartRuntime().documentRef,
+                getThemeConfig: getThemeConfigSafe,
+            },
             targetContainer,
             error
         );
@@ -508,6 +512,7 @@ async function renderChartsWithData(
     startTime: ActivityStartTime,
     options: Pick<RenderChartOptions, "skipControls" | "skipTabAbort"> = {}
 ): Promise<boolean> {
+    const doc = renderChartRuntime().documentRef;
     const {
         isDebugLoggingEnabled,
         isTestRuntime,
@@ -516,7 +521,7 @@ async function renderChartsWithData(
         skipTabAbort,
     } = beginChartDataRenderContext(
         {
-            doc: document,
+            doc,
             isChartDebugEnabled: isChartDebugLoggingEnabled,
             isDevelopmentEnvironment,
             isTestEnvironment,
@@ -550,7 +555,7 @@ async function renderChartsWithData(
 
     const chartContainer = prepareChartRenderContainer(
         {
-            doc: document,
+            doc,
             removeChartHoverEffects: removeChartHoverEffectsSafe,
         },
         { skipControls, targetContainer }
@@ -670,7 +675,7 @@ async function renderChartsWithData(
             chartContainer,
             CustomEventConstructor:
                 renderChartRuntime().getCustomEventConstructor(),
-            doc: document,
+            doc,
             getComputedStateManager: getComputedStateManagerSafe,
             getChartOptions: getRendererChartOptions,
             getThemeConfig: getThemeConfigSafe,

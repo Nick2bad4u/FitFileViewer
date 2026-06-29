@@ -30,8 +30,8 @@ describe("renderChartJSRuntime", () => {
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
     });
 
-    it("creates elements through the scoped document runtime", () => {
-        expect.assertions(1);
+    it("creates elements and exposes document through the scoped document runtime", () => {
+        expect.assertions(2);
 
         const documentRef =
             document.implementation.createHTMLDocument("chart runtime");
@@ -40,16 +40,20 @@ describe("renderChartJSRuntime", () => {
             getDocument: () => documentRef,
         });
 
+        expect(utils.documentRef).toBe(documentRef);
         expect(utils.createElement("canvas")).toBeInstanceOf(
             documentRef.defaultView?.HTMLCanvasElement ?? HTMLCanvasElement
         );
     });
 
     it("does not borrow ambient documents for explicit scopes", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const utils = getRenderChartJSRuntime(unavailableRenderChartScope);
 
+        expect(() => utils.documentRef).toThrow(
+            "renderChartJSRuntime requires document"
+        );
         expect(() => utils.createElement("canvas")).toThrow(
             "renderChartJSRuntime requires document"
         );
@@ -99,7 +103,7 @@ describe("renderChartJSRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const now = vi.fn(() => 42.5);
         const dateNow = vi.spyOn(Date, "now").mockReturnValue(5678);
@@ -112,6 +116,7 @@ describe("renderChartJSRuntime", () => {
         vi.stubGlobal("performance", { now });
 
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
+        expect(utils.documentRef).toBe(documentRef);
         expect(utils.createElement("canvas").ownerDocument).toBe(documentRef);
         expect(utils.isWindowAvailable()).toBe(true);
         expect(utils.nowPerformance()).toBe(42.5);

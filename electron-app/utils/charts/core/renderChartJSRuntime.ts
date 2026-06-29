@@ -20,6 +20,7 @@ export interface RenderChartJSRuntime {
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
+    readonly documentRef: Document;
     getCustomEventConstructor: () => BrowserCustomEventConstructor | undefined;
     isWindowAvailable: () => boolean;
     now: () => number;
@@ -114,6 +115,10 @@ export function getRenderChartJSRuntime(
     return {
         createElement(tagName) {
             return getRequiredDocument(scope).createElement(tagName);
+        },
+
+        get documentRef(): Document {
+            return getRequiredDocument(scope);
         },
 
         getCustomEventConstructor(): BrowserCustomEventConstructor | undefined {
