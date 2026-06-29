@@ -1,7 +1,7 @@
 import { getBrowserDocument } from "../runtime/browserRuntime.js";
 
 export interface RendererDebugRuntimeScope {
-    readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
+    readonly getIsRendererScope: (() => boolean | undefined) | undefined;
 }
 
 export interface RendererDebugRuntime {
@@ -13,7 +13,12 @@ const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = {
 };
 
 function getIsRendererScope(scope: RendererDebugRuntimeScope): boolean {
-    return scope.getIsRendererScope?.() ?? false;
+    const getIsRendererScope = scope.getIsRendererScope;
+    if (typeof getIsRendererScope !== "function") {
+        throw new TypeError("rendererDebugRuntime requires renderer provider");
+    }
+
+    return getIsRendererScope() ?? false;
 }
 
 export function getRendererDebugRuntime(

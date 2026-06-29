@@ -3,6 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getRendererDebugRuntime } from "../../../../electron-app/utils/debug/rendererDebugRuntime.js";
 
 describe("rendererDebugRuntime", () => {
+    const unavailableRendererDebugRuntimeScope = {
+        getIsRendererScope: () => undefined,
+    } satisfies Parameters<typeof getRendererDebugRuntime>[0];
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -21,7 +25,9 @@ describe("rendererDebugRuntime", () => {
             }).isRendererDebugLoggingAvailable(false)
         ).toBe(false);
         expect(
-            getRendererDebugRuntime({}).isRendererDebugLoggingAvailable(true)
+            getRendererDebugRuntime(
+                unavailableRendererDebugRuntimeScope
+            ).isRendererDebugLoggingAvailable(true)
         ).toBe(false);
     });
 
@@ -55,10 +61,23 @@ describe("rendererDebugRuntime", () => {
         ).toBe(true);
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(1);
+
+        const utils = getRendererDebugRuntime(
+            {} as unknown as Parameters<typeof getRendererDebugRuntime>[0]
+        );
+
+        expect(() => utils.isRendererDebugLoggingAvailable(true)).toThrow(
+            "rendererDebugRuntime requires renderer provider"
+        );
+    });
+
     it("ignores legacy direct renderer-scope properties", () => {
         expect.assertions(1);
 
         const utils = getRendererDebugRuntime({
+            ...unavailableRendererDebugRuntimeScope,
             isRendererScope: true,
         } as unknown as Parameters<typeof getRendererDebugRuntime>[0]);
 
