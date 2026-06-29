@@ -1,14 +1,10 @@
 import { fileURLToPath } from "node:url";
 import {
-    getProcessStringValue,
-    isTestEnvironment,
-} from "../../utils/runtime/processEnvironment.js";
-import { appRef as electronAppRef } from "../runtime/electronAccess.js";
+    getIpcSenderPolicyRuntime,
+    type IpcSenderPolicyRuntime,
+    type IpcSenderPolicyProcessStringName,
+} from "./ipcSenderPolicyRuntime.js";
 import { path } from "../runtime/nodeModules.js";
-
-type AppLike = {
-    getAppPath?: () => string;
-};
 
 interface IpcEventLike {
     sender?: {
@@ -19,7 +15,9 @@ interface IpcEventLike {
     };
 }
 
-const appRef = electronAppRef as () => AppLike | undefined;
+function ipcSenderPolicyRuntime(): IpcSenderPolicyRuntime {
+    return getIpcSenderPolicyRuntime();
+}
 
 export function assertIpcSenderAllowed(event: unknown): void {
     const senderUrl = getIpcSenderUrl(event);
@@ -89,7 +87,7 @@ function getAllowedAppRoots(): string[] {
     const roots: string[] = [];
 
     try {
-        const appPath = appRef()?.getAppPath?.();
+        const appPath = ipcSenderPolicyRuntime().appRef()?.getAppPath?.();
         if (typeof appPath === "string" && appPath.trim().length > 0) {
             roots.push(appPath);
         }
@@ -126,5 +124,11 @@ function normalizePath(filePath: string): string {
 }
 
 function isTestMode(): boolean {
-    return isTestEnvironment();
+    return ipcSenderPolicyRuntime().isTestEnvironment();
+}
+
+function getProcessStringValue(
+    name: IpcSenderPolicyProcessStringName
+): string | undefined {
+    return ipcSenderPolicyRuntime().getProcessStringValue(name);
 }
