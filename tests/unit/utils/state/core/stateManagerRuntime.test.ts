@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getStateManagerRuntime } from "../../../../../electron-app/utils/state/core/stateManagerRuntime.js";
+import {
+    getStateManagerRuntime,
+    type StateManagerRuntimeScope,
+} from "../../../../../electron-app/utils/state/core/stateManagerRuntime.js";
 
 describe("stateManagerRuntime", () => {
     afterEach(() => {
@@ -27,7 +30,9 @@ describe("stateManagerRuntime", () => {
             dateNow,
         } as unknown as Parameters<typeof getStateManagerRuntime>[0]);
 
-        expect(() => utils.dateNow()).toThrow("stateManager requires dateNow");
+        expect(() => utils.dateNow()).toThrow(
+            "stateManager requires a dateNow provider"
+        );
         expect(dateNow).not.toHaveBeenCalled();
     });
 
@@ -44,8 +49,20 @@ describe("stateManagerRuntime", () => {
     it("fails clearly when explicit scopes omit timing providers", () => {
         expect.assertions(1);
 
-        expect(() => getStateManagerRuntime({}).dateNow()).toThrow(
-            "stateManager requires dateNow"
-        );
+        expect(() =>
+            getStateManagerRuntime(
+                {} as unknown as StateManagerRuntimeScope
+            ).dateNow()
+        ).toThrow("stateManager requires a dateNow provider");
+    });
+
+    it("fails clearly when explicit providers return unavailable clocks", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getStateManagerRuntime({
+                getDateNow: () => undefined,
+            }).dateNow()
+        ).toThrow("stateManager requires dateNow");
     });
 });

@@ -1,7 +1,7 @@
 import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 
 export interface StateManagerRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
 }
 
 export interface StateManagerRuntime {
@@ -17,7 +17,11 @@ export function getStateManagerRuntime(
 ): StateManagerRuntime {
     return {
         dateNow(): number {
-            const dateNow = scope.getDateNow?.();
+            if (typeof scope.getDateNow !== "function") {
+                throw new TypeError("stateManager requires a dateNow provider");
+            }
+
+            const dateNow = scope.getDateNow();
             if (typeof dateNow !== "function") {
                 throw new TypeError("stateManager requires dateNow");
             }

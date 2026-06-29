@@ -5751,7 +5751,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core state manager history timestamps behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(18);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -5786,8 +5786,15 @@ describe("architecture boundaries", () => {
         expect(stateManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
         );
+        expect(stateManagerRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(stateManagerRuntimeSource).not.toContain("scope.getDateNow?.()");
         expect(stateManagerRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "stateManager requires a dateNow provider"
         );
         expect(stateManagerRuntimeSource).toContain(
             "stateManager requires dateNow"
