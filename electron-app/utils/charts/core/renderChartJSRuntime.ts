@@ -7,15 +7,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface RenderChartJSRuntimeScope {
-    readonly getCustomEventConstructor?:
-        | (() => BrowserCustomEventConstructor | undefined)
+    readonly getCustomEventConstructor: () =>
+        | BrowserCustomEventConstructor
         | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
-    readonly getPerformance?:
-        | (() => Pick<Performance, "now"> | undefined)
-        | undefined;
+    readonly getDateNow: () => (() => number) | undefined;
+    readonly getDocument: () => Document | undefined;
+    readonly getIsRendererScope: () => boolean | undefined;
+    readonly getPerformance: () => Pick<Performance, "now"> | undefined;
 }
 
 export interface RenderChartJSRuntime {
@@ -37,7 +35,11 @@ const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
 };
 
 function getRequiredDateNow(scope: RenderChartJSRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError("renderChartJSRuntime requires a dateNow provider");
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("renderChartJSRuntime requires dateNow");
     }
@@ -60,11 +62,23 @@ function getRequiredPerformanceNow(
 function getScopeCustomEventConstructor(
     scope: RenderChartJSRuntimeScope
 ): BrowserCustomEventConstructor | undefined {
-    return scope.getCustomEventConstructor?.();
+    if (typeof scope.getCustomEventConstructor !== "function") {
+        throw new TypeError(
+            "renderChartJSRuntime requires a CustomEvent provider"
+        );
+    }
+
+    return scope.getCustomEventConstructor();
 }
 
 function getRequiredDocument(scope: RenderChartJSRuntimeScope): Document {
-    const documentRef = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "renderChartJSRuntime requires a document provider"
+        );
+    }
+
+    const documentRef = scope.getDocument();
     if (!documentRef) {
         throw new TypeError("renderChartJSRuntime requires document");
     }
@@ -75,11 +89,23 @@ function getRequiredDocument(scope: RenderChartJSRuntimeScope): Document {
 function getScopePerformance(
     scope: RenderChartJSRuntimeScope
 ): Pick<Performance, "now"> | undefined {
-    return scope.getPerformance?.();
+    if (typeof scope.getPerformance !== "function") {
+        throw new TypeError(
+            "renderChartJSRuntime requires a performance provider"
+        );
+    }
+
+    return scope.getPerformance();
 }
 
 function getIsRendererScope(scope: RenderChartJSRuntimeScope): boolean {
-    return scope.getIsRendererScope?.() ?? false;
+    if (typeof scope.getIsRendererScope !== "function") {
+        throw new TypeError(
+            "renderChartJSRuntime requires a renderer-scope provider"
+        );
+    }
+
+    return scope.getIsRendererScope() ?? false;
 }
 
 export function getRenderChartJSRuntime(

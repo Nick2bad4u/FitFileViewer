@@ -9835,7 +9835,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(57);
+        expect.assertions(71);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -9915,7 +9915,22 @@ describe("architecture boundaries", () => {
             "renderChartJSRuntime requires dateNow"
         );
         expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires a dateNow provider"
+        );
+        expect(renderChartRuntimeSource).toContain(
             "renderChartJSRuntime requires document"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires a document provider"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires a CustomEvent provider"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires a performance provider"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires a renderer-scope provider"
         );
         expect(renderChartRuntimeSource).toContain(
             "defaultRenderChartJSRuntimeScope"
@@ -9951,7 +9966,19 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(renderChartRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "return scope.getCustomEventConstructor();"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "const documentRef = scope.getDocument();"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "return scope.getPerformance();"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "return scope.getIsRendererScope() ?? false;"
         );
         expect(renderChartRuntimeSource).toContain(
             "getRequiredDocument(scope).createElement"
@@ -9964,6 +9991,19 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeSource).not.toContain(
             "readonly CustomEventConstructor?:"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
+            "readonly getCustomEventConstructor?:"
+        );
+        expect(renderChartRuntimeSource).not.toContain("readonly getDateNow?:");
+        expect(renderChartRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
+            "readonly getIsRendererScope?:"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
         );
         expect(renderChartRuntimeSource).not.toContain("readonly dateNow?:");
         expect(renderChartRuntimeSource).not.toContain(

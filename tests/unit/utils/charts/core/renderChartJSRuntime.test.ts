@@ -1,6 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRenderChartJSRuntime } from "../../../../../electron-app/utils/charts/core/renderChartJSRuntime.js";
+import {
+    getRenderChartJSRuntime,
+    type RenderChartJSRuntimeScope,
+} from "../../../../../electron-app/utils/charts/core/renderChartJSRuntime.js";
+
+const unavailableRenderChartScope = {
+    getCustomEventConstructor: () => undefined,
+    getDateNow: () => undefined,
+    getDocument: () => undefined,
+    getIsRendererScope: () => undefined,
+    getPerformance: () => undefined,
+} satisfies RenderChartJSRuntimeScope;
 
 describe("renderChartJSRuntime", () => {
     afterEach(() => {
@@ -12,6 +23,7 @@ describe("renderChartJSRuntime", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
+            ...unavailableRenderChartScope,
             getCustomEventConstructor: () => CustomEvent,
         });
 
@@ -24,6 +36,7 @@ describe("renderChartJSRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("chart runtime");
         const utils = getRenderChartJSRuntime({
+            ...unavailableRenderChartScope,
             getDocument: () => documentRef,
         });
 
@@ -35,7 +48,7 @@ describe("renderChartJSRuntime", () => {
     it("does not borrow ambient documents for explicit scopes", () => {
         expect.assertions(1);
 
-        const utils = getRenderChartJSRuntime({});
+        const utils = getRenderChartJSRuntime(unavailableRenderChartScope);
 
         expect(() => utils.createElement("canvas")).toThrow(
             "renderChartJSRuntime requires document"
@@ -45,7 +58,7 @@ describe("renderChartJSRuntime", () => {
     it("does not borrow ambient custom events for explicit scopes", () => {
         expect.assertions(1);
 
-        const utils = getRenderChartJSRuntime({});
+        const utils = getRenderChartJSRuntime(unavailableRenderChartScope);
 
         expect(utils.getCustomEventConstructor()).toBeUndefined();
     });
@@ -55,6 +68,7 @@ describe("renderChartJSRuntime", () => {
 
         const now = vi.fn(() => 42.5),
             utils = getRenderChartJSRuntime({
+                ...unavailableRenderChartScope,
                 getPerformance: () => ({ now }),
             });
 
@@ -66,6 +80,7 @@ describe("renderChartJSRuntime", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
+            ...unavailableRenderChartScope,
             getDateNow: () => () => 1234,
         });
 
@@ -76,6 +91,7 @@ describe("renderChartJSRuntime", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
+            ...unavailableRenderChartScope,
             getDateNow: () => () => 5678,
         });
 
@@ -108,7 +124,7 @@ describe("renderChartJSRuntime", () => {
     it("does not borrow ambient date clocks for explicit scopes", () => {
         expect.assertions(2);
 
-        const utils = getRenderChartJSRuntime({});
+        const utils = getRenderChartJSRuntime(unavailableRenderChartScope);
 
         expect(() => utils.now()).toThrow(
             "renderChartJSRuntime requires dateNow"
@@ -123,20 +139,49 @@ describe("renderChartJSRuntime", () => {
 
         expect(
             getRenderChartJSRuntime({
+                ...unavailableRenderChartScope,
                 getIsRendererScope: () => true,
             }).isWindowAvailable()
         ).toBe(true);
-        expect(getRenderChartJSRuntime({}).isWindowAvailable()).toBe(false);
+        expect(
+            getRenderChartJSRuntime(
+                unavailableRenderChartScope
+            ).isWindowAvailable()
+        ).toBe(false);
     });
 
     it("ignores legacy direct renderer-scope properties", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
+            ...unavailableRenderChartScope,
             isRendererScope: true,
         } as unknown as Parameters<typeof getRenderChartJSRuntime>[0]);
 
         expect(utils.isWindowAvailable()).toBe(false);
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(5);
+
+        const omittedProviderScope = {} as unknown as RenderChartJSRuntimeScope;
+        const utils = getRenderChartJSRuntime(omittedProviderScope);
+
+        expect(() => utils.createElement("canvas")).toThrow(
+            "renderChartJSRuntime requires a document provider"
+        );
+        expect(() => utils.getCustomEventConstructor()).toThrow(
+            "renderChartJSRuntime requires a CustomEvent provider"
+        );
+        expect(() => utils.isWindowAvailable()).toThrow(
+            "renderChartJSRuntime requires a renderer-scope provider"
+        );
+        expect(() => utils.now()).toThrow(
+            "renderChartJSRuntime requires a dateNow provider"
+        );
+        expect(() => utils.nowPerformance()).toThrow(
+            "renderChartJSRuntime requires a performance provider"
+        );
     });
 
     it("ignores legacy direct date clock, custom event, and performance properties", () => {
@@ -145,6 +190,7 @@ describe("renderChartJSRuntime", () => {
         const now = vi.fn(() => 99);
         const dateNow = vi.fn(() => 123);
         const utils = getRenderChartJSRuntime({
+            ...unavailableRenderChartScope,
             CustomEventConstructor: CustomEvent,
             dateNow,
             document,
