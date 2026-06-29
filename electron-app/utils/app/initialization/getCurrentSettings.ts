@@ -272,7 +272,9 @@ export function resetAllSettings(): boolean {
         // Clear all stored settings
         clearAllStorageItems(); // Reset UI controls with a small delay to ensure DOM is ready
         scheduleResetTimer(() => {
-            const wrapper = getChartSettingsWrapper(document);
+            const wrapper = getChartSettingsWrapper(
+                currentSettingsRuntime().documentRef
+            );
             if (wrapper) {
                 resetUIControlsToDefaults(wrapper);
             }

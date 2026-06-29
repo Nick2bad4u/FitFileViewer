@@ -16,6 +16,7 @@ describe("getGetCurrentSettingsRuntime", () => {
     ): GetCurrentSettingsRuntimeScope {
         return {
             getClearTimeout: () => undefined,
+            getDocument: () => undefined,
             getHTMLInputElement: () => undefined,
             getHTMLSelectElement: () => undefined,
             getSetTimeout: () => undefined,
@@ -52,8 +53,8 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
-    it("uses browser runtime providers for production timer defaults", () => {
-        expect.assertions(3);
+    it("uses browser runtime providers for production timer and document defaults", () => {
+        expect.assertions(4);
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("150");
@@ -68,9 +69,22 @@ describe("getGetCurrentSettingsRuntime", () => {
         const timerHandle = runtime.setTimeout(callback, delayMs);
         runtime.clearTimeout(timerHandle);
 
+        expect(runtime.documentRef).toBe(document);
         expect(timerHandle).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+    });
+
+    it("reads the document through the injected runtime scope", () => {
+        expect.assertions(1);
+
+        const runtime = getGetCurrentSettingsRuntime(
+            createGetCurrentSettingsRuntimeScope({
+                getDocument: () => document,
+            })
+        );
+
+        expect(runtime.documentRef).toBe(document);
     });
 
     it("checks form elements through injected constructor providers", () => {
@@ -105,12 +119,15 @@ describe("getGetCurrentSettingsRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtime = getGetCurrentSettingsRuntime(
             createGetCurrentSettingsRuntimeScope()
         );
 
+        expect(() => runtime.documentRef).toThrow(
+            "getCurrentSettingsRuntime requires document"
+        );
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "getCurrentSettingsRuntime requires setTimeout"
         );
@@ -134,12 +151,13 @@ describe("getGetCurrentSettingsRuntime", () => {
     });
 
     it("requires explicit provider slots and ignores legacy direct timer and constructor scope properties", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const legacyScope = {
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
+            document,
             HTMLInputElement,
             HTMLSelectElement,
             setTimeout() {
@@ -156,6 +174,9 @@ describe("getGetCurrentSettingsRuntime", () => {
             ...createGetCurrentSettingsRuntimeScope(),
         });
 
+        expect(() => runtime.documentRef).toThrow(
+            "getCurrentSettingsRuntime requires document"
+        );
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "getCurrentSettingsRuntime requires setTimeout"
         );

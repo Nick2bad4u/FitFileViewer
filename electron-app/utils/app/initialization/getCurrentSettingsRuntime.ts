@@ -5,6 +5,7 @@ import {
     type BrowserSetTimeout,
     type BrowserTimerHandle,
     getBrowserClearTimeout,
+    getBrowserDocument,
     getBrowserHTMLInputElement,
     getBrowserHTMLSelectElement,
     getBrowserSetTimeout,
@@ -14,6 +15,7 @@ export type GetCurrentSettingsTimer = BrowserTimerHandle;
 
 export interface GetCurrentSettingsRuntimeScope {
     readonly getClearTimeout: GetCurrentSettingsRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: GetCurrentSettingsRuntimeProvider<Document>;
     readonly getHTMLInputElement: GetCurrentSettingsRuntimeProvider<BrowserHTMLInputElementConstructor>;
     readonly getHTMLSelectElement: GetCurrentSettingsRuntimeProvider<BrowserHTMLSelectElementConstructor>;
     readonly getSetTimeout: GetCurrentSettingsRuntimeProvider<BrowserSetTimeout>;
@@ -21,6 +23,7 @@ export interface GetCurrentSettingsRuntimeScope {
 
 export interface GetCurrentSettingsRuntime {
     readonly clearTimeout: (timer: GetCurrentSettingsTimer) => void;
+    readonly documentRef: Document;
     readonly isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
     readonly isHTMLSelectElement: (
         value: unknown
@@ -33,6 +36,7 @@ export interface GetCurrentSettingsRuntime {
 
 const defaultGetCurrentSettingsRuntimeScope: GetCurrentSettingsRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
+    getDocument: getBrowserDocument,
     getHTMLInputElement: getBrowserHTMLInputElement,
     getHTMLSelectElement: getBrowserHTMLSelectElement,
     getSetTimeout: getBrowserSetTimeout,
@@ -60,6 +64,7 @@ export function getGetCurrentSettingsRuntime(
         scope.getClearTimeout,
         "clearTimeout"
     );
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
     const getHTMLInputElement = getRequiredProvider(
         scope.getHTMLInputElement,
         "HTMLInputElement"
@@ -83,6 +88,16 @@ export function getGetCurrentSettingsRuntime(
             }
 
             clearTimeoutRef(timer);
+        },
+        get documentRef(): Document {
+            const documentRef = getDocument();
+            if (!documentRef) {
+                throw new TypeError(
+                    "getCurrentSettingsRuntime requires document"
+                );
+            }
+
+            return documentRef;
         },
         isHTMLInputElement(value): value is HTMLInputElement {
             return (

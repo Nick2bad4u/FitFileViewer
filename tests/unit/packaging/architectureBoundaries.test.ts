@@ -1271,7 +1271,7 @@ const directUpdateSystemInfoRuntimeGlobalPattern =
 const directLoadVersionInfoRuntimeGlobalPattern =
     /\bdocument\.querySelector\b/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\binstanceof\s+(?:HTMLInputElement|HTMLSelectElement)\b/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bgetChartSettingsWrapper\(document\)|\binstanceof\s+(?:HTMLInputElement|HTMLSelectElement)\b/u;
 const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directLazyRenderingRuntimeGlobalPattern =
@@ -27901,7 +27901,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(57);
+        expect.assertions(66);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -27950,6 +27950,9 @@ describe("architecture boundaries", () => {
             "currentSettingsRuntime().clearTimeout"
         );
         expect(getCurrentSettingsSource).toContain(
+            "currentSettingsRuntime().documentRef"
+        );
+        expect(getCurrentSettingsSource).toContain(
             "currentSettingsRuntime().setTimeout"
         );
         expect(getCurrentSettingsSource).toContain(
@@ -27964,6 +27967,9 @@ describe("architecture boundaries", () => {
         expect(getCurrentSettingsSource).not.toContain(
             "instanceof HTMLSelectElement"
         );
+        expect(getCurrentSettingsSource).not.toContain(
+            "getChartSettingsWrapper(document)"
+        );
         expect(getCurrentSettingsRuntimeSource).not.toMatch(
             directGetCurrentSettingsRuntimeAmbientFallbackPattern
         );
@@ -27972,6 +27978,9 @@ describe("architecture boundaries", () => {
         );
         expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
+            "readonly document?:"
         );
         expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
             "readonly HTMLInputElement?:"
@@ -27984,6 +27993,9 @@ describe("architecture boundaries", () => {
         );
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "scope.document"
         );
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope.HTMLInputElement"
@@ -28025,8 +28037,14 @@ describe("architecture boundaries", () => {
         expect(getCurrentSettingsRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
         );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "getDocument: getBrowserDocument"
+        );
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
             "getHTMLInputElement: getBrowserHTMLInputElement"
@@ -28053,6 +28071,9 @@ describe("architecture boundaries", () => {
             /readonly\s+getClearTimeout:\s*GetCurrentSettingsRuntimeProvider<BrowserClearTimeout>/u
         );
         expect(getCurrentSettingsRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*GetCurrentSettingsRuntimeProvider<Document>/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
             /readonly\s+getHTMLInputElement:\s*GetCurrentSettingsRuntimeProvider<BrowserHTMLInputElementConstructor>/u
         );
         expect(getCurrentSettingsRuntimeSource).toMatch(
@@ -28068,6 +28089,9 @@ describe("architecture boundaries", () => {
             /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
         );
         expect(getCurrentSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getHTMLInputElement,\s*"HTMLInputElement"\s*\)/u
         );
         expect(getCurrentSettingsRuntimeSource).toMatch(
@@ -28077,7 +28101,7 @@ describe("architecture boundaries", () => {
             /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
         );
         expect(getCurrentSettingsRuntimeSource).not.toMatch(
-            /scope\.get(?:ClearTimeout|HTMLInputElement|HTMLSelectElement|SetTimeout)\?\.\(/u
+            /scope\.get(?:ClearTimeout|Document|HTMLInputElement|HTMLSelectElement|SetTimeout)\?\.\(/u
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
             "getCurrentSettingsRuntime requires ${providerName} provider"
@@ -28087,6 +28111,9 @@ describe("architecture boundaries", () => {
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
             "const clearTimeoutRef = getClearTimeout();"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const documentRef = getDocument();"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
             "const setTimeoutRef = getSetTimeout();"
