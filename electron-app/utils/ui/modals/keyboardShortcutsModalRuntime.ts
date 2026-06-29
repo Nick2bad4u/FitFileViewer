@@ -17,25 +17,18 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type KeyboardShortcutsModalTimerHandle = BrowserTimerHandle;
+type KeyboardShortcutsModalRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface KeyboardShortcutsModalRuntimeScope {
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getCancelAnimationFrame: KeyboardShortcutsModalRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getClearTimeout: KeyboardShortcutsModalRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: KeyboardShortcutsModalRuntimeProvider<Document>;
+    readonly getHTMLElement: KeyboardShortcutsModalRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getKeyboardEvent: KeyboardShortcutsModalRuntimeProvider<BrowserKeyboardEventConstructor>;
+    readonly getRequestAnimationFrame: KeyboardShortcutsModalRuntimeProvider<BrowserRequestAnimationFrame>;
+    readonly getSetTimeout: KeyboardShortcutsModalRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface KeyboardShortcutsModalRuntime {
@@ -79,20 +72,41 @@ const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeSc
         getSetTimeout: getBrowserSetTimeout,
     };
 
+function getRequiredProvider<T>(
+    provider: KeyboardShortcutsModalRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `keyboardShortcutsModalRuntime requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeCancelAnimationFrame(
     scope: KeyboardShortcutsModalRuntimeScope
 ): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    )();
 }
 
 function getScopeClearTimeout(
     scope: KeyboardShortcutsModalRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getScopeDocument(scope: KeyboardShortcutsModalRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "keyboardShortcutsModalRuntime requires a document runtime"
@@ -105,7 +119,10 @@ function getScopeDocument(scope: KeyboardShortcutsModalRuntimeScope): Document {
 function getScopeHTMLElement(
     scope: KeyboardShortcutsModalRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "keyboardShortcutsModalRuntime requires an HTMLElement runtime"
@@ -118,7 +135,10 @@ function getScopeHTMLElement(
 function getScopeKeyboardEvent(
     scope: KeyboardShortcutsModalRuntimeScope
 ): BrowserKeyboardEventConstructor {
-    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    const KeyboardEventConstructor = getRequiredProvider(
+        scope.getKeyboardEvent,
+        "KeyboardEvent"
+    )();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError(
             "keyboardShortcutsModalRuntime requires a KeyboardEvent runtime"
@@ -131,13 +151,16 @@ function getScopeKeyboardEvent(
 function getScopeRequestAnimationFrame(
     scope: KeyboardShortcutsModalRuntimeScope
 ): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    )();
 }
 
 function getScopeSetTimeout(
     scope: KeyboardShortcutsModalRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(

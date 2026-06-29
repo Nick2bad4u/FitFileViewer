@@ -9,9 +9,24 @@ import type {
 import {
     getKeyboardShortcutsModalRuntime,
     KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
+    type KeyboardShortcutsModalRuntimeScope,
 } from "../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js";
 
 describe("getKeyboardShortcutsModalRuntime", () => {
+    const createUnavailableKeyboardShortcutsModalRuntimeScope = (
+        overrides: Partial<KeyboardShortcutsModalRuntimeScope> = {}
+    ) =>
+        ({
+            getCancelAnimationFrame: () => undefined,
+            getClearTimeout: () => undefined,
+            getDocument: () => undefined,
+            getHTMLElement: () => undefined,
+            getKeyboardEvent: () => undefined,
+            getRequestAnimationFrame: () => undefined,
+            getSetTimeout: () => undefined,
+            ...overrides,
+        }) satisfies KeyboardShortcutsModalRuntimeScope;
+
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
@@ -27,10 +42,10 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         const delayMs = Number("300");
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 31);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const scope = {
+        const scope = createUnavailableKeyboardShortcutsModalRuntimeScope({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
-        };
+        });
         const {
             clearTimeout: clearModalTimer,
             setTimeout: scheduleModalTimer,
@@ -48,13 +63,47 @@ describe("getKeyboardShortcutsModalRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getKeyboardShortcutsModalRuntime({});
+        const runtime = getKeyboardShortcutsModalRuntime(
+            createUnavailableKeyboardShortcutsModalRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "keyboardShortcutsModalRuntime requires a setTimeout runtime"
         );
         expect(() => runtime.clearTimeout(0)).toThrow(
             "keyboardShortcutsModalRuntime requires a clearTimeout runtime"
+        );
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(7);
+
+        const runtime = getKeyboardShortcutsModalRuntime(
+            {} as unknown as KeyboardShortcutsModalRuntimeScope
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "keyboardShortcutsModalRuntime requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "keyboardShortcutsModalRuntime requires a clearTimeout provider"
+        );
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "keyboardShortcutsModalRuntime requires a requestAnimationFrame provider"
+        );
+        expect(() => runtime.cancelAnimationFrame(0)).toThrow(
+            "keyboardShortcutsModalRuntime requires a cancelAnimationFrame provider"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "keyboardShortcutsModalRuntime requires a document provider"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow(
+            "keyboardShortcutsModalRuntime requires an HTMLElement provider"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "keyboardShortcutsModalRuntime requires a KeyboardEvent provider"
         );
     });
 
@@ -115,9 +164,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 17);
-        const scope = {
+        const scope = createUnavailableKeyboardShortcutsModalRuntimeScope({
             getRequestAnimationFrame: () => requestAnimationFrame,
-        };
+        });
         const { requestAnimationFrame: requestFrame } =
             getKeyboardShortcutsModalRuntime(scope);
 
@@ -132,7 +181,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         const callback = vi.fn<FrameRequestCallback>();
 
         expect(
-            getKeyboardShortcutsModalRuntime({}).requestAnimationFrame(callback)
+            getKeyboardShortcutsModalRuntime(
+                createUnavailableKeyboardShortcutsModalRuntimeScope()
+            ).requestAnimationFrame(callback)
         ).toBe(null);
         expect(callback).not.toHaveBeenCalled();
     });
@@ -141,9 +192,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const scope = {
+        const scope = createUnavailableKeyboardShortcutsModalRuntimeScope({
             getCancelAnimationFrame: () => cancelAnimationFrame,
-        };
+        });
         const { cancelAnimationFrame: cancelFrame } =
             getKeyboardShortcutsModalRuntime(scope);
 
@@ -161,6 +212,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         );
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
         const runtime = getKeyboardShortcutsModalRuntime({
+            ...createUnavailableKeyboardShortcutsModalRuntimeScope(),
             getDocument: () => documentRef,
         });
 
@@ -182,6 +234,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
             "keyboard shortcuts modal dom runtime"
         );
         const runtime = getKeyboardShortcutsModalRuntime({
+            ...createUnavailableKeyboardShortcutsModalRuntimeScope(),
             getDocument: () => documentRef,
         });
         const modal = runtime.createElement("div");
@@ -208,6 +261,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect.assertions(4);
 
         const runtime = getKeyboardShortcutsModalRuntime({
+            ...createUnavailableKeyboardShortcutsModalRuntimeScope(),
             getHTMLElement: () => HTMLElement,
             getKeyboardEvent: () => KeyboardEvent,
         });
@@ -225,7 +279,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
     it("requires explicit constructor providers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getKeyboardShortcutsModalRuntime({});
+        const runtime = getKeyboardShortcutsModalRuntime(
+            createUnavailableKeyboardShortcutsModalRuntimeScope()
+        );
 
         expect(() =>
             runtime.isHTMLElement(document.createElement("button"))
@@ -253,6 +309,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         >(() => 41);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const runtime = getKeyboardShortcutsModalRuntime({
+            ...createUnavailableKeyboardShortcutsModalRuntimeScope(),
             cancelAnimationFrame,
             clearTimeout,
             document: documentRef,
@@ -313,7 +370,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getKeyboardShortcutsModalRuntime({}).cancelAnimationFrame(5)
+            getKeyboardShortcutsModalRuntime(
+                createUnavailableKeyboardShortcutsModalRuntimeScope()
+            ).cancelAnimationFrame(5)
         ).not.toThrow();
     });
 });

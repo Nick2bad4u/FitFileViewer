@@ -10812,7 +10812,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(85);
+        expect.assertions(102);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -10980,6 +10980,54 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "type KeyboardShortcutsModalRuntimeProvider<T> ="
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getCancelAnimationFrame: KeyboardShortcutsModalRuntimeProvider<BrowserCancelAnimationFrame>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getClearTimeout: KeyboardShortcutsModalRuntimeProvider<BrowserClearTimeout>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getDocument: KeyboardShortcutsModalRuntimeProvider<Document>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getHTMLElement: KeyboardShortcutsModalRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getKeyboardEvent: KeyboardShortcutsModalRuntimeProvider<BrowserKeyboardEventConstructor>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getRequestAnimationFrame: KeyboardShortcutsModalRuntimeProvider<BrowserRequestAnimationFrame>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getSetTimeout: KeyboardShortcutsModalRuntimeProvider<BrowserSetTimeout>;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
@@ -11052,10 +11100,10 @@ describe("architecture boundaries", () => {
             "getScopeDocument(scope).activeElement"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
-            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+            "const HTMLElementConstructor = getRequiredProvider("
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
-            "const KeyboardEventConstructor = scope.getKeyboardEvent?.();"
+            "const KeyboardEventConstructor = getRequiredProvider("
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "getScopeDocument(scope).body.style.overflow"
@@ -11089,6 +11137,9 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "keyboardShortcutsModalRuntime requires a KeyboardEvent runtime"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "keyboardShortcutsModalRuntime requires ${article} ${providerName} provider"
         );
     });
 
