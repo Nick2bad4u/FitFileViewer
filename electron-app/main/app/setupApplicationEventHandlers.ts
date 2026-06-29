@@ -35,12 +35,10 @@ import {
 } from "../window/mainWindowSelection.js";
 import { validateWindow } from "../window/windowValidation.js";
 import {
-    getProcessArgumentValues,
-    getProcessEnvironmentValue,
-    getProcessStringValue,
-    isDevelopmentEnvironment,
-    isTestEnvironment,
-} from "../../utils/runtime/processEnvironment.js";
+    getSetupApplicationEventHandlersRuntime,
+    type SetupApplicationEventHandlersProcessStringName,
+    type SetupApplicationEventHandlersRuntime,
+} from "./setupApplicationEventHandlersRuntime.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 
 type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
@@ -198,6 +196,36 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
     function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
+    }
+
+    function setupApplicationEventHandlersRuntime(): SetupApplicationEventHandlersRuntime {
+        return getSetupApplicationEventHandlersRuntime();
+    }
+
+    function getProcessArgumentValues(): readonly string[] {
+        return setupApplicationEventHandlersRuntime().getProcessArgumentValues();
+    }
+
+    function getProcessEnvironmentValue(name: string): string | undefined {
+        return setupApplicationEventHandlersRuntime().getProcessEnvironmentValue(
+            name
+        );
+    }
+
+    function getProcessStringValue(
+        name: SetupApplicationEventHandlersProcessStringName
+    ): string | undefined {
+        return setupApplicationEventHandlersRuntime().getProcessStringValue(
+            name
+        );
+    }
+
+    function isDevelopmentEnvironment(): boolean {
+        return setupApplicationEventHandlersRuntime().isDevelopmentEnvironment();
+    }
+
+    function isTestEnvironment(): boolean {
+        return setupApplicationEventHandlersRuntime().isTestEnvironment();
     }
 
     function configureSessionDownloadPolicy(

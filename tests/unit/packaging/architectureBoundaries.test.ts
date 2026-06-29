@@ -3712,7 +3712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(451);
+        expect.assertions(454);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3806,6 +3806,11 @@ describe("architecture boundaries", () => {
         const setupApplicationEventHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/app/setupApplicationEventHandlers.ts"
+            )
+        );
+        const setupApplicationEventHandlersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/setupApplicationEventHandlersRuntime.ts"
             )
         );
         const setupMenuAndEventHandlersSource = stripComments(
@@ -3977,13 +3982,22 @@ describe("architecture boundaries", () => {
             "process.platform"
         );
         expect(setupApplicationEventHandlersSource).toContain(
-            "getProcessEnvironmentValue"
+            "setupApplicationEventHandlersRuntime.js"
         );
         expect(setupApplicationEventHandlersSource).toContain(
-            "getProcessArgumentValues"
+            "setupApplicationEventHandlersRuntime().getProcessArgumentValues()"
         );
         expect(setupApplicationEventHandlersSource).toContain(
-            "getProcessStringValue"
+            "setupApplicationEventHandlersRuntime().getProcessStringValue("
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(setupApplicationEventHandlersRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(setupApplicationEventHandlersRuntimeSource).toContain(
+            "getRuntimeProcessEnvironmentValue"
         );
         expect(setupApplicationEventHandlersSource).not.toContain(
             "Reflect.get("

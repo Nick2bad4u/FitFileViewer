@@ -21,6 +21,7 @@
         "electron-app/renderer.ts",
         "electron-app/fitParser.ts",
         "electron-app/main/app/gyazoStartupTimerState.ts",
+        "electron-app/main/app/setupApplicationEventHandlersRuntime.ts",
         "electron-app/main/app/setupApplicationEventHandlers.ts",
         "electron-app/main/constants.ts",
         "electron-app/main/dev/exposeDevHelpers.ts",
