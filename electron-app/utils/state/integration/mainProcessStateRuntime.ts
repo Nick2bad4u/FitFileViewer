@@ -7,17 +7,27 @@ import {
     getBrowserPerformance,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
+import {
+    getProcessArgumentValues as getRuntimeProcessArgumentValues,
+    getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue,
+} from "../../runtime/processEnvironment.js";
 
 type MainProcessPerformanceRuntime = {
     readonly now?: (() => number) | undefined;
 };
 
 type MainProcessStateRuntimeProvider<T> = (() => T | undefined) | undefined;
+type MainProcessStateProcessArgumentReader = () => readonly string[];
+type MainProcessStateProcessEnvironmentReader = (
+    name: string
+) => string | undefined;
 
 export interface MainProcessStateRuntimeScope {
     readonly getClearTimeout: MainProcessStateRuntimeProvider<BrowserClearTimeout>;
     readonly getDateNow: MainProcessStateRuntimeProvider<() => number>;
     readonly getPerformance: MainProcessStateRuntimeProvider<MainProcessPerformanceRuntime>;
+    readonly getProcessArgumentValues: MainProcessStateRuntimeProvider<MainProcessStateProcessArgumentReader>;
+    readonly getProcessEnvironmentValue: MainProcessStateRuntimeProvider<MainProcessStateProcessEnvironmentReader>;
     readonly getSetTimeout: MainProcessStateRuntimeProvider<BrowserSetTimeout>;
 }
 
@@ -26,6 +36,9 @@ export type MainProcessStateTimer = BrowserTimerHandle;
 export interface MainProcessStateRuntime {
     clearTimeout: (handle: MainProcessStateTimer) => void;
     dateNow: () => number;
+    getProcessArgumentValues: () => readonly string[];
+    getProcessEnvironmentValue: (name: string) => string | undefined;
+    isDevelopmentEnvironment: () => boolean;
     monotonicNowMs: () => number;
     setTimeout: (
         callback: () => void,
@@ -37,6 +50,8 @@ const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
     getDateNow: getBrowserDateNow,
     getPerformance: getBrowserPerformance,
+    getProcessArgumentValues: () => getRuntimeProcessArgumentValues,
+    getProcessEnvironmentValue: () => getRuntimeProcessEnvironmentValue,
     getSetTimeout: getBrowserSetTimeout,
 };
 
@@ -96,6 +111,37 @@ export function getMainProcessStateRuntime(
         },
         dateNow(): number {
             return getRequiredDateNow(scope)();
+        },
+        getProcessArgumentValues(): readonly string[] {
+            const getProcessArgumentValues = getRequiredProvider(
+                scope.getProcessArgumentValues,
+                "processArgumentValues"
+            )();
+
+            if (typeof getProcessArgumentValues !== "function") {
+                throw new TypeError(
+                    "mainProcessStateRuntime requires process argument values"
+                );
+            }
+
+            return getProcessArgumentValues();
+        },
+        getProcessEnvironmentValue(name): string | undefined {
+            const getProcessEnvironmentValue = getRequiredProvider(
+                scope.getProcessEnvironmentValue,
+                "processEnvironmentValue"
+            )();
+
+            if (typeof getProcessEnvironmentValue !== "function") {
+                throw new TypeError(
+                    "mainProcessStateRuntime requires process environment values"
+                );
+            }
+
+            return getProcessEnvironmentValue(name);
+        },
+        isDevelopmentEnvironment(): boolean {
+            return this.getProcessEnvironmentValue("NODE_ENV") === "development";
         },
         monotonicNowMs(): number {
             return getRequiredMonotonicNow(scope)();

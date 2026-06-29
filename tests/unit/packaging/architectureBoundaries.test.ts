@@ -3468,12 +3468,17 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(57);
+    it("keeps main-process state-manager timing and process reads behind the runtime adapter", () => {
+        expect.assertions(78);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/integration/mainProcessStateManager.ts"
+            )
+        );
+        const mainProcessStateClientSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateClient.ts"
             )
         );
         const mainProcessStateRuntimeSource = stripComments(
@@ -3518,6 +3523,24 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateManagerSource).toContain(
             "return mainProcessStateRuntime().dateNow();"
         );
+        expect(mainProcessStateManagerSource).toContain(
+            "return mainProcessStateRuntime().getProcessEnvironmentValue(name);"
+        );
+        expect(mainProcessStateManagerSource).toContain(
+            "return mainProcessStateRuntime().getProcessArgumentValues();"
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(mainProcessStateClientSource).toContain(
+            "mainProcessStateRuntime.js"
+        );
+        expect(mainProcessStateClientSource).toContain(
+            "mainProcessStateRuntime().isDevelopmentEnvironment()"
+        );
+        expect(mainProcessStateClientSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
         expect(mainProcessStateManagerSource).toContain("monotonicNowMs");
         expect(mainProcessStateManagerSource).toContain("setTimeout");
         expect(
@@ -3542,6 +3565,9 @@ describe("architecture boundaries", () => {
         );
         expect(mainProcessStateRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
         );
         expect(mainProcessStateRuntimeSource).toContain(
             "type BrowserClearTimeout"
@@ -3571,6 +3597,12 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
         );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getProcessArgumentValues: () => getRuntimeProcessArgumentValues"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getProcessEnvironmentValue: () => getRuntimeProcessEnvironmentValue"
+        );
         expect(mainProcessStateRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
@@ -3593,6 +3625,12 @@ describe("architecture boundaries", () => {
             /readonly\s+getPerformance:\s*MainProcessStateRuntimeProvider<MainProcessPerformanceRuntime>/u
         );
         expect(mainProcessStateRuntimeSource).toMatch(
+            /readonly\s+getProcessArgumentValues:\s*MainProcessStateRuntimeProvider<MainProcessStateProcessArgumentReader>/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /readonly\s+getProcessEnvironmentValue:\s*MainProcessStateRuntimeProvider<MainProcessStateProcessEnvironmentReader>/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
             /readonly\s+getSetTimeout:\s*MainProcessStateRuntimeProvider<BrowserSetTimeout>/u
         );
         expect(mainProcessStateRuntimeSource).toContain(
@@ -3606,6 +3644,12 @@ describe("architecture boundaries", () => {
         );
         expect(mainProcessStateRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getProcessArgumentValues,\s*"processArgumentValues"\s*\)/u
+        );
+        expect(mainProcessStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getProcessEnvironmentValue,\s*"processEnvironmentValue"\s*\)/u
         );
         expect(mainProcessStateRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
@@ -3623,6 +3667,15 @@ describe("architecture boundaries", () => {
             /const\s+dateNow\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
         expect(mainProcessStateRuntimeSource).toContain("dateNow(): number");
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getProcessArgumentValues(): readonly string[]"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "getProcessEnvironmentValue(name): string | undefined"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "isDevelopmentEnvironment(): boolean"
+        );
         expect(mainProcessStateRuntimeSource).not.toContain(
             "readonly dateNow?:"
         );
@@ -3631,6 +3684,12 @@ describe("architecture boundaries", () => {
         );
         expect(mainProcessStateRuntimeSource).not.toContain(
             "readonly performance?:"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "readonly getProcessArgumentValues?:"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "readonly getProcessEnvironmentValue?:"
         );
         expect(mainProcessStateRuntimeSource).not.toContain(
             "readonly setTimeout?:"
@@ -3643,6 +3702,13 @@ describe("architecture boundaries", () => {
         );
         expect(mainProcessStateRuntimeSource).not.toContain("scope.setTimeout");
         expect(mainProcessStateRuntimeSource).not.toContain("scope.dateNow");
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "scope.processArgumentValues"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "scope.processEnvironmentValue"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain("process.env");
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
@@ -3836,12 +3902,12 @@ describe("architecture boundaries", () => {
         expect(createAppMenuSource).toContain("getProcessEnvironmentValue");
         expect(createAppMenuSource).toContain("getProcessStringValue");
         expect(mainProcessStateManagerSource).toContain(
-            "getProcessEnvironmentValue"
+            "mainProcessStateRuntime().getProcessEnvironmentValue"
         );
         expect(mainProcessStateManagerSource).toContain(
-            "getProcessArgumentValues"
+            "mainProcessStateRuntime().getProcessArgumentValues"
         );
-        expect(mainProcessStateManagerSource).toContain(
+        expect(mainProcessStateManagerSource).not.toContain(
             "../../runtime/processEnvironment.js"
         );
         expect(logWithContextSource).not.toContain("globalThis.process");

@@ -22,10 +22,6 @@ import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc
 import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
 import { loggingTimestampRuntime } from "../../logging/loggingTimestampRuntime.js";
 import {
-    getProcessArgumentValues,
-    getProcessEnvironmentValue,
-} from "../../runtime/processEnvironment.js";
-import {
     getMainProcessStateRuntime,
     type MainProcessStateRuntime,
     type MainProcessStateTimer,
@@ -40,11 +36,11 @@ function mainProcessStateRuntime(): MainProcessStateRuntime {
 }
 
 function getMainStateProcessEnvironmentValue(name: string): string | undefined {
-    return getProcessEnvironmentValue(name);
+    return mainProcessStateRuntime().getProcessEnvironmentValue(name);
 }
 
 function getMainStateProcessArgumentValues(): readonly string[] {
-    return getProcessArgumentValues();
+    return mainProcessStateRuntime().getProcessArgumentValues();
 }
 
 function isMainProcessDevelopmentEnvironment(): boolean {

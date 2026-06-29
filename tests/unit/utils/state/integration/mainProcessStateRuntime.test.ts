@@ -17,6 +17,8 @@ function createMainProcessStateRuntimeScope(
         getClearTimeout: () => undefined,
         getDateNow: () => undefined,
         getPerformance: () => undefined,
+        getProcessArgumentValues: () => undefined,
+        getProcessEnvironmentValue: () => undefined,
         getSetTimeout: () => undefined,
         ...overrides,
     };
@@ -62,6 +64,30 @@ describe("mainProcessStateRuntime", () => {
                 })
             ).dateNow()
         ).toBe(123);
+    });
+
+    it("reads process arguments and environment through the injected runtime scope", () => {
+        expect.assertions(4);
+
+        const getProcessArgumentValues = vi.fn<() => readonly string[]>(() => [
+            "--dev",
+        ]);
+        const getProcessEnvironmentValue = vi.fn<
+            (name: string) => string | undefined
+        >((name) => (name === "NODE_ENV" ? "development" : undefined));
+        const runtime = getMainProcessStateRuntime(
+            createMainProcessStateRuntimeScope({
+                getProcessArgumentValues: () => getProcessArgumentValues,
+                getProcessEnvironmentValue: () => getProcessEnvironmentValue,
+            })
+        );
+
+        expect(runtime.getProcessArgumentValues()).toStrictEqual(["--dev"]);
+        expect(runtime.getProcessEnvironmentValue("NODE_ENV")).toBe(
+            "development"
+        );
+        expect(runtime.isDevelopmentEnvironment()).toBe(true);
+        expect(getProcessEnvironmentValue).toHaveBeenCalledWith("NODE_ENV");
     });
 
     it("does not borrow ambient clocks for explicit scopes", () => {
@@ -113,8 +139,8 @@ describe("mainProcessStateRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
-    it("ignores legacy direct timer, clock, and performance runtime properties", () => {
-        expect.assertions(8);
+    it("ignores legacy direct timer, clock, performance, and process runtime properties", () => {
+        expect.assertions(12);
 
         const callback = vi.fn<() => void>();
         const timer = 67 as MainProcessStateTimer;
@@ -122,10 +148,18 @@ describe("mainProcessStateRuntime", () => {
         const dateNow = vi.fn<() => number>(() => 123);
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
         const performanceNow = vi.fn<() => number>(() => 45.5);
+        const processArgumentValues = vi.fn<() => readonly string[]>(() => [
+            "--dev",
+        ]);
+        const processEnvironmentValue = vi.fn<
+            (name: string) => string | undefined
+        >(() => "development");
         const legacyScope = {
             clearTimeout,
             dateNow,
             performance: { now: performanceNow },
+            processArgumentValues,
+            processEnvironmentValue,
             setTimeout,
         } as unknown as Parameters<typeof getMainProcessStateRuntime>[0];
         const runtime = getMainProcessStateRuntime(legacyScope);
@@ -142,8 +176,16 @@ describe("mainProcessStateRuntime", () => {
         expect(() => runtime.clearTimeout(timer)).toThrow(
             "mainProcessStateRuntime requires clearTimeout provider"
         );
+        expect(() => runtime.getProcessArgumentValues()).toThrow(
+            "mainProcessStateRuntime requires processArgumentValues provider"
+        );
+        expect(() => runtime.isDevelopmentEnvironment()).toThrow(
+            "mainProcessStateRuntime requires processEnvironmentValue provider"
+        );
         expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();
+        expect(processArgumentValues).not.toHaveBeenCalled();
+        expect(processEnvironmentValue).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
     });
@@ -164,7 +206,7 @@ describe("mainProcessStateRuntime", () => {
     });
 
     it("fails clearly when provider slots are omitted", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const runtime = getMainProcessStateRuntime(
             {} as unknown as MainProcessStateRuntimeScope
@@ -178,6 +220,12 @@ describe("mainProcessStateRuntime", () => {
         );
         expect(() => runtime.monotonicNowMs()).toThrow(
             "mainProcessStateRuntime requires performance provider"
+        );
+        expect(() => runtime.getProcessArgumentValues()).toThrow(
+            "mainProcessStateRuntime requires processArgumentValues provider"
+        );
+        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+            "mainProcessStateRuntime requires processEnvironmentValue provider"
         );
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "mainProcessStateRuntime requires setTimeout provider"

@@ -13,7 +13,10 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import {
+    getMainProcessStateRuntime,
+    type MainProcessStateRuntime,
+} from "./mainProcessStateRuntime.js";
 
 type Operation = MainStateIpcValue;
 type ErrorEntry = MainStateIpcValue;
@@ -45,6 +48,10 @@ type MainStateElectronAPI = {
 type MainProcessStateClientOptions = {
     electronApiScope?: RendererElectronApiScope | undefined;
 };
+
+function mainProcessStateRuntime(): MainProcessStateRuntime {
+    return getMainProcessStateRuntime();
+}
 
 function isMainStateElectronAPI(value: unknown): value is MainStateElectronAPI {
     if (value === null || typeof value !== "object") {
@@ -195,7 +202,7 @@ export class MainProcessStateClient {
 
         this._isInitialized = true;
 
-        if (isDevelopmentEnvironment()) {
+        if (mainProcessStateRuntime().isDevelopmentEnvironment()) {
             console.log("[MainProcessStateClient] Initialized successfully");
         }
     }
