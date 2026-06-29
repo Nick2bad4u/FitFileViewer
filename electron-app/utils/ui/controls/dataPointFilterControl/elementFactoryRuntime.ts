@@ -2,7 +2,7 @@ import { getBrowserDocument } from "../../../runtime/browserRuntime.js";
 import { getIconFactoryRuntime } from "../../icons/iconFactoryRuntime.js";
 
 export interface DataPointFilterElementFactoryRuntimeScope {
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface DataPointFilterElementFactoryRuntime {
@@ -17,7 +17,14 @@ export interface DataPointFilterElementFactoryRuntime {
 function getDocument(
     scope: DataPointFilterElementFactoryRuntimeScope
 ): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "data point filter element factory requires a document provider"
+        );
+    }
+
+    const runtimeDocument = getRuntimeDocument();
     if (!runtimeDocument) {
         throw new TypeError(
             "data point filter element factory requires a document runtime"

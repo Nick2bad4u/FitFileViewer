@@ -4,6 +4,10 @@ import type { DataPointFilterElementFactoryRuntimeScope } from "../../../../../.
 import { getDataPointFilterElementFactoryRuntime } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/elementFactoryRuntime.js";
 
 describe("getDataPointFilterElementFactoryRuntime", () => {
+    const unavailableElementFactoryRuntimeScope = {
+        getDocument: () => undefined,
+    } satisfies DataPointFilterElementFactoryRuntimeScope;
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(4);
 
@@ -33,7 +37,9 @@ describe("getDataPointFilterElementFactoryRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(2);
 
-        const runtime = getDataPointFilterElementFactoryRuntime({});
+        const runtime = getDataPointFilterElementFactoryRuntime(
+            unavailableElementFactoryRuntimeScope
+        );
 
         expect(() => runtime.createElement("div")).toThrow(
             "data point filter element factory requires a document runtime"
@@ -43,10 +49,26 @@ describe("getDataPointFilterElementFactoryRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(2);
+
+        const runtime = getDataPointFilterElementFactoryRuntime(
+            {} as unknown as DataPointFilterElementFactoryRuntimeScope
+        );
+
+        expect(() => runtime.createElement("div")).toThrow(
+            "data point filter element factory requires a document provider"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "data point filter element factory requires a document provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
         const legacyScope = {
+            ...unavailableElementFactoryRuntimeScope,
             document,
         } as unknown as DataPointFilterElementFactoryRuntimeScope;
         const runtime = getDataPointFilterElementFactoryRuntime(legacyScope);

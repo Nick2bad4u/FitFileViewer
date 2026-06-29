@@ -20045,7 +20045,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter element creation behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(18);
 
         const violations = migratedDataPointFilterElementFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -20087,6 +20087,9 @@ describe("architecture boundaries", () => {
         expect(elementFactoryRuntimeSource).not.toContain(
             "readonly document?:"
         );
+        expect(elementFactoryRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(elementFactoryRuntimeSource).not.toContain("scope.document");
         expect(elementFactoryRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
@@ -20094,7 +20097,18 @@ describe("architecture boundaries", () => {
         expect(elementFactoryRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
-        expect(elementFactoryRuntimeSource).toContain("scope.getDocument?.()");
+        expect(elementFactoryRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(elementFactoryRuntimeSource).toContain(
+            "const getRuntimeDocument = scope.getDocument;"
+        );
+        expect(elementFactoryRuntimeSource).toContain(
+            "const runtimeDocument = getRuntimeDocument();"
+        );
+        expect(elementFactoryRuntimeSource).toContain(
+            "data point filter element factory requires a document provider"
+        );
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
