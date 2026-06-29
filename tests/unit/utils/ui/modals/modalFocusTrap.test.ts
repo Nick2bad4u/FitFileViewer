@@ -4,6 +4,11 @@ import { createModalFocusTrap } from "../../../../../electron-app/utils/ui/modal
 import { getModalFocusTrapRuntime } from "../../../../../electron-app/utils/ui/modals/modalFocusTrapRuntime.js";
 
 describe("createModalFocusTrap", () => {
+    const unavailableModalFocusTrapRuntimeScope = {
+        getDocument: () => undefined,
+        getKeyboardEvent: () => undefined,
+    } satisfies Parameters<typeof getModalFocusTrapRuntime>[0];
+
     afterEach(() => {
         document.body.replaceChildren();
         vi.restoreAllMocks();
@@ -55,7 +60,7 @@ describe("createModalFocusTrap", () => {
         const cleanup = createModalFocusTrap(
             modal,
             null,
-            getModalFocusTrapRuntime({})
+            getModalFocusTrapRuntime(unavailableModalFocusTrapRuntimeScope)
         );
 
         expect(cleanup).toBeTypeOf("function");

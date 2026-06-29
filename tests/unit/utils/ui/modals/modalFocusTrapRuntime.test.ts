@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/ui/modals/modalFocusTrapRuntime.js";
 
 describe("getModalFocusTrapRuntime", () => {
+    const unavailableModalFocusTrapRuntimeScope = {
+        getDocument: () => undefined,
+        getKeyboardEvent: () => undefined,
+    } satisfies Parameters<typeof getModalFocusTrapRuntime>[0];
+
     afterEach(() => {
         document.body.replaceChildren();
     });
@@ -46,17 +51,38 @@ describe("getModalFocusTrapRuntime", () => {
     it("returns empty browser state when providers are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getModalFocusTrapRuntime({});
+        const runtime = getModalFocusTrapRuntime(
+            unavailableModalFocusTrapRuntimeScope
+        );
 
         expect(runtime.getDocumentEventTarget()).toBeUndefined();
         expect(runtime.getActiveElement()).toBeNull();
         expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getModalFocusTrapRuntime(
+            {} as unknown as Parameters<typeof getModalFocusTrapRuntime>[0]
+        );
+
+        expect(() => runtime.getDocumentEventTarget()).toThrow(
+            "modalFocusTrap requires a document provider"
+        );
+        expect(() => runtime.getActiveElement()).toThrow(
+            "modalFocusTrap requires a document provider"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "modalFocusTrap requires a KeyboardEvent provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(3);
 
         const runtime = getModalFocusTrapRuntime({
+            ...unavailableModalFocusTrapRuntimeScope,
             document,
             KeyboardEvent,
         } as unknown as ModalFocusTrapRuntimeScope);

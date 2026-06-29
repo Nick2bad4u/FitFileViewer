@@ -5,10 +5,10 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ModalFocusTrapRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => ModalFocusTrapDocument | undefined)
         | undefined;
-    readonly getKeyboardEvent?:
+    readonly getKeyboardEvent:
         | (() => BrowserKeyboardEventConstructor | undefined)
         | undefined;
 }
@@ -29,13 +29,23 @@ const defaultModalFocusTrapRuntimeScope: ModalFocusTrapRuntimeScope = {
 function getDocument(
     scope: ModalFocusTrapRuntimeScope
 ): ModalFocusTrapDocument | undefined {
-    return scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError("modalFocusTrap requires a document provider");
+    }
+
+    return getRuntimeDocument();
 }
 
 function getKeyboardEvent(
     scope: ModalFocusTrapRuntimeScope
 ): BrowserKeyboardEventConstructor | undefined {
-    return scope.getKeyboardEvent?.();
+    const getRuntimeKeyboardEvent = scope.getKeyboardEvent;
+    if (typeof getRuntimeKeyboardEvent !== "function") {
+        throw new TypeError("modalFocusTrap requires a KeyboardEvent provider");
+    }
+
+    return getRuntimeKeyboardEvent();
 }
 
 export function getModalFocusTrapRuntime(
