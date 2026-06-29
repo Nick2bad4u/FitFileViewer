@@ -6429,7 +6429,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app-domain facade timestamps behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(26);
 
         const appDomainStateSource = stripComments(
             readRepositoryFile(
@@ -6476,14 +6476,24 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(appDomainStateRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow();"
+            "type AppDomainStateRuntimeProvider"
+        );
+        expect(appDomainStateRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*AppDomainStateRuntimeProvider<AppDomainStateDateNow>/u
+        );
+        expect(appDomainStateRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(appDomainStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
         );
         expect(appDomainStateRuntimeSource).toContain(
             "appDomainState requires dateNow"
         );
         expect(appDomainStateRuntimeSource).toContain(
-            "appDomainState requires a dateNow provider"
+            "appDomainState requires a ${providerName} provider"
         );
+        expect(appDomainStateRuntimeSource).toContain("providerName: string");
         expect(appDomainStateRuntimeSource).not.toContain("readonly dateNow?:");
         expect(appDomainStateRuntimeSource).not.toContain(
             "readonly getDateNow?:"

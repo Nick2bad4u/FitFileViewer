@@ -10,6 +10,10 @@ describe("getAppDomainStateRuntime", () => {
         vi.restoreAllMocks();
     });
 
+    const appDomainStateRuntimeScope = {
+        getDateNow: () => Date.now,
+    } satisfies AppDomainStateRuntimeScope;
+
     it("reads wall-clock timestamps through the injected provider", () => {
         expect.assertions(2);
 
@@ -39,6 +43,17 @@ describe("getAppDomainStateRuntime", () => {
             getAppDomainStateRuntime(
                 {} as unknown as AppDomainStateRuntimeScope
             ).dateNow()
+        ).toThrow("appDomainState requires a dateNow provider");
+    });
+
+    it("fails clearly when the clock provider slot is omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getAppDomainStateRuntime({
+                ...appDomainStateRuntimeScope,
+                getDateNow: undefined,
+            }).dateNow()
         ).toThrow("appDomainState requires a dateNow provider");
     });
 
