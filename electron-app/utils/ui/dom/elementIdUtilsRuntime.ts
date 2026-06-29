@@ -4,7 +4,7 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ElementIdUtilsRuntimeScope {
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -20,7 +20,12 @@ const defaultElementIdUtilsRuntimeScope: ElementIdUtilsRuntimeScope = {
 function getHTMLElementConstructor(
     scope: ElementIdUtilsRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError("elementIdUtils requires an HTMLElement provider");
+    }
+
+    const HTMLElementConstructor = getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("elementIdUtils requires an HTMLElement runtime");
     }

@@ -33,14 +33,28 @@ describe("elementIdUtilsRuntime", () => {
         );
     });
 
-    it("does not borrow ambient constructors for explicit empty scopes", () => {
+    it("does not borrow ambient constructors for unavailable explicit scopes", () => {
         expect.assertions(1);
 
-        const runtime = getElementIdUtilsRuntime({});
+        const runtime = getElementIdUtilsRuntime({
+            getHTMLElement: () => undefined,
+        });
 
         expect(() =>
             runtime.isHTMLElement(document.createElement("div"))
         ).toThrow("elementIdUtils requires an HTMLElement runtime");
+    });
+
+    it("fails clearly when the HTMLElement provider is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getElementIdUtilsRuntime(
+            {} as unknown as ElementIdUtilsRuntimeScope
+        );
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("elementIdUtils requires an HTMLElement provider");
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -52,7 +66,7 @@ describe("elementIdUtilsRuntime", () => {
 
         expect(() =>
             runtime.isHTMLElement(document.createElement("div"))
-        ).toThrow("elementIdUtils requires an HTMLElement runtime");
+        ).toThrow("elementIdUtils requires an HTMLElement provider");
         expect(
             (runtime as unknown as { HTMLElement?: unknown }).HTMLElement
         ).toBeUndefined();

@@ -34,13 +34,25 @@ describe("iconFactoryRuntime", () => {
         expect(icon.namespaceURI).toBe(SVG_NAMESPACE);
     });
 
-    it("fails clearly when no document provider is available", () => {
+    it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getIconFactoryRuntime({});
+        const runtime = getIconFactoryRuntime({ getDocument: () => undefined });
 
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "icon factory requires a document runtime"
+        );
+    });
+
+    it("fails clearly when the document provider is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getIconFactoryRuntime(
+            {} as unknown as Parameters<typeof getIconFactoryRuntime>[0]
+        );
+
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "icon factory requires a document provider"
         );
     });
 
@@ -53,7 +65,7 @@ describe("iconFactoryRuntime", () => {
         } as unknown as Parameters<typeof getIconFactoryRuntime>[0]);
 
         expect(() => runtime.createSvgElement("svg")).toThrow(
-            "icon factory requires a document runtime"
+            "icon factory requires a document provider"
         );
         expect(createElementNS).not.toHaveBeenCalled();
     });

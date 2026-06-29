@@ -12259,7 +12259,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps flexible element-id HTMLElement checks behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const elementIdUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/dom/elementIdUtils.ts")
@@ -12310,15 +12310,24 @@ describe("architecture boundaries", () => {
         expect(elementIdUtilsRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(elementIdUtilsRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
         expect(elementIdUtilsRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(elementIdUtilsRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
         expect(elementIdUtilsRuntimeSource).toContain(
             "elementIdUtils requires an HTMLElement runtime"
+        );
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "elementIdUtils requires an HTMLElement provider"
         );
         expect(elementIdUtilsRuntimeSource).toContain(
             "return value instanceof getHTMLElementConstructor(scope)"
         );
         expect(elementIdUtilsRuntimeSource).toContain(
-            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+            "const HTMLElementConstructor = getHTMLElement();"
         );
     });
 
@@ -20975,7 +20984,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps icon SVG element creation behind the icon factory runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(17);
 
         const violations = migratedIconFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -21014,6 +21023,16 @@ describe("architecture boundaries", () => {
         );
         expect(iconFactoryRuntimeSource).toContain(
             "icon factory requires a document runtime"
+        );
+        expect(iconFactoryRuntimeSource).toContain(
+            "icon factory requires a document provider"
+        );
+        expect(iconFactoryRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(iconFactoryRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(iconFactoryRuntimeSource).toContain(
+            "const runtimeDocument = getDocument();"
         );
         expect(iconFactoryRuntimeSource).not.toContain("readonly document?:");
         expect(iconFactoryRuntimeSource).not.toContain("scope.document");

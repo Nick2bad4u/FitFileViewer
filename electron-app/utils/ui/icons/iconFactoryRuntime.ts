@@ -5,7 +5,7 @@ export const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 type IconFactoryDocument = Pick<Document, "createElementNS">;
 
 export type IconFactoryRuntimeScope = {
-    readonly getDocument?: (() => IconFactoryDocument | undefined) | undefined;
+    readonly getDocument: (() => IconFactoryDocument | undefined) | undefined;
 };
 
 export type IconFactoryRuntime = {
@@ -21,7 +21,12 @@ const defaultIconFactoryRuntimeScope: IconFactoryRuntimeScope = {
 function getRequiredDocument(
     scope: IconFactoryRuntimeScope
 ): IconFactoryDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("icon factory requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("icon factory requires a document runtime");
     }
