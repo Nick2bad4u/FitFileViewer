@@ -27,6 +27,7 @@ export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
 type UIStateManagerEventTarget = Pick<Window, "addEventListener">;
 type UIStateManagerElementProvider = () => HTMLElement | null | undefined;
 type UIStateManagerElementListProvider = () => readonly Element[] | undefined;
+type UIStateManagerRuntimeProvider<T> = () => T | undefined;
 
 type UIStateManagerViewportState = Partial<
     Pick<
@@ -50,75 +51,41 @@ type UIStateManagerFileStateBody = {
 };
 
 export interface UIStateManagerRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly createSpanElement?: (() => HTMLSpanElement) | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getFileStateBody?:
-        | (() => UIStateManagerFileStateBody | undefined)
-        | undefined;
-    readonly getActiveFileNameContainerElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getActiveFileNameElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getDocumentTitle?: (() => string | undefined) | undefined;
-    readonly getEventTarget?:
-        | (() => UIStateManagerEventTarget | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getAltFitIframeElement?: UIStateManagerElementProvider | undefined;
-    readonly getChartControlsToggleElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getChartSettingsWrapperElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getDropOverlayElement?: UIStateManagerElementProvider | undefined;
-    readonly getFileLoadingProgressElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getLoadingIndicatorElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getMainContentElement?: UIStateManagerElementProvider | undefined;
-    readonly getMapContainerElement?: UIStateManagerElementProvider | undefined;
-    readonly getMeasurementModeToggleElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getSidebarElement?: UIStateManagerElementProvider | undefined;
-    readonly getTabButtonElements?:
-        | UIStateManagerElementListProvider
-        | undefined;
-    readonly getTabContentElements?:
-        | UIStateManagerElementListProvider
-        | undefined;
-    readonly getThemeRootElement?: UIStateManagerElementProvider | undefined;
-    readonly getThemeStateElements?:
-        | UIStateManagerElementListProvider
-        | undefined;
-    readonly getThemeToggleElements?:
-        | UIStateManagerElementListProvider
-        | undefined;
-    readonly getUnloadFileButtonElement?:
-        | UIStateManagerElementProvider
-        | undefined;
-    readonly getZwiftIframeElement?: UIStateManagerElementProvider | undefined;
-    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
-    readonly getSetBodyCursor?:
-        | (() => ((cursor: string) => void) | undefined)
-        | undefined;
-    readonly getSetDocumentTitle?:
-        | (() => ((title: string) => void) | undefined)
-        | undefined;
-    readonly getViewportState?:
-        | (() => UIStateManagerViewportState | undefined)
-        | undefined;
+    readonly getAbortController: UIStateManagerRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly createSpanElement: UIStateManagerRuntimeProvider<HTMLSpanElement>;
+    readonly getDateNow: UIStateManagerRuntimeProvider<() => number>;
+    readonly getDocument: UIStateManagerRuntimeProvider<Document>;
+    readonly getFileStateBody: UIStateManagerRuntimeProvider<UIStateManagerFileStateBody>;
+    readonly getActiveFileNameContainerElement: UIStateManagerElementProvider;
+    readonly getActiveFileNameElement: UIStateManagerElementProvider;
+    readonly getDocumentTitle: UIStateManagerRuntimeProvider<string>;
+    readonly getEventTarget: UIStateManagerRuntimeProvider<UIStateManagerEventTarget>;
+    readonly getHTMLElement: UIStateManagerRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getAltFitIframeElement: UIStateManagerElementProvider;
+    readonly getChartControlsToggleElement: UIStateManagerElementProvider;
+    readonly getChartSettingsWrapperElement: UIStateManagerElementProvider;
+    readonly getDropOverlayElement: UIStateManagerElementProvider;
+    readonly getFileLoadingProgressElement: UIStateManagerElementProvider;
+    readonly getLoadingIndicatorElement: UIStateManagerElementProvider;
+    readonly getMainContentElement: UIStateManagerElementProvider;
+    readonly getMapContainerElement: UIStateManagerElementProvider;
+    readonly getMeasurementModeToggleElement: UIStateManagerElementProvider;
+    readonly getSidebarElement: UIStateManagerElementProvider;
+    readonly getTabButtonElements: UIStateManagerElementListProvider;
+    readonly getTabContentElements: UIStateManagerElementListProvider;
+    readonly getThemeRootElement: UIStateManagerElementProvider;
+    readonly getThemeStateElements: UIStateManagerElementListProvider;
+    readonly getThemeToggleElements: UIStateManagerElementListProvider;
+    readonly getUnloadFileButtonElement: UIStateManagerElementProvider;
+    readonly getZwiftIframeElement: UIStateManagerElementProvider;
+    readonly getMatchMedia: UIStateManagerRuntimeProvider<BrowserMatchMedia>;
+    readonly getSetBodyCursor: UIStateManagerRuntimeProvider<
+        (cursor: string) => void
+    >;
+    readonly getSetDocumentTitle: UIStateManagerRuntimeProvider<
+        (title: string) => void
+    >;
+    readonly getViewportState: UIStateManagerRuntimeProvider<UIStateManagerViewportState>;
 }
 
 export interface UIStateManagerRuntime {
@@ -162,17 +129,57 @@ export interface UIStateManagerRuntime {
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getDateNow: getBrowserDateNow,
     getAbortController: getBrowserAbortController,
+    createSpanElement: () => undefined,
     getDocument: getBrowserDocument,
+    getFileStateBody: () => undefined,
+    getActiveFileNameContainerElement: () => undefined,
+    getActiveFileNameElement: () => undefined,
+    getDocumentTitle: () => undefined,
     getEventTarget: getBrowserViewportEventTarget,
     getHTMLElement: getBrowserHTMLElement,
+    getAltFitIframeElement: () => undefined,
+    getChartControlsToggleElement: () => undefined,
+    getChartSettingsWrapperElement: () => undefined,
+    getDropOverlayElement: () => undefined,
+    getFileLoadingProgressElement: () => undefined,
+    getLoadingIndicatorElement: () => undefined,
+    getMainContentElement: () => undefined,
+    getMapContainerElement: () => undefined,
+    getMeasurementModeToggleElement: () => undefined,
+    getSidebarElement: () => undefined,
+    getTabButtonElements: () => undefined,
+    getTabContentElements: () => undefined,
+    getThemeRootElement: () => undefined,
+    getThemeStateElements: () => undefined,
+    getThemeToggleElements: () => undefined,
+    getUnloadFileButtonElement: () => undefined,
+    getZwiftIframeElement: () => undefined,
     getMatchMedia: getBrowserMatchMedia,
+    getSetBodyCursor: () => undefined,
+    getSetDocumentTitle: () => undefined,
     getViewportState: getBrowserViewportState,
 };
+
+function getRequiredProvider<T>(
+    provider: UIStateManagerRuntimeProvider<T> | undefined,
+    providerName: string
+): UIStateManagerRuntimeProvider<T> {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `UI state manager requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
 
 function getAbortControllerConstructor(
     scope: UIStateManagerRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "getAbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "UI state manager requires an AbortController runtime"
@@ -183,17 +190,20 @@ function getAbortControllerConstructor(
 }
 
 function createSpanElement(scope: UIStateManagerRuntimeScope): HTMLSpanElement {
-    const createSpan = scope.createSpanElement;
-    if (typeof createSpan !== "function") {
+    const spanElement = getRequiredProvider(
+        scope.createSpanElement,
+        "createSpanElement"
+    )();
+    if (spanElement === undefined) {
         const documentRef = getRequiredDocument(scope);
         return documentRef.createElement("span");
     }
 
-    return createSpan();
+    return spanElement;
 }
 
 function getDateNow(scope: UIStateManagerRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "getDateNow")();
     if (typeof dateNow !== "function") {
         throw new TypeError("UI state manager requires dateNow");
     }
@@ -204,13 +214,16 @@ function getDateNow(scope: UIStateManagerRuntimeScope): () => number {
 function getEventTarget(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerEventTarget | undefined {
-    return scope.getEventTarget?.();
+    return getRequiredProvider(scope.getEventTarget, "getEventTarget")();
 }
 
 function getHTMLElementConstructor(
     scope: UIStateManagerRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "getHTMLElement"
+    )();
 
     return typeof HTMLElementConstructor === "function"
         ? HTMLElementConstructor
@@ -220,7 +233,7 @@ function getHTMLElementConstructor(
 function getScopeDocument(
     scope: UIStateManagerRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "getDocument")();
 }
 
 function getRequiredDocument(scope: UIStateManagerRuntimeScope): Document {
@@ -247,7 +260,10 @@ function isHTMLElement(
 function getActiveFileNameContainerElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getActiveFileNameContainerElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getActiveFileNameContainerElement,
+        "getActiveFileNameContainerElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -261,7 +277,10 @@ function getActiveFileNameContainerElement(
 function getActiveFileNameElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getActiveFileNameElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getActiveFileNameElement,
+        "getActiveFileNameElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -275,7 +294,10 @@ function getActiveFileNameElement(
 function getAltFitIframeElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getAltFitIframeElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getAltFitIframeElement,
+        "getAltFitIframeElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -289,7 +311,10 @@ function getAltFitIframeElement(
 function getChartControlsToggleElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getChartControlsToggleElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getChartControlsToggleElement,
+        "getChartControlsToggleElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -303,7 +328,10 @@ function getChartControlsToggleElement(
 function getChartSettingsWrapperElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getChartSettingsWrapperElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getChartSettingsWrapperElement,
+        "getChartSettingsWrapperElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -317,7 +345,10 @@ function getChartSettingsWrapperElement(
 function getDropOverlayElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getDropOverlayElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getDropOverlayElement,
+        "getDropOverlayElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -331,7 +362,10 @@ function getDropOverlayElement(
 function getFileStateBody(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerFileStateBody | undefined {
-    const scopedBody = scope.getFileStateBody?.();
+    const scopedBody = getRequiredProvider(
+        scope.getFileStateBody,
+        "getFileStateBody"
+    )();
     if (scopedBody !== undefined) {
         return scopedBody;
     }
@@ -342,7 +376,10 @@ function getFileStateBody(
 function getFileLoadingProgressElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getFileLoadingProgressElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getFileLoadingProgressElement,
+        "getFileLoadingProgressElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -357,7 +394,10 @@ function getFileLoadingProgressElement(
 function getLoadingIndicatorElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getLoadingIndicatorElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getLoadingIndicatorElement,
+        "getLoadingIndicatorElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -372,7 +412,10 @@ function getLoadingIndicatorElement(
 function getMainContentElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getMainContentElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getMainContentElement,
+        "getMainContentElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -386,7 +429,10 @@ function getMainContentElement(
 function getMapContainerElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getMapContainerElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getMapContainerElement,
+        "getMapContainerElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -400,7 +446,10 @@ function getMapContainerElement(
 function getMeasurementModeToggleElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getMeasurementModeToggleElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getMeasurementModeToggleElement,
+        "getMeasurementModeToggleElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -415,7 +464,10 @@ function getMeasurementModeToggleElement(
 function getSidebarElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getSidebarElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getSidebarElement,
+        "getSidebarElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -429,7 +481,10 @@ function getTabButtonElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        const scopedElements = scope.getTabButtonElements?.();
+        const scopedElements = getRequiredProvider(
+            scope.getTabButtonElements,
+            "getTabButtonElements"
+        )();
         if (scopedElements !== undefined) {
             return scopedElements;
         }
@@ -446,7 +501,10 @@ function getTabContentElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        const scopedElements = scope.getTabContentElements?.();
+        const scopedElements = getRequiredProvider(
+            scope.getTabContentElements,
+            "getTabContentElements"
+        )();
         if (scopedElements !== undefined) {
             return scopedElements;
         }
@@ -463,7 +521,10 @@ function getTabContentElements(
 function getThemeRootElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getThemeRootElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getThemeRootElement,
+        "getThemeRootElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -476,7 +537,10 @@ function getThemeStateElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        const scopedElements = scope.getThemeStateElements?.();
+        const scopedElements = getRequiredProvider(
+            scope.getThemeStateElements,
+            "getThemeStateElements"
+        )();
         if (scopedElements !== undefined) {
             return scopedElements;
         }
@@ -494,7 +558,10 @@ function getThemeToggleElements(
     scope: UIStateManagerRuntimeScope
 ): readonly Element[] {
     try {
-        const scopedElements = scope.getThemeToggleElements?.();
+        const scopedElements = getRequiredProvider(
+            scope.getThemeToggleElements,
+            "getThemeToggleElements"
+        )();
         if (scopedElements !== undefined) {
             return scopedElements;
         }
@@ -512,7 +579,10 @@ function getThemeToggleElements(
 function getUnloadFileButtonElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getUnloadFileButtonElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getUnloadFileButtonElement,
+        "getUnloadFileButtonElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -526,7 +596,10 @@ function getUnloadFileButtonElement(
 function getZwiftIframeElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
-    const scopedElement = scope.getZwiftIframeElement?.();
+    const scopedElement = getRequiredProvider(
+        scope.getZwiftIframeElement,
+        "getZwiftIframeElement"
+    )();
     if (scopedElement !== undefined) {
         return scopedElement;
     }
@@ -540,7 +613,10 @@ function getZwiftIframeElement(
 function getMatchMedia(
     scope: UIStateManagerRuntimeScope
 ): BrowserMatchMedia | undefined {
-    const candidate = scope.getMatchMedia?.();
+    const candidate = getRequiredProvider(
+        scope.getMatchMedia,
+        "getMatchMedia"
+    )();
 
     return typeof candidate === "function" ? candidate : undefined;
 }
@@ -548,7 +624,9 @@ function getMatchMedia(
 function getDocumentTitle(
     scope: UIStateManagerRuntimeScope
 ): string | undefined {
-    const title = scope.getDocumentTitle?.() ?? getScopeDocument(scope)?.title;
+    const title =
+        getRequiredProvider(scope.getDocumentTitle, "getDocumentTitle")() ??
+        getScopeDocument(scope)?.title;
 
     return typeof title === "string" && title.length > 0 ? title : undefined;
 }
@@ -556,7 +634,10 @@ function getDocumentTitle(
 function getSetBodyCursor(
     scope: UIStateManagerRuntimeScope
 ): ((cursor: string) => void) | undefined {
-    const scopedSetter = scope.getSetBodyCursor?.();
+    const scopedSetter = getRequiredProvider(
+        scope.getSetBodyCursor,
+        "getSetBodyCursor"
+    )();
     if (typeof scopedSetter === "function") {
         return scopedSetter;
     }
@@ -572,7 +653,10 @@ function getSetBodyCursor(
 function getSetDocumentTitle(
     scope: UIStateManagerRuntimeScope
 ): ((title: string) => void) | undefined {
-    const scopedSetter = scope.getSetDocumentTitle?.();
+    const scopedSetter = getRequiredProvider(
+        scope.getSetDocumentTitle,
+        "getSetDocumentTitle"
+    )();
     if (typeof scopedSetter === "function") {
         return scopedSetter;
     }
@@ -588,7 +672,7 @@ function getSetDocumentTitle(
 function getViewportState(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerViewportState | undefined {
-    return scope.getViewportState?.();
+    return getRequiredProvider(scope.getViewportState, "getViewportState")();
 }
 
 function setAppHasFileClass(

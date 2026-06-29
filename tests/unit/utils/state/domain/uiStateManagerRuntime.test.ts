@@ -1,7 +1,57 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getUIStateManagerRuntime } from "../../../../../electron-app/utils/state/domain/uiStateManagerRuntime.js";
+import {
+    getUIStateManagerRuntime,
+    type UIStateManagerRuntimeScope,
+} from "../../../../../electron-app/utils/state/domain/uiStateManagerRuntime.js";
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createUIStateManagerRuntimeScope(
+    overrides: Partial<UIStateManagerRuntimeScope> = {}
+): UIStateManagerRuntimeScope {
+    return {
+        createSpanElement: () => undefined,
+        getAbortController: () => undefined,
+        getActiveFileNameContainerElement: () => undefined,
+        getActiveFileNameElement: () => undefined,
+        getAltFitIframeElement: () => undefined,
+        getChartControlsToggleElement: () => undefined,
+        getChartSettingsWrapperElement: () => undefined,
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getDocumentTitle: () => undefined,
+        getDropOverlayElement: () => undefined,
+        getEventTarget: () => undefined,
+        getFileLoadingProgressElement: () => undefined,
+        getFileStateBody: () => undefined,
+        getHTMLElement: () => undefined,
+        getLoadingIndicatorElement: () => undefined,
+        getMainContentElement: () => undefined,
+        getMapContainerElement: () => undefined,
+        getMatchMedia: () => undefined,
+        getMeasurementModeToggleElement: () => undefined,
+        getSetBodyCursor: () => undefined,
+        getSetDocumentTitle: () => undefined,
+        getSidebarElement: () => undefined,
+        getTabButtonElements: () => undefined,
+        getTabContentElements: () => undefined,
+        getThemeRootElement: () => undefined,
+        getThemeStateElements: () => undefined,
+        getThemeToggleElements: () => undefined,
+        getUnloadFileButtonElement: () => undefined,
+        getViewportState: () => undefined,
+        getZwiftIframeElement: () => undefined,
+        ...overrides,
+    };
+}
+
+function getScopedUIStateManagerRuntime(
+    overrides: Partial<UIStateManagerRuntimeScope> = {}
+): ReturnType<typeof getUIStateManagerRuntime> {
+    return getUIStateManagerRuntime(
+        createUIStateManagerRuntimeScope(overrides)
+    );
+}
 
 describe("uiStateManagerRuntime", () => {
     afterEach(() => {
@@ -13,7 +63,7 @@ describe("uiStateManagerRuntime", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn<() => number>(() => 1234);
-        const utils = getUIStateManagerRuntime({
+        const utils = getScopedUIStateManagerRuntime({
             getDateNow: () => dateNow,
         });
 
@@ -32,7 +82,7 @@ describe("uiStateManagerRuntime", () => {
             }
         }
 
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getAbortController: () =>
                 TestAbortController as unknown as BrowserAbortControllerConstructor,
         });
@@ -76,15 +126,37 @@ describe("uiStateManagerRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getUIStateManagerRuntime({}).createAbortController()
+            getScopedUIStateManagerRuntime().createAbortController()
         ).toThrow("UI state manager requires an AbortController runtime");
     });
 
     it("throws when date clocks are unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getUIStateManagerRuntime({}).dateNow()).toThrow(
+        expect(() => getScopedUIStateManagerRuntime().dateNow()).toThrow(
             "UI state manager requires dateNow"
+        );
+    });
+
+    it("throws clear errors when required provider slots are omitted", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getUIStateManagerRuntime({} as UIStateManagerRuntimeScope).dateNow()
+        ).toThrow("UI state manager requires getDateNow provider");
+        expect(() =>
+            getUIStateManagerRuntime({
+                ...createUIStateManagerRuntimeScope(),
+                getDocument: undefined,
+            } as unknown as UIStateManagerRuntimeScope).createSpanElement()
+        ).toThrow("UI state manager requires getDocument provider");
+        expect(() =>
+            getUIStateManagerRuntime({
+                ...createUIStateManagerRuntimeScope(),
+                getActiveFileNameElement: undefined,
+            } as unknown as UIStateManagerRuntimeScope).getActiveFileNameElement()
+        ).toThrow(
+            "UI state manager requires getActiveFileNameElement provider"
         );
     });
 
@@ -95,7 +167,7 @@ describe("uiStateManagerRuntime", () => {
         const scopedMatchMedia = vi.fn(() => mediaQuery);
 
         expect(
-            getUIStateManagerRuntime({
+            getScopedUIStateManagerRuntime({
                 getMatchMedia: () => scopedMatchMedia,
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
@@ -103,7 +175,7 @@ describe("uiStateManagerRuntime", () => {
             "(prefers-color-scheme: dark)"
         );
         expect(
-            getUIStateManagerRuntime({}).getSystemThemeMediaQuery()
+            getScopedUIStateManagerRuntime().getSystemThemeMediaQuery()
         ).toBeNull();
     });
 
@@ -112,7 +184,7 @@ describe("uiStateManagerRuntime", () => {
 
         const getDocumentTitle = vi.fn(() => "Ride Analysis");
         const setDocumentTitle = vi.fn<(title: string) => void>();
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getDocumentTitle,
             getSetDocumentTitle: () => setDocumentTitle,
         });
@@ -124,12 +196,12 @@ describe("uiStateManagerRuntime", () => {
         expect(setDocumentTitle).toHaveBeenCalledExactlyOnceWith("Race Recap");
         expect(getDocumentTitle).toHaveBeenCalledOnce();
         expect(
-            getUIStateManagerRuntime({
+            getScopedUIStateManagerRuntime({
                 getDocumentTitle: () => "",
             }).getDefaultDocumentTitle("Fit File Viewer")
         ).toBe("Fit File Viewer");
         expect(() =>
-            getUIStateManagerRuntime({}).setDocumentTitle("Ignored")
+            getScopedUIStateManagerRuntime().setDocumentTitle("Ignored")
         ).not.toThrow();
     });
 
@@ -137,7 +209,7 @@ describe("uiStateManagerRuntime", () => {
         expect.assertions(3);
 
         const setBodyCursor = vi.fn<(cursor: string) => void>();
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getSetBodyCursor: () => setBodyCursor,
         });
 
@@ -145,7 +217,7 @@ describe("uiStateManagerRuntime", () => {
 
         expect(setBodyCursor).toHaveBeenCalledExactlyOnceWith("wait");
         expect(() =>
-            getUIStateManagerRuntime({}).setBodyCursor("default")
+            getScopedUIStateManagerRuntime().setBodyCursor("default")
         ).not.toThrow();
         expect(setBodyCursor).not.toHaveBeenCalledWith("default");
     });
@@ -174,7 +246,7 @@ describe("uiStateManagerRuntime", () => {
             <button id="unload_file_btn"></button>
             <iframe id="zwift_iframe"></iframe>
         `;
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getDocument: () => scopedDocument,
         });
 
@@ -212,7 +284,7 @@ describe("uiStateManagerRuntime", () => {
 
         const toggle = vi.fn();
         const dataset: Record<string, string> = {};
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getFileStateBody: () => ({
                 classList: { toggle },
                 dataset,
@@ -224,7 +296,7 @@ describe("uiStateManagerRuntime", () => {
         expect(toggle).toHaveBeenCalledExactlyOnceWith("app-has-file", true);
         expect(dataset).toStrictEqual({ hasFitFile: "true" });
         expect(() =>
-            getUIStateManagerRuntime({}).setAppHasFileState(false)
+            getScopedUIStateManagerRuntime().setAppHasFileState(false)
         ).not.toThrow();
         expect(toggle).not.toHaveBeenCalledWith("app-has-file", false);
     });
@@ -236,7 +308,7 @@ describe("uiStateManagerRuntime", () => {
             className: "existing app-has-file",
             dataset: {} as Record<string, string>,
         };
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getFileStateBody: () => body,
         });
 
@@ -298,7 +370,7 @@ describe("uiStateManagerRuntime", () => {
         const getThemeToggleElements = vi.fn(() => [themeToggleElement]);
         const getUnloadFileButtonElement = vi.fn(() => unloadButton);
         const getZwiftIframeElement = vi.fn(() => zwiftIframe);
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             createSpanElement,
             getActiveFileNameContainerElement,
             getActiveFileNameElement,
@@ -378,62 +450,72 @@ describe("uiStateManagerRuntime", () => {
         expect(getUnloadFileButtonElement).toHaveBeenCalledOnce();
         expect(getZwiftIframeElement).toHaveBeenCalledOnce();
         expect(
-            getUIStateManagerRuntime({}).getActiveFileNameContainerElement()
+            getScopedUIStateManagerRuntime().getActiveFileNameContainerElement()
         ).toBeNull();
         expect(
-            getUIStateManagerRuntime({}).getActiveFileNameElement()
+            getScopedUIStateManagerRuntime().getActiveFileNameElement()
         ).toBeNull();
-        expect(() => getUIStateManagerRuntime({}).createSpanElement()).toThrow(
-            "UI state manager requires a document runtime"
-        );
+        expect(() =>
+            getScopedUIStateManagerRuntime().createSpanElement()
+        ).toThrow("UI state manager requires a document runtime");
         expect(
-            getUIStateManagerRuntime({}).getAltFitIframeElement()
-        ).toBeNull();
-        expect(
-            getUIStateManagerRuntime({}).getChartControlsToggleElement()
+            getScopedUIStateManagerRuntime().getAltFitIframeElement()
         ).toBeNull();
         expect(
-            getUIStateManagerRuntime({}).getChartSettingsWrapperElement()
-        ).toBeNull();
-        expect(getUIStateManagerRuntime({}).getDropOverlayElement()).toBeNull();
-        expect(
-            getUIStateManagerRuntime({}).getFileLoadingProgressElement()
+            getScopedUIStateManagerRuntime().getChartControlsToggleElement()
         ).toBeNull();
         expect(
-            getUIStateManagerRuntime({}).getLoadingIndicatorElement()
-        ).toBeNull();
-        expect(getUIStateManagerRuntime({}).getMainContentElement()).toBeNull();
-        expect(
-            getUIStateManagerRuntime({}).getMapContainerElement()
+            getScopedUIStateManagerRuntime().getChartSettingsWrapperElement()
         ).toBeNull();
         expect(
-            getUIStateManagerRuntime({}).getMeasurementModeToggleElement()
+            getScopedUIStateManagerRuntime().getDropOverlayElement()
         ).toBeNull();
-        expect(getUIStateManagerRuntime({}).getSidebarElement()).toBeNull();
-        expect(getUIStateManagerRuntime({}).getTabButtonElements()).toEqual([]);
-        expect(getUIStateManagerRuntime({}).getTabContentElements()).toEqual(
+        expect(
+            getScopedUIStateManagerRuntime().getFileLoadingProgressElement()
+        ).toBeNull();
+        expect(
+            getScopedUIStateManagerRuntime().getLoadingIndicatorElement()
+        ).toBeNull();
+        expect(
+            getScopedUIStateManagerRuntime().getMainContentElement()
+        ).toBeNull();
+        expect(
+            getScopedUIStateManagerRuntime().getMapContainerElement()
+        ).toBeNull();
+        expect(
+            getScopedUIStateManagerRuntime().getMeasurementModeToggleElement()
+        ).toBeNull();
+        expect(getScopedUIStateManagerRuntime().getSidebarElement()).toBeNull();
+        expect(getScopedUIStateManagerRuntime().getTabButtonElements()).toEqual(
             []
         );
-        expect(getUIStateManagerRuntime({}).getThemeRootElement()).toBeNull();
-        expect(getUIStateManagerRuntime({}).getThemeStateElements()).toEqual(
-            []
-        );
-        expect(getUIStateManagerRuntime({}).getThemeToggleElements()).toEqual(
-            []
-        );
-        expect(getUIStateManagerRuntime({}).isHTMLElement(tabButton)).toBe(
+        expect(
+            getScopedUIStateManagerRuntime().getTabContentElements()
+        ).toEqual([]);
+        expect(
+            getScopedUIStateManagerRuntime().getThemeRootElement()
+        ).toBeNull();
+        expect(
+            getScopedUIStateManagerRuntime().getThemeStateElements()
+        ).toEqual([]);
+        expect(
+            getScopedUIStateManagerRuntime().getThemeToggleElements()
+        ).toEqual([]);
+        expect(getScopedUIStateManagerRuntime().isHTMLElement(tabButton)).toBe(
             false
         );
         expect(
-            getUIStateManagerRuntime({}).getUnloadFileButtonElement()
+            getScopedUIStateManagerRuntime().getUnloadFileButtonElement()
         ).toBeNull();
-        expect(getUIStateManagerRuntime({}).getZwiftIframeElement()).toBeNull();
+        expect(
+            getScopedUIStateManagerRuntime().getZwiftIframeElement()
+        ).toBeNull();
     });
 
     it("falls back to empty element lists when scoped providers throw", () => {
         expect.assertions(4);
 
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getTabButtonElements: () => {
                 throw new Error("tab buttons unavailable");
             },
@@ -461,7 +543,7 @@ describe("uiStateManagerRuntime", () => {
         const directMatchMedia = vi.fn(() => mediaQuery);
 
         expect(
-            getUIStateManagerRuntime({
+            getScopedUIStateManagerRuntime({
                 matchMedia: directMatchMedia,
             } as unknown as Parameters<
                 typeof getUIStateManagerRuntime
@@ -475,7 +557,7 @@ describe("uiStateManagerRuntime", () => {
 
         const addEventListener = vi.fn();
         const directAddEventListener = vi.fn();
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getEventTarget: () => ({ addEventListener }),
             eventTarget: {
                 addEventListener: directAddEventListener,
@@ -493,13 +575,13 @@ describe("uiStateManagerRuntime", () => {
             options
         );
         expect(directAddEventListener).not.toHaveBeenCalled();
-        expect(getUIStateManagerRuntime({}).hasWindow()).toBe(false);
+        expect(getScopedUIStateManagerRuntime().hasWindow()).toBe(false);
     });
 
     it("reads window state from the scoped viewport provider", () => {
         expect.assertions(2);
 
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             getViewportState: () => ({
                 innerHeight: 800,
                 innerWidth: 1200,
@@ -522,7 +604,7 @@ describe("uiStateManagerRuntime", () => {
             y: 200,
         });
         expect(
-            getUIStateManagerRuntime({
+            getScopedUIStateManagerRuntime({
                 getViewportState: () => ({
                     innerHeight: 800,
                     innerWidth: 1200,
@@ -542,9 +624,9 @@ describe("uiStateManagerRuntime", () => {
     it("returns null when scoped window state is unavailable", () => {
         expect.assertions(2);
 
-        expect(getUIStateManagerRuntime({}).getWindowState()).toBeNull();
+        expect(getScopedUIStateManagerRuntime().getWindowState()).toBeNull();
         expect(
-            getUIStateManagerRuntime({
+            getScopedUIStateManagerRuntime({
                 getViewportState: () => ({
                     innerHeight: 800,
                     innerWidth: 1200,
@@ -588,7 +670,7 @@ describe("uiStateManagerRuntime", () => {
         const dateNow = vi.fn<() => number>(() => 1234);
         const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
-        const runtime = getUIStateManagerRuntime({
+        const runtime = getScopedUIStateManagerRuntime({
             AbortController:
                 TestAbortController as unknown as BrowserAbortControllerConstructor,
             activeFileNameContainerElement,
@@ -722,7 +804,7 @@ describe("uiStateManagerRuntime", () => {
         expect(setDocumentTitle).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
         expect(listener).not.toHaveBeenCalled();
-        expect(getUIStateManagerRuntime({}).hasWindow()).toBe(false);
-        expect(getUIStateManagerRuntime({}).getWindowState()).toBeNull();
+        expect(getScopedUIStateManagerRuntime().hasWindow()).toBe(false);
+        expect(getScopedUIStateManagerRuntime().getWindowState()).toBeNull();
     });
 });

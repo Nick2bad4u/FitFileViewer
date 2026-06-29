@@ -13672,7 +13672,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(229);
+        expect.assertions(232);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -13923,7 +13923,7 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "readonly getDocument?: (() => Document | undefined) | undefined;"
+            "readonly getDocument: UIStateManagerRuntimeProvider<Document>;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
@@ -13962,7 +13962,7 @@ describe("architecture boundaries", () => {
             "return getScopeDocument(scope)?.body;"
         );
         expect(uiStateManagerRuntimeSource).toContain(
-            "const title = scope.getDocumentTitle?.() ?? getScopeDocument(scope)?.title;"
+            'getRequiredProvider(scope.getDocumentTitle, "getDocumentTitle")() ??'
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             'typeof globalThis.addEventListener === "function"'
@@ -14054,6 +14054,15 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "function getRequiredDocument(scope: UIStateManagerRuntimeScope): Document"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "UI state manager requires a document runtime"
