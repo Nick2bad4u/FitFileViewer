@@ -158,22 +158,25 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("routes download DOM and URL helpers through injected runtime providers", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
-        const anchor = document.createElement("a");
-        const append = vi.spyOn(document.body, "append");
-        const createElement = vi.fn<typeof document.createElement>(
-            () => anchor
-        );
+        const documentRef =
+            document.implementation.createHTMLDocument("lifecycle downloads");
+        const summary = documentRef.createElement("section");
+        summary.id = "content-summary";
+        documentRef.body.append(summary);
+        const anchor = documentRef.createElement("a");
+        const append = vi.spyOn(documentRef.body, "append");
+        const createElement = vi.spyOn(
+            documentRef,
+            "createElement"
+        ).mockReturnValue(anchor);
         const blobUrl = "blob:lifecycle-listeners-test";
         const createObjectURL = vi.fn<(blob: Blob) => string>(() => blobUrl);
         const revokeObjectURL = vi.fn<(url: string) => void>();
         const runtime = getLifecycleListenersRuntime(
             createLifecycleListenersRuntimeScope({
-                getDocument: () => ({
-                    body: document.body,
-                    createElement,
-                }),
+                getDocument: () => documentRef,
                 getURL: () => ({
                     createObjectURL,
                     revokeObjectURL,
@@ -185,14 +188,16 @@ describe("getLifecycleListenersRuntime", () => {
         expect(runtime.createDownloadAnchor()).toBe(anchor);
         runtime.appendToBody(anchor);
         expect(runtime.createObjectURL(blob)).toBe(blobUrl);
+        expect(runtime.getSummaryContainer()).toBe(summary);
         runtime.revokeObjectURL(blobUrl);
 
         expect(createElement).toHaveBeenCalledWith("a");
         expect(append).toHaveBeenCalledWith(anchor);
         expect(createObjectURL).toHaveBeenCalledWith(blob);
         expect(revokeObjectURL).toHaveBeenCalledWith(blobUrl);
-        expect(anchor.parentElement).toBe(document.body);
+        expect(anchor.parentElement).toBe(documentRef.body);
         expect(anchor.tagName).toBe("A");
+        expect(summary.id).toBe("content-summary");
 
         anchor.remove();
         append.mockRestore();
@@ -233,20 +238,18 @@ describe("getLifecycleListenersRuntime", () => {
     it("replaces document body classes through the injected runtime provider", () => {
         expect.assertions(1);
 
-        const body = document.createElement("body");
-        body.classList.add("font-small", "high-contrast");
+        const documentRef =
+            document.implementation.createHTMLDocument("lifecycle classes");
+        documentRef.body.classList.add("font-small", "high-contrast");
         const runtime = getLifecycleListenersRuntime(
             createLifecycleListenersRuntimeScope({
-                getDocument: () => ({
-                    body,
-                    createElement: document.createElement.bind(document),
-                }),
+                getDocument: () => documentRef,
             })
         );
 
         runtime.replaceBodyClasses(["font-small", "font-medium"], "font-large");
 
-        expect([...body.classList].sort()).toStrictEqual([
+        expect([...documentRef.body.classList].sort()).toStrictEqual([
             "font-large",
             "high-contrast",
         ]);
@@ -265,7 +268,7 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const runtime = getLifecycleListenersRuntime(
             createLifecycleListenersRuntimeScope()
@@ -286,6 +289,9 @@ describe("getLifecycleListenersRuntime", () => {
         expect(() =>
             runtime.replaceBodyClasses(["font-small"], "font-large")
         ).toThrow("lifecycle listeners require a document runtime");
+        expect(() => runtime.getSummaryContainer()).toThrow(
+            "lifecycle listeners require a document runtime"
+        );
         expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
             "lifecycle listeners require a URL runtime"
         );

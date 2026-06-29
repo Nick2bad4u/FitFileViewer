@@ -19733,7 +19733,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(90);
+        expect.assertions(97);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -19757,6 +19757,15 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
         expect(lifecycleListenersSource).toContain("createDownloadAnchor");
+        expect(lifecycleListenersSource).toContain(
+            "dependencies.lifecycleRuntime.getSummaryContainer()"
+        );
+        expect(lifecycleListenersSource).not.toContain(
+            "querySelectorByIdFlexible(document"
+        );
+        expect(lifecycleListenersSource).not.toMatch(
+            /\bquerySelectorByIdFlexible\(\s*document\b/u
+        );
         expect(lifecycleListenersSource).toContain(
             "lifecycleRuntime.createObjectURL"
         );
@@ -19834,6 +19843,18 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "replaceBodyClasses(classesToRemove, classToAdd): void"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getSummaryContainer(): HTMLElement | null"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "../../ui/dom/elementIdUtils.js"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "querySelectorByIdFlexible("
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            '"#content_summary"'
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "lifecycle listeners require a URL runtime"

@@ -28,7 +28,6 @@ import type {
     ElectronMenuEventApi,
     ElectronPreloadEventApi,
 } from "../../../shared/preloadApi.js";
-import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import {
     clearLifecycleListenerCleanup,
     getLifecycleListenerCleanup,
@@ -277,7 +276,7 @@ function exportCsvFile(
     data: FitData,
     dependencies: ExportDownloadDependencies
 ): void {
-    const container = querySelectorByIdFlexible(document, "#content_summary");
+    const container = dependencies.lifecycleRuntime.getSummaryContainer();
     if (!container) {
         return;
     }

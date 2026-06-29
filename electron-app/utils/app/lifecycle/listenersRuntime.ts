@@ -14,10 +14,11 @@ import {
     getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue,
     isDevelopmentEnvironment as isRuntimeDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
+import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 export type LifecycleListenersTimer = BrowserTimerHandle;
 
-type LifecycleListenersDocument = Pick<Document, "body" | "createElement">;
+type LifecycleListenersDocument = Document;
 type LifecycleListenersPrint = () => void;
 type LifecycleListenersURL = Pick<
     typeof URL,
@@ -47,6 +48,7 @@ export interface LifecycleListenersRuntime {
     readonly getProcessEnvironmentValue: (
         name: string
     ) => string | undefined;
+    readonly getSummaryContainer: () => HTMLElement | null;
     readonly isDevelopmentEnvironment: () => boolean;
     readonly isTestEnvironment: () => boolean;
     readonly print: () => void;
@@ -165,6 +167,12 @@ export function getLifecycleListenersRuntime(
             return getRequiredEnvironmentProvider(
                 scope.getProcessEnvironmentValue
             )(name);
+        },
+        getSummaryContainer(): HTMLElement | null {
+            return querySelectorByIdFlexible(
+                getRequiredDocument(scope),
+                "#content_summary"
+            );
         },
         isDevelopmentEnvironment(): boolean {
             return (
