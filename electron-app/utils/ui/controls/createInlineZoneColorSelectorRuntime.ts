@@ -18,28 +18,19 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type CreateInlineZoneColorSelectorTimerHandle = BrowserTimerHandle;
+type CreateInlineZoneColorSelectorRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreateInlineZoneColorSelectorRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDispatchEvent?:
-        | (() => BrowserDispatchEvent | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLSelectElement?:
-        | (() => BrowserHTMLSelectElementConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: CreateInlineZoneColorSelectorRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getCustomEvent: CreateInlineZoneColorSelectorRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDispatchEvent: CreateInlineZoneColorSelectorRuntimeProvider<BrowserDispatchEvent>;
+    readonly getDocument: CreateInlineZoneColorSelectorRuntimeProvider<Document>;
+    readonly getHTMLElement: CreateInlineZoneColorSelectorRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getHTMLInputElement: CreateInlineZoneColorSelectorRuntimeProvider<BrowserHTMLInputElementConstructor>;
+    readonly getHTMLSelectElement: CreateInlineZoneColorSelectorRuntimeProvider<BrowserHTMLSelectElementConstructor>;
+    readonly getSetTimeout: CreateInlineZoneColorSelectorRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface CreateInlineZoneColorSelectorRuntime {
@@ -62,6 +53,21 @@ export interface CreateInlineZoneColorSelectorRuntime {
     ) => CreateInlineZoneColorSelectorTimerHandle;
 }
 
+function getRequiredProvider<T>(
+    provider: CreateInlineZoneColorSelectorRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createInlineZoneColorSelector requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 const defaultCreateInlineZoneColorSelectorRuntimeScope: CreateInlineZoneColorSelectorRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
@@ -77,7 +83,10 @@ const defaultCreateInlineZoneColorSelectorRuntimeScope: CreateInlineZoneColorSel
 function getAbortControllerConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires an AbortController runtime"
@@ -90,7 +99,10 @@ function getAbortControllerConstructor(
 function getCustomEventConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    )();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires a CustomEvent runtime"
@@ -103,7 +115,10 @@ function getCustomEventConstructor(
 function getDispatchEvent(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserDispatchEvent {
-    const dispatchEvent = scope.getDispatchEvent?.();
+    const dispatchEvent = getRequiredProvider(
+        scope.getDispatchEvent,
+        "dispatchEvent"
+    )();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires a dispatchEvent runtime"
@@ -116,7 +131,10 @@ function getDispatchEvent(
 function getDocument(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "createInlineZoneColorSelector requires a document runtime"
@@ -129,7 +147,10 @@ function getDocument(
 function getHTMLElementConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires an HTMLElement runtime"
@@ -142,7 +163,10 @@ function getHTMLElementConstructor(
 function getHTMLInputElementConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserHTMLInputElementConstructor {
-    const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+    const HTMLInputElementConstructor = getRequiredProvider(
+        scope.getHTMLInputElement,
+        "HTMLInputElement"
+    )();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires an HTMLInputElement runtime"
@@ -155,7 +179,10 @@ function getHTMLInputElementConstructor(
 function getHTMLSelectElementConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserHTMLSelectElementConstructor {
-    const HTMLSelectElementConstructor = scope.getHTMLSelectElement?.();
+    const HTMLSelectElementConstructor = getRequiredProvider(
+        scope.getHTMLSelectElement,
+        "HTMLSelectElement"
+    )();
     if (typeof HTMLSelectElementConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires an HTMLSelectElement runtime"
@@ -168,7 +195,10 @@ function getHTMLSelectElementConstructor(
 function getRequiredSetTimeout(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): BrowserSetTimeout {
-    const scheduleTimer = scope.getSetTimeout?.();
+    const scheduleTimer = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
     if (typeof scheduleTimer !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires a setTimeout runtime"

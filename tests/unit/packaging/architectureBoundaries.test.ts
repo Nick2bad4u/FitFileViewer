@@ -9044,7 +9044,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(99);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -9185,12 +9185,117 @@ describe("architecture boundaries", () => {
         expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getCustomEvent?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getDispatchEvent?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getHTMLSelectElement?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getAbortController: CreateInlineZoneColorSelectorRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getCustomEvent: CreateInlineZoneColorSelectorRuntimeProvider<BrowserCustomEventConstructor>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getDispatchEvent: CreateInlineZoneColorSelectorRuntimeProvider<BrowserDispatchEvent>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getDocument: CreateInlineZoneColorSelectorRuntimeProvider<Document>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getHTMLElement: CreateInlineZoneColorSelectorRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getHTMLInputElement: CreateInlineZoneColorSelectorRuntimeProvider<BrowserHTMLInputElementConstructor>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getHTMLSelectElement: CreateInlineZoneColorSelectorRuntimeProvider<BrowserHTMLSelectElementConstructor>;"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "readonly getSetTimeout: CreateInlineZoneColorSelectorRuntimeProvider<BrowserSetTimeout>;"
+        );
         expect(inlineZoneSelectorRuntimeSource).not.toContain("scope.document");
         expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "scope.dispatchEvent"
         );
         expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "scope.setTimeout"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "type CreateInlineZoneColorSelectorRuntimeProvider<T> ="
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getCustomEvent,\n        "CustomEvent"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getDispatchEvent,\n        "dispatchEvent"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getDispatchEvent?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getDocument,\n        "document"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getHTMLElement,\n        "HTMLElement"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getHTMLInputElement,\n        "HTMLInputElement"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getHTMLSelectElement,\n        "HTMLSelectElement"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getHTMLSelectElement?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            'scope.getSetTimeout,\n        "setTimeout"'
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "createInlineZoneColorSelector requires ${article} ${providerName} provider"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"

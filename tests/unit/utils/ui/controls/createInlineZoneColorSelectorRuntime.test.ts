@@ -13,6 +13,22 @@ import type {
     BrowserSetTimeout,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<CreateInlineZoneColorSelectorRuntimeScope> = {}
+): CreateInlineZoneColorSelectorRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getCustomEvent: () => undefined,
+        getDispatchEvent: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getHTMLInputElement: () => undefined,
+        getHTMLSelectElement: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getCreateInlineZoneColorSelectorRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -22,9 +38,11 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("creates elements and exposes document body through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateInlineZoneColorSelectorRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getCreateInlineZoneColorSelectorRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+            })
+        );
         const container = runtime.createElement("div");
         const select = runtime.createElement("select");
 
@@ -37,10 +55,12 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect.assertions(3);
 
         const dispatchEvent = vi.fn<BrowserDispatchEvent>(() => true);
-        const runtime = getCreateInlineZoneColorSelectorRuntime({
-            getCustomEvent: () => CustomEvent,
-            getDispatchEvent: () => dispatchEvent,
-        });
+        const runtime = getCreateInlineZoneColorSelectorRuntime(
+            createUnavailableRuntimeScope({
+                getCustomEvent: () => CustomEvent,
+                getDispatchEvent: () => dispatchEvent,
+            })
+        );
         const event = runtime.createCustomEvent("fieldToggleChanged", {
             detail: { field: "hr_zone" },
         });
@@ -68,13 +88,15 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("creates abort controllers and checks element types through injected runtimes", () => {
         expect.assertions(4);
 
-        const runtime = getCreateInlineZoneColorSelectorRuntime({
-            getAbortController: () => AbortController,
-            getDocument: () => document,
-            getHTMLElement: () => HTMLElement,
-            getHTMLInputElement: () => HTMLInputElement,
-            getHTMLSelectElement: () => HTMLSelectElement,
-        });
+        const runtime = getCreateInlineZoneColorSelectorRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+                getHTMLInputElement: () => HTMLInputElement,
+                getHTMLSelectElement: () => HTMLSelectElement,
+            })
+        );
         const controller = runtime.createAbortController();
         const input = document.createElement("input");
         const select = document.createElement("select");
@@ -134,9 +156,11 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         const timeoutMs = Number("25");
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<BrowserSetTimeout>(() => timer);
-        const runtime = getCreateInlineZoneColorSelectorRuntime({
-            getSetTimeout: () => setTimeoutMock,
-        });
+        const runtime = getCreateInlineZoneColorSelectorRuntime(
+            createUnavailableRuntimeScope({
+                getSetTimeout: () => setTimeoutMock,
+            })
+        );
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
@@ -145,7 +169,9 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("throws when timer scheduling is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getCreateInlineZoneColorSelectorRuntime({});
+        const runtime = getCreateInlineZoneColorSelectorRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "createInlineZoneColorSelector requires a setTimeout runtime"
@@ -155,22 +181,30 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(7);
 
-        const runtime = getCreateInlineZoneColorSelectorRuntime({});
+        const runtime = getCreateInlineZoneColorSelectorRuntime(
+            createUnavailableRuntimeScope()
+        );
         const runtimeWithInvalidAbortController =
-            getCreateInlineZoneColorSelectorRuntime({
-                getAbortController: () =>
-                    "AbortController" as unknown as BrowserAbortControllerConstructor,
-            });
+            getCreateInlineZoneColorSelectorRuntime(
+                createUnavailableRuntimeScope({
+                    getAbortController: () =>
+                        "AbortController" as unknown as BrowserAbortControllerConstructor,
+                })
+            );
         const runtimeWithInvalidCustomEvent =
-            getCreateInlineZoneColorSelectorRuntime({
-                getCustomEvent: () =>
-                    "CustomEvent" as unknown as BrowserCustomEventConstructor,
-            });
+            getCreateInlineZoneColorSelectorRuntime(
+                createUnavailableRuntimeScope({
+                    getCustomEvent: () =>
+                        "CustomEvent" as unknown as BrowserCustomEventConstructor,
+                })
+            );
         const runtimeWithInvalidElement =
-            getCreateInlineZoneColorSelectorRuntime({
-                getHTMLElement: () =>
-                    "HTMLElement" as unknown as BrowserHTMLElementConstructor,
-            });
+            getCreateInlineZoneColorSelectorRuntime(
+                createUnavailableRuntimeScope({
+                    getHTMLElement: () =>
+                        "HTMLElement" as unknown as BrowserHTMLElementConstructor,
+                })
+            );
 
         expect(() => runtime.createElement("div")).toThrow(
             "createInlineZoneColorSelector requires a document runtime"
@@ -205,6 +239,128 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         );
     });
 
+    it("throws clearly when required runtime providers are missing", () => {
+        expect.assertions(8);
+
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).createAbortController()
+        ).toThrow(
+            "createInlineZoneColorSelector requires an AbortController provider"
+        );
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).createCustomEvent(
+                "event"
+            )
+        ).toThrow(
+            "createInlineZoneColorSelector requires a CustomEvent provider"
+        );
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).dispatchEvent(
+                new Event("fieldToggleChanged")
+            )
+        ).toThrow(
+            "createInlineZoneColorSelector requires a dispatchEvent provider"
+        );
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).createElement(
+                "div"
+            )
+        ).toThrow("createInlineZoneColorSelector requires a document provider");
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).isHTMLElement(
+                document.createElement("div")
+            )
+        ).toThrow(
+            "createInlineZoneColorSelector requires an HTMLElement provider"
+        );
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).isHTMLInputElement(
+                document.createElement("input")
+            )
+        ).toThrow(
+            "createInlineZoneColorSelector requires an HTMLInputElement provider"
+        );
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).isHTMLSelectElement(
+                document.createElement("select")
+            )
+        ).toThrow(
+            "createInlineZoneColorSelector requires an HTMLSelectElement provider"
+        );
+        expect(() =>
+            getCreateInlineZoneColorSelectorRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+            } as unknown as CreateInlineZoneColorSelectorRuntimeScope).setTimeout(
+                vi.fn(),
+                1
+            )
+        ).toThrow(
+            "createInlineZoneColorSelector requires a setTimeout provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(8);
 
@@ -224,36 +380,36 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         const runtime = getCreateInlineZoneColorSelectorRuntime(legacyScope);
 
         expect(() => runtime.createElement("div")).toThrow(
-            "createInlineZoneColorSelector requires a document runtime"
+            "createInlineZoneColorSelector requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createInlineZoneColorSelector requires an AbortController runtime"
+            "createInlineZoneColorSelector requires an AbortController provider"
         );
         expect(() => runtime.createCustomEvent("event")).toThrow(
-            "createInlineZoneColorSelector requires a CustomEvent runtime"
+            "createInlineZoneColorSelector requires a CustomEvent provider"
         );
         expect(() =>
             runtime.dispatchEvent(new Event("fieldToggleChanged"))
         ).toThrow(
-            "createInlineZoneColorSelector requires a dispatchEvent runtime"
+            "createInlineZoneColorSelector requires a dispatchEvent provider"
         );
         expect(() =>
             runtime.isHTMLElement(document.createElement("div"))
         ).toThrow(
-            "createInlineZoneColorSelector requires an HTMLElement runtime"
+            "createInlineZoneColorSelector requires an HTMLElement provider"
         );
         expect(() =>
             runtime.isHTMLInputElement(document.createElement("input"))
         ).toThrow(
-            "createInlineZoneColorSelector requires an HTMLInputElement runtime"
+            "createInlineZoneColorSelector requires an HTMLInputElement provider"
         );
         expect(() =>
             runtime.isHTMLSelectElement(document.createElement("select"))
         ).toThrow(
-            "createInlineZoneColorSelector requires an HTMLSelectElement runtime"
+            "createInlineZoneColorSelector requires an HTMLSelectElement provider"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
-            "createInlineZoneColorSelector requires a setTimeout runtime"
+            "createInlineZoneColorSelector requires a setTimeout provider"
         );
     });
 });
