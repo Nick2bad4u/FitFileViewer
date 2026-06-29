@@ -56,13 +56,19 @@ describe("createTablesRuntime", () => {
     it("fails clearly when explicit scopes omit the document provider", () => {
         expect.assertions(1);
 
-        const runtime = getCreateTablesRuntime(
-            {} as unknown as CreateTablesRuntimeScope
-        );
+        expect(() =>
+            getCreateTablesRuntime({} as unknown as CreateTablesRuntimeScope)
+        ).toThrow("createTablesRuntime requires a document provider");
+    });
 
-        expect(() => runtime.getDefaultContainer()).toThrow(
-            "createTablesRuntime requires a document provider"
-        );
+    it("fails clearly when the document provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getCreateTablesRuntime({
+                getDocument: undefined,
+            })
+        ).toThrow("createTablesRuntime requires a document provider");
     });
 
     it("ignores legacy direct document scope properties", () => {
@@ -71,12 +77,12 @@ describe("createTablesRuntime", () => {
         const querySelector = vi.fn<ParentNode["querySelector"]>(() =>
             document.createElement("div")
         );
-        const runtime = getCreateTablesRuntime({
-            ...unavailableCreateTablesRuntimeScope,
-            document: { querySelector },
-        } as unknown as CreateTablesRuntimeScope);
 
-        expect(runtime.getDefaultContainer()).toBeNull();
+        expect(() =>
+            getCreateTablesRuntime({
+                document: { querySelector },
+            } as unknown as CreateTablesRuntimeScope)
+        ).toThrow("createTablesRuntime requires a document provider");
         expect(querySelector).not.toHaveBeenCalled();
     });
 });
