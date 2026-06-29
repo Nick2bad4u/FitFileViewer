@@ -22,6 +22,8 @@ function createRuntimeScope(
         getClearInterval: () => vi.fn<BrowserClearInterval>(),
         getClearTimeout: () => vi.fn<BrowserClearTimeout>(),
         getDateNow: () => vi.fn<() => number>(() => 42),
+        getLocalStorage: () => undefined,
+        getPerformance: () => undefined,
         getSetInterval: () => vi.fn<BrowserSetInterval>(),
         getSetTimeout: () => vi.fn<BrowserSetTimeout>(),
         ...overrides,
@@ -134,8 +136,37 @@ describe("getStateIntegrationRuntime", () => {
         }
     );
 
+    it("requires explicit provider slots", () => {
+        expect.assertions(7);
+
+        const missingProviders = {} as unknown as StateIntegrationRuntimeScope;
+        const runtime = getStateIntegrationRuntime(missingProviders);
+
+        expect(() => runtime.clearInterval(1 as BrowserIntervalHandle)).toThrow(
+            "stateIntegrationRuntime requires clearInterval provider"
+        );
+        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
+            "stateIntegrationRuntime requires clearTimeout provider"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "stateIntegrationRuntime requires dateNow provider"
+        );
+        expect(() => runtime.getPerformanceMemory()).toThrow(
+            "stateIntegrationRuntime requires performance provider"
+        );
+        expect(() => runtime.getStorage()).toThrow(
+            "stateIntegrationRuntime requires localStorage provider"
+        );
+        expect(() => runtime.setInterval(vi.fn(), 1)).toThrow(
+            "stateIntegrationRuntime requires setInterval provider"
+        );
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "stateIntegrationRuntime requires setTimeout provider"
+        );
+    });
+
     it("ignores legacy direct timer, storage, and performance runtime properties", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const intervalCallback = vi.fn<() => void>();
         const timeoutCallback = vi.fn<() => void>();
@@ -151,7 +182,7 @@ describe("getStateIntegrationRuntime", () => {
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const setInterval = vi.fn<BrowserSetInterval>(() => interval);
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timeout);
-        const runtime = getStateIntegrationRuntime({
+        const legacyScope = {
             clearInterval,
             clearTimeout,
             dateNow: vi.fn<() => number>(() => 42),
@@ -159,7 +190,24 @@ describe("getStateIntegrationRuntime", () => {
             performance: { memory: performanceMemory },
             setInterval,
             setTimeout,
-        } as unknown as StateIntegrationRuntimeScope);
+        } as unknown as StateIntegrationRuntimeScope;
+        const runtime = getStateIntegrationRuntime({
+            ...legacyScope,
+            getClearInterval: () => undefined,
+            getClearTimeout: () => undefined,
+            getDateNow: () => undefined,
+            getLocalStorage: () => undefined,
+            getPerformance: () => undefined,
+            getSetInterval: () => undefined,
+            getSetTimeout: () => undefined,
+        });
+
+        expect(() =>
+            getStateIntegrationRuntime(legacyScope).setInterval(
+                intervalCallback,
+                30_000
+            )
+        ).toThrow("stateIntegrationRuntime requires setInterval provider");
 
         expect(() => runtime.setInterval(intervalCallback, 30_000)).toThrow(
             "stateIntegrationRuntime requires setInterval"

@@ -27,22 +27,16 @@ type StateIntegrationPerformance = Performance & {
     readonly memory?: StateIntegrationPerformanceMemory | undefined;
 };
 
+type StateIntegrationRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface StateIntegrationRuntimeScope {
-    readonly getClearInterval?:
-        | (() => BrowserClearInterval | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
-    readonly getPerformance?:
-        | (() => StateIntegrationPerformance | undefined)
-        | undefined;
-    readonly getSetInterval?:
-        | (() => BrowserSetInterval | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getClearInterval: StateIntegrationRuntimeProvider<BrowserClearInterval>;
+    readonly getClearTimeout: StateIntegrationRuntimeProvider<BrowserClearTimeout>;
+    readonly getDateNow: StateIntegrationRuntimeProvider<() => number>;
+    readonly getLocalStorage: StateIntegrationRuntimeProvider<Storage>;
+    readonly getPerformance: StateIntegrationRuntimeProvider<StateIntegrationPerformance>;
+    readonly getSetInterval: StateIntegrationRuntimeProvider<BrowserSetInterval>;
+    readonly getSetTimeout: StateIntegrationRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface StateIntegrationRuntime {
@@ -71,8 +65,21 @@ const defaultStateIntegrationRuntimeScope: StateIntegrationRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: StateIntegrationRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `stateIntegrationRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getRequiredDateNow(scope: StateIntegrationRuntimeScope): () => number {
-    const dateNowRef = scope.getDateNow?.();
+    const dateNowRef = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNowRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires dateNow");
     }
@@ -83,7 +90,10 @@ function getRequiredDateNow(scope: StateIntegrationRuntimeScope): () => number {
 function getRequiredClearInterval(
     scope: StateIntegrationRuntimeScope
 ): BrowserClearInterval {
-    const clearIntervalRef = scope.getClearInterval?.();
+    const clearIntervalRef = getRequiredProvider(
+        scope.getClearInterval,
+        "clearInterval"
+    )();
     if (typeof clearIntervalRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires clearInterval");
     }
@@ -94,7 +104,10 @@ function getRequiredClearInterval(
 function getRequiredClearTimeout(
     scope: StateIntegrationRuntimeScope
 ): BrowserClearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.();
+    const clearTimeoutRef = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    )();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires clearTimeout");
     }
@@ -105,7 +118,10 @@ function getRequiredClearTimeout(
 function getRequiredSetInterval(
     scope: StateIntegrationRuntimeScope
 ): BrowserSetInterval {
-    const setIntervalRef = scope.getSetInterval?.();
+    const setIntervalRef = getRequiredProvider(
+        scope.getSetInterval,
+        "setInterval"
+    )();
     if (typeof setIntervalRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires setInterval");
     }
@@ -116,7 +132,10 @@ function getRequiredSetInterval(
 function getRequiredSetTimeout(
     scope: StateIntegrationRuntimeScope
 ): BrowserSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.();
+    const setTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires setTimeout");
     }
@@ -141,10 +160,11 @@ export function getStateIntegrationRuntime(
             return dateNowRef();
         },
         getPerformanceMemory(): StateIntegrationPerformanceMemory | undefined {
-            return scope.getPerformance?.()?.memory;
+            return getRequiredProvider(scope.getPerformance, "performance")()
+                ?.memory;
         },
         getStorage(): Storage | undefined {
-            return scope.getLocalStorage?.();
+            return getRequiredProvider(scope.getLocalStorage, "localStorage")();
         },
         setInterval(callback, delayMs): StateIntegrationInterval {
             const setIntervalRef = getRequiredSetInterval(scope);

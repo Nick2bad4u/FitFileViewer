@@ -17483,7 +17483,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(55);
+        expect.assertions(74);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -17587,6 +17587,63 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
         );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "type StateIntegrationRuntimeProvider"
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getClearInterval:\s*StateIntegrationRuntimeProvider<BrowserClearInterval>/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*StateIntegrationRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*StateIntegrationRuntimeProvider<\(\) => number>/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getLocalStorage:\s*StateIntegrationRuntimeProvider<Storage>/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getPerformance:\s*StateIntegrationRuntimeProvider<StateIntegrationPerformance>/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getSetInterval:\s*StateIntegrationRuntimeProvider<BrowserSetInterval>/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*StateIntegrationRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearInterval,\s*"clearInterval"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocalStorage,\s*"localStorage"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getPerformance,\s*"performance"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetInterval,\s*"setInterval"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(stateIntegrationRuntimeSource).not.toMatch(
+            /scope\.get(?:ClearInterval|ClearTimeout|DateNow|LocalStorage|Performance|SetInterval|SetTimeout)\?\.\(/u
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "stateIntegrationRuntime requires ${providerName} provider"
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "providerName: string"
+        );
         expect(stateIntegrationRuntimeSource).not.toContain(
             "dateNow: Date.now"
         );
@@ -17611,8 +17668,8 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).toContain(
             "stateIntegrationRuntime requires setTimeout"
         );
-        expect(stateIntegrationRuntimeSource).toContain(
-            "const dateNowRef = scope.getDateNow?.();"
+        expect(stateIntegrationRuntimeSource).toMatch(
+            /const\s+dateNowRef\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
         expect(stateIntegrationRuntimeSource).not.toContain(
             "readonly dateNow?:"
