@@ -15,33 +15,47 @@ export type StorageLike = {
 export type StorageProvider = () => null | StorageLike;
 
 export interface StorageUtilsRuntimeScope {
-    readonly getLocalStorage: () => null | StorageLike;
+    readonly getLocalStorage: StorageUtilsRuntimeProvider<StorageLike>;
 }
 
 export interface StorageUtilsRuntime {
     getDefaultStorage: () => null | StorageLike;
 }
 
+type StorageUtilsRuntimeProvider<T> = (() => T | null) | undefined;
+
 const defaultStorageUtilsRuntimeScope: StorageUtilsRuntimeScope = {
     getLocalStorage: () => getBrowserLocalStorage() ?? null,
 };
 
 function getScopeLocalStorage(
-    scope: StorageUtilsRuntimeScope
+    getLocalStorage: StorageProvider
 ): null | StorageLike {
-    if (typeof scope.getLocalStorage !== "function") {
-        throw new TypeError("storageUtils requires a localStorage provider");
-    }
-
-    return scope.getLocalStorage();
+    return getLocalStorage();
 }
 
 export function getStorageUtilsRuntime(
     scope: StorageUtilsRuntimeScope = defaultStorageUtilsRuntimeScope
 ): StorageUtilsRuntime {
+    const getLocalStorage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    );
+
     return {
         getDefaultStorage(): null | StorageLike {
-            return getScopeLocalStorage(scope);
+            return getScopeLocalStorage(getLocalStorage);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: StorageUtilsRuntimeProvider<T>,
+    providerName: string
+): () => T | null {
+    if (typeof provider !== "function") {
+        throw new TypeError(`storageUtils requires a ${providerName} provider`);
+    }
+
+    return provider;
 }

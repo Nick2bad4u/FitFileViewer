@@ -44,18 +44,37 @@ describe("storage utilities runtime", () => {
         expect(runtime.getDefaultStorage()).toBeNull();
     });
 
+    it("fails clearly when the localStorage provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getStorageUtilsRuntime({
+                getLocalStorage: undefined,
+            })
+        ).toThrow("storageUtils requires a localStorage provider");
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getStorageUtilsRuntime(
+                {} as unknown as Parameters<typeof getStorageUtilsRuntime>[0]
+            )
+        ).toThrow("storageUtils requires a localStorage provider");
+    });
+
     it("ignores legacy direct storage scope references", () => {
         expect.assertions(1);
 
         const localStorage: StorageLike = {
-                getItem: () => "legacy",
-            },
-            runtime = getStorageUtilsRuntime({
-                localStorage,
-            } as unknown as Parameters<typeof getStorageUtilsRuntime>[0]);
+            getItem: () => "legacy",
+        };
 
-        expect(() => runtime.getDefaultStorage()).toThrow(
-            "storageUtils requires a localStorage provider"
-        );
+        expect(() =>
+            getStorageUtilsRuntime({
+                localStorage,
+            } as unknown as Parameters<typeof getStorageUtilsRuntime>[0])
+        ).toThrow("storageUtils requires a localStorage provider");
     });
 });
