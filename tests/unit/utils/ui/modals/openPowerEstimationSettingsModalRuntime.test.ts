@@ -1,7 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { OpenPowerEstimationSettingsModalRuntimeScope } from "../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModalRuntime.js";
 import { getOpenPowerEstimationSettingsModalRuntime } from "../../../../../electron-app/utils/ui/modals/openPowerEstimationSettingsModalRuntime.js";
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createUnavailableRuntimeScope(
+    overrides: Partial<OpenPowerEstimationSettingsModalRuntimeScope> = {}
+): OpenPowerEstimationSettingsModalRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getOpenPowerEstimationSettingsModalRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
@@ -13,10 +25,12 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getOpenPowerEstimationSettingsModalRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getOpenPowerEstimationSettingsModalRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -52,7 +66,9 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(5);
 
-        const runtime = getOpenPowerEstimationSettingsModalRuntime({});
+        const runtime = getOpenPowerEstimationSettingsModalRuntime(
+            createUnavailableRuntimeScope()
+        );
         const element = document.createElement("div");
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -88,9 +104,11 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             keydownCount += 1;
         };
         const controller = new AbortController();
-        const runtime = getOpenPowerEstimationSettingsModalRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getOpenPowerEstimationSettingsModalRuntime(
+            createUnavailableRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -114,9 +132,11 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             keydownCount += 1;
         };
         const controller = new AbortController();
-        const runtime = getOpenPowerEstimationSettingsModalRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getOpenPowerEstimationSettingsModalRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -151,11 +171,13 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         );
         const getDocument = vi.fn(() => documentEventTarget);
         const getDocumentEventTarget = vi.fn(() => documentEventTarget);
-        const runtime = getOpenPowerEstimationSettingsModalRuntime({
-            getAbortController,
-            getDocument,
-            getDocumentEventTarget,
-        });
+        const runtime = getOpenPowerEstimationSettingsModalRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController,
+                getDocument,
+                getDocumentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -174,6 +196,40 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(keydownCount).toBe(1);
+    });
+
+    it("throws clearly when required runtime providers are missing", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getOpenPowerEstimationSettingsModalRuntime({
+                getDocument: () => undefined,
+                getDocumentEventTarget: () => undefined,
+            } as unknown as OpenPowerEstimationSettingsModalRuntimeScope).createAbortController()
+        ).toThrow(
+            "openPowerEstimationSettingsModal requires an AbortController provider"
+        );
+        expect(() =>
+            getOpenPowerEstimationSettingsModalRuntime({
+                getAbortController: () => undefined,
+                getDocument: () => undefined,
+            } as unknown as OpenPowerEstimationSettingsModalRuntimeScope).addDocumentKeydownListener(
+                () => undefined,
+                {}
+            )
+        ).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target provider"
+        );
+        expect(() =>
+            getOpenPowerEstimationSettingsModalRuntime({
+                getAbortController: () => undefined,
+                getDocumentEventTarget: () => undefined,
+            } as unknown as OpenPowerEstimationSettingsModalRuntimeScope).createElement(
+                "div"
+            )
+        ).toThrow(
+            "openPowerEstimationSettingsModal requires a document provider"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -197,21 +253,21 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         const element = document.createElement("div");
 
         expect(() => runtime.createAbortController()).toThrow(
-            "openPowerEstimationSettingsModal requires an AbortController runtime"
+            "openPowerEstimationSettingsModal requires an AbortController provider"
         );
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow(
-            "openPowerEstimationSettingsModal requires a document event-target runtime"
+            "openPowerEstimationSettingsModal requires a document event-target provider"
         );
         expect(() => runtime.appendToBody(element)).toThrow(
-            "openPowerEstimationSettingsModal requires a document runtime"
+            "openPowerEstimationSettingsModal requires a document provider"
         );
         expect(() => runtime.bodyContains(element)).toThrow(
-            "openPowerEstimationSettingsModal requires a document runtime"
+            "openPowerEstimationSettingsModal requires a document provider"
         );
         expect(() => runtime.createElement("div")).toThrow(
-            "openPowerEstimationSettingsModal requires a document runtime"
+            "openPowerEstimationSettingsModal requires a document provider"
         );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();

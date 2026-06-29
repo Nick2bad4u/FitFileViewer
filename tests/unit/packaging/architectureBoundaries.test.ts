@@ -20198,7 +20198,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(42);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -20217,16 +20217,6 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/modals/openPowerEstimationSettingsModalRuntime.ts"
             )
         );
-        const runtimeScopeSource =
-            powerEstimationSettingsModalRuntimeSource.slice(
-                powerEstimationSettingsModalRuntimeSource.indexOf(
-                    "export interface OpenPowerEstimationSettingsModalRuntimeScope"
-                ),
-                powerEstimationSettingsModalRuntimeSource.indexOf(
-                    "export interface OpenPowerEstimationSettingsModalRuntime"
-                )
-            );
-
         expect(violations).toStrictEqual([]);
         expect(powerEstimationSettingsModalSource).toContain(
             "openPowerEstimationSettingsModalRuntime.js"
@@ -20280,14 +20270,37 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "getDocumentEventTarget: getBrowserDocument"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
             "openPowerEstimationSettingsModal requires a document event-target runtime"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
             "openPowerEstimationSettingsModal requires a document runtime"
         );
-        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
-        expect(runtimeScopeSource).not.toContain(
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
             "readonly documentEventTarget?:"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "readonly getDocumentEventTarget?:"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "readonly getAbortController: OpenPowerEstimationSettingsModalRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "readonly getDocument: OpenPowerEstimationSettingsModalRuntimeProvider<Document>;"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "readonly getDocumentEventTarget: OpenPowerEstimationSettingsModalRuntimeProvider<Document>;"
         );
         expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
             "scope.AbortController"
@@ -20296,10 +20309,31 @@ describe("architecture boundaries", () => {
             "scope.documentEventTarget"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
-            "return scope.getAbortController?.();"
+            "type OpenPowerEstimationSettingsModalRuntimeProvider<T> ="
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "function getRequiredProvider<T>("
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            'getRequiredProvider(scope.getAbortController, "AbortController")()'
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "scope.getDocumentEventTarget"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "scope.getDocumentEventTarget?.()"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "openPowerEstimationSettingsModal requires ${article} ${providerName} provider"
         );
     });
 

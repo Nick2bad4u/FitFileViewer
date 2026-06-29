@@ -8,12 +8,14 @@ type PowerEstimationSettingsModalKeydownListener = (
     event: Readonly<KeyboardEvent>
 ) => void;
 
+type OpenPowerEstimationSettingsModalRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 export interface OpenPowerEstimationSettingsModalRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
+    readonly getAbortController: OpenPowerEstimationSettingsModalRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: OpenPowerEstimationSettingsModalRuntimeProvider<Document>;
+    readonly getDocumentEventTarget: OpenPowerEstimationSettingsModalRuntimeProvider<Document>;
 }
 
 export interface OpenPowerEstimationSettingsModalRuntime {
@@ -29,22 +31,42 @@ export interface OpenPowerEstimationSettingsModalRuntime {
     ) => HTMLElementTagNameMap[K];
 }
 
+function getRequiredProvider<T>(
+    provider: OpenPowerEstimationSettingsModalRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `openPowerEstimationSettingsModal requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getDocumentEventTarget(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "document event-target"
+        )() ?? getRequiredProvider(scope.getDocument, "document")()
+    );
 }
 
 function getRuntimeDocument(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError(
             "openPowerEstimationSettingsModal requires a document runtime"
@@ -58,6 +80,7 @@ const defaultOpenPowerEstimationSettingsModalRuntimeScope: OpenPowerEstimationSe
     {
         getAbortController: getBrowserAbortController,
         getDocument: getBrowserDocument,
+        getDocumentEventTarget: getBrowserDocument,
     };
 
 export function getOpenPowerEstimationSettingsModalRuntime(
