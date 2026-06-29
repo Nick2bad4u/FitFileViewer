@@ -6987,7 +6987,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(159);
+        expect.assertions(163);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -7004,6 +7004,10 @@ describe("architecture boundaries", () => {
             exportUtilsRuntimeSource.indexOf(
                 "export interface ExportUtilsRuntime {"
             )
+        );
+        const exportZipChartHelpersSource = exportUtilsSource.slice(
+            exportUtilsSource.indexOf("function addSingleChartToZip("),
+            exportUtilsSource.indexOf("export const exportUtils")
         );
 
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
@@ -7039,6 +7043,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsSource).toContain("confirmDangerousAction");
         expect(exportUtilsSource).toContain("createAbortController");
+        expect(exportUtilsSource).toContain(
+            'exportUtilsRuntime().createElement("canvas")'
+        );
         expect(exportUtilsSource).toContain("getSecureRandomScope");
         expect(exportUtilsSource).toContain("getStorage");
         expect(exportUtilsSource).toContain("getActiveElement");
@@ -7062,6 +7069,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsSource).not.toContain("new Date().toISOString()");
         expect(exportUtilsSource).not.toContain("document.activeElement");
+        expect(exportZipChartHelpersSource).not.toContain(
+            'document.createElement("canvas")'
+        );
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
         expect(exportUtilsSource).not.toContain("document.body.append(link)");
         expect(exportUtilsSource).not.toContain("document.body.append(modal)");
@@ -7125,6 +7135,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "writeClipboardPngBlob(blob): Promise<boolean>"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "createElement: <K extends keyof HTMLElementTagNameMap>"
         );
         expect(exportUtilsRuntimeSource).toContain(
             'scope.getClipboard, "clipboard"'
@@ -7359,6 +7372,9 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "documentRef.body.append(element)"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "documentRef.createElement(tagName)"
         );
         expect(exportUtilsRuntimeSource).toContain(
             "getProcessEnvironmentValue(name): string | undefined"

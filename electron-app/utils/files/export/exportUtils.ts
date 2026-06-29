@@ -859,7 +859,7 @@ function addSingleChartToZip(
     index: number,
     backgroundColor: string
 ): void {
-    const canvas = document.createElement("canvas"),
+    const canvas = exportUtilsRuntime().createElement("canvas"),
         dataset = getFirstChartDataset(chart),
         fieldName = dataset?.label || `chart-${index}`,
         safeFieldName = fieldName.replaceAll(/[^\da-z]/gi, "-");
@@ -915,7 +915,7 @@ function addCombinedChartsImageToZip(
     const chartHeight = 400,
         chartWidth = 800,
         cols = Math.ceil(Math.sqrt(charts.length)),
-        combinedCanvas = document.createElement("canvas"),
+        combinedCanvas = exportUtilsRuntime().createElement("canvas"),
         ctx = combinedCanvas.getContext("2d"),
         padding = 20,
         rows = Math.ceil(charts.length / cols);
@@ -936,7 +936,7 @@ function addCombinedChartsImageToZip(
 
         const col = index % cols,
             row = Math.floor(index / cols),
-            tempCanvas = document.createElement("canvas"),
+            tempCanvas = exportUtilsRuntime().createElement("canvas"),
             x = col * (chartWidth + padding),
             y = row * (chartHeight + padding);
         tempCanvas.width = chartWidth;

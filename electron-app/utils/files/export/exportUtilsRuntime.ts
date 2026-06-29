@@ -73,6 +73,9 @@ export interface ExportUtilsRuntime {
     readonly appendToBody: (element: HTMLElement) => void;
     readonly confirmDangerousAction: (message: string) => boolean;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     readonly getActiveElement: () => HTMLElement | null;
     readonly getProcessEnvironmentValue: (
         name: string
@@ -283,6 +286,15 @@ export function getExportUtilsRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+
+        createElement(tagName) {
+            const documentRef = getScopeDocument(getDocument);
+            if (!documentRef) {
+                throw new TypeError("exportUtils requires a document runtime");
+            }
+
+            return documentRef.createElement(tagName);
         },
 
         getActiveElement(): HTMLElement | null {
