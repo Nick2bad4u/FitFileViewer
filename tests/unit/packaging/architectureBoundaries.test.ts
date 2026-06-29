@@ -29898,7 +29898,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(33);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -29941,21 +29941,32 @@ describe("architecture boundaries", () => {
             "getClearTimeout: getBrowserClearTimeout"
         );
         expect(runtimeSource).toContain("getSetTimeout: getBrowserSetTimeout");
-        expect(runtimeSource).toContain("readonly getAbortController: () =>");
-        expect(runtimeSource).toContain("readonly getClearTimeout: () =>");
-        expect(runtimeSource).toContain("readonly getSetTimeout: () =>");
         expect(runtimeSource).toContain(
-            "renderer application startup requires an AbortController provider"
+            "type RendererApplicationStartupRuntimeProvider"
         );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getAbortController:\s*RendererApplicationStartupRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*RendererApplicationStartupRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(runtimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*RendererApplicationStartupRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(runtimeSource).toContain("function getRequiredProvider");
         expect(runtimeSource).toContain(
-            "renderer application startup requires a clearTimeout provider"
+            "renderer application startup requires ${article} ${providerName} provider"
         );
-        expect(runtimeSource).toContain(
-            "renderer application startup requires a setTimeout provider"
+        expect(runtimeSource).toContain("providerName: string");
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
         );
-        expect(runtimeSource).toContain("scope.getAbortController()");
-        expect(runtimeSource).toContain("scope.getClearTimeout()");
-        expect(runtimeSource).toContain("scope.getSetTimeout()");
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(runtimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
         expect(runtimeSource).not.toContain("scope.getAbortController?.()");
         expect(runtimeSource).not.toContain("scope.getClearTimeout?.()");
         expect(runtimeSource).not.toContain("scope.getSetTimeout?.()");

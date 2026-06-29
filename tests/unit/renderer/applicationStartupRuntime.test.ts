@@ -121,6 +121,35 @@ describe("getRendererApplicationStartupRuntime", () => {
         );
     });
 
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getRendererApplicationStartupRuntime({
+                ...createRuntimeScope(),
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow(
+            "renderer application startup requires an AbortController provider"
+        );
+        expect(() =>
+            getRendererApplicationStartupRuntime({
+                ...createRuntimeScope(),
+                getClearTimeout: undefined,
+            }).clearTimeout(1)
+        ).toThrow(
+            "renderer application startup requires a clearTimeout provider"
+        );
+        expect(() =>
+            getRendererApplicationStartupRuntime({
+                ...createRuntimeScope(),
+                getSetTimeout: undefined,
+            }).setTimeout(() => {}, 1)
+        ).toThrow(
+            "renderer application startup requires a setTimeout provider"
+        );
+    });
+
     it("fails clearly when runtime providers return unavailable primitives", () => {
         expect.assertions(3);
 
