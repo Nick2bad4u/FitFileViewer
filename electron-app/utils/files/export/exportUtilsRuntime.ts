@@ -1,7 +1,10 @@
 import {
     type BrowserAbortControllerConstructor,
+    type BrowserClipboardItemConstructor,
     type BrowserHTMLElementConstructor,
     getBrowserAbortController,
+    getBrowserClipboard,
+    getBrowserClipboardItem,
     getBrowserConfirm,
     getBrowserCrypto,
     getBrowserDocument,
@@ -35,6 +38,10 @@ export type SecureRandomScope = {
 export interface ExportUtilsRuntimeScope {
     readonly getAbortController: ExportUtilsRuntimeProvider<
         BrowserAbortControllerConstructor | undefined
+    >;
+    readonly getClipboard: ExportUtilsRuntimeProvider<Clipboard | undefined>;
+    readonly getClipboardItem: ExportUtilsRuntimeProvider<
+        BrowserClipboardItemConstructor | undefined
     >;
     readonly getConfirmDangerousAction: ExportUtilsRuntimeProvider<
         ConfirmDangerousActionFunction | undefined
@@ -77,10 +84,14 @@ export interface ExportUtilsRuntime {
         target?: string,
         features?: string
     ) => Window | null;
+    readonly writeClipboardPngBlob: (blob: Blob) => Promise<boolean>;
+    readonly writeClipboardText: (text: string) => Promise<boolean>;
 }
 
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     getAbortController: getBrowserAbortController,
+    getClipboard: getBrowserClipboard,
+    getClipboardItem: getBrowserClipboardItem,
     getConfirmDangerousAction: getBrowserConfirm,
     getDocument: getBrowserDocument,
     getDocumentEventTarget: getBrowserDocument,
@@ -112,6 +123,22 @@ function getScopeConfirmDangerousAction(
     getConfirmDangerousAction: () => ConfirmDangerousActionFunction | undefined
 ): ConfirmDangerousActionFunction | undefined {
     return getConfirmDangerousAction();
+}
+
+function getScopeClipboard(
+    getClipboard: () => Clipboard | undefined
+): Clipboard | undefined {
+    const clipboard = getClipboard();
+    return clipboard && typeof clipboard === "object" ? clipboard : undefined;
+}
+
+function getScopeClipboardItem(
+    getClipboardItem: () => BrowserClipboardItemConstructor | undefined
+): BrowserClipboardItemConstructor | undefined {
+    const ClipboardItemConstructor = getClipboardItem();
+    return typeof ClipboardItemConstructor === "function"
+        ? ClipboardItemConstructor
+        : undefined;
 }
 
 function getScopeDocumentEventTarget(
@@ -182,6 +209,11 @@ export function getExportUtilsRuntime(
     const getAbortController = getRequiredProvider(
         scope.getAbortController,
         "AbortController"
+    );
+    const getClipboard = getRequiredProvider(scope.getClipboard, "clipboard");
+    const getClipboardItem = getRequiredProvider(
+        scope.getClipboardItem,
+        "ClipboardItem"
     );
     const getConfirmDangerousAction = getRequiredProvider(
         scope.getConfirmDangerousAction,
@@ -289,6 +321,33 @@ export function getExportUtilsRuntime(
         openPrintWindow(url, target, features): Window | null {
             const openPrintWindow = getScopeOpenPrintWindow(getOpenPrintWindow);
             return openPrintWindow?.(url, target, features) ?? null;
+        },
+
+        async writeClipboardPngBlob(blob): Promise<boolean> {
+            const clipboard = getScopeClipboard(getClipboard);
+            const ClipboardItemConstructor =
+                getScopeClipboardItem(getClipboardItem);
+            if (
+                typeof clipboard?.write !== "function" ||
+                typeof ClipboardItemConstructor !== "function"
+            ) {
+                return false;
+            }
+
+            await clipboard.write([
+                new ClipboardItemConstructor({ "image/png": blob }),
+            ]);
+            return true;
+        },
+
+        async writeClipboardText(text): Promise<boolean> {
+            const clipboard = getScopeClipboard(getClipboard);
+            if (typeof clipboard?.writeText !== "function") {
+                return false;
+            }
+
+            await clipboard.writeText(text);
+            return true;
         },
     };
 }

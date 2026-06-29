@@ -6987,7 +6987,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(149);
+        expect.assertions(159);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -7085,6 +7085,14 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("return globalThis;");
         expect(exportUtilsSource).toContain("getDefaultExportStorage");
         expect(exportUtilsSource).not.toContain("window?.confirm");
+        expect(exportUtilsSource).not.toContain("navigator.clipboard");
+        expect(exportUtilsSource).not.toContain("new ClipboardItem");
+        expect(exportUtilsSource).toContain(
+            "exportUtilsRuntime().writeClipboardText(text)"
+        );
+        expect(exportUtilsSource).toContain(
+            "exportUtilsRuntime().writeClipboardPngBlob("
+        );
         expect(exportUtilsSource).not.toMatch(/\bwindow\.open\s*\(/u);
         expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
         expect(exportUtilsSource).not.toContain("as unknown as never");
@@ -7105,6 +7113,24 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getClipboard: getBrowserClipboard"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getClipboardItem: getBrowserClipboardItem"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "writeClipboardText(text): Promise<boolean>"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "writeClipboardPngBlob(blob): Promise<boolean>"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getClipboard, "clipboard"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            'scope.getClipboardItem,\n        "ClipboardItem"'
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "typeof globalThis.AbortController | undefined"

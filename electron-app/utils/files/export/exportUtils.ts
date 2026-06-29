@@ -1234,11 +1234,7 @@ export const exportUtils = {
 
         // 2) Browser clipboard API
         try {
-            if (
-                navigator.clipboard &&
-                typeof navigator.clipboard.writeText === "function"
-            ) {
-                await navigator.clipboard.writeText(text);
+            if (await exportUtilsRuntime().writeClipboardText(text)) {
                 return true;
             }
         } catch {
@@ -1276,14 +1272,10 @@ export const exportUtils = {
         // 2) Browser Clipboard API (image)
         try {
             if (
-                navigator.clipboard &&
-                typeof navigator.clipboard.write === "function" &&
-                typeof ClipboardItem === "function"
+                await exportUtilsRuntime().writeClipboardPngBlob(
+                    dataUrlToBlob(pngDataUrl)
+                )
             ) {
-                const blob = dataUrlToBlob(pngDataUrl);
-                await navigator.clipboard.write([
-                    new ClipboardItem({ "image/png": blob }),
-                ]);
                 return true;
             }
         } catch {

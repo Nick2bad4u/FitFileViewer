@@ -3,6 +3,7 @@ export type BrowserAbortControllerConstructor =
 export type BrowserAddEventListener = typeof globalThis.addEventListener;
 export type BrowserCancelAnimationFrame =
     typeof globalThis.cancelAnimationFrame;
+export type BrowserClipboardItemConstructor = typeof globalThis.ClipboardItem;
 export type BrowserClearInterval = typeof globalThis.clearInterval;
 export type BrowserClearTimeout = typeof globalThis.clearTimeout;
 export type BrowserCustomEventConstructor = typeof globalThis.CustomEvent;
@@ -179,6 +180,12 @@ export function getBrowserConsole(): Console | undefined {
 
 export function getBrowserClipboard(): Clipboard | undefined {
     return globalThis.navigator?.clipboard;
+}
+
+export function getBrowserClipboardItem():
+    | typeof globalThis.ClipboardItem
+    | undefined {
+    return globalThis.ClipboardItem;
 }
 
 function setBrowserProcessGlobal(processValue: unknown): void {

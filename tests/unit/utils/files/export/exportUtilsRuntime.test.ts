@@ -5,13 +5,18 @@ import {
     getExportUtilsRuntime,
     type ExportUtilsRuntimeScope,
 } from "../../../../../electron-app/utils/files/export/exportUtilsRuntime.js";
-import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+import type {
+    BrowserAbortControllerConstructor,
+    BrowserClipboardItemConstructor,
+} from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
 function createExportUtilsRuntimeScope(
     overrides: Partial<ExportUtilsRuntimeScope> = {}
 ): ExportUtilsRuntimeScope {
     return {
         getAbortController: () => undefined,
+        getClipboard: () => undefined,
+        getClipboardItem: () => undefined,
         getConfirmDangerousAction: () => undefined,
         getDocument: () => undefined,
         getDocumentEventTarget: () => undefined,
@@ -106,6 +111,61 @@ describe("exportUtilsRuntime", () => {
             "_blank",
             "noopener,noreferrer"
         );
+    });
+
+    it("writes clipboard text through the scoped clipboard runtime", async () => {
+        expect.assertions(3);
+
+        const writeText = vi.fn<Clipboard["writeText"]>();
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getClipboard: () => ({ writeText }) as unknown as Clipboard,
+            })
+        );
+
+        await expect(runtime.writeClipboardText("ride data")).resolves.toBe(
+            true
+        );
+        expect(writeText).toHaveBeenCalledExactlyOnceWith("ride data");
+        await expect(
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).writeClipboardText("ride data")
+        ).resolves.toBe(false);
+    });
+
+    it("writes clipboard PNG blobs through scoped clipboard runtimes", async () => {
+        expect.assertions(4);
+
+        const write = vi.fn<Clipboard["write"]>();
+        class TestClipboardItem {
+            public readonly items: Record<string, Blob>;
+
+            constructor(items: Record<string, Blob>) {
+                this.items = items;
+            }
+        }
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getClipboard: () => ({ write }) as unknown as Clipboard,
+                getClipboardItem: () =>
+                    TestClipboardItem as unknown as BrowserClipboardItemConstructor,
+            })
+        );
+        const blob = new Blob(["png"], { type: "image/png" });
+
+        await expect(runtime.writeClipboardPngBlob(blob)).resolves.toBe(true);
+        expect(write).toHaveBeenCalledOnce();
+        expect(
+            (write.mock.calls[0]?.[0]?.[0] as TestClipboardItem).items
+        ).toStrictEqual({
+            "image/png": blob,
+        });
+        await expect(
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).writeClipboardPngBlob(blob)
+        ).resolves.toBe(false);
     });
 
     it("reads process environment values through the scoped runtime", () => {
@@ -379,8 +439,8 @@ describe("exportUtilsRuntime", () => {
         expect(runtime.getActiveElement()).toBeNull();
     });
 
-    it("ignores legacy direct runtime properties", () => {
-        expect.assertions(15);
+    it("ignores legacy direct runtime properties", async () => {
+        expect.assertions(20);
 
         const storage = {
             getItem: vi.fn<Storage["getItem"]>(),
@@ -397,11 +457,18 @@ describe("exportUtilsRuntime", () => {
             "addEventListener"
         );
         const confirmDangerousAction = vi.fn(() => true);
+        const clipboard = {
+            write: vi.fn<Clipboard["write"]>(),
+            writeText: vi.fn<Clipboard["writeText"]>(),
+        };
+        const ClipboardItem = vi.fn();
         const openPrintWindow = vi.fn(() => ({}) as Window);
         const processEnvironmentValue = vi.fn(() => "1");
         const runtime = getExportUtilsRuntime({
             ...createExportUtilsRuntimeScope(),
             AbortController,
+            clipboard,
+            ClipboardItem,
             confirmDangerousAction,
             crypto,
             documentEventTarget,
@@ -420,6 +487,10 @@ describe("exportUtilsRuntime", () => {
             undefined
         );
         expect(runtime.getSecureRandomScope()).toStrictEqual({});
+        await expect(runtime.writeClipboardText("text")).resolves.toBe(false);
+        await expect(
+            runtime.writeClipboardPngBlob(new Blob(["png"]))
+        ).resolves.toBe(false);
         expect(runtime.createAbortController).toThrow(
             "exportUtils requires an AbortController runtime"
         );
@@ -433,6 +504,9 @@ describe("exportUtilsRuntime", () => {
             "exportUtils requires a document runtime"
         );
         expect(confirmDangerousAction).not.toHaveBeenCalled();
+        expect(clipboard.write).not.toHaveBeenCalled();
+        expect(clipboard.writeText).not.toHaveBeenCalled();
+        expect(ClipboardItem).not.toHaveBeenCalled();
         expect(openPrintWindow).not.toHaveBeenCalled();
         expect(storage.getItem).not.toHaveBeenCalled();
         expect(processEnvironmentValue).not.toHaveBeenCalled();
@@ -473,7 +547,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("throws when required runtime providers are omitted", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const scope = createExportUtilsRuntimeScope();
 
@@ -489,6 +563,18 @@ describe("exportUtilsRuntime", () => {
                 getConfirmDangerousAction: undefined,
             })
         ).toThrow("exportUtils requires confirmDangerousAction provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getClipboard: undefined,
+            })
+        ).toThrow("exportUtils requires clipboard provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getClipboardItem: undefined,
+            })
+        ).toThrow("exportUtils requires ClipboardItem provider");
         expect(() =>
             getExportUtilsRuntime({
                 ...scope,
