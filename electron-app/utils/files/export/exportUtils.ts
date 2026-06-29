@@ -10,7 +10,6 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import { loggingTimestampRuntime } from "../../logging/loggingTimestampRuntime.js";
-import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
     safeStorageGetItem,
@@ -2173,7 +2172,9 @@ export const exportUtils = {
         const exportTheme = getChartSetting("exportTheme");
 
         const debugEnabled =
-            getProcessEnvironmentValue("FFV_DEBUG_EXPORT_THEME") === "1";
+            exportUtilsRuntime().getProcessEnvironmentValue(
+                "FFV_DEBUG_EXPORT_THEME"
+            ) === "1";
         const debugLog = (...args: unknown[]) => {
             if (!debugEnabled) return;
             try {
@@ -3736,7 +3737,9 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
      */
     async uploadToImgur(base64Image: string): Promise<string> {
         const debugUploads =
-            getProcessEnvironmentValue("FFV_DEBUG_UPLOADS") === "1";
+            exportUtilsRuntime().getProcessEnvironmentValue(
+                "FFV_DEBUG_UPLOADS"
+            ) === "1";
 
         const config = exportUtils.getImgurConfig();
 

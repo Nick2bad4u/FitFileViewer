@@ -9,6 +9,7 @@ import {
     getBrowserLocalStorage,
     getBrowserOpen,
 } from "../../runtime/browserRuntime.js";
+import { getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 
 type ConfirmDangerousActionFunction = (message?: string) => boolean;
 
@@ -48,6 +49,9 @@ export interface ExportUtilsRuntimeScope {
     readonly getOpenPrintWindow: ExportUtilsRuntimeProvider<
         OpenPrintWindowFunction | undefined
     >;
+    readonly getProcessEnvironmentValue:
+        | ((name: string) => string | undefined)
+        | undefined;
     readonly getSecureRandomCrypto: ExportUtilsRuntimeProvider<
         Pick<Crypto, "getRandomValues"> | undefined
     >;
@@ -63,6 +67,9 @@ export interface ExportUtilsRuntime {
     readonly confirmDangerousAction: (message: string) => boolean;
     readonly createAbortController: () => AbortController;
     readonly getActiveElement: () => HTMLElement | null;
+    readonly getProcessEnvironmentValue: (
+        name: string
+    ) => string | undefined;
     readonly getSecureRandomScope: () => SecureRandomScope;
     readonly getStorage: () => ExportStorageLike | null;
     readonly openPrintWindow: (
@@ -79,6 +86,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     getDocumentEventTarget: getBrowserDocument,
     getHTMLElement: getBrowserHTMLElement,
     getOpenPrintWindow: getBrowserOpen,
+    getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue,
     getSecureRandomCrypto: getBrowserCrypto,
     getStorage: () => getBrowserLocalStorage() ?? null,
 };
@@ -131,6 +139,18 @@ function getScopeOpenPrintWindow(
     return getOpenPrintWindow();
 }
 
+function getRequiredProcessEnvironmentProvider(
+    provider: ExportUtilsRuntimeScope["getProcessEnvironmentValue"]
+): (name: string) => string | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            "exportUtils requires processEnvironmentValue provider"
+        );
+    }
+
+    return provider;
+}
+
 function getScopeSecureRandomCrypto(
     getSecureRandomCrypto: () => Pick<Crypto, "getRandomValues"> | undefined
 ): Pick<Crypto, "getRandomValues"> | undefined {
@@ -179,6 +199,9 @@ export function getExportUtilsRuntime(
     const getOpenPrintWindow = getRequiredProvider(
         scope.getOpenPrintWindow,
         "openPrintWindow"
+    );
+    const getProcessEnvironmentValue = getRequiredProcessEnvironmentProvider(
+        scope.getProcessEnvironmentValue
     );
     const getSecureRandomCrypto = getRequiredProvider(
         scope.getSecureRandomCrypto,
@@ -246,6 +269,10 @@ export function getExportUtilsRuntime(
             return documentRef.activeElement instanceof HTMLElementConstructor
                 ? documentRef.activeElement
                 : null;
+        },
+
+        getProcessEnvironmentValue(name): string | undefined {
+            return getProcessEnvironmentValue(name);
         },
 
         getSecureRandomScope(): SecureRandomScope {

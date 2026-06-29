@@ -17,6 +17,7 @@ function createExportUtilsRuntimeScope(
         getDocumentEventTarget: () => undefined,
         getHTMLElement: () => undefined,
         getOpenPrintWindow: () => undefined,
+        getProcessEnvironmentValue: () => undefined,
         getSecureRandomCrypto: () => undefined,
         getStorage: () => null,
         ...overrides,
@@ -105,6 +106,25 @@ describe("exportUtilsRuntime", () => {
             "_blank",
             "noopener,noreferrer"
         );
+    });
+
+    it("reads process environment values through the scoped runtime", () => {
+        expect.assertions(3);
+
+        const getProcessEnvironmentValue = vi.fn((name: string) =>
+            name === "FFV_DEBUG_UPLOADS" ? "1" : undefined
+        );
+        const runtime = getExportUtilsRuntime(
+            createExportUtilsRuntimeScope({
+                getProcessEnvironmentValue,
+            })
+        );
+
+        expect(runtime.getProcessEnvironmentValue("FFV_DEBUG_UPLOADS")).toBe(
+            "1"
+        );
+        expect(runtime.getProcessEnvironmentValue("OTHER")).toBe(undefined);
+        expect(getProcessEnvironmentValue).toHaveBeenCalledTimes(2);
     });
 
     it("resolves storage through the scoped storage runtime", () => {
@@ -360,7 +380,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         const storage = {
             getItem: vi.fn<Storage["getItem"]>(),
@@ -378,6 +398,7 @@ describe("exportUtilsRuntime", () => {
         );
         const confirmDangerousAction = vi.fn(() => true);
         const openPrintWindow = vi.fn(() => ({}) as Window);
+        const processEnvironmentValue = vi.fn(() => "1");
         const runtime = getExportUtilsRuntime({
             ...createExportUtilsRuntimeScope(),
             AbortController,
@@ -387,6 +408,7 @@ describe("exportUtilsRuntime", () => {
             HTMLElement,
             localStorage: storage,
             openPrintWindow,
+            processEnvironmentValue,
         } as unknown as ExportUtilsRuntimeScope);
 
         expect(
@@ -394,6 +416,9 @@ describe("exportUtilsRuntime", () => {
         ).toBe(false);
         expect(runtime.openPrintWindow("", "_blank", "noopener")).toBeNull();
         expect(runtime.getStorage()).toBeNull();
+        expect(runtime.getProcessEnvironmentValue("FFV_DEBUG_UPLOADS")).toBe(
+            undefined
+        );
         expect(runtime.getSecureRandomScope()).toStrictEqual({});
         expect(runtime.createAbortController).toThrow(
             "exportUtils requires an AbortController runtime"
@@ -410,6 +435,7 @@ describe("exportUtilsRuntime", () => {
         expect(confirmDangerousAction).not.toHaveBeenCalled();
         expect(openPrintWindow).not.toHaveBeenCalled();
         expect(storage.getItem).not.toHaveBeenCalled();
+        expect(processEnvironmentValue).not.toHaveBeenCalled();
         expect(crypto.getRandomValues).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
     });
@@ -447,7 +473,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("throws when required runtime providers are omitted", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const scope = createExportUtilsRuntimeScope();
 
@@ -487,6 +513,12 @@ describe("exportUtilsRuntime", () => {
                 getOpenPrintWindow: undefined,
             })
         ).toThrow("exportUtils requires openPrintWindow provider");
+        expect(() =>
+            getExportUtilsRuntime({
+                ...scope,
+                getProcessEnvironmentValue: undefined,
+            })
+        ).toThrow("exportUtils requires processEnvironmentValue provider");
         expect(() =>
             getExportUtilsRuntime({
                 ...scope,

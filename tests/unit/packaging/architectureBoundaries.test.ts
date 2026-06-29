@@ -6694,7 +6694,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(135);
+        expect.assertions(149);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -6750,6 +6750,15 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("getStorage");
         expect(exportUtilsSource).toContain("getActiveElement");
         expect(exportUtilsSource).toContain("openPrintWindow");
+        expect(exportUtilsSource).toContain(
+            'exportUtilsRuntime().getProcessEnvironmentValue(\n                "FFV_DEBUG_EXPORT_THEME"\n            )'
+        );
+        expect(exportUtilsSource).toContain(
+            'exportUtilsRuntime().getProcessEnvironmentValue(\n                "FFV_DEBUG_UPLOADS"\n            )'
+        );
+        expect(exportUtilsSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
         expect(exportUtilsSource).toContain("addDocumentKeydownListener");
         expect(exportUtilsSource).toContain("appendToBody");
         expect(exportUtilsSource).toContain(
@@ -6793,6 +6802,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(exportUtilsRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
             "type BrowserAbortControllerConstructor"
         );
         expect(exportUtilsRuntimeSource).toContain(
@@ -6817,6 +6829,9 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain("getOpenPrintWindow");
         expect(exportUtilsRuntimeSource).toContain(
             "getOpenPrintWindow: getBrowserOpen"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "const openPrintWindow = globalThis.open"
@@ -6890,6 +6905,9 @@ describe("architecture boundaries", () => {
             "open?: OpenPrintWindowFunction"
         );
         expect(exportUtilsRuntimeSource).not.toContain(
+            "processEnvironmentValue?:"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
             'Pick<Window, "confirm" | "open">'
         );
         expect(exportUtilsRuntimeSource).not.toContain(
@@ -6917,6 +6935,9 @@ describe("architecture boundaries", () => {
             "readonly openPrintWindow?:"
         );
         expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly processEnvironmentValue?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
             "readonly getAbortController?:"
         );
         expect(exportUtilsRuntimeScopeSource).not.toContain(
@@ -6935,6 +6956,9 @@ describe("architecture boundaries", () => {
             "readonly getOpenPrintWindow?:"
         );
         expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly getProcessEnvironmentValue?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
             "readonly getSecureRandomCrypto?:"
         );
         expect(exportUtilsRuntimeScopeSource).not.toContain(
@@ -6951,6 +6975,9 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).not.toContain("scope.HTMLElement");
         expect(exportUtilsRuntimeSource).not.toContain("scope.localStorage");
         expect(exportUtilsRuntimeSource).not.toContain("scope.openPrintWindow");
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.processEnvironmentValue"
+        );
         expect(exportUtilsRuntimeSource).toContain(
             "type ExportUtilsRuntimeProvider<T>"
         );
@@ -6977,6 +7004,12 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).toContain(
             'scope.getOpenPrintWindow,\n        "openPrintWindow"'
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getRequiredProcessEnvironmentProvider("
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "exportUtils requires processEnvironmentValue provider"
         );
         expect(exportUtilsRuntimeSource).toContain(
             'scope.getSecureRandomCrypto,\n        "secureRandomCrypto"'
@@ -7008,8 +7041,17 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).toContain(
             "documentRef.body.append(element)"
         );
+        expect(exportUtilsRuntimeSource).toContain(
+            "getProcessEnvironmentValue(name): string | undefined"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "return getProcessEnvironmentValue(name);"
+        );
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope.getOpenPrintWindow?.()"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.getProcessEnvironmentValue?.("
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope.getSecureRandomCrypto?.()"
