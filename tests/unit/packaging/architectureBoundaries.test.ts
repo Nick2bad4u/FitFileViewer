@@ -910,7 +910,7 @@ const directPlaywrightMapThemeEventGlobalFixturePattern =
 const detachedPreloadIpcRendererMethodPattern =
     /\bconst\s+(?:invoke|on|send)\s*=\s*ipcRenderer\?\.(?:invoke|on|send)\b|\b(?:invoke|on):\s*ipcRenderer\.(?:invoke|on)(?!\.bind\()/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
-    /\bglobalThis\.process\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
+    /\bglobalThis\.process\b|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']process["']|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)|\bprocess\.env\b/u;
 const processEnvironmentTestDirectProcessDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const exportUtilsOauthStateTestDirectCryptoDeletePattern =
@@ -37134,18 +37134,27 @@ describe("architecture boundaries", () => {
         expect(directGlobalFixtures).toStrictEqual([]);
     });
 
-    it("keeps handle-open-file complete tests on descriptor-scoped process fixtures", () => {
-        expect.assertions(1);
+    it("keeps handle-open-file tests on runtime-scoped process fixtures", () => {
+        expect.assertions(5);
 
-        expect(
-            handleOpenFileCompleteTestDirectProcessAssignmentPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/files/import/handleOpenFile.complete.test.ts"
-                    )
+        const handleOpenFileTestSources = [
+            "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
+            "tests/unit/utils/files/import/handleOpenFile.test.ts",
+        ].map((relativeFile) => stripComments(readRepositoryFile(relativeFile)));
+
+        const directProcessFixtures = handleOpenFileTestSources.filter(
+            (source) =>
+                handleOpenFileCompleteTestDirectProcessAssignmentPattern.test(
+                    source
                 )
-            )
-        ).toBe(false);
+        );
+        const combinedSource = handleOpenFileTestSources.join("\n");
+
+        expect(directProcessFixtures).toStrictEqual([]);
+        expect(combinedSource).toContain("getRuntimeProcess");
+        expect(combinedSource).toContain("setRuntimeProcess");
+        expect(combinedSource).toContain("setTestProcessEnv");
+        expect(combinedSource).not.toContain("Object.defineProperty");
     });
 
     it("keeps process environment tests on descriptor-scoped process restores", () => {

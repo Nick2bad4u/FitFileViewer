@@ -13,6 +13,10 @@ import {
     vi,
 } from "vitest";
 import { AppActions } from "../../../../../electron-app/utils/app/lifecycle/appActions.js";
+import {
+    getRuntimeProcess,
+    setRuntimeProcess,
+} from "../../../../../electron-app/utils/runtime/processEnvironment.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
@@ -64,6 +68,7 @@ interface MockElectronAPI {
 // Import the module to test and spy on its public app-state integration.
 let handleOpenFileModule: HandleOpenFileModule;
 let mockSetState: ReturnType<typeof vi.spyOn>;
+const originalProcess = getRuntimeProcess();
 
 beforeAll(async () => {
     handleOpenFileModule =
@@ -122,6 +127,10 @@ function callValidateElectronAPI(
     return validateElectronAPI(createElectronApiScope());
 }
 
+function setTestProcessEnv(env: Record<string, string | undefined>): void {
+    setRuntimeProcess({ env });
+}
+
 beforeEach(() => {
     // Reset all mocks including the setState spy
     mockSetState.mockReset();
@@ -148,6 +157,7 @@ afterEach(() => {
     mockConsoleInfo.mockRestore();
     mockConsoleWarn.mockRestore();
     mockConsoleError.mockRestore();
+    setRuntimeProcess(originalProcess);
 });
 
 describe("handleOpenFile.js", () => {
@@ -787,9 +797,7 @@ describe("handleOpenFile.js", () => {
         });
 
         it("should log debug information in development", async () => {
-            // Mock process.env.NODE_ENV
-            const originalEnv = process.env.NODE_ENV;
-            process.env.NODE_ENV = "development";
+            setTestProcessEnv({ NODE_ENV: "development" });
 
             getElectronAPI().openFile.mockResolvedValue("/path/to/file.fit");
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
@@ -810,9 +818,6 @@ describe("handleOpenFile.js", () => {
                 "[HandleOpenFile] Debug: Parsed FIT data contains 1 sessions"
             );
             expect(mockShowNotification).not.toHaveBeenCalled();
-
-            // Restore environment
-            process.env.NODE_ENV = originalEnv;
         });
     });
 

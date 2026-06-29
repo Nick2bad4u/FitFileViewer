@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
+import {
+    getRuntimeProcess,
+    setRuntimeProcess,
+} from "../../../../../electron-app/utils/runtime/processEnvironment.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
@@ -88,18 +92,7 @@ vi.mock(
 let handleOpenFileModule: HandleOpenFileModule;
 let currentElectronApi: Partial<MockElectronAPI> | undefined;
 
-const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis,
-    "process"
-);
-
-function getOriginalProcessDescriptor(): PropertyDescriptor {
-    if (!originalProcessDescriptor) {
-        throw new Error("Expected globalThis.process to exist");
-    }
-
-    return originalProcessDescriptor;
-}
+const originalProcess = getRuntimeProcess();
 
 function getElectronAPI(): MockElectronAPI {
     if (!currentElectronApi) {
@@ -163,22 +156,11 @@ function createOpenFileParams(): TestOpenFileParams {
 }
 
 function setTestProcessEnv(env: Record<string, string | undefined>): void {
-    Object.defineProperty(globalThis, "process", {
-        configurable: true,
-        value: {
-            ...globalThis.process,
-            env,
-        },
-        writable: true,
-    });
+    setRuntimeProcess({ env });
 }
 
-function restoreProcessGlobal(): void {
-    Object.defineProperty(
-        globalThis,
-        "process",
-        getOriginalProcessDescriptor()
-    );
+function restoreRuntimeProcess(): void {
+    setRuntimeProcess(originalProcess);
 }
 
 describe("handleOpenFile Module", () => {
@@ -198,7 +180,7 @@ describe("handleOpenFile Module", () => {
         vi.spyOn(console, "warn").mockImplementation(() => {});
         vi.spyOn(console, "error").mockImplementation(() => {});
 
-        // Set up process.env for coverage
+        // Set up the runtime process environment for coverage
         setTestProcessEnv({ NODE_ENV: "development" });
 
         currentElectronApi = createElectronAPIMock();
@@ -211,7 +193,7 @@ describe("handleOpenFile Module", () => {
     afterEach(() => {
         vi.useRealTimers();
         vi.restoreAllMocks();
-        restoreProcessGlobal();
+        restoreRuntimeProcess();
     });
 
     describe("module exports", () => {
@@ -689,7 +671,7 @@ describe("handleOpenFile Module", () => {
             const mockParams = createOpenFileParams();
 
             // Make sure we're in development mode
-            process.env.NODE_ENV = "development";
+            setTestProcessEnv({ NODE_ENV: "development" });
 
             // Reset console.log mock to track calls
             vi.spyOn(console, "log").mockImplementation();
