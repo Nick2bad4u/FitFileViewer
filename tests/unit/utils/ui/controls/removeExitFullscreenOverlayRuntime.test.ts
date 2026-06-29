@@ -98,6 +98,26 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
         );
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getRemoveExitFullscreenOverlayRuntime({
+                ...unavailableRemoveExitFullscreenOverlayRuntimeScope,
+                getDocument: undefined,
+            }).isHTMLElement(document.createElement("div"))
+        ).toThrow("removeExitFullscreenOverlay requires a document provider");
+        expect(() =>
+            getRemoveExitFullscreenOverlayRuntime({
+                ...unavailableRemoveExitFullscreenOverlayRuntimeScope,
+                getDocument: () => document,
+                getHTMLElement: undefined,
+            }).isHTMLElement(document.createElement("div"))
+        ).toThrow(
+            "removeExitFullscreenOverlay requires an HTMLElement provider"
+        );
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(2);
 

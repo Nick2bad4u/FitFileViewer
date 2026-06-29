@@ -20272,7 +20272,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay removal browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(31);
 
         const violations = migratedRemoveExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -20336,28 +20336,37 @@ describe("architecture boundaries", () => {
             "type BrowserHTMLElementConstructor"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
+            "type RemoveExitFullscreenOverlayRuntimeProvider"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*RemoveExitFullscreenOverlayRuntimeProvider<Document>/u
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*RemoveExitFullscreenOverlayRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "const getRuntimeDocument = scope.getDocument;"
+            "removeExitFullscreenOverlay requires ${article} ${providerName} provider"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "const runtimeDocument = getRuntimeDocument();"
+            "providerName: string"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "const getRuntimeHTMLElement = scope.getHTMLElement;"
-        );
-        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "return getRuntimeHTMLElement();"
-        );
-        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "removeExitFullscreenOverlay requires a document provider"
-        );
-        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
-            "removeExitFullscreenOverlay requires an HTMLElement provider"
+            "removeExitFullscreenOverlay requires a document runtime"
         );
         expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
             "defaultView?.HTMLElement"

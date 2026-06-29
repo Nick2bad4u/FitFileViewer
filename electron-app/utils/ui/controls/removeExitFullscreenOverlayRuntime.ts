@@ -5,11 +5,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface RemoveExitFullscreenOverlayRuntimeScope {
-    readonly getDocument: (() => Document | undefined) | undefined;
-    readonly getHTMLElement:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
+    readonly getDocument: RemoveExitFullscreenOverlayRuntimeProvider<Document>;
+    readonly getHTMLElement: RemoveExitFullscreenOverlayRuntimeProvider<BrowserHTMLElementConstructor>;
 }
+
+type RemoveExitFullscreenOverlayRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface RemoveExitFullscreenOverlayRuntime {
     isHTMLElement: (value: unknown) => value is HTMLElement;
@@ -22,14 +24,10 @@ const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverla
     };
 
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
-    const getRuntimeDocument = scope.getDocument;
-    if (typeof getRuntimeDocument !== "function") {
-        throw new TypeError(
-            "removeExitFullscreenOverlay requires a document provider"
-        );
-    }
-
-    const runtimeDocument = getRuntimeDocument();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "removeExitFullscreenOverlay requires a document runtime"
@@ -42,14 +40,22 @@ function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: RemoveExitFullscreenOverlayRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    const getRuntimeHTMLElement = scope.getHTMLElement;
-    if (typeof getRuntimeHTMLElement !== "function") {
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
+}
+
+function getRequiredProvider<T>(
+    provider: RemoveExitFullscreenOverlayRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
         throw new TypeError(
-            "removeExitFullscreenOverlay requires an HTMLElement provider"
+            `removeExitFullscreenOverlay requires ${article} ${providerName} provider`
         );
     }
 
-    return getRuntimeHTMLElement();
+    return provider;
 }
 
 export function getRemoveExitFullscreenOverlayRuntime(
