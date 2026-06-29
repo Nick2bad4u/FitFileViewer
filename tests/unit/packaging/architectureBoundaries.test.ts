@@ -20571,7 +20571,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(51);
 
         const violations = migratedSyncRendererLoadingRuntimeFiles
             .filter((relativeFile) =>
@@ -20631,6 +20631,36 @@ describe("architecture boundaries", () => {
         expect(syncRendererLoadingRuntimeSource).toContain(
             "getHTMLTextAreaElement: getBrowserHTMLTextAreaElement"
         );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "readonly getDocument:"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "readonly getHTMLButtonElement:"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "readonly getHTMLInputElement:"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "readonly getHTMLSelectElement:"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "readonly getHTMLTextAreaElement:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly getHTMLButtonElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly getHTMLSelectElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly getHTMLTextAreaElement?:"
+        );
         expect(syncRendererLoadingRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -20682,20 +20712,35 @@ describe("architecture boundaries", () => {
         expect(syncRendererLoadingRuntimeSource).not.toContain(
             "scope.HTMLTextAreaElement"
         );
-        expect(syncRendererLoadingRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.getHTMLButtonElement?.()"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.getHTMLSelectElement?.()"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.getHTMLTextAreaElement?.()"
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
-            "return scope.getHTMLButtonElement?.();"
+            "const getRuntimeDocument = scope.getDocument;"
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
-            "return scope.getHTMLInputElement?.();"
+            "getConstructorProvider("
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
-            "return scope.getHTMLSelectElement?.();"
+            "syncRendererLoading requires a document provider"
         );
         expect(syncRendererLoadingRuntimeSource).toContain(
-            "return scope.getHTMLTextAreaElement?.();"
+            "syncRendererLoading requires a document runtime"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "`syncRendererLoading requires a ${name} provider`"
         );
     });
 

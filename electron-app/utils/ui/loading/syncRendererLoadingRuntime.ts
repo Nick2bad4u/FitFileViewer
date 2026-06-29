@@ -18,17 +18,17 @@ type DisableableFormControl =
     | HTMLTextAreaElement;
 
 export interface SyncRendererLoadingRuntimeScope {
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLButtonElement?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getHTMLButtonElement:
         | (() => BrowserHTMLButtonElementConstructor | undefined)
         | undefined;
-    readonly getHTMLInputElement?:
+    readonly getHTMLInputElement:
         | (() => BrowserHTMLInputElementConstructor | undefined)
         | undefined;
-    readonly getHTMLSelectElement?:
+    readonly getHTMLSelectElement:
         | (() => BrowserHTMLSelectElementConstructor | undefined)
         | undefined;
-    readonly getHTMLTextAreaElement?:
+    readonly getHTMLTextAreaElement:
         | (() => BrowserHTMLTextAreaElementConstructor | undefined)
         | undefined;
 }
@@ -52,7 +52,12 @@ const defaultSyncRendererLoadingRuntimeScope: SyncRendererLoadingRuntimeScope =
     };
 
 function getDocument(scope: SyncRendererLoadingRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (!getRuntimeDocument) {
+        throw new TypeError("syncRendererLoading requires a document provider");
+    }
+
+    const runtimeDocument = getRuntimeDocument();
     if (!runtimeDocument) {
         throw new TypeError("syncRendererLoading requires a document runtime");
     }
@@ -75,18 +80,39 @@ function getConstructor(
     | undefined {
     switch (name) {
         case "HTMLButtonElement": {
-            return scope.getHTMLButtonElement?.();
+            return getConstructorProvider(scope.getHTMLButtonElement, name)();
         }
         case "HTMLInputElement": {
-            return scope.getHTMLInputElement?.();
+            return getConstructorProvider(scope.getHTMLInputElement, name)();
         }
         case "HTMLSelectElement": {
-            return scope.getHTMLSelectElement?.();
+            return getConstructorProvider(scope.getHTMLSelectElement, name)();
         }
         case "HTMLTextAreaElement": {
-            return scope.getHTMLTextAreaElement?.();
+            return getConstructorProvider(scope.getHTMLTextAreaElement, name)();
         }
     }
+}
+
+function getConstructorProvider<
+    T extends
+        | BrowserHTMLButtonElementConstructor
+        | BrowserHTMLInputElementConstructor
+        | BrowserHTMLSelectElementConstructor
+        | BrowserHTMLTextAreaElementConstructor,
+>(
+    provider: (() => T | undefined) | undefined,
+    name:
+        | "HTMLButtonElement"
+        | "HTMLInputElement"
+        | "HTMLSelectElement"
+        | "HTMLTextAreaElement"
+): () => T | undefined {
+    if (!provider) {
+        throw new TypeError(`syncRendererLoading requires a ${name} provider`);
+    }
+
+    return provider;
 }
 
 function isInstanceOfConstructor(

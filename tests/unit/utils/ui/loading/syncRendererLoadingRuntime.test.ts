@@ -10,6 +10,19 @@ function resetBody(): void {
     document.body.style.cursor = "";
 }
 
+function createRuntimeScope(
+    overrides: Partial<SyncRendererLoadingRuntimeScope> = {}
+): SyncRendererLoadingRuntimeScope {
+    return {
+        getDocument: () => document,
+        getHTMLButtonElement: () => undefined,
+        getHTMLInputElement: () => undefined,
+        getHTMLSelectElement: () => undefined,
+        getHTMLTextAreaElement: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getSyncRendererLoadingRuntime", () => {
     it("finds the loading overlay using flexible id matching", () => {
         expect.assertions(1);
@@ -20,9 +33,9 @@ describe("getSyncRendererLoadingRuntime", () => {
         document.body.append(overlay);
 
         expect(
-            getSyncRendererLoadingRuntime({
-                getDocument: () => document,
-            }).getLoadingOverlay()
+            getSyncRendererLoadingRuntime(
+                createRuntimeScope()
+            ).getLoadingOverlay()
         ).toBe(overlay);
     });
 
@@ -30,9 +43,7 @@ describe("getSyncRendererLoadingRuntime", () => {
         expect.assertions(4);
 
         resetBody();
-        const utils = getSyncRendererLoadingRuntime({
-            getDocument: () => document,
-        });
+        const utils = getSyncRendererLoadingRuntime(createRuntimeScope());
 
         utils.setBodyLoading(true);
 
@@ -55,13 +66,14 @@ describe("getSyncRendererLoadingRuntime", () => {
         const textArea = document.createElement("textarea");
         const link = document.createElement("a");
         document.body.append(button, input, select, textArea, link);
-        const utils = getSyncRendererLoadingRuntime({
-            getDocument: () => document,
-            getHTMLButtonElement: () => HTMLButtonElement,
-            getHTMLInputElement: () => HTMLInputElement,
-            getHTMLSelectElement: () => HTMLSelectElement,
-            getHTMLTextAreaElement: () => HTMLTextAreaElement,
-        });
+        const utils = getSyncRendererLoadingRuntime(
+            createRuntimeScope({
+                getHTMLButtonElement: () => HTMLButtonElement,
+                getHTMLInputElement: () => HTMLInputElement,
+                getHTMLSelectElement: () => HTMLSelectElement,
+                getHTMLTextAreaElement: () => HTMLTextAreaElement,
+            })
+        );
 
         expect(utils.getInteractiveElements()).toStrictEqual([
             button,
@@ -81,19 +93,41 @@ describe("getSyncRendererLoadingRuntime", () => {
 
         resetBody();
         const button = document.createElement("button");
-        const utils = getSyncRendererLoadingRuntime({
-            getDocument: () => document,
-            getHTMLButtonElement: () =>
-                "HTMLButtonElement" as unknown as typeof HTMLButtonElement,
-        });
+        const utils = getSyncRendererLoadingRuntime(
+            createRuntimeScope({
+                getHTMLButtonElement: () =>
+                    "HTMLButtonElement" as unknown as typeof HTMLButtonElement,
+            })
+        );
 
         expect(utils.isDisableableFormControl(button)).toBe(false);
+    });
+
+    it("fails clearly when the document provider is omitted", () => {
+        expect.assertions(3);
+
+        const utils = getSyncRendererLoadingRuntime({
+            ...createRuntimeScope(),
+            getDocument: undefined,
+        } as unknown as SyncRendererLoadingRuntimeScope);
+
+        expect(() => utils.getLoadingOverlay()).toThrow(
+            "syncRendererLoading requires a document provider"
+        );
+        expect(() => utils.getInteractiveElements()).toThrow(
+            "syncRendererLoading requires a document provider"
+        );
+        expect(() => utils.setBodyLoading(true)).toThrow(
+            "syncRendererLoading requires a document provider"
+        );
     });
 
     it("fails clearly when document access is unavailable", () => {
         expect.assertions(3);
 
-        const utils = getSyncRendererLoadingRuntime({});
+        const utils = getSyncRendererLoadingRuntime(
+            createRuntimeScope({ getDocument: () => undefined })
+        );
 
         expect(() => utils.getLoadingOverlay()).toThrow(
             "syncRendererLoading requires a document runtime"
@@ -103,6 +137,53 @@ describe("getSyncRendererLoadingRuntime", () => {
         );
         expect(() => utils.setBodyLoading(true)).toThrow(
             "syncRendererLoading requires a document runtime"
+        );
+    });
+
+    it("fails clearly when a constructor provider is omitted", () => {
+        expect.assertions(4);
+
+        resetBody();
+        const button = document.createElement("button");
+        const utils = getSyncRendererLoadingRuntime({
+            ...createRuntimeScope(),
+            getHTMLButtonElement: undefined,
+        } as unknown as SyncRendererLoadingRuntimeScope);
+
+        expect(() => utils.isDisableableFormControl(button)).toThrow(
+            "syncRendererLoading requires a HTMLButtonElement provider"
+        );
+        expect(() =>
+            getSyncRendererLoadingRuntime({
+                ...createRuntimeScope(),
+                getHTMLButtonElement: () => undefined,
+                getHTMLInputElement: undefined,
+            } as unknown as SyncRendererLoadingRuntimeScope).isDisableableFormControl(
+                button
+            )
+        ).toThrow("syncRendererLoading requires a HTMLInputElement provider");
+        expect(() =>
+            getSyncRendererLoadingRuntime({
+                ...createRuntimeScope(),
+                getHTMLButtonElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: undefined,
+            } as unknown as SyncRendererLoadingRuntimeScope).isDisableableFormControl(
+                button
+            )
+        ).toThrow("syncRendererLoading requires a HTMLSelectElement provider");
+        expect(() =>
+            getSyncRendererLoadingRuntime({
+                ...createRuntimeScope(),
+                getHTMLButtonElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getHTMLSelectElement: () => undefined,
+                getHTMLTextAreaElement: undefined,
+            } as unknown as SyncRendererLoadingRuntimeScope).isDisableableFormControl(
+                button
+            )
+        ).toThrow(
+            "syncRendererLoading requires a HTMLTextAreaElement provider"
         );
     });
 
@@ -122,14 +203,16 @@ describe("getSyncRendererLoadingRuntime", () => {
         const utils = getSyncRendererLoadingRuntime(legacyScope);
 
         expect(() => utils.getLoadingOverlay()).toThrow(
-            "syncRendererLoading requires a document runtime"
+            "syncRendererLoading requires a document provider"
         );
         expect(() => utils.getInteractiveElements()).toThrow(
-            "syncRendererLoading requires a document runtime"
+            "syncRendererLoading requires a document provider"
         );
         expect(() => utils.setBodyLoading(true)).toThrow(
-            "syncRendererLoading requires a document runtime"
+            "syncRendererLoading requires a document provider"
         );
-        expect(utils.isDisableableFormControl(button)).toBe(false);
+        expect(() => utils.isDisableableFormControl(button)).toThrow(
+            "syncRendererLoading requires a HTMLButtonElement provider"
+        );
     });
 });
