@@ -1,7 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BrowserMatchMedia } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
-import { getComputedStateManagerRuntime } from "../../../../../electron-app/utils/state/core/computedStateManagerRuntime.js";
+import {
+    getComputedStateManagerRuntime,
+    type ComputedStateManagerRuntimeScope,
+} from "../../../../../electron-app/utils/state/core/computedStateManagerRuntime.js";
+
+const unavailableComputedStateManagerRuntimeScope = {
+    getDateNow: () => undefined,
+    getMatchMedia: () => undefined,
+    getPerformance: () => undefined,
+} satisfies ComputedStateManagerRuntimeScope;
 
 describe("computedStateManagerRuntime", () => {
     afterEach(() => {
@@ -14,6 +23,7 @@ describe("computedStateManagerRuntime", () => {
 
         const dateNow = vi.fn<() => number>(() => 1234);
         const utils = getComputedStateManagerRuntime({
+            ...unavailableComputedStateManagerRuntimeScope,
             getDateNow: () => dateNow,
         });
 
@@ -26,6 +36,7 @@ describe("computedStateManagerRuntime", () => {
 
         const now = vi.fn<() => number>(() => 42);
         const utils = getComputedStateManagerRuntime({
+            ...unavailableComputedStateManagerRuntimeScope,
             getPerformance: () => ({ now }),
         });
 
@@ -40,6 +51,7 @@ describe("computedStateManagerRuntime", () => {
                 () => ({ matches: true }) as MediaQueryList
             ),
             runtime = getComputedStateManagerRuntime({
+                ...unavailableComputedStateManagerRuntimeScope,
                 getMatchMedia: () => matchMedia,
             });
 
@@ -51,6 +63,7 @@ describe("computedStateManagerRuntime", () => {
         expect.assertions(1);
 
         const runtime = getComputedStateManagerRuntime({
+            ...unavailableComputedStateManagerRuntimeScope,
             getMatchMedia: () =>
                 (() =>
                     ({
@@ -68,6 +81,7 @@ describe("computedStateManagerRuntime", () => {
                 () => ({ matches: true }) as MediaQueryList
             ),
             runtime = getComputedStateManagerRuntime({
+                ...unavailableComputedStateManagerRuntimeScope,
                 matchMedia,
             } as unknown as Parameters<
                 typeof getComputedStateManagerRuntime
@@ -83,6 +97,7 @@ describe("computedStateManagerRuntime", () => {
         const dateNow = vi.fn<() => number>(() => 1234);
         const now = vi.fn<() => number>(() => 42);
         const utils = getComputedStateManagerRuntime({
+            ...unavailableComputedStateManagerRuntimeScope,
             dateNow,
             performance: { now },
         } as unknown as Parameters<typeof getComputedStateManagerRuntime>[0]);
@@ -126,24 +141,31 @@ describe("computedStateManagerRuntime", () => {
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
     });
 
-    it("fails clearly when explicit scopes omit timing providers", () => {
-        expect.assertions(2);
+    it("fails clearly when explicit scopes omit runtime providers", () => {
+        expect.assertions(3);
 
-        const utils = getComputedStateManagerRuntime({});
+        const utils = getComputedStateManagerRuntime(
+            {} as unknown as ComputedStateManagerRuntimeScope
+        );
 
         expect(() => utils.dateNow()).toThrow(
-            "computedStateManager requires dateNow"
+            "computedStateManager requires dateNow provider"
+        );
+        expect(() => utils.isDarkSchemePreferred()).toThrow(
+            "computedStateManager requires matchMedia provider"
         );
         expect(() => utils.nowPerformance()).toThrow(
-            "computedStateManager requires performance.now"
+            "computedStateManager requires performance provider"
         );
     });
 
     it("returns false when media queries are unavailable", () => {
         expect.assertions(1);
 
-        expect(getComputedStateManagerRuntime({}).isDarkSchemePreferred()).toBe(
-            false
-        );
+        expect(
+            getComputedStateManagerRuntime(
+                unavailableComputedStateManagerRuntimeScope
+            ).isDarkSchemePreferred()
+        ).toBe(false);
     });
 });

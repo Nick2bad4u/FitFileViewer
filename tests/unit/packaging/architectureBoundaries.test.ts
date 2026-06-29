@@ -15918,7 +15918,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps computed state manager theme and timing reads behind the runtime adapter", () => {
-        expect.assertions(39);
+        expect.assertions(48);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -16003,16 +16003,43 @@ describe("architecture boundaries", () => {
             "getMatchMedia: () => globalThis.matchMedia"
         );
         expect(computedStateManagerRuntimeSource).toContain(
-            "const matchMedia = scope.getMatchMedia?.();"
+            "const matchMedia = scope.getMatchMedia();"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope.getMatchMedia?.()"
         );
         expect(computedStateManagerRuntimeSource).not.toContain(
             "getPerformance: () => globalThis.performance"
         );
         expect(computedStateManagerRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = scope.getDateNow();"
         );
         expect(computedStateManagerRuntimeSource).toContain(
-            "const performance = scope.getPerformance?.();"
+            "const performance = scope.getPerformance();"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "readonly getMatchMedia?:"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "computedStateManager requires dateNow provider"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "computedStateManager requires matchMedia provider"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "computedStateManager requires performance provider"
         );
         expect(computedStateManagerRuntimeSource).toContain(
             "computedStateManager requires dateNow"

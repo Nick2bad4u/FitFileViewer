@@ -6,9 +6,9 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ComputedStateManagerRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
-    readonly getPerformance?:
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getMatchMedia: (() => BrowserMatchMedia | undefined) | undefined;
+    readonly getPerformance:
         | (() => Pick<Performance, "now"> | undefined)
         | undefined;
 }
@@ -31,7 +31,13 @@ export function getComputedStateManagerRuntime(
 ): ComputedStateManagerRuntime {
     return {
         dateNow(): number {
-            const dateNow = scope.getDateNow?.();
+            if (typeof scope.getDateNow !== "function") {
+                throw new TypeError(
+                    "computedStateManager requires dateNow provider"
+                );
+            }
+
+            const dateNow = scope.getDateNow();
             if (typeof dateNow !== "function") {
                 throw new TypeError("computedStateManager requires dateNow");
             }
@@ -40,14 +46,26 @@ export function getComputedStateManagerRuntime(
         },
 
         isDarkSchemePreferred(): boolean {
-            const matchMedia = scope.getMatchMedia?.();
+            if (typeof scope.getMatchMedia !== "function") {
+                throw new TypeError(
+                    "computedStateManager requires matchMedia provider"
+                );
+            }
+
+            const matchMedia = scope.getMatchMedia();
             return Boolean(
                 matchMedia?.("(prefers-color-scheme: dark)").matches
             );
         },
 
         nowPerformance(): number {
-            const performance = scope.getPerformance?.();
+            if (typeof scope.getPerformance !== "function") {
+                throw new TypeError(
+                    "computedStateManager requires performance provider"
+                );
+            }
+
+            const performance = scope.getPerformance();
             const performanceNow = performance?.now;
             if (typeof performanceNow !== "function") {
                 throw new TypeError(
