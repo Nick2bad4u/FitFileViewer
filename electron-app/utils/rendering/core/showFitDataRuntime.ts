@@ -15,19 +15,15 @@ type ShowFitDataScrollTo = (options: Readonly<ScrollToOptions>) => void;
 type ShowFitDataDocument = Pick<Document, "querySelector">;
 
 export interface ShowFitDataRuntimeScope {
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => ShowFitDataDocument | undefined) | undefined;
-    readonly getDispatchEvent?:
-        | (() => BrowserDispatchEvent | undefined)
-        | undefined;
-    readonly getMatchMedia?: (() => BrowserMatchMedia | undefined) | undefined;
-    readonly getQueueMicrotask?:
-        | (() => BrowserQueueMicrotask | undefined)
-        | undefined;
-    readonly getScrollTo?: (() => ShowFitDataScrollTo | undefined) | undefined;
+    readonly getCustomEvent: ShowFitDataRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDocument: ShowFitDataRuntimeProvider<ShowFitDataDocument>;
+    readonly getDispatchEvent: ShowFitDataRuntimeProvider<BrowserDispatchEvent>;
+    readonly getMatchMedia: ShowFitDataRuntimeProvider<BrowserMatchMedia>;
+    readonly getQueueMicrotask: ShowFitDataRuntimeProvider<BrowserQueueMicrotask>;
+    readonly getScrollTo: ShowFitDataRuntimeProvider<ShowFitDataScrollTo>;
 }
+
+type ShowFitDataRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface ShowFitDataRuntime {
     canScrollTo: () => boolean;
@@ -48,9 +44,9 @@ async function runAfterPromiseMicrotask(callback: () => void): Promise<void> {
 }
 
 function getCustomEventConstructor(
-    scope: ShowFitDataRuntimeScope
+    getCustomEvent: () => BrowserCustomEventConstructor | undefined
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getCustomEvent();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("showFitData requires a CustomEvent runtime");
     }
@@ -59,9 +55,9 @@ function getCustomEventConstructor(
 }
 
 function getDispatchEvent(
-    scope: ShowFitDataRuntimeScope
+    getDispatchEventRef: () => BrowserDispatchEvent | undefined
 ): BrowserDispatchEvent {
-    const dispatchEvent = scope.getDispatchEvent?.();
+    const dispatchEvent = getDispatchEventRef();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError("showFitData requires a dispatchEvent runtime");
     }
@@ -70,27 +66,27 @@ function getDispatchEvent(
 }
 
 function getScopeDocument(
-    scope: ShowFitDataRuntimeScope
+    getDocument: () => ShowFitDataDocument | undefined
 ): ShowFitDataDocument | undefined {
-    return scope.getDocument?.();
+    return getDocument();
 }
 
 function getScopeMatchMedia(
-    scope: ShowFitDataRuntimeScope
+    getMatchMedia: () => BrowserMatchMedia | undefined
 ): BrowserMatchMedia | undefined {
-    return scope.getMatchMedia?.();
+    return getMatchMedia();
 }
 
 function getScopeQueueMicrotask(
-    scope: ShowFitDataRuntimeScope
+    getQueueMicrotask: () => BrowserQueueMicrotask | undefined
 ): BrowserQueueMicrotask | undefined {
-    return scope.getQueueMicrotask?.();
+    return getQueueMicrotask();
 }
 
 function getScopeScrollTo(
-    scope: ShowFitDataRuntimeScope
+    getScrollTo: () => ShowFitDataScrollTo | undefined
 ): ShowFitDataScrollTo | undefined {
-    return scope.getScrollTo?.();
+    return getScrollTo();
 }
 
 const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = {
@@ -105,33 +101,52 @@ const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = {
 export function getShowFitDataRuntime(
     scope: ShowFitDataRuntimeScope = defaultShowFitDataRuntimeScope
 ): ShowFitDataRuntime {
+    const getCustomEvent = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getDispatchEventRef = getRequiredProvider(
+        scope.getDispatchEvent,
+        "dispatchEvent"
+    );
+    const getMatchMedia = getRequiredProvider(
+        scope.getMatchMedia,
+        "matchMedia"
+    );
+    const getQueueMicrotask = getRequiredProvider(
+        scope.getQueueMicrotask,
+        "queueMicrotask"
+    );
+    const getScrollTo = getRequiredProvider(scope.getScrollTo, "scrollTo");
+
     return {
         canScrollTo(): boolean {
-            return typeof getScopeScrollTo(scope) === "function";
+            return typeof getScopeScrollTo(getScrollTo) === "function";
         },
 
         createCustomEvent<T>(
             type: string,
             eventInitDict?: Readonly<CustomEventInit<T>>
         ): CustomEvent<T> {
-            return new (getCustomEventConstructor(scope))<T>(
+            return new (getCustomEventConstructor(getCustomEvent))<T>(
                 type,
                 eventInitDict
             );
         },
 
         dispatchEvent(event: Readonly<Event>): boolean {
-            return getDispatchEvent(scope).call(scope, event);
+            return getDispatchEvent(getDispatchEventRef).call(scope, event);
         },
 
         hasRenderedMapContainer(): boolean {
             const mapContainer =
-                getScopeDocument(scope)?.querySelector("#leaflet-map");
+                getScopeDocument(getDocument)?.querySelector("#leaflet-map");
             return mapContainer !== null && mapContainer !== undefined;
         },
 
         prefersReducedMotion(): boolean {
-            const matchMedia = getScopeMatchMedia(scope);
+            const matchMedia = getScopeMatchMedia(getMatchMedia);
             return (
                 typeof matchMedia === "function" &&
                 matchMedia.call(scope, "(prefers-reduced-motion: reduce)")
@@ -140,7 +155,7 @@ export function getShowFitDataRuntime(
         },
 
         queueMicrotask(callback: () => void): void {
-            const queueMicrotask = getScopeQueueMicrotask(scope);
+            const queueMicrotask = getScopeQueueMicrotask(getQueueMicrotask);
             if (typeof queueMicrotask === "function") {
                 queueMicrotask.call(scope, callback);
                 return;
@@ -150,7 +165,18 @@ export function getShowFitDataRuntime(
         },
 
         scrollTo(options: Readonly<ScrollToOptions>): void {
-            getScopeScrollTo(scope)?.call(scope, options);
+            getScopeScrollTo(getScrollTo)?.call(scope, options);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: ShowFitDataRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`showFitData requires a ${providerName} provider`);
+    }
+
+    return provider;
 }

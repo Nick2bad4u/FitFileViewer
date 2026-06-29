@@ -13840,7 +13840,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(76);
+        expect.assertions(99);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -13995,6 +13995,12 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly matchMedia?:");
         expect(runtimeScopeSource).not.toContain("readonly queueMicrotask?:");
         expect(runtimeScopeSource).not.toContain("readonly scrollTo?:");
+        expect(runtimeScopeSource).not.toContain("readonly getCustomEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDispatchEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly getMatchMedia?:");
+        expect(runtimeScopeSource).not.toContain("readonly getQueueMicrotask?:");
+        expect(runtimeScopeSource).not.toContain("readonly getScrollTo?:");
         expect(showFitDataRuntimeSource).not.toContain("scope.CustomEvent");
         expect(showFitDataRuntimeSource).not.toContain("scope.document");
         expect(showFitDataRuntimeSource).not.toContain("scope.dispatchEvent");
@@ -14002,16 +14008,65 @@ describe("architecture boundaries", () => {
         expect(showFitDataRuntimeSource).not.toContain("scope.queueMicrotask");
         expect(showFitDataRuntimeSource).not.toContain("scope.scrollTo");
         expect(showFitDataRuntimeSource).toContain(
-            "return scope.getDocument?.();"
+            "type ShowFitDataRuntimeProvider"
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /readonly\s+getCustomEvent:\s*ShowFitDataRuntimeProvider<BrowserCustomEventConstructor>/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*ShowFitDataRuntimeProvider<ShowFitDataDocument>/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /readonly\s+getDispatchEvent:\s*ShowFitDataRuntimeProvider<BrowserDispatchEvent>/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /readonly\s+getMatchMedia:\s*ShowFitDataRuntimeProvider<BrowserMatchMedia>/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /readonly\s+getQueueMicrotask:\s*ShowFitDataRuntimeProvider<BrowserQueueMicrotask>/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /readonly\s+getScrollTo:\s*ShowFitDataRuntimeProvider<ShowFitDataScrollTo>/u
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCustomEvent,\s*"CustomEvent"\s*\)/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDispatchEvent,\s*"dispatchEvent"\s*\)/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMatchMedia,\s*"matchMedia"\s*\)/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getQueueMicrotask,\s*"queueMicrotask"\s*\)/u
+        );
+        expect(showFitDataRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getScrollTo,\s*"scrollTo"\s*\)/u
+        );
+        expect(showFitDataRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "showFitData requires a ${providerName} provider"
+        );
+        expect(showFitDataRuntimeSource).toContain("providerName: string");
+        expect(showFitDataRuntimeSource).toContain(
+            "return getDocument();"
         );
         expect(showFitDataRuntimeSource).toContain(
             'querySelector("#leaflet-map")'
         );
         expect(showFitDataRuntimeSource).toContain(
-            "return scope.getMatchMedia?.();"
+            "return getMatchMedia();"
         );
         expect(showFitDataRuntimeSource).toContain(
-            "return scope.getScrollTo?.();"
+            "return getScrollTo();"
         );
         expect(rendererActiveFileStateSource).toContain(
             'const RENDERER_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";'

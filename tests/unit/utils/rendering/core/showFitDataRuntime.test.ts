@@ -1,6 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getShowFitDataRuntime } from "../../../../../electron-app/utils/rendering/core/showFitDataRuntime.js";
+import {
+    getShowFitDataRuntime,
+    type ShowFitDataRuntimeScope,
+} from "../../../../../electron-app/utils/rendering/core/showFitDataRuntime.js";
+
+function createShowFitDataRuntimeScope(
+    overrides: Partial<ShowFitDataRuntimeScope> = {}
+): ShowFitDataRuntimeScope {
+    return {
+        getCustomEvent: () => undefined,
+        getDocument: () => undefined,
+        getDispatchEvent: () => undefined,
+        getMatchMedia: () => undefined,
+        getQueueMicrotask: () => undefined,
+        getScrollTo: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("showFitDataRuntime", () => {
     it("uses browser runtime providers for production defaults", async () => {
@@ -43,10 +60,12 @@ describe("showFitDataRuntime", () => {
 
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList),
             scrollTo = vi.fn(),
-            runtime = getShowFitDataRuntime({
-                getMatchMedia: () => matchMedia,
-                getScrollTo: () => scrollTo,
-            });
+            runtime = getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({
+                    getMatchMedia: () => matchMedia,
+                    getScrollTo: () => scrollTo,
+                })
+            );
 
         expect(runtime.canScrollTo()).toBe(true);
         expect(runtime.prefersReducedMotion()).toBe(true);
@@ -75,14 +94,16 @@ describe("showFitDataRuntime", () => {
         const getMatchMedia = vi.fn(() => matchMedia);
         const getQueueMicrotask = vi.fn(() => queueMicrotask);
         const getScrollTo = vi.fn(() => scrollTo);
-        const runtime = getShowFitDataRuntime({
-            getCustomEvent,
-            getDocument,
-            getDispatchEvent,
-            getMatchMedia,
-            getQueueMicrotask,
-            getScrollTo,
-        });
+        const runtime = getShowFitDataRuntime(
+            createShowFitDataRuntimeScope({
+                getCustomEvent,
+                getDocument,
+                getDispatchEvent,
+                getMatchMedia,
+                getQueueMicrotask,
+                getScrollTo,
+            })
+        );
 
         expect(runtime.canScrollTo()).toBe(true);
         expect(runtime.prefersReducedMotion()).toBe(true);
@@ -122,7 +143,7 @@ describe("showFitDataRuntime", () => {
     it("falls back when optional browser APIs are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getShowFitDataRuntime({});
+        const runtime = getShowFitDataRuntime(createShowFitDataRuntimeScope());
 
         expect(runtime.canScrollTo()).toBe(false);
         expect(runtime.hasRenderedMapContainer()).toBe(false);
@@ -133,10 +154,12 @@ describe("showFitDataRuntime", () => {
         expect.assertions(4);
 
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
-        const runtime = getShowFitDataRuntime({
-            getCustomEvent: () => CustomEvent,
-            getDispatchEvent: () => dispatchEvent,
-        });
+        const runtime = getShowFitDataRuntime(
+            createShowFitDataRuntimeScope({
+                getCustomEvent: () => CustomEvent,
+                getDispatchEvent: () => dispatchEvent,
+            })
+        );
 
         const event = runtime.createCustomEvent("fitfile-loaded", {
             detail: { filePath: "activity.fit" },
@@ -152,15 +175,54 @@ describe("showFitDataRuntime", () => {
         expect.assertions(2);
 
         expect(() =>
-            getShowFitDataRuntime({
-                getDispatchEvent: () => () => true,
-            }).createCustomEvent("fitfile-loaded")
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({
+                    getDispatchEvent: () => () => true,
+                })
+            ).createCustomEvent("fitfile-loaded")
         ).toThrow("showFitData requires a CustomEvent runtime");
         expect(() =>
-            getShowFitDataRuntime({
-                getCustomEvent: () => CustomEvent,
-            }).dispatchEvent(new Event("fitfile-loaded"))
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({
+                    getCustomEvent: () => CustomEvent,
+                })
+            ).dispatchEvent(new Event("fitfile-loaded"))
         ).toThrow("showFitData requires a dispatchEvent runtime");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(6);
+
+        expect(() =>
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({ getCustomEvent: undefined })
+            )
+        ).toThrow("showFitData requires a CustomEvent provider");
+        expect(() =>
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({ getDocument: undefined })
+            )
+        ).toThrow("showFitData requires a document provider");
+        expect(() =>
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({ getDispatchEvent: undefined })
+            )
+        ).toThrow("showFitData requires a dispatchEvent provider");
+        expect(() =>
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({ getMatchMedia: undefined })
+            )
+        ).toThrow("showFitData requires a matchMedia provider");
+        expect(() =>
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({ getQueueMicrotask: undefined })
+            )
+        ).toThrow("showFitData requires a queueMicrotask provider");
+        expect(() =>
+            getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({ getScrollTo: undefined })
+            )
+        ).toThrow("showFitData requires a scrollTo provider");
     });
 
     it("queues microtasks through the scoped runtime", () => {
@@ -174,9 +236,11 @@ describe("showFitDataRuntime", () => {
             queueMicrotask = vi.fn((callback: () => void) => {
                 queuedCallback = callback;
             }),
-            runtime = getShowFitDataRuntime({
-                getQueueMicrotask: () => queueMicrotask,
-            });
+            runtime = getShowFitDataRuntime(
+                createShowFitDataRuntimeScope({
+                    getQueueMicrotask: () => queueMicrotask,
+                })
+            );
 
         runtime.queueMicrotask(callback);
         queuedCallback?.();
@@ -187,7 +251,7 @@ describe("showFitDataRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const callback = vi.fn<() => void>();
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
@@ -197,13 +261,24 @@ describe("showFitDataRuntime", () => {
             document.createElement("div")
         );
         const scrollTo = vi.fn<(options: ScrollToOptions) => void>();
-        const runtime = getShowFitDataRuntime({
+        const legacyDirectScope = {
             CustomEvent,
             document: { querySelector },
             dispatchEvent,
             matchMedia,
             queueMicrotask,
             scrollTo,
+        };
+
+        expect(() =>
+            getShowFitDataRuntime(
+                legacyDirectScope as unknown as ShowFitDataRuntimeScope
+            )
+        ).toThrow("showFitData requires a CustomEvent provider");
+
+        const runtime = getShowFitDataRuntime({
+            ...legacyDirectScope,
+            ...createShowFitDataRuntimeScope(),
         } as unknown as Parameters<typeof getShowFitDataRuntime>[0]);
 
         expect(runtime.canScrollTo()).toBe(false);
@@ -232,9 +307,11 @@ describe("showFitDataRuntime", () => {
         const querySelector = vi.fn<ParentNode["querySelector"]>((selector) =>
             selector === "#leaflet-map" ? document.createElement("div") : null
         );
-        const runtime = getShowFitDataRuntime({
-            getDocument: () => ({ querySelector }),
-        });
+        const runtime = getShowFitDataRuntime(
+            createShowFitDataRuntimeScope({
+                getDocument: () => ({ querySelector }),
+            })
+        );
 
         expect(runtime.hasRenderedMapContainer()).toBe(true);
         expect(querySelector).toHaveBeenCalledExactlyOnceWith("#leaflet-map");
@@ -250,7 +327,7 @@ describe("showFitDataRuntime", () => {
         const callback = vi.fn(() => {
                 ran = true;
             }),
-            runtime = getShowFitDataRuntime({});
+            runtime = getShowFitDataRuntime(createShowFitDataRuntimeScope());
 
         runtime.queueMicrotask(callback);
         await Promise.resolve();
