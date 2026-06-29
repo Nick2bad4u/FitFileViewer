@@ -8185,7 +8185,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab entry browser access behind the runtime facade", () => {
-        expect.assertions(96);
+        expect.assertions(111);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -8391,6 +8391,30 @@ describe("architecture boundaries", () => {
         );
         expect(browserTabRuntimeSource).not.toContain("scope.localStorage");
         expect(browserTabRuntimeSource).toContain(
+            "type FileBrowserTabRuntimeProvider<T>"
+        );
+        expect(browserTabRuntimeSource).toContain("getRequiredProvider(");
+        expect(browserTabRuntimeSource).toContain(
+            "fileBrowserTab requires ${article} ${providerName} provider"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(browserTabRuntimeSource).not.toContain("readonly getDateNow?:");
+        expect(browserTabRuntimeSource).not.toContain("readonly getDocument?:");
+        expect(browserTabRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "readonly getHTMLSelectElement?:"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "readonly getLocalStorage?:"
+        );
+        expect(browserTabRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
         expect(browserTabRuntimeSource).toContain(
@@ -8435,10 +8459,23 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).not.toContain(
             "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
         );
-        expect(browserTabRuntimeSource).toContain(
+        expect(browserTabRuntimeSource).not.toContain(
             "scope.getAbortController?.()"
         );
-        expect(browserTabRuntimeSource).toContain("scope.getDateNow?.()");
+        expect(browserTabRuntimeSource).not.toContain("scope.getDateNow?.()");
+        expect(browserTabRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(browserTabRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "scope.getHTMLSelectElement?.()"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "scope.getLocalStorage?.()"
+        );
         expect(browserTabRuntimeSource).toContain(
             "getRequiredDocument(scope).createElement(tagName)"
         );

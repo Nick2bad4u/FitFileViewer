@@ -1,8 +1,26 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { getFileBrowserTabRuntime } from "../../../../../electron-app/utils/ui/browser/fileBrowserTabRuntime.js";
+import {
+    getFileBrowserTabRuntime,
+    type FileBrowserTabRuntimeScope,
+} from "../../../../../electron-app/utils/ui/browser/fileBrowserTabRuntime.js";
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createUnavailableRuntimeScope(
+    overrides: Partial<FileBrowserTabRuntimeScope> = {}
+): FileBrowserTabRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getHTMLInputElement: () => undefined,
+        getHTMLSelectElement: () => undefined,
+        getLocalStorage: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getFileBrowserTabRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
@@ -14,10 +32,12 @@ describe("getFileBrowserTabRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getFileBrowserTabRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getFileBrowserTabRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -43,14 +63,16 @@ describe("getFileBrowserTabRuntime", () => {
                 storageItems.set(key, value);
             }),
         } as unknown as Storage;
-        const runtime = getFileBrowserTabRuntime({
-            getDateNow: () => dateNow,
-            getDocument: () => documentRef,
-            getHTMLElement: () => HTMLElement,
-            getHTMLInputElement: () => HTMLInputElement,
-            getHTMLSelectElement: () => HTMLSelectElement,
-            getLocalStorage: () => storage,
-        });
+        const runtime = getFileBrowserTabRuntime(
+            createUnavailableRuntimeScope({
+                getDateNow: () => dateNow,
+                getDocument: () => documentRef,
+                getHTMLElement: () => HTMLElement,
+                getHTMLInputElement: () => HTMLInputElement,
+                getHTMLSelectElement: () => HTMLSelectElement,
+                getLocalStorage: () => storage,
+            })
+        );
         const container = runtime.createElement("div");
         container.id = "content_browser";
         const status = runtime.createElement("div");
@@ -87,7 +109,9 @@ describe("getFileBrowserTabRuntime", () => {
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
         expect.assertions(10);
 
-        const runtime = getFileBrowserTabRuntime({});
+        const runtime = getFileBrowserTabRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "fileBrowserTab requires an AbortController runtime"
@@ -138,35 +162,35 @@ describe("getFileBrowserTabRuntime", () => {
         } as unknown as Parameters<typeof getFileBrowserTabRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "fileBrowserTab requires an AbortController runtime"
+            "fileBrowserTab requires an AbortController provider"
         );
         expect(() => runtime.dateNow()).toThrow(
-            "fileBrowserTab requires a date clock runtime"
+            "fileBrowserTab requires a date clock provider"
         );
         expect(() => runtime.createElement("div")).toThrow(
-            "fileBrowserTab requires a document runtime"
+            "fileBrowserTab requires a document provider"
         );
         expect(() => runtime.createTextNode("text")).toThrow(
-            "fileBrowserTab requires a document runtime"
+            "fileBrowserTab requires a document provider"
         );
         expect(() => runtime.getElementById("content_browser")).toThrow(
-            "fileBrowserTab requires a document runtime"
+            "fileBrowserTab requires a document provider"
         );
         expect(() => runtime.isHTMLElement(document.body)).toThrow(
-            "fileBrowserTab requires an HTMLElement runtime"
+            "fileBrowserTab requires an HTMLElement provider"
         );
         expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
-            "fileBrowserTab requires an HTMLInputElement runtime"
+            "fileBrowserTab requires an HTMLInputElement provider"
         );
         expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
-            "fileBrowserTab requires an HTMLSelectElement runtime"
+            "fileBrowserTab requires an HTMLSelectElement provider"
         );
         expect(() => runtime.getStorageItem("fit-browser-test")).toThrow(
-            "fileBrowserTab requires a localStorage runtime"
+            "fileBrowserTab requires a localStorage provider"
         );
         expect(() =>
             runtime.setStorageItem("fit-browser-test", "value")
-        ).toThrow("fileBrowserTab requires a localStorage runtime");
+        ).toThrow("fileBrowserTab requires a localStorage provider");
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(dateNow).not.toHaveBeenCalled();
     });

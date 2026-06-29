@@ -14,22 +14,16 @@ import {
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 
 export interface FileBrowserTabRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLSelectElement?:
-        | (() => BrowserHTMLSelectElementConstructor | undefined)
-        | undefined;
-    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
+    readonly getAbortController: FileBrowserTabRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDateNow: FileBrowserTabRuntimeProvider<() => number>;
+    readonly getDocument: FileBrowserTabRuntimeProvider<Document>;
+    readonly getHTMLElement: FileBrowserTabRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getHTMLInputElement: FileBrowserTabRuntimeProvider<BrowserHTMLInputElementConstructor>;
+    readonly getHTMLSelectElement: FileBrowserTabRuntimeProvider<BrowserHTMLSelectElementConstructor>;
+    readonly getLocalStorage: FileBrowserTabRuntimeProvider<Storage>;
 }
+
+type FileBrowserTabRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface FileBrowserTabRuntime {
     createElement: <K extends keyof HTMLElementTagNameMap>(
@@ -59,10 +53,28 @@ const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
     getLocalStorage: getBrowserLocalStorage,
 };
 
+function getRequiredProvider<T>(
+    provider: FileBrowserTabRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `fileBrowserTab requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: FileBrowserTabRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "fileBrowserTab requires an AbortController runtime"
@@ -73,7 +85,7 @@ function getAbortControllerConstructor(
 }
 
 function getRequiredDateNow(scope: FileBrowserTabRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getRequiredProvider(scope.getDateNow, "date clock")();
     if (typeof dateNow !== "function") {
         throw new TypeError("fileBrowserTab requires a date clock runtime");
     }
@@ -82,7 +94,7 @@ function getRequiredDateNow(scope: FileBrowserTabRuntimeScope): () => number {
 }
 
 function getRequiredDocument(scope: FileBrowserTabRuntimeScope): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError("fileBrowserTab requires a document runtime");
     }
@@ -93,7 +105,10 @@ function getRequiredDocument(scope: FileBrowserTabRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: FileBrowserTabRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError("fileBrowserTab requires an HTMLElement runtime");
     }
@@ -104,7 +119,10 @@ function getHTMLElementConstructor(
 function getHTMLInputElementConstructor(
     scope: FileBrowserTabRuntimeScope
 ): BrowserHTMLInputElementConstructor {
-    const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+    const HTMLInputElementConstructor = getRequiredProvider(
+        scope.getHTMLInputElement,
+        "HTMLInputElement"
+    )();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
             "fileBrowserTab requires an HTMLInputElement runtime"
@@ -117,7 +135,10 @@ function getHTMLInputElementConstructor(
 function getHTMLSelectElementConstructor(
     scope: FileBrowserTabRuntimeScope
 ): BrowserHTMLSelectElementConstructor {
-    const HTMLSelectElementConstructor = scope.getHTMLSelectElement?.();
+    const HTMLSelectElementConstructor = getRequiredProvider(
+        scope.getHTMLSelectElement,
+        "HTMLSelectElement"
+    )();
     if (typeof HTMLSelectElementConstructor !== "function") {
         throw new TypeError(
             "fileBrowserTab requires an HTMLSelectElement runtime"
@@ -128,7 +149,10 @@ function getHTMLSelectElementConstructor(
 }
 
 function getRequiredLocalStorage(scope: FileBrowserTabRuntimeScope): Storage {
-    const storage = scope.getLocalStorage?.();
+    const storage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    )();
     if (!storage) {
         throw new TypeError("fileBrowserTab requires a localStorage runtime");
     }
