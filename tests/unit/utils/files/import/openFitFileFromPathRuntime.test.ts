@@ -63,6 +63,18 @@ describe("openFitFileFromPathRuntime", () => {
         ).toThrow("openFitFileFromPath requires an HTMLElement provider");
     });
 
+    it("fails clearly when the HTMLElement provider slot is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getOpenFitFileFromPathRuntime({
+            getHTMLElement: undefined,
+        });
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow("openFitFileFromPath requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(2);
 

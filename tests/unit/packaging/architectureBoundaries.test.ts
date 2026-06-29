@@ -24414,7 +24414,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open FIT file path button checks behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(20);
 
         const violations = migratedOpenFitFileFromPathRuntimeFiles
             .filter((relativeFile) =>
@@ -24463,6 +24463,18 @@ describe("architecture boundaries", () => {
         expect(openFitFileFromPathRuntimeSource).toContain(
             "getHTMLElement: getBrowserHTMLElement"
         );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "type OpenFitFileFromPathRuntimeProvider"
+        );
+        expect(openFitFileFromPathRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*OpenFitFileFromPathRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(openFitFileFromPathRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
         expect(openFitFileFromPathRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
         );
@@ -24479,7 +24491,10 @@ describe("architecture boundaries", () => {
             "scope.getHTMLElement?.()"
         );
         expect(openFitFileFromPathRuntimeSource).toContain(
-            "openFitFileFromPath requires an HTMLElement provider"
+            "openFitFileFromPath requires ${article} ${providerName} provider"
+        );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "providerName: string"
         );
         expect(openFitFileFromPathRuntimeSource).toContain(
             "openFitFileFromPath requires an HTMLElement runtime"
