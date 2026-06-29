@@ -252,6 +252,39 @@ describe("getSettingsStateCoreRuntime", () => {
         controller.abort();
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(4);
+
+        const controller = new AbortController();
+
+        expect(() =>
+            getSettingsStateCoreRuntime({
+                ...createRuntimeScope(),
+                getLocalStorage: undefined,
+            }).getLocalStorage()
+        ).toThrow("settingsStateCore requires a localStorage provider");
+        expect(() =>
+            getSettingsStateCoreRuntime({
+                ...createRuntimeScope(),
+                getAddEventListener: undefined,
+            }).addStorageEventListener(vi.fn(), controller.signal)
+        ).toThrow("settingsStateCore requires an addEventListener provider");
+        expect(() =>
+            getSettingsStateCoreRuntime({
+                ...createRuntimeScope(),
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow("settingsStateCore requires an AbortController provider");
+        expect(() =>
+            getSettingsStateCoreRuntime({
+                ...createRuntimeScope(),
+                getDateNow: undefined,
+            }).dateNow()
+        ).toThrow("settingsStateCore requires a dateNow provider");
+
+        controller.abort();
+    });
+
     it("fails clearly when date clocks are unavailable", () => {
         expect.assertions(1);
 

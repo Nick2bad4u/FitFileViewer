@@ -33591,7 +33591,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(62);
+        expect.assertions(71);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -33734,6 +33734,36 @@ describe("architecture boundaries", () => {
             "scope.getLocalStorage?.()"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
+            "type SettingsStateCoreRuntimeProvider"
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*SettingsStateCoreRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /readonly\s+getAddEventListener:\s*SettingsStateCoreRuntimeProvider<BrowserAddEventListener>/u
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*SettingsStateCoreRuntimeProvider<\(\) => number>/u
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /readonly\s+getLocalStorage:\s*SettingsStateCoreRuntimeProvider<Storage>/u
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAddEventListener,\s*"addEventListener"\s*\)/u
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(settingsStateCoreRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocalStorage,\s*"localStorage"\s*\)/u
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
@@ -33755,7 +33785,10 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
-            "settingsStateCore requires a dateNow provider"
+            "settingsStateCore requires ${article} ${providerName} provider"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "providerName: string"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
             "settingsStateCore requires dateNow"
@@ -33767,13 +33800,7 @@ describe("architecture boundaries", () => {
             "getLocalStorage: () => globalThis.localStorage"
         );
         expect(settingsStateCoreRuntimeSource).toContain(
-            "settingsStateCore requires an AbortController provider"
-        );
-        expect(settingsStateCoreRuntimeSource).toContain(
-            "settingsStateCore requires an addEventListener provider"
-        );
-        expect(settingsStateCoreRuntimeSource).toContain(
-            "settingsStateCore requires a localStorage provider"
+            "settingsStateCore requires an AbortController runtime"
         );
     });
 

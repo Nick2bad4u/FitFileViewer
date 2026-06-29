@@ -8,15 +8,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface SettingsStateCoreRuntimeScope {
-    readonly getAbortController:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getAddEventListener:
-        | (() => BrowserAddEventListener | undefined)
-        | undefined;
-    readonly getDateNow: (() => (() => number) | undefined) | undefined;
-    readonly getLocalStorage: (() => Storage | undefined) | undefined;
+    readonly getAbortController: SettingsStateCoreRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getAddEventListener: SettingsStateCoreRuntimeProvider<BrowserAddEventListener>;
+    readonly getDateNow: SettingsStateCoreRuntimeProvider<() => number>;
+    readonly getLocalStorage: SettingsStateCoreRuntimeProvider<Storage>;
 }
+
+type SettingsStateCoreRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface SettingsStateCoreRuntime {
     addStorageEventListener: (
@@ -31,13 +29,10 @@ export interface SettingsStateCoreRuntime {
 function getAbortControllerConstructor(
     scope: SettingsStateCoreRuntimeScope
 ): BrowserAbortControllerConstructor {
-    if (typeof scope.getAbortController !== "function") {
-        throw new TypeError(
-            "settingsStateCore requires an AbortController provider"
-        );
-    }
-
-    const AbortControllerConstructor = scope.getAbortController();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "settingsStateCore requires an AbortController runtime"
@@ -55,11 +50,7 @@ const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope = {
 };
 
 function getDateNow(scope: SettingsStateCoreRuntimeScope): () => number {
-    if (typeof scope.getDateNow !== "function") {
-        throw new TypeError("settingsStateCore requires a dateNow provider");
-    }
-
-    const dateNow = scope.getDateNow();
+    const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNow !== "function") {
         throw new TypeError("settingsStateCore requires dateNow");
     }
@@ -70,25 +61,28 @@ function getDateNow(scope: SettingsStateCoreRuntimeScope): () => number {
 function getScopedAddEventListener(
     scope: SettingsStateCoreRuntimeScope
 ): BrowserAddEventListener | undefined {
-    if (typeof scope.getAddEventListener !== "function") {
-        throw new TypeError(
-            "settingsStateCore requires an addEventListener provider"
-        );
-    }
-
-    return scope.getAddEventListener();
+    return getRequiredProvider(scope.getAddEventListener, "addEventListener")();
 }
 
 function getScopedLocalStorage(
     scope: SettingsStateCoreRuntimeScope
 ): Storage | undefined {
-    if (typeof scope.getLocalStorage !== "function") {
+    return getRequiredProvider(scope.getLocalStorage, "localStorage")();
+}
+
+function getRequiredProvider<T>(
+    provider: SettingsStateCoreRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
         throw new TypeError(
-            "settingsStateCore requires a localStorage provider"
+            `settingsStateCore requires ${article} ${providerName} provider`
         );
     }
 
-    return scope.getLocalStorage();
+    return provider;
 }
 
 export function getSettingsStateCoreRuntime(
