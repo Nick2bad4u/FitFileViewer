@@ -28255,7 +28255,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(47);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -28286,6 +28286,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(setupThemeSource).toContain("setupThemeRuntime.js");
         expect(setupThemeSource).toContain("type SetupThemeRuntime");
+        expect(setupThemeSource).toContain(
+            'readonly getTheme: ElectronThemeApi["getTheme"];'
+        );
+        expect(setupThemeSource).not.toContain(
+            'readonly getTheme?: ElectronThemeApi["getTheme"];'
+        );
         expect(setupThemeSource).toContain("return getSetupThemeRuntime();");
         expect(setupThemeSource).toContain("getStorageItem");
         expect(setupThemeSource).toContain("setStorageItem");

@@ -189,6 +189,28 @@ describe("setupTheme", () => {
         );
     });
 
+    it("rejects missing scoped getTheme values and falls back to default theme", async () => {
+        expect.assertions(4);
+
+        const applyTheme = vi.fn<(theme: string) => void>();
+        const getElectronAPI = vi.fn<() => unknown>(() => ({}));
+        const electronApiScope: RendererElectronApiScope = {
+            getElectronAPI,
+        };
+
+        const { setupTheme } = await importSetupThemeModule();
+        const result = await setupTheme(applyTheme, undefined, {
+            electronApiScope,
+        });
+
+        expect(result).toBe("dark");
+        expect(applyTheme).toHaveBeenCalledWith("dark");
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+            "[ThemeSetup] ElectronAPI getTheme not available, using default theme"
+        );
+    });
+
     it("logs warning when localStorage access fails", async () => {
         expect.assertions(3);
 

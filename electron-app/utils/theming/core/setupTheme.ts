@@ -40,7 +40,7 @@ type ListenForThemeChangeCallback = (
 ) => void;
 type LogLevel = "error" | "info" | "warn";
 type ThemeSetupElectronApi = {
-    readonly getTheme?: ElectronThemeApi["getTheme"];
+    readonly getTheme: ElectronThemeApi["getTheme"];
 };
 
 // Constants for better maintainability
@@ -316,11 +316,10 @@ function isThemeSetupElectronApi(
         return false;
     }
 
-    if (!("getTheme" in value)) {
-        return true;
-    }
-
-    return typeof value.getTheme === "function";
+    return (
+        typeof (value as Readonly<Record<string, unknown>>)["getTheme"] ===
+        "function"
+    );
 }
 
 function isValidTheme(theme: unknown): theme is ThemePreference {
