@@ -23,32 +23,19 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type AboutModalTimerHandle = BrowserTimerHandle;
+type AboutModalRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface AboutModalRuntimeScope {
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDOMParser?:
-        | (() => BrowserDOMParserConstructor | undefined)
-        | undefined;
-    readonly getElement?:
-        | (() => BrowserElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
-    readonly getNodeFilter?: (() => BrowserNodeFilter | undefined) | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getCancelAnimationFrame: AboutModalRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getClearTimeout: AboutModalRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: AboutModalRuntimeProvider<Document>;
+    readonly getDOMParser: AboutModalRuntimeProvider<BrowserDOMParserConstructor>;
+    readonly getElement: AboutModalRuntimeProvider<BrowserElementConstructor>;
+    readonly getHTMLElement: AboutModalRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getKeyboardEvent: AboutModalRuntimeProvider<BrowserKeyboardEventConstructor>;
+    readonly getNodeFilter: AboutModalRuntimeProvider<BrowserNodeFilter>;
+    readonly getRequestAnimationFrame: AboutModalRuntimeProvider<BrowserRequestAnimationFrame>;
+    readonly getSetTimeout: AboutModalRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface AboutModalRuntime {
@@ -97,20 +84,38 @@ const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: AboutModalRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `aboutModalRuntime requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getScopeCancelAnimationFrame(
     scope: AboutModalRuntimeScope
 ): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    )();
 }
 
 function getScopeClearTimeout(
     scope: AboutModalRuntimeScope
 ): BrowserClearTimeout | undefined {
-    return scope.getClearTimeout?.();
+    return getRequiredProvider(scope.getClearTimeout, "clearTimeout")();
 }
 
 function getScopeDocument(scope: AboutModalRuntimeScope): Document | undefined {
-    return scope.getDocument?.();
+    return getRequiredProvider(scope.getDocument, "document")();
 }
 
 function requireScopeDocument(scope: AboutModalRuntimeScope): Document {
@@ -124,43 +129,46 @@ function requireScopeDocument(scope: AboutModalRuntimeScope): Document {
 function getScopeDOMParser(
     scope: AboutModalRuntimeScope
 ): BrowserDOMParserConstructor | undefined {
-    return scope.getDOMParser?.();
+    return getRequiredProvider(scope.getDOMParser, "DOMParser")();
 }
 
 function getScopeElement(
     scope: AboutModalRuntimeScope
 ): BrowserElementConstructor | undefined {
-    return scope.getElement?.();
+    return getRequiredProvider(scope.getElement, "Element")();
 }
 
 function getScopeHTMLElement(
     scope: AboutModalRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
 }
 
 function getScopeKeyboardEvent(
     scope: AboutModalRuntimeScope
 ): BrowserKeyboardEventConstructor | undefined {
-    return scope.getKeyboardEvent?.();
+    return getRequiredProvider(scope.getKeyboardEvent, "KeyboardEvent")();
 }
 
 function getScopeNodeFilter(
     scope: AboutModalRuntimeScope
 ): BrowserNodeFilter | undefined {
-    return scope.getNodeFilter?.();
+    return getRequiredProvider(scope.getNodeFilter, "NodeFilter")();
 }
 
 function getScopeRequestAnimationFrame(
     scope: AboutModalRuntimeScope
 ): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    return getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    )();
 }
 
 function getScopeSetTimeout(
     scope: AboutModalRuntimeScope
 ): BrowserSetTimeout | undefined {
-    return scope.getSetTimeout?.();
+    return getRequiredProvider(scope.getSetTimeout, "setTimeout")();
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(

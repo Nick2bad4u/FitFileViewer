@@ -6,9 +6,29 @@ import type {
     BrowserRequestAnimationFrame,
     BrowserSetTimeout,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
-import { getAboutModalRuntime } from "../../../../../electron-app/utils/ui/modals/aboutModalRuntime.js";
+import {
+    getAboutModalRuntime,
+    type AboutModalRuntimeScope,
+} from "../../../../../electron-app/utils/ui/modals/aboutModalRuntime.js";
 
 describe("getAboutModalRuntime", () => {
+    const createUnavailableAboutModalRuntimeScope = (
+        overrides: Partial<AboutModalRuntimeScope> = {}
+    ) =>
+        ({
+            getCancelAnimationFrame: () => undefined,
+            getClearTimeout: () => undefined,
+            getDocument: () => undefined,
+            getDOMParser: () => undefined,
+            getElement: () => undefined,
+            getHTMLElement: () => undefined,
+            getKeyboardEvent: () => undefined,
+            getNodeFilter: () => undefined,
+            getRequestAnimationFrame: () => undefined,
+            getSetTimeout: () => undefined,
+            ...overrides,
+        }) satisfies AboutModalRuntimeScope;
+
     afterEach(() => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
@@ -23,10 +43,10 @@ describe("getAboutModalRuntime", () => {
         const delayMs = Number("300");
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 41);
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const scope = {
+        const scope = createUnavailableAboutModalRuntimeScope({
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
-        };
+        });
         const {
             clearTimeout: clearModalTimer,
             setTimeout: scheduleModalTimer,
@@ -60,6 +80,7 @@ describe("getAboutModalRuntime", () => {
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
         const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
         const runtime = getAboutModalRuntime({
+            ...createUnavailableAboutModalRuntimeScope(),
             getCancelAnimationFrame,
             getClearTimeout,
             getDocument,
@@ -89,7 +110,9 @@ describe("getAboutModalRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(3);
 
-        const runtime = getAboutModalRuntime({});
+        const runtime = getAboutModalRuntime(
+            createUnavailableAboutModalRuntimeScope()
+        );
 
         expect(runtime.getDocument()).toBeUndefined();
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
@@ -97,6 +120,45 @@ describe("getAboutModalRuntime", () => {
         );
         expect(() => runtime.clearTimeout(0)).toThrow(
             "aboutModalRuntime requires a clearTimeout runtime"
+        );
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(10);
+
+        const runtime = getAboutModalRuntime(
+            {} as unknown as AboutModalRuntimeScope
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "aboutModalRuntime requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "aboutModalRuntime requires a clearTimeout provider"
+        );
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "aboutModalRuntime requires a requestAnimationFrame provider"
+        );
+        expect(() => runtime.cancelAnimationFrame(0)).toThrow(
+            "aboutModalRuntime requires a cancelAnimationFrame provider"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "aboutModalRuntime requires a document provider"
+        );
+        expect(() => runtime.parseHtmlDocument("<p>x</p>")).toThrow(
+            "aboutModalRuntime requires a DOMParser provider"
+        );
+        expect(() => runtime.isElement(document.body)).toThrow(
+            "aboutModalRuntime requires an Element provider"
+        );
+        expect(() => runtime.isHTMLElement(document.body)).toThrow(
+            "aboutModalRuntime requires an HTMLElement provider"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "aboutModalRuntime requires a KeyboardEvent provider"
+        );
+        expect(() => runtime.createElementTreeWalker(document.body)).toThrow(
+            "aboutModalRuntime requires a NodeFilter provider"
         );
     });
 
@@ -166,6 +228,7 @@ describe("getAboutModalRuntime", () => {
 
         const getDocument = vi.fn(() => document);
         const runtime = getAboutModalRuntime({
+            ...createUnavailableAboutModalRuntimeScope(),
             getDocument,
             getDOMParser: () => DOMParser,
             getElement: () => Element,
@@ -220,7 +283,9 @@ describe("getAboutModalRuntime", () => {
     it("fails clearly when document-backed providers are unavailable", () => {
         expect.assertions(8);
 
-        const runtime = getAboutModalRuntime({});
+        const runtime = getAboutModalRuntime(
+            createUnavailableAboutModalRuntimeScope()
+        );
 
         expect(() => runtime.createDocumentFragment()).toThrow(
             "aboutModalRuntime requires a document runtime"
@@ -255,9 +320,9 @@ describe("getAboutModalRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 23);
-        const scope = {
+        const scope = createUnavailableAboutModalRuntimeScope({
             getRequestAnimationFrame: () => requestAnimationFrame,
-        };
+        });
         const { requestAnimationFrame: requestFrame } =
             getAboutModalRuntime(scope);
 
@@ -271,9 +336,11 @@ describe("getAboutModalRuntime", () => {
 
         const callback = vi.fn<FrameRequestCallback>();
 
-        expect(getAboutModalRuntime({}).requestAnimationFrame(callback)).toBe(
-            null
-        );
+        expect(
+            getAboutModalRuntime(
+                createUnavailableAboutModalRuntimeScope()
+            ).requestAnimationFrame(callback)
+        ).toBe(null);
         expect(callback).toHaveBeenCalledWith(0);
     });
 
@@ -281,9 +348,9 @@ describe("getAboutModalRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const scope = {
+        const scope = createUnavailableAboutModalRuntimeScope({
             getCancelAnimationFrame: () => cancelAnimationFrame,
-        };
+        });
         const { cancelAnimationFrame: cancelFrame } =
             getAboutModalRuntime(scope);
 
@@ -297,7 +364,9 @@ describe("getAboutModalRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getAboutModalRuntime({}).cancelAnimationFrame(11)
+            getAboutModalRuntime(
+                createUnavailableAboutModalRuntimeScope()
+            ).cancelAnimationFrame(11)
         ).not.toThrow();
     });
 
@@ -308,6 +377,7 @@ describe("getAboutModalRuntime", () => {
 
         expect(
             getAboutModalRuntime({
+                ...createUnavailableAboutModalRuntimeScope(),
                 getDocument: () => documentTarget,
             }).getDocument()
         ).toBe(documentTarget);
@@ -326,6 +396,7 @@ describe("getAboutModalRuntime", () => {
         >(() => 31);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const runtime = getAboutModalRuntime({
+            ...createUnavailableAboutModalRuntimeScope(),
             cancelAnimationFrame,
             clearTimeout,
             document: documentTarget,

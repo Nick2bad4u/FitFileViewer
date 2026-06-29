@@ -11144,7 +11144,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal browser APIs behind the runtime facade", () => {
-        expect.assertions(92);
+        expect.assertions(115);
 
         const timingViolations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -11298,6 +11298,68 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).not.toContain("readonly setTimeout?:");
         expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain("readonly getDocument?:");
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getDOMParser?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain("readonly getElement?:");
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getNodeFilter?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "type AboutModalRuntimeProvider<T> ="
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getCancelAnimationFrame: AboutModalRuntimeProvider<BrowserCancelAnimationFrame>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getClearTimeout: AboutModalRuntimeProvider<BrowserClearTimeout>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getDocument: AboutModalRuntimeProvider<Document>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getDOMParser: AboutModalRuntimeProvider<BrowserDOMParserConstructor>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getElement: AboutModalRuntimeProvider<BrowserElementConstructor>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getHTMLElement: AboutModalRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getKeyboardEvent: AboutModalRuntimeProvider<BrowserKeyboardEventConstructor>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getNodeFilter: AboutModalRuntimeProvider<BrowserNodeFilter>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getRequestAnimationFrame: AboutModalRuntimeProvider<BrowserRequestAnimationFrame>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "readonly getSetTimeout: AboutModalRuntimeProvider<BrowserSetTimeout>;"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"
         );
         expect(aboutModalRuntimeSource).not.toContain("scope.clearTimeout");
@@ -11382,6 +11444,9 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).toContain(
             "aboutModalRuntime requires a NodeFilter runtime"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "aboutModalRuntime requires ${article} ${providerName} provider"
         );
     });
 
