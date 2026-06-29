@@ -5,12 +5,17 @@ import {
     type TabReadinessStateRuntimeScope,
 } from "../../../../../electron-app/utils/ui/tabs/tabReadinessStateRuntime.js";
 
+const unavailableTabReadinessStateRuntimeScope = {
+    getDateNow: () => undefined,
+} satisfies TabReadinessStateRuntimeScope;
+
 describe("tabReadinessStateRuntime", () => {
     it("reads timestamps through the injected date clock", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn(() => 123_456);
         const runtime = getTabReadinessStateRuntime({
+            ...unavailableTabReadinessStateRuntimeScope,
             getDateNow: () => dateNow,
         });
 
@@ -37,10 +42,24 @@ describe("tabReadinessStateRuntime", () => {
     it("does not borrow ambient clocks for explicit scopes", () => {
         expect.assertions(1);
 
-        const runtime = getTabReadinessStateRuntime({});
+        const runtime = getTabReadinessStateRuntime(
+            unavailableTabReadinessStateRuntimeScope
+        );
 
         expect(() => runtime.now()).toThrow(
             "tabReadinessState requires a date clock runtime"
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getTabReadinessStateRuntime(
+            {} as unknown as TabReadinessStateRuntimeScope
+        );
+
+        expect(() => runtime.now()).toThrow(
+            "tabReadinessState requires a date clock provider"
         );
     });
 
@@ -48,6 +67,7 @@ describe("tabReadinessStateRuntime", () => {
         expect.assertions(1);
 
         const runtime = getTabReadinessStateRuntime({
+            ...unavailableTabReadinessStateRuntimeScope,
             dateNow: () => 123_456,
         } as unknown as TabReadinessStateRuntimeScope);
 

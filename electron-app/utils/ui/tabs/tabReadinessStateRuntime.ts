@@ -1,7 +1,7 @@
 import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 
 export interface TabReadinessStateRuntimeScope {
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
 }
 
 export interface TabReadinessStateRuntime {
@@ -15,7 +15,11 @@ const defaultTabReadinessStateRuntimeScope: TabReadinessStateRuntimeScope = {
 function getRequiredDateNow(
     scope: TabReadinessStateRuntimeScope
 ): () => number {
-    const dateNow = scope.getDateNow?.();
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError("tabReadinessState requires a date clock provider");
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("tabReadinessState requires a date clock runtime");
     }
