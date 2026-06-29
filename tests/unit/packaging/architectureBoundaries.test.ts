@@ -7005,11 +7005,6 @@ describe("architecture boundaries", () => {
                 "export interface ExportUtilsRuntime {"
             )
         );
-        const exportZipChartHelpersSource = exportUtilsSource.slice(
-            exportUtilsSource.indexOf("function addSingleChartToZip("),
-            exportUtilsSource.indexOf("export const exportUtils")
-        );
-
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
         expect(exportUtilsSource).toContain("type ExportUtilsRuntime");
         expect(exportUtilsSource).toContain("ElectronClipboardApi");
@@ -7069,7 +7064,7 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsSource).not.toContain("new Date().toISOString()");
         expect(exportUtilsSource).not.toContain("document.activeElement");
-        expect(exportZipChartHelpersSource).not.toContain(
+        expect(exportUtilsSource).not.toContain(
             'document.createElement("canvas")'
         );
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");

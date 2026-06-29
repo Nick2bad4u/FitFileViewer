@@ -1301,7 +1301,7 @@ export const exportUtils = {
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
-                canvas = document.createElement("canvas");
+                canvas = exportUtilsRuntime().createElement("canvas");
             canvas.width = chart.canvas.width;
             canvas.height = chart.canvas.height;
             const ctx = canvas.getContext("2d");
@@ -1360,7 +1360,7 @@ export const exportUtils = {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                combinedCanvas = document.createElement("canvas"),
+                combinedCanvas = exportUtilsRuntime().createElement("canvas"),
                 ctx = combinedCanvas.getContext("2d");
             if (!ctx) {
                 throw new Error("Failed to get 2D context");
@@ -1398,7 +1398,7 @@ export const exportUtils = {
                 }
                 const col = index % cols,
                     row = Math.floor(index / cols),
-                    tempCanvas = document.createElement("canvas"),
+                    tempCanvas = exportUtilsRuntime().createElement("canvas"),
                     x = col * (chartWidth + padding),
                     y = row * (chartHeight + padding);
                 tempCanvas.width = chartWidth;
@@ -1468,7 +1468,7 @@ export const exportUtils = {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                combinedCanvas = document.createElement("canvas"),
+                combinedCanvas = exportUtilsRuntime().createElement("canvas"),
                 ctx = combinedCanvas.getContext("2d");
             if (!ctx) {
                 throw new Error("Failed to get 2D context");
@@ -1507,7 +1507,7 @@ export const exportUtils = {
                 const col = index % cols,
                     row = Math.floor(index / cols),
                     // Create temporary canvas with theme background
-                    tempCanvas = document.createElement("canvas"),
+                    tempCanvas = exportUtilsRuntime().createElement("canvas"),
                     x = col * (chartWidth + padding),
                     y = row * (chartHeight + padding);
                 tempCanvas.width = chartWidth;
@@ -2428,7 +2428,7 @@ export const exportUtils = {
             }
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
-                canvas = document.createElement("canvas"),
+                canvas = exportUtilsRuntime().createElement("canvas"),
                 printWindow = exportUtilsRuntime().openPrintWindow(
                     "",
                     "_blank",
@@ -2566,7 +2566,7 @@ body {
                     continue;
                 }
                 const // Create canvas with theme background
-                    canvas = document.createElement("canvas"),
+                    canvas = exportUtilsRuntime().createElement("canvas"),
                     dataset = getFirstChartDataset(chart),
                     fieldName = dataset?.label || `Chart ${index + 1}`;
                 canvas.width = chart.canvas.width;
@@ -2662,7 +2662,7 @@ body {
                 }
 
                 const backgroundColor = exportUtils.getExportThemeBackground(),
-                    canvas = document.createElement("canvas");
+                    canvas = exportUtilsRuntime().createElement("canvas");
                 canvas.width = chartCanvas.width;
                 canvas.height = chartCanvas.height;
                 const ctx = canvas.getContext("2d");
@@ -2733,7 +2733,9 @@ body {
                     chartHeight = 400,
                     chartWidth = 800,
                     cols = Math.ceil(Math.sqrt(charts.length)),
-                    combinedCanvas = document.createElement("canvas"),
+                    combinedCanvas = exportUtilsRuntime().createElement(
+                        "canvas"
+                    ),
                     ctx = combinedCanvas.getContext("2d"),
                     padding = 20,
                     rows = Math.ceil(charts.length / cols);
@@ -2756,7 +2758,9 @@ body {
 
                     const col = index % cols,
                         row = Math.floor(index / cols),
-                        tempCanvas = document.createElement("canvas"),
+                        tempCanvas = exportUtilsRuntime().createElement(
+                            "canvas"
+                        ),
                         x = col * (chartWidth + padding),
                         y = row * (chartHeight + padding);
                     tempCanvas.width = chartWidth;
@@ -2847,7 +2851,7 @@ body {
                 }
 
                 const backgroundColor = exportUtils.getExportThemeBackground(),
-                    canvas = document.createElement("canvas");
+                    canvas = exportUtilsRuntime().createElement("canvas");
                 canvas.width = chartCanvas.width;
                 canvas.height = chartCanvas.height;
                 const ctx = canvas.getContext("2d");
@@ -2906,7 +2910,9 @@ body {
                     chartHeight = 400,
                     chartWidth = 1000,
                     cols = Math.ceil(Math.sqrt(charts.length)),
-                    combinedCanvas = document.createElement("canvas"),
+                    combinedCanvas = exportUtilsRuntime().createElement(
+                        "canvas"
+                    ),
                     ctx = combinedCanvas.getContext("2d"),
                     padding = 20,
                     rows = Math.ceil(charts.length / cols);
@@ -2929,7 +2935,9 @@ body {
 
                     const col = index % cols,
                         row = Math.floor(index / cols),
-                        tempCanvas = document.createElement("canvas"),
+                        tempCanvas = exportUtilsRuntime().createElement(
+                            "canvas"
+                        ),
                         x = col * (chartWidth + padding),
                         y = row * (chartHeight + padding);
                     tempCanvas.width = chartWidth;
