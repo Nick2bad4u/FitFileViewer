@@ -5,8 +5,8 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface RemoveExitFullscreenOverlayRuntimeScope {
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -22,7 +22,14 @@ const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverla
     };
 
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "removeExitFullscreenOverlay requires a document provider"
+        );
+    }
+
+    const runtimeDocument = getRuntimeDocument();
     if (!runtimeDocument) {
         throw new TypeError(
             "removeExitFullscreenOverlay requires a document runtime"
@@ -35,7 +42,14 @@ function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: RemoveExitFullscreenOverlayRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    const getRuntimeHTMLElement = scope.getHTMLElement;
+    if (typeof getRuntimeHTMLElement !== "function") {
+        throw new TypeError(
+            "removeExitFullscreenOverlay requires an HTMLElement provider"
+        );
+    }
+
+    return getRuntimeHTMLElement();
 }
 
 export function getRemoveExitFullscreenOverlayRuntime(
