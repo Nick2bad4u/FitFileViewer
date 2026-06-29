@@ -67,12 +67,11 @@ describe("tabReadinessStateRuntime", () => {
         expect.assertions(1);
 
         const runtime = getTabReadinessStateRuntime({
-            ...unavailableTabReadinessStateRuntimeScope,
             dateNow: () => 123_456,
         } as unknown as TabReadinessStateRuntimeScope);
 
         expect(() => runtime.now()).toThrow(
-            "tabReadinessState requires a date clock runtime"
+            "tabReadinessState requires a date clock provider"
         );
     });
 });

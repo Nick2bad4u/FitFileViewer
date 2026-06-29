@@ -29599,7 +29599,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab readiness timestamps behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const violations = migratedTabReadinessStateRuntimeFiles
             .filter((relativeFile) =>
@@ -29676,10 +29676,19 @@ describe("architecture boundaries", () => {
             "scope.getDateNow?.()"
         );
         expect(tabReadinessStateRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow();"
+            "type TabReadinessStateRuntimeProvider"
+        );
+        expect(tabReadinessStateRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*TabReadinessStateRuntimeProvider<\(\) => number>/u
         );
         expect(tabReadinessStateRuntimeSource).toContain(
-            "tabReadinessState requires a date clock provider"
+            "function getRequiredProvider"
+        );
+        expect(tabReadinessStateRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDateNow, "date clock")'
+        );
+        expect(tabReadinessStateRuntimeSource).toContain(
+            "tabReadinessState requires a ${providerName} provider"
         );
         expect(tabReadinessStateRuntimeSource).toContain(
             "tabReadinessState requires a date clock runtime"

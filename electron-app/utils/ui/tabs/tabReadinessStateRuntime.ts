@@ -1,8 +1,10 @@
 import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 
 export interface TabReadinessStateRuntimeScope {
-    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getDateNow: TabReadinessStateRuntimeProvider<() => number>;
 }
+
+type TabReadinessStateRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface TabReadinessStateRuntime {
     readonly now: () => number;
@@ -15,16 +17,25 @@ const defaultTabReadinessStateRuntimeScope: TabReadinessStateRuntimeScope = {
 function getRequiredDateNow(
     scope: TabReadinessStateRuntimeScope
 ): () => number {
-    if (typeof scope.getDateNow !== "function") {
-        throw new TypeError("tabReadinessState requires a date clock provider");
-    }
-
-    const dateNow = scope.getDateNow();
+    const dateNow = getRequiredProvider(scope.getDateNow, "date clock")();
     if (typeof dateNow !== "function") {
         throw new TypeError("tabReadinessState requires a date clock runtime");
     }
 
     return dateNow;
+}
+
+function getRequiredProvider<T>(
+    provider: TabReadinessStateRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `tabReadinessState requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
 
 export function getTabReadinessStateRuntime(
