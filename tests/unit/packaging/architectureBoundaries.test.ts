@@ -12128,7 +12128,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(49);
+        expect.assertions(60);
 
         const tabStateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/tabStateManager.ts")
@@ -12256,11 +12256,32 @@ describe("architecture boundaries", () => {
         expect(tabDocumentRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(tabDocumentRuntimeSource).toContain("readonly getDocument:");
+        expect(tabDocumentRuntimeSource).toContain("readonly getElement:");
+        expect(tabDocumentRuntimeSource).toContain("readonly getHTMLElement:");
+        expect(tabDocumentRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(tabDocumentRuntimeSource).not.toContain("readonly getElement?:");
+        expect(tabDocumentRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
         expect(tabDocumentRuntimeSource).not.toContain("scope.document");
         expect(tabDocumentRuntimeSource).not.toContain("scope.Element");
         expect(tabDocumentRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(tabDocumentRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(tabDocumentRuntimeSource).not.toContain("scope.getElement?.()");
+        expect(tabDocumentRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
         expect(tabDocumentRuntimeSource).toContain(
-            "const candidate = scope.getDocument?.();"
+            "tabDocumentRuntime requires a document provider"
+        );
+        expect(tabDocumentRuntimeSource).toContain(
+            "tabDocumentRuntime requires an Element provider"
+        );
+        expect(tabDocumentRuntimeSource).toContain(
+            "tabDocumentRuntime requires an HTMLElement provider"
         );
         expect(tabDocumentRuntimeSource).toContain(
             "tabDocumentRuntime requires an Element runtime"

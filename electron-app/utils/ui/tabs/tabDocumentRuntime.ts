@@ -7,11 +7,11 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface TabDocumentRuntimeScope {
-    readonly getDocument?: (() => unknown) | undefined;
-    readonly getElement?:
+    readonly getDocument: (() => unknown) | undefined;
+    readonly getElement:
         | (() => BrowserElementConstructor | undefined)
         | undefined;
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -36,8 +36,13 @@ function isDocumentLike(candidate: unknown): candidate is Document {
 function getScopeDocument(
     scope: TabDocumentRuntimeScope
 ): Document | undefined {
+    const getDocument = scope.getDocument;
+    if (!getDocument) {
+        throw new TypeError("tabDocumentRuntime requires a document provider");
+    }
+
     try {
-        const candidate = scope.getDocument?.();
+        const candidate = getDocument();
         return isDocumentLike(candidate) ? candidate : undefined;
     } catch {
         return undefined;
@@ -53,7 +58,12 @@ const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = {
 function getElementConstructor(
     scope: TabDocumentRuntimeScope
 ): BrowserElementConstructor {
-    const ElementConstructor = scope.getElement?.();
+    const getElement = scope.getElement;
+    if (!getElement) {
+        throw new TypeError("tabDocumentRuntime requires an Element provider");
+    }
+
+    const ElementConstructor = getElement();
     if (typeof ElementConstructor !== "function") {
         throw new TypeError("tabDocumentRuntime requires an Element runtime");
     }
@@ -64,7 +74,14 @@ function getElementConstructor(
 function getHTMLElementConstructor(
     scope: TabDocumentRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (!getHTMLElement) {
+        throw new TypeError(
+            "tabDocumentRuntime requires an HTMLElement provider"
+        );
+    }
+
+    const HTMLElementConstructor = getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "tabDocumentRuntime requires an HTMLElement runtime"
@@ -79,7 +96,11 @@ export function getTabDocumentRuntime(
 ): TabDocumentRuntime {
     return {
         getDocument(testDocument?: Readonly<Document>): Document | undefined {
-            const candidates = [testDocument, getScopeDocument(scope)];
+            if (isDocumentLike(testDocument)) {
+                return testDocument;
+            }
+
+            const candidates = [getScopeDocument(scope)];
 
             return candidates.find(isDocumentLike);
         },
