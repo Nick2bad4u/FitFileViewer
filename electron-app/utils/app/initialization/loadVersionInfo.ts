@@ -17,12 +17,12 @@ import type { ElectronAppInfoApi } from "../../../shared/preloadApi.js";
 type VersionSystemInfo = Record<SystemInfoField, string>;
 
 type VersionInfoElectronAPI = {
-    readonly getAppVersion?: ElectronAppInfoApi["getAppVersion"];
-    readonly getChromeVersion?: ElectronAppInfoApi["getChromeVersion"];
-    readonly getElectronVersion?: ElectronAppInfoApi["getElectronVersion"];
-    readonly getLicenseInfo?: ElectronAppInfoApi["getLicenseInfo"];
-    readonly getNodeVersion?: ElectronAppInfoApi["getNodeVersion"];
-    readonly getPlatformInfo?: ElectronAppInfoApi["getPlatformInfo"];
+    readonly getAppVersion: ElectronAppInfoApi["getAppVersion"];
+    readonly getChromeVersion: ElectronAppInfoApi["getChromeVersion"];
+    readonly getElectronVersion: ElectronAppInfoApi["getElectronVersion"];
+    readonly getLicenseInfo: ElectronAppInfoApi["getLicenseInfo"];
+    readonly getNodeVersion: ElectronAppInfoApi["getNodeVersion"];
+    readonly getPlatformInfo: ElectronAppInfoApi["getPlatformInfo"];
 };
 
 type VersionInfoSource = "electronAPI" | "fallback";
@@ -130,48 +130,36 @@ async function getSystemInfoFromElectronAPI(
     const systemInfo = createDefaultSystemInfo();
 
     try {
-        if (typeof electronAPI.getAppVersion === "function") {
-            systemInfo.version = await electronAPI.getAppVersion();
-            logWithContext("info", "App version retrieved", {
-                version: systemInfo.version,
-            });
-        }
+        systemInfo.version = await electronAPI.getAppVersion();
+        logWithContext("info", "App version retrieved", {
+            version: systemInfo.version,
+        });
 
-        if (typeof electronAPI.getElectronVersion === "function") {
-            systemInfo.electron = await electronAPI.getElectronVersion();
-            logWithContext("info", "Electron version retrieved", {
-                electron: systemInfo.electron,
-            });
-        }
+        systemInfo.electron = await electronAPI.getElectronVersion();
+        logWithContext("info", "Electron version retrieved", {
+            electron: systemInfo.electron,
+        });
 
-        if (typeof electronAPI.getNodeVersion === "function") {
-            systemInfo.node = await electronAPI.getNodeVersion();
-            logWithContext("info", "Node.js version retrieved", {
-                node: systemInfo.node,
-            });
-        }
+        systemInfo.node = await electronAPI.getNodeVersion();
+        logWithContext("info", "Node.js version retrieved", {
+            node: systemInfo.node,
+        });
 
-        if (typeof electronAPI.getChromeVersion === "function") {
-            systemInfo.chrome = await electronAPI.getChromeVersion();
-            logWithContext("info", "Chrome version retrieved", {
-                chrome: systemInfo.chrome,
-            });
-        }
+        systemInfo.chrome = await electronAPI.getChromeVersion();
+        logWithContext("info", "Chrome version retrieved", {
+            chrome: systemInfo.chrome,
+        });
 
-        if (typeof electronAPI.getPlatformInfo === "function") {
-            const platformInfo = await electronAPI.getPlatformInfo();
-            systemInfo.platform = `${platformInfo.platform} (${platformInfo.arch})`;
-            logWithContext("info", "Platform info retrieved", {
-                platform: systemInfo.platform,
-            });
-        }
+        const platformInfo = await electronAPI.getPlatformInfo();
+        systemInfo.platform = `${platformInfo.platform} (${platformInfo.arch})`;
+        logWithContext("info", "Platform info retrieved", {
+            platform: systemInfo.platform,
+        });
 
-        if (typeof electronAPI.getLicenseInfo === "function") {
-            systemInfo.license = await electronAPI.getLicenseInfo();
-            logWithContext("info", "License info retrieved", {
-                license: systemInfo.license,
-            });
-        }
+        systemInfo.license = await electronAPI.getLicenseInfo();
+        logWithContext("info", "License info retrieved", {
+            license: systemInfo.license,
+        });
     } catch (error) {
         logWithContext(
             "error",
@@ -246,19 +234,15 @@ function isVersionInfoElectronAPI(
     }
 
     return (
-        hasOptionalFunction(value["getAppVersion"]) &&
-        hasOptionalFunction(value["getChromeVersion"]) &&
-        hasOptionalFunction(value["getElectronVersion"]) &&
-        hasOptionalFunction(value["getLicenseInfo"]) &&
-        hasOptionalFunction(value["getNodeVersion"]) &&
-        hasOptionalFunction(value["getPlatformInfo"])
+        typeof value["getAppVersion"] === "function" &&
+        typeof value["getChromeVersion"] === "function" &&
+        typeof value["getElectronVersion"] === "function" &&
+        typeof value["getLicenseInfo"] === "function" &&
+        typeof value["getNodeVersion"] === "function" &&
+        typeof value["getPlatformInfo"] === "function"
     );
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function hasOptionalFunction(value: unknown): boolean {
-    return value === undefined || typeof value === "function";
 }

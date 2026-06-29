@@ -287,6 +287,48 @@ describe("loadVersionInfo", () => {
         );
     });
 
+    it("rejects missing required scoped version API methods and falls back to process info", async () => {
+        expect.assertions(4);
+
+        resetTestState();
+        setRuntimeProcess({
+            arch: "x64",
+            platform: "missing-method-platform",
+            versions: {
+                chrome: "124.0.0",
+                electron: "34.0.0",
+                node: "26.0.0",
+            },
+        });
+        const getElectronAPI = vi.fn<() => unknown>(() => ({
+            getAppVersion: vi.fn<() => Promise<string>>(),
+        }));
+
+        const { loadVersionInfoWithOptions } =
+            await importLoadVersionInfoModule();
+
+        await loadVersionInfoWithOptions({
+            electronApiScope: { getElectronAPI },
+        });
+
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(getVersionNumberElement().textContent).toBe("");
+        expect(h.updateSystemInfo).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chrome: "124.0.0",
+                electron: "34.0.0",
+                node: "26.0.0",
+                platform: "missing-method-platform (x64)",
+                version: "unknown",
+            })
+        );
+        expect(h.logWithLevel).toHaveBeenCalledWith(
+            "warn",
+            "[LoadVersionInfo] electronAPI not available",
+            undefined
+        );
+    });
+
     it("keeps defaults when electronAPI version retrieval fails", async () => {
         expect.assertions(2);
 
@@ -295,6 +337,12 @@ describe("loadVersionInfo", () => {
             getAppVersion: vi
                 .fn<() => Promise<string>>()
                 .mockRejectedValue(new Error("boom")),
+            getChromeVersion: vi.fn<() => Promise<string>>(),
+            getElectronVersion: vi.fn<() => Promise<string>>(),
+            getLicenseInfo: vi.fn<() => Promise<string>>(),
+            getNodeVersion: vi.fn<() => Promise<string>>(),
+            getPlatformInfo:
+                vi.fn<() => Promise<{ arch: string; platform: string }>>(),
         };
 
         const { loadVersionInfoWithOptions } =
