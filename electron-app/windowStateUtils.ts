@@ -4,7 +4,10 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { logWithContext } from "./main/logging/logWithContext.js";
-import { getProcessEnvironmentValue } from "./utils/runtime/processEnvironment.js";
+import {
+    getWindowStateRuntime,
+    type WindowStateRuntime,
+} from "./windowStateRuntime.js";
 
 type BrowserWindowConstructorOptions =
     import("electron").BrowserWindowConstructorOptions;
@@ -81,8 +84,12 @@ function safeErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+function windowStateRuntime(): WindowStateRuntime {
+    return getWindowStateRuntime();
+}
+
 function getEnvironmentValue(key: string): string | undefined {
-    return getProcessEnvironmentValue(key);
+    return windowStateRuntime().getProcessEnvironmentValue(key);
 }
 
 function isBooleanCallback(value: unknown): value is () => boolean {

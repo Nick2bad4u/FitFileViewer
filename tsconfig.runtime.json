@@ -144,6 +144,7 @@
         "electron-app/main/state/appState.ts",
         "electron-app/main/theme/getPersistedThemePreference.ts",
         "electron-app/main/window/windowValidation.ts",
+        "electron-app/windowStateRuntime.ts",
         "electron-app/main/window/bootstrapMainWindow.ts",
         "electron-app/main/window/initializeMainWindow.ts",
         "electron-app/windowStateUtils.ts",

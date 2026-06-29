@@ -3712,7 +3712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(448);
+        expect.assertions(451);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3799,6 +3799,9 @@ describe("architecture boundaries", () => {
         );
         const windowStateUtilsSource = stripComments(
             readRepositoryFile("electron-app/windowStateUtils.ts")
+        );
+        const windowStateRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/windowStateRuntime.ts")
         );
         const setupApplicationEventHandlersSource = stripComments(
             readRepositoryFile(
@@ -3947,7 +3950,16 @@ describe("architecture boundaries", () => {
         expect(windowStateUtilsSource).toContain('"isDestroyed" in win');
         expect(logWithContextSource).toContain("getProcessEnvironmentValue");
         expect(safeCreateAppMenuSource).toContain("getProcessEnvironmentValue");
-        expect(windowStateUtilsSource).toContain("getProcessEnvironmentValue");
+        expect(windowStateUtilsSource).toContain("windowStateRuntime.js");
+        expect(windowStateUtilsSource).toContain(
+            "windowStateRuntime().getProcessEnvironmentValue(key)"
+        );
+        expect(windowStateUtilsSource).not.toContain(
+            "./utils/runtime/processEnvironment.js"
+        );
+        expect(windowStateRuntimeSource).toContain(
+            "./utils/runtime/processEnvironment.js"
+        );
         expect(bootstrapMainWindowSource).not.toContain("process.env");
         expect(initializeMainWindowSource).not.toContain("process.env");
         expect(bootstrapMainWindowSource).toContain("isTestEnvironment");
