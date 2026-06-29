@@ -57,7 +57,17 @@ describe("getChartListenerStateRuntime", () => {
         expect(() =>
             getChartListenerStateRuntime(
                 {} as unknown as ChartListenerStateRuntimeScope
-            ).createAbortController()
+            )
+        ).toThrow("chartListenerState requires an AbortController provider");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getChartListenerStateRuntime({
+                getAbortController: undefined,
+            })
         ).toThrow("chartListenerState requires an AbortController provider");
     });
 
@@ -65,12 +75,11 @@ describe("getChartListenerStateRuntime", () => {
         expect.assertions(1);
 
         const legacyScope = {
-            ...unavailableChartListenerStateScope,
             AbortController,
         } as unknown as ChartListenerStateRuntimeScope;
 
-        expect(() =>
-            getChartListenerStateRuntime(legacyScope).createAbortController()
-        ).toThrow("chartListenerState requires an AbortController");
+        expect(() => getChartListenerStateRuntime(legacyScope)).toThrow(
+            "chartListenerState requires an AbortController provider"
+        );
     });
 });

@@ -4,29 +4,23 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ChartListenerStateRuntimeScope {
-    readonly getAbortController: () =>
-        | BrowserAbortControllerConstructor
-        | undefined;
+    readonly getAbortController: ChartListenerStateRuntimeProvider<BrowserAbortControllerConstructor>;
 }
 
 export interface ChartListenerStateRuntime {
     createAbortController: () => AbortController;
 }
 
+type ChartListenerStateRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultChartListenerStateRuntimeScope: ChartListenerStateRuntimeScope = {
     getAbortController: getBrowserAbortController,
 };
 
 function getAbortControllerConstructor(
-    scope: ChartListenerStateRuntimeScope
+    getAbortController: () => BrowserAbortControllerConstructor | undefined
 ): BrowserAbortControllerConstructor {
-    if (typeof scope.getAbortController !== "function") {
-        throw new TypeError(
-            "chartListenerState requires an AbortController provider"
-        );
-    }
-
-    const AbortControllerConstructor = scope.getAbortController();
+    const AbortControllerConstructor = getAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartListenerState requires an AbortController");
     }
@@ -37,9 +31,27 @@ function getAbortControllerConstructor(
 export function getChartListenerStateRuntime(
     scope: ChartListenerStateRuntimeScope = defaultChartListenerStateRuntimeScope
 ): ChartListenerStateRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    );
+
     return {
         createAbortController(): AbortController {
-            return new (getAbortControllerConstructor(scope))();
+            return new (getAbortControllerConstructor(getAbortController))();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: ChartListenerStateRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `chartListenerState requires an ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
