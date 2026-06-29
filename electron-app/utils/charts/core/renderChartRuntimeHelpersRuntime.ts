@@ -10,11 +10,11 @@ export interface ProcessShim {
 }
 
 export interface RenderChartRuntimeHelpersRuntimeScope {
-    readonly getProcessEnvironmentValue?:
+    readonly getProcessEnvironmentValue:
         | ((name: string) => string | undefined)
         | undefined;
-    readonly getProcess?: (() => unknown) | undefined;
-    readonly setProcess?: ((processShim: ProcessShim) => void) | undefined;
+    readonly getProcess: (() => unknown) | undefined;
+    readonly setProcess: ((processShim: ProcessShim) => void) | undefined;
 }
 
 export interface RenderChartRuntimeHelpersRuntime {
@@ -30,10 +30,46 @@ const defaultRenderChartRuntimeHelpersRuntimeScope: RenderChartRuntimeHelpersRun
         setProcess: setRuntimeProcess,
     };
 
+function getRequiredProcessEnvironmentProvider(
+    provider: RenderChartRuntimeHelpersRuntimeScope["getProcessEnvironmentValue"]
+): (name: string) => string | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            "renderChartRuntimeHelpers requires processEnvironmentValue provider"
+        );
+    }
+
+    return provider;
+}
+
+function getRequiredProcessProvider(
+    provider: RenderChartRuntimeHelpersRuntimeScope["getProcess"]
+): () => unknown {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            "renderChartRuntimeHelpers requires process provider"
+        );
+    }
+
+    return provider;
+}
+
+function getRequiredSetProcessProvider(
+    provider: RenderChartRuntimeHelpersRuntimeScope["setProcess"]
+): (processShim: ProcessShim) => void {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            "renderChartRuntimeHelpers requires setProcess provider"
+        );
+    }
+
+    return provider;
+}
+
 function getScopeProcess(
     scope: RenderChartRuntimeHelpersRuntimeScope
 ): ProcessShim | null {
-    const processShim = scope.getProcess?.();
+    const processShim = getRequiredProcessProvider(scope.getProcess)();
 
     return isProcessShim(processShim) ? processShim : null;
 }
@@ -46,7 +82,9 @@ function getScopeProcessEnvironmentValue(
     scope: RenderChartRuntimeHelpersRuntimeScope,
     name: string
 ): string | undefined {
-    const explicitValue = scope.getProcessEnvironmentValue?.(name);
+    const explicitValue = getRequiredProcessEnvironmentProvider(
+        scope.getProcessEnvironmentValue
+    )(name);
     if (typeof explicitValue === "string") {
         return explicitValue;
     }
@@ -72,7 +110,7 @@ export function getRenderChartRuntimeHelpersRuntime(
             }
 
             const nextProcessShim: ProcessShim = {};
-            scope.setProcess?.(nextProcessShim);
+            getRequiredSetProcessProvider(scope.setProcess)(nextProcessShim);
 
             return nextProcessShim;
         },

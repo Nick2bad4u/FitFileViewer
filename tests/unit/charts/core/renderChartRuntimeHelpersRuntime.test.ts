@@ -6,14 +6,27 @@ import {
     type RenderChartRuntimeHelpersRuntimeScope,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.js";
 
+function createRenderChartRuntimeHelpersRuntimeScope(
+    overrides: Partial<RenderChartRuntimeHelpersRuntimeScope> = {}
+): RenderChartRuntimeHelpersRuntimeScope {
+    return {
+        getProcess: () => undefined,
+        getProcessEnvironmentValue: () => undefined,
+        setProcess: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("render chart runtime helpers runtime", () => {
     it("returns an injected process shim", () => {
         expect.assertions(2);
 
         const processShim: ProcessShim = { env: { NODE_ENV: "test" } },
-            utils = getRenderChartRuntimeHelpersRuntime({
-                getProcess: () => processShim,
-            });
+            utils = getRenderChartRuntimeHelpersRuntime(
+                createRenderChartRuntimeHelpersRuntimeScope({
+                    getProcess: () => processShim,
+                })
+            );
 
         expect(utils.getProcessShim()).toBe(processShim);
         expect(utils.getProcessEnvironmentValue("NODE_ENV")).toBe("test");
@@ -22,11 +35,13 @@ describe("render chart runtime helpers runtime", () => {
     it("prefers the injected process environment provider", () => {
         expect.assertions(1);
 
-        const utils = getRenderChartRuntimeHelpersRuntime({
-            getProcess: () => ({ env: { NODE_ENV: "development" } }),
-            getProcessEnvironmentValue: (name) =>
-                name === "NODE_ENV" ? "test" : undefined,
-        });
+        const utils = getRenderChartRuntimeHelpersRuntime(
+            createRenderChartRuntimeHelpersRuntimeScope({
+                getProcess: () => ({ env: { NODE_ENV: "development" } }),
+                getProcessEnvironmentValue: (name) =>
+                    name === "NODE_ENV" ? "test" : undefined,
+            })
+        );
 
         expect(utils.getProcessEnvironmentValue("NODE_ENV")).toBe("test");
     });
@@ -35,17 +50,41 @@ describe("render chart runtime helpers runtime", () => {
         expect.assertions(3);
 
         let processShim: ProcessShim | undefined;
-        const utils = getRenderChartRuntimeHelpersRuntime({
-            getProcess: () => undefined,
-            setProcess: (nextProcessShim) => {
-                processShim = nextProcessShim;
-            },
-        });
+        const utils = getRenderChartRuntimeHelpersRuntime(
+            createRenderChartRuntimeHelpersRuntimeScope({
+                getProcess: () => undefined,
+                setProcess: (nextProcessShim) => {
+                    processShim = nextProcessShim;
+                },
+            })
+        );
         const ensuredProcessShim = utils.ensureProcessShim();
 
         expect(ensuredProcessShim).toStrictEqual({});
         expect(processShim).toBe(ensuredProcessShim);
         expect(utils.getProcessShim()).toBeNull();
+    });
+
+    it("fails clearly when runtime helper provider slots are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getRenderChartRuntimeHelpersRuntime(
+            {} as unknown as RenderChartRuntimeHelpersRuntimeScope
+        );
+        const noSetterRuntime = getRenderChartRuntimeHelpersRuntime({
+            getProcess: () => undefined,
+            getProcessEnvironmentValue: () => undefined,
+        } as unknown as RenderChartRuntimeHelpersRuntimeScope);
+
+        expect(() => runtime.getProcessShim()).toThrow(
+            "renderChartRuntimeHelpers requires process provider"
+        );
+        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+            "renderChartRuntimeHelpers requires processEnvironmentValue provider"
+        );
+        expect(() => noSetterRuntime.ensureProcessShim()).toThrow(
+            "renderChartRuntimeHelpers requires setProcess provider"
+        );
     });
 
     it("ignores legacy direct runtime environment properties", () => {
@@ -58,6 +97,8 @@ describe("render chart runtime helpers runtime", () => {
                 chartRuntimeEnvironment: { process: legacyProcessShim },
             } as unknown as RenderChartRuntimeHelpersRuntimeScope);
 
-        expect(utils.getProcessShim()).toBeNull();
+        expect(() => utils.getProcessShim()).toThrow(
+            "renderChartRuntimeHelpers requires process provider"
+        );
     });
 });

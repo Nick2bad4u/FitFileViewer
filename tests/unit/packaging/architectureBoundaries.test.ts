@@ -19104,7 +19104,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(33);
+        expect.assertions(40);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -19137,6 +19137,8 @@ describe("architecture boundaries", () => {
                     "export interface RenderChartRuntimeHelpersRuntime"
                 )
             );
+        const optionalRenderChartRuntimeHelpersProviderAccessPattern =
+            /\bscope\.(?:getProcess|getProcessEnvironmentValue|setProcess)\?\./u;
 
         expect(violations).toStrictEqual([]);
         expect(renderChartRuntimeHelpersSource).not.toContain(
@@ -19203,8 +19205,26 @@ describe("architecture boundaries", () => {
         expect(renderChartRuntimeHelpersRuntimeSource).toContain(
             "getScopeProcessEnvironmentValue"
         );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toMatch(
+            optionalRenderChartRuntimeHelpersProviderAccessPattern
+        );
         expect(renderChartRuntimeHelpersRuntimeSource).toContain(
-            "scope.getProcessEnvironmentValue?.(name)"
+            "getRequiredProcessEnvironmentProvider("
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "getRequiredProcessProvider("
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "getRequiredSetProcessProvider("
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "renderChartRuntimeHelpers requires process provider"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "renderChartRuntimeHelpers requires processEnvironmentValue provider"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "renderChartRuntimeHelpers requires setProcess provider"
         );
         expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "isNodeEnvironment"
@@ -19224,14 +19244,17 @@ describe("architecture boundaries", () => {
         expect(renderChartRuntimeHelpersRuntimeScopeSource).not.toContain(
             "readonly chartRuntimeEnvironment?:"
         );
+        expect(renderChartRuntimeHelpersRuntimeScopeSource).not.toContain(
+            "readonly getProcess?:"
+        );
+        expect(renderChartRuntimeHelpersRuntimeScopeSource).not.toContain(
+            "readonly getProcessEnvironmentValue?:"
+        );
+        expect(renderChartRuntimeHelpersRuntimeScopeSource).not.toContain(
+            "readonly setProcess?:"
+        );
         expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
             "scope.chartRuntimeEnvironment"
-        );
-        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
-            "const processShim = scope.getProcess?.();"
-        );
-        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
-            "scope.setProcess?.(nextProcessShim)"
         );
     });
 
