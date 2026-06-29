@@ -4,6 +4,12 @@ import type { MapLapSelectorRuntimeScope } from "../../../../electron-app/utils/
 import { getMapLapSelectorRuntime } from "../../../../electron-app/utils/maps/controls/mapLapSelectorRuntime.js";
 
 describe("getMapLapSelectorRuntime", () => {
+    const unavailableMapLapSelectorRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getEvent: () => undefined,
+    } satisfies Parameters<typeof getMapLapSelectorRuntime>[0];
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -21,6 +27,7 @@ describe("getMapLapSelectorRuntime", () => {
             }
         }
         const { createAbortController } = getMapLapSelectorRuntime({
+            ...unavailableMapLapSelectorRuntimeScope,
             getAbortController: () => TestAbortController,
         });
 
@@ -65,7 +72,9 @@ describe("getMapLapSelectorRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const { createAbortController } = getMapLapSelectorRuntime({});
+        const { createAbortController } = getMapLapSelectorRuntime(
+            unavailableMapLapSelectorRuntimeScope
+        );
 
         expect(() => {
             createAbortController();
@@ -77,6 +86,7 @@ describe("getMapLapSelectorRuntime", () => {
 
         const element = document.createElement("button");
         const runtime = getMapLapSelectorRuntime({
+            ...unavailableMapLapSelectorRuntimeScope,
             getDocument: () =>
                 ({
                     createElement: (tagName: string) => {
@@ -99,6 +109,7 @@ describe("getMapLapSelectorRuntime", () => {
             }
         }
         const runtime = getMapLapSelectorRuntime({
+            ...unavailableMapLapSelectorRuntimeScope,
             getEvent: () => TestEvent,
         });
         const event = runtime.createSelectChangeEvent();
@@ -111,7 +122,9 @@ describe("getMapLapSelectorRuntime", () => {
     it("fails clearly when the Event runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getMapLapSelectorRuntime({});
+        const runtime = getMapLapSelectorRuntime(
+            unavailableMapLapSelectorRuntimeScope
+        );
 
         expect(() => {
             runtime.createSelectChangeEvent();
@@ -129,6 +142,7 @@ describe("getMapLapSelectorRuntime", () => {
             mouseupCount += 1;
         };
         const runtime = getMapLapSelectorRuntime({
+            ...unavailableMapLapSelectorRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -158,6 +172,7 @@ describe("getMapLapSelectorRuntime", () => {
             keydownCount += 1;
         };
         const runtime = getMapLapSelectorRuntime({
+            ...unavailableMapLapSelectorRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -182,7 +197,9 @@ describe("getMapLapSelectorRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(7);
 
-        const runtime = getMapLapSelectorRuntime({});
+        const runtime = getMapLapSelectorRuntime(
+            unavailableMapLapSelectorRuntimeScope
+        );
         const controller = new AbortController();
         const keydownListener = (): void => undefined;
         const mouseListener = (): void => undefined;
@@ -217,12 +234,31 @@ describe("getMapLapSelectorRuntime", () => {
         controller.abort();
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getMapLapSelectorRuntime(
+            {} as unknown as Parameters<typeof getMapLapSelectorRuntime>[0]
+        );
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("mapLapSelector requires an AbortController provider");
+        expect(() => {
+            runtime.createElement("div");
+        }).toThrow("mapLapSelector requires a document provider");
+        expect(() => {
+            runtime.createSelectChangeEvent();
+        }).toThrow("mapLapSelector requires an Event provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(4);
 
         const eventTarget = new EventTarget();
         const documentRef = createDocumentRuntime(eventTarget);
         const legacyScope = {
+            ...unavailableMapLapSelectorRuntimeScope,
             AbortController,
             document: documentRef,
             Event,

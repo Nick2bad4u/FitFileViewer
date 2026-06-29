@@ -14,13 +14,13 @@ type MapLapSelectorKeydownListener = (event: Readonly<KeyboardEvent>) => void;
 type MapLapSelectorMouseListener = (event: Readonly<MouseEvent>) => void;
 
 export interface MapLapSelectorRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?:
+    readonly getDocument:
         | (() => MapLapSelectorDocument | undefined)
         | undefined;
-    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
+    readonly getEvent: (() => BrowserEventConstructor | undefined) | undefined;
 }
 
 export interface MapLapSelectorRuntime {
@@ -55,7 +55,12 @@ export interface MapLapSelectorRuntime {
 function getRuntimeDocument(
     scope: MapLapSelectorRuntimeScope
 ): MapLapSelectorDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("mapLapSelector requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("mapLapSelector requires a document runtime");
     }
@@ -72,7 +77,12 @@ const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope = {
 function getRequiredEvent(
     scope: MapLapSelectorRuntimeScope
 ): BrowserEventConstructor {
-    const EventConstructor = scope.getEvent?.();
+    const getEvent = scope.getEvent;
+    if (typeof getEvent !== "function") {
+        throw new TypeError("mapLapSelector requires an Event provider");
+    }
+
+    const EventConstructor = getEvent();
     if (typeof EventConstructor !== "function") {
         throw new TypeError("mapLapSelector requires an Event runtime");
     }
@@ -103,7 +113,14 @@ export function getMapLapSelectorRuntime(
             runtimeDocument.addEventListener("mouseup", listener, options);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const getAbortController = scope.getAbortController;
+            if (typeof getAbortController !== "function") {
+                throw new TypeError(
+                    "mapLapSelector requires an AbortController provider"
+                );
+            }
+
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "mapLapSelector requires an AbortController runtime"

@@ -22665,7 +22665,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document access behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(46);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -22750,21 +22750,37 @@ describe("architecture boundaries", () => {
         );
         expect(mapLapSelectorRuntimeSource).not.toContain("readonly Event?:");
         expect(mapLapSelectorRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "readonly getEvent?:"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(mapLapSelectorRuntimeSource).not.toContain("scope.document");
         expect(mapLapSelectorRuntimeSource).not.toContain("scope.Event");
-        expect(mapLapSelectorRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
         );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain("scope.getEvent?.()");
         expect(mapLapSelectorRuntimeSource).toContain(
             "return runtimeDocument.createElement(tagName);"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "mapLapSelector requires a document provider"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
-            "const EventConstructor = scope.getEvent?.();"
+            "mapLapSelector requires an AbortController provider"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "mapLapSelector requires an Event provider"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
             'new (getRequiredEvent(scope))("change")'
