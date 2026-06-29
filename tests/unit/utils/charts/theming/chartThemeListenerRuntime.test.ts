@@ -219,32 +219,107 @@ describe("getChartThemeListenerRuntime", () => {
     });
 
     it("fails clearly when runtime providers are omitted", () => {
-        expect.assertions(5);
-
-        const omittedProviderScope =
-            {} as unknown as ChartThemeListenerRuntimeScope;
-        const runtime = getChartThemeListenerRuntime(omittedProviderScope);
-        const timer = Symbol(
-            "theme-listener-timer"
-        ) as unknown as ChartThemeListenerTimerHandle;
+        expect.assertions(1);
 
         expect(() =>
-            runtime.addThemeChangeListener(() => undefined, {
-                signal: new AbortController().signal,
+            getChartThemeListenerRuntime(
+                {} as unknown as ChartThemeListenerRuntimeScope
+            )
+        ).toThrow("chartThemeListener requires an AbortController provider");
+    });
+
+    it("fails clearly when individual runtime providers are omitted", () => {
+        expect.assertions(5);
+
+        expect(() =>
+            getChartThemeListenerRuntime({
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDocument: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as ChartThemeListenerRuntimeScope)
+        ).toThrow("chartThemeListener requires an AbortController provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDocument: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as ChartThemeListenerRuntimeScope)
+        ).toThrow("chartThemeListener requires a clearTimeout provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getDocument: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as ChartThemeListenerRuntimeScope)
+        ).toThrow("chartThemeListener requires a CustomEvent provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as ChartThemeListenerRuntimeScope)
+        ).toThrow("chartThemeListener requires a document provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDocument: () => undefined,
+            } as unknown as ChartThemeListenerRuntimeScope)
+        ).toThrow("chartThemeListener requires a setTimeout provider");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(5);
+
+        expect(() =>
+            getChartThemeListenerRuntime({
+                ...unavailableChartThemeListenerScope,
+                getAbortController: undefined,
+            })
+        ).toThrow("chartThemeListener requires an AbortController provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                ...unavailableChartThemeListenerScope,
+                getClearTimeout: undefined,
+            })
+        ).toThrow("chartThemeListener requires a clearTimeout provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                ...unavailableChartThemeListenerScope,
+                getCustomEvent: undefined,
+            })
+        ).toThrow("chartThemeListener requires a CustomEvent provider");
+        expect(() =>
+            getChartThemeListenerRuntime({
+                ...unavailableChartThemeListenerScope,
+                getDocument: undefined,
             })
         ).toThrow("chartThemeListener requires a document provider");
-        expect(() => runtime.createAbortController()).toThrow(
-            "chartThemeListener requires an AbortController provider"
-        );
-        expect(() => runtime.isCustomEvent(new Event("themechange"))).toThrow(
-            "chartThemeListener requires a CustomEvent provider"
-        );
-        expect(() => runtime.setTimeout(() => undefined, 1)).toThrow(
-            "chartThemeListener requires a setTimeout provider"
-        );
-        expect(() => runtime.clearTimeout(timer)).toThrow(
-            "chartThemeListener requires a clearTimeout provider"
-        );
+        expect(() =>
+            getChartThemeListenerRuntime({
+                ...unavailableChartThemeListenerScope,
+                getSetTimeout: undefined,
+            })
+        ).toThrow("chartThemeListener requires a setTimeout provider");
+    });
+
+    it("fails clearly when legacy direct runtime primitive properties are provided without providers", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getChartThemeListenerRuntime({
+                AbortController,
+                clearTimeout: vi.fn<BrowserClearTimeout>(),
+                CustomEvent,
+                document,
+                setTimeout: vi.fn<BrowserSetTimeout>(),
+            } as unknown as Parameters<typeof getChartThemeListenerRuntime>[0])
+        ).toThrow("chartThemeListener requires an AbortController provider");
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
