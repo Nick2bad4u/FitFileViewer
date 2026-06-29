@@ -114,6 +114,29 @@ describe("getLastAnimLogRuntime", () => {
         ).toThrow("lastAnimLogRuntime requires performance provider");
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getLastAnimLogRuntime({
+                ...unavailableLastAnimLogRuntimeScope,
+                getDateNow: undefined,
+            }).dateNow()
+        ).toThrow("lastAnimLogRuntime requires dateNow provider");
+        expect(() =>
+            getLastAnimLogRuntime({
+                ...unavailableLastAnimLogRuntimeScope,
+                getPerformanceNow: undefined,
+            }).performanceNow()
+        ).toThrow("lastAnimLogRuntime requires performance.now provider");
+        expect(() =>
+            getLastAnimLogRuntime({
+                ...unavailableLastAnimLogRuntimeScope,
+                getPerformance: undefined,
+            }).performanceNow()
+        ).toThrow("lastAnimLogRuntime requires performance provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 

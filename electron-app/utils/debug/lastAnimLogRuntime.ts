@@ -4,12 +4,14 @@ import {
 } from "../runtime/browserRuntime.js";
 
 export interface LastAnimLogRuntimeScope {
-    readonly getDateNow: (() => (() => number) | undefined) | undefined;
-    readonly getPerformance:
-        | (() => Pick<Performance, "now"> | undefined)
-        | undefined;
-    readonly getPerformanceNow: (() => (() => number) | undefined) | undefined;
+    readonly getDateNow: LastAnimLogRuntimeProvider<() => number>;
+    readonly getPerformance: LastAnimLogRuntimeProvider<
+        Pick<Performance, "now">
+    >;
+    readonly getPerformanceNow: LastAnimLogRuntimeProvider<() => number>;
 }
+
+type LastAnimLogRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface LastAnimLogRuntime {
     readonly dateNow: () => number;
@@ -34,11 +36,7 @@ const defaultLastAnimLogRuntimeScope: LastAnimLogRuntimeScope = {
 };
 
 function getRequiredDateNow(scope: LastAnimLogRuntimeScope): () => number {
-    if (typeof scope.getDateNow !== "function") {
-        throw new TypeError("lastAnimLogRuntime requires dateNow provider");
-    }
-
-    const dateNow = scope.getDateNow();
+    const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
     if (typeof dateNow !== "function") {
         throw new TypeError("lastAnimLogRuntime requires dateNow");
     }
@@ -49,29 +47,35 @@ function getRequiredDateNow(scope: LastAnimLogRuntimeScope): () => number {
 function getRequiredPerformanceNow(
     scope: LastAnimLogRuntimeScope
 ): () => number {
-    if (typeof scope.getPerformanceNow !== "function") {
-        throw new TypeError(
-            "lastAnimLogRuntime requires performance.now provider"
-        );
-    }
-
-    const performanceNow = scope.getPerformanceNow();
+    const performanceNow = getRequiredProvider(
+        scope.getPerformanceNow,
+        "performance.now"
+    )();
     if (typeof performanceNow === "function") {
         return performanceNow;
     }
 
-    if (typeof scope.getPerformance !== "function") {
-        throw new TypeError("lastAnimLogRuntime requires performance provider");
-    }
-
     const scopedPerformanceNow = getScopedPerformanceNow(
-        scope.getPerformance()
+        getRequiredProvider(scope.getPerformance, "performance")()
     );
     if (typeof scopedPerformanceNow !== "function") {
         throw new TypeError("lastAnimLogRuntime requires performance.now");
     }
 
     return scopedPerformanceNow;
+}
+
+function getRequiredProvider<T>(
+    provider: LastAnimLogRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `lastAnimLogRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
 
 export function getLastAnimLogRuntime(
