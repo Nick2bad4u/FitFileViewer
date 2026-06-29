@@ -26860,7 +26860,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps controls-state document and computed style reads behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(21);
 
         const violations = migratedUpdateControlsStateRuntimeFiles
             .filter((relativeFile) =>
@@ -26906,6 +26906,30 @@ describe("architecture boundaries", () => {
         );
         expect(updateControlsStateRuntimeSource).not.toContain(
             "getComputedStyle: (element) => globalThis.getComputedStyle(element)"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
+            "readonly getComputedStyle?:"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
+            "scope.getComputedStyle?.("
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "scope.getComputedStyle(element)"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument();"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "updateControlsState requires a computed style provider"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "updateControlsState requires a document provider"
         );
         expect(updateControlsStateRuntimeSource).toContain(
             "updateControlsState requires a document runtime"

@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getUpdateControlsStateRuntime } from "../../../../../electron-app/utils/rendering/helpers/updateControlsStateRuntime.js";
+import {
+    getUpdateControlsStateRuntime,
+    type UpdateControlsStateRuntimeScope,
+} from "../../../../../electron-app/utils/rendering/helpers/updateControlsStateRuntime.js";
+
+const unavailableUpdateControlsStateRuntimeScope = {
+    getComputedStyle: () => undefined,
+    getDocument: () => undefined,
+} satisfies UpdateControlsStateRuntimeScope;
 
 describe("getUpdateControlsStateRuntime", () => {
     afterEach(() => {
@@ -19,7 +27,10 @@ describe("getUpdateControlsStateRuntime", () => {
                     display: "grid",
                 }) as CSSStyleDeclaration
         );
-        const runtime = getUpdateControlsStateRuntime({ getComputedStyle });
+        const runtime = getUpdateControlsStateRuntime({
+            ...unavailableUpdateControlsStateRuntimeScope,
+            getComputedStyle,
+        });
 
         expect(runtime.getComputedDisplay(element)).toBe("grid");
         expect(getComputedStyle).toHaveBeenCalledWith(element);
@@ -31,6 +42,7 @@ describe("getUpdateControlsStateRuntime", () => {
         const documentRef =
             document.implementation.createHTMLDocument("controls state");
         const runtime = getUpdateControlsStateRuntime({
+            ...unavailableUpdateControlsStateRuntimeScope,
             getDocument: () => documentRef,
         });
 
@@ -40,18 +52,37 @@ describe("getUpdateControlsStateRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getUpdateControlsStateRuntime({}).getDocument()).toThrow(
-            "updateControlsState requires a document runtime"
-        );
+        expect(() =>
+            getUpdateControlsStateRuntime(
+                unavailableUpdateControlsStateRuntimeScope
+            ).getDocument()
+        ).toThrow("updateControlsState requires a document runtime");
     });
 
     it("uses an empty display value when computed style is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getUpdateControlsStateRuntime({});
+        const runtime = getUpdateControlsStateRuntime(
+            unavailableUpdateControlsStateRuntimeScope
+        );
 
         expect(runtime.getComputedDisplay(document.createElement("div"))).toBe(
             ""
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(2);
+
+        const runtime = getUpdateControlsStateRuntime(
+            {} as unknown as UpdateControlsStateRuntimeScope
+        );
+
+        expect(() =>
+            runtime.getComputedDisplay(document.createElement("div"))
+        ).toThrow("updateControlsState requires a computed style provider");
+        expect(() => runtime.getDocument()).toThrow(
+            "updateControlsState requires a document provider"
         );
     });
 

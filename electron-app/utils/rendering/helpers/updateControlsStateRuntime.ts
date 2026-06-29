@@ -4,13 +4,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface UpdateControlsStateRuntimeScope {
-    readonly getComputedStyle?:
+    readonly getComputedStyle:
         | ((
               element: Element,
               pseudoElement?: null | string
           ) => CSSStyleDeclaration | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface UpdateControlsStateRuntime {
@@ -34,10 +34,22 @@ export function getUpdateControlsStateRuntime(
 ): UpdateControlsStateRuntime {
     return {
         getComputedDisplay(element: Element): string {
-            return scope.getComputedStyle?.(element)?.display ?? "";
+            if (typeof scope.getComputedStyle !== "function") {
+                throw new TypeError(
+                    "updateControlsState requires a computed style provider"
+                );
+            }
+
+            return scope.getComputedStyle(element)?.display ?? "";
         },
         getDocument(): Document {
-            const runtimeDocument = scope.getDocument?.();
+            if (typeof scope.getDocument !== "function") {
+                throw new TypeError(
+                    "updateControlsState requires a document provider"
+                );
+            }
+
+            const runtimeDocument = scope.getDocument();
             if (!runtimeDocument) {
                 throw new TypeError(
                     "updateControlsState requires a document runtime"
