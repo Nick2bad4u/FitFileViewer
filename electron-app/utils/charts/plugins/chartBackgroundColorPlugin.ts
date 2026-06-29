@@ -42,25 +42,23 @@ export interface ChartBackgroundColorPlugin {
 }
 
 export interface ChartBackgroundColorPluginRuntime {
-    readonly getRendererDebugRuntime?: (() => RendererDebugRuntime) | undefined;
-    readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
-}
-
-interface ResolvedChartBackgroundColorPluginRuntime {
     readonly getRendererDebugRuntime: () => RendererDebugRuntime;
     readonly isRendererDebugLoggingEnabled: () => boolean;
 }
 
+type ChartBackgroundColorPluginOptionsRuntime =
+    Partial<ChartBackgroundColorPluginRuntime>;
+
 const DEFAULT_BACKGROUND_COLOR = "#23263a";
-const defaultChartBackgroundColorPluginRuntime: ResolvedChartBackgroundColorPluginRuntime =
+const defaultChartBackgroundColorPluginRuntime: ChartBackgroundColorPluginRuntime =
     {
         getRendererDebugRuntime,
         isRendererDebugLoggingEnabled,
     };
 
 function resolveChartBackgroundColorPluginRuntime(
-    runtime: ChartBackgroundColorPluginRuntime
-): ResolvedChartBackgroundColorPluginRuntime {
+    runtime: ChartBackgroundColorPluginOptionsRuntime
+): ChartBackgroundColorPluginRuntime {
     return {
         getRendererDebugRuntime:
             runtime.getRendererDebugRuntime ??
@@ -106,18 +104,20 @@ function getCanvasBackgroundColor(
 }
 
 function shouldLogDebugMessages(
-    runtime: ResolvedChartBackgroundColorPluginRuntime
+    runtime: ChartBackgroundColorPluginRuntime
 ): boolean {
-    return runtime.getRendererDebugRuntime().isRendererDebugLoggingAvailable(
-        runtime.isRendererDebugLoggingEnabled()
-    );
+    return runtime
+        .getRendererDebugRuntime()
+        .isRendererDebugLoggingAvailable(
+            runtime.isRendererDebugLoggingEnabled()
+        );
 }
 
 /**
  * Chart.js plugin for painting a theme-aware background before chart elements.
  */
 export function createChartBackgroundColorPlugin(
-    options: ChartBackgroundColorPluginRuntime = {}
+    options: ChartBackgroundColorPluginOptionsRuntime = {}
 ): ChartBackgroundColorPlugin {
     const runtime = resolveChartBackgroundColorPluginRuntime(options);
 

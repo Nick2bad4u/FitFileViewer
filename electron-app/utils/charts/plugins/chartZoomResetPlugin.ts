@@ -53,14 +53,11 @@ export interface ZoomResetPlugin {
 }
 
 export interface ChartZoomResetPluginRuntime {
-    readonly getRendererDebugRuntime?: (() => RendererDebugRuntime) | undefined;
-    readonly isRendererDebugLoggingEnabled?: (() => boolean) | undefined;
-}
-
-interface ResolvedChartZoomResetPluginRuntime {
     readonly getRendererDebugRuntime: () => RendererDebugRuntime;
     readonly isRendererDebugLoggingEnabled: () => boolean;
 }
+
+type ChartZoomResetPluginOptionsRuntime = Partial<ChartZoomResetPluginRuntime>;
 
 interface CornerRadii {
     bl: number;
@@ -78,15 +75,14 @@ const BUTTON_HEIGHT = 30,
     BUTTON_Y = 12,
     FALLBACK_ACCENT = "#667eea",
     FALLBACK_TEXT_PRIMARY = "#ffffff";
-const defaultChartZoomResetPluginRuntime: ResolvedChartZoomResetPluginRuntime =
-    {
-        getRendererDebugRuntime,
-        isRendererDebugLoggingEnabled,
-    };
+const defaultChartZoomResetPluginRuntime: ChartZoomResetPluginRuntime = {
+    getRendererDebugRuntime,
+    isRendererDebugLoggingEnabled,
+};
 
 function resolveChartZoomResetPluginRuntime(
-    runtime: ChartZoomResetPluginRuntime
-): ResolvedChartZoomResetPluginRuntime {
+    runtime: ChartZoomResetPluginOptionsRuntime
+): ChartZoomResetPluginRuntime {
     return {
         getRendererDebugRuntime:
             runtime.getRendererDebugRuntime ??
@@ -103,12 +99,12 @@ function getThemeColor(colorKey: string, fallback: string): string {
     return typeof value === "string" ? value : fallback;
 }
 
-function shouldLogDebugWarnings(
-    runtime: ResolvedChartZoomResetPluginRuntime
-): boolean {
-    return runtime.getRendererDebugRuntime().isRendererDebugLoggingAvailable(
-        runtime.isRendererDebugLoggingEnabled()
-    );
+function shouldLogDebugWarnings(runtime: ChartZoomResetPluginRuntime): boolean {
+    return runtime
+        .getRendererDebugRuntime()
+        .isRendererDebugLoggingAvailable(
+            runtime.isRendererDebugLoggingEnabled()
+        );
 }
 
 function normalizeRadius(radius: unknown): CornerRadii {
@@ -215,7 +211,7 @@ export function installRoundRectPolyfill(): void {
  * Zoom reset plugin with defensive guards and minimal chart coupling.
  */
 export function createChartZoomResetPlugin(
-    options: ChartZoomResetPluginRuntime = {}
+    options: ChartZoomResetPluginOptionsRuntime = {}
 ): ZoomResetPlugin {
     const runtime = resolveChartZoomResetPluginRuntime(options);
 

@@ -16643,7 +16643,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
-        expect.assertions(15);
+        expect.assertions(21);
 
         for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
             expect(stripComments(readRepositoryFile(relativeFile))).toContain(
@@ -16672,6 +16672,24 @@ describe("architecture boundaries", () => {
         );
         expect(chartZoomResetPluginSource).not.toContain(
             "const rendererDebugRuntime ="
+        );
+        expect(chartBackgroundColorPluginSource).toContain(
+            "type ChartBackgroundColorPluginOptionsRuntime ="
+        );
+        expect(chartZoomResetPluginSource).toContain(
+            "type ChartZoomResetPluginOptionsRuntime ="
+        );
+        expect(chartBackgroundColorPluginSource).not.toContain(
+            "readonly getRendererDebugRuntime?:"
+        );
+        expect(chartZoomResetPluginSource).not.toContain(
+            "readonly getRendererDebugRuntime?:"
+        );
+        expect(chartBackgroundColorPluginSource).not.toContain(
+            "readonly isRendererDebugLoggingEnabled?:"
+        );
+        expect(chartZoomResetPluginSource).not.toContain(
+            "readonly isRendererDebugLoggingEnabled?:"
         );
         expect(rendererDebugRuntimeSource).toContain(
             "defaultRendererDebugRuntimeScope"

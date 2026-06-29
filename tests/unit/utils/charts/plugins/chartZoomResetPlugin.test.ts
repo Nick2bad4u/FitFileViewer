@@ -282,6 +282,27 @@ describe("chartZoomResetPlugin.afterDraw", () => {
             consoleWarn.mockRestore();
         }
     });
+
+    it("accepts partial debug runtime provider overrides", async () => {
+        expect.assertions(3);
+
+        const { createChartZoomResetPlugin } = await loadPlugin(),
+            plugin = createChartZoomResetPlugin({
+                isRendererDebugLoggingEnabled: () => false,
+            }),
+            { chart, ctx } = createMockChart();
+
+        plugin.afterDraw(chart);
+
+        expect(ctx.save).toHaveBeenCalledOnce();
+        expect(ctx.fillText).toHaveBeenCalledWith("🔄 Reset Zoom", 338, 27);
+        expect(chart._zoomResetBtnBounds).toStrictEqual({
+            h: 30,
+            w: 100,
+            x: 288,
+            y: 12,
+        });
+    });
 });
 
 describe("chartZoomResetPlugin.afterEvent", () => {

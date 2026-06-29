@@ -229,4 +229,22 @@ describe("chartBackgroundColorPlugin", () => {
             consoleLog.mockRestore();
         }
     });
+
+    it("accepts partial debug runtime provider overrides", () => {
+        expect.assertions(3);
+
+        const context = createMockContext(),
+            chart = createChart(context),
+            plugin = createChartBackgroundColorPlugin({
+                isRendererDebugLoggingEnabled: () => false,
+            });
+
+        plugin.beforeDraw(chart, {
+            backgroundColor: "#102030",
+        });
+
+        expect(context.fillStyle).toBe("#102030");
+        expect(context.fillRect).toHaveBeenCalledWith(0, 0, 640, 360);
+        expect(context.restore).toHaveBeenCalledOnce();
+    });
 });
