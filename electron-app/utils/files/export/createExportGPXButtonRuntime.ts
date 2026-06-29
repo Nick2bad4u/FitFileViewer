@@ -16,16 +16,15 @@ type CreateExportGPXButtonURLRuntime = Pick<
     BrowserURLConstructor,
     "createObjectURL" | "revokeObjectURL"
 >;
+type CreateExportGPXButtonRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreateExportGPXButtonRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
-    readonly getURL?:
-        | (() => CreateExportGPXButtonURLRuntime | undefined)
-        | undefined;
+    readonly getAbortController: CreateExportGPXButtonRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: CreateExportGPXButtonRuntimeProvider<Document>;
+    readonly getSetTimeout: CreateExportGPXButtonRuntimeProvider<BrowserSetTimeout>;
+    readonly getURL: CreateExportGPXButtonRuntimeProvider<CreateExportGPXButtonURLRuntime>;
 }
 
 export interface CreateExportGPXButtonRuntime {
@@ -46,8 +45,42 @@ export interface CreateExportGPXButtonRuntime {
     ) => CreateExportGPXButtonTimer;
 }
 
+function getRequiredProvider<T>(
+    provider: CreateExportGPXButtonRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createExportGPXButton requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
+function getAbortControllerConstructor(
+    scope: CreateExportGPXButtonRuntimeScope
+): BrowserAbortControllerConstructor {
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "createExportGPXButton requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
+}
+
 function getDocument(scope: CreateExportGPXButtonRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "createExportGPXButton requires a document runtime"
@@ -60,7 +93,7 @@ function getDocument(scope: CreateExportGPXButtonRuntimeScope): Document {
 function getURLRuntime(
     scope: CreateExportGPXButtonRuntimeScope
 ): CreateExportGPXButtonURLRuntime {
-    const urlRuntime = scope.getURL?.();
+    const urlRuntime = getRequiredProvider(scope.getURL, "object URL")();
     if (
         !urlRuntime ||
         typeof urlRuntime.createObjectURL !== "function" ||
@@ -70,6 +103,22 @@ function getURLRuntime(
     }
 
     return urlRuntime;
+}
+
+function getSetTimeout(
+    scope: CreateExportGPXButtonRuntimeScope
+): BrowserSetTimeout {
+    const setTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError(
+            "createExportGPXButton requires a setTimeout runtime"
+        );
+    }
+
+    return setTimeoutRef;
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
@@ -98,14 +147,7 @@ export function getCreateExportGPXButtonRuntime(
             getDocument(scope).body.append(element);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
-            if (typeof AbortControllerConstructor !== "function") {
-                throw new TypeError(
-                    "createExportGPXButton requires an AbortController runtime"
-                );
-            }
-
-            return new AbortControllerConstructor();
+            return new (getAbortControllerConstructor(scope))();
         },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
@@ -127,14 +169,7 @@ export function getCreateExportGPXButtonRuntime(
             getURLRuntime(scope).revokeObjectURL(url);
         },
         setTimeout(callback, timeout): CreateExportGPXButtonTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
-            if (typeof setTimeoutRef !== "function") {
-                throw new TypeError(
-                    "createExportGPXButton requires a setTimeout runtime"
-                );
-            }
-
-            return setTimeoutRef(callback, timeout);
+            return getSetTimeout(scope)(callback, timeout);
         },
     };
 }

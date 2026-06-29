@@ -19200,7 +19200,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(60);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -19217,6 +19217,14 @@ describe("architecture boundaries", () => {
         const createExportGPXButtonRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/files/export/createExportGPXButtonRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = createExportGPXButtonRuntimeSource.slice(
+            createExportGPXButtonRuntimeSource.indexOf(
+                "export interface CreateExportGPXButtonRuntimeScope"
+            ),
+            createExportGPXButtonRuntimeSource.indexOf(
+                "export interface CreateExportGPXButtonRuntime {"
             )
         );
 
@@ -19268,6 +19276,24 @@ describe("architecture boundaries", () => {
         );
         expect(createExportGPXButtonRuntimeSource).not.toContain(
             "readonly URL?:"
+        );
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getSetTimeout?:");
+        expect(runtimeScopeSource).not.toContain("readonly getURL?:");
+        expect(runtimeScopeSource).toContain(
+            "readonly getAbortController: CreateExportGPXButtonRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getDocument: CreateExportGPXButtonRuntimeProvider<Document>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getSetTimeout: CreateExportGPXButtonRuntimeProvider<BrowserSetTimeout>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getURL: CreateExportGPXButtonRuntimeProvider<CreateExportGPXButtonURLRuntime>;"
         );
         expect(createExportGPXButtonRuntimeSource).not.toContain(
             "scope.AbortController"
@@ -19332,6 +19358,39 @@ describe("architecture boundaries", () => {
         );
         expect(createExportGPXButtonRuntimeSource).not.toContain(
             "getURL: () => globalThis.URL"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "type CreateExportGPXButtonRuntimeProvider<T> ="
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            'scope.getDocument,\n        "document"'
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            'getRequiredProvider(scope.getURL, "object URL")()'
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.getURL?.()"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            'scope.getSetTimeout,\n        "setTimeout"'
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "createExportGPXButton requires ${article} ${providerName} provider"
         );
     });
 
