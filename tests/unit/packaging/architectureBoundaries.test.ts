@@ -32557,7 +32557,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(98);
+        expect.assertions(108);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -32720,6 +32720,22 @@ describe("architecture boundaries", () => {
         expect(leafletRuntimeSource).toContain(
             "LeafletRuntimeTimeoutHandle = BrowserTimerHandle"
         );
+        expect(leafletRuntimeSource).toContain(
+            "type LeafletRuntimeEnvironmentProvider"
+        );
+        expect(leafletRuntimeSource).toContain("function getRequiredProvider");
+        expect(leafletRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(leafletRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"date clock"\s*\)/u
+        );
+        expect(leafletRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(leafletRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
         expect(leafletRuntimeSource).not.toContain(
             "ReturnType<typeof setTimeout>"
         );
@@ -32754,6 +32770,16 @@ describe("architecture boundaries", () => {
         );
         expect(leafletRuntimeSource).not.toContain("readonly dateNow?:");
         expect(leafletRuntimeSource).not.toContain("scope.dateNow");
+        expect(leafletRuntimeSource).toContain(
+            "const clearTimeout = getClearTimeout();"
+        );
+        expect(leafletRuntimeSource).toContain("const dateNow = getDateNow();");
+        expect(leafletRuntimeSource).toContain(
+            "const setTimeout = getSetTimeout();"
+        );
+        expect(leafletRuntimeSource).toContain(
+            "leafletRuntime requires ${providerLabel} provider"
+        );
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
         expect(vendorMapEntry).not.toContain(
             "installLeafletPluginCompatibilityGlobal"

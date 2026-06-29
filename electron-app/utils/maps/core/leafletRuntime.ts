@@ -41,16 +41,20 @@ export interface LeafletRuntimeEnvironment {
 }
 
 export interface LeafletRuntimeEnvironmentScope {
-    readonly getClearTimeout?:
-        | (() => LeafletRuntimeClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getSetTimeout?:
-        | (() => LeafletRuntimeSetTimeout | undefined)
-        | undefined;
+    readonly getClearTimeout: LeafletRuntimeEnvironmentProvider<
+        LeafletRuntimeClearTimeout
+    >;
+    readonly getDateNow: LeafletRuntimeEnvironmentProvider<() => number>;
+    readonly getSetTimeout: LeafletRuntimeEnvironmentProvider<
+        LeafletRuntimeSetTimeout
+    >;
 }
 
 const leafletRuntimeRegistry: LeafletRuntimeRegistry = {};
+
+type LeafletRuntimeEnvironmentProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 const defaultLeafletRuntimeEnvironmentScope: LeafletRuntimeEnvironmentScope = {
     getClearTimeout: getBrowserClearTimeout,
@@ -118,13 +122,23 @@ export async function waitForLeafletRuntime<T>(
 export function getLeafletRuntimeEnvironment(
     scope: LeafletRuntimeEnvironmentScope = defaultLeafletRuntimeEnvironmentScope
 ): LeafletRuntimeEnvironment {
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    );
+    const getDateNow = getRequiredProvider(scope.getDateNow, "date clock");
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         dateNow(): number {
-            return getRequiredDateNow(scope)();
+            return getRequiredDateNow(getDateNow)();
         },
         waitForNextPoll(): Promise<void> {
-            const clearTimeout = getRequiredClearTimeout(scope),
-                setTimeout = getRequiredSetTimeout(scope);
+            const clearTimeout = getRequiredClearTimeout(getClearTimeout),
+                setTimeout = getRequiredSetTimeout(getSetTimeout);
             return new Promise<void>((resolve) => {
                 const timeout = setTimeout(() => {
                     clearTimeout(timeout);
@@ -169,9 +183,9 @@ function isLeafletRuntimeCandidate(
 }
 
 function getRequiredClearTimeout(
-    scope: LeafletRuntimeEnvironmentScope
+    getClearTimeout: () => LeafletRuntimeClearTimeout | undefined
 ): LeafletRuntimeClearTimeout {
-    const clearTimeout = scope.getClearTimeout?.();
+    const clearTimeout = getClearTimeout();
     if (typeof clearTimeout === "function") {
         return clearTimeout;
     }
@@ -180,9 +194,9 @@ function getRequiredClearTimeout(
 }
 
 function getRequiredDateNow(
-    scope: LeafletRuntimeEnvironmentScope
+    getDateNow: () => (() => number) | undefined
 ): () => number {
-    const dateNow = scope.getDateNow?.();
+    const dateNow = getDateNow();
     if (typeof dateNow === "function") {
         return dateNow;
     }
@@ -191,12 +205,23 @@ function getRequiredDateNow(
 }
 
 function getRequiredSetTimeout(
-    scope: LeafletRuntimeEnvironmentScope
+    getSetTimeout: () => LeafletRuntimeSetTimeout | undefined
 ): LeafletRuntimeSetTimeout {
-    const setTimeout = scope.getSetTimeout?.();
+    const setTimeout = getSetTimeout();
     if (typeof setTimeout === "function") {
         return setTimeout;
     }
 
     throw new TypeError("leafletRuntime requires setTimeout");
+}
+
+function getRequiredProvider<T>(
+    provider: LeafletRuntimeEnvironmentProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`leafletRuntime requires ${providerLabel} provider`);
+    }
+
+    return provider;
 }

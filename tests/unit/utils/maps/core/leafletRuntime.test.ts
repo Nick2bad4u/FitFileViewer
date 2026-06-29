@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     clearLeafletRuntimeForTests,
     getLeafletRuntimeEnvironment,
+    type LeafletRuntimeEnvironmentScope,
     type LeafletRuntimeTimeoutHandle,
     resolveLeafletRuntime,
     setLeafletRuntime,
@@ -20,6 +21,17 @@ function isTestLeafletRuntime(value: unknown): value is TestLeafletRuntime {
         "divIcon" in value &&
         typeof value.divIcon === "function"
     );
+}
+
+function createLeafletRuntimeEnvironmentScope(
+    overrides: Partial<LeafletRuntimeEnvironmentScope> = {}
+): LeafletRuntimeEnvironmentScope {
+    return {
+        getClearTimeout: () => undefined,
+        getDateNow: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
 }
 
 afterEach(() => {
@@ -107,11 +119,13 @@ describe("leafletRuntime", () => {
         const clearTimeoutProvider =
             vi.fn<(handle: LeafletRuntimeTimeoutHandle) => void>();
         const dateNow = vi.fn<() => number>(() => 1234);
-        const runtime = getLeafletRuntimeEnvironment({
-            getClearTimeout: () => clearTimeoutProvider,
-            getDateNow: () => dateNow,
-            getSetTimeout: () => setTimeoutProvider,
-        });
+        const runtime = getLeafletRuntimeEnvironment(
+            createLeafletRuntimeEnvironmentScope({
+                getClearTimeout: () => clearTimeoutProvider,
+                getDateNow: () => dateNow,
+                getSetTimeout: () => setTimeoutProvider,
+            })
+        );
 
         expect(runtime.dateNow()).toBe(1234);
         const pollPromise = runtime.waitForNextPoll();
@@ -156,10 +170,14 @@ describe("leafletRuntime", () => {
     it("fails clearly when poll providers are unavailable", () => {
         expect.assertions(3);
 
-        const missingProviders = getLeafletRuntimeEnvironment({});
-        const missingSetTimeout = getLeafletRuntimeEnvironment({
-            getClearTimeout: () => () => undefined,
-        });
+        const missingProviders = getLeafletRuntimeEnvironment(
+            createLeafletRuntimeEnvironmentScope()
+        );
+        const missingSetTimeout = getLeafletRuntimeEnvironment(
+            createLeafletRuntimeEnvironmentScope({
+                getClearTimeout: () => () => undefined,
+            })
+        );
 
         expect(() => missingProviders.dateNow()).toThrow(
             "leafletRuntime requires a date clock"
@@ -170,5 +188,41 @@ describe("leafletRuntime", () => {
         expect(() => missingSetTimeout.waitForNextPoll()).toThrow(
             "leafletRuntime requires setTimeout"
         );
+    });
+
+    it("fails clearly when poll provider slots are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getLeafletRuntimeEnvironment(
+                {} as unknown as LeafletRuntimeEnvironmentScope
+            )
+        ).toThrow("leafletRuntime requires clearTimeout provider");
+    });
+
+    it("fails clearly when poll provider slots are undefined", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getLeafletRuntimeEnvironment(
+                createLeafletRuntimeEnvironmentScope({
+                    getClearTimeout: undefined,
+                })
+            )
+        ).toThrow("leafletRuntime requires clearTimeout provider");
+        expect(() =>
+            getLeafletRuntimeEnvironment(
+                createLeafletRuntimeEnvironmentScope({
+                    getDateNow: undefined,
+                })
+            )
+        ).toThrow("leafletRuntime requires date clock provider");
+        expect(() =>
+            getLeafletRuntimeEnvironment(
+                createLeafletRuntimeEnvironmentScope({
+                    getSetTimeout: undefined,
+                })
+            )
+        ).toThrow("leafletRuntime requires setTimeout provider");
     });
 });
