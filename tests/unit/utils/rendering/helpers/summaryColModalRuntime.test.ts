@@ -5,6 +5,20 @@ import {
     type SummaryColModalRuntimeScope,
 } from "../../../../../electron-app/utils/rendering/helpers/summaryColModalRuntime.js";
 
+function createSummaryColModalRuntimeScope(
+    overrides: Partial<SummaryColModalRuntimeScope> = {}
+): SummaryColModalRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        getMouseEvent: () => undefined,
+        getViewport: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getSummaryColModalRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
@@ -22,9 +36,11 @@ describe("getSummaryColModalRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getSummaryColModalRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const runtime = getSummaryColModalRuntime(
+            createSummaryColModalRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -72,7 +88,9 @@ describe("getSummaryColModalRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getSummaryColModalRuntime({});
+        const runtime = getSummaryColModalRuntime(
+            createSummaryColModalRuntimeScope()
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -83,12 +101,14 @@ describe("getSummaryColModalRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getSummaryColModalRuntime({
-                getViewport: () => ({
-                    height: 900,
-                    width: 1440,
-                }),
-            }).getViewport()
+            getSummaryColModalRuntime(
+                createSummaryColModalRuntimeScope({
+                    getViewport: () => ({
+                        height: 900,
+                        width: 1440,
+                    }),
+                })
+            ).getViewport()
         ).toStrictEqual({
             height: 900,
             width: 1440,
@@ -105,10 +125,12 @@ describe("getSummaryColModalRuntime", () => {
         const createElement = vi.spyOn(documentRef, "createElement");
         const createTextNode = vi.spyOn(documentRef, "createTextNode");
         const bodyAppend = vi.spyOn(documentRef.body, "append");
-        const runtime = getSummaryColModalRuntime({
-            getDocument: () => documentRef,
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getSummaryColModalRuntime(
+            createSummaryColModalRuntimeScope({
+                getDocument: () => documentRef,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         const div = runtime.createElement("div");
         const text = runtime.createTextNode("Modal text");
@@ -127,19 +149,25 @@ describe("getSummaryColModalRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getSummaryColModalRuntime({
-                getDocument: () =>
-                    document.implementation.createHTMLDocument("summary modal"),
-            }).getActiveElement()
+            getSummaryColModalRuntime(
+                createSummaryColModalRuntimeScope({
+                    getDocument: () =>
+                        document.implementation.createHTMLDocument(
+                            "summary modal"
+                        ),
+                })
+            ).getActiveElement()
         ).toBeNull();
     });
 
     it("checks keyboard events through the injected constructor provider", () => {
         expect.assertions(3);
 
-        const runtime = getSummaryColModalRuntime({
-            getKeyboardEvent: () => KeyboardEvent,
-        });
+        const runtime = getSummaryColModalRuntime(
+            createSummaryColModalRuntimeScope({
+                getKeyboardEvent: () => KeyboardEvent,
+            })
+        );
 
         expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
             true
@@ -151,9 +179,11 @@ describe("getSummaryColModalRuntime", () => {
     it("checks mouse events through the injected constructor provider", () => {
         expect.assertions(3);
 
-        const runtime = getSummaryColModalRuntime({
-            getMouseEvent: () => MouseEvent,
-        });
+        const runtime = getSummaryColModalRuntime(
+            createSummaryColModalRuntimeScope({
+                getMouseEvent: () => MouseEvent,
+            })
+        );
 
         expect(runtime.isMouseEvent(new MouseEvent("mousedown"))).toBe(true);
         expect(runtime.isMouseEvent(new Event("mousedown"))).toBe(false);
@@ -163,7 +193,9 @@ describe("getSummaryColModalRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(6);
 
-        const runtime = getSummaryColModalRuntime({});
+        const runtime = getSummaryColModalRuntime(
+            createSummaryColModalRuntimeScope()
+        );
 
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
@@ -188,10 +220,45 @@ describe("getSummaryColModalRuntime", () => {
     it("uses zero dimensions when viewport values are unavailable", () => {
         expect.assertions(1);
 
-        expect(getSummaryColModalRuntime({}).getViewport()).toStrictEqual({
+        expect(
+            getSummaryColModalRuntime(
+                createSummaryColModalRuntimeScope()
+            ).getViewport()
+        ).toStrictEqual({
             height: 0,
             width: 0,
         });
+    });
+
+    it("fails clearly when explicit runtime provider slots are omitted", () => {
+        expect.assertions(6);
+
+        const runtime = getSummaryColModalRuntime(
+            {} as unknown as SummaryColModalRuntimeScope
+        );
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "summaryColModal requires AbortController provider"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "summaryColModal requires document provider"
+        );
+        expect(() =>
+            getSummaryColModalRuntime({
+                ...createSummaryColModalRuntimeScope(),
+                getDocument: () => document,
+                getHTMLElement: undefined,
+            }).getActiveElement()
+        ).toThrow("summaryColModal requires HTMLElement provider");
+        expect(() => runtime.getViewport()).toThrow(
+            "summaryColModal requires viewport provider"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "summaryColModal requires KeyboardEvent provider"
+        );
+        expect(() => runtime.isMouseEvent(new Event("mousedown"))).toThrow(
+            "summaryColModal requires MouseEvent provider"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -209,29 +276,28 @@ describe("getSummaryColModalRuntime", () => {
         const runtime = getSummaryColModalRuntime(legacyScope);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "summaryColModal requires an AbortController runtime"
+            "summaryColModal requires AbortController provider"
         );
-        expect(runtime.getViewport()).toStrictEqual({
-            height: 0,
-            width: 0,
-        });
+        expect(() => runtime.getViewport()).toThrow(
+            "summaryColModal requires viewport provider"
+        );
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
-        ).toThrow("summaryColModal requires a document runtime");
+        ).toThrow("summaryColModal requires document provider");
         expect(() => runtime.createElement("div")).toThrow(
-            "summaryColModal requires a document runtime"
+            "summaryColModal requires document provider"
         );
         expect(() => runtime.createTextNode("Modal text")).toThrow(
-            "summaryColModal requires a document runtime"
+            "summaryColModal requires document provider"
         );
         expect(() => runtime.getActiveElement()).toThrow(
-            "summaryColModal requires a document runtime"
+            "summaryColModal requires document provider"
         );
         expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
-            "summaryColModal requires a KeyboardEvent runtime"
+            "summaryColModal requires KeyboardEvent provider"
         );
         expect(() => runtime.isMouseEvent(new Event("mousedown"))).toThrow(
-            "summaryColModal requires a MouseEvent runtime"
+            "summaryColModal requires MouseEvent provider"
         );
     });
 });

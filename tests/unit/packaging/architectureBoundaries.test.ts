@@ -29729,7 +29729,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
-        expect.assertions(58);
+        expect.assertions(71);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -29757,6 +29757,8 @@ describe("architecture boundaries", () => {
                     "export interface SummaryColModalViewport"
                 )
             );
+        const optionalSummaryColModalProviderAccessPattern =
+            /\bscope\.get(?:AbortController|Document|HTMLElement|KeyboardEvent|MouseEvent|Viewport)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
@@ -29774,6 +29776,19 @@ describe("architecture boundaries", () => {
         expect(summaryColModalSource).not.toContain("instanceof MouseEvent");
         expect(summaryColModalRuntimeSource).toContain(
             "defaultSummaryColModalRuntimeScope"
+        );
+        expect(summaryColModalRuntimeSource).not.toMatch(
+            optionalSummaryColModalProviderAccessPattern
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "type SummaryColModalRuntimeProvider<T> ="
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(summaryColModalRuntimeSource).toContain("providerName: string");
+        expect(summaryColModalRuntimeSource).toContain(
+            "summaryColModal requires ${providerName} provider"
         );
         expect(summaryColModalRuntimeSource).not.toContain(
             "scope: SummaryColModalRuntimeScope = globalThis"
@@ -29801,6 +29816,24 @@ describe("architecture boundaries", () => {
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
             "readonly innerWidth?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly getMouseEvent?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly getViewport?:"
         );
         expect(summaryColModalRuntimeSource).not.toContain(
             "scope.AbortController"
@@ -29873,17 +29906,23 @@ describe("architecture boundaries", () => {
         expect(summaryColModalRuntimeSource).not.toContain(
             "| (() => typeof HTMLElement | undefined)"
         );
-        expect(summaryColModalRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+        expect(summaryColModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController/u
         );
-        expect(summaryColModalRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+        expect(summaryColModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument/u
         );
-        expect(summaryColModalRuntimeSource).toContain(
-            "const KeyboardEventConstructor = scope.getKeyboardEvent?.();"
+        expect(summaryColModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement/u
         );
-        expect(summaryColModalRuntimeSource).toContain(
-            "const MouseEventConstructor = scope.getMouseEvent?.();"
+        expect(summaryColModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getKeyboardEvent/u
+        );
+        expect(summaryColModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMouseEvent/u
+        );
+        expect(summaryColModalRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getViewport/u
         );
         expect(summaryColModalRuntimeSource).toContain(
             "summaryColModal requires a MouseEvent runtime"
