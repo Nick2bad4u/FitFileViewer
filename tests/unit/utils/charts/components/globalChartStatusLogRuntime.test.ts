@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { GlobalChartStatusLogRuntimeScope } from "../../../../../electron-app/utils/charts/components/globalChartStatusLogRuntime.js";
 import { globalChartStatusLogRuntime } from "../../../../../electron-app/utils/charts/components/globalChartStatusLogRuntime.js";
+
+const unavailableGlobalChartStatusLogScope = {
+    getDateConstructor: () => undefined,
+} satisfies GlobalChartStatusLogRuntimeScope;
 
 describe("globalChartStatusLogRuntime", () => {
     it("builds ISO timestamps through the injected date constructor", () => {
@@ -48,10 +53,24 @@ describe("globalChartStatusLogRuntime", () => {
     it("fails clearly when date construction is unavailable", () => {
         expect.assertions(1);
 
-        const utils = globalChartStatusLogRuntime({});
+        const utils = globalChartStatusLogRuntime(
+            unavailableGlobalChartStatusLogScope
+        );
 
         expect(() => utils.isoNow()).toThrow(
             "globalChartStatusLogRuntime requires a date constructor"
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        const utils = globalChartStatusLogRuntime(
+            {} as unknown as GlobalChartStatusLogRuntimeScope
+        );
+
+        expect(() => utils.isoNow()).toThrow(
+            "globalChartStatusLogRuntime requires a date constructor provider"
         );
     });
 
@@ -71,8 +90,9 @@ describe("globalChartStatusLogRuntime", () => {
         }
 
         const utils = globalChartStatusLogRuntime({
+            ...unavailableGlobalChartStatusLogScope,
             Date: DateConstructor,
-        } as unknown as Parameters<typeof globalChartStatusLogRuntime>[0]);
+        } as unknown as GlobalChartStatusLogRuntimeScope);
 
         expect(() => utils.isoNow()).toThrow(
             "globalChartStatusLogRuntime requires a date constructor"

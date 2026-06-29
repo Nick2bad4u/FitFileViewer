@@ -25398,7 +25398,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps global chart status log timestamps behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(17);
 
         const globalChartStatusSource = stripComments(
             readRepositoryFile(
@@ -25431,6 +25431,18 @@ describe("architecture boundaries", () => {
         );
         expect(globalChartStatusLogRuntimeSource).toContain(
             "globalChartStatusLogRuntime requires a date constructor"
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "globalChartStatusLogRuntime requires a date constructor provider"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "readonly getDateConstructor?:"
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "const DateConstructor = scope.getDateConstructor();"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "scope.getDateConstructor?.()"
         );
         expect(globalChartStatusLogRuntimeSource).not.toContain(
             "readonly Date?:"

@@ -3,8 +3,8 @@ type GlobalChartStatusLogDateConstructor = new () => {
 };
 
 export interface GlobalChartStatusLogRuntimeScope {
-    readonly getDateConstructor?:
-        | (() => GlobalChartStatusLogDateConstructor | undefined)
+    readonly getDateConstructor: () =>
+        | GlobalChartStatusLogDateConstructor
         | undefined;
 }
 
@@ -20,7 +20,13 @@ const defaultGlobalChartStatusLogRuntimeScope: GlobalChartStatusLogRuntimeScope 
 function getRequiredDateConstructor(
     scope: GlobalChartStatusLogRuntimeScope
 ): GlobalChartStatusLogDateConstructor {
-    const DateConstructor = scope.getDateConstructor?.();
+    if (typeof scope.getDateConstructor !== "function") {
+        throw new TypeError(
+            "globalChartStatusLogRuntime requires a date constructor provider"
+        );
+    }
+
+    const DateConstructor = scope.getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }
