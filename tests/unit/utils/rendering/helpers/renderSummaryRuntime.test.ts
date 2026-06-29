@@ -1,11 +1,28 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getRenderSummaryRuntime } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryRuntime.js";
+import {
+    getRenderSummaryRuntime,
+    type RenderSummaryRuntimeScope,
+} from "../../../../../electron-app/utils/rendering/helpers/renderSummaryRuntime.js";
 import type {
     BrowserAddEventListener,
     BrowserCancelAnimationFrame,
     BrowserRequestAnimationFrame,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createRenderSummaryRuntimeScope(
+    overrides: Partial<RenderSummaryRuntimeScope> = {}
+): RenderSummaryRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getAddEventListener: () => undefined,
+        getCancelAnimationFrame: () => undefined,
+        getDocument: () => undefined,
+        getLocalStorage: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getRenderSummaryRuntime", () => {
     afterEach(() => {
@@ -30,9 +47,11 @@ describe("getRenderSummaryRuntime", () => {
                 /* Test double */
             }
         }
-        const { createAbortController } = getRenderSummaryRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const { createAbortController } = getRenderSummaryRuntime(
+            createRenderSummaryRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(createAbortController()).toBeInstanceOf(TestAbortController);
         expect(controllerCount).toBe(1);
@@ -220,7 +239,9 @@ describe("getRenderSummaryRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const { createAbortController } = getRenderSummaryRuntime({});
+        const { createAbortController } = getRenderSummaryRuntime(
+            createRenderSummaryRuntimeScope()
+        );
 
         expect(() => {
             createAbortController();
@@ -230,7 +251,9 @@ describe("getRenderSummaryRuntime", () => {
     it("fails clearly when document or storage runtimes are unavailable", () => {
         expect.assertions(5);
 
-        const utils = getRenderSummaryRuntime({});
+        const utils = getRenderSummaryRuntime(
+            createRenderSummaryRuntimeScope()
+        );
 
         expect(() => utils.createElement("button")).toThrow(
             "renderSummary requires a document runtime"
@@ -256,9 +279,9 @@ describe("getRenderSummaryRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 42);
-        const scope = {
+        const scope = createRenderSummaryRuntimeScope({
             getRequestAnimationFrame: () => requestAnimationFrame,
-        };
+        });
         const { requestAnimationFrame: requestFrame } =
             getRenderSummaryRuntime(scope);
 
@@ -270,18 +293,20 @@ describe("getRenderSummaryRuntime", () => {
     it("returns null when animation-frame scheduling is unavailable", () => {
         expect.assertions(1);
 
-        expect(getRenderSummaryRuntime({}).requestAnimationFrame(vi.fn())).toBe(
-            null
-        );
+        expect(
+            getRenderSummaryRuntime(
+                createRenderSummaryRuntimeScope()
+            ).requestAnimationFrame(vi.fn())
+        ).toBe(null);
     });
 
     it("cancels animation frames through the injected runtime provider", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const scope = {
+        const scope = createRenderSummaryRuntimeScope({
             getCancelAnimationFrame: () => cancelAnimationFrame,
-        };
+        });
         const { cancelAnimationFrame: cancelFrame } =
             getRenderSummaryRuntime(scope);
 
@@ -295,7 +320,9 @@ describe("getRenderSummaryRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getRenderSummaryRuntime({}).cancelAnimationFrame(7)
+            getRenderSummaryRuntime(
+                createRenderSummaryRuntimeScope()
+            ).cancelAnimationFrame(7)
         ).not.toThrow();
     });
 
@@ -312,9 +339,9 @@ describe("getRenderSummaryRuntime", () => {
             >();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
-        const scope = {
+        const scope = createRenderSummaryRuntimeScope({
             getAddEventListener: () => addEventListener,
-        };
+        });
         const { addResizeListener } = getRenderSummaryRuntime(scope);
 
         addResizeListener(listener, options);
@@ -331,7 +358,9 @@ describe("getRenderSummaryRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getRenderSummaryRuntime({}).addResizeListener(vi.fn())
+            getRenderSummaryRuntime(
+                createRenderSummaryRuntimeScope()
+            ).addResizeListener(vi.fn())
         ).not.toThrow();
     });
 
@@ -365,6 +394,7 @@ describe("getRenderSummaryRuntime", () => {
             setItem: vi.fn(),
         };
         const utils = getRenderSummaryRuntime({
+            ...createRenderSummaryRuntimeScope(),
             AbortController: TestAbortController,
             addEventListener,
             cancelAnimationFrame,
@@ -405,5 +435,46 @@ describe("getRenderSummaryRuntime", () => {
         expect(() => utils.addResizeListener(listener)).not.toThrow();
         expect(utils.requestAnimationFrame(frameCallback)).toBe(null);
         expect(frameCallback).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when explicit runtime provider slots are omitted", () => {
+        expect.assertions(6);
+
+        expect(() =>
+            getRenderSummaryRuntime({
+                ...createRenderSummaryRuntimeScope(),
+                getAbortController: undefined,
+            })
+        ).toThrow("renderSummary requires AbortController provider");
+        expect(() =>
+            getRenderSummaryRuntime({
+                ...createRenderSummaryRuntimeScope(),
+                getAddEventListener: undefined,
+            })
+        ).toThrow("renderSummary requires addEventListener provider");
+        expect(() =>
+            getRenderSummaryRuntime({
+                ...createRenderSummaryRuntimeScope(),
+                getCancelAnimationFrame: undefined,
+            })
+        ).toThrow("renderSummary requires cancelAnimationFrame provider");
+        expect(() =>
+            getRenderSummaryRuntime({
+                ...createRenderSummaryRuntimeScope(),
+                getDocument: undefined,
+            })
+        ).toThrow("renderSummary requires document provider");
+        expect(() =>
+            getRenderSummaryRuntime({
+                ...createRenderSummaryRuntimeScope(),
+                getLocalStorage: undefined,
+            })
+        ).toThrow("renderSummary requires localStorage provider");
+        expect(() =>
+            getRenderSummaryRuntime({
+                ...createRenderSummaryRuntimeScope(),
+                getRequestAnimationFrame: undefined,
+            })
+        ).toThrow("renderSummary requires requestAnimationFrame provider");
     });
 });

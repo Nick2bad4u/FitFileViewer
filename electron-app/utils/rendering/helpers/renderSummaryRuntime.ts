@@ -16,23 +16,15 @@ import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 type RenderSummaryStorage = Pick<Storage, "getItem" | "removeItem" | "setItem">;
 
+type RenderSummaryRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface RenderSummaryRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getAddEventListener?:
-        | (() => BrowserAddEventListener | undefined)
-        | undefined;
-    readonly getCancelAnimationFrame?:
-        | (() => BrowserCancelAnimationFrame | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getLocalStorage?:
-        | (() => RenderSummaryStorage | undefined)
-        | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
+    readonly getAbortController: RenderSummaryRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getAddEventListener: RenderSummaryRuntimeProvider<BrowserAddEventListener>;
+    readonly getCancelAnimationFrame: RenderSummaryRuntimeProvider<BrowserCancelAnimationFrame>;
+    readonly getDocument: RenderSummaryRuntimeProvider<Document>;
+    readonly getLocalStorage: RenderSummaryRuntimeProvider<RenderSummaryStorage>;
+    readonly getRequestAnimationFrame: RenderSummaryRuntimeProvider<BrowserRequestAnimationFrame>;
 }
 
 export interface RenderSummaryRuntime {
@@ -67,26 +59,8 @@ const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
     getRequestAnimationFrame: getBrowserRequestAnimationFrame,
 };
 
-function getScopeAbortController(
-    scope: RenderSummaryRuntimeScope
-): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
-}
-
-function getScopeAddEventListener(
-    scope: RenderSummaryRuntimeScope
-): BrowserAddEventListener | undefined {
-    return scope.getAddEventListener?.();
-}
-
-function getScopeCancelAnimationFrame(
-    scope: RenderSummaryRuntimeScope
-): BrowserCancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.();
-}
-
-function getScopeDocument(scope: RenderSummaryRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+function getScopeDocument(getDocument: () => Document | undefined): Document {
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("renderSummary requires a document runtime");
     }
@@ -95,9 +69,9 @@ function getScopeDocument(scope: RenderSummaryRuntimeScope): Document {
 }
 
 function getRequiredLocalStorage(
-    scope: RenderSummaryRuntimeScope
+    getLocalStorage: () => RenderSummaryStorage | undefined
 ): RenderSummaryStorage {
-    const storage = scope.getLocalStorage?.();
+    const storage = getLocalStorage();
     if (!storage) {
         throw new TypeError("renderSummary requires a localStorage runtime");
     }
@@ -105,17 +79,11 @@ function getRequiredLocalStorage(
     return storage;
 }
 
-function getScopeRequestAnimationFrame(
-    scope: RenderSummaryRuntimeScope
-): BrowserRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
-}
-
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
-    scope: RenderSummaryRuntimeScope,
+    getDocument: () => Document | undefined,
     tagName: K
 ): SVGElementTagNameMap[K] {
-    const runtimeDocument = getScopeDocument(scope);
+    const runtimeDocument = getScopeDocument(getDocument);
     return getIconFactoryRuntime({
         getDocument: () => runtimeDocument,
     }).createSvgElement(tagName);
@@ -124,12 +92,34 @@ function createSvgElement<K extends keyof SVGElementTagNameMap>(
 export function getRenderSummaryRuntime(
     scope: RenderSummaryRuntimeScope = defaultRenderSummaryRuntimeScope
 ): RenderSummaryRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    );
+    const getAddEventListener = getRequiredProvider(
+        scope.getAddEventListener,
+        "addEventListener"
+    );
+    const getCancelAnimationFrame = getRequiredProvider(
+        scope.getCancelAnimationFrame,
+        "cancelAnimationFrame"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getLocalStorage = getRequiredProvider(
+        scope.getLocalStorage,
+        "localStorage"
+    );
+    const getRequestAnimationFrame = getRequiredProvider(
+        scope.getRequestAnimationFrame,
+        "requestAnimationFrame"
+    );
+
     return {
         addResizeListener(
             listener: Readonly<EventListener>,
             options?: Readonly<AddEventListenerOptions>
         ): void {
-            const addEventListenerRef = getScopeAddEventListener(scope);
+            const addEventListenerRef = getAddEventListener();
             addEventListenerRef?.call(
                 scope,
                 "resize",
@@ -139,10 +129,10 @@ export function getRenderSummaryRuntime(
             );
         },
         cancelAnimationFrame(handle: number): void {
-            getScopeCancelAnimationFrame(scope)?.call(scope, handle);
+            getCancelAnimationFrame()?.call(scope, handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = getScopeAbortController(scope);
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderSummary requires an AbortController runtime"
@@ -152,26 +142,25 @@ export function getRenderSummaryRuntime(
             return new AbortControllerConstructor();
         },
         createElement(tagName) {
-            return getScopeDocument(scope).createElement(tagName);
+            return getScopeDocument(getDocument).createElement(tagName);
         },
         createDocumentFragment() {
-            return getScopeDocument(scope).createDocumentFragment();
+            return getScopeDocument(getDocument).createDocumentFragment();
         },
         createSvgElement(tagName) {
-            return createSvgElement(scope, tagName);
+            return createSvgElement(getDocument, tagName);
         },
         getStorageItem(key): string | null {
-            return getRequiredLocalStorage(scope).getItem(key);
+            return getRequiredLocalStorage(getLocalStorage).getItem(key);
         },
         getSummaryContainer(): HTMLElement | null {
             return getElementByIdFlexible(
-                getScopeDocument(scope),
+                getScopeDocument(getDocument),
                 "content_summary"
             );
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
-            const requestAnimationFrameRef =
-                getScopeRequestAnimationFrame(scope);
+            const requestAnimationFrameRef = getRequestAnimationFrame();
             if (typeof requestAnimationFrameRef !== "function") {
                 return null;
             }
@@ -179,10 +168,21 @@ export function getRenderSummaryRuntime(
             return requestAnimationFrameRef.call(scope, callback);
         },
         removeStorageItem(key): void {
-            getRequiredLocalStorage(scope).removeItem(key);
+            getRequiredLocalStorage(getLocalStorage).removeItem(key);
         },
         setStorageItem(key, value): void {
-            getRequiredLocalStorage(scope).setItem(key, value);
+            getRequiredLocalStorage(getLocalStorage).setItem(key, value);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: RenderSummaryRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`renderSummary requires ${providerName} provider`);
+    }
+
+    return provider;
 }

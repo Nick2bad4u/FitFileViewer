@@ -30200,7 +30200,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(68);
+        expect.assertions(90);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -30377,20 +30377,86 @@ describe("architecture boundaries", () => {
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "type RenderSummaryRuntimeProvider<T>"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "function getRequiredProvider<T>"
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*RenderSummaryRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /readonly\s+getAddEventListener:\s*RenderSummaryRuntimeProvider<BrowserAddEventListener>/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /readonly\s+getCancelAnimationFrame:\s*RenderSummaryRuntimeProvider<BrowserCancelAnimationFrame>/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*RenderSummaryRuntimeProvider<Document>/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /readonly\s+getLocalStorage:\s*RenderSummaryRuntimeProvider<RenderSummaryStorage>/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /readonly\s+getRequestAnimationFrame:\s*RenderSummaryRuntimeProvider<BrowserRequestAnimationFrame>/u
+        );
+        expect(renderSummaryRuntimeSource).not.toMatch(
+            /scope\.get(?:AbortController|AddEventListener|CancelAnimationFrame|Document|LocalStorage|RequestAnimationFrame)\?\.\(/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAddEventListener,\s*"addEventListener"\s*\)/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCancelAnimationFrame,\s*"cancelAnimationFrame"\s*\)/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getLocalStorage,\s*"localStorage"\s*\)/u
+        );
+        expect(renderSummaryRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getRequestAnimationFrame,\s*"requestAnimationFrame"\s*\)/u
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "renderSummary requires ${providerName} provider"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly getAddEventListener?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly getCancelAnimationFrame?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly getLocalStorage?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "const runtimeDocument = getDocument();"
         );
         expect(renderSummaryRuntimeSource).toContain(
             "renderSummary requires a localStorage runtime"
         );
         expect(renderSummaryRuntimeSource).toContain(
-            "getScopeDocument(scope).createElement(tagName)"
+            "getScopeDocument(getDocument).createElement(tagName)"
         );
         expect(renderSummaryRuntimeSource).toContain(
-            "getScopeDocument(scope).createDocumentFragment()"
+            "getScopeDocument(getDocument).createDocumentFragment()"
         );
         expect(renderSummaryRuntimeSource).toContain("iconFactoryRuntime.js");
         expect(renderSummaryRuntimeSource).toContain(
-            "return createSvgElement(scope, tagName);"
+            "return createSvgElement(getDocument, tagName);"
         );
         expect(renderSummaryRuntimeSource).not.toContain("createElementNS");
         expect(renderSummaryRuntimeSource).toContain("getElementByIdFlexible(");
