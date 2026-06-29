@@ -25521,7 +25521,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -25590,12 +25590,19 @@ describe("architecture boundaries", () => {
             "ChartListenerStateRuntimeScope =\n    globalThis"
         );
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
         expect(runtimeSource).not.toContain("scope.AbortController");
         expect(runtimeSource).not.toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(runtimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "const AbortControllerConstructor = scope.getAbortController();"
+        );
+        expect(runtimeSource).not.toContain("scope.getAbortController?.()");
+        expect(runtimeSource).toContain(
+            "chartListenerState requires an AbortController provider"
         );
         expect(runtimeSource).not.toContain("): typeof AbortController");
         expect(runtimeSource).not.toContain(

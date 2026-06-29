@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/charts/core/chartListenerStateRuntime.js";
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
+const unavailableChartListenerStateScope = {
+    getAbortController: () => undefined,
+} satisfies ChartListenerStateRuntimeScope;
+
 describe("getChartListenerStateRuntime", () => {
     it("uses browser runtime providers for production defaults", () => {
         expect.assertions(1);
@@ -41,14 +45,27 @@ describe("getChartListenerStateRuntime", () => {
         expect.assertions(1);
 
         expect(() =>
-            getChartListenerStateRuntime({}).createAbortController()
+            getChartListenerStateRuntime(
+                unavailableChartListenerStateScope
+            ).createAbortController()
         ).toThrow("chartListenerState requires an AbortController");
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getChartListenerStateRuntime(
+                {} as unknown as ChartListenerStateRuntimeScope
+            ).createAbortController()
+        ).toThrow("chartListenerState requires an AbortController provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(1);
 
         const legacyScope = {
+            ...unavailableChartListenerStateScope,
             AbortController,
         } as unknown as ChartListenerStateRuntimeScope;
 

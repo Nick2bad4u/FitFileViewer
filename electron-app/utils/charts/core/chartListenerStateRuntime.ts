@@ -4,8 +4,8 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface ChartListenerStateRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
 }
 
@@ -20,7 +20,13 @@ const defaultChartListenerStateRuntimeScope: ChartListenerStateRuntimeScope = {
 function getAbortControllerConstructor(
     scope: ChartListenerStateRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError(
+            "chartListenerState requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = scope.getAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartListenerState requires an AbortController");
     }
