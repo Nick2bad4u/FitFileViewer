@@ -16,10 +16,10 @@ type RenderChartStartupListenerOptions = Readonly<
 >;
 
 export interface RenderChartStartupRuntimeScope {
-    readonly getAddEventListener?:
-        | (() => RenderChartStartupAddEventListener | undefined)
+    readonly getAddEventListener: () =>
+        | RenderChartStartupAddEventListener
         | undefined;
-    readonly isRendererScope?: (() => boolean) | undefined;
+    readonly isRendererScope: () => boolean | undefined;
 }
 
 export interface RenderChartStartupRuntime {
@@ -38,11 +38,23 @@ const defaultRenderChartStartupRuntimeScope: RenderChartStartupRuntimeScope = {
 function getAddEventListener(
     scope: RenderChartStartupRuntimeScope
 ): RenderChartStartupAddEventListener | undefined {
-    return scope.getAddEventListener?.();
+    if (typeof scope.getAddEventListener !== "function") {
+        throw new TypeError(
+            "renderChartStartup requires an addEventListener provider"
+        );
+    }
+
+    return scope.getAddEventListener();
 }
 
 function isRendererScope(scope: RenderChartStartupRuntimeScope): boolean {
-    return scope.isRendererScope?.() === true;
+    if (typeof scope.isRendererScope !== "function") {
+        throw new TypeError(
+            "renderChartStartup requires a renderer-scope provider"
+        );
+    }
+
+    return scope.isRendererScope() === true;
 }
 
 export function getRenderChartStartupRuntime(

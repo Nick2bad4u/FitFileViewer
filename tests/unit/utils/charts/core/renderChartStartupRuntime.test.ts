@@ -5,6 +5,11 @@ import {
     type RenderChartStartupRuntimeScope,
 } from "../../../../../electron-app/utils/charts/core/renderChartStartupRuntime.js";
 
+const unavailableStartupScope = {
+    getAddEventListener: () => undefined,
+    isRendererScope: () => false,
+} satisfies RenderChartStartupRuntimeScope;
+
 describe("getRenderChartStartupRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -88,11 +93,13 @@ describe("getRenderChartStartupRuntime", () => {
 
         expect(
             getChartStartupRuntime({
+                ...unavailableStartupScope,
                 getAddEventListener: () => () => undefined,
             }).canRegisterDOMContentLoadedListener()
         ).toBe(false);
         expect(
             getChartStartupRuntime({
+                ...unavailableStartupScope,
                 isRendererScope: () => true,
             }).canRegisterDOMContentLoadedListener()
         ).toBe(false);
@@ -129,7 +136,9 @@ describe("getRenderChartStartupRuntime", () => {
                 { signal: abortController.signal }
             );
             expect(
-                getChartStartupRuntime({}).canRegisterDOMContentLoadedListener()
+                getChartStartupRuntime(
+                    unavailableStartupScope
+                ).canRegisterDOMContentLoadedListener()
             ).toBe(false);
         } finally {
             abortController.abort();
@@ -143,11 +152,36 @@ describe("getRenderChartStartupRuntime", () => {
 
         expect(() =>
             getChartStartupRuntime({
+                ...unavailableStartupScope,
                 isRendererScope: () => true,
             }).addDOMContentLoadedListener(() => undefined, {
                 signal: abortController.signal,
             })
         ).toThrow("renderChartStartup requires addEventListener");
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(2);
+
+        const abortController = new AbortController();
+        const omittedProviderScope =
+            {} as unknown as RenderChartStartupRuntimeScope;
+        const startupRuntime = getChartStartupRuntime(omittedProviderScope);
+
+        try {
+            expect(() =>
+                startupRuntime.addDOMContentLoadedListener(() => undefined, {
+                    signal: abortController.signal,
+                })
+            ).toThrow(
+                "renderChartStartup requires an addEventListener provider"
+            );
+            expect(() =>
+                startupRuntime.canRegisterDOMContentLoadedListener()
+            ).toThrow("renderChartStartup requires a renderer-scope provider");
+        } finally {
+            abortController.abort();
+        }
     });
 
     it("ignores legacy direct addEventListener runtime properties", () => {
@@ -162,6 +196,7 @@ describe("getRenderChartStartupRuntime", () => {
                 ) => void
             >();
         const startupRuntime = getChartStartupRuntime({
+            ...unavailableStartupScope,
             addEventListener,
             isRendererScope: () => true,
         } as unknown as RenderChartStartupRuntimeScope);

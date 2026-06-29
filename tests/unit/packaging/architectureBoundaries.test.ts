@@ -25720,7 +25720,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart startup browser APIs behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(23);
 
         const violations = migratedRenderChartStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -25778,11 +25778,24 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "renderChartStartup requires addEventListener"
         );
-        expect(runtimeScopeSource).not.toContain("readonly addEventListener?:");
-        expect(runtimeSource).not.toContain("scope.addEventListener");
         expect(runtimeSource).toContain(
-            "return scope.getAddEventListener?.();"
+            "renderChartStartup requires an addEventListener provider"
         );
+        expect(runtimeSource).toContain(
+            "renderChartStartup requires a renderer-scope provider"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly addEventListener?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAddEventListener?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly isRendererScope?:");
+        expect(runtimeSource).not.toContain("scope.addEventListener");
+        expect(runtimeSource).toContain("return scope.getAddEventListener();");
+        expect(runtimeSource).toContain(
+            "return scope.isRendererScope() === true;"
+        );
+        expect(runtimeSource).not.toContain("scope.getAddEventListener?.()");
+        expect(runtimeSource).not.toContain("scope.isRendererScope?.()");
     });
 
     it("keeps chart render startup source off legacy bridge terminology", () => {
