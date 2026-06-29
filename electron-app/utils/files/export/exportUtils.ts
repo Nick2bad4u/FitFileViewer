@@ -4071,7 +4071,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
      * Shows Imgur setup guide with step-by-step instructions
      */
     showImgurSetupGuide() {
-        const overlay = document.createElement("div");
+        const overlay = exportUtilsRuntime().createElement("div");
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -4086,7 +4086,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             z-index: 10000;
         `;
 
-        const modal = document.createElement("div");
+        const modal = exportUtilsRuntime().createElement("div");
         modal.style.cssText = `
             background: var(--color-modal-bg);
             border-radius: var(--border-radius);
@@ -4099,24 +4099,24 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             box-shadow: var(--color-box-shadow);
         `;
 
-        const title = document.createElement("h3");
+        const title = exportUtilsRuntime().createElement("h3");
         title.style.cssText =
             "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
         title.textContent = "🔧 Imgur Setup Guide";
 
-        const content = document.createElement("div");
+        const content = exportUtilsRuntime().createElement("div");
         content.style.cssText = "color: var(--color-fg); line-height: 1.6;";
 
-        const intro = document.createElement("p");
-        const introText = document.createElement("strong");
+        const intro = exportUtilsRuntime().createElement("p");
+        const introText = exportUtilsRuntime().createElement("strong");
         introText.textContent =
             "To enable Imgur integration, follow these steps:";
         intro.append(introText);
 
-        const steps = document.createElement("ol");
+        const steps = exportUtilsRuntime().createElement("ol");
         steps.style.cssText = "margin: 16px 0; padding-left: 20px;";
 
-        const registrationStep = document.createElement("li");
+        const registrationStep = exportUtilsRuntime().createElement("li");
         registrationStep.append("Visit ");
         const registrationLink = exportUtilsRuntime().createElement("a");
         registrationLink.href = "https://api.imgur.com/oauth2/addclient";
@@ -4125,23 +4125,23 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         registrationLink.textContent = "Imgur API Registration";
         registrationStep.append(registrationLink);
 
-        const appStep = document.createElement("li");
+        const appStep = exportUtilsRuntime().createElement("li");
         appStep.append("Create a new application with these settings:");
-        const appSettings = document.createElement("ul");
+        const appSettings = exportUtilsRuntime().createElement("ul");
         appSettings.style.cssText = "margin: 8px 0; padding-left: 20px;";
-        const appName = document.createElement("li");
-        const appNameLabel = document.createElement("strong");
+        const appName = exportUtilsRuntime().createElement("li");
+        const appNameLabel = exportUtilsRuntime().createElement("strong");
         appNameLabel.textContent = "Application Name:";
         appName.append(appNameLabel, " FitFileViewer");
-        const authType = document.createElement("li");
-        const authTypeLabel = document.createElement("strong");
+        const authType = exportUtilsRuntime().createElement("li");
+        const authTypeLabel = exportUtilsRuntime().createElement("strong");
         authTypeLabel.textContent = "Authorization Type:";
         authType.append(
             authTypeLabel,
             ' Select "Anonymous usage without user authorization"'
         );
-        const callbackUrl = document.createElement("li");
-        const callbackUrlLabel = document.createElement("strong");
+        const callbackUrl = exportUtilsRuntime().createElement("li");
+        const callbackUrlLabel = exportUtilsRuntime().createElement("strong");
         callbackUrlLabel.textContent = "Authorization Callback URL:";
         callbackUrl.append(
             callbackUrlLabel,
@@ -4150,18 +4150,18 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         appSettings.append(appName, authType, callbackUrl);
         appStep.append(appSettings);
 
-        const copyStep = document.createElement("li");
-        const clientIdLabel = document.createElement("strong");
+        const copyStep = exportUtilsRuntime().createElement("li");
+        const clientIdLabel = exportUtilsRuntime().createElement("strong");
         clientIdLabel.textContent = "Client ID";
         copyStep.append("After creating the app, copy your ", clientIdLabel);
-        const pasteStep = document.createElement("li");
+        const pasteStep = exportUtilsRuntime().createElement("li");
         pasteStep.textContent =
             "Return to the Imgur Settings and paste your Client ID";
-        const saveStep = document.createElement("li");
+        const saveStep = exportUtilsRuntime().createElement("li");
         saveStep.textContent = 'Click "Save Configuration"';
         steps.append(registrationStep, appStep, copyStep, pasteStep, saveStep);
 
-        const tips = document.createElement("div");
+        const tips = exportUtilsRuntime().createElement("div");
         tips.style.cssText = `
             background: var(--color-glass);
             border: 1px solid var(--color-accent);
@@ -4169,22 +4169,22 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             padding: 12px;
             margin: 16px 0;
         `;
-        const tipsLabel = document.createElement("strong");
+        const tipsLabel = exportUtilsRuntime().createElement("strong");
         tipsLabel.textContent = "💡 Tips:";
-        const tipsList = document.createElement("ul");
+        const tipsList = exportUtilsRuntime().createElement("ul");
         tipsList.style.cssText = "margin: 8px 0; padding-left: 20px;";
         for (const tip of [
             "Anonymous usage is sufficient for uploading chart images",
             "Your Client ID is safe to use publicly (it's not a secret)",
             "Imgur allows up to 12,500 uploads per day for registered applications",
         ]) {
-            const item = document.createElement("li");
+            const item = exportUtilsRuntime().createElement("li");
             item.textContent = tip;
             tipsList.append(item);
         }
         tips.append(tipsLabel, tipsList);
 
-        const note = document.createElement("div");
+        const note = exportUtilsRuntime().createElement("div");
         note.style.cssText = `
             background: var(--color-warning-bg);
             border: 1px solid var(--color-warning);
@@ -4192,7 +4192,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
             padding: 12px;
             margin: 16px 0;
         `;
-        const noteLabel = document.createElement("strong");
+        const noteLabel = exportUtilsRuntime().createElement("strong");
         noteLabel.textContent = "⚠️ Note:";
         note.append(
             noteLabel,
@@ -4201,10 +4201,10 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
 
         content.append(intro, steps, tips, note);
 
-        const actions = document.createElement("div");
+        const actions = exportUtilsRuntime().createElement("div");
         actions.style.cssText = "display: flex; gap: 8px; margin-top: 20px;";
 
-        const backBtn = document.createElement("button");
+        const backBtn = exportUtilsRuntime().createElement("button");
         backBtn.id = "imgur-guide-back";
         backBtn.style.cssText = `
             flex: 1;
@@ -4219,7 +4219,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         `;
         backBtn.textContent = "← Back to Settings";
 
-        const closeBtn = document.createElement("button");
+        const closeBtn = exportUtilsRuntime().createElement("button");
         closeBtn.id = "imgur-guide-close";
         closeBtn.style.cssText = `
             flex: 1;
