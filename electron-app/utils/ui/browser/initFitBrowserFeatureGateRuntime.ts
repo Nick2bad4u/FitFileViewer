@@ -16,10 +16,10 @@ export interface BrowserTabFeatureGateElements {
 }
 
 export interface FitBrowserFeatureGateRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => BrowserTabFeatureGateDocument | undefined)
         | undefined;
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -41,14 +41,34 @@ const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScop
 function getHTMLElementConstructor(
     scope: FitBrowserFeatureGateRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError(
+            "fitBrowserFeatureGate requires an HTMLElement provider"
+        );
+    }
+
+    return getHTMLElement();
+}
+
+function getRuntimeDocument(
+    scope: FitBrowserFeatureGateRuntimeScope
+): BrowserTabFeatureGateDocument | undefined {
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError(
+            "fitBrowserFeatureGate requires a document provider"
+        );
+    }
+
+    return getDocument();
 }
 
 function getElementById(
     scope: FitBrowserFeatureGateRuntimeScope,
     id: string
 ): BrowserTabFeatureGateVisibleElement | null {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRuntimeDocument(scope);
     const HTMLElementConstructor = getHTMLElementConstructor(scope);
     if (!runtimeDocument || typeof HTMLElementConstructor !== "function") {
         return null;

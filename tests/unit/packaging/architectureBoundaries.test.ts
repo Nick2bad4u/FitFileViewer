@@ -8074,7 +8074,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(34);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -8141,12 +8141,22 @@ describe("architecture boundaries", () => {
         expect(featureGateRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(featureGateRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(featureGateRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
         expect(featureGateRuntimeSource).not.toContain("): typeof HTMLElement");
         expect(featureGateRuntimeSource).not.toContain(
             "| (() => typeof HTMLElement | undefined)"
         );
         expect(featureGateRuntimeSource).not.toContain("scope.document");
         expect(featureGateRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(featureGateRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(featureGateRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
         expect(featureGateRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
@@ -8160,10 +8170,14 @@ describe("architecture boundaries", () => {
             "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(featureGateRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getRuntimeDocument(scope);"
+        );
+        expect(featureGateRuntimeSource).toContain("return getHTMLElement();");
+        expect(featureGateRuntimeSource).toContain(
+            "fitBrowserFeatureGate requires a document provider"
         );
         expect(featureGateRuntimeSource).toContain(
-            "return scope.getHTMLElement?.();"
+            "fitBrowserFeatureGate requires an HTMLElement provider"
         );
         expect(featureGateRuntimeSource).not.toContain(
             "defaultView?.HTMLElement"

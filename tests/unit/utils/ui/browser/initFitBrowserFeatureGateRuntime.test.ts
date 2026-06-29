@@ -11,6 +11,11 @@ function resetBody(): void {
 }
 
 describe("getFitBrowserFeatureGateRuntime", () => {
+    const unavailableFitBrowserFeatureGateRuntimeScope = {
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+    } satisfies FitBrowserFeatureGateRuntimeScope;
+
     it("finds Browser tab elements through the injected document", () => {
         expect.assertions(2);
 
@@ -31,6 +36,7 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         });
         expect(
             getFitBrowserFeatureGateRuntime({
+                ...unavailableFitBrowserFeatureGateRuntimeScope,
                 getDocument: () => document,
             }).getBrowserTabElements()
         ).toStrictEqual({
@@ -60,13 +66,16 @@ describe("getFitBrowserFeatureGateRuntime", () => {
             tabButton: null,
         });
         expect(
-            getFitBrowserFeatureGateRuntime({}).getBrowserTabElements()
+            getFitBrowserFeatureGateRuntime(
+                unavailableFitBrowserFeatureGateRuntimeScope
+            ).getBrowserTabElements()
         ).toStrictEqual({
             content: null,
             tabButton: null,
         });
         expect(
             getFitBrowserFeatureGateRuntime({
+                ...unavailableFitBrowserFeatureGateRuntimeScope,
                 getDocument: () =>
                     ({
                         defaultView: {
@@ -82,6 +91,7 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         const fakeButton = document.createElement("button");
         expect(
             getFitBrowserFeatureGateRuntime({
+                ...unavailableFitBrowserFeatureGateRuntimeScope,
                 getDocument: () =>
                     ({
                         querySelector: () => fakeButton,
@@ -100,6 +110,7 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         resetBody();
         const tabButton = document.createElement("button");
         const utils = getFitBrowserFeatureGateRuntime({
+            ...unavailableFitBrowserFeatureGateRuntimeScope,
             getDocument: () => document,
         });
 
@@ -114,6 +125,23 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         expect(document.body.childElementCount).toBe(0);
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(2);
+
+        const runtime = getFitBrowserFeatureGateRuntime(
+            {} as unknown as FitBrowserFeatureGateRuntimeScope
+        );
+
+        expect(() => runtime.getBrowserTabElements()).toThrow(
+            "fitBrowserFeatureGate requires a document provider"
+        );
+        expect(() =>
+            getFitBrowserFeatureGateRuntime({
+                getDocument: () => document,
+            } as unknown as FitBrowserFeatureGateRuntimeScope).getBrowserTabElements()
+        ).toThrow("fitBrowserFeatureGate requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(1);
 
@@ -124,6 +152,7 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         content.id = "content_browser";
         document.body.append(tabButton, content);
         const legacyScope = {
+            ...unavailableFitBrowserFeatureGateRuntimeScope,
             document,
             HTMLElement,
         } as unknown as FitBrowserFeatureGateRuntimeScope;
