@@ -165,7 +165,7 @@ function ensureKeyboardShortcutsModal(
 
     // Add global event listeners
     addEventListenerWithCleanup(
-        document,
+        keyboardShortcutsModalRuntime().getDocumentEventTarget(),
         "keydown",
         handleShortcutsEscapeKey,
         true

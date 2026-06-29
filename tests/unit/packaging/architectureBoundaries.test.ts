@@ -11727,7 +11727,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(102);
+        expect.assertions(107);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -11787,6 +11787,9 @@ describe("architecture boundaries", () => {
             "keyboardShortcutsModalRuntime().getActiveElement"
         );
         expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime().getDocumentEventTarget"
+        );
+        expect(keyboardShortcutsModalSource).toContain(
             "keyboardShortcutsModalRuntime().setBodyOverflow"
         );
         expect(keyboardShortcutsModalSource).toContain(
@@ -11809,6 +11812,12 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalSource).not.toContain(
             "document.activeElement"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "addEventListenerWithCleanup(\n        document"
+        );
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "addEventListenerWithCleanup(document"
         );
         expect(keyboardShortcutsModalSource).not.toContain(
             "document.body.style.overflow"
@@ -11928,6 +11937,9 @@ describe("architecture boundaries", () => {
             "readonly getDocument: KeyboardShortcutsModalRuntimeProvider<Document>;"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "readonly getDocumentEventTarget: () => EventTarget;"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
             "readonly getHTMLElement: KeyboardShortcutsModalRuntimeProvider<BrowserHTMLElementConstructor>;"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
@@ -12013,6 +12025,9 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "getScopeDocument(scope).activeElement"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getDocumentEventTarget(): EventTarget"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "const HTMLElementConstructor = getRequiredProvider("

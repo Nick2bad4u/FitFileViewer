@@ -25,6 +25,7 @@ const runtimeMocks = vi.hoisted(() => ({
             document.createElementNS("http://www.w3.org/2000/svg", tagName)
     ),
     getActiveElement: vi.fn(() => document.activeElement),
+    getDocumentEventTarget: vi.fn(() => document),
     isHTMLElement: vi.fn(
         (value: unknown): value is HTMLElement => value instanceof HTMLElement
     ),
@@ -163,6 +164,7 @@ describe("keyboardShortcutsModal", () => {
         runtimeMocks.createElement.mockClear();
         runtimeMocks.createSvgElement.mockClear();
         runtimeMocks.getActiveElement.mockClear();
+        runtimeMocks.getDocumentEventTarget.mockClear();
         runtimeMocks.querySelector.mockClear();
         runtimeMocks.requestAnimationFrame.mockClear();
         runtimeMocks.setBodyOverflow.mockClear();
@@ -184,7 +186,7 @@ describe("keyboardShortcutsModal", () => {
     });
 
     it("creates and displays the modal when triggered", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const { showKeyboardShortcutsModal } = await loadModal();
         const trigger = document.createElement("button");
@@ -253,6 +255,7 @@ describe("keyboardShortcutsModal", () => {
         expect(
             document.querySelectorAll("#keyboard-shortcuts-modal-styles")
         ).toHaveLength(1);
+        expect(runtimeMocks.getDocumentEventTarget).toHaveBeenCalledOnce();
     });
 
     it("closes modal with animation and restores focus", async () => {

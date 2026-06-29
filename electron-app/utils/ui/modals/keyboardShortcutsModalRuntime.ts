@@ -43,6 +43,7 @@ export interface KeyboardShortcutsModalRuntime {
         tagName: K
     ) => SVGElementTagNameMap[K];
     readonly getActiveElement: () => Element | null;
+    readonly getDocumentEventTarget: () => EventTarget;
     readonly isHTMLElement: (value: unknown) => value is HTMLElement;
     readonly isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
     readonly querySelector: <K extends Element = Element>(
@@ -205,6 +206,9 @@ export function getKeyboardShortcutsModalRuntime(
         },
         getActiveElement(): Element | null {
             return getScopeDocument(scope).activeElement;
+        },
+        getDocumentEventTarget(): EventTarget {
+            return getScopeDocument(scope);
         },
         isHTMLElement(value): value is HTMLElement {
             return value instanceof getScopeHTMLElement(scope);

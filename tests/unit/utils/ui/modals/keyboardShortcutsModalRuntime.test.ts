@@ -76,7 +76,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
     });
 
     it("fails clearly when required providers are omitted", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const runtime = getKeyboardShortcutsModalRuntime(
             {} as unknown as KeyboardShortcutsModalRuntimeScope
@@ -97,6 +97,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(() => runtime.createElement("div")).toThrow(
             "keyboardShortcutsModalRuntime requires a document provider"
         );
+        expect(() => runtime.getDocumentEventTarget()).toThrow(
+            "keyboardShortcutsModalRuntime requires a document provider"
+        );
         expect(() =>
             runtime.isHTMLElement(document.createElement("button"))
         ).toThrow(
@@ -108,7 +111,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
     });
 
     it("uses shared browser providers for production defaults", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -150,6 +153,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(document.head.contains(style)).toBe(true);
         expect(document.body.style.overflow).toBe("hidden");
         expect(runtime.getActiveElement()).toBe(button);
+        expect(runtime.getDocumentEventTarget()).toBe(document);
         expect(runtime.isHTMLElement(modal)).toBe(true);
         expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
             true
@@ -228,7 +232,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
     });
 
     it("routes modal DOM operations through the injected document runtime", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const documentRef = document.implementation.createHTMLDocument(
             "keyboard shortcuts modal dom runtime"
@@ -251,6 +255,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(documentRef.head.contains(style)).toBe(true);
         expect(runtime.querySelector("#keyboard-shortcuts-modal")).toBe(modal);
         expect(runtime.getActiveElement()).toBe(documentRef.body);
+        expect(runtime.getDocumentEventTarget()).toBe(documentRef);
         expect(documentRef.body.style.overflow).toBe("hidden");
 
         runtime.setBodyOverflow("");
@@ -294,7 +299,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
     });
 
     it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -339,6 +344,9 @@ describe("getKeyboardShortcutsModalRuntime", () => {
             runtime.querySelector("#keyboard-shortcuts-modal")
         ).toThrow("keyboardShortcutsModalRuntime requires a document runtime");
         expect(() => runtime.getActiveElement()).toThrow(
+            "keyboardShortcutsModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.getDocumentEventTarget()).toThrow(
             "keyboardShortcutsModalRuntime requires a document runtime"
         );
         expect(() => runtime.setBodyOverflow("hidden")).toThrow(
