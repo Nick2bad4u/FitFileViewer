@@ -29988,7 +29988,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const violations =
             migratedRendererApplicationLifecycleWiringRuntimeFiles
@@ -30037,13 +30037,20 @@ describe("architecture boundaries", () => {
             "getAbortController: getBrowserAbortController"
         );
         expect(lifecycleWiringRuntimeSource).toContain(
-            "readonly getAbortController: () =>"
+            "type RendererApplicationLifecycleWiringRuntimeProvider"
+        );
+        expect(lifecycleWiringRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*RendererApplicationLifecycleWiringRuntimeProvider<BrowserAbortControllerConstructor>/u
         );
         expect(lifecycleWiringRuntimeSource).toContain(
-            "renderer application lifecycle wiring requires an AbortController provider"
+            "function getRequiredProvider"
         );
         expect(lifecycleWiringRuntimeSource).toContain(
-            "scope.getAbortController()"
+            "renderer application lifecycle wiring requires ${article} ${providerName} provider"
+        );
+        expect(lifecycleWiringRuntimeSource).toContain("providerName: string");
+        expect(lifecycleWiringRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
         );
         expect(lifecycleWiringRuntimeSource).not.toContain(
             "scope.getAbortController?.()"

@@ -216,6 +216,18 @@ describe("renderer application lifecycle wiring", () => {
         );
     });
 
+    it("fails clearly when the AbortController provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getRendererApplicationLifecycleWiringRuntime({
+                getAbortController: undefined,
+            })
+        ).toThrow(
+            "renderer application lifecycle wiring requires an AbortController provider"
+        );
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
