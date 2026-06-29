@@ -3,14 +3,14 @@ type GlobalChartStatusLogDateConstructor = new () => {
 };
 
 export interface GlobalChartStatusLogRuntimeScope {
-    readonly getDateConstructor: () =>
-        | GlobalChartStatusLogDateConstructor
-        | undefined;
+    readonly getDateConstructor: GlobalChartStatusLogRuntimeProvider<GlobalChartStatusLogDateConstructor>;
 }
 
 export interface GlobalChartStatusLogRuntime {
     isoNow: () => string;
 }
+
+type GlobalChartStatusLogRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 const defaultGlobalChartStatusLogRuntimeScope: GlobalChartStatusLogRuntimeScope =
     {
@@ -18,15 +18,9 @@ const defaultGlobalChartStatusLogRuntimeScope: GlobalChartStatusLogRuntimeScope 
     };
 
 function getRequiredDateConstructor(
-    scope: GlobalChartStatusLogRuntimeScope
+    getDateConstructor: () => GlobalChartStatusLogDateConstructor | undefined
 ): GlobalChartStatusLogDateConstructor {
-    if (typeof scope.getDateConstructor !== "function") {
-        throw new TypeError(
-            "globalChartStatusLogRuntime requires a date constructor provider"
-        );
-    }
-
-    const DateConstructor = scope.getDateConstructor();
+    const DateConstructor = getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }
@@ -39,10 +33,29 @@ function getRequiredDateConstructor(
 export function globalChartStatusLogRuntime(
     scope: GlobalChartStatusLogRuntimeScope = defaultGlobalChartStatusLogRuntimeScope
 ): GlobalChartStatusLogRuntime {
+    const getDateConstructor = getRequiredProvider(
+        scope.getDateConstructor,
+        "date constructor"
+    );
+
     return {
         isoNow(): string {
-            const DateConstructor = getRequiredDateConstructor(scope);
+            const DateConstructor =
+                getRequiredDateConstructor(getDateConstructor);
             return new DateConstructor().toISOString();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: GlobalChartStatusLogRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `globalChartStatusLogRuntime requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

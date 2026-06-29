@@ -27652,7 +27652,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps global chart status log timestamps behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(22);
 
         const globalChartStatusSource = stripComments(
             readRepositoryFile(
@@ -27681,19 +27681,34 @@ describe("architecture boundaries", () => {
             "getDateConstructor: () => Date"
         );
         expect(globalChartStatusLogRuntimeSource).toContain(
+            "type GlobalChartStatusLogRuntimeProvider"
+        );
+        expect(globalChartStatusLogRuntimeSource).toMatch(
+            /readonly\s+getDateConstructor:\s*GlobalChartStatusLogRuntimeProvider<GlobalChartStatusLogDateConstructor>/u
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(globalChartStatusLogRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateConstructor,\s*"date constructor"\s*\)/u
+        );
+        expect(globalChartStatusLogRuntimeSource).toContain(
             "new DateConstructor().toISOString()"
         );
         expect(globalChartStatusLogRuntimeSource).toContain(
             "globalChartStatusLogRuntime requires a date constructor"
         );
         expect(globalChartStatusLogRuntimeSource).toContain(
-            "globalChartStatusLogRuntime requires a date constructor provider"
+            "globalChartStatusLogRuntime requires a ${providerName} provider"
         );
         expect(globalChartStatusLogRuntimeSource).not.toContain(
             "readonly getDateConstructor?:"
         );
         expect(globalChartStatusLogRuntimeSource).toContain(
-            "const DateConstructor = scope.getDateConstructor();"
+            "const DateConstructor = getDateConstructor();"
+        );
+        expect(globalChartStatusLogRuntimeSource).not.toContain(
+            "scope.getDateConstructor()"
         );
         expect(globalChartStatusLogRuntimeSource).not.toContain(
             "scope.getDateConstructor?.()"

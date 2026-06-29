@@ -65,11 +65,23 @@ describe("globalChartStatusLogRuntime", () => {
     it("fails clearly when runtime providers are omitted", () => {
         expect.assertions(1);
 
-        const utils = globalChartStatusLogRuntime(
-            {} as unknown as GlobalChartStatusLogRuntimeScope
+        expect(() =>
+            globalChartStatusLogRuntime(
+                {} as unknown as GlobalChartStatusLogRuntimeScope
+            )
+        ).toThrow(
+            "globalChartStatusLogRuntime requires a date constructor provider"
         );
+    });
 
-        expect(() => utils.isoNow()).toThrow(
+    it("fails clearly when the date constructor provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            globalChartStatusLogRuntime({
+                getDateConstructor: undefined,
+            })
+        ).toThrow(
             "globalChartStatusLogRuntime requires a date constructor provider"
         );
     });
@@ -89,13 +101,12 @@ describe("globalChartStatusLogRuntime", () => {
             }
         }
 
-        const utils = globalChartStatusLogRuntime({
-            ...unavailableGlobalChartStatusLogScope,
-            Date: DateConstructor,
-        } as unknown as GlobalChartStatusLogRuntimeScope);
-
-        expect(() => utils.isoNow()).toThrow(
-            "globalChartStatusLogRuntime requires a date constructor"
+        expect(() =>
+            globalChartStatusLogRuntime({
+                Date: DateConstructor,
+            } as unknown as GlobalChartStatusLogRuntimeScope)
+        ).toThrow(
+            "globalChartStatusLogRuntime requires a date constructor provider"
         );
         expect(constructedCount).toBe(0);
     });
