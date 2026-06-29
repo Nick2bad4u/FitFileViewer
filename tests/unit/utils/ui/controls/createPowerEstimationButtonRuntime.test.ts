@@ -4,6 +4,10 @@ import type { BrowserAbortControllerConstructor } from "../../../../../electron-
 import { getCreatePowerEstimationButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.js";
 
 describe("getCreatePowerEstimationButtonRuntime", () => {
+    const powerEstimationButtonRuntimeScope = {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+    } satisfies Parameters<typeof getCreatePowerEstimationButtonRuntime>[0];
     const unavailablePowerEstimationButtonRuntimeScope = {
         getAbortController: () => undefined,
         getDocument: () => undefined,
@@ -96,6 +100,25 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         );
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getCreatePowerEstimationButtonRuntime({
+                ...powerEstimationButtonRuntimeScope,
+                getDocument: undefined,
+            }).createButton()
+        ).toThrow("createPowerEstimationButton requires a document provider");
+        expect(() =>
+            getCreatePowerEstimationButtonRuntime({
+                ...powerEstimationButtonRuntimeScope,
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow(
+            "createPowerEstimationButton requires an AbortController provider"
+        );
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(4);
 
@@ -107,7 +130,6 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
             },
         };
         const runtime = getCreatePowerEstimationButtonRuntime({
-            ...unavailablePowerEstimationButtonRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
@@ -116,10 +138,10 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         >[0]);
 
         expect(() => runtime.createButton()).toThrow(
-            "createPowerEstimationButton requires a document runtime"
+            "createPowerEstimationButton requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createPowerEstimationButton requires an AbortController runtime"
+            "createPowerEstimationButton requires an AbortController provider"
         );
         expect(legacyDocument.createElement).not.toHaveBeenCalled();
         expect(legacyAbortController).not.toHaveBeenCalled();

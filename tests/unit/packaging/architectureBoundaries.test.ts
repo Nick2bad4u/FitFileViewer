@@ -20317,7 +20317,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(35);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -20390,6 +20390,24 @@ describe("architecture boundaries", () => {
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "scope.getDocument?.()"
         );
+        expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "type CreatePowerEstimationButtonRuntimeProvider"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*CreatePowerEstimationButtonRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*CreatePowerEstimationButtonRuntimeProvider<Document>/u
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "defaultView?.AbortController"
         );
@@ -20418,10 +20436,10 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
-            "createPowerEstimationButton requires an AbortController provider"
+            "createPowerEstimationButton requires ${article} ${providerName} provider"
         );
         expect(createPowerEstimationButtonRuntimeSource).toContain(
-            "createPowerEstimationButton requires a document provider"
+            "createPowerEstimationButton requires an AbortController runtime"
         );
     });
 

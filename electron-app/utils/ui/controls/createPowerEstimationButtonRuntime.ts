@@ -5,11 +5,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface CreatePowerEstimationButtonRuntimeScope {
-    readonly getAbortController:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getAbortController: CreatePowerEstimationButtonRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: CreatePowerEstimationButtonRuntimeProvider<Document>;
 }
+
+type CreatePowerEstimationButtonRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreatePowerEstimationButtonRuntime {
     createAbortController: () => AbortController;
@@ -22,30 +24,28 @@ const defaultCreatePowerEstimationButtonRuntimeScope: CreatePowerEstimationButto
         getDocument: getBrowserDocument,
     };
 
-function getScopeDocument(
-    scope: CreatePowerEstimationButtonRuntimeScope
-): Document | undefined {
-    const getRuntimeDocument = scope.getDocument;
-    if (typeof getRuntimeDocument !== "function") {
+function getRequiredProvider<T>(
+    provider: CreatePowerEstimationButtonRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
         throw new TypeError(
-            "createPowerEstimationButton requires a document provider"
+            `createPowerEstimationButton requires ${article} ${providerName} provider`
         );
     }
 
-    return getRuntimeDocument();
+    return provider;
 }
 
 function getAbortControllerConstructor(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const getRuntimeAbortController = scope.getAbortController;
-    if (typeof getRuntimeAbortController !== "function") {
-        throw new TypeError(
-            "createPowerEstimationButton requires an AbortController provider"
-        );
-    }
-
-    const AbortControllerConstructor = getRuntimeAbortController();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerEstimationButton requires an AbortController runtime"
@@ -56,7 +56,10 @@ function getAbortControllerConstructor(
 }
 
 function getDocument(scope: CreatePowerEstimationButtonRuntimeScope): Document {
-    const runtimeDocument = getScopeDocument(scope);
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "createPowerEstimationButton requires a document runtime"
