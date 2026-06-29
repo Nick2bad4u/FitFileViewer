@@ -6,13 +6,13 @@ import {
 
 type RenderChartDirectRerenderDocument = Pick<Document, "querySelector">;
 
+type RenderChartDirectRerenderRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 export interface RenderChartDirectRerenderRuntimeScope {
-    readonly getDocument?:
-        | (() => RenderChartDirectRerenderDocument | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
+    readonly getDocument: RenderChartDirectRerenderRuntimeProvider<RenderChartDirectRerenderDocument>;
+    readonly getHTMLElement: RenderChartDirectRerenderRuntimeProvider<BrowserHTMLElementConstructor>;
 }
 
 export interface RenderChartDirectRerenderRuntime {
@@ -34,10 +34,24 @@ const defaultRenderChartDirectRerenderRuntimeScope: RenderChartDirectRerenderRun
         getHTMLElement: getBrowserHTMLElement,
     };
 
+function getRequiredProvider<T>(
+    provider: RenderChartDirectRerenderRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUH]/u.test(providerName) ? "an" : "a";
+        throw new TypeError(
+            `renderChartDirectRerender requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getHTMLElementConstructor(
     scope: RenderChartDirectRerenderRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();
 }
 
 function isHTMLElement(
@@ -55,7 +69,10 @@ function queryHTMLElement(
     scope: RenderChartDirectRerenderRuntimeScope,
     selector: string
 ): HTMLElement | null {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         return null;
     }

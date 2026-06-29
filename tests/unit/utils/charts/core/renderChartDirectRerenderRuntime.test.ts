@@ -10,6 +10,16 @@ function cleanupFixture(): void {
     document.body.replaceChildren();
 }
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<RenderChartDirectRerenderRuntimeScope> = {}
+): RenderChartDirectRerenderRuntimeScope {
+    return {
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getRenderChartDirectRerenderRuntime", () => {
     it("resolves chart render containers through the injected document", () => {
         expect.assertions(2);
@@ -65,6 +75,7 @@ describe("getRenderChartDirectRerenderRuntime", () => {
                             querySelector: (selector: string) =>
                                 document.querySelector(selector),
                         }) as unknown as Document,
+                    getHTMLElement: () => undefined,
                 }).querySelector("#content_chart")
             ).toBeNull();
             expect(
@@ -98,6 +109,57 @@ describe("getRenderChartDirectRerenderRuntime", () => {
         }
     });
 
+    it("returns null when provider-backed DOM primitives are unavailable", () => {
+        expect.assertions(2);
+
+        try {
+            const chartContainer = document.createElement("section");
+            chartContainer.id = "content_chart";
+            document.body.append(chartContainer);
+
+            expect(
+                getRenderChartDirectRerenderRuntime(
+                    createUnavailableRuntimeScope()
+                ).querySelector("#content_chart")
+            ).toBeNull();
+            expect(
+                getRenderChartDirectRerenderRuntime(
+                    createUnavailableRuntimeScope({
+                        getDocument: () => document,
+                    })
+                ).queryChartContainer()
+            ).toBeNull();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(3);
+
+        const omittedProviderScope =
+            {} as unknown as RenderChartDirectRerenderRuntimeScope;
+        const omittedHTMLElementProviderScope = {
+            getDocument: () => document,
+        } as unknown as RenderChartDirectRerenderRuntimeScope;
+
+        expect(() =>
+            getRenderChartDirectRerenderRuntime(
+                omittedProviderScope
+            ).querySelector("#content_chart")
+        ).toThrow("renderChartDirectRerender requires a document provider");
+        expect(() =>
+            getRenderChartDirectRerenderRuntime(
+                omittedProviderScope
+            ).queryChartContainer()
+        ).toThrow("renderChartDirectRerender requires a document provider");
+        expect(() =>
+            getRenderChartDirectRerenderRuntime(
+                omittedHTMLElementProviderScope
+            ).querySelector("#content_chart")
+        ).toThrow("renderChartDirectRerender requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
@@ -105,20 +167,20 @@ describe("getRenderChartDirectRerenderRuntime", () => {
             const chartContainer = document.createElement("section");
             chartContainer.id = "content_chart";
             document.body.append(chartContainer);
-            expect(
+            expect(() =>
                 getRenderChartDirectRerenderRuntime({
                     document,
                     HTMLElement,
                 } as unknown as RenderChartDirectRerenderRuntimeScope).querySelector(
                     "#content_chart"
                 )
-            ).toBeNull();
-            expect(
+            ).toThrow("renderChartDirectRerender requires a document provider");
+            expect(() =>
                 getRenderChartDirectRerenderRuntime({
                     document,
                     HTMLElement,
                 } as unknown as RenderChartDirectRerenderRuntimeScope).queryChartContainer()
-            ).toBeNull();
+            ).toThrow("renderChartDirectRerender requires a document provider");
         } finally {
             cleanupFixture();
         }

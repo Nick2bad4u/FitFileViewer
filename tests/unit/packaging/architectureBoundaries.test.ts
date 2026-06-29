@@ -26400,7 +26400,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(31);
 
         const violations = migratedRenderChartDirectRerenderRuntimeFiles
             .filter((relativeFile) =>
@@ -26457,17 +26457,34 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getHTMLElement?:");
         expect(runtimeSource).not.toContain("): typeof HTMLElement");
         expect(runtimeSource).not.toContain(
             "| (() => typeof HTMLElement | undefined)"
         );
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
-        expect(runtimeSource).toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).toContain(
+            "type RenderChartDirectRerenderRuntimeProvider<T>"
+        );
+        expect(runtimeSource).toContain(
+            "`renderChartDirectRerender requires ${article} ${providerName} provider`"
+        );
+        expect(runtimeSource).toContain(
+            'return getRequiredProvider(scope.getHTMLElement, "HTMLElement")();'
+        );
         expect(runtimeSource).not.toContain("defaultView?.HTMLElement");
         expect(runtimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getRequiredProvider("
         );
+        expect(runtimeSource).not.toContain("scope.getDocument?.()");
+        expect(runtimeSource).not.toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).not.toContain("scope.getDocument()");
+        expect(runtimeSource).not.toContain("scope.getHTMLElement()");
+        expect(runtimeSource).toContain('"document"');
+        expect(runtimeSource).toContain('"HTMLElement"');
+        expect(runtimeSource).toContain("getRequiredProvider(");
     });
 
     it("keeps render-chart DOM helper creation behind the runtime facade", () => {
