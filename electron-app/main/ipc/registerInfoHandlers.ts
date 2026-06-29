@@ -1,8 +1,8 @@
 import {
-    getProcessCurrentWorkingDirectory,
-    getProcessStringValue,
-    getProcessVersionValue,
-} from "../../utils/runtime/processEnvironment.js";
+    getRegisterInfoHandlersRuntime,
+    type RegisterInfoHandlersProcessStringName,
+    type RegisterInfoHandlersRuntime,
+} from "./registerInfoHandlersRuntime.js";
 import { createElectronConf } from "../runtime/electronConfAccess.js";
 
 type InfoInvokeChannel = import("../../shared/ipc").InfoInvokeChannel;
@@ -60,6 +60,10 @@ type LogWithContext = (
     message: string,
     context?: Record<string, unknown>
 ) => void;
+
+function registerInfoHandlersRuntime(): RegisterInfoHandlersRuntime {
+    return getRegisterInfoHandlersRuntime();
+}
 
 const INFO_INVOKE_CHANNELS = [
     "getAppVersion",
@@ -221,4 +225,18 @@ export function registerInfoHandlers({
 
 function isPackageMetadata(value: unknown): value is PackageMetadata {
     return value !== null && typeof value === "object";
+}
+
+function getProcessCurrentWorkingDirectory(): string | undefined {
+    return registerInfoHandlersRuntime().getProcessCurrentWorkingDirectory();
+}
+
+function getProcessStringValue(
+    name: RegisterInfoHandlersProcessStringName
+): string | undefined {
+    return registerInfoHandlersRuntime().getProcessStringValue(name);
+}
+
+function getProcessVersionValue(name: string): string | undefined {
+    return registerInfoHandlersRuntime().getProcessVersionValue(name);
 }

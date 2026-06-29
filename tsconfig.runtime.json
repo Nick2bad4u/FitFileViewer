@@ -121,6 +121,7 @@
         "electron-app/main/ipc/registerFitFileHandlers.ts",
         "electron-app/main/ipc/registerFileSystemHandlers.ts",
         "electron-app/main/ipc/registerInfoHandlers.ts",
+        "electron-app/main/ipc/registerInfoHandlersRuntime.ts",
         "electron-app/main/ipc/registerRecentFileHandlers.ts",
         "electron-app/main/ipc/sendToRenderer.ts",
         "electron-app/main/ipc/setupIPCHandlers.ts",

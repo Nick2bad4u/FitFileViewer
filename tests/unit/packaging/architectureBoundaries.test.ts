@@ -3207,7 +3207,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(101);
+        expect.assertions(104);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -3289,6 +3289,11 @@ describe("architecture boundaries", () => {
         );
         const registerInfoHandlersSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/registerInfoHandlers.ts")
+        );
+        const registerInfoHandlersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerInfoHandlersRuntime.ts"
+            )
         );
 
         expect(fileReadPayloadSource).not.toContain("module.exports");
@@ -3376,7 +3381,16 @@ describe("architecture boundaries", () => {
         expect(registerInfoHandlersSource).not.toContain("process.cwd");
         expect(registerInfoHandlersSource).not.toContain("process.platform");
         expect(registerInfoHandlersSource).not.toContain("process.versions");
+        expect(registerInfoHandlersSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(registerInfoHandlersSource).toContain(
+            "registerInfoHandlersRuntime.js"
+        );
         expect(registerInfoHandlersSource).toContain("getProcessStringValue");
+        expect(registerInfoHandlersRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
         expect(ipcRegistrySource).not.toContain("module.exports");
         expect(ipcRegistrySource).not.toContain("export default");
         expect(ipcSenderPolicySource).not.toContain("module.exports");
