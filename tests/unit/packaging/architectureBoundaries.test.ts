@@ -9354,7 +9354,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(92);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -9431,6 +9431,7 @@ describe("architecture boundaries", () => {
         expect(zoneColorPickerRuntimeSource).toContain(
             "BrowserCustomEventConstructor"
         );
+        expect(zoneColorPickerRuntimeSource).toContain("BrowserDispatchEvent");
         expect(zoneColorPickerRuntimeSource).toContain(
             "BrowserHTMLElementConstructor"
         );
@@ -9467,6 +9468,42 @@ describe("architecture boundaries", () => {
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "readonly KeyboardEvent?:"
         );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly getCustomEvent?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly getDispatchEvent?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly getKeyboardEvent?:"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "readonly getCustomEvent: OpenZoneColorPickerRuntimeProvider<BrowserCustomEventConstructor>;"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "readonly getDocument: OpenZoneColorPickerRuntimeProvider<Document>;"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "readonly getDispatchEvent: OpenZoneColorPickerRuntimeProvider<BrowserDispatchEvent>;"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "readonly getHTMLElement: OpenZoneColorPickerRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "readonly getHTMLInputElement: OpenZoneColorPickerRuntimeProvider<BrowserHTMLInputElementConstructor>;"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "readonly getKeyboardEvent: OpenZoneColorPickerRuntimeProvider<BrowserKeyboardEventConstructor>;"
+        );
         expect(zoneColorPickerRuntimeSource).not.toContain("scope.CustomEvent");
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "scope.dispatchEvent"
@@ -9478,6 +9515,51 @@ describe("architecture boundaries", () => {
         );
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "scope.KeyboardEvent"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "type OpenZoneColorPickerRuntimeProvider<T> ="
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            'scope.getCustomEvent,\n        "CustomEvent"'
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            'scope.getDispatchEvent,\n        "dispatchEvent"'
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.getDispatchEvent?.()"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            'scope.getHTMLElement,\n        "HTMLElement"'
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            'scope.getHTMLInputElement,\n        "HTMLInputElement"'
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            'scope.getKeyboardEvent,\n        "KeyboardEvent"'
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.getKeyboardEvent?.()"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "openZoneColorPicker requires ${article} ${providerName} provider"
         );
         expect(zoneColorPickerRuntimeSource).toContain(
             "getCustomEvent: getBrowserCustomEvent"

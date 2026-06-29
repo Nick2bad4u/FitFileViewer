@@ -1,5 +1,6 @@
 import {
     type BrowserCustomEventConstructor,
+    type BrowserDispatchEvent,
     type BrowserHTMLElementConstructor,
     type BrowserHTMLInputElementConstructor,
     type BrowserKeyboardEventConstructor,
@@ -11,23 +12,15 @@ import {
     getBrowserKeyboardEvent,
 } from "../../runtime/browserRuntime.js";
 
+type OpenZoneColorPickerRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface OpenZoneColorPickerRuntimeScope {
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDispatchEvent?:
-        | (() => ((event: Event) => boolean) | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
+    readonly getCustomEvent: OpenZoneColorPickerRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDocument: OpenZoneColorPickerRuntimeProvider<Document>;
+    readonly getDispatchEvent: OpenZoneColorPickerRuntimeProvider<BrowserDispatchEvent>;
+    readonly getHTMLElement: OpenZoneColorPickerRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getHTMLInputElement: OpenZoneColorPickerRuntimeProvider<BrowserHTMLInputElementConstructor>;
+    readonly getKeyboardEvent: OpenZoneColorPickerRuntimeProvider<BrowserKeyboardEventConstructor>;
 }
 
 export interface OpenZoneColorPickerRuntime {
@@ -52,10 +45,28 @@ export interface OpenZoneColorPickerRuntime {
     isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
 }
 
+function getRequiredProvider<T>(
+    provider: OpenZoneColorPickerRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `openZoneColorPicker requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getCustomEventConstructor(
     scope: OpenZoneColorPickerRuntimeScope
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    )();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires a CustomEvent runtime"
@@ -67,8 +78,11 @@ function getCustomEventConstructor(
 
 function getDispatchEvent(
     scope: OpenZoneColorPickerRuntimeScope
-): (event: Event) => boolean {
-    const dispatchEvent = scope.getDispatchEvent?.();
+): BrowserDispatchEvent {
+    const dispatchEvent = getRequiredProvider(
+        scope.getDispatchEvent,
+        "dispatchEvent"
+    )();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires a dispatchEvent runtime"
@@ -79,7 +93,7 @@ function getDispatchEvent(
 }
 
 function getRuntimeDocument(scope: OpenZoneColorPickerRuntimeScope): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError("openZoneColorPicker requires a document runtime");
     }
@@ -90,7 +104,10 @@ function getRuntimeDocument(scope: OpenZoneColorPickerRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: OpenZoneColorPickerRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires an HTMLElement runtime"
@@ -103,7 +120,10 @@ function getHTMLElementConstructor(
 function getHTMLInputElementConstructor(
     scope: OpenZoneColorPickerRuntimeScope
 ): BrowserHTMLInputElementConstructor {
-    const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+    const HTMLInputElementConstructor = getRequiredProvider(
+        scope.getHTMLInputElement,
+        "HTMLInputElement"
+    )();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires an HTMLInputElement runtime"
@@ -116,7 +136,10 @@ function getHTMLInputElementConstructor(
 function getKeyboardEventConstructor(
     scope: OpenZoneColorPickerRuntimeScope
 ): BrowserKeyboardEventConstructor {
-    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    const KeyboardEventConstructor = getRequiredProvider(
+        scope.getKeyboardEvent,
+        "KeyboardEvent"
+    )();
     if (typeof KeyboardEventConstructor !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires a KeyboardEvent runtime"

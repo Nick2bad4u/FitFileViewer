@@ -3,15 +3,31 @@ import { describe, expect, it, vi } from "vitest";
 import type { OpenZoneColorPickerRuntimeScope } from "../../../../../electron-app/utils/ui/modals/openZoneColorPickerRuntime.js";
 import { getOpenZoneColorPickerRuntime } from "../../../../../electron-app/utils/ui/modals/openZoneColorPickerRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<OpenZoneColorPickerRuntimeScope> = {}
+): OpenZoneColorPickerRuntimeScope {
+    return {
+        getCustomEvent: () => undefined,
+        getDispatchEvent: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getHTMLInputElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("openZoneColorPickerRuntime", () => {
     it("creates and dispatches custom events through the provided scope", () => {
         expect.assertions(4);
 
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
-        const runtime = getOpenZoneColorPickerRuntime({
-            getCustomEvent: () => CustomEvent,
-            getDispatchEvent: () => dispatchEvent,
-        });
+        const runtime = getOpenZoneColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getCustomEvent: () => CustomEvent,
+                getDispatchEvent: () => dispatchEvent,
+            })
+        );
 
         const event = runtime.createCustomEvent("ffv:request-render-charts", {
             detail: { reason: "zone-colors-applied" },
@@ -28,9 +44,11 @@ describe("openZoneColorPickerRuntime", () => {
 
         const documentRef =
             document.implementation.createHTMLDocument("zone color picker");
-        const runtime = getOpenZoneColorPickerRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getOpenZoneColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
         const listener = vi.fn<(event: Event) => void>();
         const cleanup = runtime.addDocumentKeydownListener(listener);
         const button = runtime.createElement("button");
@@ -63,11 +81,13 @@ describe("openZoneColorPickerRuntime", () => {
         const button = documentRef.createElement("button");
         const input = documentRef.createElement("input");
         const keyboardEvent = new KeyboardEvent("keydown", { key: "Escape" });
-        const runtime = getOpenZoneColorPickerRuntime({
-            getHTMLElement: () => HTMLElement,
-            getHTMLInputElement: () => HTMLInputElement,
-            getKeyboardEvent: () => KeyboardEvent,
-        });
+        const runtime = getOpenZoneColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getHTMLElement: () => HTMLElement,
+                getHTMLInputElement: () => HTMLInputElement,
+                getKeyboardEvent: () => KeyboardEvent,
+            })
+        );
 
         expect(runtime.isHTMLElement(button)).toBe(true);
         expect(runtime.isHTMLElement({})).toBe(false);
@@ -109,15 +129,27 @@ describe("openZoneColorPickerRuntime", () => {
 
         expect(() =>
             getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => undefined,
                 getDispatchEvent: () => () => true,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getKeyboardEvent: () => undefined,
             }).createCustomEvent("ffv:request-render-charts")
         ).toThrow("openZoneColorPicker requires a CustomEvent runtime");
         expect(() =>
             getOpenZoneColorPickerRuntime({
                 getCustomEvent: () => CustomEvent,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getKeyboardEvent: () => undefined,
             }).dispatchEvent(new Event("ffv:request-render-charts"))
         ).toThrow("openZoneColorPicker requires a dispatchEvent runtime");
-        const runtime = getOpenZoneColorPickerRuntime({});
+        const runtime = getOpenZoneColorPickerRuntime(
+            createUnavailableRuntimeScope()
+        );
         const element = document.createElement("div");
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined)
@@ -148,6 +180,77 @@ describe("openZoneColorPickerRuntime", () => {
         );
     });
 
+    it("throws clearly when required runtime providers are missing", () => {
+        expect.assertions(6);
+
+        expect(() =>
+            getOpenZoneColorPickerRuntime({
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getKeyboardEvent: () => undefined,
+            } as unknown as OpenZoneColorPickerRuntimeScope).createCustomEvent(
+                "ffv:request-render-charts"
+            )
+        ).toThrow("openZoneColorPicker requires a CustomEvent provider");
+        expect(() =>
+            getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getKeyboardEvent: () => undefined,
+            } as unknown as OpenZoneColorPickerRuntimeScope).dispatchEvent(
+                new Event("ffv:request-render-charts")
+            )
+        ).toThrow("openZoneColorPicker requires a dispatchEvent provider");
+        expect(() =>
+            getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getKeyboardEvent: () => undefined,
+            } as unknown as OpenZoneColorPickerRuntimeScope).createElement(
+                "div"
+            )
+        ).toThrow("openZoneColorPicker requires a document provider");
+        expect(() =>
+            getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getKeyboardEvent: () => undefined,
+            } as unknown as OpenZoneColorPickerRuntimeScope).isHTMLElement(
+                document.createElement("div")
+            )
+        ).toThrow("openZoneColorPicker requires an HTMLElement provider");
+        expect(() =>
+            getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getKeyboardEvent: () => undefined,
+            } as unknown as OpenZoneColorPickerRuntimeScope).isHTMLInputElement(
+                document.createElement("input")
+            )
+        ).toThrow("openZoneColorPicker requires an HTMLInputElement provider");
+        expect(() =>
+            getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as OpenZoneColorPickerRuntimeScope).isKeyboardEvent(
+                new Event("keydown")
+            )
+        ).toThrow("openZoneColorPicker requires a KeyboardEvent provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(18);
 
@@ -168,36 +271,36 @@ describe("openZoneColorPickerRuntime", () => {
 
         expect(() =>
             runtime.createCustomEvent("ffv:request-render-charts")
-        ).toThrow("openZoneColorPicker requires a CustomEvent runtime");
+        ).toThrow("openZoneColorPicker requires a CustomEvent provider");
         expect(() =>
             runtime.dispatchEvent(new Event("ffv:request-render-charts"))
-        ).toThrow("openZoneColorPicker requires a dispatchEvent runtime");
+        ).toThrow("openZoneColorPicker requires a dispatchEvent provider");
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined)
-        ).toThrow("openZoneColorPicker requires a document runtime");
+        ).toThrow("openZoneColorPicker requires a document provider");
         expect(() => runtime.appendToBody(element)).toThrow(
-            "openZoneColorPicker requires a document runtime"
+            "openZoneColorPicker requires a document provider"
         );
         expect(() => runtime.bodyContains(element)).toThrow(
-            "openZoneColorPicker requires a document runtime"
+            "openZoneColorPicker requires a document provider"
         );
         expect(() => runtime.createElement("div")).toThrow(
-            "openZoneColorPicker requires a document runtime"
+            "openZoneColorPicker requires a document provider"
         );
         expect(() => runtime.getActiveElement()).toThrow(
-            "openZoneColorPicker requires a document runtime"
+            "openZoneColorPicker requires a document provider"
         );
         expect(() => runtime.getBody()).toThrow(
-            "openZoneColorPicker requires a document runtime"
+            "openZoneColorPicker requires a document provider"
         );
         expect(() => runtime.isHTMLElement(element)).toThrow(
-            "openZoneColorPicker requires an HTMLElement runtime"
+            "openZoneColorPicker requires an HTMLElement provider"
         );
         expect(() => runtime.isHTMLInputElement(element)).toThrow(
-            "openZoneColorPicker requires an HTMLInputElement runtime"
+            "openZoneColorPicker requires an HTMLInputElement provider"
         );
         expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
-            "openZoneColorPicker requires a KeyboardEvent runtime"
+            "openZoneColorPicker requires a KeyboardEvent provider"
         );
         expect(addEventListener).not.toHaveBeenCalled();
         expect(createElement).not.toHaveBeenCalled();
