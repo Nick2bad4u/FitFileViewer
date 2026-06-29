@@ -120,7 +120,6 @@ describe("preload.js - Basic API Validation", () => {
                 }
             ),
         };
-        vi.stubGlobal("process", mockProcess);
 
         vi.doMock(import("electron"), () => electronMock);
 
@@ -253,18 +252,14 @@ describe("preload.js - Basic API Validation", () => {
 
     it("should register beforeExit handler", () => {
         expect.assertions(3);
-        // Check if process.once was called with beforeExit
-        const currentProcess =
-            globalThis.process as unknown as PreloadMinimalProcess;
-
-        expect(currentProcess.once.mock.calls[0]).toStrictEqual([
+        expect(mockProcess.once.mock.calls[0]).toStrictEqual([
             "beforeExit",
             beforeExitListeners[0],
         ]);
         expect(beforeExitListeners).toHaveLength(1);
         const registeredBeforeExit = beforeExitListeners[0];
         registeredBeforeExit();
-        expect(currentProcess.removeListener).toHaveBeenCalledWith(
+        expect(mockProcess.removeListener).toHaveBeenCalledWith(
             "beforeExit",
             registeredBeforeExit
         );
