@@ -13,16 +13,10 @@ import {
 export type GetCurrentSettingsTimer = BrowserTimerHandle;
 
 export interface GetCurrentSettingsRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLSelectElement?:
-        | (() => BrowserHTMLSelectElementConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getClearTimeout: GetCurrentSettingsRuntimeProvider<BrowserClearTimeout>;
+    readonly getHTMLInputElement: GetCurrentSettingsRuntimeProvider<BrowserHTMLInputElementConstructor>;
+    readonly getHTMLSelectElement: GetCurrentSettingsRuntimeProvider<BrowserHTMLSelectElementConstructor>;
+    readonly getSetTimeout: GetCurrentSettingsRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface GetCurrentSettingsRuntime {
@@ -44,12 +38,44 @@ const defaultGetCurrentSettingsRuntimeScope: GetCurrentSettingsRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+type GetCurrentSettingsRuntimeProvider<T> = (() => T | undefined) | undefined;
+
+function getRequiredProvider<T>(
+    provider: GetCurrentSettingsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `getCurrentSettingsRuntime requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getGetCurrentSettingsRuntime(
     scope: GetCurrentSettingsRuntimeScope = defaultGetCurrentSettingsRuntimeScope
 ): GetCurrentSettingsRuntime {
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    );
+    const getHTMLInputElement = getRequiredProvider(
+        scope.getHTMLInputElement,
+        "HTMLInputElement"
+    );
+    const getHTMLSelectElement = getRequiredProvider(
+        scope.getHTMLSelectElement,
+        "HTMLSelectElement"
+    );
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "getCurrentSettingsRuntime requires clearTimeout"
@@ -59,13 +85,19 @@ export function getGetCurrentSettingsRuntime(
             clearTimeoutRef(timer);
         },
         isHTMLInputElement(value): value is HTMLInputElement {
-            return value instanceof getHTMLInputElementConstructor(scope);
+            return (
+                value instanceof
+                getHTMLInputElementConstructor(getHTMLInputElement)
+            );
         },
         isHTMLSelectElement(value): value is HTMLSelectElement {
-            return value instanceof getHTMLSelectElementConstructor(scope);
+            return (
+                value instanceof
+                getHTMLSelectElementConstructor(getHTMLSelectElement)
+            );
         },
         setTimeout(callback, delayMs): GetCurrentSettingsTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "getCurrentSettingsRuntime requires setTimeout"
@@ -78,9 +110,9 @@ export function getGetCurrentSettingsRuntime(
 }
 
 function getHTMLInputElementConstructor(
-    scope: GetCurrentSettingsRuntimeScope
+    getHTMLInputElement: () => BrowserHTMLInputElementConstructor | undefined
 ): BrowserHTMLInputElementConstructor {
-    const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+    const HTMLInputElementConstructor = getHTMLInputElement();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
             "getCurrentSettingsRuntime requires HTMLInputElement"
@@ -91,9 +123,9 @@ function getHTMLInputElementConstructor(
 }
 
 function getHTMLSelectElementConstructor(
-    scope: GetCurrentSettingsRuntimeScope
+    getHTMLSelectElement: () => BrowserHTMLSelectElementConstructor | undefined
 ): BrowserHTMLSelectElementConstructor {
-    const HTMLSelectElementConstructor = scope.getHTMLSelectElement?.();
+    const HTMLSelectElementConstructor = getHTMLSelectElement();
     if (typeof HTMLSelectElementConstructor !== "function") {
         throw new TypeError(
             "getCurrentSettingsRuntime requires HTMLSelectElement"

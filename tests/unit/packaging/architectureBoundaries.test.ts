@@ -26304,7 +26304,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(43);
+        expect.assertions(57);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -26450,13 +26450,55 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "type GetCurrentSettingsRuntimeProvider<T>"
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*GetCurrentSettingsRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /readonly\s+getHTMLInputElement:\s*GetCurrentSettingsRuntimeProvider<BrowserHTMLInputElementConstructor>/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /readonly\s+getHTMLSelectElement:\s*GetCurrentSettingsRuntimeProvider<BrowserHTMLSelectElementConstructor>/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*GetCurrentSettingsRuntimeProvider<BrowserSetTimeout>/u
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
-            "const HTMLInputElementConstructor = scope.getHTMLInputElement?.();"
+            "function getRequiredProvider"
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLInputElement,\s*"HTMLInputElement"\s*\)/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLSelectElement,\s*"HTMLSelectElement"\s*\)/u
+        );
+        expect(getCurrentSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toMatch(
+            /scope\.get(?:ClearTimeout|HTMLInputElement|HTMLSelectElement|SetTimeout)\?\.\(/u
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
-            "const HTMLSelectElementConstructor = scope.getHTMLSelectElement?.();"
+            "getCurrentSettingsRuntime requires ${providerName} provider"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "providerName: string"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const clearTimeoutRef = getClearTimeout();"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const setTimeoutRef = getSetTimeout();"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const HTMLInputElementConstructor = getHTMLInputElement();"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const HTMLSelectElementConstructor = getHTMLSelectElement();"
         );
     });
 

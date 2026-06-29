@@ -11,6 +11,18 @@ import {
 } from "../../../../../electron-app/utils/app/initialization/getCurrentSettingsRuntime.js";
 
 describe("getGetCurrentSettingsRuntime", () => {
+    function createGetCurrentSettingsRuntimeScope(
+        overrides: Partial<GetCurrentSettingsRuntimeScope> = {}
+    ): GetCurrentSettingsRuntimeScope {
+        return {
+            getClearTimeout: () => undefined,
+            getHTMLInputElement: () => undefined,
+            getHTMLSelectElement: () => undefined,
+            getSetTimeout: () => undefined,
+            ...overrides,
+        };
+    }
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -26,10 +38,12 @@ describe("getGetCurrentSettingsRuntime", () => {
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
-        } = getGetCurrentSettingsRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        } = getGetCurrentSettingsRuntime(
+            createGetCurrentSettingsRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
         clearScheduledTimeout(timer);
@@ -62,10 +76,12 @@ describe("getGetCurrentSettingsRuntime", () => {
     it("checks form elements through injected constructor providers", () => {
         expect.assertions(4);
 
-        const runtime = getGetCurrentSettingsRuntime({
-            getHTMLInputElement: () => HTMLInputElement,
-            getHTMLSelectElement: () => HTMLSelectElement,
-        });
+        const runtime = getGetCurrentSettingsRuntime(
+            createGetCurrentSettingsRuntimeScope({
+                getHTMLInputElement: () => HTMLInputElement,
+                getHTMLSelectElement: () => HTMLSelectElement,
+            })
+        );
         const input = document.createElement("input");
         const select = document.createElement("select");
 
@@ -91,7 +107,9 @@ describe("getGetCurrentSettingsRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(4);
 
-        const runtime = getGetCurrentSettingsRuntime({});
+        const runtime = getGetCurrentSettingsRuntime(
+            createGetCurrentSettingsRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "getCurrentSettingsRuntime requires setTimeout"
@@ -107,10 +125,18 @@ describe("getGetCurrentSettingsRuntime", () => {
         );
     });
 
-    it("ignores legacy direct timer and constructor scope properties", () => {
-        expect.assertions(4);
+    it("requires explicit provider slots", () => {
+        expect.assertions(1);
 
-        const runtime = getGetCurrentSettingsRuntime({
+        expect(() =>
+            getGetCurrentSettingsRuntime({} as GetCurrentSettingsRuntimeScope)
+        ).toThrow("getCurrentSettingsRuntime requires clearTimeout provider");
+    });
+
+    it("requires explicit provider slots and ignores legacy direct timer and constructor scope properties", () => {
+        expect.assertions(5);
+
+        const legacyScope = {
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
@@ -119,7 +145,16 @@ describe("getGetCurrentSettingsRuntime", () => {
             setTimeout() {
                 throw new Error("legacy setTimeout should not run");
             },
-        } as unknown as GetCurrentSettingsRuntimeScope);
+        } as unknown as GetCurrentSettingsRuntimeScope;
+
+        expect(() => getGetCurrentSettingsRuntime(legacyScope)).toThrow(
+            "getCurrentSettingsRuntime requires clearTimeout provider"
+        );
+
+        const runtime = getGetCurrentSettingsRuntime({
+            ...legacyScope,
+            ...createGetCurrentSettingsRuntimeScope(),
+        });
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "getCurrentSettingsRuntime requires setTimeout"
