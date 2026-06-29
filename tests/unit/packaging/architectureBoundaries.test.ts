@@ -23607,7 +23607,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(118);
+        expect.assertions(123);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -23698,6 +23698,21 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateManagerSource).not.toContain(
             "type ElectronRendererAPI = Partial<"
+        );
+        expect(masterStateManagerSource).toContain(
+            'readonly getAppVersion: ElectronAppInfoApi["getAppVersion"];'
+        );
+        expect(masterStateManagerSource).toContain(
+            'readonly openFileDialog: ElectronDialogApi["openFileDialog"];'
+        );
+        expect(masterStateManagerSource).not.toContain(
+            'readonly getAppVersion?: ElectronAppInfoApi["getAppVersion"];'
+        );
+        expect(masterStateManagerSource).not.toContain(
+            'readonly openFileDialog?: ElectronDialogApi["openFileDialog"];'
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "hasOptionalMasterElectronFunction"
         );
         expect(showUpdateNotificationSource).not.toContain(
             "value as Record<string, unknown>"

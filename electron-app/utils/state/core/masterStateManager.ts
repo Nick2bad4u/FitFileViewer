@@ -89,8 +89,8 @@ type ComponentName =
     | "ui";
 
 type ElectronRendererAPI = {
-    readonly getAppVersion?: ElectronAppInfoApi["getAppVersion"];
-    readonly openFileDialog?: ElectronDialogApi["openFileDialog"];
+    readonly getAppVersion: ElectronAppInfoApi["getAppVersion"];
+    readonly openFileDialog: ElectronDialogApi["openFileDialog"];
 };
 
 type StateManagerApi = {
@@ -204,12 +204,12 @@ function stateStorageRuntime(): StateStorageRuntime {
     return getStateStorageRuntime();
 }
 
-function hasOptionalMasterElectronFunction(
+function hasMasterElectronFunction(
     value: object,
     key: "getAppVersion" | "openFileDialog"
 ): boolean {
     if (!(key in value)) {
-        return true;
+        return false;
     }
 
     return typeof value[key as keyof typeof value] === "function";
@@ -221,7 +221,7 @@ function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
     }
 
     return ["getAppVersion", "openFileDialog"].every((key) =>
-        hasOptionalMasterElectronFunction(
+        hasMasterElectronFunction(
             value,
             key as "getAppVersion" | "openFileDialog"
         )
@@ -725,10 +725,7 @@ export class MasterStateManager {
         let appVersion = "26.5.0"; // Fallback to current package version for deterministic tests
         try {
             const electronAPI = this.getMasterElectronAPI();
-            if (
-                electronAPI &&
-                typeof electronAPI.getAppVersion === "function"
-            ) {
+            if (electronAPI) {
                 const ver = await electronAPI.getAppVersion();
                 if (typeof ver === "string" && ver) {
                     appVersion = ver;
@@ -1060,7 +1057,7 @@ export class MasterStateManager {
                 // Ctrl/Cmd + O - Open file
                 if ((event.ctrlKey || event.metaKey) && event.key === "o") {
                     event.preventDefault();
-                    void this.getMasterElectronAPI()?.openFileDialog?.();
+                    void this.getMasterElectronAPI()?.openFileDialog();
                 }
 
                 // Ctrl/Cmd + T - Toggle theme
