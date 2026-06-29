@@ -3,7 +3,7 @@ import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 type CreateTablesDocument = Pick<Document, "querySelector">;
 
 export interface CreateTablesRuntimeScope {
-    readonly getDocument?: (() => CreateTablesDocument | undefined) | undefined;
+    readonly getDocument: (() => CreateTablesDocument | undefined) | undefined;
 }
 
 export interface CreateTablesRuntime {
@@ -17,7 +17,11 @@ const defaultCreateTablesRuntimeScope: CreateTablesRuntimeScope = {
 function getScopeDocument(
     scope: CreateTablesRuntimeScope
 ): CreateTablesDocument | undefined {
-    return scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError("createTablesRuntime requires a document provider");
+    }
+
+    return scope.getDocument();
 }
 
 export function getCreateTablesRuntime(

@@ -8,6 +8,10 @@ import {
 } from "../../../../../electron-app/utils/rendering/components/createTablesRuntime.js";
 
 describe("createTablesRuntime", () => {
+    const unavailableCreateTablesRuntimeScope = {
+        getDocument: () => undefined,
+    } satisfies CreateTablesRuntimeScope;
+
     it("resolves the default data-table container through the document provider", () => {
         expect.assertions(3);
 
@@ -39,12 +43,26 @@ describe("createTablesRuntime", () => {
         container.remove();
     });
 
-    it("returns null when explicit scopes do not provide a document", () => {
+    it("returns null when explicit scopes provide no document", () => {
         expect.assertions(1);
 
-        const runtime = getCreateTablesRuntime({});
+        const runtime = getCreateTablesRuntime(
+            unavailableCreateTablesRuntimeScope
+        );
 
         expect(runtime.getDefaultContainer()).toBeNull();
+    });
+
+    it("fails clearly when explicit scopes omit the document provider", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateTablesRuntime(
+            {} as unknown as CreateTablesRuntimeScope
+        );
+
+        expect(() => runtime.getDefaultContainer()).toThrow(
+            "createTablesRuntime requires a document provider"
+        );
     });
 
     it("ignores legacy direct document scope properties", () => {
@@ -54,6 +72,7 @@ describe("createTablesRuntime", () => {
             document.createElement("div")
         );
         const runtime = getCreateTablesRuntime({
+            ...unavailableCreateTablesRuntimeScope,
             document: { querySelector },
         } as unknown as CreateTablesRuntimeScope);
 

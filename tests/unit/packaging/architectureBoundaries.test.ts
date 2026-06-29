@@ -17686,7 +17686,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table creation container lookup behind the runtime facade", () => {
-        expect.assertions(17);
+        expect.assertions(20);
 
         const violations = migratedCreateTablesRuntimeFiles
             .filter((relativeFile) =>
@@ -17745,9 +17745,18 @@ describe("architecture boundaries", () => {
         expect(createTablesRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(createTablesRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(createTablesRuntimeSource).not.toContain("scope.document");
+        expect(createTablesRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(createTablesRuntimeSource).toContain(
-            "return scope.getDocument?.();"
+            "return scope.getDocument();"
+        );
+        expect(createTablesRuntimeSource).toContain(
+            "createTablesRuntime requires a document provider"
         );
         expect(createTablesRuntimeSource).toContain(
             "querySelector<HTMLElement>"
