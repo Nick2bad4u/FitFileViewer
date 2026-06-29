@@ -18065,7 +18065,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps sanitize HTML allowlist fallback DOM APIs behind the runtime facade", () => {
-        expect.assertions(33);
+        expect.assertions(49);
 
         const sanitizerSource = stripComments(
             readRepositoryFile(
@@ -18142,6 +18142,28 @@ describe("architecture boundaries", () => {
         expect(sanitizerRuntimeSource).not.toContain(
             "scope: SanitizeHtmlAllowlistRuntimeScope = globalThis"
         );
+        expect(sanitizerRuntimeSource).toContain(
+            "sanitizeHtmlAllowlist requires a document provider"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "sanitizeHtmlAllowlist requires a DOMParser provider"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "sanitizeHtmlAllowlist requires an Element provider"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "sanitizeHtmlAllowlist requires a NodeFilter provider"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument();"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "const DOMParserConstructor = scope.getDOMParser();"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "const NodeFilterRef = scope.getNodeFilter();"
+        );
+        expect(sanitizerRuntimeSource).toContain("return scope.getElement();");
         expect(sanitizerRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
@@ -18152,6 +18174,22 @@ describe("architecture boundaries", () => {
         expect(sanitizerRuntimeScopeSource).not.toContain(
             "readonly NodeFilter?:"
         );
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly getDOMParser?:"
+        );
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly getElement?:"
+        );
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly getNodeFilter?:"
+        );
+        expect(sanitizerRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(sanitizerRuntimeSource).not.toContain("scope.getDOMParser?.()");
+        expect(sanitizerRuntimeSource).not.toContain("scope.getElement?.()");
+        expect(sanitizerRuntimeSource).not.toContain("scope.getNodeFilter?.()");
         expect(sanitizerRuntimeSource).not.toContain("scope.document");
         expect(sanitizerRuntimeSource).not.toContain("scope.DOMParser");
         expect(sanitizerRuntimeSource).not.toContain("scope.Element");

@@ -67,24 +67,34 @@ describe("getSanitizeHtmlAllowlistRuntime", () => {
     });
 
     it("fails clearly when required browser primitives are unavailable", () => {
-        expect.assertions(6);
+        expect.assertions(5);
 
         const documentRef = document.implementation.createHTMLDocument();
-        const runtime = getSanitizeHtmlAllowlistRuntime({});
         const documentOnlyRuntime = getSanitizeHtmlAllowlistRuntime({
             getDocument: () => documentRef,
+            getDOMParser: () => undefined,
+            getElement: () => undefined,
+            getNodeFilter: () => undefined,
+        });
+        const unavailableRuntime = getSanitizeHtmlAllowlistRuntime({
+            getDocument: () => undefined,
+            getDOMParser: () => undefined,
+            getElement: () => undefined,
+            getNodeFilter: () => undefined,
         });
 
-        expect(runtime.createDocumentFragment).toThrow(
+        expect(unavailableRuntime.createDocumentFragment).toThrow(
             "sanitizeHtmlAllowlist requires a document runtime"
         );
-        expect(runtime.createDomParser).toThrow(
+        expect(unavailableRuntime.createDomParser).toThrow(
             "sanitizeHtmlAllowlist requires a DOMParser runtime"
         );
         expect(() =>
-            runtime.createElementTreeWalker(document.createDocumentFragment())
+            unavailableRuntime.createElementTreeWalker(
+                document.createDocumentFragment()
+            )
         ).toThrow("sanitizeHtmlAllowlist requires a document runtime");
-        expect(() => runtime.createTextNode("fallback")).toThrow(
+        expect(() => unavailableRuntime.createTextNode("fallback")).toThrow(
             "sanitizeHtmlAllowlist requires a document runtime"
         );
         expect(() =>
@@ -92,7 +102,33 @@ describe("getSanitizeHtmlAllowlistRuntime", () => {
                 documentRef.createDocumentFragment()
             )
         ).toThrow("sanitizeHtmlAllowlist requires a NodeFilter runtime");
-        expect(runtime.isElement(document.createElement("div"))).toBe(false);
+    });
+
+    it("fails clearly when explicit scopes omit provider functions", () => {
+        expect.assertions(5);
+
+        const documentRef = document.implementation.createHTMLDocument();
+        const runtime = getSanitizeHtmlAllowlistRuntime(
+            {} as unknown as SanitizeHtmlAllowlistRuntimeScope
+        );
+
+        expect(runtime.createDocumentFragment).toThrow(
+            "sanitizeHtmlAllowlist requires a document provider"
+        );
+        expect(runtime.createDomParser).toThrow(
+            "sanitizeHtmlAllowlist requires a DOMParser provider"
+        );
+        expect(() =>
+            runtime.createElementTreeWalker(
+                documentRef.createDocumentFragment()
+            )
+        ).toThrow("sanitizeHtmlAllowlist requires a document provider");
+        expect(() => runtime.createTextNode("fallback")).toThrow(
+            "sanitizeHtmlAllowlist requires a document provider"
+        );
+        expect(() => runtime.isElement(document.createElement("div"))).toThrow(
+            "sanitizeHtmlAllowlist requires an Element provider"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -107,19 +143,21 @@ describe("getSanitizeHtmlAllowlistRuntime", () => {
         } as unknown as SanitizeHtmlAllowlistRuntimeScope);
 
         expect(runtime.createDocumentFragment).toThrow(
-            "sanitizeHtmlAllowlist requires a document runtime"
+            "sanitizeHtmlAllowlist requires a document provider"
         );
         expect(runtime.createDomParser).toThrow(
-            "sanitizeHtmlAllowlist requires a DOMParser runtime"
+            "sanitizeHtmlAllowlist requires a DOMParser provider"
         );
         expect(() =>
             runtime.createElementTreeWalker(
                 documentRef.createDocumentFragment()
             )
-        ).toThrow("sanitizeHtmlAllowlist requires a document runtime");
+        ).toThrow("sanitizeHtmlAllowlist requires a document provider");
         expect(() => runtime.createTextNode("fallback")).toThrow(
-            "sanitizeHtmlAllowlist requires a document runtime"
+            "sanitizeHtmlAllowlist requires a document provider"
         );
-        expect(runtime.isElement(document.createElement("div"))).toBe(false);
+        expect(() => runtime.isElement(document.createElement("div"))).toThrow(
+            "sanitizeHtmlAllowlist requires an Element provider"
+        );
     });
 });

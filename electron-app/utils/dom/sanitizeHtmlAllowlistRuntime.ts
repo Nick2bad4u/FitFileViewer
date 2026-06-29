@@ -14,18 +14,10 @@ type SanitizeHtmlAllowlistDocument = Pick<
 >;
 
 export interface SanitizeHtmlAllowlistRuntimeScope {
-    readonly getDocument?:
-        | (() => SanitizeHtmlAllowlistDocument | undefined)
-        | undefined;
-    readonly getDOMParser?:
-        | (() => BrowserDOMParserConstructor | undefined)
-        | undefined;
-    readonly getElement?:
-        | (() => BrowserElementConstructor | undefined)
-        | undefined;
-    readonly getNodeFilter?:
-        | (() => BrowserNodeFilter | undefined)
-        | undefined;
+    readonly getDocument: () => SanitizeHtmlAllowlistDocument | undefined;
+    readonly getDOMParser: () => BrowserDOMParserConstructor | undefined;
+    readonly getElement: () => BrowserElementConstructor | undefined;
+    readonly getNodeFilter: () => BrowserNodeFilter | undefined;
 }
 
 export interface SanitizeHtmlAllowlistRuntime {
@@ -47,7 +39,13 @@ const defaultSanitizeHtmlAllowlistRuntimeScope: SanitizeHtmlAllowlistRuntimeScop
 function getRequiredDocument(
     scope: SanitizeHtmlAllowlistRuntimeScope
 ): SanitizeHtmlAllowlistDocument {
-    const runtimeDocument = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "sanitizeHtmlAllowlist requires a document provider"
+        );
+    }
+
+    const runtimeDocument = scope.getDocument();
     if (!runtimeDocument) {
         throw new TypeError(
             "sanitizeHtmlAllowlist requires a document runtime"
@@ -60,7 +58,13 @@ function getRequiredDocument(
 function getRequiredDOMParser(
     scope: SanitizeHtmlAllowlistRuntimeScope
 ): BrowserDOMParserConstructor {
-    const DOMParserConstructor = scope.getDOMParser?.();
+    if (typeof scope.getDOMParser !== "function") {
+        throw new TypeError(
+            "sanitizeHtmlAllowlist requires a DOMParser provider"
+        );
+    }
+
+    const DOMParserConstructor = scope.getDOMParser();
     if (typeof DOMParserConstructor !== "function") {
         throw new TypeError(
             "sanitizeHtmlAllowlist requires a DOMParser runtime"
@@ -73,7 +77,13 @@ function getRequiredDOMParser(
 function getRequiredNodeFilter(
     scope: SanitizeHtmlAllowlistRuntimeScope
 ): BrowserNodeFilter {
-    const NodeFilterRef = scope.getNodeFilter?.();
+    if (typeof scope.getNodeFilter !== "function") {
+        throw new TypeError(
+            "sanitizeHtmlAllowlist requires a NodeFilter provider"
+        );
+    }
+
+    const NodeFilterRef = scope.getNodeFilter();
     if (!NodeFilterRef) {
         throw new TypeError(
             "sanitizeHtmlAllowlist requires a NodeFilter runtime"
@@ -86,7 +96,13 @@ function getRequiredNodeFilter(
 function getElementConstructor(
     scope: SanitizeHtmlAllowlistRuntimeScope
 ): BrowserElementConstructor | undefined {
-    return scope.getElement?.();
+    if (typeof scope.getElement !== "function") {
+        throw new TypeError(
+            "sanitizeHtmlAllowlist requires an Element provider"
+        );
+    }
+
+    return scope.getElement();
 }
 
 export function getSanitizeHtmlAllowlistRuntime(
