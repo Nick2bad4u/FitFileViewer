@@ -5,7 +5,6 @@ import {
     getHeartRateZones,
     getPowerZones,
 } from "../../data/zones/zoneDataState.js";
-import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
@@ -17,6 +16,7 @@ import {
 import { registerChartInstance as registerRegisteredChartInstance } from "../core/chartInstanceRegistry.js";
 import { getRenderChartDomHelpersRuntime } from "../core/renderChartDomHelpersRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
+import { isTestEnvironment } from "../core/renderChartRuntimeHelpers.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 
 interface LapZoneChartsOptions {

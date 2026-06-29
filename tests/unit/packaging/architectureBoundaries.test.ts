@@ -19497,7 +19497,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(47);
+        expect.assertions(49);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -19529,6 +19529,11 @@ describe("architecture boundaries", () => {
         const renderGpsTrackChartSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/rendering/renderGPSTrackChart.ts"
+            )
+        );
+        const renderLapZoneChartsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/rendering/renderLapZoneCharts.ts"
             )
         );
         const renderChartRuntimeHelpersRuntimeSource = stripComments(
@@ -19587,6 +19592,12 @@ describe("architecture boundaries", () => {
             "../../runtime/processEnvironment.js"
         );
         expect(renderGpsTrackChartSource).toContain(
+            "../core/renderChartRuntimeHelpers.js"
+        );
+        expect(renderLapZoneChartsSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(renderLapZoneChartsSource).toContain(
             "../core/renderChartRuntimeHelpers.js"
         );
         expect(renderChartRuntimeHelpersSource).toContain(
