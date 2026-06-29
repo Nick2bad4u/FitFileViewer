@@ -28,6 +28,14 @@ function getRequiredButtonCache(): Map<string, HTMLElement> {
     return cache;
 }
 
+function setupTabButtonForTest(
+    id: unknown,
+    handler: unknown,
+    documentRef: Document = document
+): ReturnType<typeof setupTabButton> {
+    return setupTabButton(id, handler, { documentRef });
+}
+
 describe(setupTabButton, () => {
     let container: HTMLDivElement, warnSpy: ReturnType<typeof vi.spyOn>;
 
@@ -58,9 +66,9 @@ describe(setupTabButton, () => {
         const handler = vi.fn<ClickHandler>();
 
         expect([
-            setupTabButton(null, handler),
-            setupTabButton("", handler),
-            setupTabButton("   ", handler),
+            setupTabButtonForTest(null, handler),
+            setupTabButtonForTest("", handler),
+            setupTabButtonForTest("   ", handler),
         ]).toStrictEqual([
             undefined,
             undefined,
@@ -77,8 +85,8 @@ describe(setupTabButton, () => {
         appendButton("tab-summary");
 
         expect([
-            setupTabButton("tab-summary", null),
-            setupTabButton("tab-summary", "handler"),
+            setupTabButtonForTest("tab-summary", null),
+            setupTabButtonForTest("tab-summary", "handler"),
         ]).toStrictEqual([undefined, undefined]);
 
         expect(warnSpy).toHaveBeenCalledTimes(2);
@@ -92,7 +100,7 @@ describe(setupTabButton, () => {
 
         const handler = vi.fn<ClickHandler>();
 
-        expect(setupTabButton("missing-tab", handler)).toBeUndefined();
+        expect(setupTabButtonForTest("missing-tab", handler)).toBeUndefined();
 
         expect(warnSpy).toHaveBeenCalledWith(
             'Button with id "missing-tab" not found. Ensure the element exists in the DOM.'
@@ -106,7 +114,7 @@ describe(setupTabButton, () => {
         const button = appendButton("tab-chart"),
             handler = vi.fn<ClickHandler>();
 
-        const cleanup = setupTabButton("tab-chart", handler);
+        const cleanup = setupTabButtonForTest("tab-chart", handler);
         button.click();
         cleanup?.();
         button.click();
@@ -123,8 +131,8 @@ describe(setupTabButton, () => {
             firstHandler = vi.fn<ClickHandler>(),
             secondHandler = vi.fn<ClickHandler>();
 
-        setupTabButton("tab-map", firstHandler);
-        setupTabButton("tab-map", secondHandler);
+        setupTabButtonForTest("tab-map", firstHandler);
+        setupTabButtonForTest("tab-map", secondHandler);
         button.click();
 
         expect(firstHandler).not.toHaveBeenCalled();
@@ -139,9 +147,9 @@ describe(setupTabButton, () => {
             firstHandler = vi.fn<ClickHandler>(),
             secondHandler = vi.fn<ClickHandler>();
 
-        setupTabButton("tab-data", firstHandler);
+        setupTabButtonForTest("tab-data", firstHandler);
         const getElementByIdSpy = vi.spyOn(document, "getElementById");
-        setupTabButton("tab-data", secondHandler);
+        setupTabButtonForTest("tab-data", secondHandler);
 
         expect(getElementByIdSpy).not.toHaveBeenCalled();
         expect(getRequiredButtonCache().get("tab-data")).toBe(button);
@@ -154,10 +162,10 @@ describe(setupTabButton, () => {
             firstHandler = vi.fn<ClickHandler>(),
             secondHandler = vi.fn<ClickHandler>();
 
-        setupTabButton("tab-replaced", firstHandler);
+        setupTabButtonForTest("tab-replaced", firstHandler);
         oldButton.remove();
         const newButton = appendButton("tab-replaced");
-        setupTabButton("tab-replaced", secondHandler);
+        setupTabButtonForTest("tab-replaced", secondHandler);
         newButton.click();
 
         expect(warnSpy).toHaveBeenCalledWith(
@@ -173,11 +181,11 @@ describe(setupTabButton, () => {
 
         const button = appendButton("tab-removed");
 
-        setupTabButton("tab-removed", vi.fn<ClickHandler>());
+        setupTabButtonForTest("tab-removed", vi.fn<ClickHandler>());
         button.remove();
 
         expect(
-            setupTabButton("tab-removed", vi.fn<ClickHandler>())
+            setupTabButtonForTest("tab-removed", vi.fn<ClickHandler>())
         ).toBeUndefined();
         expect(warnSpy).toHaveBeenCalledWith(
             'Button with id "tab-removed" not found after cache refresh.'
@@ -196,8 +204,8 @@ describe(setupTabButton, () => {
             secondButton = appendButton("tab-two"),
             handler = vi.fn<ClickHandler>();
 
-        setupTabButton("tab-one", handler);
-        setupTabButton("tab-two", handler);
+        setupTabButtonForTest("tab-one", handler);
+        setupTabButtonForTest("tab-two", handler);
         clearTabButtonCache();
 
         firstButton.click();
@@ -219,5 +227,29 @@ describe(setupTabButton, () => {
         expect(clearTabButtonCache()).toBeUndefined();
 
         expect(setupTabButtonWithCache).toHaveProperty("cache", undefined);
+    });
+
+    it("looks up buttons from the injected document", () => {
+        expect.assertions(3);
+
+        const injectedDocument =
+            document.implementation.createHTMLDocument("tab buttons");
+        const button = injectedDocument.createElement(
+            "button"
+        ) as TabButtonElement;
+        const handler = vi.fn<ClickHandler>();
+        button.id = "tab-isolated";
+        injectedDocument.body.append(button);
+
+        const cleanup = setupTabButtonForTest(
+            "tab-isolated",
+            handler,
+            injectedDocument
+        );
+        button.click();
+
+        expect(cleanup).toBeTypeOf("function");
+        expect(handler).toHaveBeenCalledOnce();
+        expect(getRequiredButtonCache().get("tab-isolated")).toBe(button);
     });
 });

@@ -13699,7 +13699,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(60);
+        expect.assertions(65);
 
         const tabStateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/tabStateManager.ts")
@@ -13726,6 +13726,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/tabDocumentRuntime.ts"
             )
+        );
+        const setupTabButtonSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/setupTabButton.ts")
         );
         const tabDocumentRuntimeScopeSource = tabDocumentRuntimeSource.slice(
             tabDocumentRuntimeSource.indexOf(
@@ -13859,6 +13862,21 @@ describe("architecture boundaries", () => {
         );
         expect(tabDocumentRuntimeSource).toContain(
             "tabDocumentRuntime requires an HTMLElement runtime"
+        );
+        expect(setupTabButtonSource).toContain(
+            "export interface SetupTabButtonOptions"
+        );
+        expect(setupTabButtonSource).toContain(
+            "readonly documentRef: Document;"
+        );
+        expect(setupTabButtonSource).toContain(
+            "querySelectorByIdFlexible(documentRef"
+        );
+        expect(setupTabButtonSource).not.toContain(
+            "querySelectorByIdFlexible(document,"
+        );
+        expect(setupTabButtonSource).not.toMatch(
+            /\bquerySelectorByIdFlexible\(document\b/u
         );
     });
 

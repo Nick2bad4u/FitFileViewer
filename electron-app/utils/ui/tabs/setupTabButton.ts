@@ -7,6 +7,10 @@ type SetupTabButtonWithCache = typeof setupTabButton & {
     cache?: Map<string, HTMLElement>;
 };
 
+export interface SetupTabButtonOptions {
+    readonly documentRef: Document;
+}
+
 type TabButtonElement = HTMLElement & {
     _setupTabButtonCleanup?: CleanupFunction;
 };
@@ -16,13 +20,15 @@ type TabButtonElement = HTMLElement & {
  *
  * @param id - The ID of the button element.
  * @param handler - The event handler function to be executed on click.
+ * @param options - Explicit DOM lookup dependencies.
  *
  * @returns Cleanup function to remove the event listener, or undefined if setup
  *   failed.
  */
 export function setupTabButton(
     id: unknown,
-    handler: unknown
+    handler: unknown,
+    { documentRef }: SetupTabButtonOptions
 ): CleanupFunction | undefined {
     if (
         id === null ||
@@ -52,7 +58,7 @@ export function setupTabButton(
                 `Cached button with id "${id}" is no longer in DOM. Refreshing cache.`
             );
             cache.delete(id);
-            btn = querySelectorByIdFlexible(document, `#${id}`);
+            btn = querySelectorByIdFlexible(documentRef, `#${id}`);
             if (btn) {
                 cache.set(id, btn);
             } else {
@@ -63,7 +69,7 @@ export function setupTabButton(
             }
         }
     } else {
-        btn = querySelectorByIdFlexible(document, `#${id}`);
+        btn = querySelectorByIdFlexible(documentRef, `#${id}`);
         if (btn) {
             cache.set(id, btn);
         } else {
