@@ -33776,7 +33776,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(114);
+        expect.assertions(119);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -33870,6 +33870,9 @@ describe("architecture boundaries", () => {
         );
         expect(vendorMapRuntimeSource).not.toContain("readonly document?:");
         expect(vendorMapRuntimeSource).not.toContain("readonly globalScope?:");
+        expect(vendorMapRuntimeSource).not.toContain(
+            "readonly deleteTemporaryLeafletGlobals?:"
+        );
         expect(vendorMapRuntimeSource).not.toContain("scope.document");
         expect(vendorMapRuntimeSource).not.toContain("scope.globalScope");
         expect(vendorMapRuntimeSource).not.toContain("getGlobalScope");
@@ -33893,6 +33896,9 @@ describe("architecture boundaries", () => {
             "type RendererVendorMapRuntimeProvider"
         );
         expect(vendorMapRuntimeSource).toMatch(
+            /readonly\s+deleteTemporaryLeafletGlobals:\s*RendererVendorMapRuntimeProvider<\s*void\s*>/u
+        );
+        expect(vendorMapRuntimeSource).toMatch(
             /readonly\s+getDocument:\s*RendererVendorMapRuntimeProvider<\s*Pick<Document,\s*"documentElement">\s*>/u
         );
         expect(vendorMapRuntimeSource).toContain(
@@ -33905,10 +33911,19 @@ describe("architecture boundaries", () => {
         expect(vendorMapRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
         );
+        expect(vendorMapRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.deleteTemporaryLeafletGlobals,\s*"temporary Leaflet cleanup"\s*\)/u
+        );
         expect(vendorMapRuntimeSource).toContain(
             "return getDocument()?.documentElement !== undefined;"
         );
         expect(vendorMapRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(vendorMapRuntimeSource).not.toContain(
+            "scope.deleteTemporaryLeafletGlobals?.()"
+        );
+        expect(vendorMapRuntimeSource).toContain(
+            "deleteTemporaryLeafletGlobals();"
+        );
         expect(vendorMapRuntimeSource).not.toContain(
             "Reflect.deleteProperty(globalThis"
         );

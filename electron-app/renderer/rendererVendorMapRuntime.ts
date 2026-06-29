@@ -4,7 +4,7 @@ import {
 } from "../utils/runtime/browserRuntime.js";
 
 export interface RendererVendorMapRuntimeScope {
-    readonly deleteTemporaryLeafletGlobals?: (() => void) | undefined;
+    readonly deleteTemporaryLeafletGlobals: RendererVendorMapRuntimeProvider<void>;
     readonly getDocument: RendererVendorMapRuntimeProvider<
         Pick<Document, "documentElement">
     >;
@@ -27,6 +27,10 @@ export function getRendererVendorMapRuntime(
     scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
     const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const deleteTemporaryLeafletGlobals = getRequiredProvider(
+        scope.deleteTemporaryLeafletGlobals,
+        "temporary Leaflet cleanup"
+    );
 
     return {
         hasDocumentElement(): boolean {
@@ -34,7 +38,7 @@ export function getRendererVendorMapRuntime(
         },
 
         removeTemporaryLeafletGlobals(): void {
-            scope.deleteTemporaryLeafletGlobals?.();
+            deleteTemporaryLeafletGlobals();
         },
 
         setDocumentElementStyleProperty(property: string, value: string): void {
