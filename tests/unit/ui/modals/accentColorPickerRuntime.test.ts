@@ -2,7 +2,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BrowserAbortControllerConstructor } from "../../../../electron-app/utils/runtime/browserRuntime.js";
+import type { AccentColorPickerRuntimeScope } from "../../../../electron-app/ui/modals/accentColorPickerRuntime.js";
 import { getAccentColorPickerRuntime } from "../../../../electron-app/ui/modals/accentColorPickerRuntime.js";
+
+function createUnavailableRuntimeScope(
+    overrides: Partial<AccentColorPickerRuntimeScope> = {}
+): AccentColorPickerRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getHTMLButtonElement: () => undefined,
+        getHTMLElement: () => undefined,
+        getHTMLInputElement: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getAccentColorPickerRuntime", () => {
     afterEach(() => {
@@ -18,10 +33,12 @@ describe("getAccentColorPickerRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getAccentColorPickerRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getAccentColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -73,11 +90,13 @@ describe("getAccentColorPickerRuntime", () => {
         const documentEventTarget =
             document.implementation.createHTMLDocument();
         let keydownCount = 0;
-        const runtime = getAccentColorPickerRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getAccentColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(
             () => {
@@ -100,12 +119,14 @@ describe("getAccentColorPickerRuntime", () => {
         expect.assertions(19);
 
         const documentRef = document.implementation.createHTMLDocument();
-        const runtime = getAccentColorPickerRuntime({
-            getDocument: () => documentRef,
-            getHTMLButtonElement: () => HTMLButtonElement,
-            getHTMLElement: () => HTMLElement,
-            getHTMLInputElement: () => HTMLInputElement,
-        });
+        const runtime = getAccentColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+                getHTMLButtonElement: () => HTMLButtonElement,
+                getHTMLElement: () => HTMLElement,
+                getHTMLInputElement: () => HTMLInputElement,
+            })
+        );
         const modal = documentRef.createElement("div");
         modal.id = "accent-color-modal";
         const input = documentRef.createElement("input");
@@ -155,9 +176,11 @@ describe("getAccentColorPickerRuntime", () => {
         const listener = () => {
             keydownCount += 1;
         };
-        const runtime = getAccentColorPickerRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getAccentColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -177,7 +200,9 @@ describe("getAccentColorPickerRuntime", () => {
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
         expect.assertions(10);
 
-        const runtime = getAccentColorPickerRuntime({});
+        const runtime = getAccentColorPickerRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "accentColorPicker requires an AbortController runtime"
@@ -225,9 +250,11 @@ describe("getAccentColorPickerRuntime", () => {
         const listener = () => {
             keydownCount += 1;
         };
-        const runtime = getAccentColorPickerRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getAccentColorPickerRuntime(
+            createUnavailableRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -241,6 +268,76 @@ describe("getAccentColorPickerRuntime", () => {
         });
         expect(keydownCount).toBe(1);
         expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("throws clearly when required runtime providers are missing", () => {
+        expect.assertions(6);
+
+        expect(() =>
+            getAccentColorPickerRuntime({
+                getDocument: () => undefined,
+                getDocumentEventTarget: () => undefined,
+                getHTMLButtonElement: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as AccentColorPickerRuntimeScope).createAbortController()
+        ).toThrow("accentColorPicker requires an AbortController provider");
+        expect(() =>
+            getAccentColorPickerRuntime({
+                getAbortController: () => undefined,
+                getDocument: () => undefined,
+                getHTMLButtonElement: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as AccentColorPickerRuntimeScope).addDocumentKeydownListener(
+                () => undefined,
+                {}
+            )
+        ).toThrow(
+            "accentColorPicker requires a document event-target provider"
+        );
+        expect(() =>
+            getAccentColorPickerRuntime({
+                getAbortController: () => undefined,
+                getDocumentEventTarget: () => undefined,
+                getHTMLButtonElement: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as AccentColorPickerRuntimeScope).createElement("div")
+        ).toThrow("accentColorPicker requires a document provider");
+        expect(() =>
+            getAccentColorPickerRuntime({
+                getAbortController: () => undefined,
+                getDocument: () => undefined,
+                getDocumentEventTarget: () => undefined,
+                getHTMLElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as AccentColorPickerRuntimeScope).isHTMLButtonElement(
+                document.body
+            )
+        ).toThrow("accentColorPicker requires an HTMLButtonElement provider");
+        expect(() =>
+            getAccentColorPickerRuntime({
+                getAbortController: () => undefined,
+                getDocument: () => undefined,
+                getDocumentEventTarget: () => undefined,
+                getHTMLButtonElement: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as AccentColorPickerRuntimeScope).isHTMLElement(
+                document.body
+            )
+        ).toThrow("accentColorPicker requires an HTMLElement provider");
+        expect(() =>
+            getAccentColorPickerRuntime({
+                getAbortController: () => undefined,
+                getDocument: () => undefined,
+                getDocumentEventTarget: () => undefined,
+                getHTMLButtonElement: () => undefined,
+                getHTMLElement: () => undefined,
+            } as unknown as AccentColorPickerRuntimeScope).isHTMLInputElement(
+                document.body
+            )
+        ).toThrow("accentColorPicker requires an HTMLInputElement provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -264,34 +361,36 @@ describe("getAccentColorPickerRuntime", () => {
         } as unknown as Parameters<typeof getAccentColorPickerRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "accentColorPicker requires an AbortController runtime"
+            "accentColorPicker requires an AbortController provider"
         );
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
-        ).toThrow("accentColorPicker requires a document event-target runtime");
+        ).toThrow(
+            "accentColorPicker requires a document event-target provider"
+        );
         expect(() => runtime.getModalElement()).toThrow(
-            "accentColorPicker requires a document runtime"
+            "accentColorPicker requires a document provider"
         );
         expect(() =>
             runtime.appendModal(document.createElement("div"))
-        ).toThrow("accentColorPicker requires a document runtime");
+        ).toThrow("accentColorPicker requires a document provider");
         expect(() => runtime.createElement("div")).toThrow(
-            "accentColorPicker requires a document runtime"
+            "accentColorPicker requires a document provider"
         );
         expect(() => runtime.createStyleElement()).toThrow(
-            "accentColorPicker requires a document runtime"
+            "accentColorPicker requires a document provider"
         );
         expect(() => runtime.createTextNode("accent")).toThrow(
-            "accentColorPicker requires a document runtime"
+            "accentColorPicker requires a document provider"
         );
         expect(() => runtime.getElement("#accent-color-modal")).toThrow(
-            "accentColorPicker requires a document runtime"
+            "accentColorPicker requires a document provider"
         );
         expect(() => runtime.isHTMLElement(document.body)).toThrow(
-            "accentColorPicker requires an HTMLElement runtime"
+            "accentColorPicker requires an HTMLElement provider"
         );
         expect(() => runtime.isHTMLButtonElement(document.body)).toThrow(
-            "accentColorPicker requires an HTMLButtonElement runtime"
+            "accentColorPicker requires an HTMLButtonElement provider"
         );
     });
 });

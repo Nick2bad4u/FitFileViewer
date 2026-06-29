@@ -15400,7 +15400,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker browser access behind the runtime facade", () => {
-        expect.assertions(75);
+        expect.assertions(102);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -15507,7 +15507,25 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(accentColorPickerRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "getRequiredProvider("
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "type AccentColorPickerRuntimeProvider<T> ="
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "scope.getDocumentEventTarget"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            'getRequiredProvider(scope.getDocument, "document")()'
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.getDocumentEventTarget?.()"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
@@ -15573,6 +15591,42 @@ describe("architecture boundaries", () => {
             "readonly HTMLButtonElement?:"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly getDocumentEventTarget?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly getHTMLButtonElement?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "readonly getAbortController: AccentColorPickerRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "readonly getDocument: AccentColorPickerRuntimeProvider<Document>;"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "readonly getDocumentEventTarget: AccentColorPickerRuntimeProvider<Document>;"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "readonly getHTMLButtonElement: AccentColorPickerRuntimeProvider<BrowserHTMLButtonElementConstructor>;"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "readonly getHTMLElement: AccentColorPickerRuntimeProvider<BrowserHTMLElementConstructor>;"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "readonly getHTMLInputElement: AccentColorPickerRuntimeProvider<BrowserHTMLInputElementConstructor>;"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
@@ -15587,6 +15641,33 @@ describe("architecture boundaries", () => {
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "scope.HTMLButtonElement"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            'scope.getHTMLButtonElement,\n                    "HTMLButtonElement"'
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.getHTMLButtonElement?.()"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            'scope.getHTMLElement,\n                    "HTMLElement"'
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            'scope.getHTMLInputElement,\n                    "HTMLInputElement"'
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "accentColorPicker requires ${article} ${providerName} provider"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "): typeof AbortController"
