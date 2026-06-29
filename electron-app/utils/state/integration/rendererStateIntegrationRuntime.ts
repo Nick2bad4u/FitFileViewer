@@ -19,22 +19,18 @@ export type RendererStateIntegrationClickListener = (
     event: Readonly<MouseEvent>
 ) => void;
 
+type RendererStateIntegrationRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 export interface RendererStateIntegrationRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getElement?:
-        | (() => BrowserElementConstructor | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: RendererStateIntegrationRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: RendererStateIntegrationRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: RendererStateIntegrationRuntimeProvider<Document>;
+    readonly getDocumentEventTarget: RendererStateIntegrationRuntimeProvider<Document>;
+    readonly getElement: RendererStateIntegrationRuntimeProvider<BrowserElementConstructor>;
+    readonly getHTMLElement: RendererStateIntegrationRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getSetTimeout: RendererStateIntegrationRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface RendererStateIntegrationRuntime {
@@ -58,15 +54,32 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
         getAbortController: getBrowserAbortController,
         getClearTimeout: getBrowserClearTimeout,
         getDocument: getBrowserDocument,
+        getDocumentEventTarget: () => undefined,
         getElement: getBrowserElement,
         getHTMLElement: getBrowserHTMLElement,
         getSetTimeout: getBrowserSetTimeout,
     };
 
+function getRequiredProvider<T>(
+    provider: RendererStateIntegrationRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `rendererStateIntegration requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: RendererStateIntegrationRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "rendererStateIntegration requires an AbortController runtime"
@@ -79,13 +92,21 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: RendererStateIntegrationRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "document event-target"
+        )() ?? getRequiredProvider(scope.getDocument, "document")()
+    );
 }
 
 function getElementConstructor(
     scope: RendererStateIntegrationRuntimeScope
 ): BrowserElementConstructor {
-    const ElementConstructor = scope.getElement?.();
+    const ElementConstructor = getRequiredProvider(
+        scope.getElement,
+        "Element"
+    )();
     if (typeof ElementConstructor !== "function") {
         throw new TypeError(
             "rendererStateIntegration requires an Element runtime"
@@ -98,7 +119,10 @@ function getElementConstructor(
 function getHTMLElementConstructor(
     scope: RendererStateIntegrationRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    )();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "rendererStateIntegration requires an HTMLElement runtime"
@@ -111,7 +135,7 @@ function getHTMLElementConstructor(
 function requireDocument(
     scope: RendererStateIntegrationRuntimeScope
 ): Document {
-    const documentRef = scope.getDocument?.();
+    const documentRef = getRequiredProvider(scope.getDocument, "document")();
     if (!documentRef) {
         throw new TypeError(
             "rendererStateIntegration requires a document runtime"
@@ -137,7 +161,10 @@ export function getRendererStateIntegrationRuntime(
             documentEventTarget.addEventListener("click", listener, options);
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "rendererStateIntegration requires a clearTimeout runtime"
@@ -159,7 +186,10 @@ export function getRendererStateIntegrationRuntime(
             return value instanceof getHTMLElementConstructor(scope);
         },
         setTimeout(callback, delayMs): RendererStateIntegrationTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "rendererStateIntegration requires a setTimeout runtime"

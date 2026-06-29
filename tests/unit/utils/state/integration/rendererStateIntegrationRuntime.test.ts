@@ -8,8 +8,24 @@ import type {
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 import {
     getRendererStateIntegrationRuntime,
+    type RendererStateIntegrationRuntimeScope,
     type RendererStateIntegrationTimer,
 } from "../../../../../electron-app/utils/state/integration/rendererStateIntegrationRuntime.js";
+
+function createRendererStateIntegrationRuntimeScope(
+    overrides: Partial<RendererStateIntegrationRuntimeScope> = {}
+): RendererStateIntegrationRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getElement: () => undefined,
+        getHTMLElement: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getRendererStateIntegrationRuntime", () => {
     afterEach(() => {
@@ -27,10 +43,12 @@ describe("getRendererStateIntegrationRuntime", () => {
         const {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
-        } = getRendererStateIntegrationRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        } = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
         clearScheduledTimeout(timer);
@@ -42,7 +60,9 @@ describe("getRendererStateIntegrationRuntime", () => {
     it("does not borrow ambient browser primitives for explicit scopes", () => {
         expect.assertions(6);
 
-        const utils = getRendererStateIntegrationRuntime({});
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope()
+        );
 
         expect(() => utils.setTimeout(() => {}, 0)).toThrow(
             "rendererStateIntegration requires a setTimeout runtime"
@@ -75,10 +95,12 @@ describe("getRendererStateIntegrationRuntime", () => {
                 return controller;
             }
         );
-        const utils = getRendererStateIntegrationRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(utils.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -93,11 +115,19 @@ describe("getRendererStateIntegrationRuntime", () => {
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        const utils = getRendererStateIntegrationRuntime({});
+        const missingProviderRuntime = getRendererStateIntegrationRuntime(
+            {} as unknown as RendererStateIntegrationRuntimeScope
+        );
+        const unavailableRuntime = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope()
+        );
 
-        expect(() => utils.createAbortController()).toThrow(
+        expect(() => missingProviderRuntime.createAbortController()).toThrow(
+            "rendererStateIntegration requires AbortController provider"
+        );
+        expect(() => unavailableRuntime.createAbortController()).toThrow(
             "rendererStateIntegration requires an AbortController runtime"
         );
     });
@@ -116,9 +146,11 @@ describe("getRendererStateIntegrationRuntime", () => {
         const listener = () => {
             clickCount += 1;
         };
-        const utils = getRendererStateIntegrationRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         utils.addDocumentClickListener(listener, {
             signal: controller.signal,
@@ -142,9 +174,11 @@ describe("getRendererStateIntegrationRuntime", () => {
         const listener = () => {
             clickCount += 1;
         };
-        const utils = getRendererStateIntegrationRuntime({
-            getDocument: () => documentRef,
-        });
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         utils.addDocumentClickListener(listener, {
             signal: controller.signal,
@@ -163,9 +197,11 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect.assertions(1);
 
         const documentRef = document.implementation.createHTMLDocument();
-        const utils = getRendererStateIntegrationRuntime({
-            getDocument: () => documentRef,
-        });
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         expect(utils.getDocument()).toBe(documentRef);
     });
@@ -175,10 +211,12 @@ describe("getRendererStateIntegrationRuntime", () => {
 
         const element = document.createElement("span");
         const textNode = document.createTextNode("not an element");
-        const utils = getRendererStateIntegrationRuntime({
-            getElement: () => Element,
-            getHTMLElement: () => HTMLElement,
-        });
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getElement: () => Element,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         expect(utils.isElement(element)).toBe(true);
         expect(utils.isElement(textNode)).toBe(false);
@@ -205,7 +243,7 @@ describe("getRendererStateIntegrationRuntime", () => {
             "addEventListener"
         );
         const setTimeout = vi.fn<BrowserSetTimeout>(() => timer);
-        const utils = getRendererStateIntegrationRuntime({
+        const legacyScope = {
             AbortController:
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             clearTimeout,
@@ -216,31 +254,32 @@ describe("getRendererStateIntegrationRuntime", () => {
             setTimeout,
         } as unknown as Parameters<
             typeof getRendererStateIntegrationRuntime
-        >[0]);
+        >[0];
+        const utils = getRendererStateIntegrationRuntime(legacyScope);
 
         expect(() => utils.createAbortController()).toThrow(
-            "rendererStateIntegration requires an AbortController runtime"
+            "rendererStateIntegration requires AbortController provider"
         );
         expect(() => utils.setTimeout(callback, 5000)).toThrow(
-            "rendererStateIntegration requires a setTimeout runtime"
+            "rendererStateIntegration requires setTimeout provider"
         );
         expect(() => utils.clearTimeout(timer)).toThrow(
-            "rendererStateIntegration requires a clearTimeout runtime"
+            "rendererStateIntegration requires clearTimeout provider"
         );
         expect(() =>
             utils.addDocumentClickListener(() => undefined, {})
         ).toThrow(
-            "rendererStateIntegration requires a document event-target runtime"
+            "rendererStateIntegration requires document event-target provider"
         );
         expect(() => utils.getDocument()).toThrow(
-            "rendererStateIntegration requires a document runtime"
+            "rendererStateIntegration requires document provider"
         );
         expect(() => utils.isElement(document.createElement("button"))).toThrow(
-            "rendererStateIntegration requires an Element runtime"
+            "rendererStateIntegration requires Element provider"
         );
         expect(() =>
             utils.isHTMLElement(document.createElement("button"))
-        ).toThrow("rendererStateIntegration requires an HTMLElement runtime");
+        ).toThrow("rendererStateIntegration requires HTMLElement provider");
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
@@ -256,9 +295,11 @@ describe("getRendererStateIntegrationRuntime", () => {
         const documentEventTarget =
             document.implementation.createHTMLDocument();
         let clickCount = 0;
-        const utils = getRendererStateIntegrationRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const utils = getRendererStateIntegrationRuntime(
+            createRendererStateIntegrationRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         utils.addDocumentClickListener(
             () => {

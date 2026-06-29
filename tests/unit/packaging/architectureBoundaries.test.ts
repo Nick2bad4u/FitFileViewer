@@ -17712,7 +17712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(90);
+        expect.assertions(108);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -17905,7 +17905,61 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "type RendererStateIntegrationRuntimeProvider<T>"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*RendererStateIntegrationRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getClearTimeout:\s*RendererStateIntegrationRuntimeProvider<BrowserClearTimeout>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*RendererStateIntegrationRuntimeProvider<Document>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getDocumentEventTarget:\s*RendererStateIntegrationRuntimeProvider<Document>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getElement:\s*RendererStateIntegrationRuntimeProvider<BrowserElementConstructor>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*RendererStateIntegrationRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*RendererStateIntegrationRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocumentEventTarget,\s*"document event-target"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getElement,\s*"Element"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toMatch(
+            /scope\.get(?:AbortController|ClearTimeout|Document|DocumentEventTarget|Element|HTMLElement|SetTimeout)\?\.\(/u
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires ${providerName} provider"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "providerName: string"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "getDocumentEventTarget: () => globalThis.document"
