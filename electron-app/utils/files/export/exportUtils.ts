@@ -1545,7 +1545,7 @@ export const exportUtils = {
             }
 
             // Download the combined image
-            const link = document.createElement("a");
+            const link = exportUtilsRuntime().createElement("a");
             link.download = filename;
             link.href = combinedCanvas.toDataURL("image/png");
             exportUtilsRuntime().appendToBody(link);
@@ -1658,7 +1658,7 @@ export const exportUtils = {
         modal.append(instructions);
 
         const authLinkContainer = document.createElement("div"),
-            authLink = document.createElement("a");
+            authLink = exportUtilsRuntime().createElement("a");
         authLinkContainer.style.cssText = "margin-bottom: 16px;";
         authLink.dataset["externalLink"] = "true";
         authLink.href = String(authUrl);
@@ -1873,7 +1873,7 @@ export const exportUtils = {
                 throw new Error("Invalid chart instance provided");
             }
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                link = document.createElement("a");
+                link = exportUtilsRuntime().createElement("a");
             link.download = filename;
             link.href = chart.toBase64Image("image/png", 1, backgroundColor);
             exportUtilsRuntime().appendToBody(link);
@@ -1998,7 +1998,7 @@ export const exportUtils = {
             // Generate and download ZIP
             const exportDate = isoNow().split("T")[0] ?? "unknown-date",
                 content = await zip.generateAsync({ type: "blob" }),
-                link = document.createElement("a");
+                link = exportUtilsRuntime().createElement("a");
             link.href = URL.createObjectURL(content);
             link.download = `fitfile-charts-${exportDate}.zip`;
             exportUtilsRuntime().appendToBody(link);
@@ -2039,7 +2039,7 @@ export const exportUtils = {
                 blob = new Blob([csvContent], {
                     type: "text/csv;charset=utf-8;",
                 }),
-                link = document.createElement("a");
+                link = exportUtilsRuntime().createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             exportUtilsRuntime().appendToBody(link);
@@ -2074,7 +2074,7 @@ export const exportUtils = {
                 blob = new Blob([JSON.stringify(jsonData, null, 2)], {
                     type: "application/json;charset=utf-8;",
                 }),
-                link = document.createElement("a");
+                link = exportUtilsRuntime().createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             exportUtilsRuntime().appendToBody(link);
@@ -2138,7 +2138,7 @@ export const exportUtils = {
                 blob = new Blob([csvContent], {
                     type: "text/csv;charset=utf-8;",
                 }),
-                link = document.createElement("a");
+                link = exportUtilsRuntime().createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             exportUtilsRuntime().appendToBody(link);
@@ -3107,7 +3107,7 @@ body {
             advancedCopy = document.createElement("p"),
             advancedSteps = document.createElement("ol"),
             appStep = document.createElement("li"),
-            appLink = document.createElement("a"),
+            appLink = exportUtilsRuntime().createElement("a"),
             redirectStep = document.createElement("li"),
             redirectCode = document.createElement("code"),
             credentialsStep = document.createElement("li");
@@ -3417,7 +3417,7 @@ body {
             introStrong = document.createElement("strong"),
             steps = document.createElement("ol"),
             visitStep = document.createElement("li"),
-            developerLink = document.createElement("a"),
+            developerLink = exportUtilsRuntime().createElement("a"),
             createStep = document.createElement("li"),
             createSettings = document.createElement("ul"),
             appNameStep = document.createElement("li"),
@@ -4115,7 +4115,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
 
         const registrationStep = document.createElement("li");
         registrationStep.append("Visit ");
-        const registrationLink = document.createElement("a");
+        const registrationLink = exportUtilsRuntime().createElement("a");
         registrationLink.href = "https://api.imgur.com/oauth2/addclient";
         registrationLink.dataset["externalLink"] = "true";
         registrationLink.style.color = "var(--color-accent)";

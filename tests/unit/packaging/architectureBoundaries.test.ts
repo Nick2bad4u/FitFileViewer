@@ -6987,7 +6987,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(163);
+        expect.assertions(164);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -7067,6 +7067,7 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain(
             'document.createElement("canvas")'
         );
+        expect(exportUtilsSource).not.toContain('document.createElement("a")');
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
         expect(exportUtilsSource).not.toContain("document.body.append(link)");
         expect(exportUtilsSource).not.toContain("document.body.append(modal)");
