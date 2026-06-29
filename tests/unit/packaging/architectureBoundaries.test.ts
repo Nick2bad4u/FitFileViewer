@@ -10248,7 +10248,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart updater timestamps behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(21);
 
         const chartUpdaterSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartUpdater.ts")
@@ -10269,19 +10269,34 @@ describe("architecture boundaries", () => {
             "getDateConstructor: () => Date"
         );
         expect(chartUpdaterRuntimeSource).toContain(
+            "type ChartUpdaterRuntimeProvider"
+        );
+        expect(chartUpdaterRuntimeSource).toMatch(
+            /readonly\s+getDateConstructor:\s*ChartUpdaterRuntimeProvider<ChartUpdaterDateConstructor>/u
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(chartUpdaterRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateConstructor,\s*"date constructor"\s*\)/u
+        );
+        expect(chartUpdaterRuntimeSource).toContain(
             "new DateConstructor().toISOString()"
         );
         expect(chartUpdaterRuntimeSource).toContain(
             "chartUpdaterRuntime requires a date constructor"
         );
         expect(chartUpdaterRuntimeSource).toContain(
-            "chartUpdaterRuntime requires a date constructor provider"
+            "chartUpdaterRuntime requires a ${providerName} provider"
         );
         expect(chartUpdaterRuntimeSource).not.toContain(
             "readonly getDateConstructor?:"
         );
         expect(chartUpdaterRuntimeSource).toContain(
-            "const DateConstructor = scope.getDateConstructor();"
+            "const DateConstructor = getDateConstructor();"
+        );
+        expect(chartUpdaterRuntimeSource).not.toContain(
+            "scope.getDateConstructor()"
         );
         expect(chartUpdaterRuntimeSource).not.toContain(
             "scope.getDateConstructor?.()"

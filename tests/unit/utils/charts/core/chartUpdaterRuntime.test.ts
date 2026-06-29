@@ -63,13 +63,19 @@ describe("chartUpdaterRuntime", () => {
     it("fails clearly when runtime providers are omitted", () => {
         expect.assertions(1);
 
-        const utils = chartUpdaterRuntime(
-            {} as unknown as ChartUpdaterRuntimeScope
-        );
+        expect(() =>
+            chartUpdaterRuntime({} as unknown as ChartUpdaterRuntimeScope)
+        ).toThrow("chartUpdaterRuntime requires a date constructor provider");
+    });
 
-        expect(() => utils.isoNow()).toThrow(
-            "chartUpdaterRuntime requires a date constructor provider"
-        );
+    it("fails clearly when the date constructor provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            chartUpdaterRuntime({
+                getDateConstructor: undefined,
+            })
+        ).toThrow("chartUpdaterRuntime requires a date constructor provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -87,14 +93,11 @@ describe("chartUpdaterRuntime", () => {
             }
         }
 
-        const utils = chartUpdaterRuntime({
-            ...unavailableChartUpdaterScope,
-            Date: DateConstructor,
-        } as unknown as ChartUpdaterRuntimeScope);
-
-        expect(() => utils.isoNow()).toThrow(
-            "chartUpdaterRuntime requires a date constructor"
-        );
+        expect(() =>
+            chartUpdaterRuntime({
+                Date: DateConstructor,
+            } as unknown as ChartUpdaterRuntimeScope)
+        ).toThrow("chartUpdaterRuntime requires a date constructor provider");
         expect(constructedCount).toBe(0);
     });
 });

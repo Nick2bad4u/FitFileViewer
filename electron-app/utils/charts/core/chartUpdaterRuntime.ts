@@ -1,27 +1,23 @@
 type ChartUpdaterDateConstructor = new () => { toISOString: () => string };
 
 export interface ChartUpdaterRuntimeScope {
-    readonly getDateConstructor: () => ChartUpdaterDateConstructor | undefined;
+    readonly getDateConstructor: ChartUpdaterRuntimeProvider<ChartUpdaterDateConstructor>;
 }
 
 export interface ChartUpdaterRuntime {
     isoNow: () => string;
 }
 
+type ChartUpdaterRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultChartUpdaterRuntimeScope: ChartUpdaterRuntimeScope = {
     getDateConstructor: () => Date,
 };
 
 function getRequiredDateConstructor(
-    scope: ChartUpdaterRuntimeScope
+    getDateConstructor: () => ChartUpdaterDateConstructor | undefined
 ): ChartUpdaterDateConstructor {
-    if (typeof scope.getDateConstructor !== "function") {
-        throw new TypeError(
-            "chartUpdaterRuntime requires a date constructor provider"
-        );
-    }
-
-    const DateConstructor = scope.getDateConstructor();
+    const DateConstructor = getDateConstructor();
     if (typeof DateConstructor === "function") {
         return DateConstructor;
     }
@@ -32,10 +28,29 @@ function getRequiredDateConstructor(
 export function chartUpdaterRuntime(
     scope: ChartUpdaterRuntimeScope = defaultChartUpdaterRuntimeScope
 ): ChartUpdaterRuntime {
+    const getDateConstructor = getRequiredProvider(
+        scope.getDateConstructor,
+        "date constructor"
+    );
+
     return {
         isoNow(): string {
-            const DateConstructor = getRequiredDateConstructor(scope);
+            const DateConstructor =
+                getRequiredDateConstructor(getDateConstructor);
             return new DateConstructor().toISOString();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: ChartUpdaterRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `chartUpdaterRuntime requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
