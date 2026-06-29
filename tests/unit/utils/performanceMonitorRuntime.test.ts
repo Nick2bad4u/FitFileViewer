@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getPerformanceMonitorRuntime } from "../../../electron-app/utils/performance/performanceMonitorRuntime.js";
+import {
+    getPerformanceMonitorRuntime,
+    type PerformanceMonitorRuntimeScope,
+} from "../../../electron-app/utils/performance/performanceMonitorRuntime.js";
 
 describe("getPerformanceMonitorRuntime", () => {
     it("reads performance timing through the injected provider", () => {
@@ -42,10 +45,24 @@ describe("getPerformanceMonitorRuntime", () => {
     it("fails clearly when performance timing is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getPerformanceMonitorRuntime({});
+        const utils = getPerformanceMonitorRuntime({
+            getPerformance: () => undefined,
+        });
 
         expect(() => utils.nowPerformance()).toThrow(
             "performanceMonitorRuntime requires performance.now"
+        );
+    });
+
+    it("fails clearly when explicit scopes omit the performance provider", () => {
+        expect.assertions(1);
+
+        const utils = getPerformanceMonitorRuntime(
+            {} as unknown as PerformanceMonitorRuntimeScope
+        );
+
+        expect(() => utils.nowPerformance()).toThrow(
+            "performanceMonitorRuntime requires a performance provider"
         );
     });
 
@@ -55,10 +72,10 @@ describe("getPerformanceMonitorRuntime", () => {
         const now = vi.fn<() => number>(() => 123.45);
         const utils = getPerformanceMonitorRuntime({
             performance: { now },
-        } as unknown as Parameters<typeof getPerformanceMonitorRuntime>[0]);
+        } as unknown as PerformanceMonitorRuntimeScope);
 
         expect(() => utils.nowPerformance()).toThrow(
-            "performanceMonitorRuntime requires performance.now"
+            "performanceMonitorRuntime requires a performance provider"
         );
         expect(now).not.toHaveBeenCalled();
     });

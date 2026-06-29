@@ -9472,7 +9472,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared performance monitor timing behind its runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(17);
 
         const performanceMonitorSource = stripComments(
             readRepositoryFile(
@@ -9505,6 +9505,9 @@ describe("architecture boundaries", () => {
             "getPerformance: () => globalThis.performance"
         );
         expect(performanceMonitorRuntimeSource).toContain(
+            "performanceMonitorRuntime requires a performance provider"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
             "const performanceNow = performance?.now"
         );
         expect(performanceMonitorRuntimeSource).toContain(
@@ -9514,7 +9517,16 @@ describe("architecture boundaries", () => {
             "readonly performance?:"
         );
         expect(performanceMonitorRuntimeSource).not.toContain(
+            "readonly getPerformance?:"
+        );
+        expect(performanceMonitorRuntimeSource).not.toContain(
             "scope.performance"
+        );
+        expect(performanceMonitorRuntimeSource).not.toContain(
+            "scope.getPerformance?.()"
+        );
+        expect(performanceMonitorRuntimeSource).toContain(
+            "const performance = scope.getPerformance();"
         );
         expect(performanceMonitorRuntimeSource).not.toContain(
             "scope: PerformanceMonitorRuntimeScope = globalThis"

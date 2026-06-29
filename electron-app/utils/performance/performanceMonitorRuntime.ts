@@ -5,8 +5,8 @@ type PerformanceMonitorPerformanceRuntime = {
 };
 
 export interface PerformanceMonitorRuntimeScope {
-    readonly getPerformance?:
-        | (() => PerformanceMonitorPerformanceRuntime | undefined)
+    readonly getPerformance: () =>
+        | PerformanceMonitorPerformanceRuntime
         | undefined;
 }
 
@@ -21,7 +21,13 @@ const defaultPerformanceMonitorRuntimeScope: PerformanceMonitorRuntimeScope = {
 function getRequiredPerformanceNow(
     scope: PerformanceMonitorRuntimeScope
 ): () => number {
-    const performance = scope.getPerformance?.();
+    if (typeof scope.getPerformance !== "function") {
+        throw new TypeError(
+            "performanceMonitorRuntime requires a performance provider"
+        );
+    }
+
+    const performance = scope.getPerformance();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
