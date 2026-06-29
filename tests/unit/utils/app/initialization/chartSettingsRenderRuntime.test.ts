@@ -6,6 +6,12 @@ import {
     type ChartSettingsRenderRuntimeScope,
 } from "../../../../../electron-app/utils/app/initialization/chartSettingsRenderRuntime.js";
 
+const unavailableChartSettingsRenderScope = {
+    getCustomEvent: () => undefined,
+    getDocument: () => undefined,
+    getEventTarget: () => undefined,
+} satisfies ChartSettingsRenderRuntimeScope;
+
 describe("chartSettingsRenderRuntime", () => {
     it("uses the global event target by default", () => {
         expect.assertions(1);
@@ -35,6 +41,7 @@ describe("chartSettingsRenderRuntime", () => {
             document.implementation.createHTMLDocument("chart settings");
         const getDocument = vi.fn(() => documentRef);
         const chartSettingsApi = getChartSettingsRenderRuntime({
+            ...unavailableChartSettingsRenderScope,
             getDocument,
         });
 
@@ -51,6 +58,7 @@ describe("chartSettingsRenderRuntime", () => {
 
         const { eventTarget: resolvedEventTarget } =
             getChartSettingsRenderRuntime({
+                ...unavailableChartSettingsRenderScope,
                 getEventTarget: () => eventTarget,
             });
         const event = new Event("ffv:request-render-charts");
@@ -63,6 +71,7 @@ describe("chartSettingsRenderRuntime", () => {
         expect.assertions(3);
 
         const chartSettingsApi = getChartSettingsRenderRuntime({
+            ...unavailableChartSettingsRenderScope,
             getCustomEvent: () => CustomEvent,
             getEventTarget: () => ({
                 dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
@@ -84,6 +93,7 @@ describe("chartSettingsRenderRuntime", () => {
 
         expect(() =>
             getChartSettingsRenderRuntime({
+                ...unavailableChartSettingsRenderScope,
                 getEventTarget: () => ({
                     dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
                 }),
@@ -94,16 +104,41 @@ describe("chartSettingsRenderRuntime", () => {
     it("fails clearly when event target access is unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getChartSettingsRenderRuntime({}).eventTarget).toThrow(
-            "chartSettingsRender requires an event target runtime"
-        );
+        expect(
+            () =>
+                getChartSettingsRenderRuntime(
+                    unavailableChartSettingsRenderScope
+                ).eventTarget
+        ).toThrow("chartSettingsRender requires an event target runtime");
     });
 
     it("fails clearly when document access is unavailable", () => {
         expect.assertions(1);
 
-        expect(() => getChartSettingsRenderRuntime({}).documentRef).toThrow(
-            "chartSettingsRender requires a document runtime"
+        expect(
+            () =>
+                getChartSettingsRenderRuntime(
+                    unavailableChartSettingsRenderScope
+                ).documentRef
+        ).toThrow("chartSettingsRender requires a document runtime");
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(3);
+
+        const omittedProviderScope =
+            {} as unknown as ChartSettingsRenderRuntimeScope;
+        const chartSettingsApi =
+            getChartSettingsRenderRuntime(omittedProviderScope);
+
+        expect(() =>
+            chartSettingsApi.createRenderRequestEvent("settings-reset")
+        ).toThrow("chartSettingsRender requires a CustomEvent provider");
+        expect(() => chartSettingsApi.documentRef).toThrow(
+            "chartSettingsRender requires a document provider"
+        );
+        expect(() => chartSettingsApi.eventTarget).toThrow(
+            "chartSettingsRender requires an event target provider"
         );
     });
 
@@ -117,7 +152,10 @@ describe("chartSettingsRenderRuntime", () => {
             ),
             dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
         } as unknown as ChartSettingsRenderRuntimeScope;
-        const chartSettingsApi = getChartSettingsRenderRuntime(legacyScope);
+        const chartSettingsApi = getChartSettingsRenderRuntime({
+            ...unavailableChartSettingsRenderScope,
+            ...legacyScope,
+        });
 
         expect(() =>
             chartSettingsApi.createRenderRequestEvent("settings-reset")

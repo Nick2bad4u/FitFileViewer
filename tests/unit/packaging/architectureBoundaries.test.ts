@@ -10091,7 +10091,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(31);
+        expect.assertions(42);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -10140,6 +10140,15 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
             "readonly dispatchEvent:"
         );
+        expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
+            "readonly getCustomEvent?:"
+        );
+        expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
+            "readonly getEventTarget?:"
+        );
         expect(chartSettingsRenderRuntimeSource).not.toContain(
             "scope.CustomEvent"
         );
@@ -10177,7 +10186,10 @@ describe("architecture boundaries", () => {
             "getEventTarget: () => globalThis"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
-            "const CustomEventConstructor = scope.getCustomEvent?.();"
+            "const CustomEventConstructor = scope.getCustomEvent();"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
         );
         expect(chartSettingsRenderRuntimeSource).not.toContain(
             "): typeof CustomEvent"
@@ -10186,10 +10198,31 @@ describe("architecture boundaries", () => {
             "| (() => typeof CustomEvent | undefined)"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
-            "const documentRef = scope.getDocument?.();"
+            "const documentRef = scope.getDocument();"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
-            "const eventTarget = scope.getEventTarget?.();"
+            "const eventTarget = scope.getEventTarget();"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "scope.getEventTarget?.()"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "chartSettingsRender requires a CustomEvent provider"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "chartSettingsRender requires an event target provider"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "chartSettingsRender requires a document provider"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "chartSettingsRender requires a CustomEvent runtime"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "chartSettingsRender requires an event target runtime"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
             "chartSettingsRender requires a document runtime"
