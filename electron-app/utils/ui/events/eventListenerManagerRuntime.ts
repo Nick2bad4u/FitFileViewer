@@ -5,10 +5,10 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface EventListenerManagerRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
+    readonly getEventTarget: (() => EventTarget | undefined) | undefined;
 }
 
 export interface EventListenerManagerRuntime {
@@ -25,13 +25,27 @@ const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope 
 function getAbortController(
     scope: EventListenerManagerRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    const getAbortControllerProvider = scope.getAbortController;
+    if (typeof getAbortControllerProvider !== "function") {
+        throw new TypeError(
+            "event listener manager requires an AbortController provider"
+        );
+    }
+
+    return getAbortControllerProvider();
 }
 
 function getEventTarget(
     scope: EventListenerManagerRuntimeScope
 ): EventTarget | undefined {
-    return scope.getEventTarget?.();
+    const getEventTargetProvider = scope.getEventTarget;
+    if (typeof getEventTargetProvider !== "function") {
+        throw new TypeError(
+            "event listener manager requires an event target provider"
+        );
+    }
+
+    return getEventTargetProvider();
 }
 
 export function getEventListenerManagerRuntime(

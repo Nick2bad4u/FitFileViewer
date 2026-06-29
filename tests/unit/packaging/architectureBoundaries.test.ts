@@ -33243,7 +33243,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(25);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -33295,6 +33295,18 @@ describe("architecture boundaries", () => {
             "EventListenerManagerRuntimeScope = globalThis"
         );
         expect(eventListenerManagerRuntimeSource).not.toContain("scope.window");
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "readonly getEventTarget?:"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "scope.getEventTarget?.()"
+        );
         expect(eventListenerManagerRuntimeSource).not.toMatch(
             directEventListenerManagerRuntimeAmbientGetterPattern
         );
@@ -33312,6 +33324,12 @@ describe("architecture boundaries", () => {
         );
         expect(eventListenerManagerRuntimeSource).not.toContain(
             "scope.eventTarget"
+        );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "event listener manager requires an AbortController provider"
+        );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "event listener manager requires an event target provider"
         );
     });
 

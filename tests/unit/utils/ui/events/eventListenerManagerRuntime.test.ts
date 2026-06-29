@@ -1,9 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BrowserAbortControllerConstructor } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
-import { getEventListenerManagerRuntime } from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
+import {
+    getEventListenerManagerRuntime,
+    type EventListenerManagerRuntimeScope,
+} from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
 
 describe("getEventListenerManagerRuntime", () => {
+    const unavailableEventListenerManagerRuntimeScope = {
+        getAbortController: () => undefined,
+        getEventTarget: () => undefined,
+    } satisfies EventListenerManagerRuntimeScope;
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -32,6 +40,7 @@ describe("getEventListenerManagerRuntime", () => {
 
         const target = new EventTarget(),
             runtime = getEventListenerManagerRuntime({
+                ...unavailableEventListenerManagerRuntimeScope,
                 getEventTarget: () => target,
             });
 
@@ -42,7 +51,9 @@ describe("getEventListenerManagerRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getEventListenerManagerRuntime({}).getDefaultDragDropTarget()
+            getEventListenerManagerRuntime(
+                unavailableEventListenerManagerRuntimeScope
+            ).getDefaultDragDropTarget()
         ).toBeUndefined();
     });
 
@@ -63,6 +74,7 @@ describe("getEventListenerManagerRuntime", () => {
             }
         }
         const runtime = getEventListenerManagerRuntime({
+            ...unavailableEventListenerManagerRuntimeScope,
             getAbortController: () => TestAbortController,
         });
 
@@ -98,20 +110,41 @@ describe("getEventListenerManagerRuntime", () => {
         );
         expect(controllerCount).toBe(1);
         expect(
-            getEventListenerManagerRuntime({}).getDefaultDragDropTarget()
+            getEventListenerManagerRuntime(
+                unavailableEventListenerManagerRuntimeScope
+            ).getDefaultDragDropTarget()
         ).toBeUndefined();
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getEventListenerManagerRuntime({});
+        const runtime = getEventListenerManagerRuntime(
+            unavailableEventListenerManagerRuntimeScope
+        );
 
         expect(() => {
             runtime.createAbortController();
         }).toThrow(
             "event listener manager requires an AbortController runtime"
         );
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(2);
+
+        const runtime = getEventListenerManagerRuntime(
+            {} as unknown as EventListenerManagerRuntimeScope
+        );
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow(
+            "event listener manager requires an AbortController provider"
+        );
+        expect(() => {
+            runtime.getDefaultDragDropTarget();
+        }).toThrow("event listener manager requires an event target provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -127,6 +160,7 @@ describe("getEventListenerManagerRuntime", () => {
         }
         const target = new EventTarget();
         const runtime = getEventListenerManagerRuntime({
+            ...unavailableEventListenerManagerRuntimeScope,
             AbortController: LegacyAbortController,
             eventTarget: target,
         } as unknown as Parameters<typeof getEventListenerManagerRuntime>[0]);
