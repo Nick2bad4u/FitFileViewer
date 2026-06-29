@@ -6,6 +6,21 @@ import type {
 } from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
 import { getCreateFieldTogglesSectionRuntime } from "../../../../../electron-app/utils/ui/components/createFieldTogglesSectionRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<CreateFieldTogglesSectionRuntimeScope> = {}
+): CreateFieldTogglesSectionRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getClearTimeout: () => undefined,
+        getCustomEvent: () => undefined,
+        getDispatchEvent: () => undefined,
+        getDocument: () => undefined,
+        getHTMLInputElement: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getCreateFieldTogglesSectionRuntime", () => {
     afterEach(() => {
         document.body.replaceChildren();
@@ -16,9 +31,11 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
     it("creates elements and queries field checkbox toggles through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateFieldTogglesSectionRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getCreateFieldTogglesSectionRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+            })
+        );
         const fieldToggle = runtime.createElement("div");
         const checkbox = runtime.createElement("input");
         checkbox.type = "checkbox";
@@ -39,10 +56,12 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         expect.assertions(3);
 
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
-        const runtime = getCreateFieldTogglesSectionRuntime({
-            getCustomEvent: () => CustomEvent,
-            getDispatchEvent: () => dispatchEvent,
-        });
+        const runtime = getCreateFieldTogglesSectionRuntime(
+            createUnavailableRuntimeScope({
+                getCustomEvent: () => CustomEvent,
+                getDispatchEvent: () => dispatchEvent,
+            })
+        );
         const event = runtime.createCustomEvent("fieldToggleChanged", {
             detail: { field: "power" },
         });
@@ -55,10 +74,12 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
     it("creates abort controllers and checks input elements through injected runtimes", () => {
         expect.assertions(3);
 
-        const runtime = getCreateFieldTogglesSectionRuntime({
-            getAbortController: () => AbortController,
-            getHTMLInputElement: () => HTMLInputElement,
-        });
+        const runtime = getCreateFieldTogglesSectionRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => AbortController,
+                getHTMLInputElement: () => HTMLInputElement,
+            })
+        );
         const controller = runtime.createAbortController();
         const input = document.createElement("input");
 
@@ -137,10 +158,12 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof clearTimeout>();
-        const runtime = getCreateFieldTogglesSectionRuntime({
-            getClearTimeout: () => clearTimeoutMock,
-            getSetTimeout: () => setTimeoutMock,
-        });
+        const runtime = getCreateFieldTogglesSectionRuntime(
+            createUnavailableRuntimeScope({
+                getClearTimeout: () => clearTimeoutMock,
+                getSetTimeout: () => setTimeoutMock,
+            })
+        );
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -152,7 +175,9 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getCreateFieldTogglesSectionRuntime({});
+        const runtime = getCreateFieldTogglesSectionRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "createFieldTogglesSection requires a setTimeout runtime"
@@ -165,22 +190,30 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(7);
 
-        const runtime = getCreateFieldTogglesSectionRuntime({});
+        const runtime = getCreateFieldTogglesSectionRuntime(
+            createUnavailableRuntimeScope()
+        );
         const runtimeWithInvalidAbortController =
-            getCreateFieldTogglesSectionRuntime({
-                getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
-            });
+            getCreateFieldTogglesSectionRuntime(
+                createUnavailableRuntimeScope({
+                    getAbortController: () =>
+                        "AbortController" as unknown as typeof AbortController,
+                })
+            );
         const runtimeWithInvalidCustomEvent =
-            getCreateFieldTogglesSectionRuntime({
-                getCustomEvent: () =>
-                    "CustomEvent" as unknown as typeof CustomEvent,
-            });
+            getCreateFieldTogglesSectionRuntime(
+                createUnavailableRuntimeScope({
+                    getCustomEvent: () =>
+                        "CustomEvent" as unknown as typeof CustomEvent,
+                })
+            );
         const runtimeWithInvalidInputElement =
-            getCreateFieldTogglesSectionRuntime({
-                getHTMLInputElement: () =>
-                    "HTMLInputElement" as unknown as typeof HTMLInputElement,
-            });
+            getCreateFieldTogglesSectionRuntime(
+                createUnavailableRuntimeScope({
+                    getHTMLInputElement: () =>
+                        "HTMLInputElement" as unknown as typeof HTMLInputElement,
+                })
+            );
 
         expect(() => runtime.createElement("div")).toThrow(
             "createFieldTogglesSection requires a document runtime"
@@ -211,6 +244,100 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         );
     });
 
+    it("throws clearly when required runtime providers are missing", () => {
+        expect.assertions(7);
+
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).createAbortController()
+        ).toThrow(
+            "createFieldTogglesSection requires an AbortController provider"
+        );
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getAbortController: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).clearTimeout(
+                0
+            )
+        ).toThrow("createFieldTogglesSection requires a clearTimeout provider");
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).createCustomEvent(
+                "event"
+            )
+        ).toThrow("createFieldTogglesSection requires a CustomEvent provider");
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).dispatchEvent(
+                new Event("x")
+            )
+        ).toThrow(
+            "createFieldTogglesSection requires a dispatchEvent provider"
+        );
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getHTMLInputElement: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).createElement(
+                "div"
+            )
+        ).toThrow("createFieldTogglesSection requires a document provider");
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getSetTimeout: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).isHTMLInputElement(
+                document.createElement("input")
+            )
+        ).toThrow(
+            "createFieldTogglesSection requires an HTMLInputElement provider"
+        );
+        expect(() =>
+            getCreateFieldTogglesSectionRuntime({
+                getAbortController: () => undefined,
+                getClearTimeout: () => undefined,
+                getCustomEvent: () => undefined,
+                getDispatchEvent: () => undefined,
+                getDocument: () => undefined,
+                getHTMLInputElement: () => undefined,
+            } as unknown as CreateFieldTogglesSectionRuntimeScope).setTimeout(
+                vi.fn(),
+                1
+            )
+        ).toThrow("createFieldTogglesSection requires a setTimeout provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(7);
 
@@ -229,27 +356,27 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         const runtime = getCreateFieldTogglesSectionRuntime(legacyScope);
 
         expect(() => runtime.createElement("div")).toThrow(
-            "createFieldTogglesSection requires a document runtime"
+            "createFieldTogglesSection requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createFieldTogglesSection requires an AbortController runtime"
+            "createFieldTogglesSection requires an AbortController provider"
         );
         expect(() => runtime.createCustomEvent("event")).toThrow(
-            "createFieldTogglesSection requires a CustomEvent runtime"
+            "createFieldTogglesSection requires a CustomEvent provider"
         );
         expect(() => runtime.dispatchEvent(new Event("x"))).toThrow(
-            "createFieldTogglesSection requires a dispatchEvent runtime"
+            "createFieldTogglesSection requires a dispatchEvent provider"
         );
         expect(() =>
             runtime.isHTMLInputElement(document.createElement("input"))
         ).toThrow(
-            "createFieldTogglesSection requires an HTMLInputElement runtime"
+            "createFieldTogglesSection requires an HTMLInputElement provider"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
-            "createFieldTogglesSection requires a setTimeout runtime"
+            "createFieldTogglesSection requires a setTimeout provider"
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
-            "createFieldTogglesSection requires a clearTimeout runtime"
+            "createFieldTogglesSection requires a clearTimeout provider"
         );
     });
 });

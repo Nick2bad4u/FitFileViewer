@@ -8811,7 +8811,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(47);
+        expect.assertions(78);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -8897,9 +8897,102 @@ describe("architecture boundaries", () => {
         expect(fieldTogglesRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getCustomEvent?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getDispatchEvent?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getHTMLInputElement?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getAbortController: CreateFieldTogglesSectionRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getClearTimeout: CreateFieldTogglesSectionRuntimeProvider<BrowserClearTimeout>;"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getCustomEvent: CreateFieldTogglesSectionRuntimeProvider<BrowserCustomEventConstructor>;"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getDispatchEvent: CreateFieldTogglesSectionRuntimeProvider<BrowserDispatchEvent>;"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getDocument: CreateFieldTogglesSectionRuntimeProvider<Document>;"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getHTMLInputElement: CreateFieldTogglesSectionRuntimeProvider<BrowserHTMLInputElementConstructor>;"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "readonly getSetTimeout: CreateFieldTogglesSectionRuntimeProvider<BrowserSetTimeout>;"
+        );
         expect(fieldTogglesRuntimeSource).not.toContain("scope.document");
         expect(fieldTogglesRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(fieldTogglesRuntimeSource).not.toContain("scope.setTimeout");
+        expect(fieldTogglesRuntimeSource).toContain(
+            "type CreateFieldTogglesSectionRuntimeProvider<T> ="
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getClearTimeout,\n                "clearTimeout"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getCustomEvent,\n        "CustomEvent"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getDispatchEvent,\n        "dispatchEvent"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getDispatchEvent?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getDocument,\n        "document"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getHTMLInputElement,\n        "HTMLInputElement"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getHTMLInputElement?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            'scope.getSetTimeout,\n                "setTimeout"'
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "createFieldTogglesSection requires ${article} ${providerName} provider"
+        );
         expect(fieldTogglesRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );

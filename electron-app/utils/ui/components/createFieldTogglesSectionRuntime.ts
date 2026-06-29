@@ -2,6 +2,7 @@ import {
     type BrowserAbortControllerConstructor,
     type BrowserClearTimeout,
     type BrowserCustomEventConstructor,
+    type BrowserDispatchEvent,
     type BrowserHTMLInputElementConstructor,
     type BrowserSetTimeout,
     type BrowserTimerHandle,
@@ -15,27 +16,18 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type CreateFieldTogglesSectionTimerHandle = BrowserTimerHandle;
+type CreateFieldTogglesSectionRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreateFieldTogglesSectionRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDispatchEvent?:
-        | (() => ((event: Event) => boolean) | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLInputElement?:
-        | (() => BrowserHTMLInputElementConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getAbortController: CreateFieldTogglesSectionRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: CreateFieldTogglesSectionRuntimeProvider<BrowserClearTimeout>;
+    readonly getCustomEvent: CreateFieldTogglesSectionRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDispatchEvent: CreateFieldTogglesSectionRuntimeProvider<BrowserDispatchEvent>;
+    readonly getDocument: CreateFieldTogglesSectionRuntimeProvider<Document>;
+    readonly getHTMLInputElement: CreateFieldTogglesSectionRuntimeProvider<BrowserHTMLInputElementConstructor>;
+    readonly getSetTimeout: CreateFieldTogglesSectionRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface CreateFieldTogglesSectionRuntime {
@@ -51,16 +43,31 @@ export interface CreateFieldTogglesSectionRuntime {
     dispatchEvent: (event: Event) => boolean;
     isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
     queryFieldCheckboxToggles: () => NodeListOf<HTMLInputElement>;
-    setTimeout: (
-        handler: () => void,
-        timeout: number
-    ) => BrowserTimerHandle;
+    setTimeout: (handler: () => void, timeout: number) => BrowserTimerHandle;
+}
+
+function getRequiredProvider<T>(
+    provider: CreateFieldTogglesSectionRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `createFieldTogglesSection requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
 
 function getAbortControllerConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires an AbortController runtime"
@@ -73,7 +80,10 @@ function getAbortControllerConstructor(
 function getCustomEventConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
 ): BrowserCustomEventConstructor {
-    const CustomEventConstructor = scope.getCustomEvent?.();
+    const CustomEventConstructor = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    )();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires a CustomEvent runtime"
@@ -85,8 +95,11 @@ function getCustomEventConstructor(
 
 function getDispatchEvent(
     scope: CreateFieldTogglesSectionRuntimeScope
-): (event: Event) => boolean {
-    const dispatchEvent = scope.getDispatchEvent?.();
+): BrowserDispatchEvent {
+    const dispatchEvent = getRequiredProvider(
+        scope.getDispatchEvent,
+        "dispatchEvent"
+    )();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires a dispatchEvent runtime"
@@ -97,7 +110,10 @@ function getDispatchEvent(
 }
 
 function getDocument(scope: CreateFieldTogglesSectionRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "createFieldTogglesSection requires a document runtime"
@@ -110,7 +126,10 @@ function getDocument(scope: CreateFieldTogglesSectionRuntimeScope): Document {
 function getHTMLInputElementConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
 ): BrowserHTMLInputElementConstructor {
-    const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+    const HTMLInputElementConstructor = getRequiredProvider(
+        scope.getHTMLInputElement,
+        "HTMLInputElement"
+    )();
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires an HTMLInputElement runtime"
@@ -153,7 +172,10 @@ export function getCreateFieldTogglesSectionRuntime(
             return getDocument(scope).createElement(tagName);
         },
         clearTimeout(timer: BrowserTimerHandle): void {
-            const clearTimer = scope.getClearTimeout?.();
+            const clearTimer = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimer !== "function") {
                 throw new TypeError(
                     "createFieldTogglesSection requires a clearTimeout runtime"
@@ -172,11 +194,11 @@ export function getCreateFieldTogglesSectionRuntime(
                 '.field-toggle input[type="checkbox"]'
             );
         },
-        setTimeout(
-            handler: () => void,
-            timeout: number
-        ): BrowserTimerHandle {
-            const scheduleTimer = scope.getSetTimeout?.();
+        setTimeout(handler: () => void, timeout: number): BrowserTimerHandle {
+            const scheduleTimer = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof scheduleTimer !== "function") {
                 throw new TypeError(
                     "createFieldTogglesSection requires a setTimeout runtime"
