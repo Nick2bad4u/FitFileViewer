@@ -9,6 +9,18 @@ import type {
 import type { UpdateTabVisibilityRuntimeScope } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 import { getUpdateTabVisibilityRuntime } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 
+function createRuntimeScope(
+    overrides: Partial<UpdateTabVisibilityRuntimeScope> = {}
+): UpdateTabVisibilityRuntimeScope {
+    return {
+        getClearTimeout: () => undefined,
+        getDocument: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getUpdateTabVisibilityRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -19,16 +31,20 @@ describe("getUpdateTabVisibilityRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getUpdateTabVisibilityRuntime({
-                getDocument: () => document,
-            }).getDocument()
+            getUpdateTabVisibilityRuntime(
+                createRuntimeScope({
+                    getDocument: () => document,
+                })
+            ).getDocument()
         ).toBe(document);
     });
 
-    it("returns undefined when no document is available", () => {
+    it("returns undefined when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        expect(getUpdateTabVisibilityRuntime({}).getDocument()).toBeUndefined();
+        expect(
+            getUpdateTabVisibilityRuntime(createRuntimeScope()).getDocument()
+        ).toBeUndefined();
     });
 
     it("wraps animation-frame scheduling", () => {
@@ -38,9 +54,11 @@ describe("getUpdateTabVisibilityRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 4);
-        const utils = getUpdateTabVisibilityRuntime({
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
+        const utils = getUpdateTabVisibilityRuntime(
+            createRuntimeScope({
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            })
+        );
 
         expect(utils.requestAnimationFrame(callback)).toBe(4);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -50,7 +68,9 @@ describe("getUpdateTabVisibilityRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getUpdateTabVisibilityRuntime({}).requestAnimationFrame(() => {})
+            getUpdateTabVisibilityRuntime(
+                createRuntimeScope()
+            ).requestAnimationFrame(() => {})
         ).toBeUndefined();
     });
 
@@ -62,10 +82,12 @@ describe("getUpdateTabVisibilityRuntime", () => {
             (callback: () => void, timeout?: number) => number
         >(() => 8);
         const clearTimeout = vi.fn<(handle: number) => void>();
-        const utils = getUpdateTabVisibilityRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const utils = getUpdateTabVisibilityRuntime(
+            createRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
         const timeoutMs = Number.parseInt("180", 10);
 
         expect(utils.setTimeout(callback, timeoutMs)).toBe(8);
@@ -110,10 +132,32 @@ describe("getUpdateTabVisibilityRuntime", () => {
         expect(frameCallback).not.toHaveBeenCalled();
     });
 
-    it("does not borrow ambient timers for explicit scopes", () => {
+    it("fails clearly when providers are omitted", () => {
+        expect.assertions(4);
+
+        const runtime = getUpdateTabVisibilityRuntime(
+            {} as UpdateTabVisibilityRuntimeScope
+        );
+
+        expect(() => runtime.getDocument()).toThrow(
+            "updateTabVisibility requires a document provider"
+        );
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "updateTabVisibility requires a requestAnimationFrame provider"
+        );
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "updateTabVisibility requires a setTimeout provider"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "updateTabVisibility requires a clearTimeout provider"
+        );
+    });
+
+    it("does not borrow ambient timers for unavailable provider values", () => {
         expect.assertions(2);
 
-        const runtime = getUpdateTabVisibilityRuntime({});
+        const runtime = getUpdateTabVisibilityRuntime(createRuntimeScope());
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "updateTabVisibility requires a setTimeout runtime"
@@ -140,13 +184,17 @@ describe("getUpdateTabVisibilityRuntime", () => {
         } as unknown as UpdateTabVisibilityRuntimeScope;
         const runtime = getUpdateTabVisibilityRuntime(legacyScope);
 
-        expect(runtime.getDocument()).toBeUndefined();
-        expect(runtime.requestAnimationFrame(frameCallback)).toBeUndefined();
+        expect(() => runtime.getDocument()).toThrow(
+            "updateTabVisibility requires a document provider"
+        );
+        expect(() => runtime.requestAnimationFrame(frameCallback)).toThrow(
+            "updateTabVisibility requires a requestAnimationFrame provider"
+        );
         expect(() => runtime.setTimeout(callback, 1)).toThrow(
-            "updateTabVisibility requires a setTimeout runtime"
+            "updateTabVisibility requires a setTimeout provider"
         );
         expect(() => runtime.clearTimeout(1)).toThrow(
-            "updateTabVisibility requires a clearTimeout runtime"
+            "updateTabVisibility requires a clearTimeout provider"
         );
         expect(callback).not.toHaveBeenCalled();
     });

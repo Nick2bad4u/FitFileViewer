@@ -27960,7 +27960,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(45);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -28027,6 +28027,30 @@ describe("architecture boundaries", () => {
         expect(updateTabVisibilityRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "readonly getClearTimeout:"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "readonly getDocument:"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "readonly getRequestAnimationFrame:"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "readonly getSetTimeout:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
         expect(updateTabVisibilityRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
@@ -28038,6 +28062,18 @@ describe("architecture boundaries", () => {
         );
         expect(updateTabVisibilityRuntimeSource).not.toContain(
             "scope.setTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.getRequestAnimationFrame?.()"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "getClearTimeout: getBrowserClearTimeout"
@@ -28065,6 +28101,12 @@ describe("architecture boundaries", () => {
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "getBrowserRequestAnimationFrame"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "`updateTabVisibility requires a ${name} provider`"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "updateTabVisibility requires a clearTimeout runtime"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "updateTabVisibility requires a setTimeout runtime"

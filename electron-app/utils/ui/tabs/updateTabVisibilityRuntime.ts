@@ -20,14 +20,14 @@ type UpdateTabVisibilitySetTimeout = (
 ) => ReturnType<BrowserSetTimeout> | number;
 
 export interface UpdateTabVisibilityRuntimeScope {
-    readonly getClearTimeout?:
+    readonly getClearTimeout:
         | (() => UpdateTabVisibilityClearTimeout | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getRequestAnimationFrame?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getRequestAnimationFrame:
         | (() => UpdateTabVisibilityRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
+    readonly getSetTimeout:
         | (() => UpdateTabVisibilitySetTimeout | undefined)
         | undefined;
 }
@@ -55,9 +55,29 @@ const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope =
 export function getUpdateTabVisibilityRuntime(
     scope: UpdateTabVisibilityRuntimeScope = defaultUpdateTabVisibilityRuntimeScope
 ): UpdateTabVisibilityRuntime {
+    function getRequiredProvider<T>(
+        provider: (() => T | undefined) | undefined,
+        name:
+            | "clearTimeout"
+            | "document"
+            | "requestAnimationFrame"
+            | "setTimeout"
+    ): () => T | undefined {
+        if (!provider) {
+            throw new TypeError(
+                `updateTabVisibility requires a ${name} provider`
+            );
+        }
+
+        return provider;
+    }
+
     return {
         clearTimeout(handle: UpdateTabVisibilityTimerHandle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "updateTabVisibility requires a clearTimeout runtime"
@@ -66,12 +86,15 @@ export function getUpdateTabVisibilityRuntime(
             clearTimeoutRef(handle);
         },
         getDocument(): Document | undefined {
-            return scope.getDocument?.();
+            return getRequiredProvider(scope.getDocument, "document")();
         },
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): number | undefined {
-            const requestAnimationFrame = scope.getRequestAnimationFrame?.();
+            const requestAnimationFrame = getRequiredProvider(
+                scope.getRequestAnimationFrame,
+                "requestAnimationFrame"
+            )();
             if (typeof requestAnimationFrame !== "function") {
                 return undefined;
             }
@@ -82,7 +105,10 @@ export function getUpdateTabVisibilityRuntime(
             callback: () => void,
             timeout: number
         ): UpdateTabVisibilityTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "updateTabVisibility requires a setTimeout runtime"
