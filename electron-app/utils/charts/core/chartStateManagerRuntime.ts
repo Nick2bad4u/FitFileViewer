@@ -13,14 +13,14 @@ import {
 
 export type ChartStateManagerTimeout = BrowserTimerHandle;
 
+type ChartStateManagerRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface ChartStateManagerRuntimeScope {
-    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
-    readonly getDateNow: () => (() => number) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
+    readonly getClearTimeout: ChartStateManagerRuntimeProvider<BrowserClearTimeout>;
+    readonly getDateNow: ChartStateManagerRuntimeProvider<() => number>;
+    readonly getDocument: ChartStateManagerRuntimeProvider<Document>;
+    readonly getHTMLElement: ChartStateManagerRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getSetTimeout: ChartStateManagerRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface ChartStateManagerRuntime {
@@ -42,18 +42,29 @@ const defaultChartStateManagerRuntimeScope: ChartStateManagerRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: ChartStateManagerRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUH]/u.test(providerName) ? "an" : "a";
+        throw new TypeError(
+            `ChartStateManager requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 export function getChartStateManagerRuntime(
     scope: ChartStateManagerRuntimeScope = defaultChartStateManagerRuntimeScope
 ): ChartStateManagerRuntime {
     return {
         clearRenderTimeout(timeout): void {
-            if (typeof scope.getClearTimeout !== "function") {
-                throw new TypeError(
-                    "ChartStateManager requires a clearTimeout provider"
-                );
-            }
-
-            const clearTimeout = scope.getClearTimeout();
+            const clearTimeout = getRequiredProvider(
+                scope.getClearTimeout,
+                "clearTimeout"
+            )();
             if (typeof clearTimeout !== "function") {
                 throw new TypeError("ChartStateManager requires clearTimeout");
             }
@@ -61,13 +72,7 @@ export function getChartStateManagerRuntime(
             clearTimeout(timeout);
         },
         dateNow(): number {
-            if (typeof scope.getDateNow !== "function") {
-                throw new TypeError(
-                    "ChartStateManager requires a dateNow provider"
-                );
-            }
-
-            const dateNow = scope.getDateNow();
+            const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
             if (typeof dateNow !== "function") {
                 throw new TypeError("ChartStateManager requires dateNow");
             }
@@ -75,13 +80,22 @@ export function getChartStateManagerRuntime(
             return dateNow();
         },
         getChartRenderContainer(): HTMLElement | null {
-            const document = scope.getDocument?.();
+            const document = getRequiredProvider(
+                scope.getDocument,
+                "document"
+            )();
             return document ? getChartRenderContainer(document) : null;
         },
         getControlsPanel(): HTMLElement | null {
             const controlsPanel =
-                scope.getDocument?.()?.querySelector(".chart-controls") ?? null;
-            const HTMLElementConstructor = scope.getHTMLElement?.();
+                getRequiredProvider(
+                    scope.getDocument,
+                    "document"
+                )()?.querySelector(".chart-controls") ?? null;
+            const HTMLElementConstructor = getRequiredProvider(
+                scope.getHTMLElement,
+                "HTMLElement"
+            )();
 
             return typeof HTMLElementConstructor === "function" &&
                 controlsPanel instanceof HTMLElementConstructor
@@ -89,13 +103,10 @@ export function getChartStateManagerRuntime(
                 : null;
         },
         setRenderTimeout(callback, delay): ChartStateManagerTimeout {
-            if (typeof scope.getSetTimeout !== "function") {
-                throw new TypeError(
-                    "ChartStateManager requires a setTimeout provider"
-                );
-            }
-
-            const setTimeout = scope.getSetTimeout();
+            const setTimeout = getRequiredProvider(
+                scope.getSetTimeout,
+                "setTimeout"
+            )();
             if (typeof setTimeout !== "function") {
                 throw new TypeError("ChartStateManager requires setTimeout");
             }

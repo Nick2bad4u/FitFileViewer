@@ -13,6 +13,8 @@ import { getChartStateManagerRuntime } from "../../../../electron-app/utils/char
 const unavailableTimerScope = {
     getClearTimeout: () => undefined,
     getDateNow: () => undefined,
+    getDocument: () => undefined,
+    getHTMLElement: () => undefined,
     getSetTimeout: () => undefined,
 } satisfies ChartStateManagerRuntimeScope;
 
@@ -169,6 +171,33 @@ describe("getChartStateManagerRuntime", () => {
         ).toThrow("ChartStateManager requires a dateNow provider");
     });
 
+    it("fails clearly when DOM providers are omitted", () => {
+        expect.assertions(3);
+
+        const omittedProviderScope =
+            {} as unknown as ChartStateManagerRuntimeScope;
+        const omittedHTMLElementProviderScope = {
+            getClearTimeout: () => undefined,
+            getDateNow: () => undefined,
+            getDocument: () => document,
+            getSetTimeout: () => undefined,
+        } as unknown as ChartStateManagerRuntimeScope;
+
+        expect(() =>
+            getChartStateManagerRuntime(
+                omittedProviderScope
+            ).getChartRenderContainer()
+        ).toThrow("ChartStateManager requires a document provider");
+        expect(() =>
+            getChartStateManagerRuntime(omittedProviderScope).getControlsPanel()
+        ).toThrow("ChartStateManager requires a document provider");
+        expect(() =>
+            getChartStateManagerRuntime(
+                omittedHTMLElementProviderScope
+            ).getControlsPanel()
+        ).toThrow("ChartStateManager requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(6);
 
@@ -185,8 +214,12 @@ describe("getChartStateManagerRuntime", () => {
         } as unknown as ChartStateManagerRuntimeScope;
         const runtime = getChartStateManagerRuntime(legacyScope);
 
-        expect(runtime.getChartRenderContainer()).toBeNull();
-        expect(runtime.getControlsPanel()).toBeNull();
+        expect(() => runtime.getChartRenderContainer()).toThrow(
+            "ChartStateManager requires a document provider"
+        );
+        expect(() => runtime.getControlsPanel()).toThrow(
+            "ChartStateManager requires a document provider"
+        );
         expect(() => runtime.setRenderTimeout(() => undefined, 0)).toThrow(
             "ChartStateManager requires a setTimeout provider"
         );
