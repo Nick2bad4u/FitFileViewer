@@ -23,6 +23,12 @@ function setExitFullscreen(
 }
 
 describe("getAddExitFullscreenOverlayRuntime", () => {
+    const unavailableAddExitFullscreenOverlayRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+    } satisfies Parameters<typeof getAddExitFullscreenOverlayRuntime>[0];
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -31,7 +37,9 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         expect.assertions(3);
 
         const runtime = getAddExitFullscreenOverlayRuntime({
+            getAbortController: () => undefined,
             getDocument: () => document,
+            getHTMLElement: () => undefined,
         });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
@@ -46,6 +54,7 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         const exitFullscreen = setExitFullscreen(() => Promise.resolve());
         setFullscreenElement(fullscreenElement);
         const runtime = getAddExitFullscreenOverlayRuntime({
+            getAbortController: () => undefined,
             getDocument: () => document,
             getHTMLElement: () => HTMLElement,
         });
@@ -63,6 +72,7 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         const runtime = getAddExitFullscreenOverlayRuntime({
             getAbortController: () => AbortController,
             getDocument: () => document,
+            getHTMLElement: () => undefined,
         });
         const controller = runtime.createAbortController();
 
@@ -106,7 +116,9 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
             },
         } as Document;
         const runtime = getAddExitFullscreenOverlayRuntime({
+            getAbortController: () => undefined,
             getDocument: () => scopedDocument,
+            getHTMLElement: () => undefined,
         });
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
@@ -117,18 +129,17 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(4);
 
-        const runtime = getAddExitFullscreenOverlayRuntime({});
+        const runtime = getAddExitFullscreenOverlayRuntime(
+            unavailableAddExitFullscreenOverlayRuntimeScope
+        );
         const runtimeWithoutAbortController =
             getAddExitFullscreenOverlayRuntime({
-                getDocument: () =>
-                    ({
-                        defaultView: {
-                            AbortController,
-                        },
-                    }) as Document,
+                ...unavailableAddExitFullscreenOverlayRuntimeScope,
+                getDocument: () => document,
             });
         const runtimeWithInvalidAbortController =
             getAddExitFullscreenOverlayRuntime({
+                ...unavailableAddExitFullscreenOverlayRuntimeScope,
                 getAbortController: () =>
                     "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
@@ -152,6 +163,41 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getAddExitFullscreenOverlayRuntime(
+            {} as unknown as Parameters<
+                typeof getAddExitFullscreenOverlayRuntime
+            >[0]
+        );
+
+        expect(() => runtime.createButton()).toThrow(
+            "addExitFullscreenOverlay requires a document provider"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "addExitFullscreenOverlay requires an AbortController provider"
+        );
+        expect(() => runtime.isHTMLElement({})).toThrow(
+            "addExitFullscreenOverlay requires a document provider"
+        );
+    });
+
+    it("fails clearly when the HTMLElement provider is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getAddExitFullscreenOverlayRuntime({
+            getAbortController: () => undefined,
+            getDocument: () => document,
+        } as unknown as Parameters<
+            typeof getAddExitFullscreenOverlayRuntime
+        >[0]);
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("addExitFullscreenOverlay requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(5);
 
@@ -163,9 +209,11 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
             },
         };
         const runtime = getAddExitFullscreenOverlayRuntime({
+            ...unavailableAddExitFullscreenOverlayRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
+            HTMLElement,
         } as unknown as Parameters<
             typeof getAddExitFullscreenOverlayRuntime
         >[0]);
@@ -187,6 +235,7 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         expect.assertions(2);
 
         const runtime = getAddExitFullscreenOverlayRuntime({
+            getAbortController: () => undefined,
             getDocument: () => document,
             getHTMLElement: () => HTMLElement,
         });

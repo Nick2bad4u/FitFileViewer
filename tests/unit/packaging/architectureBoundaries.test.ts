@@ -19155,7 +19155,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(37);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -19204,6 +19204,15 @@ describe("architecture boundaries", () => {
             "readonly HTMLElement?:"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
@@ -19211,6 +19220,15 @@ describe("architecture boundaries", () => {
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "scope.HTMLElement"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "defaultView?.AbortController"
@@ -19256,6 +19274,15 @@ describe("architecture boundaries", () => {
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "addExitFullscreenOverlay requires an AbortController provider"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "addExitFullscreenOverlay requires a document provider"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "addExitFullscreenOverlay requires an HTMLElement provider"
         );
     });
 

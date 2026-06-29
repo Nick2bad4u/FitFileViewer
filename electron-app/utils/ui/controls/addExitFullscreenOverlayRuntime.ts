@@ -9,11 +9,11 @@ import {
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface AddExitFullscreenOverlayRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -42,13 +42,27 @@ const defaultAddExitFullscreenOverlayRuntimeScope: AddExitFullscreenOverlayRunti
 function getScopeDocument(
     scope: AddExitFullscreenOverlayRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "addExitFullscreenOverlay requires a document provider"
+        );
+    }
+
+    return getRuntimeDocument();
 }
 
 function getAbortControllerConstructor(
     scope: AddExitFullscreenOverlayRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const getRuntimeAbortController = scope.getAbortController;
+    if (typeof getRuntimeAbortController !== "function") {
+        throw new TypeError(
+            "addExitFullscreenOverlay requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = getRuntimeAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addExitFullscreenOverlay requires an AbortController runtime"
@@ -72,7 +86,14 @@ function getDocument(scope: AddExitFullscreenOverlayRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: AddExitFullscreenOverlayRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    const getRuntimeHTMLElement = scope.getHTMLElement;
+    if (typeof getRuntimeHTMLElement !== "function") {
+        throw new TypeError(
+            "addExitFullscreenOverlay requires an HTMLElement provider"
+        );
+    }
+
+    return getRuntimeHTMLElement();
 }
 
 function createSvgElement<K extends keyof SVGElementTagNameMap>(
