@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/app/initialization/updateSystemInfoRuntime.js";
 
 describe("getUpdateSystemInfoRuntime", () => {
+    const unavailableUpdateSystemInfoRuntimeScope = {
+        getDocument: () => undefined,
+    } satisfies UpdateSystemInfoRuntimeScope;
+
     it("queries system info items through the injected document provider", () => {
         expect.assertions(2);
 
@@ -50,11 +54,25 @@ describe("getUpdateSystemInfoRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getUpdateSystemInfoRuntime({});
+        const runtime = getUpdateSystemInfoRuntime(
+            unavailableUpdateSystemInfoRuntimeScope
+        );
 
         expect(() =>
             runtime.querySystemInfoItems(".system-info-value")
         ).toThrow("updateSystemInfo requires a document runtime");
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getUpdateSystemInfoRuntime(
+            {} as unknown as UpdateSystemInfoRuntimeScope
+        );
+
+        expect(() =>
+            runtime.querySystemInfoItems(".system-info-value")
+        ).toThrow("updateSystemInfo requires a document provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -62,6 +80,7 @@ describe("getUpdateSystemInfoRuntime", () => {
 
         const querySelectorAll = vi.fn<Document["querySelectorAll"]>();
         const runtime = getUpdateSystemInfoRuntime({
+            ...unavailableUpdateSystemInfoRuntimeScope,
             document: { querySelectorAll },
         } as unknown as UpdateSystemInfoRuntimeScope);
 

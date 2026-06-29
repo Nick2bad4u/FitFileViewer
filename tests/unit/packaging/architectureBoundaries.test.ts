@@ -23764,7 +23764,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps system info DOM lookup behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const violations = migratedUpdateSystemInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -23825,7 +23825,13 @@ describe("architecture boundaries", () => {
         expect(updateSystemInfoRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(updateSystemInfoRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(updateSystemInfoRuntimeSource).not.toContain("scope.document");
+        expect(updateSystemInfoRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(updateSystemInfoRuntimeSource).not.toContain(
             "scope: UpdateSystemInfoRuntimeScope = globalThis"
         );
@@ -23836,7 +23842,10 @@ describe("architecture boundaries", () => {
             /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
         );
         expect(updateSystemInfoRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
+        );
+        expect(updateSystemInfoRuntimeSource).toContain(
+            "updateSystemInfo requires a document provider"
         );
         expect(updateSystemInfoRuntimeSource).toContain(
             "updateSystemInfo requires a document runtime"
@@ -23844,7 +23853,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps version info DOM lookup behind the runtime facade", () => {
-        expect.assertions(38);
+        expect.assertions(41);
 
         const violations = migratedLoadVersionInfoRuntimeFiles
             .filter((relativeFile) =>
@@ -23941,7 +23950,13 @@ describe("architecture boundaries", () => {
         expect(loadVersionInfoRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(loadVersionInfoRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(loadVersionInfoRuntimeSource).not.toContain("scope.document");
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(loadVersionInfoRuntimeSource).not.toContain(
             "scope: LoadVersionInfoRuntimeScope = globalThis"
         );
@@ -23952,7 +23967,10 @@ describe("architecture boundaries", () => {
             /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
         );
         expect(loadVersionInfoRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "loadVersionInfo requires a document provider"
         );
         expect(loadVersionInfoRuntimeSource).toContain(
             "loadVersionInfo requires a document runtime"

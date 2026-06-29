@@ -3,7 +3,7 @@ import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 type UpdateSystemInfoDocument = Pick<Document, "querySelectorAll">;
 
 export interface UpdateSystemInfoRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => UpdateSystemInfoDocument | undefined)
         | undefined;
 }
@@ -19,7 +19,12 @@ const defaultUpdateSystemInfoRuntimeScope: UpdateSystemInfoRuntimeScope = {
 function getRequiredDocument(
     scope: UpdateSystemInfoRuntimeScope
 ): UpdateSystemInfoDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("updateSystemInfo requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("updateSystemInfo requires a document runtime");
     }

@@ -3,7 +3,7 @@ import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 type LoadVersionInfoDocument = Pick<Document, "querySelector">;
 
 export interface LoadVersionInfoRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => LoadVersionInfoDocument | undefined)
         | undefined;
 }
@@ -19,7 +19,12 @@ const defaultLoadVersionInfoRuntimeScope: LoadVersionInfoRuntimeScope = {
 function getRequiredDocument(
     scope: LoadVersionInfoRuntimeScope
 ): LoadVersionInfoDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("loadVersionInfo requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("loadVersionInfo requires a document runtime");
     }

@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/app/initialization/loadVersionInfoRuntime.js";
 
 describe("getLoadVersionInfoRuntime", () => {
+    const unavailableLoadVersionInfoRuntimeScope = {
+        getDocument: () => undefined,
+    } satisfies LoadVersionInfoRuntimeScope;
+
     it("queries the version number through the injected document provider", () => {
         expect.assertions(2);
 
@@ -45,10 +49,24 @@ describe("getLoadVersionInfoRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getLoadVersionInfoRuntime({});
+        const runtime = getLoadVersionInfoRuntime(
+            unavailableLoadVersionInfoRuntimeScope
+        );
 
         expect(() => runtime.queryVersionNumber("#version-number")).toThrow(
             "loadVersionInfo requires a document runtime"
+        );
+    });
+
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getLoadVersionInfoRuntime(
+            {} as unknown as LoadVersionInfoRuntimeScope
+        );
+
+        expect(() => runtime.queryVersionNumber("#version-number")).toThrow(
+            "loadVersionInfo requires a document provider"
         );
     });
 
@@ -57,6 +75,7 @@ describe("getLoadVersionInfoRuntime", () => {
 
         const querySelector = vi.fn<Document["querySelector"]>();
         const runtime = getLoadVersionInfoRuntime({
+            ...unavailableLoadVersionInfoRuntimeScope,
             document: { querySelector },
         } as unknown as LoadVersionInfoRuntimeScope);
 
