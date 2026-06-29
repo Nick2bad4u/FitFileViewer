@@ -20213,7 +20213,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(17);
 
         const violations = migratedLoadingOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -20258,6 +20258,9 @@ describe("architecture boundaries", () => {
         expect(loadingOverlayRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(loadingOverlayRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(loadingOverlayRuntimeSource).not.toContain("scope.document");
         expect(loadingOverlayRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
@@ -20265,8 +20268,17 @@ describe("architecture boundaries", () => {
         expect(loadingOverlayRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
+        expect(loadingOverlayRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(loadingOverlayRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const getRuntimeDocument = scope.getDocument;"
+        );
+        expect(loadingOverlayRuntimeSource).toContain(
+            "const runtimeDocument = getRuntimeDocument();"
+        );
+        expect(loadingOverlayRuntimeSource).toContain(
+            "LoadingOverlay requires a document provider"
         );
         expect(loadingOverlayRuntimeSource).toContain(
             "LoadingOverlay requires a document runtime"

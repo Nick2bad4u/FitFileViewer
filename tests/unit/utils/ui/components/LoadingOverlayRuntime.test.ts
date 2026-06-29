@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/ui/components/LoadingOverlayRuntime.js";
 
 describe("getLoadingOverlayRuntime", () => {
+    const unavailableLoadingOverlayRuntimeScope = {
+        getDocument: () => undefined,
+    } satisfies LoadingOverlayRuntimeScope;
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
@@ -50,7 +54,9 @@ describe("getLoadingOverlayRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getLoadingOverlayRuntime({});
+        const runtime = getLoadingOverlayRuntime(
+            unavailableLoadingOverlayRuntimeScope
+        );
 
         expect(() => runtime.createElement("div")).toThrow(
             "LoadingOverlay requires a document runtime"
@@ -63,10 +69,29 @@ describe("getLoadingOverlayRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getLoadingOverlayRuntime(
+            {} as unknown as LoadingOverlayRuntimeScope
+        );
+
+        expect(() => runtime.createElement("div")).toThrow(
+            "LoadingOverlay requires a document provider"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "LoadingOverlay requires a document provider"
+        );
+        expect(() => runtime.querySelector("body")).toThrow(
+            "LoadingOverlay requires a document provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(1);
 
         const legacyScope = {
+            ...unavailableLoadingOverlayRuntimeScope,
             document,
         } as unknown as LoadingOverlayRuntimeScope;
         const runtime = getLoadingOverlayRuntime(legacyScope);

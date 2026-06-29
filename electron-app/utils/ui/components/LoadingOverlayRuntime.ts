@@ -2,7 +2,7 @@ import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 
 export interface LoadingOverlayRuntimeScope {
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface LoadingOverlayRuntime {
@@ -21,7 +21,12 @@ const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope = {
 };
 
 function getDocument(scope: LoadingOverlayRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError("LoadingOverlay requires a document provider");
+    }
+
+    const runtimeDocument = getRuntimeDocument();
     if (!runtimeDocument) {
         throw new TypeError("LoadingOverlay requires a document runtime");
     }
