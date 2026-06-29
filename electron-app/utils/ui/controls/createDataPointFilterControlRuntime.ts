@@ -6,11 +6,11 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface CreateDataPointFilterControlRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getQueueMicrotask?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getQueueMicrotask:
         | (() => typeof queueMicrotask | undefined)
         | undefined;
 }
@@ -31,7 +31,14 @@ const defaultCreateDataPointFilterControlRuntimeScope: CreateDataPointFilterCont
 function getAbortControllerConstructor(
     scope: CreateDataPointFilterControlRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const getRuntimeAbortController = scope.getAbortController;
+    if (typeof getRuntimeAbortController !== "function") {
+        throw new TypeError(
+            "createDataPointFilterControl requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = getRuntimeAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createDataPointFilterControl requires an AbortController runtime"
@@ -44,7 +51,14 @@ function getAbortControllerConstructor(
 function getDocument(
     scope: CreateDataPointFilterControlRuntimeScope
 ): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "createDataPointFilterControl requires a document provider"
+        );
+    }
+
+    const runtimeDocument = getRuntimeDocument();
     if (!runtimeDocument) {
         throw new TypeError(
             "createDataPointFilterControl requires a document runtime"
@@ -67,7 +81,14 @@ export function getCreateDataPointFilterControlRuntime(
             return getDocument(scope).createElement("option");
         },
         scheduleMicrotask(callback: VoidFunction): void {
-            const microtaskScheduler = scope.getQueueMicrotask?.();
+            const getRuntimeQueueMicrotask = scope.getQueueMicrotask;
+            if (typeof getRuntimeQueueMicrotask !== "function") {
+                throw new TypeError(
+                    "createDataPointFilterControl requires a queueMicrotask provider"
+                );
+            }
+
+            const microtaskScheduler = getRuntimeQueueMicrotask();
             if (typeof microtaskScheduler === "function") {
                 microtaskScheduler(callback);
                 return;

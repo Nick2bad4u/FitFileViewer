@@ -7,6 +7,12 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/createDataPointFilterControlRuntime.js";
 
 describe("getCreateDataPointFilterControlRuntime", () => {
+    const unavailableDataPointFilterControlRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getQueueMicrotask: () => undefined,
+    } satisfies Parameters<typeof getCreateDataPointFilterControlRuntime>[0];
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -15,6 +21,7 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         expect.assertions(4);
 
         const runtime = getCreateDataPointFilterControlRuntime({
+            ...unavailableDataPointFilterControlRuntimeScope,
             getAbortController: () => AbortController,
             getDocument: () => document,
         });
@@ -64,6 +71,7 @@ describe("getCreateDataPointFilterControlRuntime", () => {
             callback();
         });
         const runtime = getCreateDataPointFilterControlRuntime({
+            ...unavailableDataPointFilterControlRuntimeScope,
             getDocument: () => document,
             getQueueMicrotask: () => queueMicrotaskMock,
         });
@@ -81,6 +89,7 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         expect.assertions(1);
 
         const runtime = getCreateDataPointFilterControlRuntime({
+            ...unavailableDataPointFilterControlRuntimeScope,
             getDocument: () => document,
         });
         let scheduled = false;
@@ -96,9 +105,12 @@ describe("getCreateDataPointFilterControlRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getCreateDataPointFilterControlRuntime({});
+        const runtime = getCreateDataPointFilterControlRuntime(
+            unavailableDataPointFilterControlRuntimeScope
+        );
         const runtimeWithInvalidAbortController =
             getCreateDataPointFilterControlRuntime({
+                ...unavailableDataPointFilterControlRuntimeScope,
                 getAbortController: () =>
                     "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
@@ -117,6 +129,26 @@ describe("getCreateDataPointFilterControlRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getCreateDataPointFilterControlRuntime(
+            {} as unknown as Parameters<
+                typeof getCreateDataPointFilterControlRuntime
+            >[0]
+        );
+
+        expect(() => runtime.createOption()).toThrow(
+            "createDataPointFilterControl requires a document provider"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createDataPointFilterControl requires an AbortController provider"
+        );
+        expect(() => runtime.scheduleMicrotask(() => {})).toThrow(
+            "createDataPointFilterControl requires a queueMicrotask provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", async () => {
         expect.assertions(5);
 
@@ -124,6 +156,7 @@ describe("getCreateDataPointFilterControlRuntime", () => {
             callback();
         });
         const legacyScope = {
+            ...unavailableDataPointFilterControlRuntimeScope,
             AbortController,
             document,
             queueMicrotask: queueMicrotaskMock,
