@@ -61,6 +61,11 @@ function restoreClipboard(): void {
 }
 
 describe("getCopyTableAsCSVRuntime", () => {
+    const unavailableCopyTableAsCSVRuntimeScope = {
+        getClipboard: () => undefined,
+        getDocument: () => undefined,
+    } satisfies CopyTableAsCSVRuntimeScope;
+
     afterEach(() => {
         document.body.replaceChildren();
         restoreClipboard();
@@ -73,6 +78,7 @@ describe("getCopyTableAsCSVRuntime", () => {
 
         const writeText = vi.fn<(text: string) => Promise<void>>();
         const view = getCopyTableAsCSVRuntime({
+            ...unavailableCopyTableAsCSVRuntimeScope,
             getClipboard: () => ({ writeText }),
         });
 
@@ -104,10 +110,13 @@ describe("getCopyTableAsCSVRuntime", () => {
         expect.assertions(2);
 
         await expect(
-            getCopyTableAsCSVRuntime({}).copyTextUsingBrowserClipboard("a,b")
+            getCopyTableAsCSVRuntime(
+                unavailableCopyTableAsCSVRuntimeScope
+            ).copyTextUsingBrowserClipboard("a,b")
         ).resolves.toBe(false);
         await expect(
             getCopyTableAsCSVRuntime({
+                ...unavailableCopyTableAsCSVRuntimeScope,
                 getClipboard: () => ({
                     writeText: () => {
                         throw new Error("denied");
@@ -122,6 +131,7 @@ describe("getCopyTableAsCSVRuntime", () => {
 
         const execCommand = installExecCommand(true);
         const view = getCopyTableAsCSVRuntime({
+            ...unavailableCopyTableAsCSVRuntimeScope,
             getDocument: () => document,
         });
 
@@ -141,6 +151,7 @@ describe("getCopyTableAsCSVRuntime", () => {
 
         installExecCommand(false);
         const view = getCopyTableAsCSVRuntime({
+            ...unavailableCopyTableAsCSVRuntimeScope,
             getDocument: () => document,
         });
 
@@ -150,11 +161,27 @@ describe("getCopyTableAsCSVRuntime", () => {
         expect(document.querySelector("textarea")).toBeNull();
     });
 
+    it("fails clearly when required providers are omitted", async () => {
+        expect.assertions(2);
+
+        const view = getCopyTableAsCSVRuntime(
+            {} as unknown as CopyTableAsCSVRuntimeScope
+        );
+
+        await expect(view.copyTextUsingBrowserClipboard("a,b")).rejects.toThrow(
+            "copyTableAsCSV requires a clipboard provider"
+        );
+        expect(() => view.copyTextUsingLegacyExecCommand("a,b", {})).toThrow(
+            "copyTableAsCSV requires a document provider"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", async () => {
         expect.assertions(4);
 
         const writeText = vi.fn<(text: string) => Promise<void>>();
         const legacyScope = {
+            ...unavailableCopyTableAsCSVRuntimeScope,
             document,
             navigator: { clipboard: { writeText } },
         } as unknown as CopyTableAsCSVRuntimeScope;

@@ -18859,7 +18859,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(40);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -18938,8 +18938,16 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly navigator?:");
+        expect(runtimeScopeSource).not.toContain("readonly getClipboard?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
         expect(copyTableAsCSVRuntimeSource).not.toContain("scope.document");
         expect(copyTableAsCSVRuntimeSource).not.toContain("scope.navigator");
+        expect(copyTableAsCSVRuntimeSource).not.toContain(
+            "scope.getClipboard?.()"
+        );
+        expect(copyTableAsCSVRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(copyTableAsCSVRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
@@ -18956,10 +18964,16 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(copyTableAsCSVRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
         );
         expect(copyTableAsCSVRuntimeSource).toContain(
-            "const clipboard = scope.getClipboard?.();"
+            "const clipboard = getClipboard(scope);"
+        );
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "copyTableAsCSV requires a clipboard provider"
+        );
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "copyTableAsCSV requires a document provider"
         );
     });
 

@@ -8,8 +8,8 @@ type ClipboardTextWriter = {
 };
 
 export interface CopyTableAsCSVRuntimeScope {
-    readonly getClipboard?: (() => ClipboardTextWriter | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getClipboard: (() => ClipboardTextWriter | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface CopyTableAsCSVRuntime {
@@ -21,12 +21,28 @@ export interface CopyTableAsCSVRuntime {
 }
 
 function getDocument(scope: CopyTableAsCSVRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getDocument = scope.getDocument;
+    if (typeof getDocument !== "function") {
+        throw new TypeError("copyTableAsCSV requires a document provider");
+    }
+
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("copyTableAsCSV requires a document runtime");
     }
 
     return runtimeDocument;
+}
+
+function getClipboard(
+    scope: CopyTableAsCSVRuntimeScope
+): ClipboardTextWriter | undefined {
+    const getClipboardRef = scope.getClipboard;
+    if (typeof getClipboardRef !== "function") {
+        throw new TypeError("copyTableAsCSV requires a clipboard provider");
+    }
+
+    return getClipboardRef();
 }
 
 const defaultCopyTableAsCSVRuntimeScope: CopyTableAsCSVRuntimeScope = {
@@ -39,8 +55,8 @@ export function getCopyTableAsCSVRuntime(
 ): CopyTableAsCSVRuntime {
     return {
         async copyTextUsingBrowserClipboard(text): Promise<boolean> {
+            const clipboard = getClipboard(scope);
             try {
-                const clipboard = scope.getClipboard?.();
                 if (typeof clipboard?.writeText !== "function") {
                     return false;
                 }
