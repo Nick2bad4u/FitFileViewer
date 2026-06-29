@@ -6987,7 +6987,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(173);
+        expect.assertions(175);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -7095,6 +7095,8 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("getStorage");
         expect(exportUtilsSource).toContain("getActiveElement");
         expect(exportUtilsSource).toContain("openPrintWindow");
+        expect(exportUtilsSource).toContain("closePreparedPrintDocument");
+        expect(exportUtilsSource).not.toContain("printWindow.document.close()");
         expect(exportUtilsSource).toContain("exportUtilsRuntime().querySelector");
         expect(exportUtilsSource).toContain(
             'exportUtilsRuntime().getProcessEnvironmentValue(\n                "FFV_DEBUG_EXPORT_THEME"\n            )'

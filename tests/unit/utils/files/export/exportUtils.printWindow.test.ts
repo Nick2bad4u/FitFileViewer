@@ -29,9 +29,10 @@ function createPrintWindowDouble() {
 
 describe("exportUtils print windows", () => {
     it("prints a chart by building the popup document with DOM APIs", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const { printDocument, printWindow } = createPrintWindowDouble(),
+            closeDocumentSpy = vi.spyOn(printDocument, "close"),
             openSpy = vi
                 .spyOn(window, "open")
                 .mockReturnValue(printWindow as unknown as Window),
@@ -70,8 +71,10 @@ describe("exportUtils print windows", () => {
             expect(printDocument.querySelector("script")).not.toBeInstanceOf(
                 HTMLScriptElement
             );
+            expect(closeDocumentSpy).toHaveBeenCalledWith();
             expect(printWindow.print).toHaveBeenCalledWith();
         } finally {
+            closeDocumentSpy.mockRestore();
             openSpy.mockRestore();
             getContextSpy.mockRestore();
             toDataUrlSpy.mockRestore();

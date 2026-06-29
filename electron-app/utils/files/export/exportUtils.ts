@@ -428,6 +428,13 @@ function preparePrintDocument(
 }
 
 /*
+ * @param {Document} printDocument
+ */
+function closePreparedPrintDocument(printDocument: Document): void {
+    printDocument.close();
+}
+
+/*
  * @param {Window} printWindow
  */
 function printAndCloseWindow(printWindow: Window): void {
@@ -2483,7 +2490,7 @@ img {
                 imageElement.id = "ffv-print-img";
                 imageElement.src = imgData;
                 printDocument.body.append(imageElement);
-                printWindow.document.close();
+                closePreparedPrintDocument(printDocument);
                 printWhenImageReady(printWindow, imageElement);
             }
 
@@ -2605,8 +2612,8 @@ body {
                 }
             }
 
-            if (printWindow) {
-                printWindow.document.close();
+            if (printWindow && printDocument) {
+                closePreparedPrintDocument(printDocument);
                 printWindow.setTimeout(
                     () => printAndCloseWindow(printWindow),
                     0
