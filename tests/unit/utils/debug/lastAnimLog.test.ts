@@ -57,6 +57,7 @@ describe("animation debug logging", () => {
             getConsole: () => ({ log: consoleLog }),
             getLastAnimLogRuntime: () => ({
                 dateNow: () => 600,
+                isDevelopmentEnvironment: () => false,
                 performanceNow: () => 1500,
             }),
             getRendererDebugRuntime: () => ({
@@ -95,7 +96,11 @@ describe("animation debug logging", () => {
         const consoleLog = vi.fn<(...args: unknown[]) => void>();
         const logger = createAnimationDebugLogger({
             getConsole: () => ({ log: consoleLog }),
-            isDevelopmentEnvironment: () => true,
+            getLastAnimLogRuntime: () => ({
+                dateNow: () => 0,
+                isDevelopmentEnvironment: () => true,
+                performanceNow: () => 0,
+            }),
         });
 
         const result = logger.criticalAnimLog("partial override");

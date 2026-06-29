@@ -2,7 +2,6 @@
  * Throttled animation logging utilities for renderer development debugging.
  */
 
-import { isDevelopmentEnvironment } from "../runtime/processEnvironment.js";
 import {
     getLastAnimLogRuntime,
     type LastAnimLogRuntime,
@@ -37,25 +36,29 @@ const defaultAnimationDebugLoggerRuntime: AnimationDebugLoggerRuntime = {
     getConsole: () => console,
     getLastAnimLogRuntime,
     getRendererDebugRuntime,
-    isDevelopmentEnvironment,
+    isDevelopmentEnvironment: () =>
+        getLastAnimLogRuntime().isDevelopmentEnvironment(),
     isRendererDebugLoggingEnabled,
 };
 
 function resolveAnimationDebugLoggerRuntime(
     runtime: AnimationDebugLoggerOptions
 ): AnimationDebugLoggerRuntime {
+    const getLastAnimLogRuntimeProvider =
+        runtime.getLastAnimLogRuntime ??
+        defaultAnimationDebugLoggerRuntime.getLastAnimLogRuntime;
+
     return {
         getConsole:
             runtime.getConsole ?? defaultAnimationDebugLoggerRuntime.getConsole,
-        getLastAnimLogRuntime:
-            runtime.getLastAnimLogRuntime ??
-            defaultAnimationDebugLoggerRuntime.getLastAnimLogRuntime,
+        getLastAnimLogRuntime: getLastAnimLogRuntimeProvider,
         getRendererDebugRuntime:
             runtime.getRendererDebugRuntime ??
             defaultAnimationDebugLoggerRuntime.getRendererDebugRuntime,
         isDevelopmentEnvironment:
             runtime.isDevelopmentEnvironment ??
-            defaultAnimationDebugLoggerRuntime.isDevelopmentEnvironment,
+            (() =>
+                getLastAnimLogRuntimeProvider().isDevelopmentEnvironment()),
         isRendererDebugLoggingEnabled:
             runtime.isRendererDebugLoggingEnabled ??
             defaultAnimationDebugLoggerRuntime.isRendererDebugLoggingEnabled,

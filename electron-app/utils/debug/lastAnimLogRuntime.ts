@@ -2,9 +2,11 @@ import {
     getBrowserDateNow,
     getBrowserPerformance,
 } from "../runtime/browserRuntime.js";
+import { isDevelopmentEnvironment as isRuntimeDevelopmentEnvironment } from "../runtime/processEnvironment.js";
 
 export interface LastAnimLogRuntimeScope {
     readonly getDateNow: LastAnimLogRuntimeProvider<() => number>;
+    readonly getIsDevelopmentEnvironment: LastAnimLogRuntimeProvider<boolean>;
     readonly getPerformance: LastAnimLogRuntimeProvider<
         Pick<Performance, "now">
     >;
@@ -15,6 +17,7 @@ type LastAnimLogRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface LastAnimLogRuntime {
     readonly dateNow: () => number;
+    readonly isDevelopmentEnvironment: () => boolean;
     readonly performanceNow: () => number;
 }
 
@@ -31,6 +34,7 @@ function getScopedPerformanceNow(
 
 const defaultLastAnimLogRuntimeScope: LastAnimLogRuntimeScope = {
     getDateNow: getBrowserDateNow,
+    getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment,
     getPerformance: getBrowserPerformance,
     getPerformanceNow: () => undefined,
 };
@@ -84,6 +88,14 @@ export function getLastAnimLogRuntime(
     return {
         dateNow(): number {
             return getRequiredDateNow(scope)();
+        },
+        isDevelopmentEnvironment(): boolean {
+            return (
+                getRequiredProvider(
+                    scope.getIsDevelopmentEnvironment,
+                    "isDevelopmentEnvironment"
+                )() === true
+            );
         },
         performanceNow(): number {
             return getRequiredPerformanceNow(scope)();

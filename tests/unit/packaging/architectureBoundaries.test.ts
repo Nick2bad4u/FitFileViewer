@@ -16753,7 +16753,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(45);
+        expect.assertions(54);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
@@ -16769,6 +16769,12 @@ describe("architecture boundaries", () => {
         expect(lastAnimLogSource).toContain("createAnimationDebugLogger");
         expect(lastAnimLogSource).toContain(
             "type AnimationDebugLoggerOptions = Partial<AnimationDebugLoggerRuntime>;"
+        );
+        expect(lastAnimLogSource).not.toContain(
+            "../runtime/processEnvironment.js"
+        );
+        expect(lastAnimLogSource).toContain(
+            "getLastAnimLogRuntime().isDevelopmentEnvironment()"
         );
         expect(lastAnimLogSource).not.toContain("const lastAnimLogRuntime =");
         expect(lastAnimLogSource).not.toContain("const rendererDebugRuntime =");
@@ -16825,6 +16831,12 @@ describe("architecture boundaries", () => {
             "getDateNow: getBrowserDateNow"
         );
         expect(lastAnimLogRuntimeSource).toContain(
+            "../runtime/processEnvironment.js"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
             "getPerformance: getBrowserPerformance"
         );
         expect(lastAnimLogRuntimeSource).toContain(
@@ -16835,6 +16847,9 @@ describe("architecture boundaries", () => {
         );
         expect(lastAnimLogRuntimeSource).toMatch(
             /readonly\s+getDateNow:\s*LastAnimLogRuntimeProvider<\(\) => number>/u
+        );
+        expect(lastAnimLogRuntimeSource).toMatch(
+            /readonly\s+getIsDevelopmentEnvironment:\s*LastAnimLogRuntimeProvider<boolean>/u
         );
         expect(lastAnimLogRuntimeSource).toMatch(
             /readonly\s+getPerformance:\s*LastAnimLogRuntimeProvider<\s*Pick<Performance,\s*"now">\s*>/u
@@ -16855,6 +16870,9 @@ describe("architecture boundaries", () => {
             /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
         );
         expect(lastAnimLogRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsDevelopmentEnvironment,\s*"isDevelopmentEnvironment"\s*\)/u
+        );
+        expect(lastAnimLogRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getPerformanceNow,\s*"performance\.now"\s*\)/u
         );
         expect(lastAnimLogRuntimeSource).toContain(
@@ -16872,6 +16890,15 @@ describe("architecture boundaries", () => {
         );
         expect(lastAnimLogRuntimeSource).toContain(
             "lastAnimLogRuntime requires performance.now"
+        );
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "scope.isDevelopmentEnvironment"
+        );
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "scope.getIsDevelopmentEnvironment?.()"
+        );
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "readonly getIsDevelopmentEnvironment?:"
         );
     });
 
