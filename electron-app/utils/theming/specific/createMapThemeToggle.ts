@@ -10,7 +10,6 @@ import {
     getMapThemeSetting,
     setMapThemeSetting,
 } from "../../state/domain/settingsStateManager.js";
-import { isTestEnvironment as isRuntimeTestEnvironment } from "../../runtime/processEnvironment.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
     MAP_THEME_EVENTS,
@@ -28,10 +27,6 @@ type SvgRayCoordinates = readonly [
     string,
     string,
 ];
-
-function isTestEnvironment(): boolean {
-    return isRuntimeTestEnvironment();
-}
 
 function getThemeColorValue(value: unknown, fallback: string): string {
     return typeof value === "string" && value.length > 0 ? value : fallback;
@@ -61,7 +56,7 @@ export function createMapThemeToggle(
             return existing;
         }
 
-        const runningInTest = isTestEnvironment();
+        const runningInTest = runtime.isTestEnvironment();
 
         const button = runtime.createElement("button");
         button.className = "map-action-btn map-theme-toggle";

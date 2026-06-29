@@ -9,6 +9,7 @@ import {
     getBrowserDocument,
     getBrowserSetTimeout,
 } from "../../runtime/browserRuntime.js";
+import { isTestEnvironment as isRuntimeTestEnvironment } from "../../runtime/processEnvironment.js";
 
 import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
@@ -26,6 +27,7 @@ export interface MapThemeToggleRuntimeScope {
     readonly getClearTimeout: MapThemeToggleRuntimeProvider<BrowserClearTimeout>;
     readonly getCustomEvent: MapThemeToggleRuntimeProvider<BrowserCustomEventConstructor>;
     readonly getDocument: MapThemeToggleRuntimeProvider<Document>;
+    readonly getIsTestEnvironment: MapThemeToggleRuntimeProvider<boolean>;
     readonly getSetTimeout: MapThemeToggleRuntimeProvider<MapThemeToggleSetTimeout>;
 }
 
@@ -50,6 +52,7 @@ export interface MapThemeToggleRuntime {
     dispatchDocumentEvent(event: Event): boolean;
     findExistingToggle(): HTMLElement | null;
     isBodyThemeDark(): boolean;
+    isTestEnvironment(): boolean;
     setTimeout(
         callback: () => void,
         timeout: number
@@ -87,6 +90,7 @@ const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope = {
     getClearTimeout: getBrowserClearTimeout,
     getCustomEvent: getBrowserCustomEvent,
     getDocument: getBrowserDocument,
+    getIsTestEnvironment: isRuntimeTestEnvironment,
     getSetTimeout: getBrowserSetTimeout,
 };
 
@@ -176,6 +180,12 @@ export function getMapThemeToggleRuntime(
         },
         isBodyThemeDark(): boolean {
             return getDocument(scope).body.classList.contains("theme-dark");
+        },
+        isTestEnvironment(): boolean {
+            return getRequiredProvider(
+                scope.getIsTestEnvironment,
+                "isTestEnvironment"
+            )() === true;
         },
         setTimeout(callback, timeout): MapThemeToggleTimerHandle {
             const setTimeoutRef = getRequiredProvider(

@@ -28692,7 +28692,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(77);
+        expect.assertions(85);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -28715,7 +28715,7 @@ describe("architecture boundaries", () => {
             readRepositoryFile(mapThemeToggleRuntimeSourceFile)
         );
         const optionalMapThemeToggleProviderAccessPattern =
-            /\bscope\.get(?:AbortController|ClearTimeout|CustomEvent|Document|SetTimeout)\?\.\(/u;
+            /\bscope\.get(?:AbortController|ClearTimeout|CustomEvent|Document|IsTestEnvironment|SetTimeout)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(mapThemeToggleStateSource).toContain("mapThemeToggleRuntime.js");
@@ -28750,9 +28750,11 @@ describe("architecture boundaries", () => {
             'runtime.createSvgElement("svg")'
         );
         expect(mapThemeToggleSource).toContain("runtime.isBodyThemeDark()");
+        expect(mapThemeToggleSource).toContain("runtime.isTestEnvironment()");
         expect(mapThemeToggleSource).toContain(
             "registerMapThemeToggleUpdater(updateButtonState, runtime)"
         );
+        expect(mapThemeToggleSource).not.toContain("processEnvironment.js");
         expect(mapThemeToggleSource).not.toContain("document.querySelector");
         expect(mapThemeToggleSource).not.toContain("document.body");
         expect(mapThemeToggleSource).not.toContain("document.createElement");
@@ -28772,6 +28774,12 @@ describe("architecture boundaries", () => {
         );
         expect(mapThemeToggleRuntimeSource).toContain(
             "defaultMapThemeToggleRuntimeScope"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "isTestEnvironment(): boolean"
         );
         expect(mapThemeToggleRuntimeSource).not.toMatch(
             optionalMapThemeToggleProviderAccessPattern
@@ -28824,6 +28832,9 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "getIsTestEnvironment: isRuntimeTestEnvironment"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
             "getSetTimeout: getBrowserSetTimeout"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain(
@@ -28863,6 +28874,9 @@ describe("architecture boundaries", () => {
             "readonly getDocument?:"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly getIsTestEnvironment?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
             "readonly getSetTimeout?:"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain(
@@ -28871,6 +28885,9 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.CustomEvent");
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.clearTimeout");
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.document");
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "scope.isTestEnvironment"
+        );
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapThemeToggleRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getAbortController/u
@@ -28883,6 +28900,9 @@ describe("architecture boundaries", () => {
         );
         expect(mapThemeToggleRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(mapThemeToggleRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsTestEnvironment/u
         );
         expect(mapThemeToggleRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getSetTimeout/u

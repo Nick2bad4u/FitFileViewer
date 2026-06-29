@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+    getMapThemeToggleRuntime,
+    type MapThemeToggleRuntime,
+} from "../../../../../electron-app/utils/theming/specific/mapThemeToggleRuntime.js";
+
 const getMapThemeSetting = vi.fn<() => boolean>(() => true);
 const setMapThemeSetting = vi.fn<(inverted: boolean) => unknown>();
 const showNotification = vi.fn<
@@ -56,6 +61,19 @@ function getMapThemeToggleState(button: HTMLElement): {
     };
 }
 
+function createMapThemeToggleRuntime(
+    isTestEnvironment: boolean | undefined
+): MapThemeToggleRuntime {
+    return getMapThemeToggleRuntime({
+        getAbortController: () => AbortController,
+        getClearTimeout: () => clearTimeout,
+        getCustomEvent: () => CustomEvent,
+        getDocument: () => document,
+        getIsTestEnvironment: () => isTestEnvironment,
+        getSetTimeout: () => setTimeout,
+    });
+}
+
 describe("createMapThemeToggle environment handling", () => {
     beforeEach(async () => {
         document.body.replaceChildren();
@@ -71,19 +89,20 @@ describe("createMapThemeToggle environment handling", () => {
         await resetMapThemeToggleState();
     });
 
-    it("creates the toggle when global process is unavailable", async () => {
+    it("creates the toggle when test-environment state is unavailable", async () => {
         expect.assertions(4);
 
         const consoleError = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
         vi.spyOn(console, "debug").mockImplementation(() => {});
-        vi.stubGlobal("process", undefined);
 
         const { createMapThemeToggle } =
             await import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
 
-        const button = createMapThemeToggle();
+        const button = createMapThemeToggle(
+            createMapThemeToggleRuntime(undefined)
+        );
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
         expect(getMapThemeToggleState(button)).toEqual({
@@ -98,19 +117,18 @@ describe("createMapThemeToggle environment handling", () => {
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("creates the toggle when process.env is unavailable", async () => {
+    it("creates the toggle when runtime reports a test environment", async () => {
         expect.assertions(4);
 
         const consoleError = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
         vi.spyOn(console, "debug").mockImplementation(() => {});
-        vi.stubGlobal("process", {});
 
         const { createMapThemeToggle } =
             await import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
 
-        const button = createMapThemeToggle();
+        const button = createMapThemeToggle(createMapThemeToggleRuntime(true));
 
         expect(button).toBeInstanceOf(HTMLButtonElement);
         expect(getMapThemeToggleState(button)).toEqual({

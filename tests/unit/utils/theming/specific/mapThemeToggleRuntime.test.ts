@@ -18,6 +18,7 @@ function createMapThemeToggleRuntimeScope(
         getClearTimeout: () => undefined,
         getCustomEvent: () => undefined,
         getDocument: () => undefined,
+        getIsTestEnvironment: () => undefined,
         getSetTimeout: () => undefined,
         ...overrides,
     };
@@ -298,6 +299,32 @@ describe("getMapThemeToggleRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
+    it("reads test-environment state through the injected runtime scope", () => {
+        expect.assertions(3);
+
+        expect(
+            getMapThemeToggleRuntime(
+                createMapThemeToggleRuntimeScope({
+                    getIsTestEnvironment: () => true,
+                })
+            ).isTestEnvironment()
+        ).toBe(true);
+        expect(
+            getMapThemeToggleRuntime(
+                createMapThemeToggleRuntimeScope({
+                    getIsTestEnvironment: () => false,
+                })
+            ).isTestEnvironment()
+        ).toBe(false);
+        expect(
+            getMapThemeToggleRuntime(
+                createMapThemeToggleRuntimeScope({
+                    getIsTestEnvironment: () => undefined,
+                })
+            ).isTestEnvironment()
+        ).toBe(false);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
@@ -314,7 +341,7 @@ describe("getMapThemeToggleRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -335,6 +362,7 @@ describe("getMapThemeToggleRuntime", () => {
             clearTimeout,
             CustomEvent,
             document: documentRef,
+            isTestEnvironment: () => true,
             setTimeout,
         } as unknown as Parameters<typeof getMapThemeToggleRuntime>[0]);
         const controller = new AbortController();
@@ -365,6 +393,9 @@ describe("getMapThemeToggleRuntime", () => {
         expect(() => runtime.isBodyThemeDark()).toThrow(
             "mapThemeToggle requires document provider"
         );
+        expect(() => runtime.isTestEnvironment()).toThrow(
+            "mapThemeToggle requires isTestEnvironment provider"
+        );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "mapThemeToggle requires setTimeout provider"
         );
@@ -379,7 +410,7 @@ describe("getMapThemeToggleRuntime", () => {
     });
 
     it("fails clearly when explicit runtime provider slots are omitted", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const runtime = getMapThemeToggleRuntime(
             {} as unknown as MapThemeToggleRuntimeScope
@@ -396,6 +427,9 @@ describe("getMapThemeToggleRuntime", () => {
         ).toThrow("mapThemeToggle requires CustomEvent provider");
         expect(() => runtime.createElement("button")).toThrow(
             "mapThemeToggle requires document provider"
+        );
+        expect(() => runtime.isTestEnvironment()).toThrow(
+            "mapThemeToggle requires isTestEnvironment provider"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "mapThemeToggle requires setTimeout provider"
