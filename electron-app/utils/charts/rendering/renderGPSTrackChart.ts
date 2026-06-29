@@ -2,7 +2,6 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
-import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
 import {
@@ -12,6 +11,7 @@ import {
 import { chartSettingsManager } from "../core/renderChartJS.js";
 import { getRenderChartDomHelpersRuntime } from "../core/renderChartDomHelpersRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
+import { isTestEnvironment } from "../core/renderChartRuntimeHelpers.js";
 import { chartZoomResetPlugin } from "../plugins/chartZoomResetPlugin.js";
 
 interface GPSTrackPoint {
