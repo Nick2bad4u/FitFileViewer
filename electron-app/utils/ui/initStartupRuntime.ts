@@ -1,33 +1,41 @@
 import { getBrowserDocument } from "../runtime/browserRuntime.js";
 
 export interface InitStartupRuntimeScope {
-    readonly getDocumentTarget: (() => EventTarget | undefined) | undefined;
+    readonly getDocumentTarget: InitStartupRuntimeProvider<EventTarget>;
 }
 
 export interface InitStartupRuntime {
     getDocumentTarget: () => EventTarget | undefined;
 }
 
+type InitStartupRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultInitStartupRuntimeScope: InitStartupRuntimeScope = {
     getDocumentTarget: getBrowserDocument,
 };
 
-function getDocumentTarget(
-    scope: InitStartupRuntimeScope
-): EventTarget | undefined {
-    if (typeof scope.getDocumentTarget !== "function") {
-        throw new TypeError("initStartup requires a document target provider");
-    }
-
-    return scope.getDocumentTarget();
-}
-
 export function getInitStartupRuntime(
     scope: InitStartupRuntimeScope = defaultInitStartupRuntimeScope
 ): InitStartupRuntime {
+    const getDocumentTarget = getRequiredProvider(
+        scope.getDocumentTarget,
+        "document target"
+    );
+
     return {
         getDocumentTarget(): EventTarget | undefined {
-            return getDocumentTarget(scope);
+            return getDocumentTarget();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: InitStartupRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`initStartup requires a ${providerName} provider`);
+    }
+
+    return provider;
 }

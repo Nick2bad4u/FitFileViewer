@@ -40,13 +40,19 @@ describe("getInitStartupRuntime", () => {
     it("fails clearly when explicit scopes omit the document target provider", () => {
         expect.assertions(1);
 
-        const runtime = getInitStartupRuntime(
-            {} as unknown as InitStartupRuntimeScope
-        );
+        expect(() =>
+            getInitStartupRuntime({} as unknown as InitStartupRuntimeScope)
+        ).toThrow("initStartup requires a document target provider");
+    });
 
-        expect(() => runtime.getDocumentTarget()).toThrow(
-            "initStartup requires a document target provider"
-        );
+    it("fails clearly when the document target provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getInitStartupRuntime({
+                getDocumentTarget: undefined,
+            })
+        ).toThrow("initStartup requires a document target provider");
     });
 
     it("ignores legacy direct runtime properties", () => {

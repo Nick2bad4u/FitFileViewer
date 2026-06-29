@@ -7821,7 +7821,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps startup initializer document access behind its runtime provider", () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const initStartupSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/initStartup.ts")
@@ -7864,10 +7864,22 @@ describe("architecture boundaries", () => {
             "scope.getDocumentTarget?.()"
         );
         expect(initStartupRuntimeSource).toContain(
-            "return scope.getDocumentTarget();"
+            "type InitStartupRuntimeProvider"
+        );
+        expect(initStartupRuntimeSource).toMatch(
+            /readonly\s+getDocumentTarget:\s*InitStartupRuntimeProvider<EventTarget>/u
         );
         expect(initStartupRuntimeSource).toContain(
-            "initStartup requires a document target provider"
+            "function getRequiredProvider"
+        );
+        expect(initStartupRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocumentTarget,\s*"document target"\s*\)/u
+        );
+        expect(initStartupRuntimeSource).toContain(
+            "return getDocumentTarget();"
+        );
+        expect(initStartupRuntimeSource).toContain(
+            "initStartup requires a ${providerName} provider"
         );
     });
 
