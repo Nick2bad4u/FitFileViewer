@@ -17,21 +17,23 @@ import {
 export type MapActionButtonTimer = BrowserTimerHandle;
 
 export interface MapActionButtonsRuntimeScope {
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getKeyboardEvent?:
-        | (() => BrowserKeyboardEventConstructor | undefined)
-        | undefined;
-    readonly getMutationObserver?:
-        | (() => BrowserMutationObserverConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getClearTimeout: MapActionButtonsRuntimeProvider<
+        BrowserClearTimeout
+    >;
+    readonly getDateNow: MapActionButtonsRuntimeProvider<() => number>;
+    readonly getDocument: MapActionButtonsRuntimeProvider<Document>;
+    readonly getHTMLElement: MapActionButtonsRuntimeProvider<
+        BrowserHTMLElementConstructor
+    >;
+    readonly getKeyboardEvent: MapActionButtonsRuntimeProvider<
+        BrowserKeyboardEventConstructor
+    >;
+    readonly getMutationObserver: MapActionButtonsRuntimeProvider<
+        BrowserMutationObserverConstructor
+    >;
+    readonly getSetTimeout: MapActionButtonsRuntimeProvider<
+        BrowserSetTimeout
+    >;
 }
 
 export interface MapActionButtonsRuntime {
@@ -54,8 +56,12 @@ const defaultMapActionButtonsRuntimeScope: MapActionButtonsRuntimeScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
-function getRequiredDateNow(scope: MapActionButtonsRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+type MapActionButtonsRuntimeProvider<T> = (() => T | undefined) | undefined;
+
+function getRequiredDateNow(
+    getDateNow: () => (() => number) | undefined
+): () => number {
+    const dateNow = getDateNow();
     if (typeof dateNow === "function") {
         return dateNow;
     }
@@ -64,9 +70,11 @@ function getRequiredDateNow(scope: MapActionButtonsRuntimeScope): () => number {
 }
 
 function getMutationObserverConstructor(
-    scope: MapActionButtonsRuntimeScope
+    getMutationObserver: () =>
+        | BrowserMutationObserverConstructor
+        | undefined
 ): BrowserMutationObserverConstructor {
-    const MutationObserverConstructor = scope.getMutationObserver?.();
+    const MutationObserverConstructor = getMutationObserver();
     if (typeof MutationObserverConstructor !== "function") {
         throw new TypeError(
             "mapActionButtonsRuntime requires MutationObserver"
@@ -79,9 +87,32 @@ function getMutationObserverConstructor(
 export function getMapActionButtonsRuntime(
     scope: MapActionButtonsRuntimeScope = defaultMapActionButtonsRuntimeScope
 ): MapActionButtonsRuntime {
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    );
+    const getDateNow = getRequiredProvider(scope.getDateNow, "dateNow");
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+    const getHTMLElement = getRequiredProvider(
+        scope.getHTMLElement,
+        "HTMLElement"
+    );
+    const getKeyboardEvent = getRequiredProvider(
+        scope.getKeyboardEvent,
+        "KeyboardEvent"
+    );
+    const getMutationObserver = getRequiredProvider(
+        scope.getMutationObserver,
+        "MutationObserver"
+    );
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    );
+
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapActionButtonsRuntime requires clearTimeout"
@@ -91,13 +122,15 @@ export function getMapActionButtonsRuntime(
             clearTimeoutRef(timer);
         },
         createMutationObserver(callback): MutationObserver {
-            return new (getMutationObserverConstructor(scope))(callback);
+            return new (getMutationObserverConstructor(getMutationObserver))(
+                callback
+            );
         },
         dateNow(): number {
-            return getRequiredDateNow(scope)();
+            return getRequiredDateNow(getDateNow)();
         },
         getDocument(): Document {
-            const runtimeDocument = scope.getDocument?.();
+            const runtimeDocument = getDocument();
             if (!runtimeDocument) {
                 throw new TypeError(
                     "mapActionButtonsRuntime requires document"
@@ -107,21 +140,21 @@ export function getMapActionButtonsRuntime(
             return runtimeDocument;
         },
         isHTMLElement(value): value is HTMLElement {
-            const HTMLElementConstructor = scope.getHTMLElement?.();
+            const HTMLElementConstructor = getHTMLElement();
             return (
                 typeof HTMLElementConstructor === "function" &&
                 value instanceof HTMLElementConstructor
             );
         },
         isKeyboardEvent(value): value is KeyboardEvent {
-            const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+            const KeyboardEventConstructor = getKeyboardEvent();
             return (
                 typeof KeyboardEventConstructor === "function" &&
                 value instanceof KeyboardEventConstructor
             );
         },
         setTimeout(callback, delayMs): MapActionButtonTimer {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mapActionButtonsRuntime requires setTimeout"
@@ -131,4 +164,17 @@ export function getMapActionButtonsRuntime(
             return setTimeoutRef(callback, delayMs);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: MapActionButtonsRuntimeProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `mapActionButtonsRuntime requires ${providerLabel} provider`
+        );
+    }
+
+    return provider;
 }

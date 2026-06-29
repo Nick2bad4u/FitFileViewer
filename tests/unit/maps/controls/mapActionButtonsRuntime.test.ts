@@ -12,6 +12,21 @@ import type {
     BrowserTimerHandle,
 } from "../../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createMapActionButtonsRuntimeScope(
+    overrides: Partial<MapActionButtonsRuntimeScope> = {}
+): MapActionButtonsRuntimeScope {
+    return {
+        getClearTimeout: () => undefined,
+        getDateNow: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getKeyboardEvent: () => undefined,
+        getMutationObserver: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getMapActionButtonsRuntime", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -23,14 +38,19 @@ describe("getMapActionButtonsRuntime", () => {
 
         let callbackRan = false;
         let scheduledDelayMs = 0;
-        const runtime = getMapActionButtonsRuntime({
-            getSetTimeout: () =>
-                function setTimeout(callback, delayMs): MapActionButtonTimer {
-                    scheduledDelayMs = delayMs;
-                    callback();
-                    return 7 as MapActionButtonTimer;
-                },
-        });
+        const runtime = getMapActionButtonsRuntime(
+            createMapActionButtonsRuntimeScope({
+                getSetTimeout: () =>
+                    function setTimeout(
+                        callback,
+                        delayMs
+                    ): MapActionButtonTimer {
+                        scheduledDelayMs = delayMs;
+                        callback();
+                        return 7 as MapActionButtonTimer;
+                    },
+            })
+        );
         const retryDelayMs = Number.parseInt("150", 10);
 
         const timer = runtime.setTimeout(() => {
@@ -46,12 +66,14 @@ describe("getMapActionButtonsRuntime", () => {
         expect.assertions(1);
 
         let clearedTimer: MapActionButtonTimer | undefined;
-        const runtime = getMapActionButtonsRuntime({
-            getClearTimeout: () =>
-                function clearTimeout(timer: MapActionButtonTimer): void {
-                    clearedTimer = timer;
-                },
-        });
+        const runtime = getMapActionButtonsRuntime(
+            createMapActionButtonsRuntimeScope({
+                getClearTimeout: () =>
+                    function clearTimeout(timer: MapActionButtonTimer): void {
+                        clearedTimer = timer;
+                    },
+            })
+        );
         const timer = 9 as MapActionButtonTimer;
 
         runtime.clearTimeout(timer);
@@ -63,9 +85,11 @@ describe("getMapActionButtonsRuntime", () => {
         expect.assertions(2);
 
         const dateNow = vi.fn<() => number>(() => 123);
-        const runtime = getMapActionButtonsRuntime({
-            getDateNow: () => dateNow,
-        });
+        const runtime = getMapActionButtonsRuntime(
+            createMapActionButtonsRuntimeScope({
+                getDateNow: () => dateNow,
+            })
+        );
 
         expect(runtime.dateNow()).toBe(123);
         expect(dateNow).toHaveBeenCalledOnce();
@@ -123,10 +147,12 @@ describe("getMapActionButtonsRuntime", () => {
 
         const documentRef = document;
         const element = documentRef.createElement("button");
-        const runtime = getMapActionButtonsRuntime({
-            getDocument: () => documentRef,
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getMapActionButtonsRuntime(
+            createMapActionButtonsRuntimeScope({
+                getDocument: () => documentRef,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         expect(runtime.getDocument()).toBe(documentRef);
         expect(runtime.isHTMLElement(element)).toBe(true);
@@ -149,11 +175,13 @@ describe("getMapActionButtonsRuntime", () => {
             expect(receivedCallback).toBe(callback);
             return observer;
         });
-        const runtime = getMapActionButtonsRuntime({
-            getKeyboardEvent: () => KeyboardEvent,
-            getMutationObserver: () =>
-                MutationObserverConstructor as unknown as BrowserMutationObserverConstructor,
-        });
+        const runtime = getMapActionButtonsRuntime(
+            createMapActionButtonsRuntimeScope({
+                getKeyboardEvent: () => KeyboardEvent,
+                getMutationObserver: () =>
+                    MutationObserverConstructor as unknown as BrowserMutationObserverConstructor,
+            })
+        );
 
         expect(runtime.createMutationObserver(callback)).toBe(observer);
         expect(MutationObserverConstructor).toHaveBeenCalledOnce();
@@ -165,7 +193,9 @@ describe("getMapActionButtonsRuntime", () => {
     it("does not borrow ambient timers or clocks for explicit scopes", () => {
         expect.assertions(7);
 
-        const runtime = getMapActionButtonsRuntime({});
+        const runtime = getMapActionButtonsRuntime(
+            createMapActionButtonsRuntimeScope()
+        );
 
         expect(() => runtime.dateNow()).toThrow(
             "mapActionButtonsRuntime requires dateNow"
@@ -191,11 +221,11 @@ describe("getMapActionButtonsRuntime", () => {
     });
 
     it("ignores legacy direct timer and clock scope properties", () => {
-        expect.assertions(8);
+        expect.assertions(2);
 
         const dateNow = vi.fn<() => number>(() => 123);
 
-        const runtime = getMapActionButtonsRuntime({
+        const legacyScope = {
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
@@ -207,29 +237,75 @@ describe("getMapActionButtonsRuntime", () => {
             setTimeout() {
                 throw new Error("legacy setTimeout should not run");
             },
-        } as unknown as MapActionButtonsRuntimeScope);
+        } as unknown as MapActionButtonsRuntimeScope;
 
-        expect(() => runtime.dateNow()).toThrow(
-            "mapActionButtonsRuntime requires dateNow"
-        );
-        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
-            "mapActionButtonsRuntime requires setTimeout"
-        );
-        expect(() => runtime.clearTimeout(1 as BrowserTimerHandle)).toThrow(
-            "mapActionButtonsRuntime requires clearTimeout"
-        );
-        expect(() => runtime.getDocument()).toThrow(
-            "mapActionButtonsRuntime requires document"
-        );
-        expect(() => runtime.createMutationObserver(() => undefined)).toThrow(
-            "mapActionButtonsRuntime requires MutationObserver"
-        );
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
-            false
-        );
-        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
-            false
+        expect(() => getMapActionButtonsRuntime(legacyScope)).toThrow(
+            "mapActionButtonsRuntime requires clearTimeout provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when runtime provider slots are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getMapActionButtonsRuntime(
+                {} as unknown as MapActionButtonsRuntimeScope
+            )
+        ).toThrow("mapActionButtonsRuntime requires clearTimeout provider");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(7);
+
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getClearTimeout: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires clearTimeout provider");
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getDateNow: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires dateNow provider");
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getDocument: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires document provider");
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getHTMLElement: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires HTMLElement provider");
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getKeyboardEvent: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires KeyboardEvent provider");
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getMutationObserver: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires MutationObserver provider");
+        expect(() =>
+            getMapActionButtonsRuntime(
+                createMapActionButtonsRuntimeScope({
+                    getSetTimeout: undefined,
+                })
+            )
+        ).toThrow("mapActionButtonsRuntime requires setTimeout provider");
     });
 });

@@ -23709,7 +23709,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers and document access behind the runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(67);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -23756,6 +23756,36 @@ describe("architecture boundaries", () => {
         expect(mapActionButtonsSource).not.toContain("instanceof HTMLElement");
         expect(mapActionButtonsRuntimeSource).toContain(
             "defaultMapActionButtonsRuntimeScope"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "type MapActionButtonsRuntimeProvider"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"clearTimeout"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getKeyboardEvent,\s*"KeyboardEvent"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMutationObserver,\s*"MutationObserver"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
+        );
+        expect(mapActionButtonsRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
         );
         expect(mapActionButtonsRuntimeScopeSource).not.toContain(
             "readonly clearTimeout?:"
@@ -23869,10 +23899,13 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = getSetTimeout();"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow?.();"
+            "const dateNow = getDateNow();"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "mapActionButtonsRuntime requires ${providerLabel} provider"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
             "mapActionButtonsRuntime requires document"
