@@ -3712,13 +3712,18 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(454);
+        expect.assertions(457);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
         );
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
+        );
+        const logWithContextRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/logging/logWithContextRuntime.ts"
+            )
         );
         const safeCreateAppMenuSource = stripComments(
             readRepositoryFile("electron-app/main/menu/safeCreateAppMenu.ts")
@@ -3953,7 +3958,16 @@ describe("architecture boundaries", () => {
             "const candidate = win as { readonly isDestroyed?: unknown };"
         );
         expect(windowStateUtilsSource).toContain('"isDestroyed" in win');
-        expect(logWithContextSource).toContain("getProcessEnvironmentValue");
+        expect(logWithContextSource).toContain("logWithContextRuntime.js");
+        expect(logWithContextSource).toContain(
+            'logWithContextRuntime().getProcessEnvironmentValue("NODE_ENV")'
+        );
+        expect(logWithContextSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(logWithContextRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
         expect(safeCreateAppMenuSource).toContain("getProcessEnvironmentValue");
         expect(windowStateUtilsSource).toContain("windowStateRuntime.js");
         expect(windowStateUtilsSource).toContain(
@@ -4047,7 +4061,7 @@ describe("architecture boundaries", () => {
         expect(setupMenuAndEventHandlersSource).not.toContain(
             "isTestEnvironment"
         );
-        expect(logWithContextSource).toContain(
+        expect(logWithContextRuntimeSource).toContain(
             "../../utils/runtime/processEnvironment.js"
         );
         expect(logWithContextSource).not.toContain("export default");
