@@ -28640,7 +28640,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(64);
+        expect.assertions(85);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -28657,6 +28657,15 @@ describe("architecture boundaries", () => {
                 "electron-app/renderer/vendorBundleLoaderRuntime.ts"
             )
         );
+        const vendorBundleLoaderRuntimeScopeSource =
+            vendorBundleLoaderRuntimeSource.slice(
+                vendorBundleLoaderRuntimeSource.indexOf(
+                    "export interface RendererVendorBundleLoaderRuntimeScope"
+                ),
+                vendorBundleLoaderRuntimeSource.indexOf(
+                    "export interface RendererVendorBundleLoaderRuntime"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(vendorBundleLoaderSource).toContain(
@@ -28794,6 +28803,15 @@ describe("architecture boundaries", () => {
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "getScopeCustomEvent"
         );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "type RendererVendorBundleLoaderRuntimeProvider<T>"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "`renderer vendor loader requires ${article} ${providerName} provider`"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getRequiredProvider("
+        );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -28819,6 +28837,33 @@ describe("architecture boundaries", () => {
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getAddEventListener?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getCustomEvent?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getHTMLScriptElement?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getNow?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getRemoveEventListener?:"
+        );
+        expect(vendorBundleLoaderRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -28841,6 +28886,33 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).not.toContain(
             "scope.setTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getAddEventListener?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getCustomEvent?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getHTMLScriptElement?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getNow?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getRemoveEventListener?.()"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
         );
     });
 

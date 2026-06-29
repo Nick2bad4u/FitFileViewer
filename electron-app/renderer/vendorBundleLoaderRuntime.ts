@@ -20,28 +20,20 @@ import {
 
 export type RendererVendorBundleLoaderTimerHandle = BrowserTimerHandle;
 
+type RendererVendorBundleLoaderRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 export interface RendererVendorBundleLoaderRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getAddEventListener?:
-        | (() => BrowserAddEventListener | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLScriptElement?:
-        | (() => BrowserHTMLScriptElementConstructor | undefined)
-        | undefined;
-    readonly getNow?: (() => (() => number) | undefined) | undefined;
-    readonly getRemoveEventListener?:
-        | (() => BrowserRemoveEventListener | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: RendererVendorBundleLoaderRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getAddEventListener: RendererVendorBundleLoaderRuntimeProvider<BrowserAddEventListener>;
+    readonly getClearTimeout: RendererVendorBundleLoaderRuntimeProvider<BrowserClearTimeout>;
+    readonly getCustomEvent: RendererVendorBundleLoaderRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getDocument: RendererVendorBundleLoaderRuntimeProvider<Document>;
+    readonly getHTMLScriptElement: RendererVendorBundleLoaderRuntimeProvider<BrowserHTMLScriptElementConstructor>;
+    readonly getNow: RendererVendorBundleLoaderRuntimeProvider<() => number>;
+    readonly getRemoveEventListener: RendererVendorBundleLoaderRuntimeProvider<BrowserRemoveEventListener>;
+    readonly getSetTimeout: RendererVendorBundleLoaderRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface RendererVendorBundleLoaderRuntime {
@@ -83,20 +75,37 @@ const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderR
         getSetTimeout: getBrowserBoundSetTimeout,
     };
 
+function getRequiredProvider<T>(
+    provider: RendererVendorBundleLoaderRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+        throw new TypeError(
+            `renderer vendor loader requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function addEventListenerForScope(
     scope: RendererVendorBundleLoaderRuntimeScope,
     type: string,
     listener: EventListener,
     options?: AddEventListenerOptions
 ): void {
-    const addEventListener = scope.getAddEventListener?.();
+    const addEventListener = getRequiredProvider(
+        scope.getAddEventListener,
+        "addEventListener"
+    )();
     if (typeof addEventListener === "function") {
         addEventListener(type, listener, options);
     }
 }
 
 function getDocument(scope: RendererVendorBundleLoaderRuntimeScope): Document {
-    const documentTarget = scope.getDocument?.();
+    const documentTarget = getRequiredProvider(scope.getDocument, "document")();
     if (!documentTarget) {
         throw new TypeError("renderer vendor loader requires a document");
     }
@@ -107,13 +116,16 @@ function getDocument(scope: RendererVendorBundleLoaderRuntimeScope): Document {
 function getScriptConstructor(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserHTMLScriptElementConstructor | undefined {
-    return scope.getHTMLScriptElement?.();
+    return getRequiredProvider(
+        scope.getHTMLScriptElement,
+        "HTMLScriptElement"
+    )();
 }
 
 function getScopeAbortController(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function isScriptElement(
@@ -130,7 +142,10 @@ function isScriptElement(
 function getRequiredClearTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserClearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.();
+    const clearTimeoutRef = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    )();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
             "renderer vendor loader requires a clearTimeout runtime"
@@ -143,13 +158,13 @@ function getRequiredClearTimeout(
 function getScopeCustomEvent(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserCustomEventConstructor | undefined {
-    return scope.getCustomEvent?.();
+    return getRequiredProvider(scope.getCustomEvent, "CustomEvent")();
 }
 
 function getRequiredNow(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): () => number {
-    const nowRef = scope.getNow?.();
+    const nowRef = getRequiredProvider(scope.getNow, "clock")();
     if (typeof nowRef !== "function") {
         throw new TypeError("renderer vendor loader requires a clock runtime");
     }
@@ -160,7 +175,10 @@ function getRequiredNow(
 function getRequiredSetTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): BrowserSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.();
+    const setTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(
             "renderer vendor loader requires a setTimeout runtime"
@@ -241,7 +259,10 @@ export function getRendererVendorBundleLoaderRuntime(
             return nowRef();
         },
         removeEventListener(type: string, listener: EventListener): void {
-            const removeEventListener = scope.getRemoveEventListener?.();
+            const removeEventListener = getRequiredProvider(
+                scope.getRemoveEventListener,
+                "removeEventListener"
+            )();
             if (typeof removeEventListener === "function") {
                 removeEventListener(type, listener);
             }

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getRendererVendorBundleLoaderRuntime,
+    type RendererVendorBundleLoaderRuntimeScope,
     type RendererVendorBundleLoaderTimerHandle,
 } from "../../../electron-app/renderer/vendorBundleLoaderRuntime.js";
 import type {
@@ -10,6 +11,23 @@ import type {
     BrowserRemoveEventListener,
     BrowserSetTimeout,
 } from "../../../electron-app/utils/runtime/browserRuntime.js";
+
+function createUnavailableRuntimeScope(
+    overrides: Partial<RendererVendorBundleLoaderRuntimeScope> = {}
+): RendererVendorBundleLoaderRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getAddEventListener: () => undefined,
+        getClearTimeout: () => undefined,
+        getCustomEvent: () => undefined,
+        getDocument: () => undefined,
+        getHTMLScriptElement: () => undefined,
+        getNow: () => undefined,
+        getRemoveEventListener: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
 
 describe("getRendererVendorBundleLoaderRuntime", () => {
     afterEach(() => {
@@ -24,10 +42,12 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         const removeEventListener = vi.fn<BrowserRemoveEventListener>();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getAddEventListener: () => addEventListener,
-            getRemoveEventListener: () => removeEventListener,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getAddEventListener: () => addEventListener,
+                getRemoveEventListener: () => removeEventListener,
+            })
+        );
 
         utils.addEventListener("ready", listener, options);
         utils.removeEventListener("ready", listener);
@@ -146,10 +166,12 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             () => 29 as RendererVendorBundleLoaderTimerHandle
         );
         const clearTimeout = vi.fn<BrowserClearTimeout>();
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getClearTimeout: () => clearTimeout,
-            getSetTimeout: () => setTimeout,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getClearTimeout: () => clearTimeout,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(utils.setTimeout(callback, pollDelayMs)).toBe(29);
         expect(setTimeout).toHaveBeenCalledWith(callback, pollDelayMs);
@@ -163,7 +185,9 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("throws when polling timer cleanup is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRendererVendorBundleLoaderRuntime({});
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() =>
             utils.clearTimeout(29 as RendererVendorBundleLoaderTimerHandle)
@@ -173,7 +197,9 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("throws when polling timer scheduling is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRendererVendorBundleLoaderRuntime({});
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
             "renderer vendor loader requires a setTimeout runtime"
@@ -183,10 +209,12 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("creates and appends vendor scripts through the injected document", () => {
         expect.assertions(7);
 
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getDocument: () => document,
-            getHTMLScriptElement: () => HTMLScriptElement,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+                getHTMLScriptElement: () => HTMLScriptElement,
+            })
+        );
         const script = utils.createVendorScript(
             "map",
             "http://localhost/renderer-vendor-map.js"
@@ -213,18 +241,20 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         script.dataset["ffvRendererVendorEntry"] = "map";
         document.head.append(script);
 
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getDocument: () =>
-                ({
-                    ...document,
-                    defaultView: {
-                        HTMLScriptElement,
-                    },
-                    head: document.head,
-                    querySelector: (selector: string) =>
-                        document.querySelector(selector),
-                }) as unknown as Document,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () =>
+                    ({
+                        ...document,
+                        defaultView: {
+                            HTMLScriptElement,
+                        },
+                        head: document.head,
+                        querySelector: (selector: string) =>
+                            document.querySelector(selector),
+                    }) as unknown as Document,
+            })
+        );
 
         expect(utils.getExistingVendorScript("map")).toBeNull();
 
@@ -234,10 +264,12 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("registers script load listeners through the script element", () => {
         expect.assertions(2);
 
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getDocument: () => document,
-            getHTMLScriptElement: () => HTMLScriptElement,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => document,
+                getHTMLScriptElement: () => HTMLScriptElement,
+            })
+        );
         const script = document.createElement("script");
         const listener = vi.fn<EventListener>(() => {
             script.dataset["loaded"] = "true";
@@ -266,10 +298,12 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
                 abortController.abort();
             }
         }
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getAbortController: () => TestAbortController,
-            getNow: () => () => 1234,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () => TestAbortController,
+                getNow: () => () => 1234,
+            })
+        );
 
         expect(utils.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -281,9 +315,11 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         expect.assertions(2);
 
         const detail = { entryName: "chart-data" };
-        const utils = getRendererVendorBundleLoaderRuntime({
-            getCustomEvent: () => CustomEvent,
-        });
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope({
+                getCustomEvent: () => CustomEvent,
+            })
+        );
 
         expect(
             utils.getCustomEventDetail(new CustomEvent("ready", { detail }))
@@ -294,7 +330,9 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("throws when clock access is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRendererVendorBundleLoaderRuntime({});
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => utils.now()).toThrow(
             "renderer vendor loader requires a clock runtime"
@@ -304,7 +342,9 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     it("fails clearly when required document or AbortController runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const utils = getRendererVendorBundleLoaderRuntime({});
+        const utils = getRendererVendorBundleLoaderRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => {
             utils.getExistingVendorScript("map");
@@ -318,7 +358,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const addEventListener = vi.fn<BrowserAddEventListener>();
         const clearTimeout = vi.fn<BrowserClearTimeout>();
@@ -341,29 +381,32 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             typeof getRendererVendorBundleLoaderRuntime
         >[0]);
 
-        utils.addEventListener("ready", listener);
-        utils.removeEventListener("ready", listener);
-
+        expect(() => utils.addEventListener("ready", listener)).toThrow(
+            "renderer vendor loader requires an addEventListener provider"
+        );
+        expect(() => utils.removeEventListener("ready", listener)).toThrow(
+            "renderer vendor loader requires a removeEventListener provider"
+        );
         expect(addEventListener).not.toHaveBeenCalled();
         expect(removeEventListener).not.toHaveBeenCalled();
         expect(() =>
             utils.clearTimeout(29 as RendererVendorBundleLoaderTimerHandle)
-        ).toThrow("renderer vendor loader requires a clearTimeout runtime");
+        ).toThrow("renderer vendor loader requires a clearTimeout provider");
         expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
-            "renderer vendor loader requires a setTimeout runtime"
+            "renderer vendor loader requires a setTimeout provider"
         );
         expect(() => utils.now()).toThrow(
-            "renderer vendor loader requires a clock runtime"
+            "renderer vendor loader requires a clock provider"
         );
-        expect(
+        expect(() =>
             utils.getCustomEventDetail(new CustomEvent("ready", { detail: {} }))
-        ).toBeUndefined();
+        ).toThrow("renderer vendor loader requires a CustomEvent provider");
         expect(() => utils.createAbortController()).toThrow(
-            "renderer vendor loader requires an AbortController"
+            "renderer vendor loader requires an AbortController provider"
         );
         expect(() => {
             utils.createVendorScript("map", "renderer-vendor-map.js");
-        }).toThrow("renderer vendor loader requires a document");
+        }).toThrow("renderer vendor loader requires a document provider");
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
     });
