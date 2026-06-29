@@ -1,6 +1,5 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
-import { isChartDebugLoggingEnabled } from "./chartDebugState.js";
 import { getRegisteredChartActions } from "./chartActionsRegistry.js";
 import { getRegisteredChartStateManager } from "./chartStateManagerRegistry.js";
 import {
@@ -116,13 +115,6 @@ export function isLoadingStateSuppressed(): boolean {
  */
 export function setLoadingStateSuppressed(value: boolean): void {
     loadingStateSuppressed = value;
-}
-
-/**
- * Reads the chart debug flag from typed renderer state.
- */
-export function isChartDebugEnabled(): boolean {
-    return isChartDebugLoggingEnabled();
 }
 
 /**

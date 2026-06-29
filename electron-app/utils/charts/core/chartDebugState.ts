@@ -1,4 +1,4 @@
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import { isDevelopmentEnvironment } from "./renderChartRuntimeHelpers.js";
 
 let chartDebugLoggingEnabled = false;
 let chartVerboseDebugLoggingEnabled = false;

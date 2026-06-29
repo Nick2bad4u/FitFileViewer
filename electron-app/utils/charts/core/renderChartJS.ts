@@ -96,12 +96,12 @@ import {
     getChartLifecycleActions,
     getDebouncedChartStateManager,
     getGlobalChartInstances,
-    isChartDebugEnabled,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
     isTestEnvironment,
     notifyChartRenderComplete,
 } from "./renderChartRuntimeHelpers.js";
+import { isChartDebugLoggingEnabled } from "./chartDebugState.js";
 import { registerChartActions } from "./chartActionsRegistry.js";
 import {
     createDataSettingsSignature,
@@ -517,7 +517,7 @@ async function renderChartsWithData(
     } = beginChartDataRenderContext(
         {
             doc: document,
-            isChartDebugEnabled,
+            isChartDebugEnabled: isChartDebugLoggingEnabled,
             isDevelopmentEnvironment,
             isTestEnvironment,
             nowPerformance: renderChartRuntime().nowPerformance,
