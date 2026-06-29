@@ -3382,7 +3382,7 @@ body {
      * Shows Gyazo configuration setup guide
      */
     showGyazoSetupGuide() {
-        const overlay = document.createElement("div");
+        const overlay = exportUtilsRuntime().createElement("div");
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -3397,7 +3397,7 @@ body {
             z-index: 10000;
         `;
 
-        const modal = document.createElement("div");
+        const modal = exportUtilsRuntime().createElement("div");
         modal.style.cssText = `
             background: var(--color-modal-bg);
             border-radius: var(--border-radius);
@@ -3410,33 +3410,33 @@ body {
             box-shadow: var(--color-box-shadow);
         `;
 
-        const title = document.createElement("h3");
+        const title = exportUtilsRuntime().createElement("h3");
         title.style.cssText =
             "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
         title.textContent = "🔧 Gyazo Setup Guide";
 
-        const content = document.createElement("div"),
-            intro = document.createElement("p"),
-            introStrong = document.createElement("strong"),
-            steps = document.createElement("ol"),
-            visitStep = document.createElement("li"),
+        const content = exportUtilsRuntime().createElement("div"),
+            intro = exportUtilsRuntime().createElement("p"),
+            introStrong = exportUtilsRuntime().createElement("strong"),
+            steps = exportUtilsRuntime().createElement("ol"),
+            visitStep = exportUtilsRuntime().createElement("li"),
             developerLink = exportUtilsRuntime().createElement("a"),
-            createStep = document.createElement("li"),
-            createSettings = document.createElement("ul"),
-            appNameStep = document.createElement("li"),
-            appNameLabel = document.createElement("strong"),
-            redirectStep = document.createElement("li"),
-            redirectLabel = document.createElement("strong"),
-            redirectCode = document.createElement("code"),
-            copyStep = document.createElement("li"),
-            clientIdLabel = document.createElement("strong"),
-            clientSecretLabel = document.createElement("strong"),
-            updateStep = document.createElement("li"),
-            configExample = document.createElement("pre"),
-            restartStep = document.createElement("li"),
-            securityNote = document.createElement("div"),
-            securityLabel = document.createElement("strong"),
-            closeBtn = document.createElement("button");
+            createStep = exportUtilsRuntime().createElement("li"),
+            createSettings = exportUtilsRuntime().createElement("ul"),
+            appNameStep = exportUtilsRuntime().createElement("li"),
+            appNameLabel = exportUtilsRuntime().createElement("strong"),
+            redirectStep = exportUtilsRuntime().createElement("li"),
+            redirectLabel = exportUtilsRuntime().createElement("strong"),
+            redirectCode = exportUtilsRuntime().createElement("code"),
+            copyStep = exportUtilsRuntime().createElement("li"),
+            clientIdLabel = exportUtilsRuntime().createElement("strong"),
+            clientSecretLabel = exportUtilsRuntime().createElement("strong"),
+            updateStep = exportUtilsRuntime().createElement("li"),
+            configExample = exportUtilsRuntime().createElement("pre"),
+            restartStep = exportUtilsRuntime().createElement("li"),
+            securityNote = exportUtilsRuntime().createElement("div"),
+            securityLabel = exportUtilsRuntime().createElement("strong"),
+            closeBtn = exportUtilsRuntime().createElement("button");
 
         content.style.cssText = "color: var(--color-fg); line-height: 1.6;";
         introStrong.textContent = "To enable Gyazo integration, you need to:";
