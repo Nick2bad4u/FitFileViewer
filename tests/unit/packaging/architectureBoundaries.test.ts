@@ -31695,7 +31695,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(46);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -31765,6 +31765,36 @@ describe("architecture boundaries", () => {
             "../runtime/browserRuntime.js"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
+            "type UnifiedControlBarRuntimeProvider"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"an AbortController"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getClearTimeout,\s*"a clearTimeout"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"a document"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getEventTarget,\s*"an event-target"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"an HTMLElement"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getMutationObserver,\s*"a MutationObserver"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"a setTimeout"\s*\)/u
+        );
+        expect(unifiedControlBarRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(unifiedControlBarRuntimeSource).not.toContain(
@@ -31807,6 +31837,9 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(unifiedControlBarRuntimeSource).not.toContain("globalThis.");
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "unifiedControlBar requires ${providerLabel} provider"
+        );
         expect(unifiedControlBarRuntimeSource).toContain(
             "unifiedControlBar requires a setTimeout runtime"
         );

@@ -14,9 +14,7 @@ import {
     getBrowserSetTimeout,
 } from "../runtime/browserRuntime.js";
 
-export type UnifiedControlBarTimerHandle =
-    | BrowserTimerHandle
-    | number;
+export type UnifiedControlBarTimerHandle = BrowserTimerHandle | number;
 
 type UnifiedControlBarEventTarget = Pick<
     EventTarget,
@@ -24,27 +22,16 @@ type UnifiedControlBarEventTarget = Pick<
 >;
 
 type UnifiedControlBarListenerOptions = Readonly<AddEventListenerOptions>;
+type UnifiedControlBarRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface UnifiedControlBarRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getEventTarget?:
-        | (() => UnifiedControlBarEventTarget | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getMutationObserver?:
-        | (() => BrowserMutationObserverConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getAbortController: UnifiedControlBarRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: UnifiedControlBarRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: UnifiedControlBarRuntimeProvider<Document>;
+    readonly getEventTarget: UnifiedControlBarRuntimeProvider<UnifiedControlBarEventTarget>;
+    readonly getHTMLElement: UnifiedControlBarRuntimeProvider<BrowserHTMLElementConstructor>;
+    readonly getMutationObserver: UnifiedControlBarRuntimeProvider<BrowserMutationObserverConstructor>;
+    readonly getSetTimeout: UnifiedControlBarRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface UnifiedControlBarRuntime {
@@ -82,8 +69,8 @@ function getDefaultUnifiedControlBarRuntimeScope(): UnifiedControlBarRuntimeScop
     };
 }
 
-function getDocument(scope: UnifiedControlBarRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+function getDocument(getDocumentRef: () => Document | undefined): Document {
+    const runtimeDocument = getDocumentRef();
     if (!runtimeDocument) {
         throw new Error("unifiedControlBar requires a document-like runtime");
     }
@@ -92,9 +79,9 @@ function getDocument(scope: UnifiedControlBarRuntimeScope): Document {
 }
 
 function getEventTarget(
-    scope: UnifiedControlBarRuntimeScope
+    getEventTargetRef: () => UnifiedControlBarEventTarget | undefined
 ): UnifiedControlBarEventTarget {
-    const runtimeEventTarget = scope.getEventTarget?.();
+    const runtimeEventTarget = getEventTargetRef();
     if (!runtimeEventTarget) {
         throw new Error("unifiedControlBar requires an event-target runtime");
     }
@@ -103,10 +90,10 @@ function getEventTarget(
 }
 
 function isHTMLElement(
-    scope: UnifiedControlBarRuntimeScope,
+    getHTMLElementRef: () => BrowserHTMLElementConstructor | undefined,
     element: Readonly<Element> | null
 ): element is HTMLElement {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const HTMLElementConstructor = getHTMLElementRef();
     return (
         typeof HTMLElementConstructor === "function" &&
         element instanceof HTMLElementConstructor
@@ -116,16 +103,46 @@ function isHTMLElement(
 export function getUnifiedControlBarRuntime(
     scope: UnifiedControlBarRuntimeScope = getDefaultUnifiedControlBarRuntimeScope()
 ): UnifiedControlBarRuntime {
+    const getAbortController = getRequiredProvider(
+        scope.getAbortController,
+        "an AbortController"
+    );
+    const getClearTimeout = getRequiredProvider(
+        scope.getClearTimeout,
+        "a clearTimeout"
+    );
+    const getDocumentRef = getRequiredProvider(scope.getDocument, "a document");
+    const getEventTargetRef = getRequiredProvider(
+        scope.getEventTarget,
+        "an event-target"
+    );
+    const getHTMLElementRef = getRequiredProvider(
+        scope.getHTMLElement,
+        "an HTMLElement"
+    );
+    const getMutationObserver = getRequiredProvider(
+        scope.getMutationObserver,
+        "a MutationObserver"
+    );
+    const getSetTimeout = getRequiredProvider(
+        scope.getSetTimeout,
+        "a setTimeout"
+    );
+
     return {
         addResizeListener(
             listener: EventListener,
             options: UnifiedControlBarListenerOptions
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Matching removal is exposed through removeResizeListener; callers also pass an AbortSignal.
-            getEventTarget(scope).addEventListener("resize", listener, options);
+            getEventTarget(getEventTargetRef).addEventListener(
+                "resize",
+                listener,
+                options
+            );
         },
         clearTimeout(handle: UnifiedControlBarTimerHandle): void {
-            const clearTimeoutRef = scope.getClearTimeout?.();
+            const clearTimeoutRef = getClearTimeout();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "unifiedControlBar requires a clearTimeout runtime"
@@ -134,7 +151,7 @@ export function getUnifiedControlBarRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "unifiedControlBar requires an AbortController runtime"
@@ -146,10 +163,10 @@ export function getUnifiedControlBarRuntime(
         createElement<K extends keyof HTMLElementTagNameMap>(
             tagName: K
         ): HTMLElementTagNameMap[K] {
-            return getDocument(scope).createElement(tagName);
+            return getDocument(getDocumentRef).createElement(tagName);
         },
         createMutationObserver(callback: MutationCallback): MutationObserver {
-            const Observer = scope.getMutationObserver?.();
+            const Observer = getMutationObserver();
             if (typeof Observer !== "function") {
                 throw new TypeError(
                     "unifiedControlBar requires a MutationObserver runtime"
@@ -159,25 +176,28 @@ export function getUnifiedControlBarRuntime(
             return new Observer(callback);
         },
         getBody(): HTMLElement {
-            return getDocument(scope).body;
+            return getDocument(getDocumentRef).body;
         },
         isHTMLElement(
             element: Readonly<Element> | null
         ): element is HTMLElement {
-            return isHTMLElement(scope, element);
+            return isHTMLElement(getHTMLElementRef, element);
         },
         querySelector(selector: string): HTMLElement | null {
-            const element = getDocument(scope).querySelector(selector);
-            return isHTMLElement(scope, element) ? element : null;
+            const element = getDocument(getDocumentRef).querySelector(selector);
+            return isHTMLElement(getHTMLElementRef, element) ? element : null;
         },
         removeResizeListener(listener: EventListener): void {
-            getEventTarget(scope).removeEventListener("resize", listener);
+            getEventTarget(getEventTargetRef).removeEventListener(
+                "resize",
+                listener
+            );
         },
         setTimeout(
             callback: () => void,
             timeout: number
         ): UnifiedControlBarTimerHandle {
-            const setTimeoutRef = scope.getSetTimeout?.();
+            const setTimeoutRef = getSetTimeout();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "unifiedControlBar requires a setTimeout runtime"
@@ -186,4 +206,17 @@ export function getUnifiedControlBarRuntime(
             return setTimeoutRef(callback, timeout);
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: UnifiedControlBarRuntimeProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `unifiedControlBar requires ${providerLabel} provider`
+        );
+    }
+
+    return provider;
 }
