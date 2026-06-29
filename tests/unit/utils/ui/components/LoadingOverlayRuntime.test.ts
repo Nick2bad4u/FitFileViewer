@@ -70,34 +70,32 @@ describe("getLoadingOverlayRuntime", () => {
     });
 
     it("fails clearly when required providers are omitted", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
-        const runtime = getLoadingOverlayRuntime(
-            {} as unknown as LoadingOverlayRuntimeScope
-        );
+        expect(() =>
+            getLoadingOverlayRuntime(
+                {} as unknown as LoadingOverlayRuntimeScope
+            )
+        ).toThrow("LoadingOverlay requires a document provider");
+    });
 
-        expect(() => runtime.createElement("div")).toThrow(
-            "LoadingOverlay requires a document provider"
-        );
-        expect(() => runtime.createSvgElement("svg")).toThrow(
-            "LoadingOverlay requires a document provider"
-        );
-        expect(() => runtime.querySelector("body")).toThrow(
-            "LoadingOverlay requires a document provider"
-        );
+    it("fails clearly when the document provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getLoadingOverlayRuntime({
+                getDocument: undefined,
+            })
+        ).toThrow("LoadingOverlay requires a document provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(1);
 
-        const legacyScope = {
-            ...unavailableLoadingOverlayRuntimeScope,
-            document,
-        } as unknown as LoadingOverlayRuntimeScope;
-        const runtime = getLoadingOverlayRuntime(legacyScope);
-
-        expect(() => runtime.createElement("div")).toThrow(
-            "LoadingOverlay requires a document runtime"
-        );
+        expect(() =>
+            getLoadingOverlayRuntime({
+                document,
+            } as unknown as LoadingOverlayRuntimeScope)
+        ).toThrow("LoadingOverlay requires a document provider");
     });
 });
