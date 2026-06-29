@@ -48,10 +48,27 @@ describe("getShowUpdateNotificationRuntime", () => {
         }
     });
 
+    it("fails clearly when the document provider is omitted", () => {
+        expect.assertions(2);
+
+        const utils = getShowUpdateNotificationRuntime(
+            {} as unknown as ShowUpdateNotificationRuntimeScope
+        );
+
+        expect(() => utils.queryNotificationElement("#notification")).toThrow(
+            "showUpdateNotification requires a document provider"
+        );
+        expect(() => utils.createElement("button")).toThrow(
+            "showUpdateNotification requires a document provider"
+        );
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(2);
 
-        const utils = getShowUpdateNotificationRuntime({});
+        const utils = getShowUpdateNotificationRuntime({
+            getDocument: () => undefined,
+        });
 
         expect(() => utils.queryNotificationElement("#notification")).toThrow(
             "showUpdateNotification requires a document runtime"
@@ -71,10 +88,10 @@ describe("getShowUpdateNotificationRuntime", () => {
         } as unknown as ShowUpdateNotificationRuntimeScope);
 
         expect(() => utils.queryNotificationElement("#notification")).toThrow(
-            "showUpdateNotification requires a document runtime"
+            "showUpdateNotification requires a document provider"
         );
         expect(() => utils.createElement("button")).toThrow(
-            "showUpdateNotification requires a document runtime"
+            "showUpdateNotification requires a document provider"
         );
         expect(querySelector).not.toHaveBeenCalled();
         expect(createElement).not.toHaveBeenCalled();

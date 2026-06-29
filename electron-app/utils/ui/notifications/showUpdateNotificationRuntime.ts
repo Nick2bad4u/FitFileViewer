@@ -6,7 +6,7 @@ type ShowUpdateNotificationDocument = Pick<
 >;
 
 export interface ShowUpdateNotificationRuntimeScope {
-    readonly getDocument?:
+    readonly getDocument:
         | (() => ShowUpdateNotificationDocument | undefined)
         | undefined;
 }
@@ -26,7 +26,7 @@ const defaultShowUpdateNotificationRuntimeScope: ShowUpdateNotificationRuntimeSc
 function getRequiredDocument(
     scope: ShowUpdateNotificationRuntimeScope
 ): ShowUpdateNotificationDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredDocumentProvider(scope)();
     if (!runtimeDocument) {
         throw new TypeError(
             "showUpdateNotification requires a document runtime"
@@ -34,6 +34,19 @@ function getRequiredDocument(
     }
 
     return runtimeDocument;
+}
+
+function getRequiredDocumentProvider(
+    scope: ShowUpdateNotificationRuntimeScope
+): () => ShowUpdateNotificationDocument | undefined {
+    const getDocument = scope.getDocument;
+    if (!getDocument) {
+        throw new TypeError(
+            "showUpdateNotification requires a document provider"
+        );
+    }
+
+    return getDocument;
 }
 
 export function getShowUpdateNotificationRuntime(
