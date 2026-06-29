@@ -28050,7 +28050,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(60);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -28162,6 +28162,36 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly getComputedStyleFunction?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly isRendererScope?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).toContain(
+            "readonly getAbortController: EnableTabButtonsDebugRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).toContain(
+            "readonly getClearTimeout: EnableTabButtonsDebugRuntimeProvider<BrowserClearTimeout>;"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).toContain(
+            "readonly getComputedStyleFunction: EnableTabButtonsDebugRuntimeProvider<EnableTabButtonsDebugGetComputedStyle>;"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).toContain(
+            "readonly getSetTimeout: EnableTabButtonsDebugRuntimeProvider<BrowserSetTimeout>;"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).toContain(
+            "readonly isRendererScope: EnableTabButtonsDebugRuntimeProvider<boolean>;"
+        );
         expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -28175,16 +28205,43 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "type EnableTabButtonsDebugRuntimeProvider<T> ="
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
-            "return scope.getComputedStyleFunction?.();"
+            "function getRequiredProvider<T>("
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
-            "const clearTimer = scope.getClearTimeout?.();"
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
-            "const scheduleTimer = scope.getSetTimeout?.();"
+            'scope.getComputedStyleFunction,\n        "getComputedStyle"'
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.getComputedStyleFunction?.()"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            'getRequiredProvider(scope.isRendererScope, "isRendererScope")() === true'
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.isRendererScope?.()"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            'scope.getClearTimeout,\n        "clearTimeout"'
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            'scope.getSetTimeout,\n        "setTimeout"'
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "enableTabButtonsDebug requires ${article} ${providerName} provider"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "enableTabButtonsDebug requires a setTimeout runtime"
