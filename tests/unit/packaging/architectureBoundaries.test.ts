@@ -23607,7 +23607,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(114);
+        expect.assertions(118);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -23908,6 +23908,18 @@ describe("architecture boundaries", () => {
         );
         expect(fileBrowserTabSource).toContain(
             "type FitBrowserElectronApiMethods = Readonly<{"
+        );
+        expect(fileBrowserTabSource).toContain(
+            'readonly getFitBrowserFolder: ElectronFitBrowserApi["getFitBrowserFolder"];'
+        );
+        expect(fileBrowserTabSource).toContain(
+            'readonly listFitBrowserFolder: ElectronFitBrowserApi["listFitBrowserFolder"];'
+        );
+        expect(fileBrowserTabSource).not.toContain(
+            'readonly getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];'
+        );
+        expect(fileBrowserTabSource).not.toContain(
+            'readonly listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];'
         );
         expect(fileBrowserTabSource).toContain(
             "function isFitBrowserElectronApiMethods("

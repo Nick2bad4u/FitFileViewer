@@ -61,16 +61,16 @@ type DistanceUnit = "km" | "mi";
 
 type FitBrowserElectronAPI = {
     readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
-    readonly getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];
-    readonly listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];
+    readonly getFitBrowserFolder: ElectronFitBrowserApi["getFitBrowserFolder"];
+    readonly listFitBrowserFolder: ElectronFitBrowserApi["listFitBrowserFolder"];
     readonly openFolderDialog?: ElectronDialogApi["openFolderDialog"];
     readonly readFile?: ElectronFileApi["readFile"];
 };
 
 type FitBrowserElectronApiMethods = Readonly<{
     readonly decodeFitFile?: ElectronFileApi["decodeFitFile"];
-    readonly getFitBrowserFolder?: ElectronFitBrowserApi["getFitBrowserFolder"];
-    readonly listFitBrowserFolder?: ElectronFitBrowserApi["listFitBrowserFolder"];
+    readonly getFitBrowserFolder: ElectronFitBrowserApi["getFitBrowserFolder"];
+    readonly listFitBrowserFolder: ElectronFitBrowserApi["listFitBrowserFolder"];
     readonly openFolderDialog?: ElectronDialogApi["openFolderDialog"];
     readonly readFile?: ElectronFileApi["readFile"];
 }>;
@@ -605,14 +605,17 @@ function getElectronAPI(
     );
     const readFile = readElectronApiValue(() => electronAPI.readFile);
 
+    if (
+        typeof getFitBrowserFolder !== "function" ||
+        typeof listFitBrowserFolder !== "function"
+    ) {
+        return null;
+    }
+
     return {
         ...(typeof decodeFitFile === "function" ? { decodeFitFile } : {}),
-        ...(typeof getFitBrowserFolder === "function"
-            ? { getFitBrowserFolder }
-            : {}),
-        ...(typeof listFitBrowserFolder === "function"
-            ? { listFitBrowserFolder }
-            : {}),
+        getFitBrowserFolder,
+        listFitBrowserFolder,
         ...(typeof openFolderDialog === "function" ? { openFolderDialog } : {}),
         ...(typeof readFile === "function" ? { readFile } : {}),
     };
@@ -627,12 +630,10 @@ function isFitBrowserElectronApi(
 
     return (
         hasOptionalFunction(readElectronApiValue(() => value.decodeFitFile)) &&
-        hasOptionalFunction(
-            readElectronApiValue(() => value.getFitBrowserFolder)
-        ) &&
-        hasOptionalFunction(
-            readElectronApiValue(() => value.listFitBrowserFolder)
-        ) &&
+        typeof readElectronApiValue(() => value.getFitBrowserFolder) ===
+            "function" &&
+        typeof readElectronApiValue(() => value.listFitBrowserFolder) ===
+            "function" &&
         hasOptionalFunction(
             readElectronApiValue(() => value.openFolderDialog)
         ) &&
