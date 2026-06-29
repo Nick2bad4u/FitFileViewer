@@ -15,23 +15,17 @@ import {
 export type OpenFileSelectorTimer = BrowserTimerHandle;
 
 export interface OpenFileSelectorRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getNavigator?:
-        | (() => Pick<Navigator, "userAgent"> | undefined)
-        | undefined;
-    readonly getQueueMicrotask?:
-        | (() => BrowserQueueMicrotask | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
+    readonly getAbortController: OpenFileSelectorRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getClearTimeout: OpenFileSelectorRuntimeProvider<BrowserClearTimeout>;
+    readonly getDocument: OpenFileSelectorRuntimeProvider<Document>;
+    readonly getNavigator: OpenFileSelectorRuntimeProvider<
+        Pick<Navigator, "userAgent">
+    >;
+    readonly getQueueMicrotask: OpenFileSelectorRuntimeProvider<BrowserQueueMicrotask>;
+    readonly getSetTimeout: OpenFileSelectorRuntimeProvider<BrowserSetTimeout>;
 }
+
+type OpenFileSelectorRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface OpenFileSelectorRuntime {
     appendToBody: (element: Readonly<HTMLElement>) => void;
@@ -46,8 +40,26 @@ export interface OpenFileSelectorRuntime {
     ) => OpenFileSelectorTimer;
 }
 
+function getRequiredProvider<T>(
+    provider: OpenFileSelectorRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `openFileSelector requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getDocument(scope: OpenFileSelectorRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("openFileSelector requires a document runtime");
     }
@@ -58,13 +70,16 @@ function getDocument(scope: OpenFileSelectorRuntimeScope): Document {
 function getAbortController(
     scope: OpenFileSelectorRuntimeScope
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getRequiredProvider(scope.getAbortController, "AbortController")();
 }
 
 function getRequiredClearTimeout(
     scope: OpenFileSelectorRuntimeScope
 ): BrowserClearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.();
+    const clearTimeoutRef = getRequiredProvider(
+        scope.getClearTimeout,
+        "clearTimeout"
+    )();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("openFileSelector requires a clearTimeout runtime");
     }
@@ -75,13 +90,16 @@ function getRequiredClearTimeout(
 function getNavigator(
     scope: OpenFileSelectorRuntimeScope
 ): Pick<Navigator, "userAgent"> | undefined {
-    return scope.getNavigator?.();
+    return getRequiredProvider(scope.getNavigator, "navigator")();
 }
 
 function getRequiredQueueMicrotask(
     scope: OpenFileSelectorRuntimeScope
 ): BrowserQueueMicrotask {
-    const queueMicrotaskRef = scope.getQueueMicrotask?.();
+    const queueMicrotaskRef = getRequiredProvider(
+        scope.getQueueMicrotask,
+        "queueMicrotask"
+    )();
     if (typeof queueMicrotaskRef !== "function") {
         throw new TypeError(
             "openFileSelector requires a queueMicrotask runtime"
@@ -94,7 +112,10 @@ function getRequiredQueueMicrotask(
 function getRequiredSetTimeout(
     scope: OpenFileSelectorRuntimeScope
 ): BrowserSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.();
+    const setTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("openFileSelector requires a setTimeout runtime");
     }

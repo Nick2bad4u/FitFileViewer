@@ -23374,7 +23374,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(41);
+        expect.assertions(56);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -23436,6 +23436,13 @@ describe("architecture boundaries", () => {
         expect(openFileSelectorRuntimeSource).toContain(
             "openFileSelector requires a setTimeout runtime"
         );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "type OpenFileSelectorRuntimeProvider<T>"
+        );
+        expect(openFileSelectorRuntimeSource).toContain("getRequiredProvider(");
+        expect(openFileSelectorRuntimeSource).toContain(
+            "openFileSelector requires ${article} ${providerName} provider"
+        );
         expect(openFileSelectorRuntimeScopeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -23454,6 +23461,24 @@ describe("architecture boundaries", () => {
         expect(openFileSelectorRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly getNavigator?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly getQueueMicrotask?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
         expect(openFileSelectorRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -23466,6 +23491,24 @@ describe("architecture boundaries", () => {
             "scope.queueMicrotask"
         );
         expect(openFileSelectorRuntimeSource).not.toContain("scope.setTimeout");
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.getNavigator?.()"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.getQueueMicrotask?.()"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
         expect(openFileSelectorRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
         );
