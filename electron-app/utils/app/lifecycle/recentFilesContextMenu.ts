@@ -10,10 +10,6 @@ import {
 } from "../../files/import/fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "../../files/import/sendFitFileToAltFitReader.js";
 import {
-    getProcessEnvironmentValue,
-    isDevelopmentEnvironment,
-} from "../../runtime/processEnvironment.js";
-import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
@@ -103,8 +99,8 @@ export function attachRecentFilesContextMenu({
 
     // Keep default quiet even in tests; enable only when explicitly requested.
     const debugEnabled =
-        getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU") === "1" ||
-        isDevelopmentEnvironment();
+        runtime.getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU") === "1" ||
+        runtime.isDevelopmentEnvironment();
 
     const debugLog = (...args: unknown[]) => {
         if (!debugEnabled) return;

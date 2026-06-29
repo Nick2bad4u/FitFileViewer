@@ -19015,7 +19015,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(97);
+        expect.assertions(112);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -19073,6 +19073,15 @@ describe("architecture boundaries", () => {
         );
         expect(recentFilesContextMenuSource).toContain("isBodyParent");
         expect(recentFilesContextMenuSource).toContain("isNode(target)");
+        expect(recentFilesContextMenuSource).toContain(
+            'runtime.getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU")'
+        );
+        expect(recentFilesContextMenuSource).toContain(
+            "runtime.isDevelopmentEnvironment()"
+        );
+        expect(recentFilesContextMenuSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
         expect(recentFilesContextMenuSource).not.toContain(
             "document.addEventListener"
         );
@@ -19106,6 +19115,9 @@ describe("architecture boundaries", () => {
             "../../runtime/browserRuntime.js"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
             "BrowserAbortControllerConstructor"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
@@ -19136,6 +19148,12 @@ describe("architecture boundaries", () => {
             "getDateNow: getBrowserDateNow"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
             "dateNow: () => number;"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
@@ -19157,7 +19175,13 @@ describe("architecture boundaries", () => {
             /readonly\s+getDocumentEventTarget:\s*RecentFilesContextMenuRuntimeProvider<Document>/u
         );
         expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /readonly\s+getIsDevelopmentEnvironment:\s*RecentFilesContextMenuRuntimeProvider<boolean>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
             /readonly\s+getNode:\s*RecentFilesContextMenuRuntimeProvider<BrowserNodeConstructor>/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getProcessEnvironmentValue:"
         );
         expect(recentFilesContextMenuRuntimeSource).toMatch(
             /readonly\s+getSetTimeout:\s*RecentFilesContextMenuRuntimeProvider<BrowserSetTimeout>/u
@@ -19184,7 +19208,13 @@ describe("architecture boundaries", () => {
             /getRequiredProvider\(\s*scope\.getDocumentEventTarget,\s*"document event-target"\s*\)/u
         );
         expect(recentFilesContextMenuRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsDevelopmentEnvironment,\s*"isDevelopmentEnvironment"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getNode,\s*"Node"\s*\)/u
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getRequiredProcessEnvironmentProvider("
         );
         expect(recentFilesContextMenuRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
@@ -19193,10 +19223,13 @@ describe("architecture boundaries", () => {
             /getRequiredProvider\(\s*scope\.getViewport,\s*"viewport"\s*\)/u
         );
         expect(recentFilesContextMenuRuntimeSource).not.toMatch(
-            /scope\.get(?:AbortController|ClearTimeout|DateNow|Document|DocumentEventTarget|Node|SetTimeout|Viewport)\?\.\(/u
+            /scope\.get(?:AbortController|ClearTimeout|DateNow|Document|DocumentEventTarget|IsDevelopmentEnvironment|Node|ProcessEnvironmentValue|SetTimeout|Viewport)\?\.\(/u
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires ${providerName} provider"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires processEnvironmentValue provider"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "providerName: string"
@@ -19267,7 +19300,13 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain(
             "readonly documentEventTarget?:"
         );
+        expect(runtimeScopeSource).not.toContain(
+            "readonly isDevelopmentEnvironment?:"
+        );
         expect(runtimeScopeSource).not.toContain("readonly Node?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly processEnvironmentValue?:"
+        );
         expect(runtimeScopeSource).not.toContain("readonly setTimeout?:");
         expect(runtimeScopeSource).not.toContain("readonly viewport?:");
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
@@ -19282,7 +19321,13 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.isDevelopmentEnvironment"
+        );
         expect(recentFilesContextMenuRuntimeSource).not.toContain("scope.Node");
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.processEnvironmentValue"
+        );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope.setTimeout"
         );

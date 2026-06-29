@@ -12,6 +12,10 @@ import {
     getBrowserSetTimeout,
     getBrowserViewport,
 } from "../../runtime/browserRuntime.js";
+import {
+    getProcessEnvironmentValue as getRuntimeProcessEnvironmentValue,
+    isDevelopmentEnvironment as isRuntimeDevelopmentEnvironment,
+} from "../../runtime/processEnvironment.js";
 
 type RecentFilesContextMenuRuntimeProvider<T> =
     | (() => T | undefined)
@@ -23,7 +27,11 @@ export interface RecentFilesContextMenuRuntimeScope {
     readonly getDateNow: RecentFilesContextMenuRuntimeProvider<() => number>;
     readonly getDocument: RecentFilesContextMenuRuntimeProvider<Document>;
     readonly getDocumentEventTarget: RecentFilesContextMenuRuntimeProvider<Document>;
+    readonly getIsDevelopmentEnvironment: RecentFilesContextMenuRuntimeProvider<boolean>;
     readonly getNode: RecentFilesContextMenuRuntimeProvider<BrowserNodeConstructor>;
+    readonly getProcessEnvironmentValue:
+        | ((name: string) => string | undefined)
+        | undefined;
     readonly getSetTimeout: RecentFilesContextMenuRuntimeProvider<BrowserSetTimeout>;
     readonly getViewport: RecentFilesContextMenuRuntimeProvider<RecentFilesContextMenuViewportSource>;
 }
@@ -65,10 +73,12 @@ export interface RecentFilesContextMenuRuntime {
     dateNow: () => number;
     findRecentFilesMenu: () => Element | null;
     getBodyDebugInfo: () => RecentFilesContextMenuBodyDebugInfo;
+    getProcessEnvironmentValue: (name: string) => string | undefined;
     getViewport: () => RecentFilesContextMenuViewport;
     hasRecentFilesMenu: () => boolean;
     insertBeforeBodyFirstChild: (element: Element) => void;
     isBodyParent: (element: Element) => boolean;
+    isDevelopmentEnvironment: () => boolean;
     isNode: (value: unknown) => value is Node;
     setTimeout: (
         callback: () => void,
@@ -87,7 +97,9 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
         getDateNow: getBrowserDateNow,
         getDocument: getBrowserDocument,
         getDocumentEventTarget: () => undefined,
+        getIsDevelopmentEnvironment: isRuntimeDevelopmentEnvironment,
         getNode: getBrowserNode,
+        getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue,
         getSetTimeout: getBrowserSetTimeout,
         getViewport: getBrowserViewport,
     };
@@ -99,6 +111,18 @@ function getRequiredProvider<T>(
     if (typeof provider !== "function") {
         throw new TypeError(
             `recent files context menu requires ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
+function getRequiredProcessEnvironmentProvider(
+    provider: RecentFilesContextMenuRuntimeScope["getProcessEnvironmentValue"]
+): (name: string) => string | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            "recent files context menu requires processEnvironmentValue provider"
         );
     }
 
@@ -246,6 +270,11 @@ export function getRecentFilesContextMenuRuntime(
                 present: Boolean(body),
             };
         },
+        getProcessEnvironmentValue(name): string | undefined {
+            return getRequiredProcessEnvironmentProvider(
+                scope.getProcessEnvironmentValue
+            )(name);
+        },
         getViewport(): RecentFilesContextMenuViewport {
             const viewport = getViewport(scope);
 
@@ -267,6 +296,14 @@ export function getRecentFilesContextMenuRuntime(
         },
         isBodyParent(element): boolean {
             return element.parentNode === getRuntimeDocument(scope).body;
+        },
+        isDevelopmentEnvironment(): boolean {
+            return (
+                getRequiredProvider(
+                    scope.getIsDevelopmentEnvironment,
+                    "isDevelopmentEnvironment"
+                )() === true
+            );
         },
         isNode(value): value is Node {
             return value instanceof getNodeConstructor(scope);

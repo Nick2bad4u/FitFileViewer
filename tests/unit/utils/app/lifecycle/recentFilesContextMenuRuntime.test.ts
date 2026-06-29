@@ -20,7 +20,9 @@ function createRecentFilesContextMenuRuntimeScope(
         getDateNow: () => undefined,
         getDocument: () => undefined,
         getDocumentEventTarget: () => undefined,
+        getIsDevelopmentEnvironment: () => undefined,
         getNode: () => undefined,
+        getProcessEnvironmentValue: () => undefined,
         getSetTimeout: () => undefined,
         getViewport: () => undefined,
         ...overrides,
@@ -69,7 +71,7 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("fails clearly when provider slots are omitted", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const runtime = getRecentFilesContextMenuRuntime(
             {} as unknown as RecentFilesContextMenuRuntimeScope
@@ -90,6 +92,12 @@ describe("recentFilesContextMenuRuntime", () => {
         ).toThrow(
             "recent files context menu requires document event-target provider"
         );
+        expect(() => runtime.isDevelopmentEnvironment()).toThrow(
+            "recent files context menu requires isDevelopmentEnvironment provider"
+        );
+        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+            "recent files context menu requires processEnvironmentValue provider"
+        );
         expect(() => runtime.appendToBody(element)).toThrow(
             "recent files context menu requires document provider"
         );
@@ -102,6 +110,27 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(() => runtime.getViewport()).toThrow(
             "recent files context menu requires viewport provider"
         );
+    });
+
+    it("reads environment checks through the injected runtime scope", () => {
+        expect.assertions(4);
+
+        const getProcessEnvironmentValue = vi.fn((name: string) =>
+            name === "FFV_DEBUG_RECENT_MENU" ? "1" : undefined
+        );
+        const runtime = getRecentFilesContextMenuRuntime(
+            createRecentFilesContextMenuRuntimeScope({
+                getIsDevelopmentEnvironment: () => true,
+                getProcessEnvironmentValue,
+            })
+        );
+
+        expect(runtime.isDevelopmentEnvironment()).toBe(true);
+        expect(runtime.getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU")).toBe(
+            "1"
+        );
+        expect(runtime.getProcessEnvironmentValue("NODE_ENV")).toBe(undefined);
+        expect(getProcessEnvironmentValue).toHaveBeenCalledTimes(2);
     });
 
     it("reads finite viewport dimensions from a scoped viewport", () => {
@@ -368,12 +397,16 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(24);
+        expect.assertions(28);
 
         const AbortControllerConstructor = vi.fn();
         const callback = vi.fn<() => void>();
         const clearTimeout = vi.fn<BrowserClearTimeout>();
         const dateNow = vi.fn<() => number>(() => Number("1700"));
+        const isDevelopmentEnvironment = vi.fn<() => boolean>(() => true);
+        const processEnvironmentValue = vi.fn<(name: string) => string>(
+            () => "1"
+        );
         const setTimeout = vi.fn<BrowserSetTimeout>();
         const documentEventTarget =
             document.implementation.createHTMLDocument();
@@ -389,7 +422,9 @@ describe("recentFilesContextMenuRuntime", () => {
             clearTimeout,
             dateNow,
             documentEventTarget,
+            isDevelopmentEnvironment,
             Node,
+            processEnvironmentValue,
             setTimeout,
             viewport: {
                 height: 720,
@@ -407,6 +442,12 @@ describe("recentFilesContextMenuRuntime", () => {
             runtime.addDocumentMousedownListener(() => undefined, {})
         ).toThrow(
             "recent files context menu requires document event-target provider"
+        );
+        expect(() => runtime.isDevelopmentEnvironment()).toThrow(
+            "recent files context menu requires isDevelopmentEnvironment provider"
+        );
+        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+            "recent files context menu requires processEnvironmentValue provider"
         );
         expect(() => runtime.setTimeout(callback, 0)).toThrow(
             "recent files context menu requires setTimeout provider"
@@ -451,6 +492,8 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(dateNow).not.toHaveBeenCalled();
+        expect(isDevelopmentEnvironment).not.toHaveBeenCalled();
+        expect(processEnvironmentValue).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
