@@ -5,10 +5,10 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface CreatePowerEstimationButtonRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface CreatePowerEstimationButtonRuntime {
@@ -25,13 +25,27 @@ const defaultCreatePowerEstimationButtonRuntimeScope: CreatePowerEstimationButto
 function getScopeDocument(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "createPowerEstimationButton requires a document provider"
+        );
+    }
+
+    return getRuntimeDocument();
 }
 
 function getAbortControllerConstructor(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const getRuntimeAbortController = scope.getAbortController;
+    if (typeof getRuntimeAbortController !== "function") {
+        throw new TypeError(
+            "createPowerEstimationButton requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = getRuntimeAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerEstimationButton requires an AbortController runtime"

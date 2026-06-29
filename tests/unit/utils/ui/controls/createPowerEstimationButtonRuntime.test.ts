@@ -4,6 +4,11 @@ import type { BrowserAbortControllerConstructor } from "../../../../../electron-
 import { getCreatePowerEstimationButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.js";
 
 describe("getCreatePowerEstimationButtonRuntime", () => {
+    const unavailablePowerEstimationButtonRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+    } satisfies Parameters<typeof getCreatePowerEstimationButtonRuntime>[0];
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -12,6 +17,7 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         expect.assertions(1);
 
         const runtime = getCreatePowerEstimationButtonRuntime({
+            getAbortController: () => undefined,
             getDocument: () => document,
         });
 
@@ -42,18 +48,17 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getCreatePowerEstimationButtonRuntime({});
+        const runtime = getCreatePowerEstimationButtonRuntime(
+            unavailablePowerEstimationButtonRuntimeScope
+        );
         const runtimeWithoutAbortController =
             getCreatePowerEstimationButtonRuntime({
-                getDocument: () =>
-                    ({
-                        defaultView: {
-                            AbortController,
-                        },
-                    }) as Document,
+                ...unavailablePowerEstimationButtonRuntimeScope,
+                getDocument: () => document,
             });
         const runtimeWithInvalidAbortController =
             getCreatePowerEstimationButtonRuntime({
+                ...unavailablePowerEstimationButtonRuntimeScope,
                 getAbortController: () =>
                     "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
@@ -74,6 +79,23 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(2);
+
+        const runtime = getCreatePowerEstimationButtonRuntime(
+            {} as unknown as Parameters<
+                typeof getCreatePowerEstimationButtonRuntime
+            >[0]
+        );
+
+        expect(() => runtime.createButton()).toThrow(
+            "createPowerEstimationButton requires a document provider"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createPowerEstimationButton requires an AbortController provider"
+        );
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(4);
 
@@ -85,6 +107,7 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
             },
         };
         const runtime = getCreatePowerEstimationButtonRuntime({
+            ...unavailablePowerEstimationButtonRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,

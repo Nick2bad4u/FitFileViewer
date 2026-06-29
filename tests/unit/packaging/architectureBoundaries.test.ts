@@ -19392,7 +19392,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(29);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -19448,10 +19448,22 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "scope.document"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
         );
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "defaultView?.AbortController"
@@ -19479,6 +19491,12 @@ describe("architecture boundaries", () => {
         );
         expect(createPowerEstimationButtonRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "createPowerEstimationButton requires an AbortController provider"
+        );
+        expect(createPowerEstimationButtonRuntimeSource).toContain(
+            "createPowerEstimationButton requires a document provider"
         );
     });
 
