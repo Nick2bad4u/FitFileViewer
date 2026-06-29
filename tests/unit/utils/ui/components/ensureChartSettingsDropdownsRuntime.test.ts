@@ -11,6 +11,30 @@ import {
     type EnsureChartSettingsDropdownsRuntimeScope,
 } from "../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.js";
 
+function createEnsureChartSettingsDropdownsRuntimeScope(
+    overrides: Partial<EnsureChartSettingsDropdownsRuntimeScope> = {}
+): EnsureChartSettingsDropdownsRuntimeScope {
+    return {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+        getHTMLElement: () => HTMLElement,
+        getSetTimeout: () => setTimeout,
+        ...overrides,
+    };
+}
+
+function createUnavailableEnsureChartSettingsDropdownsRuntimeScope(
+    overrides: Partial<EnsureChartSettingsDropdownsRuntimeScope> = {}
+): EnsureChartSettingsDropdownsRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getEnsureChartSettingsDropdownsRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -19,9 +43,11 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
     it("creates elements and exposes the injected document body", () => {
         expect.assertions(3);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getEnsureChartSettingsDropdownsRuntime(
+            createEnsureChartSettingsDropdownsRuntimeScope({
+                getDocument: () => document,
+            })
+        );
 
         expect(runtime.document).toBe(document);
         expect(runtime.createElement("button")).toBeInstanceOf(
@@ -33,10 +59,12 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
     it("checks HTMLElement instances through the injected runtime", () => {
         expect.assertions(2);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({
-            getDocument: () => document,
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getEnsureChartSettingsDropdownsRuntime(
+            createEnsureChartSettingsDropdownsRuntimeScope({
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
         expect(runtime.isHTMLElement(document.createTextNode("label"))).toBe(
@@ -51,10 +79,12 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             callback();
             return 7 as BrowserTimerHandle;
         });
-        const runtime = getEnsureChartSettingsDropdownsRuntime({
-            getDocument: () => document,
-            getSetTimeout: () => setTimeoutMock,
-        });
+        const runtime = getEnsureChartSettingsDropdownsRuntime(
+            createEnsureChartSettingsDropdownsRuntimeScope({
+                getDocument: () => document,
+                getSetTimeout: () => setTimeoutMock,
+            })
+        );
         const callback = vi.fn();
 
         const handle = runtime.setTimeout(callback, 0);
@@ -67,22 +97,26 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(1);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({
-            getDocument: () => document,
-        });
+        const runtime = getEnsureChartSettingsDropdownsRuntime(
+            createEnsureChartSettingsDropdownsRuntimeScope({
+                getSetTimeout: undefined,
+            })
+        );
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
-            "ensureChartSettingsDropdowns requires a setTimeout runtime"
+            "ensureChartSettingsDropdowns requires a setTimeout provider"
         );
     });
 
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({
-            getAbortController: () => AbortController,
-            getDocument: () => document,
-        });
+        const runtime = getEnsureChartSettingsDropdownsRuntime(
+            createEnsureChartSettingsDropdownsRuntimeScope({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+            })
+        );
         const controller = runtime.createAbortController();
 
         expect(controller).toBeInstanceOf(AbortController);
@@ -132,33 +166,42 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(5);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({
-            getDocument: () =>
-                ({
-                    createElement: document.createElement.bind(document),
-                    body: document.body,
-                }) as Document,
-            getHTMLElement: () =>
-                "HTMLElement" as unknown as BrowserHTMLElementConstructor,
-        });
-        const runtimeWithoutAbortController =
-            getEnsureChartSettingsDropdownsRuntime({
+        const runtime = getEnsureChartSettingsDropdownsRuntime(
+            createEnsureChartSettingsDropdownsRuntimeScope({
                 getDocument: () =>
                     ({
-                        body: document.body,
                         createElement: document.createElement.bind(document),
+                        body: document.body,
                     }) as Document,
-            });
-        const runtimeWithInvalidAbortController =
-            getEnsureChartSettingsDropdownsRuntime({
-                getAbortController: () =>
-                    "AbortController" as unknown as BrowserAbortControllerConstructor,
-                getDocument: () => document,
-            });
-
-        expect(() => getEnsureChartSettingsDropdownsRuntime({})).toThrow(
-            "ensureChartSettingsDropdowns requires a document runtime"
+                getHTMLElement: () =>
+                    "HTMLElement" as unknown as BrowserHTMLElementConstructor,
+            })
         );
+        const runtimeWithoutAbortController =
+            getEnsureChartSettingsDropdownsRuntime(
+                createUnavailableEnsureChartSettingsDropdownsRuntimeScope({
+                    getDocument: () =>
+                        ({
+                            body: document.body,
+                            createElement:
+                                document.createElement.bind(document),
+                        }) as Document,
+                })
+            );
+        const runtimeWithInvalidAbortController =
+            getEnsureChartSettingsDropdownsRuntime(
+                createEnsureChartSettingsDropdownsRuntimeScope({
+                    getAbortController: () =>
+                        "AbortController" as unknown as BrowserAbortControllerConstructor,
+                    getDocument: () => document,
+                })
+            );
+
+        expect(() =>
+            getEnsureChartSettingsDropdownsRuntime(
+                createUnavailableEnsureChartSettingsDropdownsRuntimeScope()
+            )
+        ).toThrow("ensureChartSettingsDropdowns requires a document runtime");
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow(
@@ -173,12 +216,57 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             "ensureChartSettingsDropdowns requires an HTMLElement runtime"
         );
         expect(() =>
-            getEnsureChartSettingsDropdownsRuntime({
-                getDocument: () => document,
-                getSetTimeout: () =>
-                    "setTimeout" as unknown as BrowserSetTimeout,
-            }).setTimeout(() => {}, 0)
+            getEnsureChartSettingsDropdownsRuntime(
+                createEnsureChartSettingsDropdownsRuntimeScope({
+                    getDocument: () => document,
+                    getSetTimeout: () =>
+                        "setTimeout" as unknown as BrowserSetTimeout,
+                })
+            ).setTimeout(() => {}, 0)
         ).toThrow("ensureChartSettingsDropdowns requires a setTimeout runtime");
+    });
+
+    it("fails clearly when provider slots are omitted", () => {
+        expect.assertions(4);
+
+        expect(() =>
+            getEnsureChartSettingsDropdownsRuntime({
+                getAbortController: () => AbortController,
+                getDocument: undefined,
+                getHTMLElement: () => HTMLElement,
+                getSetTimeout: () => setTimeout,
+            })
+        ).toThrow("ensureChartSettingsDropdowns requires a document provider");
+        expect(() =>
+            getEnsureChartSettingsDropdownsRuntime({
+                getAbortController: undefined,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+                getSetTimeout: () => setTimeout,
+            }).createAbortController()
+        ).toThrow(
+            "ensureChartSettingsDropdowns requires an AbortController provider"
+        );
+        expect(() =>
+            getEnsureChartSettingsDropdownsRuntime({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+                getHTMLElement: undefined,
+                getSetTimeout: () => setTimeout,
+            }).isHTMLElement(document.body)
+        ).toThrow(
+            "ensureChartSettingsDropdowns requires an HTMLElement provider"
+        );
+        expect(() =>
+            getEnsureChartSettingsDropdownsRuntime({
+                getAbortController: () => AbortController,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
+                getSetTimeout: undefined,
+            }).setTimeout(() => {}, 0)
+        ).toThrow(
+            "ensureChartSettingsDropdowns requires a setTimeout provider"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -201,15 +289,15 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
 
         expect(() =>
             getEnsureChartSettingsDropdownsRuntime(legacyDirectScope)
-        ).toThrow("ensureChartSettingsDropdowns requires a document runtime");
+        ).toThrow("ensureChartSettingsDropdowns requires a document provider");
         expect(() => runtime.createAbortController()).toThrow(
-            "ensureChartSettingsDropdowns requires an AbortController runtime"
+            "ensureChartSettingsDropdowns requires an AbortController provider"
         );
         expect(() => runtime.isHTMLElement(document.body)).toThrow(
-            "ensureChartSettingsDropdowns requires an HTMLElement runtime"
+            "ensureChartSettingsDropdowns requires an HTMLElement provider"
         );
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
-            "ensureChartSettingsDropdowns requires a setTimeout runtime"
+            "ensureChartSettingsDropdowns requires a setTimeout provider"
         );
     });
 });

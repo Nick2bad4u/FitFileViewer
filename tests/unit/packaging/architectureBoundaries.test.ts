@@ -8525,7 +8525,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(44);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -8570,6 +8570,48 @@ describe("architecture boundaries", () => {
         );
         expect(chartSettingsRuntimeSource).not.toContain(
             "readonly setTimeout?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "type EnsureChartSettingsDropdownsRuntimeProvider"
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*EnsureChartSettingsDropdownsRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*EnsureChartSettingsDropdownsRuntimeProvider<Document>/u
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /readonly\s+getHTMLElement:\s*EnsureChartSettingsDropdownsRuntimeProvider<BrowserHTMLElementConstructor>/u
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /readonly\s+getSetTimeout:\s*EnsureChartSettingsDropdownsRuntimeProvider<BrowserSetTimeout>/u
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"HTMLElement"\s*\)/u
+        );
+        expect(chartSettingsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getSetTimeout,\s*"setTimeout"\s*\)/u
         );
         expect(chartSettingsRuntimeSource).not.toContain(
             "scope.AbortController"
