@@ -72,18 +72,51 @@ describe("getUpdateControlsStateRuntime", () => {
     });
 
     it("fails clearly when runtime providers are omitted", () => {
-        expect.assertions(2);
-
-        const runtime = getUpdateControlsStateRuntime(
-            {} as unknown as UpdateControlsStateRuntimeScope
-        );
+        expect.assertions(1);
 
         expect(() =>
-            runtime.getComputedDisplay(document.createElement("div"))
+            getUpdateControlsStateRuntime(
+                {} as unknown as UpdateControlsStateRuntimeScope
+            )
         ).toThrow("updateControlsState requires a computed style provider");
-        expect(() => runtime.getDocument()).toThrow(
-            "updateControlsState requires a document provider"
-        );
+    });
+
+    it("fails clearly when the computed style provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getUpdateControlsStateRuntime({
+                ...unavailableUpdateControlsStateRuntimeScope,
+                getComputedStyle: undefined,
+            })
+        ).toThrow("updateControlsState requires a computed style provider");
+    });
+
+    it("fails clearly when the document provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getUpdateControlsStateRuntime({
+                ...unavailableUpdateControlsStateRuntimeScope,
+                getDocument: undefined,
+            })
+        ).toThrow("updateControlsState requires a document provider");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => ({ display: "block" }) as CSSStyleDeclaration);
+
+        expect(() =>
+            getUpdateControlsStateRuntime({
+                document,
+                getComputedStyle,
+            } as unknown as UpdateControlsStateRuntimeScope)
+        ).toThrow("updateControlsState requires a document provider");
+        expect(getComputedStyle).not.toHaveBeenCalled();
     });
 
     it("resolves default providers when runtime operations run", () => {

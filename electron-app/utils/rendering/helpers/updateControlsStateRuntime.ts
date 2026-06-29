@@ -3,14 +3,18 @@ import {
     getBrowserDocument,
 } from "../../runtime/browserRuntime.js";
 
+type UpdateControlsStateGetComputedStyle = (
+    element: Element,
+    pseudoElement?: null | string
+) => CSSStyleDeclaration | undefined;
+
+type UpdateControlsStateRuntimeProvider<T> = T | undefined;
+
 export interface UpdateControlsStateRuntimeScope {
-    readonly getComputedStyle:
-        | ((
-              element: Element,
-              pseudoElement?: null | string
-          ) => CSSStyleDeclaration | undefined)
-        | undefined;
-    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getComputedStyle: UpdateControlsStateRuntimeProvider<UpdateControlsStateGetComputedStyle>;
+    readonly getDocument: UpdateControlsStateRuntimeProvider<
+        () => Document | undefined
+    >;
 }
 
 export interface UpdateControlsStateRuntime {
@@ -32,24 +36,18 @@ const defaultUpdateControlsStateRuntimeScope: UpdateControlsStateRuntimeScope =
 export function getUpdateControlsStateRuntime(
     scope: UpdateControlsStateRuntimeScope = defaultUpdateControlsStateRuntimeScope
 ): UpdateControlsStateRuntime {
+    const getComputedStyle = getRequiredProvider(
+        scope.getComputedStyle,
+        "computed style"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "document");
+
     return {
         getComputedDisplay(element: Element): string {
-            if (typeof scope.getComputedStyle !== "function") {
-                throw new TypeError(
-                    "updateControlsState requires a computed style provider"
-                );
-            }
-
-            return scope.getComputedStyle(element)?.display ?? "";
+            return getComputedStyle(element)?.display ?? "";
         },
         getDocument(): Document {
-            if (typeof scope.getDocument !== "function") {
-                throw new TypeError(
-                    "updateControlsState requires a document provider"
-                );
-            }
-
-            const runtimeDocument = scope.getDocument();
+            const runtimeDocument = getDocument();
             if (!runtimeDocument) {
                 throw new TypeError(
                     "updateControlsState requires a document runtime"
@@ -59,4 +57,17 @@ export function getUpdateControlsStateRuntime(
             return runtimeDocument;
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: UpdateControlsStateRuntimeProvider<T>,
+    providerName: string
+): T {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `updateControlsState requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

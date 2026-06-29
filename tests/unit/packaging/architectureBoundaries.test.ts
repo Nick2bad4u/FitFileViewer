@@ -29037,7 +29037,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps controls-state document and computed style reads behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(28);
 
         const violations = migratedUpdateControlsStateRuntimeFiles
             .filter((relativeFile) =>
@@ -29075,6 +29075,24 @@ describe("architecture boundaries", () => {
         expect(updateControlsStateRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
         );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "type UpdateControlsStateRuntimeProvider"
+        );
+        expect(updateControlsStateRuntimeSource).toMatch(
+            /readonly\s+getComputedStyle:\s*UpdateControlsStateRuntimeProvider<UpdateControlsStateGetComputedStyle>/u
+        );
+        expect(updateControlsStateRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*UpdateControlsStateRuntimeProvider<\s*\(\)\s*=>\s*Document\s*\|\s*undefined\s*>/u
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(updateControlsStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getComputedStyle,\s*"computed style"\s*\)/u
+        );
+        expect(updateControlsStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
         expect(updateControlsStateRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
         );
@@ -29097,16 +29115,19 @@ describe("architecture boundaries", () => {
             "scope.getDocument?.()"
         );
         expect(updateControlsStateRuntimeSource).toContain(
+            "getComputedStyle(element)?.display"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
             "scope.getComputedStyle(element)"
         );
         expect(updateControlsStateRuntimeSource).toContain(
+            "const runtimeDocument = getDocument();"
+        );
+        expect(updateControlsStateRuntimeSource).not.toContain(
             "const runtimeDocument = scope.getDocument();"
         );
         expect(updateControlsStateRuntimeSource).toContain(
-            "updateControlsState requires a computed style provider"
-        );
-        expect(updateControlsStateRuntimeSource).toContain(
-            "updateControlsState requires a document provider"
+            "updateControlsState requires a ${providerName} provider"
         );
         expect(updateControlsStateRuntimeSource).toContain(
             "updateControlsState requires a document runtime"
