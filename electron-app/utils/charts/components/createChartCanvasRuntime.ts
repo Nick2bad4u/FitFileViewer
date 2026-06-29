@@ -3,7 +3,7 @@ import { getBrowserDocument } from "../../runtime/browserRuntime.js";
 type ChartCanvasDocument = Pick<Document, "createElement">;
 
 export interface CreateChartCanvasRuntimeScope {
-    readonly getDocument?: (() => ChartCanvasDocument | undefined) | undefined;
+    readonly getDocument: () => ChartCanvasDocument | undefined;
 }
 
 export interface CreateChartCanvasRuntime {
@@ -17,7 +17,11 @@ const defaultCreateChartCanvasRuntimeScope: CreateChartCanvasRuntimeScope = {
 function getRequiredDocument(
     scope: CreateChartCanvasRuntimeScope
 ): ChartCanvasDocument {
-    const runtimeDocument = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError("createChartCanvas requires a document provider");
+    }
+
+    const runtimeDocument = scope.getDocument();
     if (!runtimeDocument) {
         throw new TypeError("createChartCanvas requires a document runtime");
     }

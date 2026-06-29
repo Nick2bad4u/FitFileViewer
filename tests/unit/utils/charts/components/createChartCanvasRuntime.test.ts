@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { CreateChartCanvasRuntimeScope } from "../../../../../electron-app/utils/charts/components/createChartCanvasRuntime.js";
 import { getCreateChartCanvasRuntime } from "../../../../../electron-app/utils/charts/components/createChartCanvasRuntime.js";
 
+const unavailableChartCanvasScope = {
+    getDocument: () => undefined,
+} satisfies CreateChartCanvasRuntimeScope;
+
 describe("getCreateChartCanvasRuntime", () => {
     it("creates canvases through the injected document", () => {
         expect.assertions(3);
@@ -34,10 +38,24 @@ describe("getCreateChartCanvasRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getCreateChartCanvasRuntime({});
+        const runtime = getCreateChartCanvasRuntime(
+            unavailableChartCanvasScope
+        );
 
         expect(() => runtime.createCanvas()).toThrow(
             "createChartCanvas requires a document runtime"
+        );
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(1);
+
+        const omittedProviderScope =
+            {} as unknown as CreateChartCanvasRuntimeScope;
+        const runtime = getCreateChartCanvasRuntime(omittedProviderScope);
+
+        expect(() => runtime.createCanvas()).toThrow(
+            "createChartCanvas requires a document provider"
         );
     });
 
@@ -49,6 +67,7 @@ describe("getCreateChartCanvasRuntime", () => {
         );
         const createElement = vi.spyOn(documentRef, "createElement");
         const legacyScope = {
+            ...unavailableChartCanvasScope,
             document: documentRef,
         } as unknown as CreateChartCanvasRuntimeScope;
         const runtime = getCreateChartCanvasRuntime(legacyScope);
