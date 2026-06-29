@@ -16,19 +16,19 @@ type MapDocumentListenersDocument = Pick<
 type MapDocumentListenersResizeTarget = Pick<EventTarget, "addEventListener">;
 
 export interface MapDocumentListenersRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?:
-        | (() => MapDocumentListenersDocument | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getNode?: (() => BrowserNodeConstructor | undefined) | undefined;
-    readonly getResizeTarget?:
-        | (() => MapDocumentListenersResizeTarget | undefined)
-        | undefined;
+    readonly getAbortController: MapDocumentListenersRuntimeProvider<
+        BrowserAbortControllerConstructor
+    >;
+    readonly getDocument: MapDocumentListenersRuntimeProvider<
+        MapDocumentListenersDocument
+    >;
+    readonly getHTMLElement: MapDocumentListenersRuntimeProvider<
+        BrowserHTMLElementConstructor
+    >;
+    readonly getNode: MapDocumentListenersRuntimeProvider<BrowserNodeConstructor>;
+    readonly getResizeTarget: MapDocumentListenersRuntimeProvider<
+        MapDocumentListenersResizeTarget
+    >;
 }
 
 export interface MapDocumentListenersRuntime {
@@ -54,10 +54,14 @@ export interface MapDocumentListenersRuntime {
     readonly isNode: (value: unknown) => value is Node;
 }
 
+type MapDocumentListenersRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
 function getRuntimeDocument(
-    scope: MapDocumentListenersRuntimeScope
+    getDocument: () => MapDocumentListenersDocument | undefined
 ): MapDocumentListenersDocument {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getDocument();
     if (!runtimeDocument) {
         throw new TypeError("mapDocumentListeners requires a document runtime");
     }
@@ -66,9 +70,9 @@ function getRuntimeDocument(
 }
 
 function getRuntimeResizeTarget(
-    scope: MapDocumentListenersRuntimeScope
+    getResizeTarget: () => MapDocumentListenersResizeTarget | undefined
 ): MapDocumentListenersResizeTarget {
-    const runtimeResizeTarget = scope.getResizeTarget?.();
+    const runtimeResizeTarget = getResizeTarget();
     if (!runtimeResizeTarget) {
         throw new TypeError(
             "mapDocumentListeners requires a resize target runtime"
@@ -88,53 +92,73 @@ const defaultMapDocumentListenersRuntimeScope: MapDocumentListenersRuntimeScope 
     };
 
 function getAbortController(
-    scope: MapDocumentListenersRuntimeScope
+    getAbortControllerProvider: () =>
+        | BrowserAbortControllerConstructor
+        | undefined
 ): BrowserAbortControllerConstructor | undefined {
-    return scope.getAbortController?.();
+    return getAbortControllerProvider();
 }
 
 function getHTMLElementConstructor(
-    scope: MapDocumentListenersRuntimeScope
+    getHTMLElement: () => BrowserHTMLElementConstructor | undefined
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getHTMLElement();
 }
 
 function getNodeConstructor(
-    scope: MapDocumentListenersRuntimeScope
+    getNode: () => BrowserNodeConstructor | undefined
 ): BrowserNodeConstructor | undefined {
-    return scope.getNode?.();
+    return getNode();
 }
 
 export function getMapDocumentListenersRuntime(
     scope: MapDocumentListenersRuntimeScope = defaultMapDocumentListenersRuntimeScope
 ): MapDocumentListenersRuntime {
+    const getAbortControllerProvider = getRequiredProvider(
+        scope.getAbortController,
+        "an AbortController"
+    );
+    const getDocument = getRequiredProvider(scope.getDocument, "a document");
+    const getHTMLElement = getRequiredProvider(
+        scope.getHTMLElement,
+        "an HTMLElement"
+    );
+    const getNode = getRequiredProvider(scope.getNode, "a Node");
+    const getResizeTarget = getRequiredProvider(
+        scope.getResizeTarget,
+        "a resize target"
+    );
+
     return {
         addDocumentMousedownListener(listener, options): void {
-            const runtimeDocument = getRuntimeDocument(scope);
+            const runtimeDocument = getRuntimeDocument(getDocument);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("mousedown", listener, options);
         },
         addDocumentMouseupListener(listener, options): void {
-            const runtimeDocument = getRuntimeDocument(scope);
+            const runtimeDocument = getRuntimeDocument(getDocument);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("mouseup", listener, options);
         },
         addDocumentTouchendListener(listener, options): void {
-            const runtimeDocument = getRuntimeDocument(scope);
+            const runtimeDocument = getRuntimeDocument(getDocument);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("touchend", listener, options);
         },
         addWindowResizeListener(listener, options): void {
-            const runtimeResizeTarget = getRuntimeResizeTarget(scope);
+            const runtimeResizeTarget =
+                getRuntimeResizeTarget(getResizeTarget);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeResizeTarget.addEventListener("resize", listener, options);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = getAbortController(scope);
+            const AbortControllerConstructor = getAbortController(
+                getAbortControllerProvider
+            );
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "mapDocumentListeners requires an AbortController runtime"
@@ -144,23 +168,37 @@ export function getMapDocumentListenersRuntime(
             return new AbortControllerConstructor();
         },
         getLayersControlElement(): HTMLElement | null {
-            return getRuntimeDocument(scope).querySelector<HTMLElement>(
+            return getRuntimeDocument(getDocument).querySelector<HTMLElement>(
                 ".leaflet-control-layers"
             );
         },
         isHTMLElement(value: unknown): value is HTMLElement {
-            const HTMLElementConstructor = getHTMLElementConstructor(scope);
+            const HTMLElementConstructor =
+                getHTMLElementConstructor(getHTMLElement);
             return (
                 typeof HTMLElementConstructor === "function" &&
                 value instanceof HTMLElementConstructor
             );
         },
         isNode(value: unknown): value is Node {
-            const NodeConstructor = getNodeConstructor(scope);
+            const NodeConstructor = getNodeConstructor(getNode);
             return (
                 typeof NodeConstructor === "function" &&
                 value instanceof NodeConstructor
             );
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: MapDocumentListenersRuntimeProvider<T>,
+    providerLabel: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `mapDocumentListeners requires ${providerLabel} provider`
+        );
+    }
+
+    return provider;
 }

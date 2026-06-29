@@ -5,6 +5,19 @@ import {
     type MapDocumentListenersRuntimeScope,
 } from "../../../../../electron-app/utils/maps/core/mapDocumentListenersRuntime.js";
 
+function createMapDocumentListenersRuntimeScope(
+    overrides: Partial<MapDocumentListenersRuntimeScope> = {}
+): MapDocumentListenersRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getNode: () => undefined,
+        getResizeTarget: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getMapDocumentListenersRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
@@ -22,9 +35,11 @@ describe("getMapDocumentListenersRuntime", () => {
                 /* Test double */
             }
         }
-        const runtime = getMapDocumentListenersRuntime({
-            getAbortController: () => TestAbortController,
-        });
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope({
+                getAbortController: () => TestAbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -73,7 +88,9 @@ describe("getMapDocumentListenersRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getMapDocumentListenersRuntime({});
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope()
+        );
 
         expect(() => {
             runtime.createAbortController();
@@ -89,9 +106,11 @@ describe("getMapDocumentListenersRuntime", () => {
         let mouseDownCount = 0;
         let mouseUpCount = 0;
         let touchEndCount = 0;
-        const runtime = getMapDocumentListenersRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentMousedownListener(
             () => {
@@ -127,11 +146,13 @@ describe("getMapDocumentListenersRuntime", () => {
         const layersControl = documentRef.createElement("div");
         layersControl.className = "leaflet-control-layers";
         documentRef.body.append(layersControl);
-        const runtime = getMapDocumentListenersRuntime({
-            getDocument: () => documentRef,
-            getHTMLElement: () => HTMLElement,
-            getNode: () => Node,
-        });
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope({
+                getDocument: () => documentRef,
+                getHTMLElement: () => HTMLElement,
+                getNode: () => Node,
+            })
+        );
 
         expect(runtime.getLayersControlElement()).toBe(layersControl);
         expect(runtime.isHTMLElement(layersControl)).toBe(true);
@@ -142,7 +163,9 @@ describe("getMapDocumentListenersRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(4);
 
-        const runtime = getMapDocumentListenersRuntime({});
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope()
+        );
         const controller = new AbortController();
         const mouseListener = (): void => undefined;
         const touchListener = (): void => undefined;
@@ -175,9 +198,11 @@ describe("getMapDocumentListenersRuntime", () => {
         const resizeTarget = createResizeListenerTarget(eventTarget);
         const controller = new AbortController();
         let resizeCount = 0;
-        const runtime = getMapDocumentListenersRuntime({
-            getResizeTarget: () => resizeTarget,
-        });
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope({
+                getResizeTarget: () => resizeTarget,
+            })
+        );
 
         runtime.addWindowResizeListener(
             () => {
@@ -193,7 +218,9 @@ describe("getMapDocumentListenersRuntime", () => {
     it("fails clearly when the resize target runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getMapDocumentListenersRuntime({});
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope()
+        );
         const controller = new AbortController();
 
         expect(() => {
@@ -219,18 +246,20 @@ describe("getMapDocumentListenersRuntime", () => {
         const resizeAddEventListener = vi.fn();
         const getHTMLElement = vi.fn(() => HTMLElement);
         const getNode = vi.fn(() => Node);
-        const runtime = getMapDocumentListenersRuntime({
-            getAbortController: () => TestAbortController,
-            getDocument: () => ({
-                addEventListener: documentAddEventListener,
-                querySelector: vi.fn(() => layersControl),
-            }),
-            getHTMLElement,
-            getNode,
-            getResizeTarget: () => ({
-                addEventListener: resizeAddEventListener,
-            }),
-        });
+        const runtime = getMapDocumentListenersRuntime(
+            createMapDocumentListenersRuntimeScope({
+                getAbortController: () => TestAbortController,
+                getDocument: () => ({
+                    addEventListener: documentAddEventListener,
+                    querySelector: vi.fn(() => layersControl),
+                }),
+                getHTMLElement,
+                getNode,
+                getResizeTarget: () => ({
+                    addEventListener: resizeAddEventListener,
+                }),
+            })
+        );
         const controller = runtime.createAbortController();
 
         runtime.addDocumentMousedownListener(() => undefined, {
@@ -256,18 +285,26 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(runtime.isHTMLElement(layersControl)).toBe(true);
         expect(runtime.isNode(layersControl)).toBe(true);
         expect(
-            getMapDocumentListenersRuntime({}).createAbortController
+            getMapDocumentListenersRuntime(
+                createMapDocumentListenersRuntimeScope()
+            ).createAbortController
         ).toThrow("mapDocumentListeners requires an AbortController runtime");
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(9);
+        expect.assertions(5);
 
-        class TestAbortController extends AbortController {}
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
         const documentAddEventListener = vi.fn();
         const documentQuerySelector = vi.fn();
         const resizeAddEventListener = vi.fn();
-        const runtime = getMapDocumentListenersRuntime({
+        const legacyScope = {
             AbortController: TestAbortController,
             document: {
                 addEventListener: documentAddEventListener,
@@ -276,32 +313,65 @@ describe("getMapDocumentListenersRuntime", () => {
             HTMLElement,
             Node,
             resizeTarget: { addEventListener: resizeAddEventListener },
-        } as unknown as MapDocumentListenersRuntimeScope);
-        const controller = new AbortController();
+        } as unknown as MapDocumentListenersRuntimeScope;
 
-        expect(runtime.createAbortController).toThrow(
-            "mapDocumentListeners requires an AbortController runtime"
+        expect(() => getMapDocumentListenersRuntime(legacyScope)).toThrow(
+            "mapDocumentListeners requires an AbortController provider"
         );
-        expect(() => {
-            runtime.addDocumentMousedownListener(() => undefined, {
-                signal: controller.signal,
-            });
-        }).toThrow("mapDocumentListeners requires a document runtime");
-        expect(() => {
-            runtime.addWindowResizeListener(() => undefined, {
-                signal: controller.signal,
-            });
-        }).toThrow("mapDocumentListeners requires a resize target runtime");
-        expect(() => {
-            runtime.getLayersControlElement();
-        }).toThrow("mapDocumentListeners requires a document runtime");
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
-            false
-        );
-        expect(runtime.isNode(document.createElement("div"))).toBe(false);
         expect(documentAddEventListener).not.toHaveBeenCalled();
         expect(documentQuerySelector).not.toHaveBeenCalled();
         expect(resizeAddEventListener).not.toHaveBeenCalled();
+        expect(controllerCount).toBe(0);
+    });
+
+    it("fails clearly when runtime provider slots are omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getMapDocumentListenersRuntime(
+                {} as unknown as MapDocumentListenersRuntimeScope
+            )
+        ).toThrow("mapDocumentListeners requires an AbortController provider");
+    });
+
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(5);
+
+        expect(() =>
+            getMapDocumentListenersRuntime(
+                createMapDocumentListenersRuntimeScope({
+                    getAbortController: undefined,
+                })
+            )
+        ).toThrow("mapDocumentListeners requires an AbortController provider");
+        expect(() =>
+            getMapDocumentListenersRuntime(
+                createMapDocumentListenersRuntimeScope({
+                    getDocument: undefined,
+                })
+            )
+        ).toThrow("mapDocumentListeners requires a document provider");
+        expect(() =>
+            getMapDocumentListenersRuntime(
+                createMapDocumentListenersRuntimeScope({
+                    getHTMLElement: undefined,
+                })
+            )
+        ).toThrow("mapDocumentListeners requires an HTMLElement provider");
+        expect(() =>
+            getMapDocumentListenersRuntime(
+                createMapDocumentListenersRuntimeScope({
+                    getNode: undefined,
+                })
+            )
+        ).toThrow("mapDocumentListeners requires a Node provider");
+        expect(() =>
+            getMapDocumentListenersRuntime(
+                createMapDocumentListenersRuntimeScope({
+                    getResizeTarget: undefined,
+                })
+            )
+        ).toThrow("mapDocumentListeners requires a resize target provider");
     });
 });
 

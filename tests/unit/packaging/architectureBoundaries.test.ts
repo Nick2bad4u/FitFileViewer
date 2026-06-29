@@ -23883,7 +23883,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(55);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -23944,6 +23944,30 @@ describe("architecture boundaries", () => {
         expect(mapDocumentListenersSource).not.toContain("instanceof Node");
         expect(mapDocumentListenersRuntimeSource).toContain(
             "defaultMapDocumentListenersRuntimeScope"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "type MapDocumentListenersRuntimeProvider"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(mapDocumentListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"an AbortController"\s*\)/u
+        );
+        expect(mapDocumentListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"a document"\s*\)/u
+        );
+        expect(mapDocumentListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLElement,\s*"an HTMLElement"\s*\)/u
+        );
+        expect(mapDocumentListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getNode,\s*"a Node"\s*\)/u
+        );
+        expect(mapDocumentListenersRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getResizeTarget,\s*"a resize target"\s*\)/u
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toMatch(
+            /scope\.get[A-Za-z0-9_]+\?\.\(/u
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "../../runtime/browserRuntime.js"
@@ -24014,13 +24038,16 @@ describe("architecture boundaries", () => {
             "scope.resizeTarget"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = getDocument();"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
-            "const runtimeResizeTarget = scope.getResizeTarget?.();"
+            "const runtimeResizeTarget = getResizeTarget();"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
-            "return scope.getAbortController?.();"
+            "return getAbortControllerProvider();"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "mapDocumentListeners requires ${providerLabel} provider"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "getLayersControlElement(): HTMLElement | null"
