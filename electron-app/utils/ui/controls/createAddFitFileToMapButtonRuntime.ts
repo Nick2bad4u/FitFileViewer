@@ -3,12 +3,14 @@ import {
     getBrowserAbortController,
     getBrowserDocument,
 } from "../../runtime/browserRuntime.js";
+import { isTestEnvironment as isRuntimeTestEnvironment } from "../../runtime/processEnvironment.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateAddFitFileToMapButtonRuntimeScope {
     readonly getAbortController: CreateAddFitFileToMapButtonRuntimeProvider<BrowserAbortControllerConstructor>;
     readonly getDocument: CreateAddFitFileToMapButtonRuntimeProvider<Document>;
+    readonly getIsTestEnvironment: CreateAddFitFileToMapButtonRuntimeProvider<boolean>;
 }
 
 type CreateAddFitFileToMapButtonRuntimeProvider<T> =
@@ -24,12 +26,14 @@ export interface CreateAddFitFileToMapButtonRuntime {
     createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
+    isTestEnvironment: () => boolean;
 }
 
 const defaultCreateAddFitFileToMapButtonRuntimeScope: CreateAddFitFileToMapButtonRuntimeScope =
     {
         getAbortController: getBrowserAbortController,
         getDocument: getBrowserDocument,
+        getIsTestEnvironment: isRuntimeTestEnvironment,
     };
 
 function getRequiredProvider<T>(
@@ -106,6 +110,14 @@ export function getCreateAddFitFileToMapButtonRuntime(
             tagName: K
         ): SVGElementTagNameMap[K] {
             return createSvgElement(scope, tagName);
+        },
+        isTestEnvironment(): boolean {
+            return (
+                getRequiredProvider(
+                    scope.getIsTestEnvironment,
+                    "isTestEnvironment"
+                )() === true
+            );
         },
     };
 }

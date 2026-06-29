@@ -1,6 +1,5 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
-import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { hasActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { registerAddFitOverlayButtonAvailabilityUpdater } from "./addFitOverlayButtonState.js";
@@ -14,7 +13,7 @@ import { getCreateAddFitFileToMapButtonRuntime } from "./createAddFitFileToMapBu
 export function createAddFitFileToMapButton(): HTMLButtonElement {
     try {
         const runtime = getCreateAddFitFileToMapButtonRuntime();
-        const runningInTest = isTestEnvironment();
+        const runningInTest = runtime.isTestEnvironment();
 
         const addOverlayBtn = runtime.createButton();
         const listenerController = runtime.createAbortController();

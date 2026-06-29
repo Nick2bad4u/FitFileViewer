@@ -7,10 +7,12 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
     const addFitFileToMapButtonRuntimeScope = {
         getAbortController: () => AbortController,
         getDocument: () => document,
+        getIsTestEnvironment: () => undefined,
     } satisfies Parameters<typeof getCreateAddFitFileToMapButtonRuntime>[0];
     const unavailableAddFitFileToMapButtonRuntimeScope = {
         getAbortController: () => undefined,
         getDocument: () => undefined,
+        getIsTestEnvironment: () => undefined,
     } satisfies Parameters<typeof getCreateAddFitFileToMapButtonRuntime>[0];
 
     afterEach(() => {
@@ -23,6 +25,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         const runtime = getCreateAddFitFileToMapButtonRuntime({
             getAbortController: () => undefined,
             getDocument: () => document,
+            getIsTestEnvironment: () => undefined,
         });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
@@ -36,6 +39,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         const runtime = getCreateAddFitFileToMapButtonRuntime({
             getAbortController: () => AbortController,
             getDocument: () => document,
+            getIsTestEnvironment: () => undefined,
         });
         const controller = runtime.createAbortController();
 
@@ -52,6 +56,29 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(utils.createElement("span")).toBeInstanceOf(HTMLSpanElement);
         expect(utils.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+    });
+
+    it("reads test-environment state through the injected runtime scope", () => {
+        expect.assertions(3);
+
+        expect(
+            getCreateAddFitFileToMapButtonRuntime({
+                ...addFitFileToMapButtonRuntimeScope,
+                getIsTestEnvironment: () => true,
+            }).isTestEnvironment()
+        ).toBe(true);
+        expect(
+            getCreateAddFitFileToMapButtonRuntime({
+                ...addFitFileToMapButtonRuntimeScope,
+                getIsTestEnvironment: () => false,
+            }).isTestEnvironment()
+        ).toBe(false);
+        expect(
+            getCreateAddFitFileToMapButtonRuntime({
+                ...addFitFileToMapButtonRuntimeScope,
+                getIsTestEnvironment: () => undefined,
+            }).isTestEnvironment()
+        ).toBe(false);
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
@@ -104,7 +131,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
     });
 
     it("fails clearly when required providers are omitted", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getCreateAddFitFileToMapButtonRuntime(
             {} as unknown as Parameters<
@@ -118,10 +145,13 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "createAddFitFileToMapButton requires an AbortController provider"
         );
+        expect(() => runtime.isTestEnvironment()).toThrow(
+            "createAddFitFileToMapButton requires an isTestEnvironment provider"
+        );
     });
 
     it("fails clearly when individual provider slots are omitted", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         expect(() =>
             getCreateAddFitFileToMapButtonRuntime({
@@ -137,10 +167,18 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         ).toThrow(
             "createAddFitFileToMapButton requires an AbortController provider"
         );
+        expect(() =>
+            getCreateAddFitFileToMapButtonRuntime({
+                ...addFitFileToMapButtonRuntimeScope,
+                getIsTestEnvironment: undefined,
+            }).isTestEnvironment()
+        ).toThrow(
+            "createAddFitFileToMapButton requires an isTestEnvironment provider"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const legacyAbortController = vi.fn();
         const legacyDocument = {
@@ -153,6 +191,7 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
+            isTestEnvironment: () => true,
         } as unknown as Parameters<
             typeof getCreateAddFitFileToMapButtonRuntime
         >[0]);
@@ -165,6 +204,9 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
             "createAddFitFileToMapButton requires a document provider"
+        );
+        expect(() => runtime.isTestEnvironment()).toThrow(
+            "createAddFitFileToMapButton requires an isTestEnvironment provider"
         );
         expect(legacyDocument.createElement).not.toHaveBeenCalled();
         expect(legacyAbortController).not.toHaveBeenCalled();

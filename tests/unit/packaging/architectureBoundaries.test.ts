@@ -21279,7 +21279,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(39);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -21309,6 +21309,12 @@ describe("architecture boundaries", () => {
         expect(createAddFitFileToMapButtonSource).toContain(
             "createAddFitFileToMapButtonRuntime.js"
         );
+        expect(createAddFitFileToMapButtonSource).not.toContain(
+            "processEnvironment.js"
+        );
+        expect(createAddFitFileToMapButtonSource).toContain(
+            "runtime.isTestEnvironment()"
+        );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "iconFactoryRuntime.js"
         );
@@ -21328,16 +21334,25 @@ describe("architecture boundaries", () => {
             "readonly getDocument?:"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "readonly getIsTestEnvironment?:"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.document"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "scope.isTestEnvironment"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.getAbortController?.()"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.getDocument?.()"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "scope.getIsTestEnvironment?.()"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "type CreateAddFitFileToMapButtonRuntimeProvider"
@@ -21348,6 +21363,9 @@ describe("architecture boundaries", () => {
         expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
             /readonly\s+getDocument:\s*CreateAddFitFileToMapButtonRuntimeProvider<Document>/u
         );
+        expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
+            /readonly\s+getIsTestEnvironment:\s*CreateAddFitFileToMapButtonRuntimeProvider<boolean>/u
+        );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "function getRequiredProvider"
         );
@@ -21356,6 +21374,9 @@ describe("architecture boundaries", () => {
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getIsTestEnvironment,\s*"isTestEnvironment"\s*\)/u
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "defaultView?.AbortController"
@@ -21380,6 +21401,9 @@ describe("architecture boundaries", () => {
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
             "getDocument: getBrowserDocument"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "getIsTestEnvironment: isRuntimeTestEnvironment"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "getDocument: () => globalThis.document"
