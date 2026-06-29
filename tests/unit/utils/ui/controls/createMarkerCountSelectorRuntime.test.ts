@@ -7,6 +7,12 @@ import type {
 import { getCreateMarkerCountSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.js";
 
 describe("getCreateMarkerCountSelectorRuntime", () => {
+    const unavailableMarkerCountSelectorRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getEvent: () => undefined,
+    } satisfies Parameters<typeof getCreateMarkerCountSelectorRuntime>[0];
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
@@ -15,6 +21,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect.assertions(3);
 
         const runtime = getCreateMarkerCountSelectorRuntime({
+            ...unavailableMarkerCountSelectorRuntimeScope,
             getDocument: () => document,
         });
 
@@ -31,6 +38,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect.assertions(4);
 
         const runtime = getCreateMarkerCountSelectorRuntime({
+            ...unavailableMarkerCountSelectorRuntimeScope,
             getDocument: () => document,
             getEvent: () => Event,
         });
@@ -46,6 +54,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect.assertions(2);
 
         const runtime = getCreateMarkerCountSelectorRuntime({
+            ...unavailableMarkerCountSelectorRuntimeScope,
             getAbortController: () => AbortController,
             getDocument: () => document,
         });
@@ -73,6 +82,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
             },
         } as Document;
         const runtime = getCreateMarkerCountSelectorRuntime({
+            ...unavailableMarkerCountSelectorRuntimeScope,
             getDocument: () => scopedDocument,
         });
 
@@ -87,14 +97,18 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getCreateMarkerCountSelectorRuntime({});
+        const runtime = getCreateMarkerCountSelectorRuntime(
+            unavailableMarkerCountSelectorRuntimeScope
+        );
         const runtimeWithInvalidAbortController =
             getCreateMarkerCountSelectorRuntime({
+                ...unavailableMarkerCountSelectorRuntimeScope,
                 getAbortController: () =>
                     "AbortController" as unknown as BrowserAbortControllerConstructor,
                 getDocument: () => document,
             });
         const runtimeWithInvalidEvent = getCreateMarkerCountSelectorRuntime({
+            ...unavailableMarkerCountSelectorRuntimeScope,
             getDocument: () => document,
             getEvent: () => "Event" as unknown as BrowserEventConstructor,
         });
@@ -112,6 +126,26 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         );
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(3);
+
+        const runtime = getCreateMarkerCountSelectorRuntime(
+            {} as unknown as Parameters<
+                typeof getCreateMarkerCountSelectorRuntime
+            >[0]
+        );
+
+        expect(() => runtime.createElement("select")).toThrow(
+            "createMarkerCountSelector requires a document provider"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createMarkerCountSelector requires an AbortController provider"
+        );
+        expect(() => runtime.createChangeEvent()).toThrow(
+            "createMarkerCountSelector requires an Event provider"
+        );
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(6);
 
@@ -125,6 +159,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
             },
         };
         const runtime = getCreateMarkerCountSelectorRuntime({
+            ...unavailableMarkerCountSelectorRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,

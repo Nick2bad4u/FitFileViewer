@@ -19625,7 +19625,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(37);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -19674,6 +19674,15 @@ describe("architecture boundaries", () => {
             "readonly Event?:"
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "readonly getEvent?:"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
@@ -19681,6 +19690,15 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "scope.Event"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "scope.getEvent?.()"
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "defaultView?.AbortController"
@@ -19726,6 +19744,15 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "getEvent: () => globalThis.Event"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "createMarkerCountSelector requires an AbortController provider"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "createMarkerCountSelector requires a document provider"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "createMarkerCountSelector requires an Event provider"
         );
     });
 

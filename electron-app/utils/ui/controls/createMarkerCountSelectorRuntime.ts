@@ -9,11 +9,11 @@ import {
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateMarkerCountSelectorRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getEvent?: (() => BrowserEventConstructor | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getEvent: (() => BrowserEventConstructor | undefined) | undefined;
 }
 
 export interface CreateMarkerCountSelectorRuntime {
@@ -37,13 +37,27 @@ const defaultCreateMarkerCountSelectorRuntimeScope: CreateMarkerCountSelectorRun
 function getScopeDocument(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError(
+            "createMarkerCountSelector requires a document provider"
+        );
+    }
+
+    return getRuntimeDocument();
 }
 
 function getAbortControllerConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const getRuntimeAbortController = scope.getAbortController;
+    if (typeof getRuntimeAbortController !== "function") {
+        throw new TypeError(
+            "createMarkerCountSelector requires an AbortController provider"
+        );
+    }
+
+    const AbortControllerConstructor = getRuntimeAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an AbortController runtime"
@@ -67,7 +81,14 @@ function getDocument(scope: CreateMarkerCountSelectorRuntimeScope): Document {
 function getEventConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): BrowserEventConstructor {
-    const EventConstructor = scope.getEvent?.();
+    const getRuntimeEvent = scope.getEvent;
+    if (typeof getRuntimeEvent !== "function") {
+        throw new TypeError(
+            "createMarkerCountSelector requires an Event provider"
+        );
+    }
+
+    const EventConstructor = getRuntimeEvent();
     if (typeof EventConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an Event runtime"
