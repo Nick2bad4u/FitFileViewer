@@ -22883,7 +22883,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open FIT file path button checks behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(15);
 
         const violations = migratedOpenFitFileFromPathRuntimeFiles
             .filter((relativeFile) =>
@@ -22938,8 +22938,17 @@ describe("architecture boundaries", () => {
         expect(openFitFileFromPathRuntimeScopeSource).not.toContain(
             "readonly HTMLElement?:"
         );
+        expect(openFitFileFromPathRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
         expect(openFitFileFromPathRuntimeSource).not.toContain(
             "scope.HTMLElement"
+        );
+        expect(openFitFileFromPathRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "openFitFileFromPath requires an HTMLElement provider"
         );
         expect(openFitFileFromPathRuntimeSource).toContain(
             "openFitFileFromPath requires an HTMLElement runtime"

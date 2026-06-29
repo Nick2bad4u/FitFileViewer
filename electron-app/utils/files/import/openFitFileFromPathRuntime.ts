@@ -4,7 +4,7 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface OpenFitFileFromPathRuntimeScope {
-    readonly getHTMLElement?:
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
 }
@@ -21,7 +21,14 @@ const defaultOpenFitFileFromPathRuntimeScope: OpenFitFileFromPathRuntimeScope =
 function getHTMLElementConstructor(
     scope: OpenFitFileFromPathRuntimeScope
 ): BrowserHTMLElementConstructor {
-    const HTMLElementConstructor = scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError(
+            "openFitFileFromPath requires an HTMLElement provider"
+        );
+    }
+
+    const HTMLElementConstructor = getHTMLElement();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "openFitFileFromPath requires an HTMLElement runtime"

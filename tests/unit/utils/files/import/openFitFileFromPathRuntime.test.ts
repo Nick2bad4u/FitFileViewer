@@ -6,6 +6,10 @@ import {
 } from "../../../../../electron-app/utils/files/import/openFitFileFromPathRuntime.js";
 
 describe("openFitFileFromPathRuntime", () => {
+    const unavailableOpenFitFileFromPathRuntimeScope = {
+        getHTMLElement: () => undefined,
+    } satisfies OpenFitFileFromPathRuntimeScope;
+
     it("checks HTMLElement values through the provided scope", () => {
         expect.assertions(3);
 
@@ -38,17 +42,32 @@ describe("openFitFileFromPathRuntime", () => {
     it("does not borrow ambient constructors for explicit empty scopes", () => {
         expect.assertions(1);
 
-        const runtime = getOpenFitFileFromPathRuntime({});
+        const runtime = getOpenFitFileFromPathRuntime(
+            unavailableOpenFitFileFromPathRuntimeScope
+        );
 
         expect(() =>
             runtime.isHTMLElement(document.createElement("button"))
         ).toThrow("openFitFileFromPath requires an HTMLElement runtime");
     });
 
+    it("fails clearly when required providers are omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getOpenFitFileFromPathRuntime(
+            {} as unknown as OpenFitFileFromPathRuntimeScope
+        );
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow("openFitFileFromPath requires an HTMLElement provider");
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(2);
 
         const runtime = getOpenFitFileFromPathRuntime({
+            ...unavailableOpenFitFileFromPathRuntimeScope,
             HTMLElement,
         } as unknown as OpenFitFileFromPathRuntimeScope);
 
