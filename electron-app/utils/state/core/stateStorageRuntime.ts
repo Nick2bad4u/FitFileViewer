@@ -1,7 +1,7 @@
 import { getBrowserLocalStorage } from "../../runtime/browserRuntime.js";
 
 export interface StateStorageRuntimeScope {
-    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
+    readonly getLocalStorage: () => Storage | undefined;
 }
 
 export interface StateStorageRuntime {
@@ -18,7 +18,13 @@ const defaultStateStorageRuntimeScope: StateStorageRuntimeScope = {
 function getScopeLocalStorage(
     scope: StateStorageRuntimeScope
 ): Storage | undefined {
-    return scope.getLocalStorage?.();
+    if (typeof scope.getLocalStorage !== "function") {
+        throw new TypeError(
+            "stateStorageRuntime requires a localStorage provider"
+        );
+    }
+
+    return scope.getLocalStorage();
 }
 
 export function getStateStorageRuntime(
