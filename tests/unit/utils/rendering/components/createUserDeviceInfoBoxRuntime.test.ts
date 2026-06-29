@@ -6,6 +6,11 @@ import {
 } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBoxRuntime.js";
 
 describe("getUserDeviceInfoBoxRuntime", () => {
+    const unavailableUserDeviceInfoBoxRuntimeScope = {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+    } satisfies UserDeviceInfoBoxRuntimeScope;
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -24,6 +29,7 @@ describe("getUserDeviceInfoBoxRuntime", () => {
         }
         const runtime = getUserDeviceInfoBoxRuntime({
             getAbortController: () => TestAbortController,
+            getDocument: () => document,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -43,12 +49,28 @@ describe("getUserDeviceInfoBoxRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getUserDeviceInfoBoxRuntime({});
+        const runtime = getUserDeviceInfoBoxRuntime(
+            unavailableUserDeviceInfoBoxRuntimeScope
+        );
 
         expect(() => {
             runtime.createAbortController();
         }).toThrow(
             "createUserDeviceInfoBox requires an AbortController runtime"
+        );
+    });
+
+    it("fails clearly when the AbortController provider is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getUserDeviceInfoBoxRuntime({
+            getDocument: () => document,
+        } as unknown as UserDeviceInfoBoxRuntimeScope);
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow(
+            "createUserDeviceInfoBox requires an AbortController provider"
         );
     });
 
@@ -60,6 +82,7 @@ describe("getUserDeviceInfoBoxRuntime", () => {
         );
         const createElement = vi.spyOn(documentRef, "createElement");
         const runtime = getUserDeviceInfoBoxRuntime({
+            getAbortController: () => AbortController,
             getDocument: () => documentRef,
         });
 
@@ -83,11 +106,25 @@ describe("getUserDeviceInfoBoxRuntime", () => {
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getUserDeviceInfoBoxRuntime({});
+        const runtime = getUserDeviceInfoBoxRuntime(
+            unavailableUserDeviceInfoBoxRuntimeScope
+        );
 
         expect(() => {
             runtime.createElement("div");
         }).toThrow("createUserDeviceInfoBox requires a document runtime");
+    });
+
+    it("fails clearly when the document provider is omitted", () => {
+        expect.assertions(1);
+
+        const runtime = getUserDeviceInfoBoxRuntime({
+            getAbortController: () => AbortController,
+        } as unknown as UserDeviceInfoBoxRuntimeScope);
+
+        expect(() => {
+            runtime.createElement("div");
+        }).toThrow("createUserDeviceInfoBox requires a document provider");
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
@@ -103,6 +140,7 @@ describe("getUserDeviceInfoBoxRuntime", () => {
             }
         }
         const runtime = getUserDeviceInfoBoxRuntime({
+            ...unavailableUserDeviceInfoBoxRuntimeScope,
             AbortController: TestAbortController,
             document,
         } as unknown as UserDeviceInfoBoxRuntimeScope);

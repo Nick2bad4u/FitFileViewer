@@ -5,10 +5,10 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface UserDeviceInfoBoxRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getDocument: (() => Document | undefined) | undefined;
 }
 
 export interface UserDeviceInfoBoxRuntime {
@@ -28,7 +28,14 @@ export function getUserDeviceInfoBoxRuntime(
 ): UserDeviceInfoBoxRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const getAbortController = scope.getAbortController;
+            if (typeof getAbortController !== "function") {
+                throw new TypeError(
+                    "createUserDeviceInfoBox requires an AbortController provider"
+                );
+            }
+
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "createUserDeviceInfoBox requires an AbortController runtime"
@@ -38,7 +45,14 @@ export function getUserDeviceInfoBoxRuntime(
             return new AbortControllerConstructor();
         },
         createElement(tagName) {
-            const runtimeDocument = scope.getDocument?.();
+            const getDocument = scope.getDocument;
+            if (typeof getDocument !== "function") {
+                throw new TypeError(
+                    "createUserDeviceInfoBox requires a document provider"
+                );
+            }
+
+            const runtimeDocument = getDocument();
             if (!runtimeDocument) {
                 throw new TypeError(
                     "createUserDeviceInfoBox requires a document runtime"

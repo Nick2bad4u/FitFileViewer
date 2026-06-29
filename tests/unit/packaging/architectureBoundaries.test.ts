@@ -26815,7 +26815,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(32);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -26871,10 +26871,22 @@ describe("architecture boundaries", () => {
         expect(userDeviceInfoBoxRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(userDeviceInfoBoxRuntimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(userDeviceInfoBoxRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain("scope.document");
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "scope: UserDeviceInfoBoxRuntimeScope = globalThis"
         );
@@ -26906,10 +26918,16 @@ describe("architecture boundaries", () => {
             "| (() => typeof AbortController | undefined)"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "const AbortControllerConstructor = getAbortController();"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "createUserDeviceInfoBox requires an AbortController provider"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "const runtimeDocument = getDocument();"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "createUserDeviceInfoBox requires a document provider"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
             "return runtimeDocument.createElement(tagName);"
