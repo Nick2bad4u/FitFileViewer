@@ -19,10 +19,21 @@ function cleanupFixture(): void {
 }
 
 describe("getRenderTableRuntime", () => {
+    const unavailableRenderTableRuntimeScope = {
+        getClearTimeout: () => undefined,
+        getComputedStyleFunction: () => undefined,
+        getDocument: () => undefined,
+        getHTMLElement: () => undefined,
+        getHTMLTableCellElement: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+    } satisfies RenderTableRuntimeScope;
+
     it("creates elements through the injected document", () => {
         expect.assertions(1);
 
         const element = getRenderTableRuntime({
+            ...unavailableRenderTableRuntimeScope,
             getDocument: () => document,
         }).createElement("div");
 
@@ -153,6 +164,7 @@ describe("getRenderTableRuntime", () => {
 
             expect(
                 getRenderTableRuntime({
+                    ...unavailableRenderTableRuntimeScope,
                     getDocument: () => document,
                     getHTMLElement: () => HTMLElement,
                 }).getElementById("target")
@@ -168,13 +180,18 @@ describe("getRenderTableRuntime", () => {
         const cell = document.createElement("th");
         const element = document.createElement("div");
         const utils = getRenderTableRuntime({
+            ...unavailableRenderTableRuntimeScope,
             getHTMLElement: () => HTMLElement,
             getHTMLTableCellElement: () => HTMLTableCellElement,
         });
 
         expect(utils.isHTMLElement(element)).toBe(true);
         expect(utils.isTableCellElement(cell)).toBe(true);
-        expect(getRenderTableRuntime({}).isHTMLElement(element)).toBe(false);
+        expect(
+            getRenderTableRuntime(
+                unavailableRenderTableRuntimeScope
+            ).isHTMLElement(element)
+        ).toBe(false);
     });
 
     it("wraps computed style access", () => {
@@ -186,6 +203,7 @@ describe("getRenderTableRuntime", () => {
             (element: Element) => CSSStyleDeclaration
         >(() => style);
         const utils = getRenderTableRuntime({
+            ...unavailableRenderTableRuntimeScope,
             getComputedStyleFunction: () => getComputedStyle,
         });
 
@@ -201,6 +219,7 @@ describe("getRenderTableRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => 5);
         const utils = getRenderTableRuntime({
+            ...unavailableRenderTableRuntimeScope,
             getRequestAnimationFrame: () => requestAnimationFrame,
         });
 
@@ -212,7 +231,9 @@ describe("getRenderTableRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getRenderTableRuntime({}).requestAnimationFrame(() => {})
+            getRenderTableRuntime(
+                unavailableRenderTableRuntimeScope
+            ).requestAnimationFrame(() => {})
         ).toBeUndefined();
     });
 
@@ -225,6 +246,7 @@ describe("getRenderTableRuntime", () => {
         >(() => 9);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getRenderTableRuntime({
+            ...unavailableRenderTableRuntimeScope,
             getClearTimeout: () => clearTimeout,
             getSetTimeout: () => setTimeout,
         });
@@ -242,7 +264,7 @@ describe("getRenderTableRuntime", () => {
     it("throws when timer cleanup is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRenderTableRuntime({});
+        const utils = getRenderTableRuntime(unavailableRenderTableRuntimeScope);
 
         expect(() => utils.clearTimeout(9)).toThrow(
             "renderTable requires a clearTimeout runtime"
@@ -252,10 +274,44 @@ describe("getRenderTableRuntime", () => {
     it("throws when timer scheduling is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getRenderTableRuntime({});
+        const utils = getRenderTableRuntime(unavailableRenderTableRuntimeScope);
 
         expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
             "renderTable requires a setTimeout runtime"
+        );
+    });
+
+    it("throws clearly when required providers are omitted", () => {
+        expect.assertions(8);
+
+        const utils = getRenderTableRuntime(
+            {} as unknown as RenderTableRuntimeScope
+        );
+        const target = document.createElement("section");
+
+        expect(() => utils.createElement("span")).toThrow(
+            "renderTable requires a document provider"
+        );
+        expect(() => utils.getElementById("target")).toThrow(
+            "renderTable requires a document provider"
+        );
+        expect(() => utils.getComputedStyle(target)).toThrow(
+            "renderTable requires a getComputedStyle provider"
+        );
+        expect(() => utils.isHTMLElement(target)).toThrow(
+            "renderTable requires an HTMLElement provider"
+        );
+        expect(() => utils.isTableCellElement(target)).toThrow(
+            "renderTable requires an HTMLTableCellElement provider"
+        );
+        expect(() => utils.requestAnimationFrame(vi.fn())).toThrow(
+            "renderTable requires a requestAnimationFrame provider"
+        );
+        expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
+            "renderTable requires a setTimeout provider"
+        );
+        expect(() => utils.clearTimeout(1)).toThrow(
+            "renderTable requires a clearTimeout provider"
         );
     });
 
@@ -277,6 +333,7 @@ describe("getRenderTableRuntime", () => {
         >(() => 11);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getRenderTableRuntime({
+            ...unavailableRenderTableRuntimeScope,
             HTMLElement,
             HTMLTableCellElement,
             clearTimeout,

@@ -17931,7 +17931,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(72);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -18041,6 +18041,27 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getComputedStyleFunction?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getHTMLTableCellElement?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getRequestAnimationFrame?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(renderTableRuntimeScopeSource).not.toContain(
             "readonly getComputedStyle?:"
         );
         expect(renderTableRuntimeScopeSource).not.toContain(
@@ -18072,23 +18093,64 @@ describe("architecture boundaries", () => {
             "scope.requestAnimationFrame"
         );
         expect(renderTableRuntimeSource).not.toContain("scope.setTimeout");
-        expect(renderTableRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope.getComputedStyleFunction?.()"
+        );
+        expect(renderTableRuntimeSource).not.toContain("scope.getDocument?.()");
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope.getHTMLTableCellElement?.()"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope.getRequestAnimationFrame?.()"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
         );
         expect(renderTableRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "const runtimeDocument = getRuntimeDocument();"
         );
         expect(renderTableRuntimeSource).toContain(
-            "return scope.getComputedStyleFunction?.();"
+            "const clearTimeoutRef = getClearTimeout();"
         );
         expect(renderTableRuntimeSource).toContain(
-            "return scope.getHTMLElement?.();"
+            "return getComputedStyleFunction();"
+        );
+        expect(renderTableRuntimeSource).toContain("return getHTMLElement();");
+        expect(renderTableRuntimeSource).toContain(
+            "return getHTMLTableCellElement();"
         );
         expect(renderTableRuntimeSource).toContain(
-            "return scope.getHTMLTableCellElement?.();"
+            "return getRequestAnimationFrame();"
         );
         expect(renderTableRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "const setTimeoutRef = getSetTimeout();"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires a clearTimeout provider"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires a document provider"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires a getComputedStyle provider"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires an HTMLElement provider"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires an HTMLTableCellElement provider"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires a requestAnimationFrame provider"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires a setTimeout provider"
         );
         expect(renderTableRuntimeSource).toContain(
             "renderTable requires a setTimeout runtime"

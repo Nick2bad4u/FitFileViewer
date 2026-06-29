@@ -26,23 +26,23 @@ type RenderTableSetTimeout = (
 ) => RenderTableTimerHandle;
 
 export interface RenderTableRuntimeScope {
-    readonly getClearTimeout?:
+    readonly getClearTimeout:
         | (() => RenderTableClearTimeout | undefined)
         | undefined;
-    readonly getComputedStyleFunction?:
+    readonly getComputedStyleFunction:
         | (() => RenderTableGetComputedStyle | undefined)
         | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
+    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getHTMLElement:
         | (() => BrowserHTMLElementConstructor | undefined)
         | undefined;
-    readonly getHTMLTableCellElement?:
+    readonly getHTMLTableCellElement:
         | (() => typeof HTMLTableCellElement | undefined)
         | undefined;
-    readonly getRequestAnimationFrame?:
+    readonly getRequestAnimationFrame:
         | (() => RenderTableRequestAnimationFrame | undefined)
         | undefined;
-    readonly getSetTimeout?:
+    readonly getSetTimeout:
         | (() => RenderTableSetTimeout | undefined)
         | undefined;
 }
@@ -72,7 +72,12 @@ export interface RenderTableRuntime {
 }
 
 function getDocument(scope: RenderTableRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const getRuntimeDocument = scope.getDocument;
+    if (typeof getRuntimeDocument !== "function") {
+        throw new TypeError("renderTable requires a document provider");
+    }
+
+    const runtimeDocument = getRuntimeDocument();
     if (!runtimeDocument) {
         throw new Error("renderTable requires a document-like runtime");
     }
@@ -83,7 +88,12 @@ function getDocument(scope: RenderTableRuntimeScope): Document {
 function getRequiredClearTimeout(
     scope: RenderTableRuntimeScope
 ): RenderTableClearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.();
+    const getClearTimeout = scope.getClearTimeout;
+    if (typeof getClearTimeout !== "function") {
+        throw new TypeError("renderTable requires a clearTimeout provider");
+    }
+
+    const clearTimeoutRef = getClearTimeout();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("renderTable requires a clearTimeout runtime");
     }
@@ -94,31 +104,60 @@ function getRequiredClearTimeout(
 function getScopeGetComputedStyle(
     scope: RenderTableRuntimeScope
 ): RenderTableGetComputedStyle | undefined {
-    return scope.getComputedStyleFunction?.();
+    const getComputedStyleFunction = scope.getComputedStyleFunction;
+    if (typeof getComputedStyleFunction !== "function") {
+        throw new TypeError("renderTable requires a getComputedStyle provider");
+    }
+
+    return getComputedStyleFunction();
 }
 
 function getScopeHTMLElement(
     scope: RenderTableRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    const getHTMLElement = scope.getHTMLElement;
+    if (typeof getHTMLElement !== "function") {
+        throw new TypeError("renderTable requires an HTMLElement provider");
+    }
+
+    return getHTMLElement();
 }
 
 function getScopeHTMLTableCellElement(
     scope: RenderTableRuntimeScope
 ): typeof HTMLTableCellElement | undefined {
-    return scope.getHTMLTableCellElement?.();
+    const getHTMLTableCellElement = scope.getHTMLTableCellElement;
+    if (typeof getHTMLTableCellElement !== "function") {
+        throw new TypeError(
+            "renderTable requires an HTMLTableCellElement provider"
+        );
+    }
+
+    return getHTMLTableCellElement();
 }
 
 function getScopeRequestAnimationFrame(
     scope: RenderTableRuntimeScope
 ): RenderTableRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.();
+    const getRequestAnimationFrame = scope.getRequestAnimationFrame;
+    if (typeof getRequestAnimationFrame !== "function") {
+        throw new TypeError(
+            "renderTable requires a requestAnimationFrame provider"
+        );
+    }
+
+    return getRequestAnimationFrame();
 }
 
 function getRequiredSetTimeout(
     scope: RenderTableRuntimeScope
 ): RenderTableSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.();
+    const getSetTimeout = scope.getSetTimeout;
+    if (typeof getSetTimeout !== "function") {
+        throw new TypeError("renderTable requires a setTimeout provider");
+    }
+
+    const setTimeoutRef = getSetTimeout();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("renderTable requires a setTimeout runtime");
     }
