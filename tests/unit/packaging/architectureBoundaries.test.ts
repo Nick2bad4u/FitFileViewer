@@ -3001,7 +3001,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
-        expect.assertions(32);
+        expect.assertions(36);
 
         const parserSource = stripComments(
             readRepositoryFile("electron-app/fitParser.ts")
@@ -3044,21 +3044,29 @@ describe("architecture boundaries", () => {
         expect(parserRuntimeSource).not.toContain(
             "readonly getDateConstructor?:"
         );
-        expect(parserRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow();"
+        expect(parserRuntimeSource).toContain("type FitParserRuntimeProvider");
+        expect(parserRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*FitParserRuntimeProvider<\(\) => number>/u
         );
-        expect(parserRuntimeSource).toContain(
-            "const DateConstructor = scope.getDateConstructor();"
+        expect(parserRuntimeSource).toMatch(
+            /readonly\s+getDateConstructor:\s*FitParserRuntimeProvider<FitParserDateConstructor>/u
+        );
+        expect(parserRuntimeSource).toContain("function getRequiredProvider");
+        expect(parserRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"date clock"\s*\)/u
+        );
+        expect(parserRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateConstructor,\s*"date constructor"\s*\)/u
         );
         expect(parserRuntimeSource).not.toContain("scope.getDateNow?.()");
         expect(parserRuntimeSource).not.toContain(
             "scope.getDateConstructor?.()"
         );
         expect(parserRuntimeSource).toContain(
-            "fitParserRuntime requires a date clock provider"
+            "fitParserRuntime requires a ${providerName} provider"
         );
         expect(parserRuntimeSource).toContain(
-            "fitParserRuntime requires a date constructor provider"
+            "providerName: string"
         );
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a date clock"

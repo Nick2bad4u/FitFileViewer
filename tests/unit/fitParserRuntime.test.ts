@@ -5,6 +5,11 @@ import {
     type FitParserRuntimeScope,
 } from "../../electron-app/fitParserRuntime.js";
 
+const fitParserRuntimeScope = {
+    getDateConstructor: () => Date,
+    getDateNow: () => Date.now,
+} satisfies FitParserRuntimeScope;
+
 const unavailableFitParserRuntimeScope = {
     getDateConstructor: () => undefined,
     getDateNow: () => undefined,
@@ -80,6 +85,23 @@ describe("getFitParserRuntime", () => {
         );
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getFitParserRuntime({
+                ...fitParserRuntimeScope,
+                getDateNow: undefined,
+            }).dateNow()
+        ).toThrow("fitParserRuntime requires a date clock provider");
+        expect(() =>
+            getFitParserRuntime({
+                ...fitParserRuntimeScope,
+                getDateConstructor: undefined,
+            }).isoTimestamp()
+        ).toThrow("fitParserRuntime requires a date constructor provider");
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(4);
 
@@ -100,16 +122,15 @@ describe("getFitParserRuntime", () => {
         }
 
         const utils = getFitParserRuntime({
-            ...unavailableFitParserRuntimeScope,
             Date: DateConstructor,
             dateNow,
         } as unknown as Parameters<typeof getFitParserRuntime>[0]);
 
         expect(() => utils.dateNow()).toThrow(
-            "fitParserRuntime requires a date clock"
+            "fitParserRuntime requires a date clock provider"
         );
         expect(() => utils.isoTimestamp()).toThrow(
-            "fitParserRuntime requires a date constructor"
+            "fitParserRuntime requires a date constructor provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(constructedCount).toBe(0);
