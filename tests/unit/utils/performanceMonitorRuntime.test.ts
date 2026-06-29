@@ -57,26 +57,33 @@ describe("getPerformanceMonitorRuntime", () => {
     it("fails clearly when explicit scopes omit the performance provider", () => {
         expect.assertions(1);
 
-        const utils = getPerformanceMonitorRuntime(
-            {} as unknown as PerformanceMonitorRuntimeScope
-        );
+        expect(() =>
+            getPerformanceMonitorRuntime(
+                {} as unknown as PerformanceMonitorRuntimeScope
+            )
+        ).toThrow("performanceMonitorRuntime requires a performance provider");
+    });
 
-        expect(() => utils.nowPerformance()).toThrow(
-            "performanceMonitorRuntime requires a performance provider"
-        );
+    it("fails clearly when the performance provider slot is undefined", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getPerformanceMonitorRuntime({
+                getPerformance: undefined,
+            })
+        ).toThrow("performanceMonitorRuntime requires a performance provider");
     });
 
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(2);
 
         const now = vi.fn<() => number>(() => 123.45);
-        const utils = getPerformanceMonitorRuntime({
-            performance: { now },
-        } as unknown as PerformanceMonitorRuntimeScope);
 
-        expect(() => utils.nowPerformance()).toThrow(
-            "performanceMonitorRuntime requires a performance provider"
-        );
+        expect(() =>
+            getPerformanceMonitorRuntime({
+                performance: { now },
+            } as unknown as PerformanceMonitorRuntimeScope)
+        ).toThrow("performanceMonitorRuntime requires a performance provider");
         expect(now).not.toHaveBeenCalled();
     });
 });

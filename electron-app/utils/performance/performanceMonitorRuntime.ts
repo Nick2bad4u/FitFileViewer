@@ -5,29 +5,23 @@ type PerformanceMonitorPerformanceRuntime = {
 };
 
 export interface PerformanceMonitorRuntimeScope {
-    readonly getPerformance: () =>
-        | PerformanceMonitorPerformanceRuntime
-        | undefined;
+    readonly getPerformance: PerformanceMonitorRuntimeProvider<PerformanceMonitorPerformanceRuntime>;
 }
 
 export interface PerformanceMonitorRuntime {
     nowPerformance: () => number;
 }
 
+type PerformanceMonitorRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 const defaultPerformanceMonitorRuntimeScope: PerformanceMonitorRuntimeScope = {
     getPerformance: getBrowserPerformance,
 };
 
 function getRequiredPerformanceNow(
-    scope: PerformanceMonitorRuntimeScope
+    getPerformance: () => PerformanceMonitorPerformanceRuntime | undefined
 ): () => number {
-    if (typeof scope.getPerformance !== "function") {
-        throw new TypeError(
-            "performanceMonitorRuntime requires a performance provider"
-        );
-    }
-
-    const performance = scope.getPerformance();
+    const performance = getPerformance();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
@@ -39,9 +33,27 @@ function getRequiredPerformanceNow(
 export function getPerformanceMonitorRuntime(
     scope: PerformanceMonitorRuntimeScope = defaultPerformanceMonitorRuntimeScope
 ): PerformanceMonitorRuntime {
+    const getPerformance = getRequiredProvider(
+        scope.getPerformance,
+        "performance"
+    );
+
     return {
         nowPerformance(): number {
-            return getRequiredPerformanceNow(scope)();
+            return getRequiredPerformanceNow(getPerformance)();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: PerformanceMonitorRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `performanceMonitorRuntime requires a ${providerName} provider`
+        );
+    }
+
+    return provider;
 }
