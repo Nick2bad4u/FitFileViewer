@@ -8,7 +8,6 @@ import {
     createRendererLogger,
     type RendererLogLevel,
 } from "../../logging/rendererLogger.js";
-import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { renderDecodedFitData } from "../../rendering/core/renderDecodedFitData.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
@@ -28,6 +27,10 @@ import {
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
+import {
+    getHandleOpenFileRuntime,
+    type HandleOpenFileRuntime,
+} from "./handleOpenFileRuntime.js";
 
 type FileOpeningRef = { value?: boolean };
 
@@ -351,10 +354,7 @@ async function handleOpenFile(
 
         const fitData = unwrapFitParseMessages(result);
 
-        if (
-            getProcessEnvironmentValue("NODE_ENV") !== undefined &&
-            getProcessEnvironmentValue("NODE_ENV") !== "production"
-        ) {
+        if (handleOpenFileRuntime().isNonProductionEnvironment()) {
             console.log("[DEBUG] FIT parse result:", result);
             const sessionCount = getFitMessagesSessionCount(fitData);
             console.log(
@@ -500,6 +500,10 @@ function logWithContext(
             );
         }
     }
+}
+
+function handleOpenFileRuntime(): HandleOpenFileRuntime {
+    return getHandleOpenFileRuntime();
 }
 
 function notifyFileLoadError(error: unknown): boolean {

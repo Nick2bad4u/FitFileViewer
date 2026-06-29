@@ -573,6 +573,7 @@
         "electron-app/utils/files/import/altFitSenderRuntime.ts",
         "electron-app/utils/files/import/getOverlayFileName.ts",
         "electron-app/utils/files/import/handleOpenFile.ts",
+        "electron-app/utils/files/import/handleOpenFileRuntime.ts",
         "electron-app/utils/files/import/loadOverlayFiles.ts",
         "electron-app/utils/files/import/loadSingleOverlayFile.ts",
         "electron-app/utils/files/import/loadOverlayFilesRuntime.ts",

@@ -435,6 +435,9 @@ const migratedShowUpdateNotificationDomRuntimeFiles = [
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
+const migratedHandleOpenFileRuntimeFiles = [
+    "electron-app/utils/files/import/handleOpenFile.ts",
+] as const;
 const migratedLoadSharedConfigurationRuntimeFiles = [
     "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
 ] as const;
@@ -26194,6 +26197,83 @@ describe("architecture boundaries", () => {
         );
         expect(openFitFileFromPathRuntimeSource).toContain(
             "openFitFileFromPath requires an HTMLElement runtime"
+        );
+    });
+
+    it("keeps handle-open-file process environment reads behind the runtime facade", () => {
+        expect.assertions(17);
+
+        const violations = migratedHandleOpenFileRuntimeFiles
+            .filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "../../runtime/processEnvironment.js"
+                )
+            )
+            .sort();
+        const handleOpenFileSource = stripComments(
+            readRepositoryFile("electron-app/utils/files/import/handleOpenFile.ts")
+        );
+        const handleOpenFileRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/handleOpenFileRuntime.ts"
+            )
+        );
+        const handleOpenFileRuntimeScopeSource =
+            handleOpenFileRuntimeSource.slice(
+                handleOpenFileRuntimeSource.indexOf(
+                    "export interface HandleOpenFileRuntimeScope"
+                ),
+                handleOpenFileRuntimeSource.indexOf(
+                    "export interface HandleOpenFileRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(handleOpenFileSource).toContain("handleOpenFileRuntime.js");
+        expect(handleOpenFileSource).toContain(
+            "handleOpenFileRuntime().isNonProductionEnvironment()"
+        );
+        expect(handleOpenFileSource).not.toContain(
+            "getProcessEnvironmentValue(\"NODE_ENV\")"
+        );
+        expect(handleOpenFileSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(handleOpenFileRuntimeSource).toContain(
+            "defaultHandleOpenFileRuntimeScope"
+        );
+        expect(handleOpenFileRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(handleOpenFileRuntimeSource).toContain(
+            "getProcessEnvironmentValue: getRuntimeProcessEnvironmentValue"
+        );
+        expect(handleOpenFileRuntimeSource).toContain(
+            "type HandleOpenFileRuntimeProvider"
+        );
+        expect(handleOpenFileRuntimeSource).toMatch(
+            /readonly\s+getProcessEnvironmentValue:\s*HandleOpenFileRuntimeProvider<string>/u
+        );
+        expect(handleOpenFileRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(handleOpenFileRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getProcessEnvironmentValue,\s*"process environment"\s*\)/u
+        );
+        expect(handleOpenFileRuntimeSource).not.toContain(
+            "getProcessEnvironmentValue: () => globalThis"
+        );
+        expect(handleOpenFileRuntimeScopeSource).not.toContain(
+            "readonly process?:"
+        );
+        expect(handleOpenFileRuntimeScopeSource).not.toContain(
+            "readonly getProcessEnvironmentValue?:"
+        );
+        expect(handleOpenFileRuntimeSource).not.toContain(
+            "scope.getProcessEnvironmentValue?.("
+        );
+        expect(handleOpenFileRuntimeSource).toContain(
+            "handleOpenFile requires ${article} ${providerName} provider"
         );
     });
 
