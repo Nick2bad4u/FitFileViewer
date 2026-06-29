@@ -1585,7 +1585,7 @@ export const exportUtils = {
     ) {
         const useServerFlag = useServer;
         // Create modal overlay
-        const overlay = document.createElement("div");
+        const overlay = exportUtilsRuntime().createElement("div");
         overlay.className = "gyazo-auth-modal-overlay";
         overlay.style.cssText = `
             position: fixed;
@@ -1602,7 +1602,7 @@ export const exportUtils = {
         `;
 
         // Create modal content
-        const modal = document.createElement("div");
+        const modal = exportUtilsRuntime().createElement("div");
         modal.style.cssText = `
             background: var(--color-modal-bg);
             border-radius: var(--border-radius);
@@ -1615,23 +1615,24 @@ export const exportUtils = {
             box-shadow: var(--color-box-shadow);
         `;
 
-        const title = document.createElement("h3");
+        const title = exportUtilsRuntime().createElement("h3");
         title.style.cssText =
             "margin: 0 0 16px 0; color: var(--color-modal-fg); text-align: center;";
         title.textContent = "🔐 Gyazo Authentication";
         modal.append(title);
 
-        const instructions = document.createElement("div");
+        const instructions = exportUtilsRuntime().createElement("div");
         instructions.style.cssText =
             "margin-bottom: 20px; color: var(--color-fg); line-height: 1.5;";
-        const instructionsIntro = document.createElement("p");
+        const instructionsIntro = exportUtilsRuntime().createElement("p");
         instructionsIntro.textContent =
             "To upload charts to Gyazo, you need to authenticate with your Gyazo account.";
         instructions.append(instructionsIntro);
 
         if (useServerFlag) {
-            const automaticMode = document.createElement("div"),
-                automaticModeLabel = document.createElement("strong");
+            const automaticMode = exportUtilsRuntime().createElement("div"),
+                automaticModeLabel =
+                    exportUtilsRuntime().createElement("strong");
             automaticMode.style.cssText =
                 "margin: 16px 0; padding: 12px; background: var(--color-glass); border-radius: 8px;";
             automaticModeLabel.textContent = "Automatic Mode:";
@@ -1641,7 +1642,7 @@ export const exportUtils = {
             );
             instructions.append(automaticMode);
         } else {
-            const steps = document.createElement("ol");
+            const steps = exportUtilsRuntime().createElement("ol");
             steps.style.cssText = "margin: 16px 0; padding-left: 20px;";
             for (const step of [
                 'Click "Open Gyazo Login" to open the authentication page in your browser',
@@ -1650,7 +1651,7 @@ export const exportUtils = {
                 "Paste the code in the input field below",
                 'Click "Complete Authentication"',
             ]) {
-                const item = document.createElement("li");
+                const item = exportUtilsRuntime().createElement("li");
                 item.textContent = step;
                 steps.append(item);
             }
@@ -1658,7 +1659,7 @@ export const exportUtils = {
         }
         modal.append(instructions);
 
-        const authLinkContainer = document.createElement("div"),
+        const authLinkContainer = exportUtilsRuntime().createElement("div"),
             authLink = exportUtilsRuntime().createElement("a");
         authLinkContainer.style.cssText = "margin-bottom: 16px;";
         authLink.dataset["externalLink"] = "true";
@@ -1690,13 +1691,14 @@ export const exportUtils = {
         let completeAuthBtn: HTMLButtonElement | null = null;
 
         if (!useServerFlag) {
-            const codeInputSection = document.createElement("div"),
-                codeInputLabel = document.createElement("label");
+            const codeInputSection =
+                    exportUtilsRuntime().createElement("div"),
+                codeInputLabel = exportUtilsRuntime().createElement("label");
             codeInputSection.style.cssText = "margin-bottom: 16px;";
             codeInputLabel.style.cssText =
                 "display: block; margin-bottom: 8px; color: var(--color-fg); font-weight: 600;";
             codeInputLabel.textContent = "Authorization Code:";
-            codeInput = document.createElement("input");
+            codeInput = exportUtilsRuntime().createElement("input");
             codeInput.id = "gyazo-auth-code";
             codeInput.placeholder = "Paste the authorization code here...";
             codeInput.type = "text";
@@ -1714,8 +1716,8 @@ export const exportUtils = {
             modal.append(codeInputSection);
         }
 
-        const actionButtons = document.createElement("div"),
-            cancelBtn = document.createElement("button");
+        const actionButtons = exportUtilsRuntime().createElement("div"),
+            cancelBtn = exportUtilsRuntime().createElement("button");
         actionButtons.style.cssText = "display: flex; gap: 8px;";
         cancelBtn.id = "gyazo-cancel-auth";
         cancelBtn.style.cssText = `
@@ -1732,7 +1734,7 @@ export const exportUtils = {
         cancelBtn.textContent = "❌ Cancel";
 
         if (!useServerFlag) {
-            completeAuthBtn = document.createElement("button");
+            completeAuthBtn = exportUtilsRuntime().createElement("button");
             completeAuthBtn.id = "gyazo-complete-auth";
             completeAuthBtn.style.cssText = `
                 flex: 1;

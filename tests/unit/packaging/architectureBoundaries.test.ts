@@ -6987,7 +6987,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(168);
+        expect.assertions(169);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -7004,6 +7004,10 @@ describe("architecture boundaries", () => {
             exportUtilsRuntimeSource.indexOf(
                 "export interface ExportUtilsRuntime {"
             )
+        );
+        const createGyazoAuthModalSource = exportUtilsSource.slice(
+            exportUtilsSource.indexOf("    createGyazoAuthModal("),
+            exportUtilsSource.indexOf("downloadChartAsPNG(")
         );
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
         expect(exportUtilsSource).toContain("type ExportUtilsRuntime");
@@ -7070,6 +7074,9 @@ describe("architecture boundaries", () => {
             'document.createElement("canvas")'
         );
         expect(exportUtilsSource).not.toContain('document.createElement("a")');
+        expect(createGyazoAuthModalSource).not.toContain(
+            "document.createElement"
+        );
         expect(exportUtilsSource).not.toContain("instanceof HTMLElement");
         expect(exportUtilsSource).not.toContain("document.body.append(link)");
         expect(exportUtilsSource).not.toContain("document.body.append(modal)");
