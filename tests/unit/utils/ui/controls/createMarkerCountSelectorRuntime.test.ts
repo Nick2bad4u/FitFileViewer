@@ -7,6 +7,11 @@ import type {
 import { getCreateMarkerCountSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.js";
 
 describe("getCreateMarkerCountSelectorRuntime", () => {
+    const markerCountSelectorRuntimeScope = {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+        getEvent: () => Event,
+    } satisfies Parameters<typeof getCreateMarkerCountSelectorRuntime>[0];
     const unavailableMarkerCountSelectorRuntimeScope = {
         getAbortController: () => undefined,
         getDocument: () => undefined,
@@ -146,6 +151,31 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         );
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(3);
+
+        expect(() =>
+            getCreateMarkerCountSelectorRuntime({
+                ...markerCountSelectorRuntimeScope,
+                getDocument: undefined,
+            }).createElement("select")
+        ).toThrow("createMarkerCountSelector requires a document provider");
+        expect(() =>
+            getCreateMarkerCountSelectorRuntime({
+                ...markerCountSelectorRuntimeScope,
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow(
+            "createMarkerCountSelector requires an AbortController provider"
+        );
+        expect(() =>
+            getCreateMarkerCountSelectorRuntime({
+                ...markerCountSelectorRuntimeScope,
+                getEvent: undefined,
+            }).createChangeEvent()
+        ).toThrow("createMarkerCountSelector requires an Event provider");
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(6);
 
@@ -159,7 +189,6 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
             },
         };
         const runtime = getCreateMarkerCountSelectorRuntime({
-            ...unavailableMarkerCountSelectorRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
@@ -169,16 +198,16 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         >[0]);
 
         expect(() => runtime.createElement("select")).toThrow(
-            "createMarkerCountSelector requires a document runtime"
+            "createMarkerCountSelector requires a document provider"
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
-            "createMarkerCountSelector requires a document runtime"
+            "createMarkerCountSelector requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createMarkerCountSelector requires an AbortController runtime"
+            "createMarkerCountSelector requires an AbortController provider"
         );
         expect(() => runtime.createChangeEvent()).toThrow(
-            "createMarkerCountSelector requires an Event runtime"
+            "createMarkerCountSelector requires an Event provider"
         );
         expect(legacyDocument.createElement).not.toHaveBeenCalled();
         expect(legacyAbortController).not.toHaveBeenCalled();
