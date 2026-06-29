@@ -10,6 +10,10 @@ describe("getFitFileStateRuntime", () => {
         vi.restoreAllMocks();
     });
 
+    const fitFileStateRuntimeScope = {
+        getDateNow: () => Date.now,
+    } satisfies FitFileStateRuntimeScope;
+
     it("reads wall-clock time through the injected provider", () => {
         expect.assertions(2);
 
@@ -39,6 +43,17 @@ describe("getFitFileStateRuntime", () => {
             getFitFileStateRuntime(
                 {} as unknown as FitFileStateRuntimeScope
             ).dateNow()
+        ).toThrow("fitFileState requires a dateNow provider");
+    });
+
+    it("fails clearly when the clock provider slot is omitted", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getFitFileStateRuntime({
+                ...fitFileStateRuntimeScope,
+                getDateNow: undefined,
+            }).dateNow()
         ).toThrow("fitFileState requires a dateNow provider");
     });
 

@@ -5536,7 +5536,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT file state timestamps behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(30);
 
         const fitFileStateSource = stripComments(
             readRepositoryFile(
@@ -5588,14 +5588,24 @@ describe("architecture boundaries", () => {
             "getDateNow: () => Date.now"
         );
         expect(fitFileStateRuntimeSource).toContain(
-            "const dateNow = scope.getDateNow();"
+            "type FitFileStateRuntimeProvider"
+        );
+        expect(fitFileStateRuntimeSource).toMatch(
+            /readonly\s+getDateNow:\s*FitFileStateRuntimeProvider<FitFileStateDateNow>/u
+        );
+        expect(fitFileStateRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(fitFileStateRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)/u
         );
         expect(fitFileStateRuntimeSource).toContain(
             "fitFileState requires dateNow"
         );
         expect(fitFileStateRuntimeSource).toContain(
-            "fitFileState requires a dateNow provider"
+            "fitFileState requires a ${providerName} provider"
         );
+        expect(fitFileStateRuntimeSource).toContain("providerName: string");
         expect(fitFileStateRuntimeSource).not.toContain("readonly dateNow?:");
         expect(fitFileStateRuntimeSource).not.toContain(
             "readonly getDateNow?:"

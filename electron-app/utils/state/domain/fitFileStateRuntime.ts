@@ -3,8 +3,10 @@ import { getBrowserDateNow } from "../../runtime/browserRuntime.js";
 export type FitFileStateDateNow = () => number;
 
 export interface FitFileStateRuntimeScope {
-    readonly getDateNow: () => FitFileStateDateNow | undefined;
+    readonly getDateNow: FitFileStateRuntimeProvider<FitFileStateDateNow>;
 }
+
+type FitFileStateRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface FitFileStateRuntime {
     readonly dateNow: () => number;
@@ -19,11 +21,7 @@ export function getFitFileStateRuntime(
 ): FitFileStateRuntime {
     return {
         dateNow(): number {
-            if (typeof scope.getDateNow !== "function") {
-                throw new TypeError("fitFileState requires a dateNow provider");
-            }
-
-            const dateNow = scope.getDateNow();
+            const dateNow = getRequiredProvider(scope.getDateNow, "dateNow")();
             if (typeof dateNow !== "function") {
                 throw new TypeError("fitFileState requires dateNow");
             }
@@ -31,4 +29,15 @@ export function getFitFileStateRuntime(
             return dateNow();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: FitFileStateRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(`fitFileState requires a ${providerName} provider`);
+    }
+
+    return provider;
 }
