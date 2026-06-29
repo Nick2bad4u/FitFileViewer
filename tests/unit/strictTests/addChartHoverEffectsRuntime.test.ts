@@ -13,6 +13,19 @@ import type {
     BrowserTimerHandle,
 } from "../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<ChartHoverEffectsRuntimeScope> = {}
+): ChartHoverEffectsRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getDocument: () => undefined,
+        getDocumentEventTarget: () => undefined,
+        getRequestAnimationFrame: () => undefined,
+        getSetTimeout: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getChartHoverEffectsRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -27,10 +40,12 @@ describe("getChartHoverEffectsRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getChartHoverEffectsRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
@@ -47,7 +62,9 @@ describe("getChartHoverEffectsRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getChartHoverEffectsRuntime({});
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "chart hover effects require an AbortController runtime"
@@ -61,9 +78,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 19);
-        const runtime = getChartHoverEffectsRuntime({
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            })
+        );
 
         expect(runtime.requestAnimationFrame(callback)).toBe(19);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -97,7 +116,9 @@ describe("getChartHoverEffectsRuntime", () => {
         expect.assertions(2);
 
         const callback = vi.fn<FrameRequestCallback>();
-        const runtime = getChartHoverEffectsRuntime({});
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(runtime.requestAnimationFrame(callback)).toBeNull();
         expect(callback).toHaveBeenCalledWith(0);
@@ -109,9 +130,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("600");
         const setTimeout = vi.fn<BrowserSetTimeout>(() => 23);
-        const runtime = getChartHoverEffectsRuntime({
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(23);
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
@@ -138,7 +161,9 @@ describe("getChartHoverEffectsRuntime", () => {
     it("throws when timer scheduling is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getChartHoverEffectsRuntime({});
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "chart hover effects require a setTimeout runtime"
@@ -163,9 +188,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const listener = () => {
             keydownCount += 1;
         };
-        const runtime = getChartHoverEffectsRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -197,9 +224,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const listener = () => {
             fullscreenChangeCount += 1;
         };
-        const runtime = getChartHoverEffectsRuntime({
-            getDocumentEventTarget: () => documentEventTarget,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocumentEventTarget: () => documentEventTarget,
+            })
+        );
 
         runtime.addDocumentEventListener("fullscreenchange", listener, {
             signal: controller.signal,
@@ -229,9 +258,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const listener = () => {
             keydownCount += 1;
         };
-        const runtime = getChartHoverEffectsRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -256,9 +287,11 @@ describe("getChartHoverEffectsRuntime", () => {
             "chart hover svg runtime"
         );
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
-        const runtime = getChartHoverEffectsRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         const svg = runtime.createSvgElement("svg");
 
@@ -277,9 +310,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const documentRef = document.implementation.createHTMLDocument(
             "chart hover body runtime"
         );
-        const runtime = getChartHoverEffectsRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
         const wrapper = documentRef.createElement("div");
 
         runtime.appendToBody(wrapper);
@@ -306,9 +341,11 @@ describe("getChartHoverEffectsRuntime", () => {
         const documentRef = document.implementation.createHTMLDocument(
             "chart hover document operations"
         );
-        const runtime = getChartHoverEffectsRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         const wrapper = runtime.createElement("div");
         wrapper.id = "chart-hover-wrapper";
@@ -341,9 +378,11 @@ describe("getChartHoverEffectsRuntime", () => {
             configurable: true,
             value: exitFullscreen,
         });
-        const runtime = getChartHoverEffectsRuntime({
-            getDocument: () => documentRef,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getDocument: () => documentRef,
+            })
+        );
 
         expect(runtime.getFullscreenElement()).toBe(fullscreenTarget);
 
@@ -393,7 +432,9 @@ describe("getChartHoverEffectsRuntime", () => {
     it("throws when document listener registration is unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getChartHoverEffectsRuntime({});
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
@@ -426,10 +467,12 @@ describe("getChartHoverEffectsRuntime", () => {
             return 29;
         });
         const setTimeout = vi.fn<BrowserSetTimeout>();
-        const runtime = getChartHoverEffectsRuntime({
-            getRequestAnimationFrame: () => requestAnimationFrame,
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getRequestAnimationFrame: () => requestAnimationFrame,
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         await runtime.waitForAnimationFrame();
 
@@ -447,9 +490,11 @@ describe("getChartHoverEffectsRuntime", () => {
             callback();
             return 31;
         });
-        const runtime = getChartHoverEffectsRuntime({
-            getSetTimeout: () => setTimeout,
-        });
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope({
+                getSetTimeout: () => setTimeout,
+            })
+        );
 
         await runtime.waitForAnimationFrame();
 
@@ -461,7 +506,9 @@ describe("getChartHoverEffectsRuntime", () => {
     it("throws when waiting without animation frames or a timer runtime", async () => {
         expect.assertions(1);
 
-        const runtime = getChartHoverEffectsRuntime({});
+        const runtime = getChartHoverEffectsRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         await expect(runtime.waitForAnimationFrame()).rejects.toThrow(
             "chart hover effects require a setTimeout runtime"
@@ -485,43 +532,45 @@ describe("getChartHoverEffectsRuntime", () => {
         const runtime = getChartHoverEffectsRuntime(legacyScope);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "chart hover effects require an AbortController runtime"
+            "chart hover effects require an AbortController provider"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
-            "chart hover effects require a setTimeout runtime"
+            "chart hover effects require a setTimeout provider"
         );
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow(
-            "chart hover effects require a document event-target runtime"
+            "chart hover effects require a document event-target provider"
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
-            "chart hover effects require a document runtime"
+            "chart hover effects require a document provider"
         );
         expect(() =>
             runtime.appendToBody(document.createElement("div"))
-        ).toThrow("chart hover effects require a document runtime");
+        ).toThrow("chart hover effects require a document provider");
         expect(() => runtime.createElement("div")).toThrow(
-            "chart hover effects require a document runtime"
+            "chart hover effects require a document provider"
         );
         expect(() =>
             runtime.appendToHead(document.createElement("style"))
-        ).toThrow("chart hover effects require a document runtime");
+        ).toThrow("chart hover effects require a document provider");
         expect(() => runtime.querySelector("body")).toThrow(
-            "chart hover effects require a document runtime"
+            "chart hover effects require a document provider"
         );
         expect(() => runtime.getFullscreenElement()).toThrow(
-            "chart hover effects require a document runtime"
+            "chart hover effects require a document provider"
         );
         await expect(runtime.exitFullscreen()).rejects.toThrow(
-            "chart hover effects require a document runtime"
+            "chart hover effects require a document provider"
         );
         expect(() => runtime.setBodyClass("test", true)).toThrow(
-            "chart hover effects require a document runtime"
+            "chart hover effects require a document provider"
         );
-        expect(runtime.requestAnimationFrame(vi.fn())).toBeNull();
+        expect(() => runtime.requestAnimationFrame(vi.fn())).toThrow(
+            "chart hover effects require a requestAnimationFrame provider"
+        );
         await expect(runtime.waitForAnimationFrame()).rejects.toThrow(
-            "chart hover effects require a setTimeout runtime"
+            "chart hover effects require a requestAnimationFrame provider"
         );
     });
 });

@@ -29,16 +29,14 @@ interface ChartHoverEffectsFullscreenDocument extends Document {
     webkitFullscreenElement?: Element | null;
 }
 
+type ChartHoverEffectsRuntimeProvider<T> = (() => T | undefined) | undefined;
+
 export interface ChartHoverEffectsRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
-    readonly getRequestAnimationFrame?:
-        | (() => BrowserRequestAnimationFrame | undefined)
-        | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getAbortController: ChartHoverEffectsRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: ChartHoverEffectsRuntimeProvider<Document>;
+    readonly getDocumentEventTarget: ChartHoverEffectsRuntimeProvider<Document>;
+    readonly getRequestAnimationFrame: ChartHoverEffectsRuntimeProvider<BrowserRequestAnimationFrame>;
+    readonly getSetTimeout: ChartHoverEffectsRuntimeProvider<BrowserSetTimeout>;
 }
 
 export interface ChartHoverEffectsRuntime {
@@ -82,14 +80,32 @@ export const CHART_HOVER_EFFECTS_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getDocument: getBrowserDocument,
+    getDocumentEventTarget: getBrowserDocument,
     getRequestAnimationFrame: getBrowserRequestAnimationFrame,
     getSetTimeout: getBrowserSetTimeout,
 };
 
+function getRequiredProvider<T>(
+    provider: ChartHoverEffectsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUH]/u.test(providerName) ? "an" : "a";
+        throw new TypeError(
+            `chart hover effects require ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getRequiredSetTimeout(
     scope: ChartHoverEffectsRuntimeScope
 ): BrowserSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.();
+    const setTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "setTimeout"
+    )();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("chart hover effects require a setTimeout runtime");
     }
@@ -98,7 +114,10 @@ function getRequiredSetTimeout(
 }
 
 function getRequiredDocument(scope: ChartHoverEffectsRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("chart hover effects require a document runtime");
     }
@@ -115,7 +134,12 @@ function getFullscreenDocument(
 function getDocumentEventTarget(
     scope: ChartHoverEffectsRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();
+    return (
+        getRequiredProvider(
+            scope.getDocumentEventTarget,
+            "document event-target"
+        )() ?? getRequiredProvider(scope.getDocument, "document")()
+    );
 }
 
 function getRequiredDocumentEventTarget(
@@ -165,7 +189,10 @@ export function getChartHoverEffectsRuntime(
             getRequiredDocument(scope).head.append(element);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const AbortControllerConstructor = getRequiredProvider(
+                scope.getAbortController,
+                "AbortController"
+            )();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "chart hover effects require an AbortController runtime"
@@ -226,7 +253,10 @@ export function getChartHoverEffectsRuntime(
             );
         },
         requestAnimationFrame(callback): null | number {
-            const requestAnimationFrameRef = scope.getRequestAnimationFrame?.();
+            const requestAnimationFrameRef = getRequiredProvider(
+                scope.getRequestAnimationFrame,
+                "requestAnimationFrame"
+            )();
             if (typeof requestAnimationFrameRef !== "function") {
                 const fallbackFrameTime = Number("0");
                 callback(fallbackFrameTime);
@@ -241,8 +271,10 @@ export function getChartHoverEffectsRuntime(
         },
         async waitForAnimationFrame(): Promise<void> {
             await new Promise<void>((resolve) => {
-                const requestAnimationFrameRef =
-                    scope.getRequestAnimationFrame?.();
+                const requestAnimationFrameRef = getRequiredProvider(
+                    scope.getRequestAnimationFrame,
+                    "requestAnimationFrame"
+                )();
                 if (typeof requestAnimationFrameRef === "function") {
                     requestAnimationFrameRef(() => {
                         resolve();
