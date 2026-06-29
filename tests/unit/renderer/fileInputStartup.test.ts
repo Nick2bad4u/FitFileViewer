@@ -240,6 +240,27 @@ describe("renderer file input startup wiring", () => {
         );
     });
 
+    it("fails clearly when runtime provider slots are undefined", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getRendererFileInputStartupRuntime({
+                ...createRuntimeScope(),
+                getAbortController: undefined,
+            })
+        ).toThrow(
+            "renderer file input startup requires an AbortController provider"
+        );
+        expect(() =>
+            getRendererFileInputStartupRuntime({
+                ...createRuntimeScope(),
+                getHTMLInputElement: undefined,
+            })
+        ).toThrow(
+            "renderer file input startup requires an HTMLInputElement provider"
+        );
+    });
+
     it("uses async handleOpenFile resolution for delegated file inputs", async () => {
         expect.assertions(1);
 

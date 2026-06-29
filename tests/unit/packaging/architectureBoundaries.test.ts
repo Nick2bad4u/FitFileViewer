@@ -30076,7 +30076,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input browser constructors behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(39);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -30133,22 +30133,32 @@ describe("architecture boundaries", () => {
             "getHTMLInputElement: getBrowserHTMLInputElement"
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "readonly getAbortController: () =>"
+            "type RendererFileInputStartupRuntimeProvider"
+        );
+        expect(fileInputStartupRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*RendererFileInputStartupRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(fileInputStartupRuntimeSource).toMatch(
+            /readonly\s+getHTMLInputElement:\s*RendererFileInputStartupRuntimeProvider<BrowserHTMLInputElementConstructor>/u
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "readonly getHTMLInputElement: () =>"
+            "function getRequiredProvider"
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "renderer file input startup requires an AbortController provider"
+            "renderer file input startup requires ${article} ${providerName} provider"
+        );
+        expect(fileInputStartupRuntimeSource).toContain("providerName: string");
+        expect(fileInputStartupRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(fileInputStartupRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLInputElement,\s*"HTMLInputElement"\s*\)/u
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "renderer file input startup requires an HTMLInputElement provider"
+            "const HTMLInputElementConstructor = getHTMLInputElement();"
         );
         expect(fileInputStartupRuntimeSource).toContain(
-            "scope.getAbortController()"
-        );
-        expect(fileInputStartupRuntimeSource).toContain(
-            "scope.getHTMLInputElement()"
+            "const AbortControllerConstructor = getAbortController();"
         );
         expect(fileInputStartupRuntimeSource).not.toContain(
             "scope.getAbortController?.()"
