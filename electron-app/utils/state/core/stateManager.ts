@@ -6,7 +6,6 @@ import {
     stateHistory,
 } from "./stateManagerHistory.js";
 import { getNestedValue, setNestedValue } from "./stateManagerPathUtils.js";
-import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { resetState as resetStateImpl } from "./stateManagerReset.js";
 import {
     getStateManagerRuntime,
@@ -330,7 +329,7 @@ export function __clearAllListenersForTests(): void {
     try {
         stateListeners.clear();
         clearSubscriptionRegistry(singletonStateSubscriptions);
-        if (!isTestEnvironment()) {
+        if (!stateManagerRuntime().isTestEnvironment()) {
             console.log("[StateManager] All listeners cleared (tests)");
         }
     } catch (error) {

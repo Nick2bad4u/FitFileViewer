@@ -1,7 +1,14 @@
-import { isTestEnvironment } from "../../runtime/processEnvironment.js";
+import {
+    getStateManagerRuntime,
+    type StateManagerRuntime,
+} from "./stateManagerRuntime.js";
 import { getRootState, resetRootState } from "./stateManagerStore.js";
 
 type MutableRecord = Record<string, unknown>;
+
+function stateManagerRuntime(): StateManagerRuntime {
+    return getStateManagerRuntime();
+}
 
 /**
  * Resets state to initial values.
@@ -18,7 +25,7 @@ export function resetState(path?: string): void {
         resetAllState();
     }
 
-    if (!isTestEnvironment()) {
+    if (!stateManagerRuntime().isTestEnvironment()) {
         console.log(`[StateManager] State reset: ${path || "all"}`);
     }
 }

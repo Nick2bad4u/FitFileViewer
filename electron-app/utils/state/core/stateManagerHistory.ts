@@ -1,4 +1,7 @@
-import { isTestEnvironment } from "../../runtime/processEnvironment.js";
+import {
+    getStateManagerRuntime,
+    type StateManagerRuntime,
+} from "./stateManagerRuntime.js";
 
 /**
  * State change record stored for debugging.
@@ -16,12 +19,16 @@ export type StateHistoryEntry = {
  */
 export const stateHistory: StateHistoryEntry[] = [];
 
+function stateManagerRuntime(): StateManagerRuntime {
+    return getStateManagerRuntime();
+}
+
 /**
  * Clears state change history.
  */
 export function clearStateHistory(): void {
     stateHistory.length = 0;
-    if (!isTestEnvironment()) {
+    if (!stateManagerRuntime().isTestEnvironment()) {
         console.log("[StateManager] State history cleared");
     }
 }

@@ -5996,10 +5996,20 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core state manager history timestamps behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(35);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+        const stateManagerHistorySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerHistory.ts"
+            )
+        );
+        const stateManagerResetSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerReset.ts"
+            )
         );
         const stateManagerRuntimeSource = stripComments(
             readRepositoryFile(
@@ -6015,7 +6025,27 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).toContain(
             "timestamp: stateManagerRuntime().dateNow()"
         );
+        expect(stateManagerSource).toContain(
+            "stateManagerRuntime().isTestEnvironment()"
+        );
         expect(stateManagerSource).not.toContain("Date.now");
+        expect(stateManagerSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(stateManagerHistorySource).toContain("stateManagerRuntime.js");
+        expect(stateManagerHistorySource).toContain(
+            "stateManagerRuntime().isTestEnvironment()"
+        );
+        expect(stateManagerHistorySource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(stateManagerResetSource).toContain("stateManagerRuntime.js");
+        expect(stateManagerResetSource).toContain(
+            "stateManagerRuntime().isTestEnvironment()"
+        );
+        expect(stateManagerResetSource).not.toContain(
+            "../../runtime/processEnvironment.js"
+        );
         expect(stateManagerSource).not.toContain(
             "const stateManagerRuntime = getStateManagerRuntime();"
         );
@@ -6026,7 +6056,13 @@ describe("architecture boundaries", () => {
             '"../../runtime/browserRuntime.js"'
         );
         expect(stateManagerRuntimeSource).toContain(
+            "../../runtime/processEnvironment.js"
+        );
+        expect(stateManagerRuntimeSource).toContain(
             "getDateNow: getBrowserDateNow"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "getIsTestEnvironment: () => isRuntimeTestEnvironment"
         );
         expect(stateManagerRuntimeSource).not.toContain(
             "getDateNow: () => Date.now"
@@ -6035,8 +6071,14 @@ describe("architecture boundaries", () => {
             "readonly getDateNow?:"
         );
         expect(stateManagerRuntimeSource).not.toContain("scope.getDateNow?.()");
+        expect(stateManagerRuntimeSource).not.toContain(
+            "scope.getIsTestEnvironment?.()"
+        );
         expect(stateManagerRuntimeSource).toContain(
             "const dateNow = scope.getDateNow();"
+        );
+        expect(stateManagerRuntimeSource).toMatch(
+            /readonly\s+getIsTestEnvironment:\s*\(\(\)\s*=>\s*\(\(\)\s*=>\s*boolean\)\s*\|\s*undefined\)\s*\|\s*undefined/u
         );
         expect(stateManagerRuntimeSource).toContain(
             "stateManager requires a dateNow provider"
@@ -6044,8 +6086,23 @@ describe("architecture boundaries", () => {
         expect(stateManagerRuntimeSource).toContain(
             "stateManager requires dateNow"
         );
+        expect(stateManagerRuntimeSource).toContain(
+            "stateManager requires an isTestEnvironment provider"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "stateManager requires an isTestEnvironment runtime"
+        );
+        expect(stateManagerRuntimeSource).toContain(
+            "isTestEnvironment(): boolean"
+        );
         expect(stateManagerRuntimeSource).not.toContain("readonly dateNow?:");
+        expect(stateManagerRuntimeSource).not.toContain(
+            "readonly isTestEnvironment?:"
+        );
         expect(stateManagerRuntimeSource).not.toContain("scope.dateNow");
+        expect(stateManagerRuntimeSource).not.toContain(
+            "scope.isTestEnvironment"
+        );
         expect(stateManagerRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
         );
