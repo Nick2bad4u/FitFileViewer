@@ -10,11 +10,11 @@ import {
 export type RenderChartTimeout = BrowserTimerHandle;
 
 export interface RenderChartTimerRuntimeScope {
-    readonly getClearTimeout?:
+    readonly getClearTimeout:
         | (() => BrowserClearTimeout | undefined)
         | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getSetTimeout?: (() => BrowserSetTimeout | undefined) | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getSetTimeout: (() => BrowserSetTimeout | undefined) | undefined;
 }
 
 export interface RenderChartTimerRuntime {
@@ -35,7 +35,13 @@ export function getRenderChartTimerRuntime(
     scope: RenderChartTimerRuntimeScope = defaultRenderChartTimerRuntimeScope
 ): RenderChartTimerRuntime {
     const clearScheduledTimeout = (timeout: RenderChartTimeout): void => {
-        const clearTimeout = scope.getClearTimeout?.();
+        if (typeof scope.getClearTimeout !== "function") {
+            throw new TypeError(
+                "render chart timers require a clearTimeout provider"
+            );
+        }
+
+        const clearTimeout = scope.getClearTimeout();
         if (typeof clearTimeout !== "function") {
             throw new TypeError("render chart timers require clearTimeout");
         }
@@ -44,7 +50,13 @@ export function getRenderChartTimerRuntime(
     };
 
     const dateNow = (): number => {
-        const dateNowRef = scope.getDateNow?.();
+        if (typeof scope.getDateNow !== "function") {
+            throw new TypeError(
+                "render chart timers require a dateNow provider"
+            );
+        }
+
+        const dateNowRef = scope.getDateNow();
         if (typeof dateNowRef !== "function") {
             throw new TypeError("render chart timers require dateNow");
         }
@@ -56,7 +68,13 @@ export function getRenderChartTimerRuntime(
         callback: () => void,
         delay: number
     ): RenderChartTimeout => {
-        const setTimeout = scope.getSetTimeout?.();
+        if (typeof scope.getSetTimeout !== "function") {
+            throw new TypeError(
+                "render chart timers require a setTimeout provider"
+            );
+        }
+
+        const setTimeout = scope.getSetTimeout();
         if (typeof setTimeout !== "function") {
             throw new TypeError("render chart timers require setTimeout");
         }
