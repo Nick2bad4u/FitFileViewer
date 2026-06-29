@@ -298,7 +298,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("uses browser runtime providers for production browser defaults", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const runtime = getExportUtilsRuntime();
         const canvas = runtime.createElement("canvas");
@@ -309,10 +309,12 @@ describe("exportUtilsRuntime", () => {
         expect(canvas.tagName).toBe("CANVAS");
 
         runtime.appendToBody(link);
+        link.className = "export-runtime-link";
         runtime.appendToBody(button);
         button.focus();
 
         expect(document.body.contains(link)).toBe(true);
+        expect(runtime.querySelector(".export-runtime-link")).toBe(link);
         expect(runtime.getActiveElement()).toBe(button);
         expect(runtime.getSecureRandomScope()).toStrictEqual({
             crypto: globalThis.crypto,
@@ -321,7 +323,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("registers document keydown listeners through the scoped event target", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const controller = new AbortController();
         const documentEventTarget =
@@ -345,6 +347,7 @@ describe("exportUtilsRuntime", () => {
             signal: controller.signal,
         });
         const link = documentEventTarget.createElement("a");
+        link.className = "scoped-runtime-link";
         const canvas = runtime.createElement("canvas");
         runtime.appendToBody(link);
         documentEventTarget.dispatchEvent(
@@ -356,6 +359,7 @@ describe("exportUtilsRuntime", () => {
         });
         expect(keydownCount).toBe(1);
         expect(canvas.ownerDocument).toBe(documentEventTarget);
+        expect(runtime.querySelector(".scoped-runtime-link")).toBe(link);
         expect(documentEventTarget.body.childElementCount).toBe(1);
         expect(documentEventTarget.body.contains(link)).toBe(true);
     });
@@ -444,7 +448,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", async () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const storage = {
             getItem: vi.fn<Storage["getItem"]>(),
@@ -507,6 +511,9 @@ describe("exportUtilsRuntime", () => {
         expect(() => runtime.createElement("canvas")).toThrow(
             "exportUtils requires a document runtime"
         );
+        expect(() => runtime.querySelector(".export-runtime-link")).toThrow(
+            "exportUtils requires a document runtime"
+        );
         expect(() => runtime.getActiveElement()).toThrow(
             "exportUtils requires a document runtime"
         );
@@ -522,7 +529,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("throws when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         expect(() =>
             getExportUtilsRuntime(
@@ -542,6 +549,11 @@ describe("exportUtilsRuntime", () => {
         expect(() =>
             getExportUtilsRuntime(createExportUtilsRuntimeScope()).createElement(
                 "canvas"
+            )
+        ).toThrow("exportUtils requires a document runtime");
+        expect(() =>
+            getExportUtilsRuntime(createExportUtilsRuntimeScope()).querySelector(
+                ".export-runtime-link"
             )
         ).toThrow("exportUtils requires a document runtime");
         expect(() =>

@@ -1084,7 +1084,7 @@ export const exportUtils = {
                     }
 
                     try {
-                        const existingModal = document.querySelector(
+                        const existingModal = exportUtilsRuntime().querySelector(
                             ".gyazo-auth-modal-overlay"
                         );
                         if (existingModal) {
@@ -1146,12 +1146,13 @@ export const exportUtils = {
                             );
 
                             // Update status in any open account manager modal
-                            const accountManagerModal = document.querySelector(
-                                ".gyazo-account-manager-modal"
-                            );
+                            const accountManagerModal =
+                                exportUtilsRuntime().querySelector<HTMLElement>(
+                                    ".gyazo-account-manager-modal"
+                                );
                             if (accountManagerModal) {
                                 exportUtils.updateGyazoAuthStatus(
-                                    accountManagerModal as HTMLElement
+                                    accountManagerModal
                                 );
                             }
 

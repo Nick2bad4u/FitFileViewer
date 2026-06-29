@@ -87,6 +87,9 @@ export interface ExportUtilsRuntime {
         target?: string,
         features?: string
     ) => Window | null;
+    readonly querySelector: <E extends Element = Element>(
+        selectors: string
+    ) => E | null;
     readonly writeClipboardPngBlob: (blob: Blob) => Promise<boolean>;
     readonly writeClipboardText: (text: string) => Promise<boolean>;
 }
@@ -333,6 +336,15 @@ export function getExportUtilsRuntime(
         openPrintWindow(url, target, features): Window | null {
             const openPrintWindow = getScopeOpenPrintWindow(getOpenPrintWindow);
             return openPrintWindow?.(url, target, features) ?? null;
+        },
+
+        querySelector(selectors) {
+            const documentRef = getScopeDocument(getDocument);
+            if (!documentRef) {
+                throw new TypeError("exportUtils requires a document runtime");
+            }
+
+            return documentRef.querySelector(selectors);
         },
 
         async writeClipboardPngBlob(blob): Promise<boolean> {
