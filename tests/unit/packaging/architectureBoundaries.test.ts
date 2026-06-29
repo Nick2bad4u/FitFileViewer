@@ -35123,7 +35123,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(30);
+        expect.assertions(34);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -35194,6 +35194,18 @@ describe("architecture boundaries", () => {
             "type BrowserAbortControllerConstructor"
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(
+            "type MainUiDomUtilsRuntimeProvider"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*MainUiDomUtilsRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
             "getAbortController: getBrowserAbortController"
         );
         expect(mainUiDomUtilsRuntimeSource).not.toContain(
@@ -35203,11 +35215,9 @@ describe("architecture boundaries", () => {
             "typeof AbortController | undefined"
         );
         expect(mainUiDomUtilsRuntimeSource).toContain(
-            "main UI DOM utilities require an AbortController provider"
+            "main UI DOM utilities require ${article} ${providerName} provider"
         );
-        expect(mainUiDomUtilsRuntimeSource).toContain(
-            "const AbortControllerConstructor = getAbortController();"
-        );
+        expect(mainUiDomUtilsRuntimeSource).toContain("providerName: string");
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {

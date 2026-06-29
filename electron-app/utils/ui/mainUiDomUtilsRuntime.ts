@@ -4,10 +4,10 @@ import {
 } from "../runtime/browserRuntime.js";
 
 export interface MainUiDomUtilsRuntimeScope {
-    readonly getAbortController:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
+    readonly getAbortController: MainUiDomUtilsRuntimeProvider<BrowserAbortControllerConstructor>;
 }
+
+type MainUiDomUtilsRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface MainUiDomUtilsRuntime {
     createAbortController: () => AbortController;
@@ -22,14 +22,10 @@ export function getMainUiDomUtilsRuntime(
 ): MainUiDomUtilsRuntime {
     return {
         createAbortController(): AbortController {
-            const getAbortController = scope.getAbortController;
-            if (typeof getAbortController !== "function") {
-                throw new TypeError(
-                    "main UI DOM utilities require an AbortController provider"
-                );
-            }
-
-            const AbortControllerConstructor = getAbortController();
+            const AbortControllerConstructor = getRequiredProvider(
+                scope.getAbortController,
+                "AbortController"
+            )();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "main UI DOM utilities require an AbortController runtime"
@@ -39,4 +35,19 @@ export function getMainUiDomUtilsRuntime(
             return new AbortControllerConstructor();
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: MainUiDomUtilsRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `main UI DOM utilities require ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

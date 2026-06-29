@@ -64,6 +64,18 @@ describe("getMainUiDomUtilsRuntime", () => {
         }).toThrow("main UI DOM utilities require an AbortController provider");
     });
 
+    it("fails clearly when the AbortController provider slot is omitted", () => {
+        expect.assertions(1);
+
+        const utils = getMainUiDomUtilsRuntime({
+            getAbortController: undefined,
+        });
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow("main UI DOM utilities require an AbortController provider");
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(2);
 
