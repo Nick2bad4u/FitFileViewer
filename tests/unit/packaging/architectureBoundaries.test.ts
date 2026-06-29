@@ -25603,7 +25603,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart request listener browser APIs behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(44);
 
         const violations = migratedRenderChartRequestListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -25674,6 +25674,12 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly CustomEvent?:");
         expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAddEventListener?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getCustomEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
+        expect(runtimeScopeSource).not.toContain("readonly getHTMLElement?:");
         expect(runtimeSource).not.toContain("): typeof CustomEvent");
         expect(runtimeSource).not.toContain(
             "| (() => typeof CustomEvent | undefined)"
@@ -25687,13 +25693,29 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("scope.document");
         expect(runtimeSource).not.toContain("scope.HTMLElement");
         expect(runtimeSource).toContain(
-            "const addEventListener = scope.getAddEventListener?.();"
+            "const addEventListener = scope.getAddEventListener();"
         );
-        expect(runtimeSource).toContain("scope.getCustomEvent?.()");
+        expect(runtimeSource).toContain("return scope.getCustomEvent();");
         expect(runtimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "const runtimeDocument = scope.getDocument();"
         );
-        expect(runtimeSource).toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).toContain("return scope.getHTMLElement();");
+        expect(runtimeSource).not.toContain("scope.getAddEventListener?.()");
+        expect(runtimeSource).not.toContain("scope.getCustomEvent?.()");
+        expect(runtimeSource).not.toContain("scope.getDocument?.()");
+        expect(runtimeSource).not.toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).toContain(
+            "renderChartRequestListener requires an addEventListener provider"
+        );
+        expect(runtimeSource).toContain(
+            "renderChartRequestListener requires a CustomEvent provider"
+        );
+        expect(runtimeSource).toContain(
+            "renderChartRequestListener requires a document provider"
+        );
+        expect(runtimeSource).toContain(
+            "renderChartRequestListener requires an HTMLElement provider"
+        );
         expect(runtimeSource).not.toContain("defaultView?.");
     });
 

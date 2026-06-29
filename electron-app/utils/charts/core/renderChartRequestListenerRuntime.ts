@@ -23,18 +23,12 @@ type RenderChartRequestListenerDocument = Pick<
 >;
 
 export interface RenderChartRequestListenerRuntimeScope {
-    readonly getAddEventListener?:
-        | (() => RenderChartRequestListenerAddEventListener | undefined)
+    readonly getAddEventListener: () =>
+        | RenderChartRequestListenerAddEventListener
         | undefined;
-    readonly getCustomEvent?:
-        | (() => BrowserCustomEventConstructor | undefined)
-        | undefined;
-    readonly getDocument?:
-        | (() => RenderChartRequestListenerDocument | undefined)
-        | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
+    readonly getCustomEvent: () => BrowserCustomEventConstructor | undefined;
+    readonly getDocument: () => RenderChartRequestListenerDocument | undefined;
+    readonly getHTMLElement: () => BrowserHTMLElementConstructor | undefined;
 }
 
 export interface RenderChartRequestListenerRuntime {
@@ -68,13 +62,25 @@ const defaultRenderChartRequestListenerRuntimeScope: RenderChartRequestListenerR
 function getCustomEventConstructor(
     scope: RenderChartRequestListenerRuntimeScope
 ): BrowserCustomEventConstructor | undefined {
-    return scope.getCustomEvent?.();
+    if (typeof scope.getCustomEvent !== "function") {
+        throw new TypeError(
+            "renderChartRequestListener requires a CustomEvent provider"
+        );
+    }
+
+    return scope.getCustomEvent();
 }
 
 function getDocument(
     scope: RenderChartRequestListenerRuntimeScope
 ): RenderChartRequestListenerDocument {
-    const runtimeDocument = scope.getDocument?.();
+    if (typeof scope.getDocument !== "function") {
+        throw new TypeError(
+            "renderChartRequestListener requires a document provider"
+        );
+    }
+
+    const runtimeDocument = scope.getDocument();
     if (!runtimeDocument) {
         throw new TypeError("renderChartRequestListener requires a document");
     }
@@ -85,7 +91,13 @@ function getDocument(
 function getHTMLElementConstructor(
     scope: RenderChartRequestListenerRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    if (typeof scope.getHTMLElement !== "function") {
+        throw new TypeError(
+            "renderChartRequestListener requires an HTMLElement provider"
+        );
+    }
+
+    return scope.getHTMLElement();
 }
 
 function isHTMLElement(
@@ -117,7 +129,13 @@ export function getRenderChartRequestListenerRuntime(
                 readonly signal: AbortSignal;
             }
         ): void {
-            const addEventListener = scope.getAddEventListener?.();
+            if (typeof scope.getAddEventListener !== "function") {
+                throw new TypeError(
+                    "renderChartRequestListener requires an addEventListener provider"
+                );
+            }
+
+            const addEventListener = scope.getAddEventListener();
             if (typeof addEventListener !== "function") {
                 throw new TypeError(
                     "renderChartRequestListener requires addEventListener"

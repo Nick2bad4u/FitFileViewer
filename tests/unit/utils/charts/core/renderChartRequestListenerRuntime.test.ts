@@ -6,6 +6,13 @@ import {
     type RenderChartRequestListenerRuntimeScope,
 } from "../../../../../electron-app/utils/charts/core/renderChartRequestListenerRuntime.js";
 
+const unavailableRequestListenerScope = {
+    getAddEventListener: () => undefined,
+    getCustomEvent: () => undefined,
+    getDocument: () => undefined,
+    getHTMLElement: () => undefined,
+} satisfies RenderChartRequestListenerRuntimeScope;
+
 function cleanupFixture(): void {
     document.body.replaceChildren();
     vi.restoreAllMocks();
@@ -67,6 +74,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
         try {
             getChartRequestListenerRuntime({
+                ...unavailableRequestListenerScope,
                 getAddEventListener: () => addEventListener,
             }).addChartRequestListener(() => undefined, {
                 signal: abortController.signal,
@@ -93,6 +101,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
             expect(
                 getChartRequestListenerRuntime({
+                    ...unavailableRequestListenerScope,
                     getDocument: () => document,
                     getHTMLElement: () => HTMLElement,
                 }).getFallbackChartContainer()
@@ -104,6 +113,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
             expect(
                 getChartRequestListenerRuntime({
+                    ...unavailableRequestListenerScope,
                     getDocument: () => document,
                     getHTMLElement: () => HTMLElement,
                 }).getFallbackChartContainer()
@@ -118,6 +128,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
         try {
             const runtime = getChartRequestListenerRuntime({
+                ...unavailableRequestListenerScope,
                 getCustomEvent: () => CustomEvent,
                 getDocument: () => document,
                 getHTMLElement: () => HTMLElement,
@@ -150,6 +161,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
         } as unknown as Document;
 
         const runtime = getChartRequestListenerRuntime({
+            ...unavailableRequestListenerScope,
             getDocument: () => minimalDocument,
         });
 
@@ -165,14 +177,51 @@ describe("getRenderChartRequestListenerRuntime", () => {
         const abortController = new AbortController();
 
         expect(() =>
-            getChartRequestListenerRuntime({}).getFallbackChartContainer()
+            getChartRequestListenerRuntime(
+                unavailableRequestListenerScope
+            ).getFallbackChartContainer()
         ).toThrow("renderChartRequestListener requires a document");
         expect(() =>
-            getChartRequestListenerRuntime({}).addChartRequestListener(
-                () => undefined,
-                { signal: abortController.signal }
-            )
+            getChartRequestListenerRuntime(
+                unavailableRequestListenerScope
+            ).addChartRequestListener(() => undefined, {
+                signal: abortController.signal,
+            })
         ).toThrow("renderChartRequestListener requires addEventListener");
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(4);
+
+        const abortController = new AbortController();
+        const omittedProviderScope =
+            {} as unknown as RenderChartRequestListenerRuntimeScope;
+        const runtime = getChartRequestListenerRuntime(omittedProviderScope);
+
+        try {
+            expect(() =>
+                runtime.addChartRequestListener(() => undefined, {
+                    signal: abortController.signal,
+                })
+            ).toThrow(
+                "renderChartRequestListener requires an addEventListener provider"
+            );
+            expect(() => runtime.getFallbackChartContainer()).toThrow(
+                "renderChartRequestListener requires a document provider"
+            );
+            expect(() =>
+                runtime.isCustomEvent(
+                    new CustomEvent("ffv:request-render-charts")
+                )
+            ).toThrow(
+                "renderChartRequestListener requires a CustomEvent provider"
+            );
+            expect(() => runtime.querySelector("body")).toThrow(
+                "renderChartRequestListener requires a document provider"
+            );
+        } finally {
+            abortController.abort();
+        }
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -183,6 +232,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
         try {
             const runtime = getChartRequestListenerRuntime({
+                ...unavailableRequestListenerScope,
                 addEventListener,
                 CustomEvent,
                 document,
