@@ -31,7 +31,25 @@ describe("getStateMiddlewareRuntime", () => {
     it("fails clearly when explicit scopes omit clocks", () => {
         expect.assertions(2);
 
-        const runtime = getStateMiddlewareRuntime({});
+        const runtime = getStateMiddlewareRuntime(
+            {} as unknown as StateMiddlewareRuntimeScope
+        );
+
+        expect(() => runtime.dateNow()).toThrow(
+            "stateMiddleware requires a dateNow provider"
+        );
+        expect(() => runtime.performanceNow()).toThrow(
+            "stateMiddleware requires a performance provider"
+        );
+    });
+
+    it("fails clearly when explicit providers return unavailable clocks", () => {
+        expect.assertions(2);
+
+        const runtime = getStateMiddlewareRuntime({
+            getDateNow: () => undefined,
+            getPerformance: () => undefined,
+        });
 
         expect(() => runtime.dateNow()).toThrow(
             "stateMiddleware requires dateNow"
@@ -53,10 +71,10 @@ describe("getStateMiddlewareRuntime", () => {
         const runtime = getStateMiddlewareRuntime(legacyScope);
 
         expect(() => runtime.dateNow()).toThrow(
-            "stateMiddleware requires dateNow"
+            "stateMiddleware requires a dateNow provider"
         );
         expect(() => runtime.performanceNow()).toThrow(
-            "stateMiddleware requires performance.now"
+            "stateMiddleware requires a performance provider"
         );
         expect(dateNow).not.toHaveBeenCalled();
         expect(performanceNow).not.toHaveBeenCalled();

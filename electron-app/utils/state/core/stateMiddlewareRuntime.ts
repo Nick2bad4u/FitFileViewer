@@ -10,10 +10,8 @@ export interface StateMiddlewarePerformance {
 }
 
 export interface StateMiddlewareRuntimeScope {
-    readonly getDateNow?:
-        | (() => StateMiddlewareDateNow | undefined)
-        | undefined;
-    readonly getPerformance?:
+    readonly getDateNow: (() => StateMiddlewareDateNow | undefined) | undefined;
+    readonly getPerformance:
         | (() => StateMiddlewarePerformance | undefined)
         | undefined;
 }
@@ -33,7 +31,13 @@ export function getStateMiddlewareRuntime(
 ): StateMiddlewareRuntime {
     return {
         dateNow(): number {
-            const dateNow = scope.getDateNow?.();
+            if (typeof scope.getDateNow !== "function") {
+                throw new TypeError(
+                    "stateMiddleware requires a dateNow provider"
+                );
+            }
+
+            const dateNow = scope.getDateNow();
             if (typeof dateNow !== "function") {
                 throw new TypeError("stateMiddleware requires dateNow");
             }
@@ -41,7 +45,13 @@ export function getStateMiddlewareRuntime(
             return dateNow();
         },
         performanceNow(): number {
-            const performance = scope.getPerformance?.();
+            if (typeof scope.getPerformance !== "function") {
+                throw new TypeError(
+                    "stateMiddleware requires a performance provider"
+                );
+            }
+
+            const performance = scope.getPerformance();
             const performanceNow = performance?.now;
             if (typeof performanceNow !== "function") {
                 throw new TypeError("stateMiddleware requires performance.now");
