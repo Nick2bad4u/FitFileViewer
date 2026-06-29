@@ -8,15 +8,9 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export interface LoadSingleOverlayFileRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getFileReader?:
-        | (() => BrowserFileReaderConstructor | undefined)
-        | undefined;
-    readonly getResponse?:
-        | (() => BrowserResponseConstructor | undefined)
-        | undefined;
+    readonly getAbortController: LoadSingleOverlayFileRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getFileReader: LoadSingleOverlayFileRuntimeProvider<BrowserFileReaderConstructor>;
+    readonly getResponse: LoadSingleOverlayFileRuntimeProvider<BrowserResponseConstructor>;
 }
 
 export interface LoadSingleOverlayFileRuntime {
@@ -27,10 +21,32 @@ export interface LoadSingleOverlayFileRuntime {
     ) => Promise<ArrayBuffer> | undefined;
 }
 
+type LoadSingleOverlayFileRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
+
+function getRequiredProvider<T>(
+    provider: LoadSingleOverlayFileRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `loadSingleOverlayFile requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
+}
+
 function getAbortControllerConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "loadSingleOverlayFile requires an AbortController runtime"
@@ -43,7 +59,10 @@ function getAbortControllerConstructor(
 function getFileReaderConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
 ): BrowserFileReaderConstructor {
-    const FileReaderConstructor = scope.getFileReader?.();
+    const FileReaderConstructor = getRequiredProvider(
+        scope.getFileReader,
+        "FileReader"
+    )();
     if (typeof FileReaderConstructor !== "function") {
         throw new TypeError(
             "loadSingleOverlayFile requires a FileReader runtime"
@@ -56,7 +75,7 @@ function getFileReaderConstructor(
 function getResponseConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
 ): BrowserResponseConstructor | undefined {
-    return scope.getResponse?.();
+    return getRequiredProvider(scope.getResponse, "Response")();
 }
 
 const defaultLoadSingleOverlayFileRuntimeScope: LoadSingleOverlayFileRuntimeScope =

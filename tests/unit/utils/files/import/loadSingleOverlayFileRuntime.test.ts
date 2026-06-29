@@ -10,6 +10,17 @@ import type {
     BrowserResponseConstructor,
 } from "../../../../../electron-app/utils/runtime/browserRuntime.js";
 
+function createUnavailableRuntimeScope(
+    overrides: Partial<LoadSingleOverlayFileRuntimeScope> = {}
+): LoadSingleOverlayFileRuntimeScope {
+    return {
+        getAbortController: () => undefined,
+        getFileReader: () => undefined,
+        getResponse: () => undefined,
+        ...overrides,
+    };
+}
+
 describe("getLoadSingleOverlayFileRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -24,13 +35,28 @@ describe("getLoadSingleOverlayFileRuntime", () => {
                 return controller;
             }
         );
-        const runtime = getLoadSingleOverlayFileRuntime({
-            getAbortController: () =>
-                AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
-        });
+        const runtime = getLoadSingleOverlayFileRuntime(
+            createUnavailableRuntimeScope({
+                getAbortController: () =>
+                    AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
+            })
+        );
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("fails clearly when the AbortController provider is missing", () => {
+        expect.assertions(1);
+
+        const runtime = getLoadSingleOverlayFileRuntime({
+            getFileReader: () => undefined,
+            getResponse: () => undefined,
+        } as unknown as LoadSingleOverlayFileRuntimeScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "loadSingleOverlayFile requires an AbortController provider"
+        );
     });
 
     it("uses browser runtime providers for production AbortController defaults", () => {
@@ -48,10 +74,12 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         const FileReaderConstructor = vi.fn(function FakeFileReader() {
             return reader;
         });
-        const runtime = getLoadSingleOverlayFileRuntime({
-            getFileReader: () =>
-                FileReaderConstructor as unknown as BrowserFileReaderConstructor,
-        });
+        const runtime = getLoadSingleOverlayFileRuntime(
+            createUnavailableRuntimeScope({
+                getFileReader: () =>
+                    FileReaderConstructor as unknown as BrowserFileReaderConstructor,
+            })
+        );
 
         expect(runtime.createFileReader()).toBe(reader);
         expect(FileReaderConstructor).toHaveBeenCalledOnce();
@@ -96,10 +124,12 @@ describe("getLoadSingleOverlayFileRuntime", () => {
                 arrayBuffer: async () => arrayBuffer,
             };
         });
-        const runtime = getLoadSingleOverlayFileRuntime({
-            getResponse: () =>
-                ResponseConstructor as unknown as BrowserResponseConstructor,
-        });
+        const runtime = getLoadSingleOverlayFileRuntime(
+            createUnavailableRuntimeScope({
+                getResponse: () =>
+                    ResponseConstructor as unknown as BrowserResponseConstructor,
+            })
+        );
 
         await expect(
             runtime.readBlobArrayBufferWithResponse(new Blob())
@@ -110,7 +140,9 @@ describe("getLoadSingleOverlayFileRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getLoadSingleOverlayFileRuntime({});
+        const runtime = getLoadSingleOverlayFileRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "loadSingleOverlayFile requires an AbortController runtime"
@@ -120,7 +152,9 @@ describe("getLoadSingleOverlayFileRuntime", () => {
     it("fails clearly when the FileReader runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getLoadSingleOverlayFileRuntime({});
+        const runtime = getLoadSingleOverlayFileRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(() => runtime.createFileReader()).toThrow(
             "loadSingleOverlayFile requires a FileReader runtime"
@@ -130,7 +164,9 @@ describe("getLoadSingleOverlayFileRuntime", () => {
     it("skips Response reads when the Response runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getLoadSingleOverlayFileRuntime({});
+        const runtime = getLoadSingleOverlayFileRuntime(
+            createUnavailableRuntimeScope()
+        );
 
         expect(runtime.readBlobArrayBufferWithResponse(new Blob())).toBe(
             undefined
@@ -148,13 +184,13 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         const runtime = getLoadSingleOverlayFileRuntime(legacyScope);
 
         expect(() => runtime.createAbortController()).toThrow(
-            "loadSingleOverlayFile requires an AbortController runtime"
+            "loadSingleOverlayFile requires an AbortController provider"
         );
         expect(() => runtime.createFileReader()).toThrow(
-            "loadSingleOverlayFile requires a FileReader runtime"
+            "loadSingleOverlayFile requires a FileReader provider"
         );
-        expect(runtime.readBlobArrayBufferWithResponse(new Blob())).toBe(
-            undefined
-        );
+        expect(() =>
+            runtime.readBlobArrayBufferWithResponse(new Blob())
+        ).toThrow("loadSingleOverlayFile requires a Response provider");
     });
 });

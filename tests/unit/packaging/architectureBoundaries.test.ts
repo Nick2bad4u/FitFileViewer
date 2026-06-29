@@ -23697,7 +23697,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(51);
+        expect.assertions(64);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -23721,7 +23721,7 @@ describe("architecture boundaries", () => {
                 "export interface LoadSingleOverlayFileRuntimeScope"
             ),
             loadSingleOverlayFileRuntimeSource.indexOf(
-                "export interface LoadSingleOverlayFileRuntime"
+                "export interface LoadSingleOverlayFileRuntime {"
             )
         );
 
@@ -23786,6 +23786,20 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
         expect(runtimeScopeSource).not.toContain("readonly FileReader?:");
         expect(runtimeScopeSource).not.toContain("readonly Response?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly getFileReader?:");
+        expect(runtimeScopeSource).not.toContain("readonly getResponse?:");
+        expect(runtimeScopeSource).toContain(
+            "readonly getAbortController: LoadSingleOverlayFileRuntimeProvider<BrowserAbortControllerConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getFileReader: LoadSingleOverlayFileRuntimeProvider<BrowserFileReaderConstructor>;"
+        );
+        expect(runtimeScopeSource).toContain(
+            "readonly getResponse: LoadSingleOverlayFileRuntimeProvider<BrowserResponseConstructor>;"
+        );
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "scope.AbortController"
         );
@@ -23826,7 +23840,16 @@ describe("architecture boundaries", () => {
             "getResponse: () => globalThis.Response"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "type LoadSingleOverlayFileRuntimeProvider<T> ="
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "function getRequiredProvider<T>("
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            'scope.getAbortController,\n        "AbortController"'
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
         );
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "): typeof AbortController"
@@ -23835,13 +23858,22 @@ describe("architecture boundaries", () => {
             "| (() => typeof AbortController | undefined)"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
-            "const FileReaderConstructor = scope.getFileReader?.();"
+            'scope.getFileReader,\n        "FileReader"'
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope.getFileReader?.()"
         );
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "): typeof FileReader"
         );
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "| (() => typeof FileReader | undefined)"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            'getRequiredProvider(scope.getResponse, "Response")()'
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope.getResponse?.()"
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "return new ResponseConstructor(file).arrayBuffer();"
@@ -23857,6 +23889,9 @@ describe("architecture boundaries", () => {
         );
         expect(loadSingleOverlayFileRuntimeSource).toContain(
             "loadSingleOverlayFile requires a FileReader runtime"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "loadSingleOverlayFile requires ${article} ${providerName} provider"
         );
     });
 
