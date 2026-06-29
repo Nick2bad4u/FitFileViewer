@@ -7,11 +7,13 @@ import {
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 export interface CreateAddFitFileToMapButtonRuntimeScope {
-    readonly getAbortController:
-        | (() => BrowserAbortControllerConstructor | undefined)
-        | undefined;
-    readonly getDocument: (() => Document | undefined) | undefined;
+    readonly getAbortController: CreateAddFitFileToMapButtonRuntimeProvider<BrowserAbortControllerConstructor>;
+    readonly getDocument: CreateAddFitFileToMapButtonRuntimeProvider<Document>;
 }
+
+type CreateAddFitFileToMapButtonRuntimeProvider<T> =
+    | (() => T | undefined)
+    | undefined;
 
 export interface CreateAddFitFileToMapButtonRuntime {
     createAbortController: () => AbortController;
@@ -30,30 +32,28 @@ const defaultCreateAddFitFileToMapButtonRuntimeScope: CreateAddFitFileToMapButto
         getDocument: getBrowserDocument,
     };
 
-function getScopeDocument(
-    scope: CreateAddFitFileToMapButtonRuntimeScope
-): Document | undefined {
-    const getRuntimeDocument = scope.getDocument;
-    if (typeof getRuntimeDocument !== "function") {
+function getRequiredProvider<T>(
+    provider: CreateAddFitFileToMapButtonRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
         throw new TypeError(
-            "createAddFitFileToMapButton requires a document provider"
+            `createAddFitFileToMapButton requires ${article} ${providerName} provider`
         );
     }
 
-    return getRuntimeDocument();
+    return provider;
 }
 
 function getAbortControllerConstructor(
     scope: CreateAddFitFileToMapButtonRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const getRuntimeAbortController = scope.getAbortController;
-    if (typeof getRuntimeAbortController !== "function") {
-        throw new TypeError(
-            "createAddFitFileToMapButton requires an AbortController provider"
-        );
-    }
-
-    const AbortControllerConstructor = getRuntimeAbortController();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "AbortController"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createAddFitFileToMapButton requires an AbortController runtime"
@@ -64,7 +64,10 @@ function getAbortControllerConstructor(
 }
 
 function getDocument(scope: CreateAddFitFileToMapButtonRuntimeScope): Document {
-    const runtimeDocument = getScopeDocument(scope);
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "document"
+    )();
     if (!runtimeDocument) {
         throw new TypeError(
             "createAddFitFileToMapButton requires a document runtime"

@@ -19966,7 +19966,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(31);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -20026,6 +20026,24 @@ describe("architecture boundaries", () => {
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "scope.getDocument?.()"
         );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "type CreateAddFitFileToMapButtonRuntimeProvider"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
+            /readonly\s+getAbortController:\s*CreateAddFitFileToMapButtonRuntimeProvider<BrowserAbortControllerConstructor>/u
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
+            /readonly\s+getDocument:\s*CreateAddFitFileToMapButtonRuntimeProvider<Document>/u
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "function getRequiredProvider"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getAbortController,\s*"AbortController"\s*\)/u
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getDocument,\s*"document"\s*\)/u
+        );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "defaultView?.AbortController"
         );
@@ -20054,10 +20072,10 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
-            "createAddFitFileToMapButton requires an AbortController provider"
+            "createAddFitFileToMapButton requires ${article} ${providerName} provider"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).toContain(
-            "createAddFitFileToMapButton requires a document provider"
+            "createAddFitFileToMapButton requires an AbortController runtime"
         );
     });
 

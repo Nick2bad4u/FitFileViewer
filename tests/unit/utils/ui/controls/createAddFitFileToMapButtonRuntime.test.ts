@@ -4,6 +4,10 @@ import type { BrowserAbortControllerConstructor } from "../../../../../electron-
 import { getCreateAddFitFileToMapButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createAddFitFileToMapButtonRuntime.js";
 
 describe("getCreateAddFitFileToMapButtonRuntime", () => {
+    const addFitFileToMapButtonRuntimeScope = {
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+    } satisfies Parameters<typeof getCreateAddFitFileToMapButtonRuntime>[0];
     const unavailableAddFitFileToMapButtonRuntimeScope = {
         getAbortController: () => undefined,
         getDocument: () => undefined,
@@ -116,6 +120,25 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         );
     });
 
+    it("fails clearly when individual provider slots are omitted", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getCreateAddFitFileToMapButtonRuntime({
+                ...addFitFileToMapButtonRuntimeScope,
+                getDocument: undefined,
+            }).createButton()
+        ).toThrow("createAddFitFileToMapButton requires a document provider");
+        expect(() =>
+            getCreateAddFitFileToMapButtonRuntime({
+                ...addFitFileToMapButtonRuntimeScope,
+                getAbortController: undefined,
+            }).createAbortController()
+        ).toThrow(
+            "createAddFitFileToMapButton requires an AbortController provider"
+        );
+    });
+
     it("ignores legacy direct runtime properties", () => {
         expect.assertions(5);
 
@@ -127,7 +150,6 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
             },
         };
         const runtime = getCreateAddFitFileToMapButtonRuntime({
-            ...unavailableAddFitFileToMapButtonRuntimeScope,
             AbortController:
                 legacyAbortController as unknown as BrowserAbortControllerConstructor,
             document: legacyDocument as unknown as Document,
@@ -136,13 +158,13 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         >[0]);
 
         expect(() => runtime.createButton()).toThrow(
-            "createAddFitFileToMapButton requires a document runtime"
+            "createAddFitFileToMapButton requires a document provider"
         );
         expect(() => runtime.createAbortController()).toThrow(
-            "createAddFitFileToMapButton requires an AbortController runtime"
+            "createAddFitFileToMapButton requires an AbortController provider"
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
-            "createAddFitFileToMapButton requires a document runtime"
+            "createAddFitFileToMapButton requires a document provider"
         );
         expect(legacyDocument.createElement).not.toHaveBeenCalled();
         expect(legacyAbortController).not.toHaveBeenCalled();
