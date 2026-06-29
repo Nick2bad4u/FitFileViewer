@@ -25110,7 +25110,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(57);
+        expect.assertions(81);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -25244,6 +25244,27 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getAddEventListener?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getClearTimeout?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getDocument?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getHTMLElement?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getSetTimeout?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "readonly getViewport?:"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(chartStatusIndicatorRuntimeSource).not.toContain(
@@ -25268,22 +25289,49 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "const AbortControllerConstructor = scope.getAbortController?.();"
+            "scope.getAbortController,"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.();"
+            "scope.getAddEventListener,"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "return scope.getHTMLElement?.();"
+            "scope.getClearTimeout,"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "const clearTimeoutRef = scope.getClearTimeout?.();"
+            "scope.getDocument,"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "const setTimeoutRef = scope.getSetTimeout?.();"
+            "scope.getHTMLElement,"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "return scope.getViewport?.() ?? { height: 0, width: 0 };"
+            "scope.getSetTimeout,"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "scope.getViewport,"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getAddEventListener?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getClearTimeout?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getDocument?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getSetTimeout?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope.getViewport?.()"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "return getViewport(scope) ?? { height: 0, width: 0 };"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "createElement<K extends keyof HTMLElementTagNameMap>"
@@ -25299,6 +25347,30 @@ describe("architecture boundaries", () => {
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "chartStatusIndicator requires a setTimeout runtime"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "chartStatusIndicator requires ${providerDescription}"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "an AbortController provider"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "an event listener provider"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "a clearTimeout provider"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "a document provider"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "an HTMLElement provider"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "a setTimeout provider"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "a viewport provider"
         );
     });
 

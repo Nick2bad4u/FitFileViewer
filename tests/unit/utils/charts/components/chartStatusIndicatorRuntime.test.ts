@@ -7,6 +7,25 @@ import type {
 } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 import { getChartStatusIndicatorRuntime } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 
+const unavailableChartStatusIndicatorScope = {
+    getAbortController: () => undefined,
+    getAddEventListener: () => undefined,
+    getClearTimeout: () => undefined,
+    getDocument: () => undefined,
+    getHTMLElement: () => undefined,
+    getSetTimeout: () => undefined,
+    getViewport: () => undefined,
+} satisfies ChartStatusIndicatorRuntimeScope;
+
+function createChartStatusIndicatorScope(
+    overrides: Partial<ChartStatusIndicatorRuntimeScope> = {}
+): ChartStatusIndicatorRuntimeScope {
+    return {
+        ...unavailableChartStatusIndicatorScope,
+        ...overrides,
+    };
+}
+
 describe("getChartStatusIndicatorRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
@@ -21,9 +40,11 @@ describe("getChartStatusIndicatorRuntime", () => {
         const listener = (): void => {
             fieldToggleEvents += 1;
         };
-        const runtime = getChartStatusIndicatorRuntime({
-            getAddEventListener: () => target.addEventListener.bind(target),
-        });
+        const runtime = getChartStatusIndicatorRuntime(
+            createChartStatusIndicatorScope({
+                getAddEventListener: () => target.addEventListener.bind(target),
+            })
+        );
 
         runtime.addFieldToggleChangedListener(listener, {
             signal: controller.signal,
@@ -74,13 +95,15 @@ describe("getChartStatusIndicatorRuntime", () => {
         const listener = (): void => {
             chartsRenderedEvents += 1;
         };
-        const runtime = getChartStatusIndicatorRuntime({
-            getDocument: () =>
-                ({
-                    addEventListener: target.addEventListener.bind(target),
-                    querySelector: () => null,
-                }) as unknown as Document,
-        });
+        const runtime = getChartStatusIndicatorRuntime(
+            createChartStatusIndicatorScope({
+                getDocument: () =>
+                    ({
+                        addEventListener: target.addEventListener.bind(target),
+                        querySelector: () => null,
+                    }) as unknown as Document,
+            })
+        );
 
         runtime.addChartsRenderedListener(listener, {
             signal: controller.signal,
@@ -98,9 +121,11 @@ describe("getChartStatusIndicatorRuntime", () => {
     it("creates abort controllers through the injected constructor", () => {
         expect.assertions(1);
 
-        const runtime = getChartStatusIndicatorRuntime({
-            getAbortController: () => AbortController,
-        });
+        const runtime = getChartStatusIndicatorRuntime(
+            createChartStatusIndicatorScope({
+                getAbortController: () => AbortController,
+            })
+        );
 
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
@@ -147,10 +172,12 @@ describe("getChartStatusIndicatorRuntime", () => {
             querySelector: (selector: string) =>
                 selector === ".status" ? element : document,
         } as unknown as Document;
-        const runtime = getChartStatusIndicatorRuntime({
-            getDocument: () => runtimeDocument,
-            getHTMLElement: () => HTMLElement,
-        });
+        const runtime = getChartStatusIndicatorRuntime(
+            createChartStatusIndicatorScope({
+                getDocument: () => runtimeDocument,
+                getHTMLElement: () => HTMLElement,
+            })
+        );
         const createdElement = runtime.createElement("span");
         const textNode = runtime.createTextNode("Chart status");
 
@@ -193,10 +220,12 @@ describe("getChartStatusIndicatorRuntime", () => {
         const clearTimeoutMock = vi.fn<typeof clearTimeout>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const timeoutMs = Number("75");
-        const runtime = getChartStatusIndicatorRuntime({
-            getClearTimeout: () => clearTimeoutMock,
-            getSetTimeout: () => setTimeoutMock,
-        });
+        const runtime = getChartStatusIndicatorRuntime(
+            createChartStatusIndicatorScope({
+                getClearTimeout: () => clearTimeoutMock,
+                getSetTimeout: () => setTimeoutMock,
+            })
+        );
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
@@ -207,7 +236,9 @@ describe("getChartStatusIndicatorRuntime", () => {
     it("throws when timer cleanup is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getChartStatusIndicatorRuntime({});
+        const runtime = getChartStatusIndicatorRuntime(
+            unavailableChartStatusIndicatorScope
+        );
 
         expect(() =>
             runtime.clearTimeout(
@@ -221,7 +252,9 @@ describe("getChartStatusIndicatorRuntime", () => {
     it("throws when timer scheduling is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getChartStatusIndicatorRuntime({});
+        const runtime = getChartStatusIndicatorRuntime(
+            unavailableChartStatusIndicatorScope
+        );
 
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "chartStatusIndicator requires a setTimeout runtime"
@@ -232,12 +265,14 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getChartStatusIndicatorRuntime({
-                getViewport: () => ({
-                    height: 720,
-                    width: 1280,
-                }),
-            }).getViewport()
+            getChartStatusIndicatorRuntime(
+                createChartStatusIndicatorScope({
+                    getViewport: () => ({
+                        height: 720,
+                        width: 1280,
+                    }),
+                })
+            ).getViewport()
         ).toStrictEqual({
             height: 720,
             width: 1280,
@@ -247,7 +282,11 @@ describe("getChartStatusIndicatorRuntime", () => {
     it("uses zero viewport dimensions when the scope does not provide them", () => {
         expect.assertions(1);
 
-        expect(getChartStatusIndicatorRuntime({}).getViewport()).toStrictEqual({
+        expect(
+            getChartStatusIndicatorRuntime(
+                unavailableChartStatusIndicatorScope
+            ).getViewport()
+        ).toStrictEqual({
             height: 0,
             width: 0,
         });
@@ -256,12 +295,16 @@ describe("getChartStatusIndicatorRuntime", () => {
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
-        const runtime = getChartStatusIndicatorRuntime({});
+        const runtime = getChartStatusIndicatorRuntime(
+            unavailableChartStatusIndicatorScope
+        );
         const runtimeWithInvalidAbortController =
-            getChartStatusIndicatorRuntime({
-                getAbortController: () =>
-                    "AbortController" as unknown as typeof AbortController,
-            });
+            getChartStatusIndicatorRuntime(
+                createChartStatusIndicatorScope({
+                    getAbortController: () =>
+                        "AbortController" as unknown as typeof AbortController,
+                })
+            );
         const listenerController = new AbortController();
 
         expect(() =>
@@ -277,6 +320,43 @@ describe("getChartStatusIndicatorRuntime", () => {
         );
     });
 
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(7);
+
+        const runtime = getChartStatusIndicatorRuntime(
+            {} as unknown as ChartStatusIndicatorRuntimeScope
+        );
+        const listenerController = new AbortController();
+        const timer = Symbol("chart-status-timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "chartStatusIndicator requires an AbortController provider"
+        );
+        expect(() =>
+            runtime.addFieldToggleChangedListener(() => undefined, {
+                signal: listenerController.signal,
+            })
+        ).toThrow("chartStatusIndicator requires an event listener provider");
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "chartStatusIndicator requires a clearTimeout provider"
+        );
+        expect(() => runtime.getDocument()).toThrow(
+            "chartStatusIndicator requires a document provider"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("chartStatusIndicator requires an HTMLElement provider");
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "chartStatusIndicator requires a setTimeout provider"
+        );
+        expect(() => runtime.getViewport()).toThrow(
+            "chartStatusIndicator requires a viewport provider"
+        );
+        listenerController.abort();
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
         expect.assertions(10);
 
@@ -287,6 +367,7 @@ describe("getChartStatusIndicatorRuntime", () => {
             typeof setTimeout
         >;
         const legacyScope = {
+            ...unavailableChartStatusIndicatorScope,
             AbortController,
             addEventListener: target.addEventListener.bind(target),
             clearTimeout: vi.fn<typeof clearTimeout>(),

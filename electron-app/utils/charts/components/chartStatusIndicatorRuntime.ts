@@ -25,25 +25,17 @@ type ChartStatusIndicatorAddEventListener = (
 ) => void;
 
 export interface ChartStatusIndicatorRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getAddEventListener?:
-        | (() => ChartStatusIndicatorAddEventListener | undefined)
+    readonly getAddEventListener: () =>
+        | ChartStatusIndicatorAddEventListener
         | undefined;
-    readonly getClearTimeout?:
-        | (() => BrowserClearTimeout | undefined)
-        | undefined;
-    readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getHTMLElement?:
-        | (() => BrowserHTMLElementConstructor | undefined)
-        | undefined;
-    readonly getSetTimeout?:
-        | (() => BrowserSetTimeout | undefined)
-        | undefined;
-    readonly getViewport?:
-        | (() => ChartStatusIndicatorViewport | undefined)
-        | undefined;
+    readonly getClearTimeout: () => BrowserClearTimeout | undefined;
+    readonly getDocument: () => Document | undefined;
+    readonly getHTMLElement: () => BrowserHTMLElementConstructor | undefined;
+    readonly getSetTimeout: () => BrowserSetTimeout | undefined;
+    readonly getViewport: () => ChartStatusIndicatorViewport | undefined;
 }
 
 export interface ChartStatusIndicatorViewport {
@@ -95,7 +87,10 @@ const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope 
 function getAbortControllerConstructor(
     scope: ChartStatusIndicatorRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    const AbortControllerConstructor = getRequiredProvider(
+        scope.getAbortController,
+        "an AbortController provider"
+    )();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartStatusIndicator requires an AbortController");
     }
@@ -103,8 +98,20 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+function getAddEventListener(
+    scope: ChartStatusIndicatorRuntimeScope
+): ChartStatusIndicatorAddEventListener | undefined {
+    return getRequiredProvider(
+        scope.getAddEventListener,
+        "an event listener provider"
+    )();
+}
+
 function getDocument(scope: ChartStatusIndicatorRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.();
+    const runtimeDocument = getRequiredProvider(
+        scope.getDocument,
+        "a document provider"
+    )();
     if (!runtimeDocument) {
         throw new TypeError("chartStatusIndicator requires a document");
     }
@@ -115,7 +122,10 @@ function getDocument(scope: ChartStatusIndicatorRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: ChartStatusIndicatorRuntimeScope
 ): BrowserHTMLElementConstructor | undefined {
-    return scope.getHTMLElement?.();
+    return getRequiredProvider(
+        scope.getHTMLElement,
+        "an HTMLElement provider"
+    )();
 }
 
 function isHTMLElement(
@@ -132,7 +142,10 @@ function isHTMLElement(
 function getRequiredClearTimeout(
     scope: ChartStatusIndicatorRuntimeScope
 ): BrowserClearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.();
+    const clearTimeoutRef = getRequiredProvider(
+        scope.getClearTimeout,
+        "a clearTimeout provider"
+    )();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
             "chartStatusIndicator requires a clearTimeout runtime"
@@ -145,7 +158,10 @@ function getRequiredClearTimeout(
 function getRequiredSetTimeout(
     scope: ChartStatusIndicatorRuntimeScope
 ): BrowserSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.();
+    const setTimeoutRef = getRequiredProvider(
+        scope.getSetTimeout,
+        "a setTimeout provider"
+    )();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(
             "chartStatusIndicator requires a setTimeout runtime"
@@ -153,6 +169,25 @@ function getRequiredSetTimeout(
     }
 
     return setTimeoutRef;
+}
+
+function getRequiredProvider<T>(
+    provider: (() => T | undefined) | undefined,
+    providerDescription: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        throw new TypeError(
+            `chartStatusIndicator requires ${providerDescription}`
+        );
+    }
+
+    return provider;
+}
+
+function getViewport(
+    scope: ChartStatusIndicatorRuntimeScope
+): ChartStatusIndicatorViewport | undefined {
+    return getRequiredProvider(scope.getViewport, "a viewport provider")();
 }
 
 export function getChartStatusIndicatorRuntime(
@@ -176,7 +211,7 @@ export function getChartStatusIndicatorRuntime(
                 readonly signal: AbortSignal;
             }
         ): void {
-            scope.getAddEventListener?.()?.("fieldToggleChanged", listener, {
+            getAddEventListener(scope)?.("fieldToggleChanged", listener, {
                 ...options,
                 signal: options.signal,
             });
@@ -203,7 +238,7 @@ export function getChartStatusIndicatorRuntime(
             return getDocument(scope);
         },
         getViewport(): ChartStatusIndicatorViewport {
-            return scope.getViewport?.() ?? { height: 0, width: 0 };
+            return getViewport(scope) ?? { height: 0, width: 0 };
         },
         isHTMLElement(value: unknown): value is HTMLElement {
             return isHTMLElement(scope, value);
