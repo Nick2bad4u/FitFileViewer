@@ -7,19 +7,13 @@ import {
 } from "../runtime/browserRuntime.js";
 
 export interface ErrorHandlingRuntimeScope {
-    readonly getAbortController?:
-        | (() => BrowserAbortControllerConstructor | undefined)
+    readonly getAbortController: () =>
+        | BrowserAbortControllerConstructor
         | undefined;
-    readonly getAddEventListener?:
-        | (() => BrowserAddEventListener | undefined)
-        | undefined;
-    readonly getDateConstructor?:
-        | (() => ErrorHandlingDateConstructor | undefined)
-        | undefined;
-    readonly getDateNow?: (() => (() => number) | undefined) | undefined;
-    readonly getErrorListenerTarget?:
-        | (() => ErrorHandlingEventTarget | undefined)
-        | undefined;
+    readonly getAddEventListener: () => BrowserAddEventListener | undefined;
+    readonly getDateConstructor: () => ErrorHandlingDateConstructor | undefined;
+    readonly getDateNow: (() => (() => number) | undefined) | undefined;
+    readonly getErrorListenerTarget: () => ErrorHandlingEventTarget | undefined;
 }
 
 type ErrorHandlingDateConstructor = new () => { toISOString: () => string };
@@ -46,7 +40,11 @@ const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
 function getDefaultErrorListenerTarget(
     scope: ErrorHandlingRuntimeScope = defaultErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
-    const addEventListener = scope.getAddEventListener?.();
+    if (typeof scope.getAddEventListener !== "function") {
+        throw new TypeError("errorHandling requires addEventListener provider");
+    }
+
+    const addEventListener = scope.getAddEventListener();
     if (typeof addEventListener !== "function") {
         return undefined;
     }
@@ -59,7 +57,11 @@ function getDefaultErrorListenerTarget(
 function getAbortControllerConstructor(
     scope: ErrorHandlingRuntimeScope
 ): BrowserAbortControllerConstructor {
-    const AbortControllerConstructor = scope.getAbortController?.();
+    if (typeof scope.getAbortController !== "function") {
+        throw new TypeError("errorHandling requires AbortController provider");
+    }
+
+    const AbortControllerConstructor = scope.getAbortController();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "errorHandling requires an AbortController runtime"
@@ -70,7 +72,11 @@ function getAbortControllerConstructor(
 }
 
 function getDateNow(scope: ErrorHandlingRuntimeScope): () => number {
-    const dateNow = scope.getDateNow?.();
+    if (typeof scope.getDateNow !== "function") {
+        throw new TypeError("errorHandling requires dateNow provider");
+    }
+
+    const dateNow = scope.getDateNow();
     if (typeof dateNow !== "function") {
         throw new TypeError("errorHandling requires dateNow");
     }
@@ -81,7 +87,13 @@ function getDateNow(scope: ErrorHandlingRuntimeScope): () => number {
 function getDateConstructor(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingDateConstructor {
-    const DateConstructor = scope.getDateConstructor?.();
+    if (typeof scope.getDateConstructor !== "function") {
+        throw new TypeError(
+            "errorHandling requires a date constructor provider"
+        );
+    }
+
+    const DateConstructor = scope.getDateConstructor();
     if (typeof DateConstructor !== "function") {
         throw new TypeError("errorHandling requires a date constructor");
     }
@@ -92,8 +104,12 @@ function getDateConstructor(
 function getErrorListenerTarget(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
+    if (typeof scope.getErrorListenerTarget !== "function") {
+        throw new TypeError("errorHandling requires error listener provider");
+    }
+
     return (
-        scope.getErrorListenerTarget?.() ?? getDefaultErrorListenerTarget(scope)
+        scope.getErrorListenerTarget() ?? getDefaultErrorListenerTarget(scope)
     );
 }
 

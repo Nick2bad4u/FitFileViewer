@@ -4,7 +4,18 @@ import type {
     BrowserAbortControllerConstructor,
     BrowserAddEventListener,
 } from "../../../electron-app/utils/runtime/browserRuntime.js";
-import { getErrorHandlingRuntime } from "../../../electron-app/utils/errors/errorHandlingRuntime.js";
+import {
+    getErrorHandlingRuntime,
+    type ErrorHandlingRuntimeScope,
+} from "../../../electron-app/utils/errors/errorHandlingRuntime.js";
+
+const unavailableErrorHandlingRuntimeScope = {
+    getAbortController: () => undefined,
+    getAddEventListener: () => undefined,
+    getDateConstructor: () => undefined,
+    getDateNow: () => undefined,
+    getErrorListenerTarget: () => undefined,
+} satisfies ErrorHandlingRuntimeScope;
 
 describe("getErrorHandlingRuntime", () => {
     afterEach(() => {
@@ -35,6 +46,7 @@ describe("getErrorHandlingRuntime", () => {
 
         const dateNow = vi.fn<() => number>(() => 1234);
         const utils = getErrorHandlingRuntime({
+            ...unavailableErrorHandlingRuntimeScope,
             getDateNow: () => dateNow,
         });
 
@@ -61,6 +73,7 @@ describe("getErrorHandlingRuntime", () => {
         }
 
         const utils = getErrorHandlingRuntime({
+            ...unavailableErrorHandlingRuntimeScope,
             getDateConstructor: () => DateConstructor,
         });
 
@@ -79,6 +92,7 @@ describe("getErrorHandlingRuntime", () => {
             }
         );
         const runtime = getErrorHandlingRuntime({
+            ...unavailableErrorHandlingRuntimeScope,
             getAbortController: () =>
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
         });
@@ -90,7 +104,9 @@ describe("getErrorHandlingRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getErrorHandlingRuntime({});
+        const runtime = getErrorHandlingRuntime(
+            unavailableErrorHandlingRuntimeScope
+        );
 
         expect(() => runtime.createAbortController()).toThrow(
             "errorHandling requires an AbortController runtime"
@@ -100,7 +116,9 @@ describe("getErrorHandlingRuntime", () => {
     it("fails clearly when the date clock runtime is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getErrorHandlingRuntime({});
+        const utils = getErrorHandlingRuntime(
+            unavailableErrorHandlingRuntimeScope
+        );
 
         expect(() => utils.dateNow()).toThrow("errorHandling requires dateNow");
     });
@@ -108,7 +126,9 @@ describe("getErrorHandlingRuntime", () => {
     it("fails clearly when the date constructor runtime is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getErrorHandlingRuntime({});
+        const utils = getErrorHandlingRuntime(
+            unavailableErrorHandlingRuntimeScope
+        );
 
         expect(() => utils.isoNow()).toThrow(
             "errorHandling requires a date constructor"
@@ -164,6 +184,7 @@ describe("getErrorHandlingRuntime", () => {
         const controller = new AbortController();
         const options = { passive: true, signal: controller.signal };
         const runtime = getErrorHandlingRuntime({
+            ...unavailableErrorHandlingRuntimeScope,
             getAddEventListener: () => addEventListener,
         });
 
@@ -189,6 +210,7 @@ describe("getErrorHandlingRuntime", () => {
         const listener = vi.fn();
         const options = { signal: controller.signal };
         const runtime = getErrorHandlingRuntime({
+            ...unavailableErrorHandlingRuntimeScope,
             getAddEventListener: () => fallbackAddEventListener,
             getErrorListenerTarget: () => ({ addEventListener }),
         });
@@ -205,6 +227,39 @@ describe("getErrorHandlingRuntime", () => {
         expect(fallbackAddEventListener).not.toHaveBeenCalled();
 
         controller.abort();
+    });
+
+    it("fails clearly when runtime providers are omitted", () => {
+        expect.assertions(6);
+
+        const runtime = getErrorHandlingRuntime(
+            {} as unknown as ErrorHandlingRuntimeScope
+        );
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "errorHandling requires AbortController provider"
+        );
+        expect(() => runtime.dateNow()).toThrow(
+            "errorHandling requires dateNow provider"
+        );
+        expect(() => runtime.isoNow()).toThrow(
+            "errorHandling requires a date constructor provider"
+        );
+        expect(() => runtime.getErrorListenerTarget()).toThrow(
+            "errorHandling requires error listener provider"
+        );
+        expect(() =>
+            getErrorHandlingRuntime({
+                ...unavailableErrorHandlingRuntimeScope,
+                getAddEventListener: undefined,
+            } as unknown as ErrorHandlingRuntimeScope).getErrorListenerTarget()
+        ).toThrow("errorHandling requires addEventListener provider");
+        expect(() =>
+            getErrorHandlingRuntime({
+                ...unavailableErrorHandlingRuntimeScope,
+                getErrorListenerTarget: () => undefined,
+            } as unknown as ErrorHandlingRuntimeScope).getErrorListenerTarget()
+        ).not.toThrow();
     });
 
     it("ignores legacy direct runtime scope properties", () => {
@@ -231,6 +286,7 @@ describe("getErrorHandlingRuntime", () => {
         }
 
         const runtime = getErrorHandlingRuntime({
+            ...unavailableErrorHandlingRuntimeScope,
             AbortController:
                 AbortControllerConstructor as unknown as BrowserAbortControllerConstructor,
             Date: DateConstructor,

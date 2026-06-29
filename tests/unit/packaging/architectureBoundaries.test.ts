@@ -14697,7 +14697,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(67);
+        expect.assertions(87);
 
         const errorsIndexSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/index.ts")
@@ -14812,6 +14812,21 @@ describe("architecture boundaries", () => {
             "errorHandling requires a date constructor"
         );
         expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires AbortController provider"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires addEventListener provider"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires dateNow provider"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires a date constructor provider"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "errorHandling requires error listener provider"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
             "new DateConstructor().toISOString()"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
@@ -14844,6 +14859,21 @@ describe("architecture boundaries", () => {
             "readonly errorListenerTarget?:"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly getAbortController?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly getAddEventListener?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly getDateConstructor?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly getDateNow?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly getErrorListenerTarget?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
             "getDefaultEventTarget"
         );
         expect(errorHandlingRuntimeSource).not.toContain(
@@ -14857,6 +14887,36 @@ describe("architecture boundaries", () => {
         expect(errorHandlingRuntimeSource).not.toContain("scope.eventTarget");
         expect(errorHandlingRuntimeSource).not.toContain(
             "scope.errorListenerTarget"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.getAbortController?.()"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.getAddEventListener?.()"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.getDateConstructor?.()"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.getDateNow?.()"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.getErrorListenerTarget?.()"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController();"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "const addEventListener = scope.getAddEventListener();"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "const dateNow = scope.getDateNow();"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "const DateConstructor = scope.getDateConstructor();"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "scope.getErrorListenerTarget() ?? getDefaultErrorListenerTarget(scope)"
         );
         expect(errorHandlingRuntimeSource).toContain(
             "defaultErrorHandlingRuntimeScope"
