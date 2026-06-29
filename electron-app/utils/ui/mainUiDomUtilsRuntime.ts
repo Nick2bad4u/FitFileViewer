@@ -4,7 +4,7 @@ import {
 } from "../runtime/browserRuntime.js";
 
 export interface MainUiDomUtilsRuntimeScope {
-    readonly getAbortController?:
+    readonly getAbortController:
         | (() => BrowserAbortControllerConstructor | undefined)
         | undefined;
 }
@@ -22,7 +22,14 @@ export function getMainUiDomUtilsRuntime(
 ): MainUiDomUtilsRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.getAbortController?.();
+            const getAbortController = scope.getAbortController;
+            if (typeof getAbortController !== "function") {
+                throw new TypeError(
+                    "main UI DOM utilities require an AbortController provider"
+                );
+            }
+
+            const AbortControllerConstructor = getAbortController();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "main UI DOM utilities require an AbortController runtime"

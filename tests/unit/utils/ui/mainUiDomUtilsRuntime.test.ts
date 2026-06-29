@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getMainUiDomUtilsRuntime } from "../../../../electron-app/utils/ui/mainUiDomUtilsRuntime.js";
+import {
+    getMainUiDomUtilsRuntime,
+    type MainUiDomUtilsRuntimeScope,
+} from "../../../../electron-app/utils/ui/mainUiDomUtilsRuntime.js";
 
 describe("getMainUiDomUtilsRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -40,11 +43,25 @@ describe("getMainUiDomUtilsRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const utils = getMainUiDomUtilsRuntime({});
+        const utils = getMainUiDomUtilsRuntime({
+            getAbortController: () => undefined,
+        });
 
         expect(() => {
             utils.createAbortController();
         }).toThrow("main UI DOM utilities require an AbortController runtime");
+    });
+
+    it("fails clearly when the AbortController provider is omitted", () => {
+        expect.assertions(1);
+
+        const utils = getMainUiDomUtilsRuntime(
+            {} as unknown as MainUiDomUtilsRuntimeScope
+        );
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow("main UI DOM utilities require an AbortController provider");
     });
 
     it("ignores legacy direct runtime properties", () => {
@@ -63,7 +80,7 @@ describe("getMainUiDomUtilsRuntime", () => {
 
         expect(() => {
             utils.createAbortController();
-        }).toThrow("main UI DOM utilities require an AbortController runtime");
+        }).toThrow("main UI DOM utilities require an AbortController provider");
         expect(utils).toHaveProperty("createAbortController");
     });
 });
