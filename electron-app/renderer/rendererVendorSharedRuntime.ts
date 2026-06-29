@@ -7,9 +7,11 @@ import {
 type RendererVendorEventTarget = Pick<EventTarget, "dispatchEvent">;
 
 export interface RendererVendorSharedRuntimeScope {
-    readonly getCustomEvent: () => BrowserCustomEventConstructor | undefined;
-    readonly getEventTarget: () => RendererVendorEventTarget | undefined;
+    readonly getCustomEvent: RendererVendorSharedRuntimeProvider<BrowserCustomEventConstructor>;
+    readonly getEventTarget: RendererVendorSharedRuntimeProvider<RendererVendorEventTarget>;
 }
+
+type RendererVendorSharedRuntimeProvider<T> = (() => T | undefined) | undefined;
 
 export interface RendererVendorSharedRuntime {
     dispatchRendererVendorEntryLoadedEvent: <T>(
@@ -28,21 +30,19 @@ function getDefaultRendererVendorSharedRuntimeScope(): RendererVendorSharedRunti
 export function getRendererVendorSharedRuntime(
     scope: RendererVendorSharedRuntimeScope = getDefaultRendererVendorSharedRuntimeScope()
 ): RendererVendorSharedRuntime {
-    if (typeof scope.getCustomEvent !== "function") {
-        throw new TypeError(
-            "rendererVendorSharedRuntime requires a CustomEvent provider"
-        );
-    }
-    if (typeof scope.getEventTarget !== "function") {
-        throw new TypeError(
-            "rendererVendorSharedRuntime requires an event target provider"
-        );
-    }
+    const getCustomEvent = getRequiredProvider(
+        scope.getCustomEvent,
+        "CustomEvent"
+    );
+    const getEventTarget = getRequiredProvider(
+        scope.getEventTarget,
+        "event target"
+    );
 
     return {
         dispatchRendererVendorEntryLoadedEvent(eventName, detail): boolean {
-            const CustomEventConstructor = scope.getCustomEvent();
-            const eventTarget = scope.getEventTarget();
+            const CustomEventConstructor = getCustomEvent();
+            const eventTarget = getEventTarget();
             if (
                 typeof CustomEventConstructor !== "function" ||
                 eventTarget === undefined
@@ -55,4 +55,19 @@ export function getRendererVendorSharedRuntime(
             );
         },
     };
+}
+
+function getRequiredProvider<T>(
+    provider: RendererVendorSharedRuntimeProvider<T>,
+    providerName: string
+): () => T | undefined {
+    if (typeof provider !== "function") {
+        const article = /^[AEIOUHaeiou]/u.test(providerName) ? "an" : "a";
+
+        throw new TypeError(
+            `rendererVendorSharedRuntime requires ${article} ${providerName} provider`
+        );
+    }
+
+    return provider;
 }

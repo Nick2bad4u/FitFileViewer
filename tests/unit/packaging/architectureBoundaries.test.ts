@@ -19077,7 +19077,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(60);
+        expect.assertions(66);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -19208,16 +19208,34 @@ describe("architecture boundaries", () => {
             "getEventTarget: getBrowserEventTarget"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "rendererVendorSharedRuntime requires a CustomEvent provider"
+            "type RendererVendorSharedRuntimeProvider"
+        );
+        expect(rendererVendorSharedRuntimeSource).toMatch(
+            /readonly\s+getCustomEvent:\s*RendererVendorSharedRuntimeProvider<BrowserCustomEventConstructor>/u
+        );
+        expect(rendererVendorSharedRuntimeSource).toMatch(
+            /readonly\s+getEventTarget:\s*RendererVendorSharedRuntimeProvider<RendererVendorEventTarget>/u
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "rendererVendorSharedRuntime requires an event target provider"
+            "function getRequiredProvider"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "const CustomEventConstructor = scope.getCustomEvent();"
+            "rendererVendorSharedRuntime requires ${article} ${providerName} provider"
         );
         expect(rendererVendorSharedRuntimeSource).toContain(
-            "const eventTarget = scope.getEventTarget();"
+            "providerName: string"
+        );
+        expect(rendererVendorSharedRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getCustomEvent,\s*"CustomEvent"\s*\)/u
+        );
+        expect(rendererVendorSharedRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getEventTarget,\s*"event target"\s*\)/u
+        );
+        expect(rendererVendorSharedRuntimeSource).toContain(
+            "const CustomEventConstructor = getCustomEvent();"
+        );
+        expect(rendererVendorSharedRuntimeSource).toContain(
+            "const eventTarget = getEventTarget();"
         );
         expect(rendererVendorSharedRuntimeSource).not.toContain(
             "readonly getCustomEvent?:"

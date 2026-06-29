@@ -113,4 +113,26 @@ describe("rendererVendorSharedRuntime", () => {
             "rendererVendorSharedRuntime requires an event target provider"
         );
     });
+
+    it("fails clearly when browser runtime provider slots are undefined", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getRendererVendorSharedRuntime({
+                getCustomEvent: undefined,
+                getEventTarget: () => new EventTarget(),
+            })
+        ).toThrow(
+            "rendererVendorSharedRuntime requires a CustomEvent provider"
+        );
+
+        expect(() =>
+            getRendererVendorSharedRuntime({
+                getCustomEvent: () => CustomEvent,
+                getEventTarget: undefined,
+            })
+        ).toThrow(
+            "rendererVendorSharedRuntime requires an event target provider"
+        );
+    });
 });
