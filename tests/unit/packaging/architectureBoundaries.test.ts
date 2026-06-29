@@ -3712,7 +3712,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(460);
+        expect.assertions(463);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3831,6 +3831,11 @@ describe("architecture boundaries", () => {
         const registerDevtoolsInjectMenuHandlerSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/registerDevtoolsInjectMenuHandler.ts"
+            )
+        );
+        const registerDevtoolsInjectMenuHandlerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerDevtoolsInjectMenuHandlerRuntime.ts"
             )
         );
         const registerFileMenuHandlersSource = stripComments(
@@ -4066,10 +4071,19 @@ describe("architecture boundaries", () => {
             "getProcessStringValue"
         );
         expect(registerDevtoolsInjectMenuHandlerSource).toContain(
-            "isDevelopmentEnvironment"
+            "registerDevtoolsInjectMenuHandlerRuntime.js"
         );
         expect(registerDevtoolsInjectMenuHandlerSource).toContain(
-            "isTestEnvironment"
+            "runtime.isDevelopmentEnvironment()"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "runtime.isTestEnvironment()"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).not.toContain(
+            "../../utils/runtime/processEnvironment.js"
+        );
+        expect(registerDevtoolsInjectMenuHandlerRuntimeSource).toContain(
+            "../../utils/runtime/processEnvironment.js"
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             "isDevelopmentEnvironment"

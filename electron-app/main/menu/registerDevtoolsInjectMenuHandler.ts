@@ -2,9 +2,9 @@ import { validateDevtoolsInjectMenuPayload as validateDefaultDevtoolsInjectMenuP
 import { CONSTANTS as DEFAULT_CONSTANTS } from "../constants.js";
 import { logWithContext as defaultLogWithContext } from "../logging/logWithContext.js";
 import {
-    isDevelopmentEnvironment,
-    isTestEnvironment,
-} from "../../utils/runtime/processEnvironment.js";
+    getRegisterDevtoolsInjectMenuHandlerRuntime,
+    type RegisterDevtoolsInjectMenuHandlerRuntime,
+} from "./registerDevtoolsInjectMenuHandlerRuntime.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
 type DevtoolsInjectMenuFitFilePath =
@@ -62,8 +62,13 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+function registerDevtoolsInjectMenuHandlerRuntime(): RegisterDevtoolsInjectMenuHandlerRuntime {
+    return getRegisterDevtoolsInjectMenuHandlerRuntime();
+}
+
 function defaultIsDevtoolsMenuInjectionAllowed(): boolean {
-    return isDevelopmentEnvironment() || isTestEnvironment();
+    const runtime = registerDevtoolsInjectMenuHandlerRuntime();
+    return runtime.isDevelopmentEnvironment() || runtime.isTestEnvironment();
 }
 
 /**
