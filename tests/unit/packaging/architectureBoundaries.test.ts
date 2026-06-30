@@ -27535,7 +27535,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(41);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -27564,11 +27564,21 @@ describe("architecture boundaries", () => {
             )
         );
         const optionalAltFitSenderProviderAccessPattern =
-            /\bscope\.get(?:AbortController|Console|Document|Location)\?\.\(/u;
+            /\bscope\.get(?:AbortController|Console|Document|HTMLIFrameElement|Location)\?\.\(/u;
 
         expect(violations).toStrictEqual([]);
         expect(altFitSenderSource).toContain("altFitSenderRuntime.js");
         expect(altFitSenderSource).toContain("createAbortController");
+        expect(altFitSenderSource).toContain(
+            "runtimeEnvironment.isIFrameElement"
+        );
+        expect(altFitSenderSource).toContain(
+            "runtimeEnvironment.postMessageToIFrame"
+        );
+        expect(altFitSenderSource).not.toContain(
+            "instanceof HTMLIFrameElement"
+        );
+        expect(altFitSenderSource).not.toContain("iframe.contentWindow");
         expect(altFitSenderRuntimeSource).toContain(
             "defaultAltFitSenderRuntimeScope"
         );
@@ -27598,6 +27608,12 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(altFitSenderRuntimeSource).toContain(
+            "getHTMLIFrameElement: getBrowserHTMLIFrameElement"
+        );
+        expect(altFitSenderRuntimeSource).not.toContain(
+            "getHTMLIFrameElement: () => globalThis.HTMLIFrameElement"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
             "getLocation: getBrowserLocation"
         );
         expect(altFitSenderRuntimeSource).not.toContain(
@@ -27606,6 +27622,9 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
         expect(runtimeScopeSource).not.toContain("readonly console?:");
         expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly HTMLIFrameElement?:"
+        );
         expect(runtimeScopeSource).not.toContain("readonly location?:");
         expect(altFitSenderRuntimeSource).not.toMatch(
             optionalAltFitSenderProviderAccessPattern
@@ -27625,6 +27644,9 @@ describe("architecture boundaries", () => {
         );
         expect(altFitSenderRuntimeSource).not.toContain("scope.console");
         expect(altFitSenderRuntimeSource).not.toContain("scope.document");
+        expect(altFitSenderRuntimeSource).not.toContain(
+            "scope.HTMLIFrameElement"
+        );
         expect(altFitSenderRuntimeSource).not.toContain("scope.location");
         expect(altFitSenderRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getAbortController/u
@@ -27634,6 +27656,9 @@ describe("architecture boundaries", () => {
         );
         expect(altFitSenderRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getDocument/u
+        );
+        expect(altFitSenderRuntimeSource).toMatch(
+            /getRequiredProvider\(\s*scope\.getHTMLIFrameElement/u
         );
         expect(altFitSenderRuntimeSource).toMatch(
             /getRequiredProvider\(\s*scope\.getLocation/u

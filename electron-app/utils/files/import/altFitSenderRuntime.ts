@@ -1,8 +1,10 @@
 import {
     type BrowserAbortControllerConstructor,
+    type BrowserHTMLIFrameElementConstructor,
     getBrowserAbortController,
     getBrowserConsole,
     getBrowserDocument,
+    getBrowserHTMLIFrameElement,
     getBrowserLocation,
 } from "../../runtime/browserRuntime.js";
 
@@ -12,7 +14,15 @@ export interface AltFitSenderRuntimeEnvironment {
     readonly console: AltFitSenderLogger;
     readonly createAbortController: () => AbortController;
     readonly getElementById: (id: string) => HTMLElement | null;
+    readonly isIFrameElement: (
+        element: HTMLElement | null
+    ) => element is HTMLIFrameElement;
     readonly location?: Pick<Location, "origin" | "protocol">;
+    readonly postMessageToIFrame: (
+        iframe: HTMLIFrameElement,
+        message: unknown,
+        targetOrigin: string
+    ) => boolean;
 }
 
 type AltFitSenderRuntimeProvider<T> = (() => T | undefined) | undefined;
@@ -23,6 +33,7 @@ interface AltFitSenderRuntimeScope {
     readonly getDocument: AltFitSenderRuntimeProvider<
         Pick<Document, "getElementById">
     >;
+    readonly getHTMLIFrameElement: AltFitSenderRuntimeProvider<BrowserHTMLIFrameElementConstructor>;
     readonly getLocation: AltFitSenderRuntimeProvider<
         Pick<Location, "origin" | "protocol">
     >;
@@ -32,6 +43,7 @@ const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = {
     getAbortController: getBrowserAbortController,
     getConsole: getBrowserConsole,
     getDocument: getBrowserDocument,
+    getHTMLIFrameElement: getBrowserHTMLIFrameElement,
     getLocation: getBrowserLocation,
 };
 
@@ -67,6 +79,15 @@ function getScopeDocument(
     return getRequiredProvider(scope.getDocument, "document")();
 }
 
+function getScopeHTMLIFrameElement(
+    scope: AltFitSenderRuntimeScope
+): BrowserHTMLIFrameElementConstructor | undefined {
+    return getRequiredProvider(
+        scope.getHTMLIFrameElement,
+        "HTMLIFrameElement"
+    )();
+}
+
 function getScopeLocation(
     scope: AltFitSenderRuntimeScope
 ): Pick<Location, "origin" | "protocol"> | undefined {
@@ -93,6 +114,28 @@ export function getAltFitSenderRuntimeEnvironment(
         },
         getElementById: (id) =>
             getScopeDocument(scope)?.getElementById(id) ?? null,
+        isIFrameElement(element): element is HTMLIFrameElement {
+            const HTMLIFrameElementConstructor =
+                getScopeHTMLIFrameElement(scope);
+            if (typeof HTMLIFrameElementConstructor !== "function") {
+                throw new TypeError(
+                    "Alt FIT sender requires an HTMLIFrameElement runtime"
+                );
+            }
+
+            return element instanceof HTMLIFrameElementConstructor;
+        },
         ...(location === undefined ? {} : { location }),
+        postMessageToIFrame(iframe, message, targetOrigin): boolean {
+            const targetWindow = iframe.contentWindow;
+            if (!targetWindow) {
+                return false;
+            }
+
+            /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron file:// iframes can have an opaque origin. The child bridge still validates event.source and local file origins before accepting FIT payloads. */
+            targetWindow.postMessage(message, targetOrigin);
+            /* eslint-enable sdl/no-postmessage-without-origin-allowlist */
+            return true;
+        },
     };
 }

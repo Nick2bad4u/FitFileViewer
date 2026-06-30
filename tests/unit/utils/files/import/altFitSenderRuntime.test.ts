@@ -13,6 +13,7 @@ function createAltFitSenderRuntimeScope(
         getAbortController: () => undefined,
         getConsole: () => undefined,
         getDocument: () => undefined,
+        getHTMLIFrameElement: () => undefined,
         getLocation: () => undefined,
         ...overrides,
     };
@@ -21,6 +22,7 @@ function createAltFitSenderRuntimeScope(
 describe("altFitSenderRuntime", () => {
     afterEach(() => {
         vi.unstubAllGlobals();
+        document.body.replaceChildren();
     });
 
     it("creates abort controllers through the injected runtime scope", () => {
@@ -70,7 +72,7 @@ describe("altFitSenderRuntime", () => {
     });
 
     it("centralizes default DOM, logging, and location dependencies", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const iframe = document.createElement("iframe");
         iframe.id = "altfit-iframe";
@@ -90,6 +92,7 @@ describe("altFitSenderRuntime", () => {
             createAltFitSenderRuntimeScope({
                 getConsole: () => logger,
                 getDocument: () => ({ getElementById }),
+                getHTMLIFrameElement: () => HTMLIFrameElement,
                 getLocation: () => location,
             })
         );
@@ -97,10 +100,11 @@ describe("altFitSenderRuntime", () => {
         expect(runtime.console).toBe(logger);
         expect(runtime.location).toBe(location);
         expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
+        expect(runtime.isIFrameElement(iframe)).toBe(true);
     });
 
     it("uses browser runtime providers for production document and location defaults", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const iframe = document.createElement("iframe");
         iframe.id = "altfit-iframe";
@@ -120,10 +124,11 @@ describe("altFitSenderRuntime", () => {
             protocol: "app:",
         });
         expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
+        expect(runtime.isIFrameElement(iframe)).toBe(true);
     });
 
     it("routes default dependencies through provider functions", () => {
-        expect.assertions(10);
+        expect.assertions(13);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -150,6 +155,7 @@ describe("altFitSenderRuntime", () => {
         );
         const getConsole = vi.fn(() => logger);
         const getDocument = vi.fn(() => ({ getElementById }));
+        const getHTMLIFrameElement = vi.fn(() => HTMLIFrameElement);
         const getLocation = vi.fn(() => location);
 
         const runtime = getAltFitSenderRuntimeEnvironment(
@@ -157,6 +163,7 @@ describe("altFitSenderRuntime", () => {
                 getAbortController,
                 getConsole,
                 getDocument,
+                getHTMLIFrameElement,
                 getLocation,
             })
         );
@@ -164,13 +171,61 @@ describe("altFitSenderRuntime", () => {
         expect(runtime.console).toBe(logger);
         expect(runtime.location).toBe(location);
         expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
+        expect(runtime.isIFrameElement(iframe)).toBe(true);
+        expect(runtime.isIFrameElement(document.createElement("div"))).toBe(
+            false
+        );
         expect(runtime.createAbortController()).toBe(controller);
         expect(getConsole).toHaveBeenCalledOnce();
         expect(getLocation).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledOnce();
+        expect(getHTMLIFrameElement).toHaveBeenCalledTimes(2);
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getElementById).toHaveBeenCalledWith("altfit-iframe");
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("posts iframe messages through the runtime boundary", () => {
+        expect.assertions(3);
+
+        const iframe = document.createElement("iframe");
+        document.body.append(iframe);
+        const postMessageSpy = vi
+            .spyOn(iframe.contentWindow as Window, "postMessage")
+            .mockImplementation(() => {});
+        const runtime = getAltFitSenderRuntimeEnvironment(
+            createAltFitSenderRuntimeScope({
+                getConsole: () => console,
+                getHTMLIFrameElement: () => HTMLIFrameElement,
+            })
+        );
+
+        const posted = runtime.postMessageToIFrame(
+            iframe,
+            { base64: "QQ==", type: "fit-file" },
+            "app://fit-file-viewer"
+        );
+
+        expect(posted).toBe(true);
+        expect(postMessageSpy).toHaveBeenCalledExactlyOnceWith(
+            { base64: "QQ==", type: "fit-file" },
+            "app://fit-file-viewer"
+        );
+        expect(runtime.isIFrameElement(iframe)).toBe(true);
+    });
+
+    it("fails clearly when iframe constructor validation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getAltFitSenderRuntimeEnvironment(
+            createAltFitSenderRuntimeScope({
+                getConsole: () => console,
+            })
+        );
+
+        expect(() =>
+            runtime.isIFrameElement(document.createElement("iframe"))
+        ).toThrow("Alt FIT sender requires an HTMLIFrameElement runtime");
     });
 
     it("returns null for DOM lookups when the runtime document is unavailable", () => {
@@ -244,6 +299,7 @@ describe("altFitSenderRuntime", () => {
             document: { getElementById },
             getConsole: () => logger,
             getDocument: () => undefined,
+            getHTMLIFrameElement: () => undefined,
             getLocation: () => undefined,
             location,
         } as unknown as Parameters<

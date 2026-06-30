@@ -33,25 +33,23 @@ export function sendFitFileToAltFitReader(
         return;
     }
 
-    if (!(iframe instanceof HTMLIFrameElement)) {
+    if (!runtimeEnvironment.isIFrameElement(iframe)) {
         logger.warn("Alt FIT iframe target is not an iframe");
         return;
     }
 
-    const postToIframe = (): void => {
+    const postToIframe = (): boolean => {
         try {
-            if (iframe.contentWindow) {
-                const base64 = convertArrayBufferToBase64(arrayBuffer);
-                const targetOrigin = getTargetOrigin(location);
-                /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron file:// iframes can have an opaque origin. The child bridge still validates event.source and local file origins before accepting FIT payloads. */
-                iframe.contentWindow.postMessage(
-                    { base64, type: "fit-file" },
-                    targetOrigin
-                );
-                /* eslint-enable sdl/no-postmessage-without-origin-allowlist */
-            }
+            const base64 = convertArrayBufferToBase64(arrayBuffer);
+            const targetOrigin = getTargetOrigin(location);
+            return runtimeEnvironment.postMessageToIFrame(
+                iframe,
+                { base64, type: "fit-file" },
+                targetOrigin
+            );
         } catch (error) {
             logger.error("Error posting message to iframe:", error);
+            return false;
         }
     };
 
@@ -68,8 +66,7 @@ export function sendFitFileToAltFitReader(
         return;
     }
 
-    if (iframe.contentWindow && iframe.src) {
-        postToIframe();
+    if (iframe.src && postToIframe()) {
         return;
     }
 

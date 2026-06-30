@@ -22,6 +22,8 @@ export type BrowserHTMLCanvasElementConstructor =
     typeof globalThis.HTMLCanvasElement;
 export type BrowserHTMLInputElementConstructor =
     typeof globalThis.HTMLInputElement;
+export type BrowserHTMLIFrameElementConstructor =
+    typeof globalThis.HTMLIFrameElement;
 export type BrowserHTMLSelectElementConstructor =
     typeof globalThis.HTMLSelectElement;
 export type BrowserHTMLTextAreaElementConstructor =
@@ -355,6 +357,12 @@ export function getBrowserHTMLInputElement():
     | typeof globalThis.HTMLInputElement
     | undefined {
     return globalThis.HTMLInputElement;
+}
+
+export function getBrowserHTMLIFrameElement():
+    | typeof globalThis.HTMLIFrameElement
+    | undefined {
+    return globalThis.HTMLIFrameElement;
 }
 
 export function getBrowserHTMLSelectElement():
