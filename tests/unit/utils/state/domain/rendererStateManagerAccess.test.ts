@@ -23,15 +23,17 @@ describe("rendererStateManagerAccess", () => {
     });
 
     it("normalizes only complete state manager candidates", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const candidate = {
             getState: () => "summary",
             setState: () => undefined,
             subscribe: () => undefined,
         };
+        const arrayCandidate = Object.assign([], candidate);
 
         expect(toStateManagerAccess(candidate)).toEqual(candidate);
+        expect(toStateManagerAccess(arrayCandidate)).toBeUndefined();
         expect(
             toStateManagerAccess({ getState: () => "summary" })
         ).toBeUndefined();

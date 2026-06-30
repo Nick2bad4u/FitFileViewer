@@ -31,7 +31,11 @@ export type RendererStateManagerAccess = {
     subscribe: RendererStateSubscriber;
 };
 
-type RendererStateManagerCandidate = Partial<RendererStateManagerAccess>;
+type RendererStateManagerCandidate = Readonly<{
+    getState?: unknown;
+    setState?: unknown;
+    subscribe?: unknown;
+}>;
 
 export function getRendererCoreStateManager():
     | RendererStateManagerAccess
@@ -60,7 +64,11 @@ export function getRequiredRendererCoreStateManager(): RendererStateManagerAcces
 export function toRendererStateManagerAccess(
     candidate: unknown
 ): RendererStateManagerAccess | undefined {
-    if (candidate === null || typeof candidate !== "object") {
+    if (
+        candidate === null ||
+        typeof candidate !== "object" ||
+        Array.isArray(candidate)
+    ) {
         return undefined;
     }
 
@@ -70,6 +78,10 @@ export function toRendererStateManagerAccess(
     return typeof getState === "function" &&
         typeof setState === "function" &&
         typeof subscribe === "function"
-        ? { getState, setState, subscribe }
+        ? {
+              getState: getState as RendererStateGetter,
+              setState: setState as RendererStateSetter,
+              subscribe: subscribe as RendererStateSubscriber,
+          }
         : undefined;
 }

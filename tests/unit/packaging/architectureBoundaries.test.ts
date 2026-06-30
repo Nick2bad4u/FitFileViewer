@@ -6524,7 +6524,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state startup on explicit core-module dependencies", () => {
-        expect.assertions(31);
+        expect.assertions(34);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -6609,6 +6609,15 @@ describe("architecture boundaries", () => {
         expect(rendererStateManagerAccessSource).not.toContain("import * as");
         expect(rendererStateManagerAccessSource).toContain(
             "subscribeSingleton"
+        );
+        expect(rendererStateManagerAccessSource).toContain(
+            "type RendererStateManagerCandidate = Readonly<{"
+        );
+        expect(rendererStateManagerAccessSource).toContain(
+            "Array.isArray(candidate)"
+        );
+        expect(rendererStateManagerAccessSource).not.toContain(
+            "Partial<RendererStateManagerAccess>"
         );
         expect(stateStartupSource).toContain("subscribeToAppOpeningFile");
         expect(rendererEntrypointSource).not.toContain(
