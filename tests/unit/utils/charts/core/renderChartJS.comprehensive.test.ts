@@ -15,6 +15,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetChartListenerStateForTests } from "../../../../../electron-app/utils/charts/core/chartListenerState.js";
+import { createExportChartsWithState } from "../../../../../electron-app/utils/charts/core/renderChartExportState.js";
 
 type MockFn = (...args: unknown[]) => unknown;
 type VoidFn = (...args: unknown[]) => void;
@@ -1207,7 +1208,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
         });
 
         it("should export charts when available", async () => {
-            expect.assertions(3);
+            expect.assertions(4);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "charts.isRendered") return true;
                 return null;
@@ -1242,6 +1243,53 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
                 expect.objectContaining({
                     source: "exportChartsWithState",
                 })
+            );
+            await vi.waitFor(() => {
+                if (
+                    !mocks.showNotification.showNotification.mock.calls.some(
+                        ([message, type]) =>
+                            message === "Charts exported as PNG" &&
+                            type === "success"
+                    )
+                ) {
+                    throw new Error("Expected export success notification");
+                }
+            });
+            expect(mocks.showNotification.showNotification).toHaveBeenCalledWith(
+                "Charts exported as PNG",
+                "success"
+            );
+        });
+
+        it("should log rejected injected export notifications without failing export", async () => {
+            expect.assertions(2);
+
+            const consoleWarn = vi
+                .spyOn(console, "warn")
+                .mockImplementation(() => {});
+            const notifyError = new Error("notification unavailable");
+            const exportChartsWithState = createExportChartsWithState({
+                areChartsRendered: () => false,
+                getChartInstances: () => [],
+                notify: async () => {
+                    throw notifyError;
+                },
+                setExportingState: vi.fn(),
+            });
+
+            const exportSucceeded = await exportChartsWithState("png");
+
+            expect({ exportSucceeded }).toStrictEqual({
+                exportSucceeded: false,
+            });
+            await vi.waitFor(() => {
+                if (consoleWarn.mock.calls.length === 0) {
+                    throw new Error("Expected export notification warning");
+                }
+            });
+            expect(consoleWarn).toHaveBeenCalledWith(
+                "[ChartJS] Export notification failed:",
+                notifyError
             );
         });
     });

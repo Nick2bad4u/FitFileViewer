@@ -15247,7 +15247,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(215);
+        expect.assertions(219);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -15752,6 +15752,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartExportStateSource).toContain(
             "dependencies.setExportingState"
+        );
+        expect(renderChartExportStateSource).toContain(
+            "): Promise<void> | void;"
+        );
+        expect(renderChartExportStateSource).toContain(
+            "function scheduleExportNotification("
+        );
+        expect(renderChartExportStateSource).toContain(
+            "[ChartJS] Export notification failed:"
+        );
+        expect(renderChartExportStateSource).not.toContain(
+            '): unknown;\n    setExportingState'
         );
         expect(renderChartExportStateSource).not.toContain("ui.isExporting");
         expect(renderChartExportStateSource).not.toContain(

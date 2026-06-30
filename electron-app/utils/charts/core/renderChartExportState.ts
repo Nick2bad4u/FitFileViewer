@@ -7,7 +7,7 @@ interface CreateExportChartsWithStateDependencies {
     notify(
         message: string,
         type: "error" | "info" | "success" | "warning"
-    ): unknown;
+    ): Promise<void> | void;
     setExportingState(
         exporting: boolean,
         options?: RendererStateUpdateOptions
@@ -22,6 +22,18 @@ function getExportFormatLabel(format: unknown): string {
     }
 
     return String(format);
+}
+
+function scheduleExportNotification(
+    notify: CreateExportChartsWithStateDependencies["notify"],
+    message: string,
+    type: "success" | "warning"
+): void {
+    void Promise.resolve()
+        .then(() => notify(message, type))
+        .catch((error: unknown) => {
+            console.warn("[ChartJS] Export notification failed:", error);
+        });
 }
 
 /**
@@ -41,8 +53,10 @@ export function createExportChartsWithState(
         );
 
         if (!isRendered && instances.length === 0) {
-            void Promise.resolve().then(() =>
-                dependencies.notify("No charts available for export", "warning")
+            scheduleExportNotification(
+                dependencies.notify,
+                "No charts available for export",
+                "warning"
             );
             return Promise.resolve(false);
         }
@@ -57,11 +71,10 @@ export function createExportChartsWithState(
         }
 
         try {
-            void Promise.resolve().then(() =>
-                dependencies.notify(
-                    `Charts exported as ${getExportFormatLabel(format)}`,
-                    "success"
-                )
+            scheduleExportNotification(
+                dependencies.notify,
+                `Charts exported as ${getExportFormatLabel(format)}`,
+                "success"
             );
         } catch {
             // Export success should not depend on non-critical notifications.
