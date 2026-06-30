@@ -12,19 +12,28 @@ type RecentFilesInvokeChannel =
     import("../../shared/ipc").RecentFilesInvokeChannel;
 type RecentFilesListResponse =
     import("../../shared/ipc").RecentFilesListResponse;
-type RecentFilesResponsePayload =
-    import("../../shared/ipc").RecentFilesResponsePayload;
+type InvokeRequestArgs<Channel extends RecentFilesInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends RecentFilesInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 
 type BrowserWindowApi = MainWindowBrowserWindowApi<BrowserWindow>;
 
-type RegisterRecentFileIpcHandler = (
+type RegisterRecentFileIpcHandler<Channel extends RecentFilesInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type RegisterRecentFileIpcCallback = (
     event: unknown,
     ...args: unknown[]
-) => Promise<RecentFilesResponsePayload> | RecentFilesResponsePayload;
+) => unknown;
 
 type RegisterRecentFileIpcHandle = (
     channel: RecentFilesInvokeChannel,
-    handler: RegisterRecentFileIpcHandler
+    handler: RegisterRecentFileIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -70,21 +79,33 @@ export function registerRecentFileHandlers({
         return;
     }
 
-    registerIpcHandle("recentFiles:get", (): RecentFilesListResponse => {
-        try {
-            // Important: This handler is intentionally side-effect free.
-            // Do NOT seed file read approvals here, otherwise a compromised renderer can
-            // escalate immediately into reading *all* persisted recent paths.
-            return sanitizeRecentFilesList(loadRecentFiles());
-        } catch (error) {
-            logWithContext?.("error", "Error in recentFiles:get:", {
-                error: getErrorMessage(error),
-            });
-            throw error;
-        }
-    });
+    const registerRecentFileIpcHandle = <
+        Channel extends RecentFilesInvokeChannel,
+    >(
+        channel: Channel,
+        handler: RegisterRecentFileIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as RegisterRecentFileIpcCallback);
+    };
 
-    registerIpcHandle(
+    registerRecentFileIpcHandle(
+        "recentFiles:get",
+        (): RecentFilesListResponse => {
+            try {
+                // Important: This handler is intentionally side-effect free.
+                // Do NOT seed file read approvals here, otherwise a compromised renderer can
+                // escalate immediately into reading *all* persisted recent paths.
+                return sanitizeRecentFilesList(loadRecentFiles());
+            } catch (error) {
+                logWithContext?.("error", "Error in recentFiles:get:", {
+                    error: getErrorMessage(error),
+                });
+                throw error;
+            }
+        }
+    );
+
+    registerRecentFileIpcHandle(
         "recentFiles:add",
         async (_event, filePath): Promise<RecentFilesListResponse> => {
             try {
