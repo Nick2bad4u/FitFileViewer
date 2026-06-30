@@ -35720,7 +35720,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(126);
+        expect.assertions(132);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -35729,6 +35729,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/renderer/rendererVendorMapRuntime.ts"
             )
+        );
+        const vendorBundleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorBundleLoader.ts")
         );
         const leafletRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
@@ -35937,6 +35940,16 @@ describe("architecture boundaries", () => {
             "LeafletRuntimeTimeoutHandle = BrowserTimerHandle"
         );
         expect(leafletRuntimeSource).toContain(
+            "registeredRuntime?: RegisteredLeafletRuntime;"
+        );
+        expect(leafletRuntimeSource).toContain(
+            "registerLeafletRuntime(runtime: RegisteredLeafletRuntime)"
+        );
+        expect(leafletRuntimeSource).toContain("runtime?: unknown;");
+        expect(leafletRuntimeSource).toContain(
+            "leafletRuntimeRegistry.registeredRuntime"
+        );
+        expect(leafletRuntimeSource).toContain(
             "type LeafletRuntimeEnvironmentProvider"
         );
         expect(leafletRuntimeSource).toContain("function getRequiredProvider");
@@ -35996,6 +36009,8 @@ describe("architecture boundaries", () => {
         expect(leafletRuntimeSource).toContain(
             "leafletRuntime requires ${providerLabel} provider"
         );
+        expect(vendorBundleLoaderSource).toContain("registerLeafletRuntime");
+        expect(vendorBundleLoaderSource).not.toContain("setLeafletRuntime");
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
         expect(vendorMapEntry).not.toContain(
             "installLeafletPluginCompatibilityGlobal"

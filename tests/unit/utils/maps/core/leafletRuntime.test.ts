@@ -3,8 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     clearLeafletRuntimeForTests,
     getLeafletRuntimeEnvironment,
+    registerLeafletRuntime,
     type LeafletRuntimeEnvironmentScope,
     type LeafletRuntimeTimeoutHandle,
+    type RegisteredLeafletRuntime,
     resolveLeafletRuntime,
     setLeafletRuntime,
     waitForLeafletRuntime,
@@ -39,6 +41,31 @@ afterEach(() => {
 });
 
 describe("leafletRuntime", () => {
+    function createRegisteredLeafletRuntime(): RegisteredLeafletRuntime {
+        class Layer {}
+
+        return {
+            control: {},
+            Layer,
+            map: () => undefined,
+            tileLayer: () => undefined,
+        };
+    }
+
+    it("registers a typed Leaflet runtime after vendor payload validation", () => {
+        expect.assertions(1);
+
+        const runtime = createRegisteredLeafletRuntime();
+
+        registerLeafletRuntime(runtime);
+
+        expect(
+            resolveLeafletRuntime(
+                (value): value is typeof runtime => value === runtime
+            )
+        ).toBe(runtime);
+    });
+
     it("resolves an explicitly registered runtime", () => {
         expect.assertions(1);
 

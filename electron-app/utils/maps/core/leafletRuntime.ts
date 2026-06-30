@@ -6,6 +6,7 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 type LeafletRuntimeRegistry = {
+    registeredRuntime?: RegisteredLeafletRuntime;
     runtime?: unknown;
 };
 
@@ -66,6 +67,10 @@ export function setLeafletRuntime(runtime: unknown): void {
     leafletRuntimeRegistry.runtime = runtime;
 }
 
+export function registerLeafletRuntime(runtime: RegisteredLeafletRuntime): void {
+    leafletRuntimeRegistry.registeredRuntime = runtime;
+}
+
 export function isRegisteredLeafletRuntime(
     value: unknown
 ): value is RegisteredLeafletRuntime {
@@ -82,7 +87,8 @@ export function isRegisteredLeafletRuntime(
 }
 
 export function clearLeafletRuntimeForTests(): void {
-    leafletRuntimeRegistry.runtime = undefined;
+    delete leafletRuntimeRegistry.registeredRuntime;
+    delete leafletRuntimeRegistry.runtime;
 }
 
 export function resolveLeafletRuntime<T>(
@@ -150,7 +156,10 @@ export function getLeafletRuntimeEnvironment(
 }
 
 function getLeafletRuntimeCandidates(): unknown[] {
-    return [leafletRuntimeRegistry.runtime];
+    return [
+        leafletRuntimeRegistry.registeredRuntime,
+        leafletRuntimeRegistry.runtime,
+    ].filter((runtime) => runtime !== undefined);
 }
 
 function hasControlProperty(value: object): boolean {

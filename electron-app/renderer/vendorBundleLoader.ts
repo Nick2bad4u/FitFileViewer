@@ -32,7 +32,7 @@ import {
 } from "../utils/files/export/exportZipRuntime.js";
 import {
     isRegisteredLeafletRuntime,
-    setLeafletRuntime,
+    registerLeafletRuntime,
 } from "../utils/maps/core/leafletRuntime.js";
 import {
     isArqueroRuntime,
@@ -137,7 +137,7 @@ function registerMapRuntimePayload(
         return false;
     }
 
-    setLeafletRuntime(payload.leafletRuntime);
+    registerLeafletRuntime(payload.leafletRuntime);
     return true;
 }
 
