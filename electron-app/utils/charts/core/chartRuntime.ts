@@ -30,6 +30,14 @@ export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
     }
 }
 
+export function registerChartRuntime(
+    runtime: RegisteredChartRuntime,
+    zoomPlugin: RegisteredChartZoomPlugin
+): void {
+    chartRuntimeRegistry.runtime = runtime;
+    chartRuntimeRegistry.zoomPlugin = zoomPlugin;
+}
+
 export function clearChartRuntimeForTests(): void {
     delete chartRuntimeRegistry.runtime;
     delete chartRuntimeRegistry.zoomPlugin;

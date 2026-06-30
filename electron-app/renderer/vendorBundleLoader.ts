@@ -20,7 +20,7 @@ import {
 import {
     isRegisteredChartRuntime,
     isRegisteredChartZoomPlugin,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../utils/charts/core/chartRuntime.js";
 import {
     isDomPurifyRuntime,
@@ -102,7 +102,7 @@ function registerChartDataRuntimePayload(
         return false;
     }
 
-    setChartRuntime(payload.chartRuntime, payload.chartZoomPlugin);
+    registerChartRuntime(payload.chartRuntime, payload.chartZoomPlugin);
     setDataTableRuntime(payload.dataTableRuntime);
     return true;
 }

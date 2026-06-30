@@ -4,6 +4,9 @@ import {
     clearChartRuntimeForTests,
     isRegisteredChartRuntime,
     isRegisteredChartZoomPlugin,
+    registerChartRuntime,
+    type RegisteredChartRuntime,
+    type RegisteredChartZoomPlugin,
     resolveChartRuntime,
     resolveChartZoomPlugin,
     setChartRuntime,
@@ -22,11 +25,31 @@ describe("chartRuntime", () => {
         clearChartRuntimeForTests();
     });
 
+    function createChartRuntime(): RegisteredChartRuntime {
+        return { register() {} };
+    }
+
+    function createChartZoomPlugin(): RegisteredChartZoomPlugin {
+        return { id: "zoom" };
+    }
+
+    it("registers typed Chart.js runtime payloads after vendor validation", () => {
+        expect.assertions(2);
+
+        const runtime = createChartRuntime();
+        const zoomPlugin = createChartZoomPlugin();
+
+        registerChartRuntime(runtime, zoomPlugin);
+
+        expect(resolveChartRuntime(isRuntime)).toBe(runtime);
+        expect(resolveChartZoomPlugin()).toBe(zoomPlugin);
+    });
+
     it("resolves the registered Chart.js runtime and zoom plugin", () => {
         expect.assertions(2);
 
-        const runtime = { register() {} };
-        const zoomPlugin = { id: "zoom" };
+        const runtime = createChartRuntime();
+        const zoomPlugin = createChartZoomPlugin();
 
         setChartRuntime(runtime, zoomPlugin);
 
@@ -37,8 +60,8 @@ describe("chartRuntime", () => {
     it("clears the module-local runtime adapter", () => {
         expect.assertions(2);
 
-        const runtime = { register() {} };
-        const zoomPlugin = { id: "zoom" };
+        const runtime = createChartRuntime();
+        const zoomPlugin = createChartZoomPlugin();
         setChartRuntime(runtime, zoomPlugin);
 
         clearChartRuntimeForTests();
