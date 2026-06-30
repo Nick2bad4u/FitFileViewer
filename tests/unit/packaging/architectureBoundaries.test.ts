@@ -39247,4 +39247,36 @@ describe("architecture boundaries", () => {
             "handleThemeChanged(eventLike, theme)"
         );
     });
+
+    it("keeps fit-file-loaded IPC on a validated event callback", () => {
+        expect.assertions(7);
+
+        const registerFitFileLoadedHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerFitFileLoadedHandlers.ts"
+            )
+        );
+
+        expect(registerFitFileLoadedHandlersSource).toContain(
+            "type FitFileLoadedIpcCallback = ("
+        );
+        expect(registerFitFileLoadedHandlersSource).toContain(
+            "function toIpcEventLike(event: unknown): IpcEventLike | null"
+        );
+        expect(registerFitFileLoadedHandlersSource).toContain(
+            "const handleFitFileLoaded: FitFileLoadedIpcCallback = async"
+        );
+        expect(registerFitFileLoadedHandlersSource).toContain(
+            "handleFitFileLoaded(eventLike, filePath)"
+        );
+        expect(registerFitFileLoadedHandlersSource).not.toContain(
+            "listener: (event: unknown, ...args: unknown[]) => unknown"
+        );
+        expect(registerFitFileLoadedHandlersSource).not.toContain(
+            "event as { sender: unknown }"
+        );
+        expect(registerFitFileLoadedHandlersSource).not.toContain(
+            "event as IpcEventLike"
+        );
+    });
 });

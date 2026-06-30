@@ -6,9 +6,18 @@ interface BrowserWindowConstructorLike {
     fromWebContents: (webContents: unknown) => BrowserWindow | null;
 }
 
+interface IpcEventLike {
+    sender: unknown;
+}
+
+type MainProcessIpcListener = (event: unknown, ...args: unknown[]) => unknown;
+type FitFileLoadedIpcCallback = (
+    event: IpcEventLike,
+    filePath: unknown
+) => Promise<void>;
 type RegisterFitFileLoadedIpcListener = (
     channel: MainProcessIpcEventChannel,
-    listener: (event: unknown, ...args: unknown[]) => unknown
+    listener: MainProcessIpcListener
 ) => void;
 
 type LogWithContext = (
@@ -35,6 +44,12 @@ interface RegisterFitFileLoadedHandlersOptions {
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
+function toIpcEventLike(event: unknown): IpcEventLike | null {
+    return event && typeof event === "object" && "sender" in event
+        ? { sender: event.sender }
+        : null;
+}
+
 /**
  * Registers IPC listeners for confirmed renderer FIT-file load state.
  */
@@ -52,7 +67,10 @@ export function registerFitFileLoadedHandlers({
         return;
     }
 
-    registerIpcListener("fit-file-loaded", async (event, filePath) => {
+    const handleFitFileLoaded: FitFileLoadedIpcCallback = async (
+        event,
+        filePath
+    ) => {
         if (
             filePath === null ||
             filePath === undefined ||
@@ -77,9 +95,7 @@ export function registerFitFileLoadedHandlers({
             }
         }
 
-        const win = browserWindowRef().fromWebContents(
-            (event as { sender: unknown }).sender
-        );
+        const win = browserWindowRef().fromWebContents(event.sender);
         if (win) {
             try {
                 const theme = await getPersistedThemePreference();
@@ -94,5 +110,12 @@ export function registerFitFileLoadedHandlers({
                 );
             }
         }
+    };
+
+    registerIpcListener("fit-file-loaded", (event, filePath) => {
+        const eventLike = toIpcEventLike(event);
+        return eventLike
+            ? handleFitFileLoaded(eventLike, filePath)
+            : undefined;
     });
 }

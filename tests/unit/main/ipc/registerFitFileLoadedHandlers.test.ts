@@ -155,6 +155,18 @@ describe("registerFitFileLoadedHandlers", () => {
         ]);
     });
 
+    it("ignores malformed IPC events before mutating loaded state", async () => {
+        expect.assertions(3);
+
+        registerDefaultHandlers();
+
+        await getListener()(null, "C:/approved.fit");
+
+        expect(loadedFitFilePath).toBe("C:/previous.fit");
+        expect(menuCalls).toStrictEqual([]);
+        expect(logs).toStrictEqual([]);
+    });
+
     it("logs menu refresh failures after updating loaded state", async () => {
         expect.assertions(3);
 
