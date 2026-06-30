@@ -6,15 +6,21 @@ type FitParserModule = Pick<
     "decodeFitFile"
 >;
 type FitFileInvokeChannel = import("../../shared/ipc").FitFileInvokeChannel;
-type FitFileResponsePayload = import("../../shared/ipc").FitFileResponsePayload;
+type InvokeRequestArgs<Channel extends FitFileInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends FitFileInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+
 type FitFileIpcHandler = (
     event: unknown,
-    arrayBuffer: unknown
-) => Promise<FitFileResponsePayload>;
+    ...args: InvokeRequestArgs<FitFileInvokeChannel>
+) => Promise<InvokeResponsePayloadForChannel<FitFileInvokeChannel>>;
+
+type FitFileIpcCallback = (event: unknown, ...args: unknown[]) => unknown;
 
 type RegisterIpcHandle = (
     channel: FitFileInvokeChannel,
-    handler: FitFileIpcHandler
+    handler: FitFileIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -43,8 +49,15 @@ export function registerFitFileHandlers({
         return;
     }
 
+    const registerFitFileIpcHandle = (
+        channel: FitFileInvokeChannel,
+        handler: FitFileIpcHandler
+    ): void => {
+        registerIpcHandle(channel, handler as FitFileIpcCallback);
+    };
+
     const registerHandler = (channel: FitFileInvokeChannel): void => {
-        registerIpcHandle(channel, async (_event, arrayBuffer) => {
+        registerFitFileIpcHandle(channel, async (_event, arrayBuffer) => {
             try {
                 await ensureFitParserStateIntegration();
                 const buffer = normalizeFitIpcPayloadToBuffer(arrayBuffer);
