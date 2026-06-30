@@ -1,5 +1,6 @@
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 import type { AppActions } from "../utils/app/lifecycle/appActions.js";
+import type { UIStateManager } from "../utils/state/domain/uiStateManager.js";
 import {
     isRendererDebugLoggingEnabled,
     setRendererDebugLoggingEnabled,
@@ -57,8 +58,10 @@ type RendererDevelopmentDebugAppActions = Readonly<{
 }>;
 export type RendererDevelopmentDebugStateModules = {
     readonly AppActions?: RendererDevelopmentDebugAppActions | undefined;
-    readonly masterStateManager?: unknown;
-    readonly uiStateManager?: unknown;
+    readonly masterStateManager?:
+        | RendererDevelopmentDebugStateManager
+        | undefined;
+    readonly uiStateManager?: UIStateManager | undefined;
 };
 type RendererSensorDebugUtilities = Readonly<{
     readonly checkDataAvailability: typeof import("../utils/debug/debugSensorInfo.js").checkDataAvailability;
@@ -106,8 +109,10 @@ type RendererDevToolsView = {
     PerformanceMonitor: RendererPerformanceMonitor;
     reinitialize: () => Promise<void>;
     sensorDebug?: RendererSensorDebugUtilities;
-    readonly stateManager: Promise<unknown>;
-    uiStateManager?: unknown;
+    readonly stateManager: Promise<
+        RendererDevelopmentDebugStateManager | undefined
+    >;
+    uiStateManager?: UIStateManager;
     validateDOM: () => boolean;
 };
 type RendererDevelopmentDebugTools = {
@@ -263,7 +268,7 @@ async function callDebugCoreFunction(
 
 async function getRendererStateManagerForDev(
     options: RendererDevelopmentDebugToolsOptions
-): Promise<unknown> {
+): Promise<RendererDevelopmentDebugStateManager | undefined> {
     try {
         return options.stateModules.masterStateManager;
     } catch {

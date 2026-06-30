@@ -6700,7 +6700,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(55);
+        expect.assertions(58);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -6716,6 +6716,9 @@ describe("architecture boundaries", () => {
 
         expect(developmentDebugToolsSource).not.toContain(
             'from "./coreModuleResolution.js"'
+        );
+        expect(developmentDebugToolsSource).toContain(
+            'import type { UIStateManager } from "../utils/state/domain/uiStateManager.js";'
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDebugCoreFunction = (...args: unknown[]) => unknown;"
@@ -6806,9 +6809,15 @@ describe("architecture boundaries", () => {
             '"showUpdateNotification"'
         );
         expect(developmentDebugToolsSource).toContain(
-            "readonly masterStateManager?: unknown;"
+            "readonly masterStateManager?:\n        | RendererDevelopmentDebugStateManager\n        | undefined;"
         );
         expect(developmentDebugToolsSource).toContain(
+            "readonly uiStateManager?: UIStateManager | undefined;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "readonly masterStateManager?: unknown;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
             "readonly uiStateManager?: unknown;"
         );
         expect(developmentDebugToolsSource).not.toContain(

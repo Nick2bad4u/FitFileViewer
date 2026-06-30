@@ -18,6 +18,7 @@ import {
     isChartVerboseDebugLoggingEnabled,
     resetChartDebugStateForTests,
 } from "../../../electron-app/utils/charts/core/chartDebugState.js";
+import { uiStateManager } from "../../../electron-app/utils/state/domain/uiStateManager.js";
 
 vi.mock("../../../electron-app/utils/debug/debugSensorInfo.js", () => ({
     checkDataAvailability: vi.fn(),
@@ -121,7 +122,7 @@ describe("renderer development debug tools", () => {
             stateModules: {
                 AppActions: { setInitialized: vi.fn() },
                 masterStateManager,
-                uiStateManager: { ready: true },
+                uiStateManager,
             },
             initializeApplication: async () => {},
             isDevelopmentMode: () => true,
@@ -147,8 +148,8 @@ describe("renderer development debug tools", () => {
             getPerformanceMetrics: () => Record<string, number>;
             getState: () => Promise<unknown>;
             sensorDebug?: RendererSensorDebugTestUtilities;
-            stateManager: Promise<unknown>;
-            uiStateManager?: unknown;
+            stateManager: Promise<typeof masterStateManager | undefined>;
+            uiStateManager?: typeof uiStateManager;
         };
 
         await expect(rendererDebug.handleOpenFile("fit-file")).resolves.toBe(
@@ -213,7 +214,7 @@ describe("renderer development debug tools", () => {
                     getHistory: "not history",
                     getState: "not state",
                     getSubscriptions: "not subscriptions",
-                },
+                } as never,
             },
             initializeApplication: async () => {},
             isDevelopmentMode: () => true,
@@ -247,7 +248,7 @@ describe("renderer development debug tools", () => {
             cleanup: vi.fn(),
             debugFunctions: {},
             stateModules: {
-                masterStateManager: arrayStateManager,
+                masterStateManager: arrayStateManager as never,
             },
             initializeApplication: async () => {},
             isDevelopmentMode: () => true,
