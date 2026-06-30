@@ -2,8 +2,10 @@ import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
     clearLeafletRuntimeForTests,
-    setLeafletRuntime,
+    isRegisteredLeafletRuntime,
+    registerLeafletRuntime,
 } from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import { createRegisteredLeafletRuntime } from "../../../../fixtures/leafletRuntime.js";
 import {
     getRegisteredLeafletMapInstance,
     resetRegisteredLeafletMapInstanceForTests,
@@ -168,10 +170,12 @@ vi.mock(
     import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js"),
     async (orig) => {
         // We defer to actual implementation but ensure it sees a stubbed Leaflet adapter with tileLayer/maplibreGL.
-        setLeafletRuntime({
-            maplibreGL: vi.fn<() => Record<string, never>>(() => ({})),
-            tileLayer: vi.fn<() => Record<string, never>>(() => ({})),
-        } satisfies BaseLayerLeafletStub);
+        registerLeafletRuntime(
+            createRegisteredLeafletRuntime({
+                maplibreGL: vi.fn<() => Record<string, never>>(() => ({})),
+                tileLayer: vi.fn<() => Record<string, never>>(() => ({})),
+            } satisfies BaseLayerLeafletStub)
+        );
         return await (orig as any)();
     }
 );
@@ -349,16 +353,16 @@ describe("renderMap core", () => {
     });
 
     it("rejects array-shaped Leaflet runtime candidates", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const { L } = makeLeafletStub();
         const malformedRuntime = Object.assign([], L);
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        setLeafletRuntime(malformedRuntime);
 
         const { renderMap } = await importSUT();
         renderMap();
 
+        expect(isRegisteredLeafletRuntime(malformedRuntime)).toBe(false);
         expect(L.map).not.toHaveBeenCalled();
         expect(document.getElementById("leaflet-map")).toBeNull();
         expect(warnSpy).toHaveBeenCalledWith(
@@ -370,7 +374,7 @@ describe("renderMap core", () => {
         expect.assertions(12);
 
         const { L, map, handlers } = makeLeafletStub();
-        setLeafletRuntime(L);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(L));
 
         const { renderMap } = await importSUT();
         renderMap();
@@ -450,7 +454,7 @@ describe("renderMap core", () => {
         expect.assertions(3);
 
         const { L, handlers } = makeLeafletStub();
-        setLeafletRuntime(L);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(L));
 
         const { renderMap } = await importSUT();
         renderMap();
@@ -472,7 +476,7 @@ describe("renderMap core", () => {
         expect.assertions(3);
 
         const { L, map } = makeLeafletStub();
-        setLeafletRuntime(L);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(L));
         const { renderMap } = await importSUT();
 
         const container = document.getElementById("content-map")!;
@@ -495,7 +499,7 @@ describe("renderMap core", () => {
         expect.assertions(6);
 
         const { L } = makeLeafletStub();
-        setLeafletRuntime(L);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(L));
         const data = {
             recordMesgs: [{ enhancedSpeed: 6, timestamp: 1 }],
             sessionMesgs: [{ sport: "cycling" }],

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { createRegisteredLeafletRuntime } from "../../../../fixtures/leafletRuntime.js";
+
 async function loadLeafletRuntime() {
     return import("../../../../../electron-app/utils/maps/core/leafletRuntime.js");
 }
@@ -85,9 +87,9 @@ describe("mapBaseLayers", () => {
         const leaflet = {
             tileLayer: vi.fn<() => MockLayer>(() => rasterLayer),
         };
-        const { setLeafletRuntime } = await loadLeafletRuntime();
+        const { registerLeafletRuntime } = await loadLeafletRuntime();
         const { setMapLibreLayerFactory } = await loadMapLibreLayerRuntime();
-        setLeafletRuntime(leaflet);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(leaflet));
         setMapLibreLayerFactory(mapLibreLayerFactory);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
@@ -109,17 +111,13 @@ describe("mapBaseLayers", () => {
         });
     });
 
-    it("falls back to the shim when the registered runtime lacks tileLayer", async () => {
+    it("falls back to the shim when Leaflet is still unavailable", async () => {
         expect.assertions(3);
 
         const mapLibreLayerFactory = vi.fn<() => MockLayer>(() => ({
             kind: "unused",
         }));
-        const { setLeafletRuntime } = await loadLeafletRuntime();
         const { setMapLibreLayerFactory } = await loadMapLibreLayerRuntime();
-        setLeafletRuntime({
-            tileLayer: "not-a-function",
-        });
         setMapLibreLayerFactory(mapLibreLayerFactory);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");

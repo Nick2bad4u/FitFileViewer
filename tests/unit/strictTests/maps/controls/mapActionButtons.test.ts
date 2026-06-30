@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createRegisteredLeafletRuntime } from "../../../../fixtures/leafletRuntime.js";
+
 async function loadLeafletRuntime() {
     return import("../../../../../electron-app/utils/maps/core/leafletRuntime.js");
 }
@@ -201,8 +203,10 @@ describe("mapActionButtons", () => {
         const bringToFrontMarker = vi.fn<VoidFn>();
         const skipMarker = vi.fn<VoidFn>();
         const CircleMarker = function (this: any) {} as any;
-        const { setLeafletRuntime } = await loadLeafletRuntime();
-        setLeafletRuntime({ CircleMarker });
+        const { registerLeafletRuntime } = await loadLeafletRuntime();
+        registerLeafletRuntime(
+            createRegisteredLeafletRuntime({ CircleMarker })
+        );
         const polylineElement = document.createElement("div");
         const matchingMarker = Object.assign(new CircleMarker(), {
             bringToFront: bringToFrontMarker,

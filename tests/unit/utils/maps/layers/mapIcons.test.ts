@@ -2,6 +2,8 @@ import type { DivIconOptions } from "leaflet";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { createRegisteredLeafletRuntime } from "../../../../fixtures/leafletRuntime.js";
+
 async function loadLeafletRuntime() {
     return import("../../../../../electron-app/utils/maps/core/leafletRuntime.js");
 }
@@ -16,10 +18,12 @@ describe("map marker icons", () => {
 
         try {
             vi.resetModules();
-            const { setLeafletRuntime } = await loadLeafletRuntime();
-            setLeafletRuntime({
-                divIcon,
-            });
+            const { registerLeafletRuntime } = await loadLeafletRuntime();
+            registerLeafletRuntime(
+                createRegisteredLeafletRuntime({
+                    divIcon,
+                })
+            );
 
             const { createEndIcon, createStartIcon } =
                 await import("../../../../../electron-app/utils/maps/layers/mapIcons.js");
@@ -74,7 +78,7 @@ describe("map marker icons", () => {
 
         try {
             vi.resetModules();
-            const { clearLeafletRuntimeForTests, setLeafletRuntime } =
+            const { clearLeafletRuntimeForTests, registerLeafletRuntime } =
                 await loadLeafletRuntime();
             clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
@@ -82,9 +86,11 @@ describe("map marker icons", () => {
             const { createStartIcon } =
                 await import("../../../../../electron-app/utils/maps/layers/mapIcons.js");
 
-            setLeafletRuntime({
-                divIcon,
-            });
+            registerLeafletRuntime(
+                createRegisteredLeafletRuntime({
+                    divIcon,
+                })
+            );
 
             expect(createStartIcon()).toStrictEqual({
                 options: {

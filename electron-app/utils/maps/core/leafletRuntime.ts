@@ -7,7 +7,6 @@ import {
 
 type LeafletRuntimeRegistry = {
     registeredRuntime?: RegisteredLeafletRuntime;
-    runtime?: unknown;
 };
 
 type LeafletControlFactory =
@@ -20,7 +19,8 @@ export type RegisteredLeafletRuntime = Readonly<{
     Layer: LeafletLayerConstructor;
     map: (...args: never[]) => unknown;
     tileLayer: (...args: never[]) => unknown;
-}>;
+}> &
+    Readonly<Record<string, unknown>>;
 
 type LeafletRuntimeCandidate = Readonly<{
     control?: unknown;
@@ -63,10 +63,6 @@ const defaultLeafletRuntimeEnvironmentScope: LeafletRuntimeEnvironmentScope = {
     getSetTimeout: getBrowserSetTimeout,
 };
 
-export function setLeafletRuntime(runtime: unknown): void {
-    leafletRuntimeRegistry.runtime = runtime;
-}
-
 export function registerLeafletRuntime(runtime: RegisteredLeafletRuntime): void {
     leafletRuntimeRegistry.registeredRuntime = runtime;
 }
@@ -88,7 +84,6 @@ export function isRegisteredLeafletRuntime(
 
 export function clearLeafletRuntimeForTests(): void {
     delete leafletRuntimeRegistry.registeredRuntime;
-    delete leafletRuntimeRegistry.runtime;
 }
 
 export function resolveLeafletRuntime<T>(
@@ -156,10 +151,9 @@ export function getLeafletRuntimeEnvironment(
 }
 
 function getLeafletRuntimeCandidates(): unknown[] {
-    return [
-        leafletRuntimeRegistry.registeredRuntime,
-        leafletRuntimeRegistry.runtime,
-    ].filter((runtime) => runtime !== undefined);
+    return [leafletRuntimeRegistry.registeredRuntime].filter(
+        (runtime) => runtime !== undefined
+    );
 }
 
 function hasControlProperty(value: object): boolean {

@@ -3,8 +3,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     clearLeafletRuntimeForTests,
-    setLeafletRuntime,
+    registerLeafletRuntime,
 } from "../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import { createRegisteredLeafletRuntime } from "../../../fixtures/leafletRuntime.js";
 import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import {
     __resetStateManagerForTests,
@@ -184,7 +185,7 @@ describe("mapDrawLaps", () => {
             latLngBounds: mockFn().mockReturnValue(mockLatLngBounds),
         };
 
-        setLeafletRuntime(mockLeaflet);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(mockLeaflet));
 
         // Create mock functions
         mockGetLapColor = mockFn().mockReturnValue("#1976d2");

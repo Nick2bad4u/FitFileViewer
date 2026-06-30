@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { createRegisteredLeafletRuntime } from "../../../fixtures/leafletRuntime.js";
+
 async function loadLeafletRuntime() {
     return import("../../../../electron-app/utils/maps/core/leafletRuntime.js");
 }
@@ -49,13 +51,13 @@ async function importBaseLayersWithLeaflet(
     mapLibreLayerFactory?: MockMaplibreFactory
 ) {
     vi.resetModules();
-    const { clearLeafletRuntimeForTests, setLeafletRuntime } =
+    const { clearLeafletRuntimeForTests, registerLeafletRuntime } =
         await loadLeafletRuntime();
     const { clearMapLibreLayerFactoryForTests, setMapLibreLayerFactory } =
         await loadMapLibreLayerRuntime();
     clearLeafletRuntimeForTests();
     clearMapLibreLayerFactoryForTests();
-    setLeafletRuntime(leaflet);
+    registerLeafletRuntime(createRegisteredLeafletRuntime(leaflet));
     setMapLibreLayerFactory(mapLibreLayerFactory);
 
     return import("../../../../electron-app/utils/maps/layers/mapBaseLayers.js");

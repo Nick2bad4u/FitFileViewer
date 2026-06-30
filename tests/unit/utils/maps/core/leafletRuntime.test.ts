@@ -3,14 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     clearLeafletRuntimeForTests,
     getLeafletRuntimeEnvironment,
+    isRegisteredLeafletRuntime,
     registerLeafletRuntime,
     type LeafletRuntimeEnvironmentScope,
     type LeafletRuntimeTimeoutHandle,
     type RegisteredLeafletRuntime,
     resolveLeafletRuntime,
-    setLeafletRuntime,
     waitForLeafletRuntime,
 } from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import { createRegisteredLeafletRuntime as createRegisteredLeafletRuntimeFixture } from "../../../../fixtures/leafletRuntime.js";
 
 type TestLeafletRuntime = {
     divIcon: () => unknown;
@@ -69,9 +70,11 @@ describe("leafletRuntime", () => {
     it("resolves an explicitly registered runtime", () => {
         expect.assertions(1);
 
-        const registeredRuntime = { divIcon: () => "registered" };
+        const registeredRuntime = createRegisteredLeafletRuntimeFixture({
+            divIcon: () => "registered",
+        });
 
-        setLeafletRuntime(registeredRuntime);
+        registerLeafletRuntime(registeredRuntime);
 
         expect(resolveLeafletRuntime(isTestLeafletRuntime)).toBe(
             registeredRuntime
@@ -81,8 +84,10 @@ describe("leafletRuntime", () => {
     it("clears the module-local runtime adapter", () => {
         expect.assertions(1);
 
-        const runtime = { divIcon: () => "registered" };
-        setLeafletRuntime(runtime);
+        const runtime = createRegisteredLeafletRuntimeFixture({
+            divIcon: () => "registered",
+        });
+        registerLeafletRuntime(runtime);
 
         clearLeafletRuntimeForTests();
 
@@ -92,12 +97,14 @@ describe("leafletRuntime", () => {
     it("waits for a runtime through injected clock and polling providers", async () => {
         expect.assertions(4);
 
-        const runtime = { divIcon: () => "registered" };
+        const runtime = createRegisteredLeafletRuntimeFixture({
+            divIcon: () => "registered",
+        });
         let now = 0;
         const dateNow = vi.fn<() => number>(() => now);
         const waitForNextPoll = vi.fn<() => Promise<void>>(async () => {
             now += 20;
-            setLeafletRuntime(runtime);
+            registerLeafletRuntime(runtime);
         });
 
         const result = await waitForLeafletRuntime(isTestLeafletRuntime, 100, {
@@ -128,6 +135,15 @@ describe("leafletRuntime", () => {
         expect(result).toBeNull();
         expect(dateNow).toHaveBeenCalledTimes(5);
         expect(waitForNextPoll).toHaveBeenCalledTimes(3);
+    });
+
+    it("rejects invalid runtime payloads before registration", () => {
+        expect.assertions(2);
+
+        expect(isRegisteredLeafletRuntime({ tileLayer: () => undefined })).toBe(
+            false
+        );
+        expect(isRegisteredLeafletRuntime([])).toBe(false);
     });
 
     it("creates poll waits through injected timer providers", async () => {

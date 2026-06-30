@@ -11,8 +11,9 @@ import {
 import type { MapMeasureToolRuntime } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 import {
     clearLeafletRuntimeForTests,
-    setLeafletRuntime,
+    registerLeafletRuntime,
 } from "../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import { createRegisteredLeafletRuntime } from "../../../fixtures/leafletRuntime.js";
 
 describe("mapMeasureTool.js", () => {
     let mapDiv: HTMLElement;
@@ -95,7 +96,7 @@ describe("mapMeasureTool.js", () => {
                 return { className, html };
             }),
         };
-        setLeafletRuntime(mockLeaflet);
+        registerLeafletRuntime(createRegisteredLeafletRuntime(mockLeaflet));
 
         // Set up fake timers for setTimeout
         vi.useFakeTimers();
