@@ -20,7 +20,10 @@ import {
     updateRendererTableState,
 } from "../../state/domain/appActionsState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
-import { fitFileStateManager } from "../../state/domain/fitFileState.js";
+import {
+    fitFileStateManager,
+    type RawFitData,
+} from "../../state/domain/fitFileState.js";
 import {
     getRendererCurrentFile,
     setRendererCurrentFile,
@@ -68,26 +71,10 @@ type TableConfig = {
     isRendered?: boolean;
     options?: Record<string, unknown>;
 };
-type FitFileStateManagerLike = {
-    clearFileState?: () => void;
-    handleFileLoaded?: (
-        fileData: unknown,
-        options: { filePath: string | null; source: string }
-    ) => void;
-    isLoading?: () => boolean;
-    startFileLoading?: (filePath: string) => void;
-};
 type ClearDataOptions = {
     notificationMessage?: string;
     notify?: boolean;
 };
-type FitFileLoadManager = FitFileStateManagerLike &
-    Required<Pick<FitFileStateManagerLike, "handleFileLoaded">>;
-
-const fitFileStateManagerLike = fitFileStateManager as
-    | FitFileStateManagerLike
-    | null
-    | undefined;
 
 function toError(value: unknown): Error {
     return value instanceof Error ? value : new Error(String(value));
@@ -95,17 +82,6 @@ function toError(value: unknown): Error {
 
 function appActionsRuntime(): AppActionsRuntime {
     return getAppActionsRuntime();
-}
-
-function getFitFileLoadManager(): FitFileLoadManager {
-    if (
-        fitFileStateManagerLike &&
-        typeof fitFileStateManagerLike.handleFileLoaded === "function"
-    ) {
-        return fitFileStateManagerLike as FitFileLoadManager;
-    }
-
-    throw new Error("FIT file state manager is unavailable");
 }
 
 /**
@@ -116,18 +92,13 @@ export const AppActions = {
      * Clear all data and reset to initial state
      */
     clearData(options: ClearDataOptions = {}) {
-        if (
-            fitFileStateManagerLike &&
-            typeof fitFileStateManagerLike.clearFileState === "function"
-        ) {
-            try {
-                fitFileStateManagerLike.clearFileState();
-            } catch (error) {
-                console.warn(
-                    "[AppActions] Failed to clear fit file domain state",
-                    error
-                );
-            }
+        try {
+            fitFileStateManager.clearFileState();
+        } catch (error) {
+            console.warn(
+                "[AppActions] Failed to clear fit file domain state",
+                error
+            );
         }
 
         setActiveFitRawData(null, { source: "AppActions.clearData" });
@@ -155,22 +126,19 @@ export const AppActions = {
      * @param fileData - Parsed FIT file data.
      * @param filePath - Path to the loaded file.
      */
-    loadFile(fileData: unknown, filePath: string | null): Promise<void> {
+    loadFile(
+        fileData: RawFitData | null | undefined,
+        filePath: string | null
+    ): Promise<void> {
         try {
-            const manager = getFitFileLoadManager();
             const normalizedPath =
                 typeof filePath === "string" && filePath.length > 0
                     ? filePath
                     : null;
 
-            if (
-                normalizedPath &&
-                typeof manager.startFileLoading === "function" &&
-                typeof manager.isLoading === "function" &&
-                !manager.isLoading()
-            ) {
+            if (normalizedPath && !fitFileStateManager.isLoading()) {
                 try {
-                    manager.startFileLoading(normalizedPath);
+                    fitFileStateManager.startFileLoading(normalizedPath);
                 } catch (error) {
                     console.warn(
                         "[AppActions] Failed to start fit file loading state",
@@ -179,9 +147,8 @@ export const AppActions = {
                 }
             }
 
-            manager.handleFileLoaded(fileData, {
+            fitFileStateManager.handleFileLoaded(fileData, {
                 filePath: normalizedPath,
-                source: "AppActions.loadFile",
             });
         } catch (error) {
             console.error(

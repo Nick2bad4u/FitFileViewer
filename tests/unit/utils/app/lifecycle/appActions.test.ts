@@ -158,54 +158,36 @@ describe("appActions", () => {
             { foo: "bar" },
             expect.objectContaining({
                 filePath: "path/fit.fit",
-                source: "AppActions.loadFile",
             })
         );
         expect(h.mockShowNotification).not.toHaveBeenCalled();
         expect(h.mockSetState).not.toHaveBeenCalled();
     });
 
-    it("loadFile fails clearly when the domain manager is unavailable", async () => {
-        expect.assertions(5);
+    it("loadFile still completes when loading-start state reporting fails", async () => {
+        expect.assertions(7);
         expect(Date.now()).toBe(1_704_067_200_000);
 
-        const originalHandle = h.mockFitManager.handleFileLoaded;
-        const originalStart = h.mockFitManager.startFileLoading;
-        const originalIsLoading = h.mockFitManager.isLoading;
-        const mutableManager = h.mockFitManager as {
-            handleFileLoaded?:
-                | typeof h.mockFitManager.handleFileLoaded
-                | undefined;
-            isLoading?: typeof h.mockFitManager.isLoading | undefined;
-            startFileLoading?:
-                | typeof h.mockFitManager.startFileLoading
-                | undefined;
-        };
-
-        mutableManager.handleFileLoaded = undefined;
-        mutableManager.startFileLoading = undefined;
-        mutableManager.isLoading = undefined;
+        h.mockFitManager.startFileLoading.mockImplementation(() => {
+            throw new Error("loading start failed");
+        });
 
         await expect(
             AppActions.loadFile({ foo: "bar" }, "path/fit.fit")
-        ).rejects.toThrow("FIT file state manager is unavailable");
+        ).resolves.toBeUndefined();
 
-        expect(h.mockSetState.mock.calls.map(([path]) => path)).toStrictEqual([
-            "isLoading",
-        ]);
-        expect(h.mockSetState).toHaveBeenCalledWith(
-            "isLoading",
-            false,
-            expect.any(Object)
+        expect(h.mockFitManager.isLoading).toHaveBeenCalledWith();
+        expect(h.mockFitManager.startFileLoading).toHaveBeenCalledWith(
+            "path/fit.fit"
         );
-        expect(h.mockShowNotification).toHaveBeenCalledWith(
-            "Failed to load file",
-            "error"
+        expect(h.mockFitManager.handleFileLoaded).toHaveBeenCalledWith(
+            { foo: "bar" },
+            expect.objectContaining({
+                filePath: "path/fit.fit",
+            })
         );
-
-        mutableManager.handleFileLoaded = originalHandle;
-        mutableManager.startFileLoading = originalStart;
-        mutableManager.isLoading = originalIsLoading;
+        expect(h.mockSetState).not.toHaveBeenCalled();
+        expect(h.mockShowNotification).not.toHaveBeenCalled();
     });
 
     it("loadFile surfaces delegated errors and clears loading", async () => {

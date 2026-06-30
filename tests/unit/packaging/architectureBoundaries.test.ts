@@ -19088,7 +19088,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app lifecycle actions on typed state and runtime facades", () => {
-        expect.assertions(86);
+        expect.assertions(91);
 
         const appActionsSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
@@ -19247,7 +19247,20 @@ describe("architecture boundaries", () => {
             "subscribeToRendererActiveTabSingletonInState"
         );
         expect(appActionsSource).toContain("fitFileStateManager");
-        expect(appActionsSource).toContain("getFitFileLoadManager");
+        expect(appActionsSource).toContain(
+            "fitFileStateManager.clearFileState();"
+        );
+        expect(appActionsSource).toContain(
+            "fitFileStateManager.isLoading()"
+        );
+        expect(appActionsSource).toContain(
+            "fitFileStateManager.startFileLoading(normalizedPath);"
+        );
+        expect(appActionsSource).toContain(
+            "fitFileStateManager.handleFileLoaded(fileData,"
+        );
+        expect(appActionsSource).not.toContain("type FitFileStateManagerLike");
+        expect(appActionsSource).not.toContain("fitFileStateManagerLike");
         expect(appActionsSource).not.toContain("setPerformanceLastLoadTime");
         expect(appActionsSource).not.toContain("File loaded successfully");
         expect(appActionsSource).toContain(
