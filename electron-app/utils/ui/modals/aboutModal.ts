@@ -641,7 +641,15 @@ export function showAboutModal(
 
             // Load version information after modal is displayed
             try {
-                void loadVersionInfo();
+                const versionInfoLoad = loadVersionInfo() as
+                    | PromiseLike<void>
+                    | void;
+                versionInfoLoad?.then?.(undefined, (error) => {
+                    console.warn(
+                        `${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`,
+                        error
+                    );
+                });
             } catch (error) {
                 console.warn(
                     `${CONSTANTS.LOG_PREFIX} Failed to load version info on modal show:`,

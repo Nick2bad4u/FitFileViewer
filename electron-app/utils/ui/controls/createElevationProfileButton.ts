@@ -60,10 +60,14 @@ interface ElevationChartConstructor {
     new (
         context: CanvasRenderingContext2D,
         config: ElevationChartConfig
-    ): unknown;
+    ): ElevationChartInstance;
     helpers?: {
         color?: (color: string) => ChartColorBuilder;
     };
+}
+
+interface ElevationChartInstance {
+    update?: () => void;
 }
 
 interface ElevationChartWindow extends Window {
@@ -213,7 +217,9 @@ async function openElevationProfilePopup(): Promise<void> {
     }
 
     const chartConstructor = await resolveElevationChartConstructor();
-    const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
+    const fitFilesModel = fitFiles.map((file, idx) =>
+        createElevationProfileFileModel(file, idx)
+    );
 
     // Sanitize the theme colors used in template-string CSS.
     const safeThemeColors = {
@@ -576,7 +582,7 @@ function renderElevationCharts(
                       .rgbString()
                 : file.color;
 
-        new Chart(ctx, {
+        const chart = new Chart(ctx, {
             data: {
                 datasets: [
                     {
@@ -596,6 +602,7 @@ function renderElevationCharts(
             options: createElevationChartOptions(file.color, isDark),
             type: "line",
         });
+        chart.update?.();
     }
 }
 

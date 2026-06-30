@@ -79,7 +79,9 @@ export function getRendererVendorBundleState(): RendererVendorBundleState {
     return {
         loaded: true,
         source: "npm-bundle",
-        splitEntries: [...loadedVendorEntries].sort(),
+        splitEntries: [...loadedVendorEntries].sort((left, right) =>
+            left.localeCompare(right)
+        ),
     };
 }
 

@@ -405,9 +405,8 @@ export async function ensureFitParserStateIntegration(): Promise<void> {
         return fitParserStateIntegrationPromise;
     }
 
-    fitParserStateIntegrationPromise = Promise.resolve(
-        initializeFitParserStateIntegration()
-    );
+    initializeFitParserStateIntegration();
+    fitParserStateIntegrationPromise = Promise.resolve();
 
     return fitParserStateIntegrationPromise;
 }

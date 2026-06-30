@@ -404,15 +404,27 @@ export class UIStateManager {
 
             const { duration, message, type } = normalizedNotification;
 
-            try {
-                showNotification(message, type, duration);
-            } catch {
+            const handleNotificationFailure = () => {
                 // Fallback to console logging if notification system fails
                 console.log(`[Notification ${type.toUpperCase()}] ${message}`);
 
                 if (type === "error" || type === "warning") {
                     console.warn(`${type.toUpperCase()}: ${message}`);
                 }
+            };
+
+            try {
+                const notificationResult = showNotification(
+                    message,
+                    type,
+                    duration
+                ) as PromiseLike<void> | void;
+                notificationResult?.then?.(
+                    undefined,
+                    handleNotificationFailure
+                );
+            } catch {
+                handleNotificationFailure();
             }
 
             // Update state to track the last notification

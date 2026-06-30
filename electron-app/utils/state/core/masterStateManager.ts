@@ -1006,16 +1006,9 @@ export class MasterStateManager {
         const stateAPI = this.getStateManagerAPI();
         // Integrate file operations with UI state
         this.trackIntegrationSubscription(
-            subscribeToActiveFitRawDataInState(stateAPI.subscribe, (data) => {
-                if (data) {
-                    // Enable tabs when data is loaded
-                    const { UIActions: dynUI } = this.getUIStateModule();
-                    dynUI.showTab("summary");
-                } else {
-                    // Disable tabs when no data
-                    const { UIActions: dynUI } = this.getUIStateModule();
-                    dynUI.showTab("summary");
-                }
+            subscribeToActiveFitRawDataInState(stateAPI.subscribe, () => {
+                const { UIActions: dynUI } = this.getUIStateModule();
+                dynUI.showTab("summary");
             })
         );
 
