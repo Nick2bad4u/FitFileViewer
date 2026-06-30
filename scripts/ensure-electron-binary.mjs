@@ -25,13 +25,13 @@ export async function ensureElectronBinary() {
         return;
     }
 
-    await extractElectronWithTar();
+    await extractElectronArchive();
     if (!(await isElectronBinaryReady())) {
         throw new Error("Electron binary is not available after preparation");
     }
 }
 
-async function extractElectronWithTar() {
+async function extractElectronArchive() {
     const archivePath = await downloadArtifact({
         arch:
             electronInstallerEnvironment.ELECTRON_INSTALL_ARCH ?? process.arch,
@@ -46,6 +46,16 @@ async function extractElectronWithTar() {
 
     await fs.rm(electronDistPath, { force: true, recursive: true });
     await fs.mkdir(electronDistPath, { recursive: true });
+    await runExtractionCommand(archivePath);
+    await fs.writeFile(electronPathFile, platformPath);
+}
+
+async function runExtractionCommand(archivePath) {
+    if (path.extname(archivePath).toLowerCase() === ".zip") {
+        await runZipExtractionCommand(archivePath);
+        return;
+    }
+
     await runCommand(
         "tar",
         [
@@ -58,7 +68,37 @@ async function extractElectronWithTar() {
             cwd: process.cwd(),
         }
     );
-    await fs.writeFile(electronPathFile, platformPath);
+}
+
+async function runZipExtractionCommand(archivePath) {
+    if (os.platform() === "win32") {
+        await runCommand(
+            "tar",
+            [
+                "-xf",
+                archivePath,
+                "-C",
+                electronDistPath,
+            ],
+            {
+                cwd: process.cwd(),
+            }
+        );
+        return;
+    }
+
+    await runCommand(
+        "unzip",
+        [
+            "-q",
+            archivePath,
+            "-d",
+            electronDistPath,
+        ],
+        {
+            cwd: process.cwd(),
+        }
+    );
 }
 
 function getElectronPlatformPath() {
