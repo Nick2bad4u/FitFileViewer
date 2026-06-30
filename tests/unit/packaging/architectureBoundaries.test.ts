@@ -39152,11 +39152,26 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main menu IPC handlers on domain event callbacks", () => {
-        expect.assertions(10);
+        expect.assertions(22);
 
+        const registerDevtoolsInjectMenuHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerDevtoolsInjectMenuHandler.ts"
+            )
+        );
         const registerFileMenuHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/menu/registerFileMenuHandlers.ts"
+            )
+        );
+        const registerFullscreenHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerFullscreenHandler.ts"
+            )
+        );
+        const registerThemeChangedHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerThemeChangedHandler.ts"
             )
         );
         const registerUpdateMenuHandlersSource = stripComments(
@@ -39165,20 +39180,44 @@ describe("architecture boundaries", () => {
             )
         );
 
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "type DevtoolsInjectMenuIpcHandler = ("
+        );
         expect(registerFileMenuHandlersSource).toContain(
             "type FileMenuIpcCallback = (event: IpcEventLike) => Promise<void> | void;"
+        );
+        expect(registerFullscreenHandlerSource).toContain(
+            "listener: (event: unknown, flag: unknown) => void"
+        );
+        expect(registerThemeChangedHandlerSource).toContain(
+            "type ThemeChangedIpcCallback = (event: IpcEventLike, theme: unknown) => void;"
         );
         expect(registerUpdateMenuHandlersSource).toContain(
             "type UpdateMenuIpcCallback = (event: IpcEventLike) => Promise<void> | void;"
         );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "function toIpcEventLike(event: unknown): IpcEventLike | null"
+        );
         expect(registerFileMenuHandlersSource).toContain(
+            "function toIpcEventLike(event: unknown): IpcEventLike | null"
+        );
+        expect(registerThemeChangedHandlerSource).toContain(
             "function toIpcEventLike(event: unknown): IpcEventLike | null"
         );
         expect(registerUpdateMenuHandlersSource).toContain(
             "function toIpcEventLike(event: unknown): IpcEventLike | null"
         );
+        expect(registerDevtoolsInjectMenuHandlerSource).not.toContain(
+            "handler: (event: unknown, ...args: unknown[]) => unknown"
+        );
         expect(registerFileMenuHandlersSource).not.toContain(
             "type IpcCallback = (...args: unknown[]) => unknown;"
+        );
+        expect(registerFullscreenHandlerSource).not.toContain(
+            "listener: (event: unknown, ...args: unknown[]) => unknown"
+        );
+        expect(registerThemeChangedHandlerSource).not.toContain(
+            "listener: (event: unknown, ...args: unknown[]) => unknown"
         );
         expect(registerUpdateMenuHandlersSource).not.toContain(
             "type IpcCallback = (...args: unknown[]) => unknown;"
@@ -39189,11 +39228,23 @@ describe("architecture boundaries", () => {
         expect(registerUpdateMenuHandlersSource).not.toContain(
             "Record<MenuUpdateEventChannel, IpcCallback>"
         );
+        expect(registerDevtoolsInjectMenuHandlerSource).not.toContain(
+            "event as IpcEventLike"
+        );
         expect(registerFileMenuHandlersSource).not.toContain(
+            "event as IpcEventLike"
+        );
+        expect(registerThemeChangedHandlerSource).not.toContain(
             "event as IpcEventLike"
         );
         expect(registerUpdateMenuHandlersSource).not.toContain(
             "event as IpcEventLike"
+        );
+        expect(registerDevtoolsInjectMenuHandlerSource).toContain(
+            "handleDevtoolsInjectMenu(eventLike, theme, fitFilePath)"
+        );
+        expect(registerThemeChangedHandlerSource).toContain(
+            "handleThemeChanged(eventLike, theme)"
         );
     });
 });

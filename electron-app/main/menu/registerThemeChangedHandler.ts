@@ -23,9 +23,11 @@ interface IpcEventLike {
     sender: unknown;
 }
 
+type MainProcessIpcListener = (event: unknown, ...args: unknown[]) => unknown;
+type ThemeChangedIpcCallback = (event: IpcEventLike, theme: unknown) => void;
 type RegisterThemeChangedIpcListener = (
     channel: MainProcessIpcEventChannel,
-    listener: (event: unknown, ...args: unknown[]) => unknown
+    listener: MainProcessIpcListener
 ) => void;
 
 interface RegisterThemeChangedHandlerOptions {
@@ -78,6 +80,12 @@ function persistThemeForMenu(
     conf.set("theme", normalized);
 }
 
+function toIpcEventLike(event: unknown): IpcEventLike | null {
+    return event && typeof event === "object" && "sender" in event
+        ? { sender: event.sender }
+        : null;
+}
+
 /**
  * Registers the main-process handler for renderer theme-change notifications.
  */
@@ -94,11 +102,9 @@ export function registerThemeChangedHandler({
         return;
     }
 
-    registerIpcListener("theme-changed", (event, theme) => {
+    const handleThemeChanged: ThemeChangedIpcCallback = (event, theme) => {
         const win =
-            browserWindowRef()?.fromWebContents(
-                (event as IpcEventLike).sender
-            ) ?? null;
+            browserWindowRef()?.fromWebContents(event.sender) ?? null;
         if (!win || !validateWindow(win, "theme-changed event")) {
             return;
         }
@@ -116,5 +122,12 @@ export function registerThemeChangedHandler({
             getThemeFromPayload(theme, constants),
             getLoadedFitFilePath()
         );
+    };
+
+    registerIpcListener("theme-changed", (event, theme) => {
+        const eventLike = toIpcEventLike(event);
+        if (eventLike) {
+            handleThemeChanged(eventLike, theme);
+        }
     });
 }

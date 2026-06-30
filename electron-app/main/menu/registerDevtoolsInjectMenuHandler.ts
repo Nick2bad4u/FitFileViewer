@@ -32,9 +32,15 @@ interface ValidatedDevtoolsInjectMenuPayload {
     theme: DevtoolsInjectMenuTheme;
 }
 
+type MainProcessIpcHandler = (event: unknown, ...args: unknown[]) => unknown;
+type DevtoolsInjectMenuIpcHandler = (
+    event: IpcEventLike,
+    theme: unknown,
+    fitFilePath: unknown
+) => DevtoolsInjectMenuResponse;
 type RegisterDevtoolsInjectMenuIpcHandle = (
     channel: GenericInvokeChannel,
-    handler: (event: unknown, ...args: unknown[]) => unknown
+    handler: MainProcessIpcHandler
 ) => void;
 
 interface RegisterDevtoolsInjectMenuHandlerOptions {
@@ -71,6 +77,12 @@ function defaultIsDevtoolsMenuInjectionAllowed(): boolean {
     return runtime.isDevelopmentEnvironment() || runtime.isTestEnvironment();
 }
 
+function toIpcEventLike(event: unknown): IpcEventLike | null {
+    return event && typeof event === "object" && "sender" in event
+        ? { sender: event.sender }
+        : null;
+}
+
 /**
  * Registers the development-only handler for manually injecting an app menu.
  */
@@ -87,45 +99,50 @@ export function registerDevtoolsInjectMenuHandler({
         return;
     }
 
-    registerIpcHandle(
-        "devtools-inject-menu",
-        (event, theme, fitFilePath): DevtoolsInjectMenuResponse => {
-            if (!isDevtoolsMenuInjectionAllowed()) {
-                logWithContext(
-                    "warn",
-                    "Blocked devtools menu injection outside development"
-                );
-                return false;
-            }
-
-            let payload: ValidatedDevtoolsInjectMenuPayload;
-            try {
-                payload = validateDevtoolsInjectMenuPayload(theme, fitFilePath);
-            } catch (error) {
-                logWithContext(
-                    "warn",
-                    "Blocked devtools menu injection with invalid payload",
-                    { error: getErrorMessage(error) }
-                );
-                return false;
-            }
-
-            const filePath = payload.fitFilePath;
-            const resolvedTheme = payload.theme ?? constants.DEFAULT_THEME;
-            const win =
-                browserWindowRef()?.fromWebContents(
-                    (event as IpcEventLike).sender
-                ) ?? null;
-
-            logWithContext("info", "Manual menu injection requested", {
-                fitFilePath: filePath,
-                theme: resolvedTheme,
-            });
-            if (win) {
-                safeCreateAppMenu(win, resolvedTheme, filePath);
-            }
-
-            return true;
+    const handleDevtoolsInjectMenu: DevtoolsInjectMenuIpcHandler = (
+        event,
+        theme,
+        fitFilePath
+    ) => {
+        if (!isDevtoolsMenuInjectionAllowed()) {
+            logWithContext(
+                "warn",
+                "Blocked devtools menu injection outside development"
+            );
+            return false;
         }
-    );
+
+        let payload: ValidatedDevtoolsInjectMenuPayload;
+        try {
+            payload = validateDevtoolsInjectMenuPayload(theme, fitFilePath);
+        } catch (error) {
+            logWithContext(
+                "warn",
+                "Blocked devtools menu injection with invalid payload",
+                { error: getErrorMessage(error) }
+            );
+            return false;
+        }
+
+        const filePath = payload.fitFilePath;
+        const resolvedTheme = payload.theme ?? constants.DEFAULT_THEME;
+        const win = browserWindowRef()?.fromWebContents(event.sender) ?? null;
+
+        logWithContext("info", "Manual menu injection requested", {
+            fitFilePath: filePath,
+            theme: resolvedTheme,
+        });
+        if (win) {
+            safeCreateAppMenu(win, resolvedTheme, filePath);
+        }
+
+        return true;
+    };
+
+    registerIpcHandle("devtools-inject-menu", (event, theme, fitFilePath) => {
+        const eventLike = toIpcEventLike(event);
+        return eventLike
+            ? handleDevtoolsInjectMenu(eventLike, theme, fitFilePath)
+            : false;
+    });
 }

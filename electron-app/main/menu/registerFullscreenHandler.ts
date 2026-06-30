@@ -9,7 +9,7 @@ type MainProcessIpcEventChannel =
 
 type RegisterFullscreenIpcListener = (
     channel: MainProcessIpcEventChannel,
-    listener: (event: unknown, ...args: unknown[]) => unknown
+    listener: (event: unknown, flag: unknown) => void
 ) => void;
 
 interface RegisterFullscreenHandlerOptions {
