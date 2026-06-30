@@ -1,6 +1,6 @@
 type ChartRuntimeRegistry = {
-    runtime?: unknown;
-    zoomPlugin?: unknown;
+    runtime?: RegisteredChartRuntime;
+    zoomPlugin?: RegisteredChartZoomPlugin;
 };
 
 export type RegisteredChartRuntime = Readonly<{
@@ -22,15 +22,17 @@ type ChartZoomPluginCandidate = Readonly<{
 const chartRuntimeRegistry: ChartRuntimeRegistry = {};
 
 export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
-    chartRuntimeRegistry.runtime = runtime;
-    if (zoomPlugin !== undefined) {
+    if (isRegisteredChartRuntime(runtime)) {
+        chartRuntimeRegistry.runtime = runtime;
+    }
+    if (isRegisteredChartZoomPlugin(zoomPlugin)) {
         chartRuntimeRegistry.zoomPlugin = zoomPlugin;
     }
 }
 
 export function clearChartRuntimeForTests(): void {
-    chartRuntimeRegistry.runtime = undefined;
-    chartRuntimeRegistry.zoomPlugin = undefined;
+    delete chartRuntimeRegistry.runtime;
+    delete chartRuntimeRegistry.zoomPlugin;
 }
 
 export function isRegisteredChartRuntime(
@@ -65,12 +67,14 @@ export function resolveChartRuntime<T>(
     return null;
 }
 
-export function resolveChartZoomPlugin(): unknown {
+export function resolveChartZoomPlugin(): RegisteredChartZoomPlugin | null {
     return chartRuntimeRegistry.zoomPlugin ?? null;
 }
 
-function getChartRuntimeCandidates(): unknown[] {
-    return [chartRuntimeRegistry.runtime];
+function getChartRuntimeCandidates(): RegisteredChartRuntime[] {
+    return chartRuntimeRegistry.runtime === undefined
+        ? []
+        : [chartRuntimeRegistry.runtime];
 }
 
 function isObjectOrFunction(value: unknown): value is ChartRuntimeCandidate {

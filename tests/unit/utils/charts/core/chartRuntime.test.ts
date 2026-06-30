@@ -47,6 +47,15 @@ describe("chartRuntime", () => {
         expect(resolveChartZoomPlugin()).toBeNull();
     });
 
+    it("rejects invalid runtime and zoom plugin payloads at registration", () => {
+        expect.assertions(2);
+
+        setChartRuntime({ register: "missing" }, { id: "" });
+
+        expect(resolveChartRuntime(isRuntime)).toBeNull();
+        expect(resolveChartZoomPlugin()).toBeNull();
+    });
+
     it("validates registered Chart.js runtime payloads", () => {
         expect.assertions(6);
 
