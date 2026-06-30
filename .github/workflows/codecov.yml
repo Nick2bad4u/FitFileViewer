@@ -72,7 +72,13 @@ jobs:
               run: npm ci --no-audit --no-fund
 
             - name: Run Vitest coverage
-              run: npm run test:coverage
+              run: |
+                  while sleep 60; do
+                      echo "[coverage] Vitest is still running..."
+                  done &
+                  heartbeat_pid="$!"
+                  trap 'kill "$heartbeat_pid"' EXIT
+                  npm run test:coverage
 
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
