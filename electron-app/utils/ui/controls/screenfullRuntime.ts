@@ -13,7 +13,7 @@ type ScreenfullRuntimeCandidate = Readonly<{
 }>;
 
 type ScreenfullRuntimeRegistry = {
-    runtime?: unknown;
+    runtime?: ScreenfullRuntime;
 };
 
 const screenfullRuntimeRegistry: ScreenfullRuntimeRegistry = {};
@@ -36,21 +36,16 @@ function readRuntimeValue(readValue: () => unknown): unknown {
     }
 }
 
-export function setScreenfullRuntime(runtime: unknown): void {
-    screenfullRuntimeRegistry.runtime = runtime;
-}
-
 export function registerScreenfullRuntime(runtime: ScreenfullRuntime): void {
     screenfullRuntimeRegistry.runtime = runtime;
 }
 
 export function clearScreenfullRuntimeForTests(): void {
-    screenfullRuntimeRegistry.runtime = undefined;
+    delete screenfullRuntimeRegistry.runtime;
 }
 
 export function resolveScreenfullRuntime(): ScreenfullRuntime | undefined {
-    const runtime = screenfullRuntimeRegistry.runtime;
-    return isScreenfullRuntime(runtime) ? runtime : undefined;
+    return screenfullRuntimeRegistry.runtime;
 }
 
 export function isScreenfullRuntime(

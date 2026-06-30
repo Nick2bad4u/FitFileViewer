@@ -101,7 +101,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        await registerScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntimeForTest(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -168,7 +168,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        await registerScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntimeForTest(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -205,7 +205,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        await registerScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntimeForTest(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -240,7 +240,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        await registerScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntimeForTest(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -279,7 +279,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        await registerScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntimeForTest(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -320,7 +320,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        await registerScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntimeForTest(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-map";
@@ -487,11 +487,16 @@ function createElectronApiScope(api: unknown): RendererElectronApiScope {
     };
 }
 
-async function registerScreenfullRuntime(runtime: unknown): Promise<void> {
-    const { setScreenfullRuntime } =
+async function registerScreenfullRuntimeForTest(runtime: {
+    isEnabled: boolean;
+    isFullscreen: boolean;
+    off?: (event: "change", handler: (event: Event) => void) => void;
+    on: (event: "change", handler: (event: Event) => void) => void;
+}): Promise<void> {
+    const { registerScreenfullRuntime } =
         await import("../../../../../electron-app/utils/ui/controls/screenfullRuntime.js");
 
-    setScreenfullRuntime(runtime);
+    registerScreenfullRuntime(runtime);
 }
 
 function resetDocumentFullscreenMethods(): void {

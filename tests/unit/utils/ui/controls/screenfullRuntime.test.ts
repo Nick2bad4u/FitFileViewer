@@ -5,7 +5,6 @@ import {
     isScreenfullRuntime,
     registerScreenfullRuntime,
     resolveScreenfullRuntime,
-    setScreenfullRuntime,
     type ScreenfullRuntime,
 } from "../../../../../electron-app/utils/ui/controls/screenfullRuntime.js";
 
@@ -32,24 +31,16 @@ describe("screenfullRuntime", () => {
         expect(resolveScreenfullRuntime()).toBe(runtime);
     });
 
-    it("resolves a registered screenfull-compatible runtime", () => {
-        expect.assertions(2);
+    it("validates screenfull-compatible runtime payloads", () => {
+        expect.assertions(1);
 
         const runtime = createScreenfullRuntime();
 
-        setScreenfullRuntime(runtime);
-
         expect(isScreenfullRuntime(runtime)).toBe(true);
-        expect(resolveScreenfullRuntime()).toBe(runtime);
     });
 
     it("ignores malformed runtimes", () => {
-        expect.assertions(3);
-
-        setScreenfullRuntime({
-            isEnabled: true,
-            isFullscreen: false,
-        });
+        expect.assertions(2);
 
         expect(
             isScreenfullRuntime({
@@ -64,7 +55,6 @@ describe("screenfullRuntime", () => {
                 () => undefined,
             ])
         ).toBe(false);
-        expect(resolveScreenfullRuntime()).toBeUndefined();
     });
 
     it("ignores screenfull runtimes with throwing property accessors", () => {
@@ -82,8 +72,6 @@ describe("screenfullRuntime", () => {
                 },
             }
         );
-
-        setScreenfullRuntime(runtime);
 
         expect(isScreenfullRuntime(runtime)).toBe(false);
         expect(resolveScreenfullRuntime()).toBeUndefined();
