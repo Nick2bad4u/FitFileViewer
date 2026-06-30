@@ -5,7 +5,7 @@ type ChartRuntimeRegistry = {
 
 export type RegisteredChartRuntime = Readonly<{
     register: (...items: never[]) => unknown;
-}>;
+}> | (new (...args: never[]) => unknown);
 
 export type RegisteredChartZoomPlugin = Readonly<{
     id: string;
@@ -50,7 +50,7 @@ export function isRegisteredChartRuntime(
         return false;
     }
 
-    return typeof value.register === "function";
+    return typeof value === "function" || typeof value.register === "function";
 }
 
 export function isRegisteredChartZoomPlugin(

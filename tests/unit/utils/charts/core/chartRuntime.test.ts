@@ -29,6 +29,8 @@ describe("chartRuntime", () => {
         return { register() {} };
     }
 
+    class ChartConstructorRuntime {}
+
     function createChartZoomPlugin(): RegisteredChartZoomPlugin {
         return { id: "zoom" };
     }
@@ -80,9 +82,10 @@ describe("chartRuntime", () => {
     });
 
     it("validates registered Chart.js runtime payloads", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         expect(isRegisteredChartRuntime({ register() {} })).toBe(true);
+        expect(isRegisteredChartRuntime(ChartConstructorRuntime)).toBe(true);
         expect(
             isRegisteredChartRuntime(
                 Object.assign(function Chart() {}, {
