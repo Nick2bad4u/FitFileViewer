@@ -21156,13 +21156,9 @@ describe("architecture boundaries", () => {
         expect(activeTabContentSource).toContain(
             "getRendererActiveTabContentFromState"
         );
-        expect(activeTabContentSource).toContain(
-            "getRendererCoreStateManager"
-        );
+        expect(activeTabContentSource).toContain("getRendererCoreStateManager");
         expect(activeTabContentSource).toContain("getContentIdFromTabName");
-        expect(activeTabContentSource).not.toContain(
-            "legacy + test-friendly"
-        );
+        expect(activeTabContentSource).not.toContain("legacy + test-friendly");
         expect(activeTabContentRuntimeSource).toContain(
             "defaultGetActiveTabContentRuntimeScope"
         );

@@ -240,11 +240,7 @@ describe("showFitData", () => {
             "loading",
             "showFitData.renderMapIfReady"
         );
-        expectTabReadinessState(
-            "map",
-            "ready",
-            "showFitData.renderMapIfReady"
-        );
+        expectTabReadinessState("map", "ready", "showFitData.renderMapIfReady");
 
         // IPC send
         expect(showFitDataElectronApi.notifyFitFileLoaded).toHaveBeenCalledWith(
@@ -454,11 +450,7 @@ describe("showFitData", () => {
             "map.isRendered"
         );
         expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
-        expectTabReadinessState(
-            "map",
-            "ready",
-            "showFitData.renderMapIfReady"
-        );
+        expectTabReadinessState("map", "ready", "showFitData.renderMapIfReady");
     });
 
     it("marks the map rendered without rerendering when the map container already exists", async () => {
@@ -502,11 +494,7 @@ describe("showFitData", () => {
             })
         );
         expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
-        expectTabReadinessState(
-            "map",
-            "ready",
-            "showFitData.renderMapIfReady"
-        );
+        expectTabReadinessState("map", "ready", "showFitData.renderMapIfReady");
     });
 
     it("records map readiness errors when the Leaflet runtime is unavailable", async () => {
