@@ -2,6 +2,10 @@ import { z } from "zod";
 
 type ClipboardInvokeChannel = import("../../shared/ipc").ClipboardInvokeChannel;
 type ClipboardResult = import("../../shared/ipc").ClipboardResponsePayload;
+type InvokeRequestArgs<Channel extends ClipboardInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends ClipboardInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 
 interface ClipboardWriter {
     writeImage?: (image: unknown) => void;
@@ -12,14 +16,21 @@ interface NativeImageFactory {
     createFromDataURL?: (dataUrl: string) => unknown;
 }
 
-type RegisterClipboardIpcHandler = (
+type RegisterClipboardIpcHandler<Channel extends ClipboardInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type RegisterClipboardIpcCallback = (
     event: unknown,
     ...args: unknown[]
 ) => unknown;
 
 type RegisterClipboardIpcHandle = (
     channel: ClipboardInvokeChannel,
-    handler: RegisterClipboardIpcHandler
+    handler: RegisterClipboardIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -73,7 +84,14 @@ export function registerClipboardHandlers({
         return;
     }
 
-    registerIpcHandle(
+    const registerClipboardIpcHandle = <Channel extends ClipboardInvokeChannel>(
+        channel: Channel,
+        handler: RegisterClipboardIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as RegisterClipboardIpcCallback);
+    };
+
+    registerClipboardIpcHandle(
         "clipboard:writeText",
         (_event, text): ClipboardResult => {
             try {
@@ -98,7 +116,7 @@ export function registerClipboardHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerClipboardIpcHandle(
         "clipboard:writePngDataUrl",
         (_event, pngDataUrl): ClipboardResult => {
             try {
