@@ -19,12 +19,13 @@ export function resolveChartAnimationTuning(
     metricChartCount: number
 ): ChartAnimationTuning {
     const estimatedChartCount = metricChartCount + ESTIMATED_NON_METRIC_CHARTS;
-    const effectiveAnimationStyle =
-        animationStyle === "normal" && estimatedChartCount >= 20
-            ? "none"
-            : animationStyle === "normal" && estimatedChartCount >= 12
-              ? "fast"
-              : animationStyle;
+    let effectiveAnimationStyle = animationStyle;
+
+    if (animationStyle === "normal" && estimatedChartCount >= 20) {
+        effectiveAnimationStyle = "none";
+    } else if (animationStyle === "normal" && estimatedChartCount >= 12) {
+        effectiveAnimationStyle = "fast";
+    }
 
     return {
         effectiveAnimationStyle,

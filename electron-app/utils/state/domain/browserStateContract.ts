@@ -35,6 +35,11 @@ type BrowserScanStateCandidate = Readonly<{
     readonly status?: unknown;
 }>;
 
+type BrowserStateCandidate =
+    | BrowserCalendarStateCandidate
+    | BrowserListingStateCandidate
+    | BrowserScanStateCandidate;
+
 export function isBrowserView(value: unknown): value is BrowserView {
     return value === "calendar" || value === "files" || value === "library";
 }
@@ -46,7 +51,7 @@ export function normalizeBrowserView(value: unknown): BrowserView {
 export function normalizeBrowserCalendarState(
     value: unknown
 ): BrowserCalendarState {
-    const state = toBrowserCalendarStateCandidate(value);
+    const state = toBrowserStateCandidate<BrowserCalendarStateCandidate>(value);
 
     return {
         monthKey: asMonthKey(state["monthKey"]),
@@ -57,7 +62,7 @@ export function normalizeBrowserCalendarState(
 export function normalizeBrowserListingState(
     value: unknown
 ): BrowserListingState {
-    const state = toBrowserListingStateCandidate(value);
+    const state = toBrowserStateCandidate<BrowserListingStateCandidate>(value);
     const { status } = state;
 
     return {
@@ -73,7 +78,7 @@ export function normalizeBrowserListingState(
 }
 
 export function normalizeBrowserScanState(value: unknown): BrowserScanState {
-    const state = toBrowserScanStateCandidate(value);
+    const state = toBrowserStateCandidate<BrowserScanStateCandidate>(value);
     const { status } = state;
 
     return {
@@ -121,14 +126,6 @@ export function normalizeBrowserStateBranch(
     return normalizedBranch ?? value;
 }
 
-function toBrowserCalendarStateCandidate(
-    value: unknown
-): BrowserCalendarStateCandidate {
-    return value !== null && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
-}
-
 function isBrowserListingStatus(value: unknown): value is BrowserListingStatus {
     return (
         value === "empty" ||
@@ -151,20 +148,12 @@ function isBrowserScanStatus(value: unknown): value is BrowserScanStatus {
     );
 }
 
-function toBrowserListingStateCandidate(
+function toBrowserStateCandidate<TCandidate extends BrowserStateCandidate>(
     value: unknown
-): BrowserListingStateCandidate {
+): TCandidate {
     return value !== null && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
-}
-
-function toBrowserScanStateCandidate(
-    value: unknown
-): BrowserScanStateCandidate {
-    return value !== null && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
+        ? (value as TCandidate)
+        : ({} as TCandidate);
 }
 
 function asNonNegativeNumber(value: unknown): number {

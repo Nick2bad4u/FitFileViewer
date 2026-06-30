@@ -16,6 +16,15 @@ type ConsoleMethod = (
 
 type LogContext = Record<string, unknown>;
 
+const consoleMethodGetters: Readonly<Record<string, () => unknown>> = {
+    debug: () => console.debug,
+    error: () => console.error,
+    info: () => console.info,
+    log: () => console.log,
+    trace: () => console.trace,
+    warn: () => console.warn,
+};
+
 const logWithContextRuntime = (): LogWithContextRuntime =>
     getLogWithContextRuntime();
 
@@ -32,20 +41,8 @@ const wrapConsoleMethod =
     };
 
 const getConsoleMethod = (level: string): ConsoleMethod => {
-    const method =
-        level === "debug"
-            ? console.debug
-            : level === "error"
-              ? console.error
-              : level === "info"
-                ? console.info
-                : level === "log"
-                  ? console.log
-                  : level === "trace"
-                    ? console.trace
-                    : level === "warn"
-                      ? console.warn
-                      : console.log;
+    const getMethod = consoleMethodGetters[level] ?? (() => console.log);
+    const method = getMethod();
 
     if (isConsoleMethod(method)) {
         return wrapConsoleMethod(method);

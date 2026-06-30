@@ -89,6 +89,10 @@ function normalizeMaxpoints(
 function resolveChartSettingsApi(
     manager: SettingsStateManager
 ): ChartSettingsApi {
+    const getChartSettings = manager.getUserChartSettings
+        ? () => manager.getUserChartSettings?.()
+        : resolveFallbackChartSettingsGetter(manager);
+
     return {
         getChartFieldVisibility: manager.getChartFieldVisibility
             ? (fieldKey, defaultVisibility) =>
@@ -100,11 +104,7 @@ function resolveChartSettingsApi(
                       ? (visibilityMap[fieldKey] ?? defaultVisibility)
                       : defaultVisibility;
               },
-        getChartSettings: manager.getUserChartSettings
-            ? () => manager.getUserChartSettings?.()
-            : manager.getChartSettings
-              ? () => manager.getChartSettings?.()
-              : () => manager.getSetting?.("chart") ?? {},
+        getChartSettings,
         setChartFieldVisibility: manager.setChartFieldVisibility
             ? (fieldKey, visibility) =>
                   manager.setChartFieldVisibility?.(fieldKey, visibility)
@@ -146,6 +146,16 @@ function resolveChartSettingsApi(
                   }
               },
     };
+}
+
+function resolveFallbackChartSettingsGetter(
+    manager: SettingsStateManager
+): ChartSettingsApi["getChartSettings"] {
+    if (manager.getChartSettings) {
+        return () => manager.getChartSettings?.();
+    }
+
+    return () => manager.getSetting?.("chart") ?? {};
 }
 
 function resolveSettingsApi(

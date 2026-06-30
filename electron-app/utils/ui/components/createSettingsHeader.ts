@@ -517,13 +517,10 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
                 const success = resetAllSettings();
 
                 // Re-enable button after reset completes
-                createSettingsHeaderRuntime().setTimeout(
-                    () => {
-                        resetBtn.style.opacity = "1";
-                        resetBtn.disabled = false;
-                    },
-                    200
-                );
+                createSettingsHeaderRuntime().setTimeout(() => {
+                    resetBtn.style.opacity = "1";
+                    resetBtn.disabled = false;
+                }, 200);
 
                 if (!success) {
                     console.error("[ResetBtn] Reset failed");
@@ -1050,6 +1047,24 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
     container.append(slider);
     return container;
 }
+
+function getSettingsOptionLabel(value: unknown): string {
+    if (value === "all") {
+        return "All Points";
+    }
+
+    if (value === "on") {
+        return "Enabled";
+    }
+
+    if (value === "off") {
+        return "Disabled";
+    }
+
+    const label = String(value);
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 /*
  * Creates a select dropdown control
  */
@@ -1096,15 +1111,7 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
             const optionEl =
                 createSettingsHeaderRuntime().createElement("option");
             optionEl.value = String(val);
-            optionEl.textContent =
-                val === "all"
-                    ? "All Points"
-                    : val === "on"
-                      ? "Enabled"
-                      : val === "off"
-                        ? "Disabled"
-                        : String(val).charAt(0).toUpperCase() +
-                          String(val).slice(1);
+            optionEl.textContent = getSettingsOptionLabel(val);
             optionEl.style.background = "var(--color-bg-solid)";
             optionEl.style.color = "var(--color-fg)";
             select.append(optionEl);

@@ -35,11 +35,16 @@ export function getFitMessageRows(
 export function getFitParseErrorMessage(
     result: FitParsePayload
 ): FitParseErrorMessage | null {
-    const errorPayload = isFitDecodeErrorPayload(result)
-        ? result
-        : isFitParseEnvelope(result) && isFitDecodeErrorPayload(result.data)
-          ? result.data
-          : undefined;
+    let errorPayload: FitDecodeErrorPayload | undefined;
+
+    if (isFitDecodeErrorPayload(result)) {
+        errorPayload = result;
+    } else if (
+        isFitParseEnvelope(result) &&
+        isFitDecodeErrorPayload(result.data)
+    ) {
+        errorPayload = result.data;
+    }
 
     if (errorPayload) {
         return formatFitParseError(errorPayload.error, errorPayload.details);

@@ -250,6 +250,33 @@ function isDrawnLayer(layer: Leaflet.Layer): layer is DrawnLayer {
     return typeof layer === "object" && layer !== null;
 }
 
+function getDrawnLayerSnapshotType(
+    leaflet: LeafletRuntime,
+    layer: Leaflet.Layer
+): DrawnLayerSnapshot["type"] {
+    if (layer instanceof leaflet.Circle) {
+        return "circle";
+    }
+
+    if (layer instanceof leaflet.Marker) {
+        return "marker";
+    }
+
+    if (layer instanceof leaflet.Polygon) {
+        return "polygon";
+    }
+
+    if (layer instanceof leaflet.Polyline) {
+        return "polyline";
+    }
+
+    if (layer instanceof leaflet.Rectangle) {
+        return "rectangle";
+    }
+
+    return "unknown";
+}
+
 function isLooseRecord(value: unknown): value is LooseRecord {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -439,18 +466,7 @@ export function renderMap(): void {
                         return {
                             geoJSON,
                             options: layer.options ?? {},
-                            type:
-                                layer instanceof L.Circle
-                                    ? "circle"
-                                    : layer instanceof L.Marker
-                                      ? "marker"
-                                      : layer instanceof L.Polygon
-                                        ? "polygon"
-                                        : layer instanceof L.Polyline
-                                          ? "polyline"
-                                          : layer instanceof L.Rectangle
-                                            ? "rectangle"
-                                            : "unknown",
+                            type: getDrawnLayerSnapshotType(L, layer),
                         };
                     }
                 )
@@ -1209,7 +1225,8 @@ export function renderMap(): void {
             });
         }
     }
-    const leafletMapElement = runtime.querySelector<HTMLElement>("#leaflet-map");
+    const leafletMapElement =
+        runtime.querySelector<HTMLElement>("#leaflet-map");
     if (leafletMapElement) {
         addLapSelector(map, leafletMapElement, mapDrawLapsWrapper);
     }

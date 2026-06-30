@@ -267,6 +267,18 @@ function getCurrentLoadingPhase(): FitFileLoadingPhase {
     return normalizeFitFileLoadingPhase(getState("fitFile.loadingPhase"));
 }
 
+function resolveLoadingStartedAt(
+    phase: FitFileLoadingPhase,
+    previousStartedAt: unknown,
+    now: number
+): null | number {
+    if (phase === "idle") {
+        return null;
+    }
+
+    return typeof previousStartedAt === "number" ? previousStartedAt : now;
+}
+
 function isRawFitData(value: unknown): value is RawFitData {
     return value !== null && typeof value === "object";
 }
@@ -769,12 +781,11 @@ export class FitFileStateManager {
             options.progress ?? DEFAULT_PHASE_PROGRESS[phase]
         );
         const now = fitFileStateRuntime().dateNow();
-        const startedAt =
-            phase === "idle"
-                ? null
-                : typeof previous.startedAt === "number"
-                  ? previous.startedAt
-                  : now;
+        const startedAt = resolveLoadingStartedAt(
+            phase,
+            previous.startedAt,
+            now
+        );
         const error = phase === "error" ? (options.error ?? null) : null;
 
         setState("fitFile.loadingPhase", phase, { source });

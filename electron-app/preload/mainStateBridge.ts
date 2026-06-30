@@ -19,6 +19,17 @@ type AvailableMainStateBridgeIpcRenderer = {
     on: NonNullable<MainStateBridgeIpcRenderer["on"]>;
 };
 
+function isMainStateChange(value: unknown): value is MainStateChange {
+    return (
+        value !== null &&
+        typeof value === "object" &&
+        "path" in value &&
+        typeof value.path === "string" &&
+        value.path.length > 0 &&
+        "value" in value
+    );
+}
+
 export function createMainStateBridge({
     ipcRenderer,
     preloadLog,
@@ -44,17 +55,6 @@ export function createMainStateBridge({
             "[preload.js] main-state bridge IPC renderer unavailable"
         );
         return undefined;
-    }
-
-    function isMainStateChange(value: unknown): value is MainStateChange {
-        return (
-            value !== null &&
-            typeof value === "object" &&
-            "path" in value &&
-            typeof value.path === "string" &&
-            value.path.length > 0 &&
-            "value" in value
-        );
     }
 
     function ensureDispatcher(): void {

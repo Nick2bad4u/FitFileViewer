@@ -5,6 +5,10 @@ type CreatePreloadEventApiOptions =
 type IpcEventListener = import("./preloadModuleTypes").IpcEventListener;
 type PreloadEventApi = import("../shared/preloadApi").ElectronPreloadEventApi;
 
+function noopUnsubscribe(): void {
+    return undefined;
+}
+
 export function createPreloadEventApi({
     fitFileLoadedChannel,
     ipcRenderer,
@@ -15,10 +19,6 @@ export function createPreloadEventApi({
     validateCallback,
     validateChannelName,
 }: CreatePreloadEventApiOptions): PreloadEventApi {
-    function noopUnsubscribe(): void {
-        return undefined;
-    }
-
     function notifyFitFileLoaded(filePath: null | string): void {
         if (filePath !== null && typeof filePath !== "string") {
             preloadLog(

@@ -10,7 +10,6 @@ import {
 } from "../../runtime/browserRuntime.js";
 
 export type PerformanceUtilsTimerHandle = BrowserTimerHandle | number;
-export type PerformanceUtilsIdleCallbackHandle = PerformanceUtilsTimerHandle;
 
 type PerformanceUtilsCancelIdleCallback = (handle: number) => void;
 type PerformanceUtilsClearTimeout = BrowserClearTimeout;
@@ -30,15 +29,13 @@ export interface PerformanceUtilsRuntimeScope {
 }
 
 export interface PerformanceUtilsRuntime {
-    readonly cancelIdleCallback: (
-        handle: PerformanceUtilsIdleCallbackHandle
-    ) => void;
+    readonly cancelIdleCallback: (handle: PerformanceUtilsTimerHandle) => void;
     readonly clearTimeout: (handle: PerformanceUtilsTimerHandle) => void;
     readonly now: () => number;
     readonly requestIdleCallback: (
         callback: () => void,
         options?: Readonly<IdleRequestOptions>
-    ) => PerformanceUtilsIdleCallbackHandle;
+    ) => PerformanceUtilsTimerHandle;
     readonly setTimeout: (
         callback: () => void,
         timeout: number
@@ -118,10 +115,7 @@ export function getPerformanceUtilsRuntime(
 
             return dateNow();
         },
-        requestIdleCallback(
-            callback,
-            options
-        ): PerformanceUtilsIdleCallbackHandle {
+        requestIdleCallback(callback, options): PerformanceUtilsTimerHandle {
             const requestIdleCallback = getRequestIdleCallback();
             if (typeof requestIdleCallback === "function") {
                 return requestIdleCallback(callback, options);

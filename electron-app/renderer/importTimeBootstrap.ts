@@ -179,17 +179,26 @@ function adaptShowUpdateNotification(
     return (message, typeOrDuration, durationOrMode, mode) => {
         const type =
             typeof typeOrDuration === "string" ? typeOrDuration : undefined;
-        const duration =
-            typeof typeOrDuration === "number"
-                ? typeOrDuration
-                : typeof durationOrMode === "number"
-                  ? durationOrMode
-                  : undefined;
+        const duration = resolveUpdateNotificationDuration(
+            typeOrDuration,
+            durationOrMode
+        );
         const action =
             typeof durationOrMode === "string" ? durationOrMode : mode;
 
         return showUpdateNotification(message, type, duration, action);
     };
+}
+
+function resolveUpdateNotificationDuration(
+    typeOrDuration: number | string | undefined,
+    durationOrMode: number | string | undefined
+): number | undefined {
+    if (typeof typeOrDuration === "number") {
+        return typeOrDuration;
+    }
+
+    return typeof durationOrMode === "number" ? durationOrMode : undefined;
 }
 
 export function runRendererImportTimeBootstrap(

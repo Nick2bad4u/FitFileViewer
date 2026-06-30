@@ -5,12 +5,11 @@
 import {
     getPerformanceUtilsRuntime,
     type PerformanceUtilsRuntime,
-    type PerformanceUtilsIdleCallbackHandle,
     type PerformanceUtilsTimerHandle,
 } from "./performanceUtilsRuntime.js";
 
 type TimerHandle = PerformanceUtilsTimerHandle;
-type IdleCallbackHandle = PerformanceUtilsIdleCallbackHandle;
+type IdleCallbackHandle = PerformanceUtilsTimerHandle;
 
 type BatchOptions = {
     readonly maxItems?: number;

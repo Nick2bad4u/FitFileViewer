@@ -103,12 +103,14 @@ function parseFiniteNumber(value: unknown): number | null {
         return null;
     }
 
-    const parsed =
-        typeof value === "number"
-            ? value
-            : typeof value === "string"
-              ? Number.parseFloat(value)
-              : Number.NaN;
+    let parsed = Number.NaN;
+
+    if (typeof value === "number") {
+        parsed = value;
+    } else if (typeof value === "string") {
+        parsed = Number.parseFloat(value);
+    }
+
     return Number.isFinite(parsed) ? parsed : null;
 }
 

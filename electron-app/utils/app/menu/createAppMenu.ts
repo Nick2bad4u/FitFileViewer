@@ -402,12 +402,7 @@ export function createAppMenu(
               ]
             : [...recentMenuItems, clearRecentMenuItem];
     const platform = getMenuProcessStringValue("platform");
-    const revealLabel =
-        platform === "darwin"
-            ? "Reveal in Finder"
-            : platform === "linux"
-              ? "Reveal in File Manager"
-              : "Reveal in File Explorer";
+    const revealLabel = getRevealLabel(platform);
     function createDecoderOptionMenuItems(
         _decoderOptions: Record<string, unknown>,
         _decoderOptionEmojis: Record<string, string>,
@@ -1069,6 +1064,16 @@ function getTheme(): string {
     const value = getConf().get("theme", "dark");
     const t = typeof value === "string" ? value.trim().toLowerCase() : "";
     return t === "dark" || t === "light" || t === "auto" ? t : "dark";
+}
+
+function getRevealLabel(platform: string | undefined): string {
+    if (platform === "darwin") {
+        return "Reveal in Finder";
+    }
+
+    return platform === "linux"
+        ? "Reveal in File Manager"
+        : "Reveal in File Explorer";
 }
 
 function setDecoderOption(

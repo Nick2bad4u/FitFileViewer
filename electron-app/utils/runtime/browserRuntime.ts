@@ -152,13 +152,7 @@ export function getBrowserClearInterval():
         : undefined;
 }
 
-export function getBrowserBoundClearInterval():
-    | typeof globalThis.clearInterval
-    | undefined {
-    return typeof globalThis.clearInterval === "function"
-        ? globalThis.clearInterval.bind(globalThis)
-        : undefined;
-}
+export const getBrowserBoundClearInterval = getBrowserClearInterval;
 
 export function getBrowserClearTimeout():
     | typeof globalThis.clearTimeout
@@ -168,13 +162,7 @@ export function getBrowserClearTimeout():
         : undefined;
 }
 
-export function getBrowserBoundClearTimeout():
-    | typeof globalThis.clearTimeout
-    | undefined {
-    return typeof globalThis.clearTimeout === "function"
-        ? globalThis.clearTimeout.bind(globalThis)
-        : undefined;
-}
+export const getBrowserBoundClearTimeout = getBrowserClearTimeout;
 
 export function getBrowserConsole(): Console | undefined {
     return globalThis.console;
@@ -501,13 +489,7 @@ export function getBrowserSetInterval():
         : undefined;
 }
 
-export function getBrowserBoundSetInterval():
-    | typeof globalThis.setInterval
-    | undefined {
-    return typeof globalThis.setInterval === "function"
-        ? globalThis.setInterval.bind(globalThis)
-        : undefined;
-}
+export const getBrowserBoundSetInterval = getBrowserSetInterval;
 
 export function getBrowserSetTimeout():
     | typeof globalThis.setTimeout
@@ -517,13 +499,7 @@ export function getBrowserSetTimeout():
         : undefined;
 }
 
-export function getBrowserBoundSetTimeout():
-    | typeof globalThis.setTimeout
-    | undefined {
-    return typeof globalThis.setTimeout === "function"
-        ? globalThis.setTimeout.bind(globalThis)
-        : undefined;
-}
+export const getBrowserBoundSetTimeout = getBrowserSetTimeout;
 
 export function getBrowserURL(): typeof globalThis.URL | undefined {
     return globalThis.URL;

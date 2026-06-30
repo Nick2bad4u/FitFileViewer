@@ -51,6 +51,17 @@ function toCellText(value: unknown): string {
 /** Synthetic summary table column key used for row labels. */
 export const LABEL_COL = "__row_label__";
 
+function getSummaryCellText(
+    summary: Record<string, unknown>,
+    key: string
+): string {
+    if (key === LABEL_COL) {
+        return "Summary";
+    }
+
+    return summary[key] === undefined ? "" : toCellText(summary[key]);
+}
+
 const SUMMARY_VIRTUAL_ROW_THRESHOLD = 200;
 const SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK = 34;
 const SUMMARY_VIRTUAL_OVERSCAN = 8;
@@ -289,13 +300,7 @@ export function renderTable({
                             summaryRows && summaryRows[0] ? summaryRows[0] : {};
                     rows.push(
                         sortedVisible
-                            .map((k) =>
-                                k === LABEL_COL
-                                    ? "Summary"
-                                    : summary && summary[k] !== undefined
-                                      ? toCellText(summary[k])
-                                      : ""
-                            )
+                            .map((k) => getSummaryCellText(summary, k))
                             .join(",")
                     );
                 }
@@ -370,12 +375,7 @@ export function renderTable({
             summaryRow = renderSummaryRuntime().createElement("tr");
         for (const [idx, key] of sortedVisible.entries()) {
             const td = renderSummaryRuntime().createElement("td");
-            td.textContent =
-                key === LABEL_COL
-                    ? "Summary"
-                    : summaryRec[key] === undefined
-                      ? ""
-                      : toCellText(summaryRec[key]);
+            td.textContent = getSummaryCellText(summaryRec, key);
             if (idx === 0) {
                 td.classList.add("summary-row");
             }
