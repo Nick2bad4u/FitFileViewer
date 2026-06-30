@@ -18,6 +18,12 @@ export function setDataTableRuntime(runtime: RegisteredDataTableRuntime): void {
     dataTableRuntimeRegistry.runtime = runtime;
 }
 
+export function registerDataTableRuntime(
+    runtime: RegisteredDataTableRuntime
+): void {
+    dataTableRuntimeRegistry.runtime = runtime;
+}
+
 export function clearDataTableRuntimeForTests(): void {
     delete dataTableRuntimeRegistry.runtime;
 }

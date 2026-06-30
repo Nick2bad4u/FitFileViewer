@@ -21289,7 +21289,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(77);
+        expect.assertions(79);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -21355,8 +21355,10 @@ describe("architecture boundaries", () => {
             "runtime?: RegisteredDataTableRuntime;"
         );
         expect(dataTableRuntimeSource).toContain(
-            "setDataTableRuntime(runtime: RegisteredDataTableRuntime)"
+            "registerDataTableRuntime(\n    runtime: RegisteredDataTableRuntime"
         );
+        expect(vendorBundleLoaderSource).toContain("registerDataTableRuntime");
+        expect(vendorBundleLoaderSource).not.toContain("setDataTableRuntime");
         expect(dataTableRuntimeSource).not.toContain("runtime?: unknown;");
         expect(dataTableRuntimeSource).not.toContain(
             "value as { isDataTable?: unknown }"

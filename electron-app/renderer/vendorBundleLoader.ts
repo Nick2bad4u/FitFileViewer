@@ -40,7 +40,7 @@ import {
 } from "../utils/rendering/helpers/arqueroRuntime.js";
 import {
     isRegisteredDataTableRuntime,
-    setDataTableRuntime,
+    registerDataTableRuntime,
 } from "../utils/rendering/core/dataTableRuntime.js";
 import {
     isScreenfullRuntime,
@@ -103,7 +103,7 @@ function registerChartDataRuntimePayload(
     }
 
     registerChartRuntime(payload.chartRuntime, payload.chartZoomPlugin);
-    setDataTableRuntime(payload.dataTableRuntime);
+    registerDataTableRuntime(payload.dataTableRuntime);
     return true;
 }
 

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     clearDataTableRuntimeForTests,
     isRegisteredDataTableRuntime,
+    registerDataTableRuntime,
     type RegisteredDataTableRuntime,
     resolveDataTableRuntime,
     setDataTableRuntime,
@@ -29,6 +30,16 @@ describe("dataTableRuntime", () => {
             },
         });
     }
+
+    it("registers typed DataTables runtime payloads after vendor validation", () => {
+        expect.assertions(1);
+
+        const runtime = createDataTableRuntime();
+
+        registerDataTableRuntime(runtime);
+
+        expect(resolveDataTableRuntime(isDataTableRuntime)).toBe(runtime);
+    });
 
     it("resolves the registered DataTables runtime", () => {
         expect.assertions(1);
