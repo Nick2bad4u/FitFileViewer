@@ -12,9 +12,17 @@ type DialogInvokeChannel = import("../../shared/ipc").DialogInvokeChannel;
 type DialogOpenFileResponse = import("../../shared/ipc").DialogOpenFileResponse;
 type DialogOpenOverlayFilesResponse =
     import("../../shared/ipc").DialogOpenOverlayFilesResponse;
-type DialogResponsePayload = import("../../shared/ipc").DialogResponsePayload;
+type InvokeRequestArgs<Channel extends DialogFileInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends DialogFileInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 type OpenDialogOptions = import("electron").OpenDialogOptions;
 type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
+
+type DialogFileInvokeChannel = Extract<
+    DialogInvokeChannel,
+    "dialog:openFile" | "dialog:openOverlayFiles"
+>;
 
 interface ReadonlyDialogFilter {
     readonly extensions: readonly string[];
@@ -35,14 +43,21 @@ interface DialogConstants {
     };
 }
 
-type RegisterDialogIpcHandler = (
+type RegisterDialogIpcHandler<Channel extends DialogFileInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type RegisterDialogIpcCallback = (
     event: unknown,
     ...args: unknown[]
-) => DialogResponsePayload | Promise<DialogResponsePayload>;
+) => unknown;
 
 type RegisterDialogIpcHandle = (
-    channel: DialogInvokeChannel,
-    handler: RegisterDialogIpcHandler
+    channel: DialogFileInvokeChannel,
+    handler: RegisterDialogIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -97,7 +112,14 @@ export function registerDialogHandlers({
         return;
     }
 
-    registerIpcHandle(
+    const registerDialogIpcHandle = <Channel extends DialogFileInvokeChannel>(
+        channel: Channel,
+        handler: RegisterDialogIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as RegisterDialogIpcCallback);
+    };
+
+    registerDialogIpcHandle(
         "dialog:openFile",
         async (): Promise<DialogOpenFileResponse> => {
             try {
@@ -182,7 +204,7 @@ export function registerDialogHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerDialogIpcHandle(
         "dialog:openOverlayFiles",
         async (): Promise<DialogOpenOverlayFilesResponse> => {
             try {
