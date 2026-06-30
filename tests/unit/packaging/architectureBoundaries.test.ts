@@ -20882,7 +20882,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(72);
+        expect.assertions(73);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -20915,11 +20915,10 @@ describe("architecture boundaries", () => {
         expect(renderTableSource).not.toContain(
             "value as Partial<DataTableConstructor>"
         );
-        expect(renderTableSource).toContain(
+        expect(renderTableSource).toContain("getRegisteredDataTableRuntime");
+        expect(renderTableSource).not.toContain("resolveDataTableRuntime");
+        expect(renderTableSource).not.toContain(
             "type DataTableConstructorCandidate"
-        );
-        expect(renderTableSource).toContain(
-            'typeof candidate.isDataTable === "function"'
         );
         expect(renderTableSource).not.toContain(
             'Reflect.get(value, "isDataTable")'
@@ -21277,7 +21276,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
-        expect.assertions(80);
+        expect.assertions(83);
 
         const chartRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
@@ -21336,6 +21335,15 @@ describe("architecture boundaries", () => {
         expect(dataTableRuntimeSource).not.toContain("globalThis");
         expect(dataTableRuntimeSource).toContain(
             "isRegisteredDataTableRuntime"
+        );
+        expect(dataTableRuntimeSource).toContain(
+            "getRegisteredDataTableRuntime"
+        );
+        expect(dataTableRuntimeSource).toContain(
+            "export type RegisteredDataTableOptions"
+        );
+        expect(dataTableRuntimeSource).toContain(
+            "export type RegisteredDataTableInstance"
         );
         expect(dataTableRuntimeSource).toContain(
             "runtime?: RegisteredDataTableRuntime;"

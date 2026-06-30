@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     clearDataTableRuntimeForTests,
+    getRegisteredDataTableRuntime,
     isRegisteredDataTableRuntime,
     registerDataTableRuntime,
     type RegisteredDataTableRuntime,
@@ -23,31 +24,43 @@ describe("dataTableRuntime", () => {
     });
 
     function createDataTableRuntime(): RegisteredDataTableRuntime {
-        return Object.assign(function DataTableRuntime() {}, {
-            isDataTable() {
-                return false;
+        return Object.assign(
+            function DataTableRuntime() {
+                return {
+                    columns: {
+                        adjust() {},
+                    },
+                    destroy() {},
+                };
             },
-        });
+            {
+                isDataTable() {
+                    return false;
+                },
+            }
+        );
     }
 
     it("registers typed DataTables runtime payloads after vendor validation", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const runtime = createDataTableRuntime();
 
         registerDataTableRuntime(runtime);
 
+        expect(getRegisteredDataTableRuntime()).toBe(runtime);
         expect(resolveDataTableRuntime(isDataTableRuntime)).toBe(runtime);
     });
 
     it("clears the module-local runtime adapter", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const runtime = createDataTableRuntime();
         registerDataTableRuntime(runtime);
 
         clearDataTableRuntimeForTests();
 
+        expect(getRegisteredDataTableRuntime()).toBeNull();
         expect(resolveDataTableRuntime(isDataTableRuntime)).toBeNull();
     });
 

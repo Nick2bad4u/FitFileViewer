@@ -2,14 +2,39 @@ type DataTableRuntimeRegistry = {
     runtime?: RegisteredDataTableRuntime;
 };
 
-export type RegisteredDataTableRuntime = ((...args: never[]) => unknown) &
+export type RegisteredDataTableInstance = Readonly<{
+    columns: Readonly<{
+        adjust: () => void;
+    }>;
+    destroy: () => void;
+}>;
+
+export type RegisteredDataTableOptions = {
+    autoWidth: boolean;
+    columns: RegisteredDataTableColumnConfig[];
+    data: Record<string, boolean | number | string>[];
+    deferRender: boolean;
+    lengthMenu: [number[], Array<number | string>];
+    ordering: boolean;
+    pageLength: number;
+    paging: boolean;
+    scrollCollapse: boolean;
+    scrollX: boolean;
+    searching: boolean;
+};
+
+export type RegisteredDataTableColumnConfig = {
+    data: string;
+    defaultContent: string;
+    title: string;
+};
+
+export type RegisteredDataTableRuntime = (new (
+    selector: string,
+    options?: RegisteredDataTableOptions
+) => RegisteredDataTableInstance) &
     Readonly<{
         isDataTable: (selector: string) => boolean;
-    }>;
-
-type DataTableRuntimeCandidate = ((...args: unknown[]) => unknown) &
-    Readonly<{
-        isDataTable?: unknown;
     }>;
 
 const dataTableRuntimeRegistry: DataTableRuntimeRegistry = {};
@@ -27,11 +52,17 @@ export function clearDataTableRuntimeForTests(): void {
 export function isRegisteredDataTableRuntime(
     value: unknown
 ): value is RegisteredDataTableRuntime {
-    if (!isDataTableRuntimeCandidate(value)) {
-        return false;
-    }
+    return (
+        typeof value === "function" &&
+        typeof (value as Partial<RegisteredDataTableRuntime>).isDataTable ===
+            "function"
+    );
+}
 
-    return typeof value.isDataTable === "function";
+export function getRegisteredDataTableRuntime():
+    | RegisteredDataTableRuntime
+    | null {
+    return dataTableRuntimeRegistry.runtime ?? null;
 }
 
 export function resolveDataTableRuntime<T>(
@@ -50,10 +81,4 @@ function getDataTableRuntimeCandidates(): unknown[] {
     return dataTableRuntimeRegistry.runtime === undefined
         ? []
         : [dataTableRuntimeRegistry.runtime];
-}
-
-function isDataTableRuntimeCandidate(
-    value: unknown
-): value is DataTableRuntimeCandidate {
-    return typeof value === "function";
 }

@@ -1,10 +1,10 @@
 import { copyTableAsCSV } from "../../files/export/copyTableAsCSV.js";
+import { getRegisteredDataTableRuntime } from "./dataTableRuntime.js";
 import {
     type AppIconName,
     createAppIconElement,
 } from "../../ui/icons/iconFactory.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
-import { resolveDataTableRuntime } from "./dataTableRuntime.js";
 import {
     getRenderTableRuntime,
     type RenderTableTimerHandle,
@@ -21,50 +21,6 @@ export type RenderTableData = {
 type NormalizedCellValue = boolean | number | string;
 
 type NormalizedTableRow = Record<string, NormalizedCellValue>;
-
-type DataTableInstance = {
-    columns: {
-        adjust: () => void;
-    };
-    destroy: () => void;
-};
-
-type DataTableColumnConfig = {
-    data: string;
-    defaultContent: string;
-    title: string;
-};
-
-type DataTableOptions = {
-    autoWidth: boolean;
-    columns: DataTableColumnConfig[];
-    data: NormalizedTableRow[];
-    deferRender: boolean;
-    lengthMenu: [number[], Array<number | string>];
-    ordering: boolean;
-    pageLength: number;
-    paging: boolean;
-    scrollCollapse: boolean;
-    scrollX: boolean;
-    searching: boolean;
-};
-
-type DataTableConstructor = {
-    isDataTable: (selector: string) => boolean;
-    new (selector: string, options?: DataTableOptions): DataTableInstance;
-};
-
-type DataTableConstructorCandidate = Readonly<{
-    isDataTable?: unknown;
-}>;
-
-function isDataTableConstructor(value: unknown): value is DataTableConstructor {
-    const candidate = value as DataTableConstructorCandidate;
-    return (
-        typeof value === "function" &&
-        typeof candidate.isDataTable === "function"
-    );
-}
 
 /**
  * Renders a collapsible raw-data table section.
@@ -149,9 +105,7 @@ export function renderTable(
     const initializeDataTableIfAvailable = (): void => {
         const tableSelector = `#${tableId}`;
         try {
-            const DataTableCtor = resolveDataTableRuntime(
-                isDataTableConstructor
-            );
+            const DataTableCtor = getRegisteredDataTableRuntime();
             if (!DataTableCtor) {
                 return;
             }
