@@ -5,6 +5,7 @@ import {
 import {
     getRegisteredChartDevTools,
     registerChartDevTools,
+    type RegisteredChartDevTools,
 } from "./chartDevToolsRegistry.js";
 import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
@@ -93,7 +94,7 @@ export function exposeChartDevTools(
         return;
     }
 
-    const devTools = {
+    const devTools: RegisteredChartDevTools = {
         actions: chartActions,
         clearCharts: chartActions.clearCharts,
         computed: {

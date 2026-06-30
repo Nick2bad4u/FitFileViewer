@@ -15229,7 +15229,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(197);
+        expect.assertions(201);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -15309,6 +15309,11 @@ describe("architecture boundaries", () => {
         const renderChartDevToolsSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartDevTools.ts"
+            )
+        );
+        const chartDevToolsRegistrySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartDevToolsRegistry.ts"
             )
         );
         const renderChartSettingsManagerSource = stripComments(
@@ -15712,6 +15717,18 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartDevToolsSource).toContain(
             "dependencies.getPerformanceMetrics()"
+        );
+        expect(chartDevToolsRegistrySource).toContain(
+            "export type RegisteredChartDevTools = Readonly<{"
+        );
+        expect(chartDevToolsRegistrySource).toContain(
+            "dumpState: () => ChartDevToolsDumpStateSnapshot;"
+        );
+        expect(chartDevToolsRegistrySource).not.toContain(
+            "export type RegisteredChartDevTools = Record<string, unknown>"
+        );
+        expect(renderChartDevToolsSource).toContain(
+            "const devTools: RegisteredChartDevTools = {"
         );
         expect(renderChartDevToolsSource).not.toContain(
             "getState(path: string)"
