@@ -67,7 +67,7 @@ function scheduleChartRefresh(): void {
         sharedConfigurationRefreshTimeout = undefined;
 
         const chartStateManager = getRegisteredChartStateManager();
-        if (typeof chartStateManager?.debouncedRender === "function") {
+        if (chartStateManager) {
             chartStateManager.debouncedRender("Configuration loaded from URL");
             return;
         }
