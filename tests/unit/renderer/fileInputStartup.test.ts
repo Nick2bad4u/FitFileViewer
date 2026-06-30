@@ -165,6 +165,35 @@ describe("renderer file input startup wiring", () => {
         expect(input.id).toBe("fileInput");
     });
 
+    it("logs rejected import-time file open handlers", async () => {
+        expect.assertions(2);
+
+        const { input } = createFileInput();
+        const openError = new Error("open failed");
+        const handleOpenFile = vi.fn<(file: File) => Promise<void>>(
+            async () => {
+                throw openError;
+            }
+        );
+        const logRenderer = vi.fn();
+
+        registerImportTimeFileInputChangeHandler(input, window, {
+            getHandleOpenFile: async () => handleOpenFile,
+            logRenderer,
+        });
+
+        input.dispatchEvent(new Event("change"));
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(handleOpenFile).toHaveBeenCalledOnce();
+        expect(logRenderer).toHaveBeenCalledWith(
+            "warn",
+            "[Renderer] Failed to handle file open:",
+            openError
+        );
+    });
+
     it("resolves listener abort controllers through the injected runtime", async () => {
         expect.assertions(4);
 
@@ -279,5 +308,27 @@ describe("renderer file input startup wiring", () => {
         await Promise.resolve();
 
         expect(asyncHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
+    });
+
+    it("ignores rejected delegated file open handlers", async () => {
+        expect.assertions(1);
+
+        const { input } = createFileInput();
+        const delegatedHandler = createDelegatedFileInputChangeHandler({
+            getHandleOpenFile: async () => async () => {
+                throw new Error("delegated open failed");
+            },
+        });
+
+        registerDelegatedFileInputChangeListener(
+            document,
+            window,
+            delegatedHandler
+        );
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(input.id).toBe("fileInput");
     });
 });

@@ -6695,7 +6695,7 @@ describe("architecture boundaries", () => {
             "handleOpenFile as openFitFileFromDialog"
         );
         expect(rendererEntrypointSource).toContain(
-            "handleOpenFile: () =>\n        openFitFileFromDialog("
+            "handleOpenFile: async () => {\n        await openFitFileFromDialog("
         );
     });
 
@@ -25229,7 +25229,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input startup off the generic function bridge", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -25247,11 +25247,20 @@ describe("architecture boundaries", () => {
         expect(fileInputStartupSource).not.toContain("callUnknownFunction");
         expect(fileInputWiringSource).not.toContain("callUnknownFunction");
         expect(fileInputStartupSource).toContain(
+            "export type RendererFileOpenHandler = (file: File) => Promise<void> | void;"
+        );
+        expect(fileInputStartupSource).not.toContain(
             "export type RendererFileOpenHandler = (file: unknown) => unknown;"
         );
-        expect(fileInputStartupSource).toContain("handleOpenFileFn?.(file)");
         expect(fileInputStartupSource).toContain(
-            "handleOpenFile?.(selectedFile)"
+            "function invokeFileOpenHandler("
+        );
+        expect(fileInputStartupSource).toContain(
+            "await invokeFileOpenHandler(handleOpenFileFn, file)"
+        );
+        expect(fileInputStartupSource).not.toContain("handleOpenFileFn?.(file)");
+        expect(fileInputStartupSource).toContain(
+            "void invokeFileOpenHandler(handleOpenFile, selectedFile).catch"
         );
         expect(fileInputWiringSource).toContain("RendererFileOpenHandler");
         expect(fileInputWiringSource).not.toContain(
@@ -25287,7 +25296,7 @@ describe("architecture boundaries", () => {
             "createRendererFileInputWiring({\n    ensureCoreModules,"
         );
         expect(rendererEntrypointSource).toContain(
-            "createRendererFileInputWiring({\n    getFileInput: domAccess.getFileInput,\n    handleOpenFile: () =>\n        openFitFileFromDialog("
+            "createRendererFileInputWiring({\n    getFileInput: domAccess.getFileInput,\n    handleOpenFile: async () => {\n        await openFitFileFromDialog("
         );
         expect(applicationStartupSource).not.toContain(
             "handleImmediateFileInputChange"

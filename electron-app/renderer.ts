@@ -125,8 +125,8 @@ const { scheduleImportTimeStateInitialization } = importTimeBootstrap;
 
 const fileInputWiring = createRendererFileInputWiring({
     getFileInput: domAccess.getFileInput,
-    handleOpenFile: () =>
-        openFitFileFromDialog(
+    handleOpenFile: async () => {
+        await openFitFileFromDialog(
             {
                 isOpeningFileRef,
                 openFileBtn: domAccess.getOpenFileButton(),
@@ -134,7 +134,8 @@ const fileInputWiring = createRendererFileInputWiring({
                 showNotification,
             },
             { electronApiScope: getRendererElectronApiScope() }
-        ),
+        );
+    },
     logRenderer,
 });
 

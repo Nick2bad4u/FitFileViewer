@@ -8,7 +8,7 @@ export type RendererFileInputLogger = (
     ...args: unknown[]
 ) => void;
 
-export type RendererFileOpenHandler = (file: unknown) => unknown;
+export type RendererFileOpenHandler = (file: File) => Promise<void> | void;
 
 export type RendererFileInputEventTarget = Pick<
     EventTarget,
@@ -26,13 +26,22 @@ export function getFirstSelectedFile(
     return fileInput.files?.[0];
 }
 
+function invokeFileOpenHandler(
+    handleOpenFile: RendererFileOpenHandler,
+    file: File
+): Promise<void> {
+    return Promise.resolve(handleOpenFile(file));
+}
+
 export async function handleDelegatedFileInputChange(
-    file: unknown,
+    file: File,
     options: RendererFileInputStartupOptions
 ): Promise<void> {
     try {
         const handleOpenFileFn = await options.getHandleOpenFile();
-        handleOpenFileFn?.(file);
+        if (handleOpenFileFn !== undefined) {
+            await invokeFileOpenHandler(handleOpenFileFn, file);
+        }
     } catch {
         /* Ignore errors */
     }
@@ -47,7 +56,9 @@ export async function handleImportTimeFileInputChange(
         if (file !== undefined) {
             try {
                 const handleOpenFileFn = await options.getHandleOpenFile();
-                handleOpenFileFn?.(file);
+                if (handleOpenFileFn !== undefined) {
+                    await invokeFileOpenHandler(handleOpenFileFn, file);
+                }
             } catch (error) {
                 options.logRenderer?.(
                     "warn",
@@ -70,8 +81,10 @@ export function handleImmediateFileInputChange(
     handleOpenFile: RendererFileOpenHandler | undefined
 ): void {
     const selectedFile = getFirstSelectedFile(fileInput);
-    if (selectedFile !== undefined) {
-        handleOpenFile?.(selectedFile);
+    if (selectedFile !== undefined && handleOpenFile !== undefined) {
+        void invokeFileOpenHandler(handleOpenFile, selectedFile).catch(() => {
+            /* Ignore errors */
+        });
     }
 }
 
