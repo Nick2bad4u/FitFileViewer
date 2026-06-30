@@ -236,6 +236,35 @@ describe("renderer development debug tools", () => {
         }).not.toThrow();
     });
 
+    it("rejects array-shaped development state manager candidates", async () => {
+        expect.assertions(2);
+
+        process.env.NODE_ENV = "development";
+
+        const getState = vi.fn(() => ({ app: { initialized: true } }));
+        const arrayStateManager = Object.assign([], { getState });
+        const view = createRendererDevelopmentDebugTools({
+            cleanup: vi.fn(),
+            debugFunctions: {},
+            stateModules: {
+                masterStateManager: arrayStateManager,
+            },
+            initializeApplication: async () => {},
+            isDevelopmentMode: () => true,
+            isOpeningFileRef: { value: false },
+            logRenderer: vi.fn(),
+            performanceMonitor: createPerformanceMonitor(),
+            validateDOMElements: () => true,
+        });
+
+        const rendererDev = view?.rendererDev as {
+            getState: () => Promise<unknown>;
+        };
+
+        await expect(rendererDev.getState()).resolves.toBeUndefined();
+        expect(getState).not.toHaveBeenCalled();
+    });
+
     it("ignores malformed development debug function exports", async () => {
         expect.assertions(1);
 

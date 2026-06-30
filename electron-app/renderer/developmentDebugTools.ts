@@ -39,11 +39,11 @@ type DevelopmentStateManagerMethodName =
     | "getState"
     | "getSubscriptions";
 type DevelopmentStateManagerMethod = (this: unknown) => unknown;
-type RendererDevelopmentDebugStateManager = Readonly<
-    Partial<
-        Record<DevelopmentStateManagerMethodName, DevelopmentStateManagerMethod>
-    >
->;
+type RendererDevelopmentDebugStateManager = Readonly<{
+    readonly getHistory?: DevelopmentStateManagerMethod | undefined;
+    readonly getState?: DevelopmentStateManagerMethod | undefined;
+    readonly getSubscriptions?: DevelopmentStateManagerMethod | undefined;
+}>;
 
 export type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;
@@ -403,23 +403,27 @@ function getDebugErrorMessage(errorLike: unknown): string {
 function toRendererDevelopmentDebugStateManager(
     value: unknown
 ): RendererDevelopmentDebugStateManager | undefined {
-    if (typeof value !== "object" || value === null) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
         return undefined;
     }
 
     const candidate = value as RendererDevelopmentDebugStateManagerCandidate;
-    const stateManager: Partial<
-        Record<DevelopmentStateManagerMethodName, DevelopmentStateManagerMethod>
-    > = {};
-    if (isDevelopmentStateManagerMethod(candidate.getHistory)) {
-        stateManager.getHistory = candidate.getHistory;
-    }
-    if (isDevelopmentStateManagerMethod(candidate.getState)) {
-        stateManager.getState = candidate.getState;
-    }
-    if (isDevelopmentStateManagerMethod(candidate.getSubscriptions)) {
-        stateManager.getSubscriptions = candidate.getSubscriptions;
-    }
+    const getHistory = isDevelopmentStateManagerMethod(candidate.getHistory)
+        ? candidate.getHistory
+        : undefined;
+    const getState = isDevelopmentStateManagerMethod(candidate.getState)
+        ? candidate.getState
+        : undefined;
+    const getSubscriptions = isDevelopmentStateManagerMethod(
+        candidate.getSubscriptions
+    )
+        ? candidate.getSubscriptions
+        : undefined;
+    const stateManager: RendererDevelopmentDebugStateManager = {
+        ...(getHistory === undefined ? {} : { getHistory }),
+        ...(getState === undefined ? {} : { getState }),
+        ...(getSubscriptions === undefined ? {} : { getSubscriptions }),
+    };
 
     return Object.keys(stateManager).length === 0 ? undefined : stateManager;
 }
