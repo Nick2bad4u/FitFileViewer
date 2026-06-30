@@ -35,8 +35,10 @@ component_management:
         - component_id: core_electron
           name: "⚡ Core Electron Process"
           paths:
-              - electron-app/main.js
-              - electron-app/preload.js
+              - electron-app/main.ts
+              - electron-app/preload.ts
+              - electron-app/main/**/*
+              - electron-app/preload/**/*
           statuses:
               - target: 95%
                 threshold: 1%
@@ -48,8 +50,10 @@ component_management:
         - component_id: renderer_ui
           name: "Renderer & UI"
           paths:
-              - electron-app/renderer.js
-              - electron-app/main-ui.js
+              - electron-app/renderer.ts
+              - electron-app/main-ui.ts
+              - electron-app/renderer/**/*
+              - electron-app/ui/**/*
               - static/app/index.html
               - static/app/style.css
               - static/app/elevProfile.css
@@ -76,7 +80,8 @@ component_management:
         - component_id: fit_parsing
           name: "FIT Parsing"
           paths:
-              - electron-app/fitParser.js
+              - electron-app/fitParser.ts
+              - electron-app/fitParserRuntime.ts
           statuses:
               - target: 95%
                 threshold: 1%
@@ -88,7 +93,8 @@ component_management:
         - component_id: window_state
           name: "Window State Management"
           paths:
-              - electron-app/windowStateUtils.js
+              - electron-app/windowStateUtils.ts
+              - electron-app/windowStateRuntime.ts
           statuses:
               - target: 85%
                 threshold: 2%
@@ -141,8 +147,9 @@ coverage:
         - "**/generated/**/*"
 
         # Entry points (often just imports)
-        - "electron-app/main.js" # Already covered in components, but ignore for coverage if minimal
+        - "electron-app/main.ts" # Already covered in components, but ignore for coverage if minimal
         - "**/index.js" # Index files are usually just exports
+        - "**/index.ts" # Index files are usually just exports
 
     precision: 2
     range: "60...100" # Realistic range for Electron app
@@ -181,7 +188,7 @@ flags:
         ignore:
             - "electron-app/**/*.test.*"
             - "electron-app/**/*.spec.*"
-            - "electron-app/main.js" # Entry point
+            - "electron-app/main.ts" # Entry point
         paths:
             - electron-app/
 # Modern GitHub integration (replaces deprecated github_checks)
