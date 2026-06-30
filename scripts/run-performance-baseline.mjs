@@ -328,7 +328,9 @@ export function appendPerformanceBaselineSummary(
 async function measureFixture(page, { fixturePath, timeoutMs }) {
     const bytes = [...fs.readFileSync(fixturePath)];
     const fileStats = fs.statSync(fixturePath);
-    const loadMetrics = await page.evaluate(
+    await page.reload({ timeout: timeoutMs, waitUntil: "domcontentloaded" });
+    const loadMetrics = await evaluateWithRendererRetry(
+        page,
         async ({ fixtureBytes, filePath }) => {
             const getHeapBytes = () => {
                 const memory = performance.memory;
@@ -387,7 +389,8 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
                 title: document.title,
             };
         },
-        { filePath: fixturePath, fixtureBytes: bytes }
+        { filePath: fixturePath, fixtureBytes: bytes },
+        timeoutMs
     );
 
     const mapMetrics = await measureTabRender(page, {
@@ -459,6 +462,44 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
         ...dataTableMetrics,
         ...unloadMetrics,
     };
+}
+
+async function evaluateWithRendererRetry(
+    page,
+    pageFunction,
+    argument,
+    timeoutMs
+) {
+    await waitForRendererReady(page, timeoutMs);
+
+    try {
+        return await page.evaluate(pageFunction, argument);
+    } catch (error) {
+        if (!isExecutionContextDestroyedError(error)) {
+            throw error;
+        }
+
+        await waitForRendererReady(page, timeoutMs);
+        return page.evaluate(pageFunction, argument);
+    }
+}
+
+function isExecutionContextDestroyedError(error) {
+    return (
+        error instanceof Error &&
+        error.message.includes("Execution context was destroyed")
+    );
+}
+
+async function waitForRendererReady(page, timeoutMs) {
+    await page.waitForLoadState("domcontentloaded", { timeout: timeoutMs });
+    await page.waitForFunction(
+        () =>
+            document.readyState !== "loading" &&
+            typeof globalThis.electronAPI?.parseFitFile === "function",
+        undefined,
+        { timeout: timeoutMs }
+    );
 }
 
 export function classifyFixtureSize(byteLength) {
