@@ -14353,7 +14353,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(232);
+        expect.assertions(235);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -14729,6 +14729,15 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getViewportState: getBrowserViewportState"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "export type UIStateWindowStateSnapshot = Readonly<{"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "interface UIStateWindowStateSnapshot extends Record<string, unknown>"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "UIStateWindowStateSnapshot extends Record"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "getViewportState: () => globalThis"

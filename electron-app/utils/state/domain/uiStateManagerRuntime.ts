@@ -16,13 +16,13 @@ import {
 } from "../../runtime/browserRuntime.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
-export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
+export type UIStateWindowStateSnapshot = Readonly<{
     readonly height: number;
     readonly maximized: boolean;
     readonly width: number;
     readonly x: number;
     readonly y: number;
-}
+}>;
 
 type UIStateManagerEventTarget = Pick<Window, "addEventListener">;
 type UIStateManagerElementProvider = () => HTMLElement | null | undefined;
