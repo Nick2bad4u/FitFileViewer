@@ -54,7 +54,7 @@ interface RendererModuleAccessors {
     renderTimeInZoneCharts: typeof renderTimeInZoneCharts;
 }
 
-/** Legacy settings manager methods used by chart rendering. */
+/** Settings manager methods used by chart rendering. */
 export interface SettingsStateManagerAccess {
     getChartFieldVisibility?(
         fieldKey: string,
@@ -73,10 +73,10 @@ type SetupZoneDataFunction = typeof setupZoneData;
 type ShowRenderNotificationFunction = typeof showRenderNotification;
 
 /** Optional UI manager methods used by chart rendering. */
-export interface UIStateManagerAccess extends Record<string, unknown> {
+export type UIStateManagerAccess = Readonly<{
     updateChartControlsUI?(enabled: boolean): unknown;
     updatePanelVisibility?(panelId: string, visible: boolean): unknown;
-}
+}>;
 
 const importedSettingsStateManager: SettingsStateManagerAccess = {
     getChartFieldVisibility,
