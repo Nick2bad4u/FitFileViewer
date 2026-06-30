@@ -637,6 +637,14 @@ const config = [
         },
     },
     {
+        files: [".github/workflows/*-caller.yml"],
+        rules: {
+            "github-actions/no-external-job": "off",
+            "github-actions/pin-action-shas": "off",
+            "github-actions/require-dependency-review-action": "off",
+        },
+    },
+    {
         files: [".github/agents/beastmode.agent.md"],
         rules: {
             "copilot/prefer-qualified-tools": "off",

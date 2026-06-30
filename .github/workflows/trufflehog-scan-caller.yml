@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+
+name: "Trufflehog Secret Scan"
+
+run-name: >-
+    ${{
+        github.event_name == 'pull_request' &&
+        format('Trufflehog Secret Scan #{0}', github.event.pull_request.number) ||
+        github.event_name == 'merge_group' &&
+        format('Trufflehog Secret Scan merge group {0}', github.sha || github.ref_name || github.run_id) ||
+        github.event_name == 'schedule' &&
+        format('Trufflehog Secret Scan scheduled {0}', github.run_id) ||
+        format('Trufflehog Secret Scan {0}', github.ref_name || github.run_id)
+    }}
+
+concurrency:
+    group: >-
+        trufflehog-secret-scan-${{ github.workflow }}-${{
+            github.event.pull_request.number ||
+            github.sha ||
+            github.ref ||
+            github.run_id
+        }}
+    cancel-in-progress: true
+
+on:
+    push:
+    pull_request:
+    merge_group:
+        types:
+            - "checks_requested"
+    schedule:
+        - cron: "44 4 * * 0"
+    workflow_dispatch:
+
+permissions: {}
+
+jobs:
+    trufflehog:
+        name: "Trufflehog Secret Scan"
+        permissions:
+            contents: "read"
+        uses: "Nick2bad4u/workflow-templates/.github/workflows/reusable-trufflehog-scan.yml@main"

@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+
+name: "Dependency Review"
+
+run-name: >-
+    ${{
+        github.event_name == 'pull_request' &&
+        format('Dependency Review #{0}', github.event.pull_request.number) ||
+        github.event_name == 'merge_group' &&
+        format('Dependency Review merge group {0}', github.sha || github.ref_name || github.run_id) ||
+        format('Dependency Review {0}', github.ref_name || github.run_id)
+    }}
+
+concurrency:
+    group: >-
+        dependency-review-${{ github.workflow }}-${{
+            github.event.pull_request.number ||
+            github.sha ||
+            github.ref ||
+            github.run_id
+        }}
+    cancel-in-progress: true
+
+on:
+    pull_request:
+    merge_group:
+        types:
+            - "checks_requested"
+
+permissions: {}
+
+jobs:
+    dependency-review:
+        name: "Dependency Review"
+        permissions:
+            contents: "read"
+        uses: "Nick2bad4u/workflow-templates/.github/workflows/reusable-dependency-review-enhanced.yml@main"
