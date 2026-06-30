@@ -248,6 +248,25 @@ describe("utils/app/lifecycle/listeners.js", () => {
         });
     });
 
+    it("reports rejected Open File click handlers", async () => {
+        expect.assertions(2);
+
+        const { openFileBtn, handleOpenFile, showNotification } = mount([]);
+        handleOpenFile.mockImplementationOnce(async () => {
+            throw new Error("open failed");
+        });
+
+        openFileBtn.click();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(handleOpenFile).toHaveBeenCalledOnce();
+        expect(showNotification).toHaveBeenCalledWith(
+            "Failed to open file",
+            "error"
+        );
+    });
+
     it("menu Open File callback forwards the renderer Electron API scope", () => {
         expect.assertions(1);
 

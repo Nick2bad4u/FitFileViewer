@@ -144,7 +144,7 @@ export type SetupListenersOptions = {
     handleOpenFile: (
         options: HandleOpenFileOptions,
         runtimeOptions?: HandleOpenFileRuntimeOptions
-    ) => unknown;
+    ) => boolean | Promise<boolean | void> | void;
     isOpeningFileRef: FileOpeningStateRef;
     openFileBtn?: HTMLButtonElement | null;
     setLoading: (loading: boolean) => void;
@@ -207,6 +207,16 @@ function getLifecycleElectronAPI(
     electronApiScope: RendererElectronApiScope | undefined
 ): LifecycleElectronAPI | null {
     return getRendererElectronApi(isLifecycleElectronAPI, electronApiScope);
+}
+
+function invokeHandleOpenFile(
+    handleOpenFile: SetupListenersOptions["handleOpenFile"],
+    options: HandleOpenFileOptions,
+    runtimeOptions: HandleOpenFileRuntimeOptions
+): void {
+    void Promise.resolve(handleOpenFile(options, runtimeOptions)).catch(() => {
+        options.showNotification("Failed to open file", "error");
+    });
 }
 
 function getHighContrastBodyClass(mode: string): string | undefined {
@@ -643,7 +653,8 @@ export function setupListeners({
 
     // Open File button click
     const handleOpenFileClick = () => {
-        handleOpenFile(
+        invokeHandleOpenFile(
+            handleOpenFile,
             {
                 isOpeningFileRef,
                 openFileBtn,
@@ -689,7 +700,8 @@ export function setupListeners({
     ) {
         trackUnsubscribe(
             electronAPI.onMenuOpenFile(() => {
-                handleOpenFile(
+                invokeHandleOpenFile(
+                    handleOpenFile,
                     {
                         isOpeningFileRef,
                         openFileBtn,
