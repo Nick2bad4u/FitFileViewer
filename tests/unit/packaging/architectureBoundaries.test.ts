@@ -21521,7 +21521,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core vendor runtime adapters off global symbol registries", () => {
-        expect.assertions(36);
+        expect.assertions(39);
 
         const coreRuntimeSources = [
             "electron-app/utils/dom/domPurifyRuntime.ts",
@@ -21590,6 +21590,9 @@ describe("architecture boundaries", () => {
         expect(arqueroRuntimeSource).toContain(
             "registerArqueroRuntime(runtime: ArqueroRuntime)"
         );
+        expect(arqueroRuntimeSource).toContain("runtime?: ArqueroRuntime;");
+        expect(arqueroRuntimeSource).not.toContain("setArqueroRuntime");
+        expect(arqueroRuntimeSource).not.toContain("runtime?: unknown;");
         expect(exportZipRuntimeSource).toContain("registerExportZipRuntime(");
         expect(exportZipRuntimeSource).toContain(
             "constructor: ExportZipConstructor"

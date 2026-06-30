@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
     clearArqueroRuntimeForTests,
-    setArqueroRuntime,
+    registerArqueroRuntime,
 } from "../../../../../electron-app/utils/rendering/helpers/arqueroRuntime.js";
 import { renderTable } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
 
@@ -28,7 +28,7 @@ describe("renderTable behavior", () => {
         vi.resetModules();
         vi.restoreAllMocks();
         clearArqueroRuntimeForTests();
-        setArqueroRuntime({
+        registerArqueroRuntime({
             from(arr: any[]) {
                 const data = [...arr];
                 return {

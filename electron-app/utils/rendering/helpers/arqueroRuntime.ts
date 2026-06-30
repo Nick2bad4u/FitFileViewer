@@ -30,7 +30,7 @@ type ArqueroRuntimeCandidate = Readonly<{
 }>;
 
 type ArqueroRuntimeRegistry = {
-    runtime?: unknown;
+    runtime?: ArqueroRuntime;
 };
 
 const arqueroRuntimeRegistry: ArqueroRuntimeRegistry = {};
@@ -53,21 +53,16 @@ function readRuntimeValue(readValue: () => unknown): unknown {
     }
 }
 
-export function setArqueroRuntime(runtime: unknown): void {
-    arqueroRuntimeRegistry.runtime = runtime;
-}
-
 export function registerArqueroRuntime(runtime: ArqueroRuntime): void {
     arqueroRuntimeRegistry.runtime = runtime;
 }
 
 export function clearArqueroRuntimeForTests(): void {
-    arqueroRuntimeRegistry.runtime = undefined;
+    delete arqueroRuntimeRegistry.runtime;
 }
 
 export function resolveArqueroRuntime(): ArqueroRuntime | undefined {
-    const runtime = arqueroRuntimeRegistry.runtime;
-    return isArqueroRuntime(runtime) ? runtime : undefined;
+    return arqueroRuntimeRegistry.runtime;
 }
 
 export function isArqueroRuntime(value: unknown): value is ArqueroRuntime {
