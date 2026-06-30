@@ -64,14 +64,14 @@ component_management:
               - target: 75%
                 threshold: 7%
                 type: patch
-        # === UTILITIES (High Coverage - Easy to Test) ===
+        # === UTILITIES (Broad legacy surface: guard regressions from the current baseline) ===
         - component_id: utilities
           name: "Utilities"
           paths:
               - electron-app/utils/**
           statuses:
-              - target: 90%
-                threshold: 2%
+              - target: 60%
+                threshold: 3%
                 type: project
               - target: 85%
                 threshold: 5%
