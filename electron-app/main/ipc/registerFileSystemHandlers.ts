@@ -8,20 +8,31 @@ import { z } from "zod";
 type FileSystemInvokeChannel =
     import("../../shared/ipc").FileSystemInvokeChannel;
 type FileReadResult = import("../../shared/ipc").FileSystemResponsePayload;
+type InvokeRequestArgs<Channel extends FileSystemInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends FileSystemInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 
 type FileSystemModule = Pick<
     typeof import("node:fs"),
     "readFile" | "stat"
 > | null;
 
-type RegisterFileSystemIpcHandler = (
+type RegisterFileSystemIpcHandler<Channel extends FileSystemInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type RegisterFileSystemIpcCallback = (
     event: unknown,
     ...args: unknown[]
 ) => unknown;
 
 type RegisterFileSystemIpcHandle = (
     channel: FileSystemInvokeChannel,
-    handler: RegisterFileSystemIpcHandler
+    handler: RegisterFileSystemIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -93,7 +104,16 @@ export function registerFileSystemHandlers({
         return;
     }
 
-    registerIpcHandle("file:read", async (_event, filePath) => {
+    const registerFileSystemIpcHandle = <
+        Channel extends FileSystemInvokeChannel,
+    >(
+        channel: Channel,
+        handler: RegisterFileSystemIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as RegisterFileSystemIpcCallback);
+    };
+
+    registerFileSystemIpcHandle("file:read", async (_event, filePath) => {
         let authorizedPath: string | undefined;
 
         try {
