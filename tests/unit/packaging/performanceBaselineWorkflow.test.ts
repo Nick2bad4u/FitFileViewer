@@ -25,7 +25,7 @@ describe("performance baseline workflow", () => {
         expect(workflow).toContain("workflow_dispatch:");
         expect(workflow).toContain("threshold-percent:");
         expect(workflow).toContain("runs-on: ubuntu-latest");
-        expect(workflow).toContain("node-version: 24");
+        expect(workflow).toContain("node-version-file: .node-version");
         expect(workflow).toContain("npm ci --no-audit --no-fund");
         expect(workflow).toContain("actions/cache@");
         expect(workflow).toContain(
