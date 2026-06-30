@@ -11001,7 +11001,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart update entrypoints on the chart state manager registry", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         const chartUpdaterSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartUpdater.ts")
@@ -11029,6 +11029,13 @@ describe("architecture boundaries", () => {
 
         expect(chartUpdaterSource).toContain("chartStateManagerRegistry.js");
         expect(chartUpdaterSource).toContain("getRegisteredChartStateManager");
+        expect(chartUpdaterSource).toContain("if (chartStateManager) {");
+        expect(chartUpdaterSource).toContain(
+            "chartStateManager.debouncedRender(reason);"
+        );
+        expect(chartUpdaterSource).not.toContain(
+            'typeof chartStateManager.debouncedRender === "function"'
+        );
         expect(chartUpdaterSource).not.toContain("./chartStateManager.js");
         expect(chartThemeListenerSource).toContain(
             "chartStateManagerRegistry.js"

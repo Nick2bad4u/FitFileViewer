@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 type ChartStateManagerMock = {
     clearChartState: ReturnType<typeof vi.fn<() => void>>;
-    debouncedRender?: ReturnType<typeof vi.fn<(reason?: string) => void>>;
+    debouncedRender: ReturnType<typeof vi.fn<(reason?: string) => void>>;
     forceRender: ReturnType<typeof vi.fn<(reason?: string) => void>>;
     getChartInfo: ReturnType<typeof vi.fn<() => object>>;
     handleThemeChange?: ReturnType<typeof vi.fn<(theme?: string) => void>>;
@@ -168,11 +168,11 @@ describe("chartUpdater", () => {
         logSpy.mockRestore();
     });
 
-    it("falls back to direct rendering when the manager cannot render", async () => {
+    it("falls back to direct rendering when no manager is registered", async () => {
         expect.assertions(3);
 
         resetMocks();
-        chartStateManagerMock.debouncedRender = undefined;
+        getRegisteredChartStateManagerMock.mockReturnValue(null);
         renderChartJSMock.mockResolvedValue(true);
         const container = document.createElement("div"),
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {}),
@@ -182,7 +182,7 @@ describe("chartUpdater", () => {
 
         expect({ result }).toStrictEqual({ result: true });
         expect(renderChartJSMock).toHaveBeenCalledWith(container);
-        expect(chartStateManagerMock.debouncedRender).toBeUndefined();
+        expect(debouncedRenderMock).not.toHaveBeenCalled();
 
         logSpy.mockRestore();
         warnSpy.mockRestore();

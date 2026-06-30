@@ -41,7 +41,6 @@ export function isModernChartSystemAvailable(): boolean {
 
     return (
         chartStateManager !== null &&
-        typeof chartStateManager.debouncedRender === "function" &&
         chartStateManager.isInitialized === true
     );
 }
@@ -64,10 +63,7 @@ export async function updateCharts(
         console.log(`[ChartUpdate] Triggering chart update: ${reason}`);
 
         const chartStateManager = getRegisteredChartStateManager();
-        if (
-            chartStateManager &&
-            typeof chartStateManager.debouncedRender === "function"
-        ) {
+        if (chartStateManager) {
             chartStateManager.debouncedRender(reason);
             return true;
         }
