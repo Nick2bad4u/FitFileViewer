@@ -67,6 +67,10 @@ import {
 import { setRendererExporting } from "../../state/domain/rendererExportState.js";
 import { setRendererLoading } from "../../state/domain/rendererLoadingState.js";
 import { setLastRendererNotification } from "../../state/domain/rendererNotificationState.js";
+import {
+    setTabReadiness,
+    type TabReadinessStatus,
+} from "../../ui/tabs/tabReadinessState.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
 import { debounce } from "./renderChartDebounce.js";
@@ -174,6 +178,12 @@ type RenderChartOptions = {
     skipControls?: boolean;
     skipTabAbort?: boolean;
 };
+type ChartReadinessTabName = "chart" | "chartjs";
+
+const CHART_READINESS_TABS: readonly ChartReadinessTabName[] = [
+    "chart",
+    "chartjs",
+];
 
 /** Tracks render timings and exposes chart performance summaries. */
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
@@ -223,6 +233,28 @@ const chartRenderCacheManager = createChartRenderCacheManager({
     isDevelopmentEnvironment,
     notifyInvalidateChartRenderCacheListeners,
 });
+
+function markChartReadiness(
+    status: TabReadinessStatus,
+    source: string,
+    error?: unknown
+): void {
+    for (const tabName of CHART_READINESS_TABS) {
+        try {
+            setTabReadiness(tabName, status, source, error);
+        } catch (readinessError) {
+            console.warn("[ChartJS] Failed to update tab readiness state", {
+                error:
+                    readinessError instanceof Error
+                        ? readinessError.message
+                        : String(readinessError),
+                source,
+                status,
+                tabName,
+            });
+        }
+    }
+}
 
 const chartRenderCacheApi = createChartRenderCacheApi({
     chartRenderCacheManager,
@@ -402,8 +434,15 @@ export async function renderChartJS(
             allowInactiveTab
         )
     ) {
+        markChartReadiness(
+            "blocked",
+            "renderChartJS.inactive",
+            "Charts tab is inactive."
+        );
         return false;
     }
+
+    markChartReadiness("loading", "renderChartJS.render");
 
     try {
         const doc = renderChartRuntime().documentRef;
@@ -421,6 +460,11 @@ export async function renderChartJS(
             { targetContainer }
         );
         if (!renderSession.ready) {
+            markChartReadiness(
+                "blocked",
+                "renderChartJS.render",
+                "Chart render session did not start."
+            );
             return false;
         }
         const { performanceStart } = renderSession;
@@ -438,6 +482,11 @@ export async function renderChartJS(
             { targetContainer }
         );
         if (!preparedData.ready) {
+            markChartReadiness(
+                "blocked",
+                "renderChartJS.render",
+                "No chartable FIT data is available."
+            );
             return false;
         }
         const { activityStartTime, recordMesgs } = preparedData;
@@ -476,10 +525,16 @@ export async function renderChartJS(
                 skipTabAbort,
             }
         );
+        markChartReadiness(
+            success ? "ready" : "blocked",
+            "renderChartJS.render",
+            success ? undefined : "Chart render did not complete."
+        );
         return success;
     } catch (error) {
         console.error("[ChartJS] Critical error in chart rendering:", error);
         await notify("Failed to render charts due to an error", "error");
+        markChartReadiness("error", "renderChartJS.render", error);
 
         // Handle error through state actions
         safeCompleteRendering(false);

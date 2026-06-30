@@ -1302,7 +1302,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
 
     describe("main renderChartJS Function - Core Rendering", () => {
         it("should execute chart rendering with valid data", async () => {
-            expect.assertions(3);
+            expect.assertions(5);
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1313,6 +1313,24 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
                 "charts.isRendering",
                 true,
                 expect.any(Object)
+            );
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "ui.tabReadiness.chartjs",
+                {
+                    error: null,
+                    status: "loading",
+                    updatedAt: expect.any(Number),
+                },
+                { source: "renderChartJS.render" }
+            );
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "ui.tabReadiness.chartjs",
+                {
+                    error: null,
+                    status: "ready",
+                    updatedAt: expect.any(Number),
+                },
+                { source: "renderChartJS.render" }
             );
             expect(mocks.setupZoneData.setupZoneData).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1340,7 +1358,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
         });
 
         it("should handle no valid data scenario", async () => {
-            expect.assertions(2);
+            expect.assertions(3);
             mocks.stateManager.getState.mockImplementation((path) => {
                 if (path === "fitFile.rawData") return null;
                 return null;
@@ -1356,6 +1374,15 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
             ).toHaveBeenCalledWith(
                 "No FIT file data available for chart rendering",
                 "warning"
+            );
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "ui.tabReadiness.chartjs",
+                {
+                    error: "No chartable FIT data is available.",
+                    status: "blocked",
+                    updatedAt: expect.any(Number),
+                },
+                { source: "renderChartJS.render" }
             );
             expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
@@ -1428,7 +1455,7 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
         });
 
         it("should handle critical error in chart rendering", async () => {
-            expect.assertions(2);
+            expect.assertions(3);
             // Mock setupZoneData to throw error
             mocks.setupZoneData.setupZoneData.mockImplementation(() => {
                 throw new Error("Critical setup error");
@@ -1444,6 +1471,15 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
             ).toHaveBeenCalledWith(
                 "Failed to render charts due to an error",
                 "error"
+            );
+            expect(mocks.stateManager.setState).toHaveBeenCalledWith(
+                "ui.tabReadiness.chartjs",
+                {
+                    error: "Critical setup error",
+                    status: "error",
+                    updatedAt: expect.any(Number),
+                },
+                { source: "renderChartJS.render" }
             );
             expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
