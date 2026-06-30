@@ -16,6 +16,8 @@ type MenuEventMethodName =
     | "onMenuSaveAs"
     | "onOpenAccentColorPicker";
 
+type MenuEventCallback = () => Promise<void> | void;
+
 type MenuElectronAPI = {
     readonly installUpdate?: ElectronMenuEventApi["installUpdate"];
     readonly onMenuAbout?: ElectronMenuEventApi["onMenuAbout"];
@@ -208,7 +210,7 @@ export function registerMenuIpcListeners({
 
     const trackMenuEvent = (
         methodName: MenuEventMethodName,
-        callback: () => unknown
+        callback: MenuEventCallback
     ): void => {
         const register = electronAPI[methodName];
         if (typeof register === "function") {

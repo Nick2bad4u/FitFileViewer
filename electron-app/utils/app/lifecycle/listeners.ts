@@ -127,6 +127,18 @@ type ShowNotification = (
     duration?: number
 ) => void;
 
+type ShowAboutModal = (
+    html?: string,
+    options?: { electronApiScope?: RendererElectronApiScope | undefined }
+) => void;
+
+type ShowUpdateNotification = (
+    message: string,
+    typeOrDuration?: string | number,
+    durationOrMode?: number | string,
+    mode?: string
+) => void;
+
 type HandleOpenFileOptions = {
     isOpeningFileRef: FileOpeningStateRef;
     openFileBtn: HTMLButtonElement;
@@ -148,14 +160,9 @@ export type SetupListenersOptions = {
     isOpeningFileRef: FileOpeningStateRef;
     openFileBtn?: HTMLButtonElement | null;
     setLoading: (loading: boolean) => void;
-    showAboutModal: (html?: string) => unknown;
+    showAboutModal: ShowAboutModal;
     showNotification: ShowNotification;
-    showUpdateNotification: (
-        message: string,
-        typeOrDuration?: string | number,
-        durationOrMode?: number | string,
-        mode?: string
-    ) => unknown;
+    showUpdateNotification: ShowUpdateNotification;
 };
 
 const FONT_SIZE_BODY_CLASSES = [
