@@ -9726,7 +9726,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(78);
+        expect.assertions(81);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -9758,6 +9758,15 @@ describe("architecture boundaries", () => {
         );
         expect(fieldTogglesSource).toContain("chartStateManagerRegistry.js");
         expect(fieldTogglesSource).toContain("getRegisteredChartStateManager");
+        expect(fieldTogglesSource).toContain(
+            "if (registeredChartStateManager) {"
+        );
+        expect(fieldTogglesSource).toContain(
+            "registeredChartStateManager.debouncedRender(reason);"
+        );
+        expect(fieldTogglesSource).not.toContain(
+            'typeof registeredChartStateManager?.debouncedRender === "function"'
+        );
         expect(fieldTogglesSource).not.toContain(
             "../../charts/core/chartStateManager.js"
         );
@@ -9959,7 +9968,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(99);
+        expect.assertions(102);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -9994,6 +10003,15 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorSource).toContain(
             "getRegisteredChartStateManager"
+        );
+        expect(inlineZoneSelectorSource).toContain(
+            "if (registeredChartStateManager) {"
+        );
+        expect(inlineZoneSelectorSource).toContain(
+            "registeredChartStateManager.debouncedRender(reason);"
+        );
+        expect(inlineZoneSelectorSource).not.toContain(
+            'typeof registeredChartStateManager?.debouncedRender === "function"'
         );
         expect(inlineZoneSelectorSource).not.toContain(
             "../../charts/core/chartStateManager.js"
@@ -10269,7 +10287,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(92);
+        expect.assertions(95);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -10296,6 +10314,15 @@ describe("architecture boundaries", () => {
         expect(zoneColorPickerSource).toContain("chartStateManagerRegistry.js");
         expect(zoneColorPickerSource).toContain(
             "getRegisteredChartStateManager"
+        );
+        expect(zoneColorPickerSource).toContain(
+            "if (registeredChartStateManager) {"
+        );
+        expect(zoneColorPickerSource).toContain(
+            "registeredChartStateManager.debouncedRender(reason);"
+        );
+        expect(zoneColorPickerSource).not.toContain(
+            'typeof registeredChartStateManager?.debouncedRender === "function"'
         );
         expect(zoneColorPickerSource).not.toContain(
             "../../charts/core/chartStateManager.js"

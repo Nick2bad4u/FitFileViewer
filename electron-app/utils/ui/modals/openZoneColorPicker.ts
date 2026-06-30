@@ -116,7 +116,7 @@ function requestManagedChartRender(
     runtime: OpenZoneColorPickerRuntime
 ): void {
     const registeredChartStateManager = getRegisteredChartStateManager();
-    if (typeof registeredChartStateManager?.debouncedRender === "function") {
+    if (registeredChartStateManager) {
         registeredChartStateManager.debouncedRender(reason);
         return;
     }
