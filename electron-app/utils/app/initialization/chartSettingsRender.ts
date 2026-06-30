@@ -1,4 +1,7 @@
-import { getRegisteredChartStateManager } from "../../charts/core/chartStateManagerRegistry.js";
+import {
+    getRegisteredChartStateManager,
+    type RegisteredChartStateManager,
+} from "../../charts/core/chartStateManagerRegistry.js";
 import {
     destroyRegisteredChartInstances,
     getRegisteredChartInstanceCount,
@@ -12,10 +15,6 @@ import {
     getChartSettingsRenderRuntime,
     type ChartSettingsRenderRuntime,
 } from "./chartSettingsRenderRuntime.js";
-
-type ChartRenderManagerLike = {
-    debouncedRender: (reason: string) => unknown;
-};
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -55,30 +54,8 @@ function hasChartData(): boolean {
     return hasActiveFitChartData();
 }
 
-function isChartRenderManagerLike(
-    value: unknown
-): value is ChartRenderManagerLike {
-    if (typeof value !== "object" || value === null) {
-        return false;
-    }
-
-    return hasFunctionProperty(value, "debouncedRender");
-}
-
-function hasFunctionProperty(value: object, key: "debouncedRender"): boolean {
-    if (!(key in value)) {
-        return false;
-    }
-
-    return typeof value[key as keyof typeof value] === "function";
-}
-
-function getPreferredRenderManager(): ChartRenderManagerLike | undefined {
-    const managerCandidate: unknown = getRegisteredChartStateManager();
-
-    return isChartRenderManagerLike(managerCandidate)
-        ? managerCandidate
-        : undefined;
+function getPreferredRenderManager(): RegisteredChartStateManager | null {
+    return getRegisteredChartStateManager();
 }
 
 function requestRerenderViaManager(reason: string): boolean {

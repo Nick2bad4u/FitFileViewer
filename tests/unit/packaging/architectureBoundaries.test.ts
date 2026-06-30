@@ -11489,7 +11489,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(42);
+        expect.assertions(47);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -11515,6 +11515,19 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRenderSource).toContain(
             "chartSettingsRenderRuntime.js"
         );
+        expect(chartSettingsRenderSource).toContain(
+            "type RegisteredChartStateManager"
+        );
+        expect(chartSettingsRenderSource).toContain(
+            "return getRegisteredChartStateManager();"
+        );
+        expect(chartSettingsRenderSource).not.toContain(
+            "type ChartRenderManagerLike"
+        );
+        expect(chartSettingsRenderSource).not.toContain(
+            "isChartRenderManagerLike"
+        );
+        expect(chartSettingsRenderSource).not.toContain("managerCandidate");
         expect(chartSettingsRenderSource).not.toContain(
             "state/core/stateManager.js"
         );
