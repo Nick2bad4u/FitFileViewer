@@ -174,10 +174,7 @@ export class DragDropHandler {
             // Update loading state
             AppActions.setFileOpening(true);
 
-            // Start file loading in state manager
-            if (typeof fitFileStateManager.startFileLoading === "function") {
-                fitFileStateManager.startFileLoading(filePath);
-            }
+            fitFileStateManager.startFileLoading(filePath);
 
             const arrayBuffer = await this.readFileAsArrayBuffer(file);
             if (!arrayBuffer) {
@@ -209,14 +206,11 @@ export class DragDropHandler {
             } else {
                 showNotification("Failed to load FIT file", "error");
 
-                // Handle error in state manager
-                if (fitFileStateManager) {
-                    const errorMessage =
-                        parseErrorMessage?.display ?? "Unknown error";
-                    fitFileStateManager.handleFileLoadingError?.(
-                        new Error(errorMessage)
-                    );
-                }
+                const errorMessage =
+                    parseErrorMessage?.display ?? "Unknown error";
+                fitFileStateManager.handleFileLoadingError(
+                    new Error(errorMessage)
+                );
             }
         } catch (error) {
             console.error("[main-ui] Error processing dropped file:", error);
@@ -224,12 +218,9 @@ export class DragDropHandler {
                 "An unexpected error occurred while processing the FIT file.";
             showNotification(message, "error");
 
-            // Handle error in state manager
-            if (fitFileStateManager) {
-                fitFileStateManager.handleFileLoadingError?.(
-                    error instanceof Error ? error : new Error(String(error))
-                );
-            }
+            fitFileStateManager.handleFileLoadingError(
+                error instanceof Error ? error : new Error(String(error))
+            );
         } finally {
             // Clear loading state
             AppActions.setFileOpening(false);
