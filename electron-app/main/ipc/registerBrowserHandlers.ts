@@ -18,14 +18,16 @@ type FitBrowserListFolderRequest =
     import("../../shared/ipc").FitBrowserListFolderRequest;
 type FitBrowserListFolderResponse =
     import("../../shared/ipc").FitBrowserListFolderResponse;
-type FitBrowserResponsePayload =
-    import("../../shared/ipc").FitBrowserResponsePayload;
 type FitBrowserSetEnabledRequest =
     import("../../shared/ipc").FitBrowserSetEnabledRequest;
 type FitBrowserSetFolderRequest =
     import("../../shared/ipc").FitBrowserSetFolderRequest;
 type FitBrowserSetFolderResponse =
     import("../../shared/ipc").FitBrowserSetFolderResponse;
+type InvokeRequestArgs<Channel extends FitBrowserInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends FitBrowserInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 type OpenDialogOptions = import("electron").OpenDialogOptions;
 type OpenDialogReturnValue = import("electron").OpenDialogReturnValue;
 
@@ -81,14 +83,21 @@ interface ValidateFolderOptions {
     requireTrustedFolder?: boolean;
 }
 
-type RegisterBrowserIpcHandler = (
+type RegisterBrowserIpcHandler<Channel extends FitBrowserInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type RegisterBrowserIpcCallback = (
     event: unknown,
     ...args: unknown[]
-) => FitBrowserResponsePayload | Promise<FitBrowserResponsePayload>;
+) => unknown;
 
 type RegisterBrowserIpcHandle = (
     channel: FitBrowserInvokeChannel,
-    handler: RegisterBrowserIpcHandler
+    handler: RegisterBrowserIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -431,12 +440,19 @@ export function registerBrowserHandlers({
         }
     };
 
-    registerIpcHandle(
+    const registerBrowserIpcHandle = <Channel extends FitBrowserInvokeChannel>(
+        channel: Channel,
+        handler: RegisterBrowserIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as RegisterBrowserIpcCallback);
+    };
+
+    registerBrowserIpcHandle(
         "browser:isEnabled",
         (): FitBrowserEnabledResponse => readEnabled()
     );
 
-    registerIpcHandle(
+    registerBrowserIpcHandle(
         "browser:setEnabled",
         (_event, enabled: unknown): FitBrowserEnabledResponse => {
             const requestedEnabled: FitBrowserSetEnabledRequest =
@@ -446,12 +462,12 @@ export function registerBrowserHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerBrowserIpcHandle(
         "browser:getFolder",
         (): FitBrowserGetFolderResponse => readRootFolder()
     );
 
-    registerIpcHandle(
+    registerBrowserIpcHandle(
         "browser:setFolder",
         async (
             _event,
@@ -465,7 +481,7 @@ export function registerBrowserHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerBrowserIpcHandle(
         "dialog:openFolder",
         async (): Promise<DialogOpenFolderResponse> => {
             const dialog = typeof dialogRef === "function" ? dialogRef() : null;
@@ -499,7 +515,7 @@ export function registerBrowserHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerBrowserIpcHandle(
         "browser:listFolder",
         async (
             _event,
