@@ -4,7 +4,7 @@ type RendererShowNotification = (
     message: string,
     type?: string,
     timeout?: number
-) => Promise<unknown> | unknown;
+) => Promise<void> | void;
 
 interface RendererErrorHandlingOptions {
     logRenderer: RendererErrorLogger;

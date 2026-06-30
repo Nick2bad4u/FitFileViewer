@@ -25251,7 +25251,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer error message extraction on a focused error shape", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -25266,6 +25266,9 @@ describe("architecture boundaries", () => {
             "showNotification: RendererShowNotification;"
         );
         expect(rendererErrorHandlingSource).toContain(
+            ") => Promise<void> | void;"
+        );
+        expect(rendererErrorHandlingSource).toContain(
             "await options.showNotification("
         );
         expect(rendererErrorHandlingSource).not.toContain("getCoreModules");
@@ -25274,6 +25277,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererErrorHandlingSource).not.toContain(
             "showNotification?: RendererShowNotification | unknown"
+        );
+        expect(rendererErrorHandlingSource).not.toContain(
+            "Promise<unknown> | unknown"
         );
         expect(rendererErrorHandlingSource).not.toContain(
             "errorLike as Record<string, unknown>"

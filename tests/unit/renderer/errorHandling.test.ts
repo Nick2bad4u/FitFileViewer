@@ -5,6 +5,12 @@ import {
     getRendererErrorMessage,
 } from "../../../electron-app/renderer/errorHandling.js";
 
+type RendererErrorNotificationCall = [
+    message: string,
+    type?: string,
+    timeout?: number,
+];
+
 describe("renderer error handling", () => {
     it("extracts non-empty object messages", () => {
         expect.assertions(5);
@@ -22,13 +28,13 @@ describe("renderer error handling", () => {
         expect.assertions(2);
 
         const logs: unknown[][] = [];
-        const notifications: unknown[][] = [];
+        const notifications: RendererErrorNotificationCall[] = [];
         const { handleUncaughtError } = createRendererErrorEventHandlers({
             logRenderer: (...args: unknown[]) => {
                 logs.push(args);
             },
-            showNotification: (...args: unknown[]) => {
-                notifications.push(args);
+            showNotification: (message, type, timeout) => {
+                notifications.push([message, type, timeout]);
             },
         });
 
@@ -57,13 +63,13 @@ describe("renderer error handling", () => {
 
         let prevented = false;
         const logs: unknown[][] = [];
-        const notifications: unknown[][] = [];
+        const notifications: RendererErrorNotificationCall[] = [];
         const { handleUnhandledRejection } = createRendererErrorEventHandlers({
             logRenderer: (...args: unknown[]) => {
                 logs.push(args);
             },
-            showNotification: (...args: unknown[]) => {
-                notifications.push(args);
+            showNotification: (message, type, timeout) => {
+                notifications.push([message, type, timeout]);
             },
         });
 
@@ -119,12 +125,12 @@ describe("renderer error handling", () => {
     it("adapts browser events to async error handlers", async () => {
         expect.assertions(2);
 
-        const notifications: unknown[][] = [];
+        const notifications: RendererErrorNotificationCall[] = [];
         const { onUncaughtErrorEvent, onUnhandledRejectionEvent } =
             createRendererErrorEventHandlers({
                 logRenderer: vi.fn(),
-                showNotification: (...args: unknown[]) => {
-                    notifications.push(args);
+                showNotification: (message, type, timeout) => {
+                    notifications.push([message, type, timeout]);
                 },
             });
 
