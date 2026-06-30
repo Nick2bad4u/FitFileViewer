@@ -1,0 +1,86 @@
+name: Codecov Coverage
+run-name: Codecov Coverage (${{ github.ref_name }})
+
+concurrency:
+    group: codecov-${{ github.ref }}
+    cancel-in-progress: true
+
+on:
+    push:
+        branches:
+            - main
+        paths:
+            - ".github/workflows/codecov.yml"
+            - "codecov.yml"
+            - "electron-app/**"
+            - "scripts/**"
+            - "tests/**"
+            - "package.json"
+            - "package-lock.json"
+            - "tsconfig*.json"
+            - "vitest.config.ts"
+    pull_request:
+        branches:
+            - main
+        paths:
+            - ".github/workflows/codecov.yml"
+            - "codecov.yml"
+            - "electron-app/**"
+            - "scripts/**"
+            - "tests/**"
+            - "package.json"
+            - "package-lock.json"
+            - "tsconfig*.json"
+            - "vitest.config.ts"
+    merge_group:
+        types:
+            - checks_requested
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    id-token: write
+
+jobs:
+    coverage:
+        name: Upload Vitest Coverage
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        env:
+            CI: true
+            NODE_OPTIONS: --max_old_space_size=8192
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+              with:
+                  egress-policy: audit
+
+            - name: Checkout repository
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              with:
+                  node-version: 24
+                  cache: npm
+                  cache-dependency-path: package-lock.json
+
+            - name: Install dependencies
+              run: npm ci --no-audit --no-fund
+
+            - name: Run Vitest coverage
+              run: npm run test:coverage
+
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+              with:
+                  disable_search: true
+                  fail_ci_if_error: true
+                  files: ./coverage/lcov.info
+                  flags: electron-app
+                  name: fitfileviewer-vitest
+                  use_oidc: true
+                  verbose: true
