@@ -26,7 +26,7 @@ interface CreateChartStateManagementApiDependencies {
     notify(
         message: string,
         type: "error" | "info" | "success" | "warning"
-    ): unknown;
+    ): Promise<void> | void;
     initializeChartRenderState(options: unknown): void;
 }
 

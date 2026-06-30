@@ -26,7 +26,7 @@ interface InitializeChartStateManagementDependencies {
     getRenderedCount(): unknown;
     initializeChartRenderState(options: unknown): void;
     middlewareManager: MiddlewareManagerLike;
-    notify(message: string, type: string): unknown;
+    notify(message: string, type: "error"): Promise<void> | void;
 }
 
 interface RefreshChartsIfNeededDependencies {
@@ -93,9 +93,13 @@ export function initializeChartStateManagement(
                     error,
                     errorContext
                 );
-                void Promise.resolve().then(() => {
-                    dependencies.notify("Chart rendering failed", "error");
-                    return undefined;
+                void Promise.resolve(
+                    dependencies.notify("Chart rendering failed", "error")
+                ).catch((notifyError: unknown) => {
+                    console.warn(
+                        "[ChartJS] Chart render failure notification failed:",
+                        notifyError
+                    );
                 });
             },
         });

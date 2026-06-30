@@ -15247,7 +15247,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(210);
+        expect.assertions(215);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -15578,6 +15578,21 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartStateManagementSource).toContain(
             "dependencies.getLastRenderTime()"
+        );
+        expect(renderChartStateManagementSource).toContain(
+            'notify(message: string, type: "error"): Promise<void> | void;'
+        );
+        expect(renderChartStateManagementSource).toContain(
+            "dependencies.notify(\"Chart rendering failed\", \"error\")"
+        );
+        expect(renderChartStateManagementSource).toContain(
+            "[ChartJS] Chart render failure notification failed:"
+        );
+        expect(renderChartStateManagementSource).not.toContain(
+            "notify(message: string, type: string): unknown;"
+        );
+        expect(renderChartStateManagementApiSource).toContain(
+            "): Promise<void> | void;"
         );
         expect(renderChartStateManagementSource).not.toContain(
             "charts.renderedCount"
