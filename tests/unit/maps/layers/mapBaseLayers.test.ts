@@ -53,12 +53,14 @@ async function importBaseLayersWithLeaflet(
     vi.resetModules();
     const { clearLeafletRuntimeForTests, registerLeafletRuntime } =
         await loadLeafletRuntime();
-    const { clearMapLibreLayerFactoryForTests, setMapLibreLayerFactory } =
+    const { clearMapLibreLayerFactoryForTests, registerMapLibreLayerFactory } =
         await loadMapLibreLayerRuntime();
     clearLeafletRuntimeForTests();
     clearMapLibreLayerFactoryForTests();
     registerLeafletRuntime(createRegisteredLeafletRuntime(leaflet));
-    setMapLibreLayerFactory(mapLibreLayerFactory);
+    if (mapLibreLayerFactory) {
+        registerMapLibreLayerFactory(mapLibreLayerFactory);
+    }
 
     return import("../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
 }

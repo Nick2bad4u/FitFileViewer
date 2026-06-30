@@ -88,9 +88,10 @@ describe("mapBaseLayers", () => {
             tileLayer: vi.fn<() => MockLayer>(() => rasterLayer),
         };
         const { registerLeafletRuntime } = await loadLeafletRuntime();
-        const { setMapLibreLayerFactory } = await loadMapLibreLayerRuntime();
+        const { registerMapLibreLayerFactory } =
+            await loadMapLibreLayerRuntime();
         registerLeafletRuntime(createRegisteredLeafletRuntime(leaflet));
-        setMapLibreLayerFactory(mapLibreLayerFactory);
+        registerMapLibreLayerFactory(mapLibreLayerFactory);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
@@ -117,8 +118,9 @@ describe("mapBaseLayers", () => {
         const mapLibreLayerFactory = vi.fn<() => MockLayer>(() => ({
             kind: "unused",
         }));
-        const { setMapLibreLayerFactory } = await loadMapLibreLayerRuntime();
-        setMapLibreLayerFactory(mapLibreLayerFactory);
+        const { registerMapLibreLayerFactory } =
+            await loadMapLibreLayerRuntime();
+        registerMapLibreLayerFactory(mapLibreLayerFactory);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;

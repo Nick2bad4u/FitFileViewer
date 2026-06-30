@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     clearMapLibreLayerFactoryForTests,
+    registerMapLibreLayerFactory,
     resolveMapLibreLayerFactory,
     resolveMapLibreLayerFactoryFromCandidate,
-    setMapLibreLayerFactory,
 } from "../../../../electron-app/utils/maps/layers/mapLibreLayerRuntime.js";
 
 describe("mapLibreLayerRuntime", () => {
@@ -17,7 +17,7 @@ describe("mapLibreLayerRuntime", () => {
 
         const factory = vi.fn(() => ({ kind: "vector" }));
 
-        setMapLibreLayerFactory(factory);
+        registerMapLibreLayerFactory(factory);
 
         expect(resolveMapLibreLayerFactory()).toBe(factory);
         expect(
@@ -28,11 +28,11 @@ describe("mapLibreLayerRuntime", () => {
     it("clears the registered factory for isolated tests and reloads", () => {
         expect.assertions(2);
 
-        setMapLibreLayerFactory(vi.fn(() => ({})));
+        registerMapLibreLayerFactory(vi.fn(() => ({})));
         clearMapLibreLayerFactoryForTests();
 
         expect(resolveMapLibreLayerFactory()).toBeNull();
-        setMapLibreLayerFactory(undefined);
+        clearMapLibreLayerFactoryForTests();
         expect(resolveMapLibreLayerFactory()).toBeNull();
     });
 

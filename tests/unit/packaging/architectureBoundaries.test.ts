@@ -36101,9 +36101,17 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps direct MapLibre bridge calls quarantined to the runtime adapter", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
         const allowed = new Set<string>(directMapLibreBridgeAllowedFiles);
+        const mapLibreLayerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/layers/mapLibreLayerRuntime.ts"
+            )
+        );
+        const rendererVendorMapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
+        );
         const violations = sourceRoots
             .flatMap(collectSourceFiles)
             .filter(
@@ -36115,6 +36123,15 @@ describe("architecture boundaries", () => {
             )
             .sort();
 
+        expect(mapLibreLayerRuntimeSource).toContain(
+            "registerMapLibreLayerFactory(\n    factory: MapLibreLayerFactory"
+        );
+        expect(mapLibreLayerRuntimeSource).not.toContain(
+            "setMapLibreLayerFactory"
+        );
+        expect(rendererVendorMapSource).toContain(
+            "registerMapLibreLayerFactory"
+        );
         expect(violations).toStrictEqual([]);
     });
 

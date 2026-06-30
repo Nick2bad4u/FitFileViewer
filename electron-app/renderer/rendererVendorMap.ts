@@ -28,8 +28,8 @@ import {
 } from "./rendererVendorMapRuntime.js";
 import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 import {
+    registerMapLibreLayerFactory,
     resolveMapLibreLayerFactoryFromCandidate,
-    setMapLibreLayerFactory,
 } from "../utils/maps/layers/mapLibreLayerRuntime.js";
 
 const leafletRuntime = Leaflet as typeof Leaflet & {
@@ -93,9 +93,11 @@ export async function installRendererMapVendorEntry(
     // eslint-disable-next-line import-x/no-unresolved -- Vite provides this virtual module in vite.renderer.config.mjs.
     await import("fitfileviewer:leaflet-draw-runtime");
     await import("@maplibre/maplibre-gl-leaflet");
-    setMapLibreLayerFactory(
-        resolveMapLibreLayerFactoryFromCandidate(leafletRuntime)
-    );
+    const mapLibreLayerFactory =
+        resolveMapLibreLayerFactoryFromCandidate(leafletRuntime);
+    if (mapLibreLayerFactory) {
+        registerMapLibreLayerFactory(mapLibreLayerFactory);
+    }
     installLeafletMeasureLite(Leaflet);
     runtime.removeTemporaryLeafletGlobals();
 

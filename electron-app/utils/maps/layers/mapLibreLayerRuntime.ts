@@ -17,8 +17,8 @@ const mapLibreLayerRuntimeRegistry: MapLibreLayerRuntimeRegistry = {
     factory: undefined,
 };
 
-export function setMapLibreLayerFactory(
-    factory: MapLibreLayerFactory | undefined
+export function registerMapLibreLayerFactory(
+    factory: MapLibreLayerFactory
 ): void {
     mapLibreLayerRuntimeRegistry.factory = factory;
 }
