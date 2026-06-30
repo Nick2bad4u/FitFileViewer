@@ -152,6 +152,7 @@ const expectedElectronAppRootEntries = [
     "tsconfig.json",
     "ui",
     "utils",
+    "windowStateRuntime.ts",
     "windowStateUtils.ts",
 ] as const;
 

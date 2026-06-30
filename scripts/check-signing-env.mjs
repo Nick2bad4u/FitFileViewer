@@ -8,6 +8,7 @@ const runnerOsToPlatform = {
     macOS: "darwin",
     Windows: "win32",
 };
+const signingRequiredPlatforms = new Set(["darwin", "win32"]);
 
 export function parseArgs(argv) {
     let platform;
@@ -92,8 +93,10 @@ export function getSigningPreflightReport(
     platform = resolveSigningPlatform(),
     options = {}
 ) {
-    const signingRequired =
+    const signingRequested =
         options.requireSigning ?? environment.REQUIRE_CODE_SIGNING === "true";
+    const signingRequired =
+        signingRequested && signingRequiredPlatforms.has(platform);
     const validationEnvironment = {
         ...environment,
         REQUIRE_CODE_SIGNING: signingRequired ? "true" : "false",

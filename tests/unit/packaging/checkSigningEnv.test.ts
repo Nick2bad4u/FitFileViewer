@@ -155,14 +155,26 @@ describe("check-signing-env script", () => {
     });
 
     it("skips Linux and unsigned local builds without requiring secrets", async () => {
-        expect.assertions(2);
+        expect.assertions(6);
 
-        const { runSigningPreflight } = await importCheckSigningEnv();
+        const { getSigningPreflightReport, runSigningPreflight } =
+            await importCheckSigningEnv();
         const output = {
             error: vi.fn<(message: string) => void>(),
             log: vi.fn<(message: string) => void>(),
         };
 
+        expect(
+            getSigningPreflightReport(
+                { REQUIRE_CODE_SIGNING: "true" },
+                "linux"
+            )
+        ).toStrictEqual({
+            errors: [],
+            platform: "linux",
+            signingRequired: false,
+            valid: true,
+        });
         expect(
             runSigningPreflight(
                 ["--runner-os", "Linux"],
@@ -170,6 +182,10 @@ describe("check-signing-env script", () => {
                 output
             )
         ).toBe(0);
+        expect(output.error).not.toHaveBeenCalled();
+        expect(output.log).toHaveBeenCalledWith(
+            "[signing] Code signing is not required for linux; skipping preflight."
+        );
         expect(
             runSigningPreflight(
                 ["--platform", "win32"],
@@ -177,5 +193,8 @@ describe("check-signing-env script", () => {
                 output
             )
         ).toBe(0);
+        expect(output.log).toHaveBeenCalledWith(
+            "[signing] Code signing is not required for win32; skipping preflight."
+        );
     });
 });
