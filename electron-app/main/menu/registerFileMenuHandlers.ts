@@ -52,10 +52,11 @@ interface IpcEventLike {
     sender: unknown;
 }
 
-type IpcCallback = (...args: unknown[]) => unknown;
+type MainProcessIpcListener = (event: unknown, ...args: unknown[]) => unknown;
+type FileMenuIpcCallback = (event: IpcEventLike) => Promise<void> | void;
 type RegisterFileMenuIpcListener = (
     channel: MainProcessIpcEventChannel,
-    listener: IpcCallback
+    listener: MainProcessIpcListener
 ) => void;
 
 interface RegisterFileMenuHandlersOptions {
@@ -105,6 +106,12 @@ function getBrowserWindowFromEvent(
     return browserWindowRef()?.fromWebContents(event.sender) ?? null;
 }
 
+function toIpcEventLike(event: unknown): IpcEventLike | null {
+    return event && typeof event === "object" && "sender" in event
+        ? { sender: event.sender }
+        : null;
+}
+
 /**
  * Registers menu IPC listeners for exporting and saving the loaded FIT file.
  */
@@ -123,15 +130,11 @@ export function registerFileMenuHandlers({
         return;
     }
 
-    const fileMenuHandlers: Record<MenuFileEventChannel, IpcCallback> = {
-        "menu-export": (event) => {
-            const ipcEvent = event as IpcEventLike;
-            return (async (): Promise<void> => {
-                const loadedFilePath = getLoadedFitFilePath();
-                const win = getBrowserWindowFromEvent(
-                    browserWindowRef,
-                    ipcEvent
-                );
+    const fileMenuHandlers: Record<MenuFileEventChannel, FileMenuIpcCallback> =
+        {
+            "menu-export": async (event) => {
+                const loadedFilePath = getLoadedFitFilePath(),
+                    win = getBrowserWindowFromEvent(browserWindowRef, event);
                 if (!loadedFilePath || !win) {
                     return;
                 }
@@ -167,16 +170,10 @@ export function registerFileMenuHandlers({
                         error: getErrorMessage(error),
                     });
                 }
-            })();
-        },
-        "menu-save-as": (event) => {
-            const ipcEvent = event as IpcEventLike;
-            return (async (): Promise<void> => {
-                const loadedFilePath = getLoadedFitFilePath();
-                const win = getBrowserWindowFromEvent(
-                    browserWindowRef,
-                    ipcEvent
-                );
+            },
+            "menu-save-as": async (event) => {
+                const loadedFilePath = getLoadedFitFilePath(),
+                    win = getBrowserWindowFromEvent(browserWindowRef, event);
                 if (!loadedFilePath || !win) {
                     return;
                 }
@@ -242,12 +239,14 @@ export function registerFileMenuHandlers({
                         error: getErrorMessage(error),
                     });
                 }
-            })();
-        },
-    };
+            },
+        };
 
     for (const event of MENU_FILE_EVENTS) {
         const handler = fileMenuHandlers[event];
-        registerIpcListener(event, handler);
+        registerIpcListener(event, (ipcEvent) => {
+            const eventLike = toIpcEventLike(ipcEvent);
+            return eventLike ? handler(eventLike) : undefined;
+        });
     }
 }

@@ -39150,4 +39150,50 @@ describe("architecture boundaries", () => {
             "modalFocusTrap requires a KeyboardEvent provider"
         );
     });
+
+    it("keeps main menu IPC handlers on domain event callbacks", () => {
+        expect.assertions(10);
+
+        const registerFileMenuHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerFileMenuHandlers.ts"
+            )
+        );
+        const registerUpdateMenuHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/registerUpdateMenuHandlers.ts"
+            )
+        );
+
+        expect(registerFileMenuHandlersSource).toContain(
+            "type FileMenuIpcCallback = (event: IpcEventLike) => Promise<void> | void;"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "type UpdateMenuIpcCallback = (event: IpcEventLike) => Promise<void> | void;"
+        );
+        expect(registerFileMenuHandlersSource).toContain(
+            "function toIpcEventLike(event: unknown): IpcEventLike | null"
+        );
+        expect(registerUpdateMenuHandlersSource).toContain(
+            "function toIpcEventLike(event: unknown): IpcEventLike | null"
+        );
+        expect(registerFileMenuHandlersSource).not.toContain(
+            "type IpcCallback = (...args: unknown[]) => unknown;"
+        );
+        expect(registerUpdateMenuHandlersSource).not.toContain(
+            "type IpcCallback = (...args: unknown[]) => unknown;"
+        );
+        expect(registerFileMenuHandlersSource).not.toContain(
+            "Record<MenuFileEventChannel, IpcCallback>"
+        );
+        expect(registerUpdateMenuHandlersSource).not.toContain(
+            "Record<MenuUpdateEventChannel, IpcCallback>"
+        );
+        expect(registerFileMenuHandlersSource).not.toContain(
+            "event as IpcEventLike"
+        );
+        expect(registerUpdateMenuHandlersSource).not.toContain(
+            "event as IpcEventLike"
+        );
+    });
 });

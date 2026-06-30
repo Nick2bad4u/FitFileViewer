@@ -49,10 +49,11 @@ interface UpdateMenuConstants {
     };
 }
 
-type IpcCallback = (...args: unknown[]) => unknown;
+type MainProcessIpcListener = (event: unknown, ...args: unknown[]) => unknown;
+type UpdateMenuIpcCallback = (event: IpcEventLike) => Promise<void> | void;
 type RegisterUpdateMenuIpcListener = (
     channel: MainProcessIpcEventChannel,
-    listener: IpcCallback
+    listener: MainProcessIpcListener
 ) => void;
 
 interface RegisterUpdateMenuHandlersOptions {
@@ -103,6 +104,12 @@ function getBrowserWindowFromEvent(
     event: IpcEventLike
 ): BrowserWindow | null {
     return browserWindowRef()?.fromWebContents(event.sender) ?? null;
+}
+
+function toIpcEventLike(event: unknown): IpcEventLike | null {
+    return event && typeof event === "object" && "sender" in event
+        ? { sender: event.sender }
+        : null;
 }
 
 async function requireAutoUpdater(
@@ -169,88 +176,85 @@ export function registerUpdateMenuHandlers({
         }
     };
 
-    const updateHandlers: Record<MenuUpdateEventChannel, IpcCallback> = {
-        "install-update": (event) => {
-            const ipcEvent = event as IpcEventLike;
-            if (!isAutoUpdaterUpdateDownloaded()) {
-                notifyUpdaterUnavailable(
-                    ipcEvent,
-                    "Update install is not available yet."
-                );
-                logWithContext(
-                    "warn",
-                    "Blocked update install before download completed"
-                );
-                return;
-            }
-
-            return (async (): Promise<void> => {
-                try {
-                    const autoUpdater = await requireAutoUpdater(
-                        resolveAutoUpdaterAsync
-                    );
-                    autoUpdater.quitAndInstall?.();
-                } catch (error) {
-                    logUpdaterError("Error during quitAndInstall:", error);
-                    showLinuxManualUpdateMessage();
-                }
-            })();
-        },
-        "menu-check-for-updates": (event) => {
-            const ipcEvent = event as IpcEventLike;
-            if (!isAutoUpdaterInitialized()) {
-                notifyUpdaterUnavailable(
-                    ipcEvent,
-                    "Update checker is not ready yet."
-                );
-                logWithContext(
-                    "warn",
-                    "Blocked update check before updater initialization"
-                );
-                return;
-            }
-
-            return (async (): Promise<void> => {
-                try {
-                    const autoUpdater = await requireAutoUpdater(
-                        resolveAutoUpdaterAsync
-                    );
-                    void autoUpdater.checkForUpdates?.();
-                } catch (error) {
-                    logUpdaterError("Failed to check for updates:", error);
-                }
-            })();
-        },
-        "menu-restart-update": (event) => {
-            const ipcEvent = event as IpcEventLike;
-            if (!isAutoUpdaterUpdateDownloaded()) {
-                notifyUpdaterUnavailable(
-                    ipcEvent,
-                    "Update install is not available yet."
-                );
-                logWithContext(
-                    "warn",
-                    "Blocked update restart before download completed"
-                );
-                return;
-            }
-
-            return (async (): Promise<void> => {
-                try {
-                    const autoUpdater = await requireAutoUpdater(
-                        resolveAutoUpdaterAsync
-                    );
-                    autoUpdater.quitAndInstall?.();
-                } catch (error) {
-                    logUpdaterError("Error during restart and install:", error);
-                    showLinuxManualUpdateMessage();
-                }
-            })();
-        },
+    const checkForUpdates = async (): Promise<void> => {
+        try {
+            const autoUpdater = await requireAutoUpdater(
+                resolveAutoUpdaterAsync
+            );
+            void autoUpdater.checkForUpdates?.();
+        } catch (error) {
+            logUpdaterError("Failed to check for updates:", error);
+        }
     };
+
+    const quitAndInstallUpdate = async (errorMessage: string): Promise<void> => {
+        try {
+            const autoUpdater = await requireAutoUpdater(
+                resolveAutoUpdaterAsync
+            );
+            autoUpdater.quitAndInstall?.();
+        } catch (error) {
+            logUpdaterError(errorMessage, error);
+            showLinuxManualUpdateMessage();
+        }
+    };
+
+    const updateHandlers: Record<MenuUpdateEventChannel, UpdateMenuIpcCallback> =
+        {
+            "install-update": (event) => {
+                if (!isAutoUpdaterUpdateDownloaded()) {
+                    notifyUpdaterUnavailable(
+                        event,
+                        "Update install is not available yet."
+                    );
+                    logWithContext(
+                        "warn",
+                        "Blocked update install before download completed"
+                    );
+                    return;
+                }
+
+                return quitAndInstallUpdate("Error during quitAndInstall:");
+            },
+            "menu-check-for-updates": (event) => {
+                if (!isAutoUpdaterInitialized()) {
+                    notifyUpdaterUnavailable(
+                        event,
+                        "Update checker is not ready yet."
+                    );
+                    logWithContext(
+                        "warn",
+                        "Blocked update check before updater initialization"
+                    );
+                    return;
+                }
+
+                return checkForUpdates();
+            },
+            "menu-restart-update": (event) => {
+                if (!isAutoUpdaterUpdateDownloaded()) {
+                    notifyUpdaterUnavailable(
+                        event,
+                        "Update install is not available yet."
+                    );
+                    logWithContext(
+                        "warn",
+                        "Blocked update restart before download completed"
+                    );
+                    return;
+                }
+
+                return quitAndInstallUpdate(
+                    "Error during restart and install:"
+                );
+            },
+        };
 
     for (const event of MENU_UPDATE_EVENTS) {
         const handler = updateHandlers[event];
-        registerIpcListener(event, handler);
+        registerIpcListener(event, (ipcEvent) => {
+            const eventLike = toIpcEventLike(ipcEvent);
+            return eventLike ? handler(eventLike) : undefined;
+        });
     }
 }
