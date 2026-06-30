@@ -14,7 +14,7 @@ import {
 } from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { chartSettingsManager } from "../../../electron-app/utils/charts/core/renderChartJS.js";
 
@@ -264,7 +264,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         chartMock.mockImplementation(function ChartConstructor() {
             return chartInstanceMock;
         });
-        setChartRuntime(chartMock);
+        registerChartRuntime(chartMock);
         clearChartInstanceRegistryForTests();
 
         // Load the module dynamically with fresh imports

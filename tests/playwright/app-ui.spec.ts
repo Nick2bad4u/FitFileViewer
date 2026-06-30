@@ -1726,7 +1726,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 resolveChartRuntime: <T>(
                     isRuntime: (value: unknown) => value is T
                 ) => T | null;
-                setChartRuntime: (
+                registerChartRuntime: (
                     runtime: unknown,
                     zoomPlugin?: unknown
                 ) => void;
@@ -1776,7 +1776,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 },
             });
 
-            chartRuntimeModule.setChartRuntime(chartMock);
+            chartRuntimeModule.registerChartRuntime(chartMock);
             setWindowOpenFixture((() => popupWindow) as typeof window.open);
 
             try {
@@ -1817,7 +1817,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 };
             } finally {
                 if (originalChartRuntime) {
-                    chartRuntimeModule.setChartRuntime(originalChartRuntime);
+                    chartRuntimeModule.registerChartRuntime(originalChartRuntime);
                 } else {
                     chartRuntimeModule.clearChartRuntimeForTests();
                 }

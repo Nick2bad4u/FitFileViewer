@@ -9,7 +9,6 @@ import {
     type RegisteredChartZoomPlugin,
     resolveChartRuntime,
     resolveChartZoomPlugin,
-    setChartRuntime,
 } from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 
 function isRuntime(value: unknown): value is { register: () => void } {
@@ -53,7 +52,7 @@ describe("chartRuntime", () => {
         const runtime = createChartRuntime();
         const zoomPlugin = createChartZoomPlugin();
 
-        setChartRuntime(runtime, zoomPlugin);
+        registerChartRuntime(runtime, zoomPlugin);
 
         expect(resolveChartRuntime(isRuntime)).toBe(runtime);
         expect(resolveChartZoomPlugin()).toBe(zoomPlugin);
@@ -64,7 +63,7 @@ describe("chartRuntime", () => {
 
         const runtime = createChartRuntime();
         const zoomPlugin = createChartZoomPlugin();
-        setChartRuntime(runtime, zoomPlugin);
+        registerChartRuntime(runtime, zoomPlugin);
 
         clearChartRuntimeForTests();
 
@@ -72,13 +71,11 @@ describe("chartRuntime", () => {
         expect(resolveChartZoomPlugin()).toBeNull();
     });
 
-    it("rejects invalid runtime and zoom plugin payloads at registration", () => {
+    it("rejects invalid runtime and zoom plugin payloads before registration", () => {
         expect.assertions(2);
 
-        setChartRuntime({ register: "missing" }, { id: "" });
-
-        expect(resolveChartRuntime(isRuntime)).toBeNull();
-        expect(resolveChartZoomPlugin()).toBeNull();
+        expect(isRegisteredChartRuntime({ register: "missing" })).toBe(false);
+        expect(isRegisteredChartZoomPlugin({ id: "" })).toBe(false);
     });
 
     it("validates registered Chart.js runtime payloads", () => {

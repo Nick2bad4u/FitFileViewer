@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 import { renderSinglePowerZoneBar } from "../../../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js";
 
@@ -103,7 +103,7 @@ interface ChartView {
 describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
         document.body.replaceChildren();
-        setChartRuntime(ChartMock);
+        registerChartRuntime(ChartMock);
         ChartMock.mockClear();
         notificationMocks.showNotification.mockReset();
     });

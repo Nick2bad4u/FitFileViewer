@@ -21328,17 +21328,15 @@ describe("architecture boundaries", () => {
             "zoomPlugin?: RegisteredChartZoomPlugin;"
         );
         expect(chartRuntimeSource).toContain(
-            "isRegisteredChartRuntime(runtime)"
-        );
-        expect(chartRuntimeSource).toContain(
-            "isRegisteredChartZoomPlugin(zoomPlugin)"
+            'typeof value === "function" || typeof value.register === "function"'
         );
         expect(chartRuntimeSource).toContain(
             "registerChartRuntime(\n    runtime: RegisteredChartRuntime"
         );
         expect(chartRuntimeSource).toContain(
-            "zoomPlugin: RegisteredChartZoomPlugin"
+            "zoomPlugin?: RegisteredChartZoomPlugin"
         );
+        expect(chartRuntimeSource).not.toContain("setChartRuntime");
         expect(chartRuntimeSource).not.toContain(
             "value as { register?: unknown }"
         );

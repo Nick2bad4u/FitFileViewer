@@ -277,9 +277,9 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             })
         );
 
-        const { setChartRuntime } =
+        const { registerChartRuntime } =
             await import("../../../electron-app/utils/charts/core/chartRuntime.js");
-        setChartRuntime(chartMock);
+        registerChartRuntime(chartMock);
 
         const module =
             await import("../../../electron-app/utils/charts/rendering/renderZoneChart.js");

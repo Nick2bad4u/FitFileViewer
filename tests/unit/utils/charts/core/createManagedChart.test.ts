@@ -6,7 +6,7 @@ import type {
 } from "../../../../../electron-app/utils/charts/core/createManagedChart.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 import {
     clearChartInstanceRegistryForTests,
@@ -36,7 +36,7 @@ async function loadCreateManagedChart(
     chartConstructor: TestChartConstructor | undefined
 ): Promise<CreateManagedChart> {
     if (chartConstructor) {
-        setChartRuntime(chartConstructor);
+        registerChartRuntime(chartConstructor);
     } else {
         clearChartRuntimeForTests();
     }

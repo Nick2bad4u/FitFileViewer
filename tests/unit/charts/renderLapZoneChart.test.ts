@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderLapZoneChart } from "../../../electron-app/utils/charts/rendering/renderLapZoneChart.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
 import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
@@ -176,7 +176,7 @@ describe(renderLapZoneChart, () => {
             return mockChart;
         });
 
-        setChartRuntime(chartJsMocks.Chart);
+        registerChartRuntime(chartJsMocks.Chart);
         notificationMocks.showNotification.mockReset();
     });
 

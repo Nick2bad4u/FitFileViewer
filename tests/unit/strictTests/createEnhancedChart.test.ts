@@ -140,10 +140,12 @@ async function clearChartRuntime(): Promise<void> {
 }
 
 async function registerChartRuntime(runtime: unknown): Promise<void> {
-    const { setChartRuntime } =
+    const chartRuntimeModule =
         await import("../../../electron-app/utils/charts/core/chartRuntime.js");
 
-    setChartRuntime(runtime);
+    chartRuntimeModule.registerChartRuntime(
+        runtime as Parameters<typeof chartRuntimeModule.registerChartRuntime>[0]
+    );
 }
 
 describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {

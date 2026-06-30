@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import {
     clearChartInstanceRegistryForTests,
@@ -480,7 +480,7 @@ function withHarness(callback: (harness: Harness) => void): void {
         chartCalls.push([canvas, config]);
         return chartInstance;
     });
-    setChartRuntime(chartJsMocks.Chart);
+    registerChartRuntime(chartJsMocks.Chart);
 
     try {
         callback({

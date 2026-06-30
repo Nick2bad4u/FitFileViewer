@@ -14,7 +14,7 @@ import {
 } from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { renderEventMessagesChart } from "../../../electron-app/utils/charts/rendering/renderEventMessagesChart.js";
 import {
@@ -241,7 +241,7 @@ beforeEach(() => {
     chartJsMocks.Chart.mockImplementation(function ChartMock() {
         return mockChart;
     });
-    setChartRuntime(chartJsMocks.Chart);
+    registerChartRuntime(chartJsMocks.Chart);
     clearChartInstanceRegistryForTests();
 
     setEventMessagesRawData({

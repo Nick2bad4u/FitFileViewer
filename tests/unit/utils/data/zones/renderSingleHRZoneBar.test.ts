@@ -235,7 +235,7 @@ vi.mock(
 import { renderSingleHRZoneBar } from "../../../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 import * as formatTime from "../../../../../electron-app/utils/formatting/formatters/formatTime.js";
 import * as chartZoneColorUtils from "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
@@ -297,7 +297,7 @@ describe(renderSingleHRZoneBar, () => {
         chartModuleMock.state.instance = mockChartInstance;
         chartModuleMock.state.lastConfig = undefined;
         chartModuleMock.Chart.mockClear();
-        setChartRuntime(chartModuleMock.Chart);
+        registerChartRuntime(chartModuleMock.Chart);
 
         notificationMocks.showNotification.mockReset();
 

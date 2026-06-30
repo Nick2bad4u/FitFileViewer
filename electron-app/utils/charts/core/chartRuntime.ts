@@ -21,21 +21,14 @@ type ChartZoomPluginCandidate = Readonly<{
 
 const chartRuntimeRegistry: ChartRuntimeRegistry = {};
 
-export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
-    if (isRegisteredChartRuntime(runtime)) {
-        chartRuntimeRegistry.runtime = runtime;
-    }
-    if (isRegisteredChartZoomPlugin(zoomPlugin)) {
-        chartRuntimeRegistry.zoomPlugin = zoomPlugin;
-    }
-}
-
 export function registerChartRuntime(
     runtime: RegisteredChartRuntime,
-    zoomPlugin: RegisteredChartZoomPlugin
+    zoomPlugin?: RegisteredChartZoomPlugin
 ): void {
     chartRuntimeRegistry.runtime = runtime;
-    chartRuntimeRegistry.zoomPlugin = zoomPlugin;
+    if (zoomPlugin !== undefined) {
+        chartRuntimeRegistry.zoomPlugin = zoomPlugin;
+    }
 }
 
 export function clearChartRuntimeForTests(): void {

@@ -11,7 +11,7 @@ import {
 import { setLoadedFitFiles } from "../../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 
 type ElevationProfilePoint = { x: number; y: number };
@@ -152,7 +152,7 @@ describe(createElevationProfileButton, () => {
             vi.fn<ChartMockImplementation>(function MockChart() {}),
             { register: vi.fn() }
         );
-        setChartRuntime(chartMock);
+        registerChartRuntime(chartMock);
 
         // Setup window.open spy
         openSpy = vi.spyOn(window, "open").mockImplementation(() => {

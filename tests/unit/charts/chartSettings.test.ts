@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEnhancedChart } from "../../../electron-app/utils/charts/components/createEnhancedChart.js";
 import {
     clearChartRuntimeForTests,
-    setChartRuntime,
+    registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { detectCurrentTheme } from "../../../electron-app/utils/charts/theming/chartThemeUtils.js";
 import { showNotification } from "../../../electron-app/utils/ui/notifications/showNotification.js";
@@ -302,7 +302,7 @@ function createChartTestContext(): ChartTestContext {
         (_canvas, _config) => chartInstance
     );
     chartJsAutoMock.Chart = chartMock as unknown as ChartConstructor;
-    setChartRuntime(chartJsAutoMock.ChartProxy);
+    registerChartRuntime(chartJsAutoMock.ChartProxy);
 
     const render = (options: Partial<ChartOptions> = {}) => {
         const result = createEnhancedChart(canvas, {

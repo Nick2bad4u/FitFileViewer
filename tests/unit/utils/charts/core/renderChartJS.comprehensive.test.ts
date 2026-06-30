@@ -148,10 +148,13 @@ async function registerChartRuntime(
     chartRuntime: unknown,
     chartZoomPlugin: unknown
 ): Promise<void> {
-    const { setChartRuntime } =
+    const chartRuntimeModule =
         await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
 
-    setChartRuntime(chartRuntime, chartZoomPlugin);
+    chartRuntimeModule.registerChartRuntime(
+        chartRuntime as Parameters<typeof chartRuntimeModule.registerChartRuntime>[0],
+        chartZoomPlugin as Parameters<typeof chartRuntimeModule.registerChartRuntime>[1]
+    );
 }
 
 vi.mock(import("chart.js/auto"), () => ({
