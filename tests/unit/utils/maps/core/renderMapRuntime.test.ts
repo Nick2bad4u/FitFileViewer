@@ -204,9 +204,9 @@ describe("getRenderMapRuntime", () => {
         expect(() => utils.querySelector("#leaflet-map")).toThrow(
             "renderMap requires a document runtime"
         );
-        expect(() => utils.querySelectorAll(".overlay-filename-tooltip")).toThrow(
-            "renderMap requires a document runtime"
-        );
+        expect(() =>
+            utils.querySelectorAll(".overlay-filename-tooltip")
+        ).toThrow("renderMap requires a document runtime");
         expect(() => utils.querySelectorByIdFlexible("#content_map")).toThrow(
             "renderMap requires a document runtime"
         );

@@ -320,12 +320,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             })
         ).toBe(false);
         expect(
-            checkHandler(
-                {},
-                "geolocation",
-                "about:blank",
-                arrayShapedDetails
-            )
+            checkHandler({}, "geolocation", "about:blank", arrayShapedDetails)
         ).toBe(false);
     });
 

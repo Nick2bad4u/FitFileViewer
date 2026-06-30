@@ -165,10 +165,7 @@ describe("check-signing-env script", () => {
         };
 
         expect(
-            getSigningPreflightReport(
-                { REQUIRE_CODE_SIGNING: "true" },
-                "linux"
-            )
+            getSigningPreflightReport({ REQUIRE_CODE_SIGNING: "true" }, "linux")
         ).toStrictEqual({
             errors: [],
             platform: "linux",

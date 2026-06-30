@@ -41,8 +41,7 @@ describe("renderChartStateManagement", () => {
         const register =
             vi.fn<(key: string, middleware: MiddlewareDefinition) => void>();
         const notify = vi.fn<(message: string, type: string) => void>();
-        const initializeChartRenderState =
-            vi.fn<(options: unknown) => void>();
+        const initializeChartRenderState = vi.fn<(options: unknown) => void>();
         const getChartSummaryState = vi.fn<() => ChartSummaryState>(() => ({
             hasValidData: true,
             isRendered: false,
@@ -69,12 +68,10 @@ describe("renderChartStateManagement", () => {
             notify,
         });
 
-        expect(initializeChartRenderState).toHaveBeenCalledWith(
-            {
-                merge: true,
-                source: "initializeChartStateManagement",
-            }
-        );
+        expect(initializeChartRenderState).toHaveBeenCalledWith({
+            merge: true,
+            source: "initializeChartStateManagement",
+        });
         expect({
             hasData: computedValues.get("charts.hasData")?.(),
             renderableFieldCount: computedValues.get(
@@ -126,7 +123,7 @@ describe("renderChartStateManagement", () => {
     });
 
     it("logs async notification failures from chart render middleware", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const consoleWarn = vi
             .spyOn(console, "warn")
@@ -142,9 +139,8 @@ describe("renderChartStateManagement", () => {
                 renderableFields: [],
             }),
             getComputedStateManager: () => ({
-                addComputed: vi.fn<
-                    (key: string, compute: () => unknown) => void
-                >(),
+                addComputed:
+                    vi.fn<(key: string, compute: () => unknown) => void>(),
             }),
             getLastRenderTime: () => undefined,
             getRenderedCount: () => 0,
@@ -159,12 +155,13 @@ describe("renderChartStateManagement", () => {
         });
 
         const middleware = register.mock.calls[0]?.[1] as MiddlewareDefinition;
-        middleware.onError(new Error("render failed"), {
+        const onErrorResult = middleware.onError(new Error("render failed"), {
             path: "charts",
             value: {},
         });
         await Promise.resolve();
 
+        expect(onErrorResult).toBeUndefined();
         expect(register).toHaveBeenCalledWith(
             "chart-render",
             expect.objectContaining({ onError: expect.any(Function) })

@@ -16,10 +16,7 @@ describe("getChartStatus", () => {
                 hasValidData: true,
                 isRendered: true,
                 isRendering: false,
-                renderableFields: [
-                    "speed",
-                    "power",
-                ],
+                renderableFields: ["speed", "power"],
                 selectedChart: "power",
             },
             getChartOptions: vi.fn(() => ({ responsive: true })),
@@ -36,10 +33,7 @@ describe("getChartStatus", () => {
             isRendering: false,
             lastRenderTime: 1234,
             performance: 250,
-            renderableFields: [
-                "speed",
-                "power",
-            ],
+            renderableFields: ["speed", "power"],
             renderedCount: 7,
             selectedChart: "power",
         });

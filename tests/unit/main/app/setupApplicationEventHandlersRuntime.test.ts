@@ -47,15 +47,11 @@ describe("setupApplicationEventHandlersRuntime", () => {
         );
 
         expect(runtime.getProcessArgumentValues()).toStrictEqual(["--dev"]);
-        expect(runtime.getProcessEnvironmentValue("FFV_DEVTOOLS")).toBe(
-            "true"
-        );
+        expect(runtime.getProcessEnvironmentValue("FFV_DEVTOOLS")).toBe("true");
         expect(runtime.getProcessStringValue("platform")).toBe("win32");
         expect(runtime.isDevelopmentEnvironment()).toBe(true);
         expect(runtime.isTestEnvironment()).toBe(false);
-        expect(getProcessEnvironmentValue).toHaveBeenCalledWith(
-            "FFV_DEVTOOLS"
-        );
+        expect(getProcessEnvironmentValue).toHaveBeenCalledWith("FFV_DEVTOOLS");
     });
 
     it("uses the default production scope", () => {
@@ -115,9 +111,7 @@ describe("setupApplicationEventHandlersRuntime", () => {
             },
         } as unknown as SetupApplicationEventHandlersRuntimeScope);
 
-        expect(runtime.getProcessArgumentValues()).toStrictEqual([
-            "--runtime",
-        ]);
+        expect(runtime.getProcessArgumentValues()).toStrictEqual(["--runtime"]);
         expect(runtime.getProcessEnvironmentValue("FFV_DEVTOOLS")).toBe(
             undefined
         );

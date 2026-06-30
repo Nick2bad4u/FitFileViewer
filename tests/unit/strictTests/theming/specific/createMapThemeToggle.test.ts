@@ -151,6 +151,7 @@ describe("createMapThemeToggle", () => {
             dispatchDocumentEvent: vi.fn(() => true),
             findExistingToggle: vi.fn(() => null),
             isBodyThemeDark: vi.fn(() => false),
+            isTestEnvironment: vi.fn(() => true),
             setTimeout: vi.fn(() => 1),
         };
 

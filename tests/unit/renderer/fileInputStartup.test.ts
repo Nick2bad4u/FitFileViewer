@@ -166,12 +166,14 @@ describe("renderer file input startup wiring", () => {
     });
 
     it("logs rejected import-time file open handlers", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { input } = createFileInput();
         const openError = new Error("open failed");
+        const attemptedFileNames: string[] = [];
         const handleOpenFile = vi.fn<(file: File) => Promise<void>>(
-            async () => {
+            async (file) => {
+                attemptedFileNames.push(file.name);
                 throw openError;
             }
         );
@@ -192,6 +194,7 @@ describe("renderer file input startup wiring", () => {
             "[Renderer] Failed to handle file open:",
             openError
         );
+        expect(attemptedFileNames).toStrictEqual(["activity.fit"]);
     });
 
     it("resolves listener abort controllers through the injected runtime", async () => {

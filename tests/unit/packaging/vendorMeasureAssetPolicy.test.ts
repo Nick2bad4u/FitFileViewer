@@ -211,7 +211,7 @@ describe("renderer vendor asset policy", () => {
     });
 
     it("keeps upstream CSS npm-managed and JS as a CSP-safe local control", () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile(rootPackageRepositoryPath)
@@ -255,7 +255,10 @@ describe("renderer vendor asset policy", () => {
         );
         expect(measureLiteRuntime).not.toContain("scope.documentEventTarget");
         expect(measureLiteRuntime).toContain(
-            "return scope.getDocumentEventTarget?.() ?? scope.getDocument?.();"
+            "return getDocumentEventTargetProvider() ?? getDocument();"
+        );
+        expect(measureLiteRuntime).toContain(
+            'scope.getDocumentEventTarget,\n        "document event-target"'
         );
         expect(rendererVendorMap).toContain(
             "installLeafletMeasureLite(Leaflet);"

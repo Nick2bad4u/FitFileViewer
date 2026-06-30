@@ -547,14 +547,14 @@ describe("exportUtilsRuntime", () => {
             )
         ).toThrow("exportUtils requires a document runtime");
         expect(() =>
-            getExportUtilsRuntime(createExportUtilsRuntimeScope()).createElement(
-                "canvas"
-            )
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).createElement("canvas")
         ).toThrow("exportUtils requires a document runtime");
         expect(() =>
-            getExportUtilsRuntime(createExportUtilsRuntimeScope()).querySelector(
-                ".export-runtime-link"
-            )
+            getExportUtilsRuntime(
+                createExportUtilsRuntimeScope()
+            ).querySelector(".export-runtime-link")
         ).toThrow("exportUtils requires a document runtime");
         expect(() =>
             getExportUtilsRuntime(

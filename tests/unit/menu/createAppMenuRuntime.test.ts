@@ -36,9 +36,7 @@ describe("createAppMenuRuntime", () => {
         expect(runtime.getProcessEnvironmentValue("__MISSING__")).toBe(
             undefined
         );
-        expect(typeof runtime.getProcessStringValue("platform")).toBe(
-            "string"
-        );
+        expect(typeof runtime.getProcessStringValue("platform")).toBe("string");
     });
 
     it("fails clearly when provider slots are omitted", () => {

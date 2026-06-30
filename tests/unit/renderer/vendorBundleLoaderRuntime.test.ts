@@ -367,6 +367,7 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             () => 29 as RendererVendorBundleLoaderTimerHandle
         );
         const listener = vi.fn<EventListener>();
+        const listenerAbortController = new AbortController();
         const utils = getRendererVendorBundleLoaderRuntime({
             AbortController,
             addEventListener,
@@ -381,7 +382,11 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             typeof getRendererVendorBundleLoaderRuntime
         >[0]);
 
-        expect(() => utils.addEventListener("ready", listener)).toThrow(
+        expect(() =>
+            utils.addEventListener("ready", listener, {
+                signal: listenerAbortController.signal,
+            })
+        ).toThrow(
             "renderer vendor loader requires an addEventListener provider"
         );
         expect(() => utils.removeEventListener("ready", listener)).toThrow(

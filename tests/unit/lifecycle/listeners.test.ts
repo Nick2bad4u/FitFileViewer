@@ -249,7 +249,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
     });
 
     it("reports rejected Open File click handlers", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { openFileBtn, handleOpenFile, showNotification } = mount([]);
         handleOpenFile.mockImplementationOnce(async () => {
@@ -264,6 +264,9 @@ describe("utils/app/lifecycle/listeners.js", () => {
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open file",
             "error"
+        );
+        expect(document.body.dataset.lastNotification).toBe(
+            "error:Failed to open file"
         );
     });
 

@@ -152,8 +152,12 @@ async function registerChartRuntime(
         await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
 
     chartRuntimeModule.registerChartRuntime(
-        chartRuntime as Parameters<typeof chartRuntimeModule.registerChartRuntime>[0],
-        chartZoomPlugin as Parameters<typeof chartRuntimeModule.registerChartRuntime>[1]
+        chartRuntime as Parameters<
+            typeof chartRuntimeModule.registerChartRuntime
+        >[0],
+        chartZoomPlugin as Parameters<
+            typeof chartRuntimeModule.registerChartRuntime
+        >[1]
     );
 }
 
@@ -1258,10 +1262,9 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
                     throw new Error("Expected export success notification");
                 }
             });
-            expect(mocks.showNotification.showNotification).toHaveBeenCalledWith(
-                "Charts exported as PNG",
-                "success"
-            );
+            expect(
+                mocks.showNotification.showNotification
+            ).toHaveBeenCalledWith("Charts exported as PNG", "success");
         });
 
         it("should log rejected injected export notifications without failing export", async () => {

@@ -106,12 +106,14 @@ describe(exposeChartDevTools, () => {
         );
 
         const devTools = getRegisteredChartDevTools();
-        const dumpState = devTools?.["dumpState"] as (() => {
-            activeTab: unknown;
-            charts: unknown;
-            performance: unknown;
-            settings: unknown;
-        }) | undefined;
+        const dumpState = devTools?.["dumpState"] as
+            | (() => {
+                  activeTab: unknown;
+                  charts: unknown;
+                  performance: unknown;
+                  settings: unknown;
+              })
+            | undefined;
 
         expect(dumpState).toBeTypeOf("function");
         expect(dumpState?.()).toMatchObject({

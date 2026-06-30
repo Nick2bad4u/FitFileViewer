@@ -23,7 +23,9 @@ describe("mainWindowRuntime", () => {
             isTestEnvironment,
         });
 
-        expect(runtime.appRef()).toStrictEqual({ whenReady: expect.any(Function) });
+        expect(runtime.appRef()).toStrictEqual({
+            whenReady: expect.any(Function),
+        });
         expect(runtime.browserWindowRef()?.getAllWindows?.()).toStrictEqual([]);
         expect(runtime.isTestEnvironment()).toBe(true);
         expect(appRef).toHaveBeenCalledOnce();

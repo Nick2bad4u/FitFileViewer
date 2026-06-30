@@ -34,7 +34,11 @@ describe("renderer error handling", () => {
                 logs.push(args);
             },
             showNotification: (message, type, timeout) => {
-                notifications.push([message, type, timeout]);
+                notifications.push([
+                    message,
+                    type,
+                    timeout,
+                ]);
             },
         });
 
@@ -69,7 +73,11 @@ describe("renderer error handling", () => {
                 logs.push(args);
             },
             showNotification: (message, type, timeout) => {
-                notifications.push([message, type, timeout]);
+                notifications.push([
+                    message,
+                    type,
+                    timeout,
+                ]);
             },
         });
 
@@ -130,7 +138,11 @@ describe("renderer error handling", () => {
             createRendererErrorEventHandlers({
                 logRenderer: vi.fn(),
                 showNotification: (message, type, timeout) => {
-                    notifications.push([message, type, timeout]);
+                    notifications.push([
+                        message,
+                        type,
+                        timeout,
+                    ]);
                 },
             });
 

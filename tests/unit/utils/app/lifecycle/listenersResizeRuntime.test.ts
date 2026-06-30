@@ -439,12 +439,14 @@ describe("getListenersResizeRuntime", () => {
         const documentOnlyRuntime = getListenersResizeRuntime({
             getDocument: () => document,
         } as unknown as ListenersResizeRuntimeScope);
+        const resizeAbortController = new AbortController();
 
         expect(() =>
             runtime.addResizeListener(vi.fn(), {
-                signal: new AbortController().signal,
+                signal: resizeAbortController.signal,
             })
         ).toThrow("listenersResize requires resizeTarget provider");
+        resizeAbortController.abort();
         expect(() => runtime.cancelAnimationFrame(1)).toThrow(
             "listenersResize requires cancelAnimationFrame provider"
         );

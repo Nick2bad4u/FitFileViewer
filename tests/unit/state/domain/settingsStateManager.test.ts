@@ -10,7 +10,13 @@ const mockGetState = vi.fn<(path?: string) => unknown>();
 const mockSetState =
     vi.fn<(path: string, value: unknown, options?: unknown) => void>();
 const mockUpdateState =
-    vi.fn<(path: string, value: Record<string, unknown>, options?: unknown) => void>();
+    vi.fn<
+        (
+            path: string,
+            value: Record<string, unknown>,
+            options?: unknown
+        ) => void
+    >();
 const mockSubscribe = vi.fn<
     (path: string, callback: (value: unknown) => void) => () => void
 >(() => () => {});

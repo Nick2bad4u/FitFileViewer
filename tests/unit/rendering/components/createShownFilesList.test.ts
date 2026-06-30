@@ -414,9 +414,7 @@ describe("createShownFilesList", () => {
                 bringToFront = vi.fn<() => void>();
             },
         };
-        registerLeafletRuntime(
-            createRegisteredLeafletRuntime(leafletRuntime)
-        );
+        registerLeafletRuntime(createRegisteredLeafletRuntime(leafletRuntime));
 
         // Import the function dynamically
         const module =

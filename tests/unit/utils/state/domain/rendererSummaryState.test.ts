@@ -21,9 +21,7 @@ describe("rendererSummaryState", () => {
         setRendererSummaryLastDataHash("hash-a", { source: "test" });
 
         expect(getRendererSummaryLastDataHash()).toBe("hash-a");
-        expect(
-            stateManager.getState("summary.lastDataHash")
-        ).toBe("hash-a");
+        expect(stateManager.getState("summary.lastDataHash")).toBe("hash-a");
     });
 
     it("reads the summary last-data hash through an explicit state reader", () => {

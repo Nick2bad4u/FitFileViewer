@@ -126,9 +126,9 @@ describe("recentFilesContextMenuRuntime", () => {
         );
 
         expect(runtime.isDevelopmentEnvironment()).toBe(true);
-        expect(runtime.getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU")).toBe(
-            "1"
-        );
+        expect(
+            runtime.getProcessEnvironmentValue("FFV_DEBUG_RECENT_MENU")
+        ).toBe("1");
         expect(runtime.getProcessEnvironmentValue("NODE_ENV")).toBe(undefined);
         expect(getProcessEnvironmentValue).toHaveBeenCalledTimes(2);
     });

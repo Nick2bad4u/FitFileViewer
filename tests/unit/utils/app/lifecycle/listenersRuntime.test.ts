@@ -160,17 +160,17 @@ describe("getLifecycleListenersRuntime", () => {
     it("routes download DOM and URL helpers through injected runtime providers", () => {
         expect.assertions(10);
 
-        const documentRef =
-            document.implementation.createHTMLDocument("lifecycle downloads");
+        const documentRef = document.implementation.createHTMLDocument(
+            "lifecycle downloads"
+        );
         const summary = documentRef.createElement("section");
         summary.id = "content-summary";
         documentRef.body.append(summary);
         const anchor = documentRef.createElement("a");
         const append = vi.spyOn(documentRef.body, "append");
-        const createElement = vi.spyOn(
-            documentRef,
-            "createElement"
-        ).mockReturnValue(anchor);
+        const createElement = vi
+            .spyOn(documentRef, "createElement")
+            .mockReturnValue(anchor);
         const blobUrl = "blob:lifecycle-listeners-test";
         const createObjectURL = vi.fn<(blob: Blob) => string>(() => blobUrl);
         const revokeObjectURL = vi.fn<(url: string) => void>();

@@ -88,7 +88,9 @@ describe("createChartActions", () => {
             silent: false,
             source: "chartActions.clearCharts",
         });
-        expect(dependencies.updatePerformanceRenderTimes).not.toHaveBeenCalled();
+        expect(
+            dependencies.updatePerformanceRenderTimes
+        ).not.toHaveBeenCalled();
     });
 
     it("records successful render timestamps through the injected clock", () => {

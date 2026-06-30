@@ -1817,7 +1817,9 @@ test.describe("FitFileViewer Electron UI", () => {
                 };
             } finally {
                 if (originalChartRuntime) {
-                    chartRuntimeModule.registerChartRuntime(originalChartRuntime);
+                    chartRuntimeModule.registerChartRuntime(
+                        originalChartRuntime
+                    );
                 } else {
                     chartRuntimeModule.clearChartRuntimeForTests();
                 }

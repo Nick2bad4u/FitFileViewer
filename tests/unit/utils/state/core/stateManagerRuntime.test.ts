@@ -63,9 +63,7 @@ describe("stateManagerRuntime", () => {
         const utils = getStateManagerRuntime();
 
         expect(utils.dateNow()).toBe(4321);
-        expect(utils.isTestEnvironment()).toBe(
-            process.env.NODE_ENV === "test"
-        );
+        expect(utils.isTestEnvironment()).toBe(process.env.NODE_ENV === "test");
         expect(dateNow).toHaveBeenCalledOnce();
     });
 

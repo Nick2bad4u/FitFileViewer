@@ -3068,9 +3068,7 @@ describe("architecture boundaries", () => {
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a ${providerName} provider"
         );
-        expect(parserRuntimeSource).toContain(
-            "providerName: string"
-        );
+        expect(parserRuntimeSource).toContain("providerName: string");
         expect(parserRuntimeSource).toContain(
             "fitParserRuntime requires a date clock"
         );
@@ -3700,9 +3698,7 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateRuntimeSource).toContain(
             "mainProcessStateRuntime requires ${providerName} provider"
         );
-        expect(mainProcessStateRuntimeSource).toContain(
-            "providerName: string"
-        );
+        expect(mainProcessStateRuntimeSource).toContain("providerName: string");
         expect(mainProcessStateRuntimeSource).toMatch(
             /const\s+dateNow\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
@@ -5819,9 +5815,7 @@ describe("architecture boundaries", () => {
             "node-version-files-check.log"
         );
         expect(dependencyValidationWorkflow).toContain("npm-ci-app.log");
-        expect(dependencyValidationWorkflow).toContain(
-            "npm-ci-docusaurus.log"
-        );
+        expect(dependencyValidationWorkflow).toContain("npm-ci-docusaurus.log");
         expect(dependencyValidationWorkflow).toContain(
             "npm ci --prefix docusaurus --no-audit --no-fund"
         );
@@ -5842,7 +5836,9 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain(
             "dependency-validation-diagnostics"
         );
-        expect(dependencyValidationWorkflow).toContain("actions/upload-artifact");
+        expect(dependencyValidationWorkflow).toContain(
+            "actions/upload-artifact"
+        );
         expect(dependencyValidationWorkflow).toContain(
             "if-no-files-found: error"
         );
@@ -7149,7 +7145,9 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).toContain("openPrintWindow");
         expect(exportUtilsSource).toContain("closePreparedPrintDocument");
         expect(exportUtilsSource).not.toContain("printWindow.document.close()");
-        expect(exportUtilsSource).toContain("exportUtilsRuntime().querySelector");
+        expect(exportUtilsSource).toContain(
+            "exportUtilsRuntime().querySelector"
+        );
         expect(exportUtilsSource).toContain(
             'exportUtilsRuntime().getProcessEnvironmentValue(\n                "FFV_DEBUG_EXPORT_THEME"\n            )'
         );
@@ -7481,9 +7479,7 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope.getDocumentEventTarget?.()"
         );
-        expect(exportUtilsRuntimeSource).not.toContain(
-            "scope.getDocument?.()"
-        );
+        expect(exportUtilsRuntimeSource).not.toContain("scope.getDocument?.()");
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope.getHTMLElement?.()"
         );
@@ -7622,9 +7618,7 @@ describe("architecture boundaries", () => {
         expect(setupApplicationEventHandlersSource).not.toContain(
             "getFocusedWindow"
         );
-        expect(mainWindowSelectionSource).toContain(
-            "./mainWindowRuntime.js"
-        );
+        expect(mainWindowSelectionSource).toContain("./mainWindowRuntime.js");
         expect(mainWindowSelectionSource).toContain(
             "resolveExistingMainWindow"
         );
@@ -15147,7 +15141,9 @@ describe("architecture boundaries", () => {
         expect(runtimeScopeSource).not.toContain("readonly getDocument?:");
         expect(runtimeScopeSource).not.toContain("readonly getDispatchEvent?:");
         expect(runtimeScopeSource).not.toContain("readonly getMatchMedia?:");
-        expect(runtimeScopeSource).not.toContain("readonly getQueueMicrotask?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly getQueueMicrotask?:"
+        );
         expect(runtimeScopeSource).not.toContain("readonly getScrollTo?:");
         expect(showFitDataRuntimeSource).not.toContain("scope.CustomEvent");
         expect(showFitDataRuntimeSource).not.toContain("scope.document");
@@ -15204,18 +15200,12 @@ describe("architecture boundaries", () => {
             "showFitData requires a ${providerName} provider"
         );
         expect(showFitDataRuntimeSource).toContain("providerName: string");
-        expect(showFitDataRuntimeSource).toContain(
-            "return getDocument();"
-        );
+        expect(showFitDataRuntimeSource).toContain("return getDocument();");
         expect(showFitDataRuntimeSource).toContain(
             'querySelector("#leaflet-map")'
         );
-        expect(showFitDataRuntimeSource).toContain(
-            "return getMatchMedia();"
-        );
-        expect(showFitDataRuntimeSource).toContain(
-            "return getScrollTo();"
-        );
+        expect(showFitDataRuntimeSource).toContain("return getMatchMedia();");
+        expect(showFitDataRuntimeSource).toContain("return getScrollTo();");
         expect(rendererActiveFileStateSource).toContain(
             'const RENDERER_CURRENT_FILE_STATE_PATH = "fitFile.currentFile";'
         );
@@ -15610,7 +15600,7 @@ describe("architecture boundaries", () => {
             'notify(message: string, type: "error"): Promise<void> | void;'
         );
         expect(renderChartStateManagementSource).toContain(
-            "dependencies.notify(\"Chart rendering failed\", \"error\")"
+            'dependencies.notify("Chart rendering failed", "error")'
         );
         expect(renderChartStateManagementSource).toContain(
             "[ChartJS] Chart render failure notification failed:"
@@ -15687,9 +15677,7 @@ describe("architecture boundaries", () => {
         expect(renderChartDependencyAccessorsSource).not.toContain(
             "Legacy settings manager methods used by chart rendering"
         );
-        expect(renderChartDependencyAccessorsSource).toContain(
-            "return null;"
-        );
+        expect(renderChartDependencyAccessorsSource).toContain("return null;");
         expect(renderChartStateManagementApiSource).toContain(
             "initializeChartRenderState"
         );
@@ -15790,7 +15778,7 @@ describe("architecture boundaries", () => {
             "[ChartJS] Export notification failed:"
         );
         expect(renderChartExportStateSource).not.toContain(
-            '): unknown;\n    setExportingState'
+            "): unknown;\n    setExportingState"
         );
         expect(renderChartExportStateSource).not.toContain("ui.isExporting");
         expect(renderChartExportStateSource).not.toContain(
@@ -18335,9 +18323,7 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "scope.getDevelopmentFlag?.()"
         );
-        expect(masterStateRuntimeSource).not.toContain(
-            "scope.getDocument?.()"
-        );
+        expect(masterStateRuntimeSource).not.toContain("scope.getDocument?.()");
         expect(masterStateRuntimeSource).not.toContain(
             "scope.getDocumentBody?.()"
         );
@@ -18911,9 +18897,7 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).toContain(
             "stateIntegrationRuntime requires ${providerName} provider"
         );
-        expect(stateIntegrationRuntimeSource).toContain(
-            "providerName: string"
-        );
+        expect(stateIntegrationRuntimeSource).toContain("providerName: string");
         expect(stateIntegrationRuntimeSource).not.toContain(
             "dateNow: Date.now"
         );
@@ -19477,9 +19461,7 @@ describe("architecture boundaries", () => {
         expect(appActionsSource).toContain(
             "fitFileStateManager.clearFileState();"
         );
-        expect(appActionsSource).toContain(
-            "fitFileStateManager.isLoading()"
-        );
+        expect(appActionsSource).toContain("fitFileStateManager.isLoading()");
         expect(appActionsSource).toContain(
             "fitFileStateManager.startFileLoading(normalizedPath);"
         );
@@ -19755,9 +19737,7 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).toContain(
             "resourceManager requires ${providerName} provider"
         );
-        expect(resourceManagerRuntimeSource).toContain(
-            "providerName: string"
-        );
+        expect(resourceManagerRuntimeSource).toContain("providerName: string");
         expect(resourceManagerRuntimeSource).toMatch(
             /const\s+dateNow\s*=\s*getRequiredProvider\(\s*scope\.getDateNow,\s*"dateNow"\s*\)\(\);/u
         );
@@ -20248,9 +20228,7 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).toContain(
             "querySelectorByIdFlexible("
         );
-        expect(lifecycleListenersRuntimeSource).toContain(
-            '"#content_summary"'
-        );
+        expect(lifecycleListenersRuntimeSource).toContain('"#content_summary"');
         expect(lifecycleListenersRuntimeSource).toContain(
             "lifecycle listeners require a URL runtime"
         );
@@ -20359,7 +20337,7 @@ describe("architecture boundaries", () => {
             "const printRef = globalThis.print;"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
-            'scope.getProcessEnvironmentValue'
+            "scope.getProcessEnvironmentValue"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             '("NODE_ENV") === "test"'
@@ -25370,7 +25348,9 @@ describe("architecture boundaries", () => {
         expect(fileInputStartupSource).toContain(
             "await invokeFileOpenHandler(handleOpenFileFn, file)"
         );
-        expect(fileInputStartupSource).not.toContain("handleOpenFileFn?.(file)");
+        expect(fileInputStartupSource).not.toContain(
+            "handleOpenFileFn?.(file)"
+        );
         expect(fileInputStartupSource).toContain(
             "void invokeFileOpenHandler(handleOpenFile, selectedFile).catch"
         );
@@ -25722,9 +25702,7 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).toContain(
             "showAboutModal: ShowAboutModal | undefined;"
         );
-        expect(importTimeBootstrapSource).toContain(
-            "ShowAboutModal,"
-        );
+        expect(importTimeBootstrapSource).toContain("ShowAboutModal,");
         expect(importTimeBootstrapSource).toContain(
             "showNotification: ShowNotification | undefined;"
         );
@@ -27141,7 +27119,9 @@ describe("architecture boundaries", () => {
             )
             .sort();
         const handleOpenFileSource = stripComments(
-            readRepositoryFile("electron-app/utils/files/import/handleOpenFile.ts")
+            readRepositoryFile(
+                "electron-app/utils/files/import/handleOpenFile.ts"
+            )
         );
         const handleOpenFileRuntimeSource = stripComments(
             readRepositoryFile(
@@ -27164,7 +27144,7 @@ describe("architecture boundaries", () => {
             "handleOpenFileRuntime().isNonProductionEnvironment()"
         );
         expect(handleOpenFileSource).not.toContain(
-            "getProcessEnvironmentValue(\"NODE_ENV\")"
+            'getProcessEnvironmentValue("NODE_ENV")'
         );
         expect(handleOpenFileSource).not.toContain(
             "../../runtime/processEnvironment.js"
@@ -28197,7 +28177,7 @@ describe("architecture boundaries", () => {
             "const clearTimeoutRef = getClearTimeout();"
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
-            "locationSearch: getLocation()?.search ?? \"\""
+            'locationSearch: getLocation()?.search ?? ""'
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
             "const setTimeoutRef = getSetTimeout();"
@@ -28569,9 +28549,7 @@ describe("architecture boundaries", () => {
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
-        expect(getCurrentSettingsRuntimeSource).not.toContain(
-            "scope.document"
-        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain("scope.document");
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope.HTMLInputElement"
         );
@@ -29445,9 +29423,7 @@ describe("architecture boundaries", () => {
             "readonly getBrowserEventTarget?:"
         );
         expect(themeRuntimeSource).not.toContain("readonly getClearTimeout?:");
-        expect(themeRuntimeSource).not.toContain(
-            "readonly getComputedStyle?:"
-        );
+        expect(themeRuntimeSource).not.toContain("readonly getComputedStyle?:");
         expect(themeRuntimeSource).not.toContain("readonly getCustomEvent?:");
         expect(themeRuntimeSource).not.toContain("readonly getDocument?:");
         expect(themeRuntimeSource).not.toContain("readonly getLocalStorage?:");
@@ -29492,12 +29468,8 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).toContain(
             "theme core requires a localStorage runtime"
         );
-        expect(themeRuntimeSource).toContain(
-            "type ThemeRuntimeProvider<T>"
-        );
-        expect(themeRuntimeSource).toContain(
-            "function getRequiredProvider<T>"
-        );
+        expect(themeRuntimeSource).toContain("type ThemeRuntimeProvider<T>");
+        expect(themeRuntimeSource).toContain("function getRequiredProvider<T>");
         expect(themeRuntimeSource).toContain(
             "theme core requires ${providerName} provider"
         );
@@ -29516,9 +29488,7 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).toContain(
             'scope.getCustomEvent,\n        "CustomEvent"'
         );
-        expect(themeRuntimeSource).toContain(
-            'scope.getDocument, "document"'
-        );
+        expect(themeRuntimeSource).toContain('scope.getDocument, "document"');
         expect(themeRuntimeSource).toContain(
             'scope.getLocalStorage,\n        "localStorage"'
         );
@@ -34161,9 +34131,7 @@ describe("architecture boundaries", () => {
         expect(performanceUtilsRuntimeSource).toContain(
             "performanceUtils requires ${providerName} provider"
         );
-        expect(performanceUtilsRuntimeSource).toContain(
-            "providerName: string"
-        );
+        expect(performanceUtilsRuntimeSource).toContain("providerName: string");
         expect(performanceUtilsRuntimeSource).toContain(
             "const cancelIdleCallback = getCancelIdleCallback();"
         );
@@ -38554,7 +38522,9 @@ describe("architecture boundaries", () => {
         const handleOpenFileTestSources = [
             "tests/unit/utils/files/import/handleOpenFile.complete.test.ts",
             "tests/unit/utils/files/import/handleOpenFile.test.ts",
-        ].map((relativeFile) => stripComments(readRepositoryFile(relativeFile)));
+        ].map((relativeFile) =>
+            stripComments(readRepositoryFile(relativeFile))
+        );
 
         const directProcessFixtures = handleOpenFileTestSources.filter(
             (source) =>
