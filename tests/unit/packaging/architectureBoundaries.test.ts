@@ -21521,7 +21521,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core vendor runtime adapters off global symbol registries", () => {
-        expect.assertions(39);
+        expect.assertions(42);
 
         const coreRuntimeSources = [
             "electron-app/utils/dom/domPurifyRuntime.ts",
@@ -21597,6 +21597,11 @@ describe("architecture boundaries", () => {
         expect(exportZipRuntimeSource).toContain(
             "constructor: ExportZipConstructor"
         );
+        expect(exportZipRuntimeSource).toContain(
+            "zipConstructor?: ExportZipConstructor;"
+        );
+        expect(exportZipRuntimeSource).not.toContain("setExportZipRuntime");
+        expect(exportZipRuntimeSource).not.toContain("constructor?: unknown;");
         expect(screenfullRuntimeSource).toContain(
             "registerScreenfullRuntime(runtime: ScreenfullRuntime)"
         );

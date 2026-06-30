@@ -10,7 +10,7 @@ import {
 } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 import {
     clearExportZipRuntimeForTests,
-    setExportZipRuntime,
+    registerExportZipRuntime,
 } from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
 import type { ExportableChart } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
@@ -273,7 +273,7 @@ describe("exportUtils", () => {
             writable: true,
         });
 
-        setExportZipRuntime(mockJSZip);
+        registerExportZipRuntime(mockJSZip);
 
         Object.defineProperty(globalThis, "document", {
             value: mockDocument,

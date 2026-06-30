@@ -170,10 +170,10 @@ async function clearExportZipRuntime(): Promise<void> {
 }
 
 async function installJSZipMock() {
-    const { setExportZipRuntime } =
+    const { registerExportZipRuntime } =
         await import("../../../../../../electron-app/utils/files/export/exportZipRuntime.js");
 
-    setExportZipRuntime(FakeZip);
+    registerExportZipRuntime(FakeZip);
     return FakeZip;
 }
 

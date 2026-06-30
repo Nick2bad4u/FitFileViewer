@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { exportUtils } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 import {
     clearExportZipRuntimeForTests,
-    setExportZipRuntime,
+    registerExportZipRuntime,
 } from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
@@ -94,7 +94,7 @@ function installZipMock(): void {
         );
     });
 
-    setExportZipRuntime(MockZip);
+    registerExportZipRuntime(MockZip);
 }
 
 // Mock fetch with base64 data URL handling and upload response shapes

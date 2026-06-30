@@ -5,7 +5,6 @@ import {
     isExportZipConstructor,
     registerExportZipRuntime,
     resolveExportZipRuntime,
-    setExportZipRuntime,
     type ExportZipConstructor,
 } from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
 
@@ -38,22 +37,17 @@ describe("exportZipRuntime", () => {
         expect(resolveExportZipRuntime()).toBe(ZipRuntime);
     });
 
-    it("resolves a registered ZIP constructor", () => {
-        expect.assertions(2);
+    it("validates ZIP constructors", () => {
+        expect.assertions(1);
 
         const ZipRuntime = createZipRuntimeConstructor();
 
         expect(isExportZipConstructor(ZipRuntime)).toBe(true);
-        setExportZipRuntime(ZipRuntime);
-        expect(resolveExportZipRuntime()).toBe(ZipRuntime);
     });
 
     it("ignores malformed runtime values", () => {
-        expect.assertions(2);
-
-        setExportZipRuntime({ file: () => undefined });
+        expect.assertions(1);
 
         expect(isExportZipConstructor({ file: () => undefined })).toBe(false);
-        expect(resolveExportZipRuntime()).toBeUndefined();
     });
 });

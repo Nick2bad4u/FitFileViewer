@@ -14,28 +14,23 @@ export type ExportZipLike = {
 export type ExportZipConstructor = new () => ExportZipLike;
 
 type ExportZipRuntimeRegistry = {
-    constructor?: unknown;
+    zipConstructor?: ExportZipConstructor;
 };
 
 const exportZipRuntimeRegistry: ExportZipRuntimeRegistry = {};
 
-export function setExportZipRuntime(constructor: unknown): void {
-    exportZipRuntimeRegistry.constructor = constructor;
-}
-
 export function registerExportZipRuntime(
     constructor: ExportZipConstructor
 ): void {
-    exportZipRuntimeRegistry.constructor = constructor;
+    exportZipRuntimeRegistry.zipConstructor = constructor;
 }
 
 export function clearExportZipRuntimeForTests(): void {
-    exportZipRuntimeRegistry.constructor = undefined;
+    delete exportZipRuntimeRegistry.zipConstructor;
 }
 
 export function resolveExportZipRuntime(): ExportZipConstructor | undefined {
-    const constructor = exportZipRuntimeRegistry.constructor;
-    return isExportZipConstructor(constructor) ? constructor : undefined;
+    return exportZipRuntimeRegistry.zipConstructor;
 }
 
 export function isExportZipConstructor(
