@@ -40,17 +40,25 @@ type DevelopmentStateManagerMethodName =
     | "getState"
     | "getSubscriptions";
 type DevelopmentStateManagerMethod = (this: unknown) => unknown;
+type RendererDebugCoreFunctionMap = Readonly<{
+    readonly handleOpenFile: typeof import("../utils/files/import/handleOpenFile.js").handleOpenFile;
+    readonly setupTheme: typeof import("../utils/theming/core/setupTheme.js").setupTheme;
+    readonly showAboutModal: typeof import("../utils/ui/modals/aboutModal.js").showAboutModal;
+    readonly showNotification: typeof import("../utils/ui/notifications/showNotification.js").showNotification;
+    readonly showUpdateNotification: typeof import("../utils/ui/notifications/showUpdateNotification.js").showUpdateNotification;
+}>;
+export type RendererDebugCoreFunction =
+    RendererDebugCoreFunctionMap[DevelopmentDebugCoreFunctionName];
 type RendererDevelopmentDebugStateManager = Readonly<{
     readonly getHistory?: DevelopmentStateManagerMethod | undefined;
     readonly getState?: DevelopmentStateManagerMethod | undefined;
     readonly getSubscriptions?: DevelopmentStateManagerMethod | undefined;
 }>;
 
-export type RendererDebugCoreFunction = (...args: unknown[]) => unknown;
 type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;
 export type RendererDevelopmentDebugFunctionModules = {
     readonly [Name in DevelopmentDebugCoreFunctionName]?:
-        | RendererDebugCoreFunction
+        | RendererDebugCoreFunctionMap[Name]
         | undefined;
 };
 type RendererDevelopmentDebugAppActions = Readonly<{

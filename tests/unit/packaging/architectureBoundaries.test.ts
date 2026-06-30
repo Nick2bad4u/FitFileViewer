@@ -6700,7 +6700,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer diagnostics on explicit debug core-module dependencies", () => {
-        expect.assertions(58);
+        expect.assertions(66);
 
         const diagnosticsWiringSource = stripComments(
             readRepositoryFile(
@@ -6709,6 +6709,9 @@ describe("architecture boundaries", () => {
         );
         const developmentDebugToolsSource = stripComments(
             readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
+        );
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
         );
         const startupInfoSource = stripComments(
             readRepositoryFile("electron-app/renderer/rendererStartupInfo.ts")
@@ -6721,7 +6724,16 @@ describe("architecture boundaries", () => {
             'import type { UIStateManager } from "../utils/state/domain/uiStateManager.js";'
         );
         expect(developmentDebugToolsSource).toContain(
-            "type RendererDebugCoreFunction = (...args: unknown[]) => unknown;"
+            "type RendererDebugCoreFunctionMap = Readonly<{"
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "readonly handleOpenFile: typeof import("
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "readonly setupTheme: typeof import("
+        );
+        expect(developmentDebugToolsSource).toContain(
+            "export type RendererDebugCoreFunction ="
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDebugCoreFunctionCaller = (...args: unknown[]) => unknown;"
@@ -6736,16 +6748,31 @@ describe("architecture boundaries", () => {
             "readonly [Name in DevelopmentDebugCoreFunctionName]?:"
         );
         expect(developmentDebugToolsSource).toContain(
-            "readonly [Name in DevelopmentDebugCoreFunctionName]?:\n        | RendererDebugCoreFunction\n        | undefined;"
+            "readonly [Name in DevelopmentDebugCoreFunctionName]?:\n        | RendererDebugCoreFunctionMap[Name]\n        | undefined;"
         );
         expect(developmentDebugToolsSource).not.toContain(
             "readonly [Name in DevelopmentDebugCoreFunctionName]?: unknown;"
+        );
+        expect(developmentDebugToolsSource).not.toContain(
+            "readonly [Name in DevelopmentDebugCoreFunctionName]?:\n        | RendererDebugCoreFunction\n        | undefined;"
         );
         expect(developmentDebugToolsSource).not.toContain(
             "debugFunction as RendererDebugCoreFunction"
         );
         expect(developmentDebugToolsSource).toContain(
             "Reflect.apply(debugFunction, undefined, args)"
+        );
+        expect(rendererEntrypointSource).toContain(
+            "satisfies RendererDevelopmentDebugFunctionModules"
+        );
+        expect(rendererEntrypointSource).toContain(
+            "handleOpenFile: openFitFileFromDialog"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "Reflect.apply(openFitFileFromDialog"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "showAboutModal: (...args: unknown[])"
         );
         expect(developmentDebugToolsSource).toContain(
             "type RendererDevelopmentDebugStateModules = {"

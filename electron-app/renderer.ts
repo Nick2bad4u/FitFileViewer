@@ -57,6 +57,7 @@ import {
     runRendererImportTimeBootstrap,
 } from "./renderer/importTimeBootstrap.js";
 import { initializeRendererDiagnostics } from "./renderer/rendererDiagnosticsWiring.js";
+import type { RendererDevelopmentDebugFunctionModules } from "./renderer/developmentDebugTools.js";
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import { createRendererDomAccess } from "./renderer/domElementAccess.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
@@ -159,17 +160,12 @@ const PerformanceMonitor: RendererPerformanceMonitor =
     });
 
 const rendererDevelopmentDebugFunctions = {
-    handleOpenFile: (...args: unknown[]) =>
-        Reflect.apply(openFitFileFromDialog, undefined, args),
-    setupTheme: (...args: unknown[]) =>
-        Reflect.apply(setupTheme, undefined, args),
-    showAboutModal: (...args: unknown[]) =>
-        Reflect.apply(showAboutModal, undefined, args),
-    showNotification: (...args: unknown[]) =>
-        Reflect.apply(showNotification, undefined, args),
-    showUpdateNotification: (...args: unknown[]) =>
-        Reflect.apply(showUpdateNotification, undefined, args),
-};
+    handleOpenFile: openFitFileFromDialog,
+    setupTheme,
+    showAboutModal,
+    showNotification,
+    showUpdateNotification,
+} satisfies RendererDevelopmentDebugFunctionModules;
 
 const initializeApplication = createRendererApplicationStartup({
     addEventListener: runtimeEnvironment.addEventListener,
