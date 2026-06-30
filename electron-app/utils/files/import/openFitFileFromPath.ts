@@ -21,20 +21,6 @@ import {
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 
-type FitFileStateManagerLike = {
-    handleFileLoadingError: (error: Error) => void;
-    startFileLoading?: (filePath: string) => void;
-    transitionLoadingPhase?: (
-        phase: FitFileLoadingPhase,
-        options?: {
-            error?: null | string;
-            filePath?: null | string;
-            progress?: number;
-            source?: string;
-        }
-    ) => boolean;
-};
-
 type FitFileElectronAPI = {
     readonly notifyFitFileLoaded?: ElectronPreloadEventApi["notifyFitFileLoaded"];
     readonly parseFitFile: ElectronFileApi["parseFitFile"];
@@ -144,13 +130,10 @@ export async function openFitFileFromPath({
         const message = error instanceof Error ? error.message : String(error);
         showNotification(`Failed to open file: ${message}`, "error", 8000);
 
-        const mgr = resolveFitFileStateManager();
-        if (mgr) {
-            try {
-                mgr.handleFileLoadingError(new Error(message));
-            } catch {
-                /* ignore */
-            }
+        try {
+            fitFileStateManager.handleFileLoadingError(new Error(message));
+        } catch {
+            /* ignore */
         }
 
         return false;
@@ -210,24 +193,6 @@ function hasOptionalFunction(value: unknown): boolean {
     return value === undefined || typeof value === "function";
 }
 
-/**
- * Resolve the renderer-side fit file state manager if it has been installed.
- * This is used only for reporting errors into the app state pipeline.
- */
-function resolveFitFileStateManager(): FitFileStateManagerLike | undefined {
-    const candidate = fitFileStateManager;
-
-    if (!candidate || typeof candidate !== "object") {
-        return undefined;
-    }
-
-    if (typeof candidate.handleFileLoadingError !== "function") {
-        return undefined;
-    }
-
-    return candidate;
-}
-
 function notifyFileLoadPhase(
     phase: FitFileLoadingPhase,
     options: {
@@ -237,35 +202,17 @@ function notifyFileLoadPhase(
         source?: string;
     } = {}
 ): boolean {
-    const mgr = resolveFitFileStateManager();
-    if (!mgr || typeof mgr.transitionLoadingPhase !== "function") {
-        return false;
-    }
-
     try {
-        return mgr.transitionLoadingPhase(phase, options);
+        return fitFileStateManager.transitionLoadingPhase(phase, options);
     } catch {
         return false;
     }
 }
 
 function notifyFileLoadStarted(filePath: string): boolean {
-    const mgr = resolveFitFileStateManager();
-    if (!mgr) {
-        return false;
-    }
-
     try {
-        if (typeof mgr.startFileLoading === "function") {
-            mgr.startFileLoading(filePath);
-            return true;
-        }
-
-        return notifyFileLoadPhase("reading", {
-            filePath,
-            progress: 0,
-            source: "openFitFileFromPath.reading",
-        });
+        fitFileStateManager.startFileLoading(filePath);
+        return true;
     } catch {
         return false;
     }

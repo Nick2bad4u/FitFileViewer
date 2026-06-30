@@ -24414,7 +24414,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer Electron API callers on the typed accessor", () => {
-        expect.assertions(123);
+        expect.assertions(128);
 
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
@@ -24629,6 +24629,21 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersSource).not.toContain("Pick<ElectronAPI");
         expect(openFitFileFromPathSource).toContain("ElectronFileApi");
         expect(openFitFileFromPathSource).toContain("ElectronPreloadEventApi");
+        expect(openFitFileFromPathSource).toContain(
+            "fitFileStateManager.startFileLoading(filePath);"
+        );
+        expect(openFitFileFromPathSource).toContain(
+            "fitFileStateManager.transitionLoadingPhase(phase, options)"
+        );
+        expect(openFitFileFromPathSource).toContain(
+            "fitFileStateManager.handleFileLoadingError(new Error(message));"
+        );
+        expect(openFitFileFromPathSource).not.toContain(
+            "type FitFileStateManagerLike"
+        );
+        expect(openFitFileFromPathSource).not.toContain(
+            "function resolveFitFileStateManager("
+        );
         expect(openFitFileFromPathSource).not.toContain(
             "import type { ElectronAPI"
         );
