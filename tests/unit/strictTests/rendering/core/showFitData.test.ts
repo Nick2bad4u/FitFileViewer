@@ -115,6 +115,23 @@ function createShowFitDataElectronApiFixture(): ShowFitDataElectronApiFixture {
     };
 }
 
+function expectTabReadinessState(
+    tabName: "data" | "summary",
+    status: "error" | "loading" | "ready",
+    source: string,
+    error?: string
+): void {
+    expect(stateManagerMocks.setState).toHaveBeenCalledWith(
+        `ui.tabReadiness.${tabName}`,
+        expect.objectContaining({
+            error: error ?? null,
+            status,
+            updatedAt: expect.any(Number),
+        }),
+        { source }
+    );
+}
+
 describe("showFitData", () => {
     let electronApiScope: RendererElectronApiScope;
     let showFitDataElectronApi: ShowFitDataElectronApi;
@@ -158,7 +175,7 @@ describe("showFitData", () => {
     });
 
     it("updates UI, state, dispatches events, and triggers map render", async () => {
-        expect.assertions(8);
+        expect.assertions(12);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {
@@ -197,6 +214,26 @@ describe("showFitData", () => {
         ]);
         expect(rendererDependencyMocks.renderSummary).toHaveBeenCalledWith(
             data
+        );
+        expectTabReadinessState(
+            "data",
+            "loading",
+            "showFitData.renderDataTables"
+        );
+        expectTabReadinessState(
+            "data",
+            "ready",
+            "showFitData.renderDataTables"
+        );
+        expectTabReadinessState(
+            "summary",
+            "loading",
+            "showFitData.renderSummary"
+        );
+        expectTabReadinessState(
+            "summary",
+            "ready",
+            "showFitData.renderSummary"
         );
 
         // IPC send
@@ -459,5 +496,45 @@ describe("showFitData", () => {
         expect(() =>
             showFitData(null as unknown as Record<string, unknown>, undefined)
         ).toThrow("Invalid data: expected object");
+    });
+
+    it("records summary readiness errors before surfacing render failures", async () => {
+        expect.assertions(5);
+
+        const { showFitData } = await loadModule();
+        const data: Record<string, unknown> = {
+            recordMesgs: [{ timestamp: 1 }],
+        };
+        const renderError = new Error("summary unavailable");
+        rendererDependencyMocks.renderSummary.mockImplementationOnce(() => {
+            throw renderError;
+        });
+
+        expect(() => showFitData(data, "C:/tmp/file.fit")).toThrow(
+            "summary unavailable"
+        );
+
+        expect(rendererDependencyMocks.createTables).toHaveBeenCalledWith([
+            {
+                key: "recordMesgs",
+                rows: data.recordMesgs,
+            },
+        ]);
+        expectTabReadinessState(
+            "data",
+            "ready",
+            "showFitData.renderDataTables"
+        );
+        expectTabReadinessState(
+            "summary",
+            "loading",
+            "showFitData.renderSummary"
+        );
+        expectTabReadinessState(
+            "summary",
+            "error",
+            "showFitData.renderSummary",
+            "summary unavailable"
+        );
     });
 });

@@ -27,6 +27,7 @@ import {
     setRendererMapRendered,
 } from "../../state/domain/rendererMapRenderState.js";
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
+import { setTabReadiness } from "../../ui/tabs/tabReadinessState.js";
 import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
 import { updateTabVisibility } from "../../ui/tabs/updateTabVisibility.js";
 import {
@@ -261,11 +262,11 @@ export function showFitData(
         }
     }
 
-    createTables(getActiveFitTableData(data).tables);
+    renderDataTablesWithReadiness(data);
 
     // Pre-render summary data so it's ready when user switches to summary tab
     // This ensures all tabs have their data ready, even though we default to map
-    renderSummary(data);
+    renderSummaryWithReadiness(data);
 
     // Charts are rendered on-demand when the user activates the Charts tab.
     // Background pre-rendering was removed because it can freeze the UI.
@@ -310,6 +311,59 @@ function setMapRenderedFlag(isRendered: boolean): void {
     setRendererMapRendered(isRendered, {
         source: "showFitData.renderMapIfReady",
     });
+}
+
+function renderDataTablesWithReadiness(data: FitDataObject): void {
+    markTabReadiness("data", "loading", "showFitData.renderDataTables");
+    try {
+        createTables(getActiveFitTableData(data).tables);
+        markTabReadiness("data", "ready", "showFitData.renderDataTables");
+    } catch (error) {
+        markTabReadiness(
+            "data",
+            "error",
+            "showFitData.renderDataTables",
+            error
+        );
+        throw error;
+    }
+}
+
+function renderSummaryWithReadiness(data: FitDataObject): void {
+    markTabReadiness("summary", "loading", "showFitData.renderSummary");
+    try {
+        renderSummary(data);
+        markTabReadiness("summary", "ready", "showFitData.renderSummary");
+    } catch (error) {
+        markTabReadiness(
+            "summary",
+            "error",
+            "showFitData.renderSummary",
+            error
+        );
+        throw error;
+    }
+}
+
+function markTabReadiness(
+    tabName: "data" | "summary",
+    status: "error" | "loading" | "ready",
+    source: string,
+    error?: unknown
+): void {
+    try {
+        setTabReadiness(tabName, status, source, error);
+    } catch (readinessError) {
+        log("warn", "Failed to update tab readiness state", {
+            error:
+                readinessError instanceof Error
+                    ? readinessError.message
+                    : String(readinessError),
+            source,
+            status,
+            tabName,
+        });
+    }
 }
 
 /** Enables tab buttons and notifies the main process. */
