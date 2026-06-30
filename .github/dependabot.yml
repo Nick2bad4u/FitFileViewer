@@ -11,6 +11,7 @@ version: 2
 
 multi-ecosystem-groups:
     dependabot-all:
+        target-branch: main
         schedule:
             interval: "monthly"
             time: "05:30"
@@ -31,7 +32,6 @@ updates:
           default-days: 3
           include: ["*"]
       directory: /
-      target-branch: main
       allow:
           # Allow both direct and indirect updates for all packages
           - dependency-type: "all"
@@ -46,7 +46,6 @@ updates:
           default-days: 3
           include: ["*"]
       directory: /
-      target-branch: main
       versioning-strategy: increase
       allow:
           # Allow both direct and indirect updates for all packages
