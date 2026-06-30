@@ -6,7 +6,10 @@ import type { NotificationType } from "../../state/domain/rendererNotificationSt
 import { getRenderChartTimerRuntime } from "./renderChartTimerRuntime.js";
 
 type DateNowFunction = () => number;
-type NotifySuccessFunction = (message: string, type: "success") => unknown;
+type NotifySuccessFunction = (
+    message: string,
+    type: "success"
+) => Promise<void> | void;
 type ScheduleFunction = (callback: () => void, delay: number) => unknown;
 type ShowRenderNotificationFunction = (
     totalChartsRendered: number,

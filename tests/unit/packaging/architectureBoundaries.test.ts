@@ -15247,7 +15247,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(205);
+        expect.assertions(207);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -15678,6 +15678,9 @@ describe("architecture boundaries", () => {
             "setLastNotification("
         );
         expect(renderChartNotificationFlowSource).toContain(
+            ") => Promise<void> | void;"
+        );
+        expect(renderChartNotificationFlowSource).toContain(
             "rendererNotificationState.js"
         );
         expect(renderChartNotificationFlowSource).not.toContain(
@@ -15688,6 +15691,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartNotificationFlowSource).not.toContain(
             "updateChartState"
+        );
+        expect(renderChartNotificationFlowSource).not.toContain(
+            'type NotifySuccessFunction = (message: string, type: "success") => unknown;'
         );
         expect(renderChartDataCompletionSource).toContain(
             "setLastNotification: dependencies.setLastNotification"

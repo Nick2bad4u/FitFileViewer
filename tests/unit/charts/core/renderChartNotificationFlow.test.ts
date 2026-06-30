@@ -23,8 +23,11 @@ vi.mock(
 
 type ChartStateUpdate = {
     options: unknown;
-    path: string;
-    value: Record<string, unknown>;
+    notification: {
+        message: string;
+        timestamp: number;
+        type: "success";
+    };
 };
 type Notification = {
     message: string;
@@ -46,12 +49,15 @@ function createDependencies(
         showRenderNotification: vi.fn<
             (totalChartsRendered: number, visibleFieldCount: number) => boolean
         >(() => true),
-        updateState(
-            path: string,
-            value: Record<string, unknown>,
+        setLastNotification(
+            notification: {
+                message: string;
+                timestamp: number;
+                type: "success";
+            },
             options?: unknown
         ): void {
-            updates.push({ options, path, value });
+            updates.push({ notification, options });
         },
     };
 }
@@ -90,15 +96,12 @@ describe("handleChartRenderNotification", () => {
         expect(scheduledJobs[0]?.delay).toBe(100);
         expect(updates).toStrictEqual([
             {
-                options: { merge: true, source: "renderChartsWithData" },
-                path: "ui",
-                value: {
-                    lastNotification: {
-                        message: "Rendered 2 charts successfully",
-                        timestamp: 98_765,
-                        type: "success",
-                    },
+                notification: {
+                    message: "Rendered 2 charts successfully",
+                    timestamp: 98_765,
+                    type: "success",
                 },
+                options: { source: "renderChartsWithData" },
             },
         ]);
 

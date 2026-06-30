@@ -12,7 +12,7 @@ type GetChartOptionsFunction = () => unknown;
 type NotifySuccessFunction = (
     message: string,
     type: "success"
-) => Promise<unknown> | unknown;
+) => Promise<void> | void;
 type ShowRenderNotificationFunction = (
     totalChartsRendered: number,
     visibleFieldCount: number
