@@ -15247,7 +15247,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer render-flag state normalization on the shared contract", () => {
-        expect.assertions(207);
+        expect.assertions(210);
 
         const rendererChartRenderStateSource = stripComments(
             readRepositoryFile(
@@ -15287,6 +15287,11 @@ describe("architecture boundaries", () => {
         const renderChartPreflightSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartPreflight.ts"
+            )
+        );
+        const renderChartDataReadinessSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDataReadiness.ts"
             )
         );
         const renderChartDirectRerenderSource = stripComments(
@@ -15588,6 +15593,15 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartDataPreparationSource).toContain(
             "dependencies.setChartData("
+        );
+        expect(renderChartDataReadinessSource).toContain(
+            ") => Promise<void> | void;"
+        );
+        expect(renderChartDataReadinessSource).toContain(
+            "await dependencies.notify("
+        );
+        expect(renderChartDataReadinessSource).not.toContain(
+            'type NotifyFunction = (message: string, type: "info" | "warning") => unknown;'
         );
         expect(renderChartRenderSettingsSource).not.toContain(
             "charts.chartOptions"

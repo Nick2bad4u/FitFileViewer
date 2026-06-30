@@ -13,7 +13,10 @@ import {
 import type { RendererStateUpdateOptions } from "../../state/domain/rendererStateUpdateOptions.js";
 
 type UnitConverter = (value: number, field: string) => unknown;
-type NotifyFunction = (message: string, type: "info" | "warning") => unknown;
+type NotifyFunction = (
+    message: string,
+    type: "info" | "warning"
+) => Promise<void> | void;
 type SetupZoneDataFunction = (
     activityData: ChartDataRecord | ChartDataRecordSource
 ) => unknown;
