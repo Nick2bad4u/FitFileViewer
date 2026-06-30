@@ -9,7 +9,7 @@ export type ShowNotification = (
     message: string,
     type?: string,
     timeout?: number
-) => unknown;
+) => Promise<void> | void;
 
 export type ShowUpdateNotification = (
     message: string,

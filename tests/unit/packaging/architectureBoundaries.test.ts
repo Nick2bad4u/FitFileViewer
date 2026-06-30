@@ -25376,13 +25376,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(59);
+        expect.assertions(63);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
         );
         const applicationStartupTestSource = stripComments(
             readRepositoryFile("tests/unit/renderer/applicationStartup.test.ts")
+        );
+        const startupCallbackTypesSource = stripComments(
+            readRepositoryFile("electron-app/renderer/startupCallbackTypes.ts")
         );
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -25452,7 +25455,17 @@ describe("architecture boundaries", () => {
         expect(applicationStartupSource).toContain(
             "showNotification: ShowNotification;"
         );
+        expect(startupCallbackTypesSource).toContain(
+            ") => Promise<void> | void;"
+        );
+        expect(startupCallbackTypesSource).not.toContain(") => unknown;");
+        expect(applicationStartupSource).toContain(
+            "function scheduleStartupNotification("
+        );
         expect(applicationStartupSource).toContain("options.showNotification(");
+        expect(applicationStartupSource).toContain(
+            "[Renderer] Startup notification failed:"
+        );
         expect(applicationStartupSource).toContain(
             "showAboutModal: ((html?: string) => void) | undefined;"
         );

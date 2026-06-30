@@ -154,7 +154,8 @@ export function createRendererApplicationStartup(
             );
 
             if (options.isDevelopmentMode()) {
-                options.showNotification(
+                scheduleStartupNotification(
+                    options,
                     `App initialized in ${initTime.toFixed(0)}ms`,
                     "success",
                     3000
@@ -168,19 +169,36 @@ export function createRendererApplicationStartup(
                 error
             );
 
-            try {
-                options.showNotification(
-                    `Initialization failed: ${getRendererErrorMessage(error)}`,
-                    "error",
-                    10_000
-                );
-            } catch {
-                /* Ignore errors */
-            }
+            scheduleStartupNotification(
+                options,
+                `Initialization failed: ${getRendererErrorMessage(error)}`,
+                "error",
+                10_000
+            );
         }
     }
 
     return initializeApplication;
+}
+
+function scheduleStartupNotification(
+    options: {
+        logRenderer: RendererStartupLogger;
+        showNotification: ShowNotification;
+    },
+    message: string,
+    type: "error" | "success",
+    timeout: number
+): void {
+    void Promise.resolve()
+        .then(() => options.showNotification(message, type, timeout))
+        .catch((error: unknown) => {
+            options.logRenderer(
+                "warn",
+                "[Renderer] Startup notification failed:",
+                error
+            );
+        });
 }
 
 async function initializeAsyncComponents(

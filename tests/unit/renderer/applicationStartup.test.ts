@@ -33,6 +33,11 @@ function createApplicationStartupRuntime(): RendererApplicationStartupRuntime {
     };
 }
 
+async function flushStartupNotifications(): Promise<void> {
+    await Promise.resolve();
+    await Promise.resolve();
+}
+
 describe("renderer application startup", () => {
     afterEach(() => {
         vi.useRealTimers();
@@ -91,6 +96,7 @@ describe("renderer application startup", () => {
         });
 
         await utils();
+        await flushStartupNotifications();
 
         expect(initializeStateManager).toHaveBeenCalledOnce();
         expect(addEventListener).toHaveBeenCalledWith(
@@ -246,6 +252,7 @@ describe("renderer application startup", () => {
         });
 
         await expect(utils()).resolves.toBeUndefined();
+        await flushStartupNotifications();
 
         expect(showNotification).toHaveBeenCalledWith(
             "Initialization failed: Required DOM elements are missing",
@@ -256,6 +263,61 @@ describe("renderer application startup", () => {
             "error",
             "[Renderer] Failed to initialize application:",
             expect.any(Error)
+        );
+    });
+
+    it("logs rejected startup notifications without failing startup", async () => {
+        expect.assertions(4);
+
+        const logRenderer = vi.fn();
+        const notificationError = new Error("notification failed");
+        const utils = createRendererApplicationStartup({
+            addEventListener: vi.fn(),
+            appActions: { setInitialized: vi.fn() },
+            applyTheme: vi.fn(),
+            errorHandlers: {
+                handleUncaughtError: vi.fn(),
+                handleUnhandledRejection: vi.fn(),
+                onUncaughtErrorEvent: vi.fn(),
+                onUnhandledRejectionEvent: vi.fn(),
+            },
+            getElectronApiScope: () => ({ getElectronAPI: () => undefined }),
+            getAppStartTime: vi.fn(),
+            handleOpenFile: vi.fn(),
+            getOpenFileButton: () => null,
+            initializeStateManager: async () => undefined,
+            isDevelopmentMode: () => true,
+            isOpeningFileRef: { value: false },
+            listenForThemeChange: vi.fn(),
+            logRenderer,
+            performanceMonitor: createPerformanceMonitor().monitor,
+            setLoading: vi.fn(),
+            showAboutModal: vi.fn(),
+            showNotification: async () => {
+                throw notificationError;
+            },
+            showUpdateNotification: vi.fn(),
+            setupListeners: vi.fn(),
+            setupTheme: vi.fn(),
+            setupCreditsMarquee: vi.fn(),
+            validateDOMElements: () => true,
+        });
+
+        await expect(utils()).resolves.toBeUndefined();
+        await flushStartupNotifications();
+
+        expect(logRenderer).toHaveBeenCalledWith(
+            "warn",
+            "[Renderer] Startup notification failed:",
+            notificationError
+        );
+        expect(logRenderer).toHaveBeenCalledWith(
+            "log",
+            "[Renderer] Starting application initialization..."
+        );
+        expect(logRenderer).toHaveBeenCalledWith(
+            "log",
+            "[Renderer] Application initialized successfully in 12.34ms"
         );
     });
 });
