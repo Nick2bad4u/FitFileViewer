@@ -287,8 +287,11 @@ function switchToMapTabOnLoad(): void {
 
 async function renderMapIfReady(): Promise<void> {
     if (isRendererMapRendered()) {
+        markTabReadiness("map", "ready", "showFitData.renderMapIfReady");
         return;
     }
+
+    markTabReadiness("map", "loading", "showFitData.renderMapIfReady");
 
     try {
         await ensureRendererVendorBundle("map");
@@ -297,12 +300,20 @@ async function renderMapIfReady(): Promise<void> {
         }
         if (showFitDataRuntime().hasRenderedMapContainer()) {
             setMapRenderedFlag(true);
+            markTabReadiness("map", "ready", "showFitData.renderMapIfReady");
             return;
         }
         renderMap();
         setMapRenderedFlag(true);
+        markTabReadiness("map", "ready", "showFitData.renderMapIfReady");
     } catch (error) {
         setMapRenderedFlag(false);
+        markTabReadiness(
+            "map",
+            "error",
+            "showFitData.renderMapIfReady",
+            error
+        );
         console.error("[ShowFitData] Failed to render map on load:", error);
     }
 }
@@ -346,7 +357,7 @@ function renderSummaryWithReadiness(data: FitDataObject): void {
 }
 
 function markTabReadiness(
-    tabName: "data" | "summary",
+    tabName: "data" | "map" | "summary",
     status: "error" | "loading" | "ready",
     source: string,
     error?: unknown

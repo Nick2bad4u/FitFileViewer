@@ -116,7 +116,7 @@ function createShowFitDataElectronApiFixture(): ShowFitDataElectronApiFixture {
 }
 
 function expectTabReadinessState(
-    tabName: "data" | "summary",
+    tabName: "data" | "map" | "summary",
     status: "error" | "loading" | "ready",
     source: string,
     error?: string
@@ -175,7 +175,7 @@ describe("showFitData", () => {
     });
 
     it("updates UI, state, dispatches events, and triggers map render", async () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {
@@ -234,6 +234,16 @@ describe("showFitData", () => {
             "summary",
             "ready",
             "showFitData.renderSummary"
+        );
+        expectTabReadinessState(
+            "map",
+            "loading",
+            "showFitData.renderMapIfReady"
+        );
+        expectTabReadinessState(
+            "map",
+            "ready",
+            "showFitData.renderMapIfReady"
         );
 
         // IPC send
@@ -419,7 +429,7 @@ describe("showFitData", () => {
     });
 
     it("does not render the map again when it is already rendered", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {};
@@ -444,10 +454,15 @@ describe("showFitData", () => {
             "map.isRendered"
         );
         expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
+        expectTabReadinessState(
+            "map",
+            "ready",
+            "showFitData.renderMapIfReady"
+        );
     });
 
     it("marks the map rendered without rerendering when the map container already exists", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {};
@@ -487,6 +502,66 @@ describe("showFitData", () => {
             })
         );
         expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
+        expectTabReadinessState(
+            "map",
+            "ready",
+            "showFitData.renderMapIfReady"
+        );
+    });
+
+    it("records map readiness errors when the Leaflet runtime is unavailable", async () => {
+        expect.assertions(6);
+
+        const { showFitData } = await loadModule();
+        const data: Record<string, unknown> = {
+            recordMesgs: [{ timestamp: 1 }],
+        };
+        const filePath = "C:/tmp/file.fit";
+        rendererDependencyMocks.waitForMapLeafletRuntime.mockResolvedValueOnce(
+            false
+        );
+
+        showFitData(data, filePath);
+
+        await vi.waitFor(() => {
+            const mapErrorStateCall =
+                stateManagerMocks.setState.mock.calls.find(
+                    ([path, value]) =>
+                        path === "ui.tabReadiness.map" &&
+                        typeof value === "object" &&
+                        value !== null &&
+                        "status" in value &&
+                        value.status === "error"
+                );
+            if (!mapErrorStateCall) {
+                throw new Error("Expected map readiness error state");
+            }
+        });
+
+        expect(
+            rendererDependencyMocks.ensureRendererVendorBundle
+        ).toHaveBeenCalledWith("map");
+        expect(data).toMatchObject({
+            cachedFileName: "file.fit",
+            cachedFilePath: filePath,
+        });
+        expect(
+            rendererDependencyMocks.waitForMapLeafletRuntime
+        ).toHaveBeenCalledWith();
+        expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
+        expect(stateManagerMocks.setState).toHaveBeenCalledWith(
+            "map.isRendered",
+            false,
+            expect.objectContaining({
+                source: "showFitData.renderMapIfReady",
+            })
+        );
+        expectTabReadinessState(
+            "map",
+            "error",
+            "showFitData.renderMapIfReady",
+            "Leaflet runtime is unavailable"
+        );
     });
 
     it("throws on invalid data and writes error state", async () => {
