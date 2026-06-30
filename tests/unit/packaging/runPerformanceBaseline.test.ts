@@ -16,7 +16,7 @@ import {
 
 describe("run-performance-baseline script", () => {
     it("defaults to representative real FIT fixtures and the ignored artifact output", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const parsed = parseArgs([]);
 
@@ -31,6 +31,7 @@ describe("run-performance-baseline script", () => {
         );
         expect(parsed.compareIfExistsPath).toBeNull();
         expect(parsed.comparePath).toBeNull();
+        expect(parsed.sampleCount).toBe(3);
         expect(parsed.thresholdPercent).toBe(25);
         expect(parsed.timeoutMs).toBe(60_000);
     });
@@ -45,6 +46,8 @@ describe("run-performance-baseline script", () => {
                 "--compare",
                 "artifacts/previous.json",
                 "--output=artifacts/custom.json",
+                "--sample-count",
+                "5",
                 "--threshold-percent=12.5",
                 "--timeout-ms",
                 "120000",
@@ -54,6 +57,7 @@ describe("run-performance-baseline script", () => {
             comparePath: path.resolve("artifacts/previous.json"),
             fixturePaths: [path.resolve("fit-test-files/example.fit")],
             outputPath: path.resolve("artifacts/custom.json"),
+            sampleCount: 5,
             thresholdPercent: 12.5,
             timeoutMs: 120_000,
         });
@@ -71,7 +75,7 @@ describe("run-performance-baseline script", () => {
     });
 
     it("rejects malformed comparison arguments", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         expect(() => parseArgs(["--compare"])).toThrow(
             "--compare requires a value"
@@ -90,6 +94,9 @@ describe("run-performance-baseline script", () => {
         );
         expect(() => parseArgs(["--threshold-percent", "-1"])).toThrow(
             "--threshold-percent must be a number >= 0"
+        );
+        expect(() => parseArgs(["--sample-count", "0"])).toThrow(
+            "--sample-count must be an integer >= 1"
         );
     });
 
@@ -305,8 +312,33 @@ describe("run-performance-baseline script", () => {
         });
     });
 
+    it("skips comparisons when the baseline measurement profile changes", () => {
+        expect.assertions(1);
+
+        expect(
+            comparePerformanceBaselines(
+                {
+                    fixtures: [{ name: "activity.fit", parseMs: 100 }],
+                    measurement: { aggregation: "median", sampleCount: 3 },
+                },
+                {
+                    fixtures: [{ name: "activity.fit", parseMs: 50 }],
+                }
+            )
+        ).toMatchObject({
+            comparedFixtureCount: 0,
+            regressions: [],
+            skippedFixtures: [
+                {
+                    fixture: "activity.fit",
+                    reason: "measurement profile changed (single/1 -> median/3)",
+                },
+            ],
+        });
+    });
+
     it("appends a GitHub job summary for performance trend comparisons", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const temporaryDirectory = fs.mkdtempSync(
             path.join(os.tmpdir(), "ffv-performance-summary-")
@@ -351,6 +383,7 @@ describe("run-performance-baseline script", () => {
                             thresholdPercent: 25,
                         },
                         fixtures: [{ name: "activity.fit" }],
+                        measurement: { aggregation: "median", sampleCount: 3 },
                         pageErrors: [],
                         rendererErrors: [],
                     },
@@ -364,6 +397,8 @@ describe("run-performance-baseline script", () => {
 
             const summary = fs.readFileSync(summaryPath, "utf8");
             expect(summary).toContain("## Performance Baseline");
+            expect(summary).toContain("- Samples per fixture: `3`");
+            expect(summary).toContain("- Aggregation: `median`");
             expect(summary).toContain("- Regressions: `1`");
             expect(summary).toContain("- Filtered metric spikes: `1`");
             expect(summary).toContain("`activity.fit` `parseMs`: 100 -> 140");
@@ -377,7 +412,7 @@ describe("run-performance-baseline script", () => {
     });
 
     it("documents and records the release baseline metric contract", () => {
-        expect.assertions(38);
+        expect.assertions(39);
 
         const script = fs.readFileSync(
             path.join(process.cwd(), "scripts", "run-performance-baseline.mjs"),
@@ -406,6 +441,7 @@ describe("run-performance-baseline script", () => {
         expect(script).toContain("getRegisteredChartInstanceCount");
         expect(script).not.toContain('getState("globalData")');
         expect(script).not.toContain("_chartjsInstances");
+        expect(script).toContain("--sample-count");
         expect(script).toContain("--threshold-percent");
         expect(script).toContain("--compare-if-exists");
         expect(script).toContain("resolveComparisonPath");

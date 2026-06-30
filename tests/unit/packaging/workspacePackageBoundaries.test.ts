@@ -253,11 +253,11 @@ const expectedRootToolingScripts = {
     "lint:secretlint":
         'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
     "perf:baseline":
-        "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs",
+        "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --sample-count 3",
     "perf:compare":
-        "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --compare artifacts/performance-baseline.previous.json --output artifacts/performance-baseline.current.json",
+        "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --sample-count 3 --compare artifacts/performance-baseline.previous.json --output artifacts/performance-baseline.current.json",
     "perf:trend":
-        "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --compare-if-exists artifacts/performance-baseline.previous.json --output artifacts/performance-baseline-cache/performance-baseline.json",
+        "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --sample-count 3 --compare-if-exists artifacts/performance-baseline.previous.json --output artifacts/performance-baseline-cache/performance-baseline.json",
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
     package: "npm run package:unsigned",
     "package:signed":

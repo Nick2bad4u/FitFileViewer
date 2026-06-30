@@ -6,7 +6,7 @@ Use the performance baseline runner when renderer, parser, chart, map, table, or
 npm run perf:baseline
 ```
 
-The command builds the runtime app, launches Electron through Playwright, loads representative files from `fit-test-files/`, and writes `artifacts/performance-baseline.json`. The `artifacts/` directory is ignored because baseline numbers are machine-dependent.
+The command builds the runtime app, launches Electron through Playwright, loads representative files from `fit-test-files/`, records three samples per file, stores median metric values, and writes `artifacts/performance-baseline.json`. The `artifacts/` directory is ignored because baseline numbers are machine-dependent.
 
 The default fixtures cover small, medium, and large real FIT files from
 `fit-test-files/`. The JSON records:
@@ -44,10 +44,13 @@ The comparison checks `parseMs`, `renderMs`, `mapRouteRenderMs`,
 `chartRenderMs`, and `dataTableRenderMs` for matching fixture names. Regressions
 above the configured threshold fail the command after writing the current JSON
 when the fixture's aggregate comparable timing also regresses beyond the
-threshold. Isolated metric spikes are reported as filtered regressions so noisy
-CI runs stay visible without failing config-only or otherwise faster runs. The
-JSON includes a `comparison` section with skipped fixtures, filtered metric
-spikes, and failing metrics.
+threshold. Baselines also record the sample count and aggregation method; when
+that measurement profile changes, comparison is skipped so the run seeds a new
+trusted baseline instead of comparing incompatible timing shapes. Isolated metric
+spikes are reported as filtered regressions so noisy CI runs stay visible
+without failing config-only or otherwise faster runs. The JSON includes a
+`comparison` section with skipped fixtures, filtered metric spikes, and failing
+metrics.
 
 CI trend checks use:
 

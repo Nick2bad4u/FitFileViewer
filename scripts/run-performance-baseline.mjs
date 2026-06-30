@@ -11,8 +11,10 @@ const defaultOutputPath = path.join(
     rootArtifactsPath,
     "performance-baseline.json"
 );
+const defaultSampleCount = 3;
 const defaultTimeoutMs = 60_000;
 const defaultThresholdPercent = 25;
+const performanceBaselineAggregation = "median";
 const performanceTrendMetricNames = [
     "parseMs",
     "renderMs",
@@ -31,6 +33,7 @@ export function parseArgs(argv = []) {
     const fixturePaths = [];
     let comparePath = null;
     let outputPath = defaultOutputPath;
+    let sampleCount = defaultSampleCount;
     let thresholdPercent = defaultThresholdPercent;
     let timeoutMs = defaultTimeoutMs;
 
@@ -126,6 +129,17 @@ export function parseArgs(argv = []) {
             continue;
         }
 
+        if (arg === "--sample-count") {
+            sampleCount = parseSampleCount(argv[index + 1]);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--sample-count=")) {
+            sampleCount = parseSampleCount(arg.slice("--sample-count=".length));
+            continue;
+        }
+
         if (arg === "--timeout-ms") {
             timeoutMs = parseTimeoutMs(argv[index + 1]);
             index += 1;
@@ -152,6 +166,7 @@ export function parseArgs(argv = []) {
         fixturePaths:
             fixturePaths.length > 0 ? fixturePaths : getDefaultFixturePaths(),
         outputPath,
+        sampleCount,
         thresholdPercent,
         timeoutMs,
     };
@@ -173,6 +188,7 @@ export async function runPerformanceBaseline(
         comparePath,
         fixturePaths,
         outputPath,
+        sampleCount,
         thresholdPercent,
         timeoutMs,
     } = parseArgs(argv);
@@ -208,10 +224,11 @@ export async function runPerformanceBaseline(
     try {
         const fixtures = [];
         for (const fixturePath of fixturePaths) {
-            logger(`[perf] Measuring ${path.basename(fixturePath)}`);
             fixtures.push(
                 await measureFixture(page, {
                     fixturePath,
+                    logger,
+                    sampleCount,
                     timeoutMs,
                 })
             );
@@ -226,6 +243,10 @@ export async function runPerformanceBaseline(
                 platform: process.platform,
             },
             generatedAt: new Date().toISOString(),
+            measurement: {
+                aggregation: performanceBaselineAggregation,
+                sampleCount,
+            },
             pageErrors,
             rendererErrors,
             fixtures,
@@ -279,6 +300,8 @@ export function appendPerformanceBaselineSummary(
         "",
         `- Output: \`${path.relative(repositoryRoot, outputPath)}\``,
         `- Fixture count: \`${String(getBaselineFixtures(baseline).length)}\``,
+        `- Samples per fixture: \`${String(baseline.measurement?.sampleCount ?? 1)}\``,
+        `- Aggregation: \`${String(baseline.measurement?.aggregation ?? "single")}\``,
         `- Renderer errors: \`${String((baseline.rendererErrors ?? []).length)}\``,
         `- Page errors: \`${String((baseline.pageErrors ?? []).length)}\``,
     ];
@@ -338,7 +361,24 @@ export function appendPerformanceBaselineSummary(
     return true;
 }
 
-async function measureFixture(page, { fixturePath, timeoutMs }) {
+async function measureFixture(
+    page,
+    { fixturePath, logger, sampleCount, timeoutMs }
+) {
+    const samples = [];
+    for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+        logger(
+            `[perf] Measuring ${path.basename(fixturePath)} (${String(sampleIndex + 1)}/${String(sampleCount)})`
+        );
+        samples.push(
+            await measureFixtureSample(page, { fixturePath, timeoutMs })
+        );
+    }
+
+    return aggregateFixtureSamples(samples);
+}
+
+async function measureFixtureSample(page, { fixturePath, timeoutMs }) {
     const bytes = [...fs.readFileSync(fixturePath)];
     const fileStats = fs.statSync(fixturePath);
     await page.reload({ timeout: timeoutMs, waitUntil: "domcontentloaded" });
@@ -477,6 +517,44 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
     };
 }
 
+function aggregateFixtureSamples(samples) {
+    const [firstSample] = samples;
+    if (!firstSample) {
+        throw new Error("At least one performance sample is required");
+    }
+
+    const medianMetrics = Object.fromEntries(
+        performanceTrendMetricNames.map((metricName) => [
+            metricName,
+            getMedianMetricValue(samples, metricName),
+        ])
+    );
+
+    return {
+        ...firstSample,
+        ...medianMetrics,
+        samples,
+    };
+}
+
+function getMedianMetricValue(samples, metricName) {
+    const values = samples
+        .map((sample) => sample[metricName])
+        .filter((value) => Number.isFinite(value))
+        .sort((left, right) => left - right);
+
+    if (values.length === 0) {
+        return null;
+    }
+
+    const middleIndex = Math.floor(values.length / 2);
+    if (values.length % 2 === 1) {
+        return values[middleIndex];
+    }
+
+    return (values[middleIndex - 1] + values[middleIndex]) / 2;
+}
+
 async function evaluateWithRendererRetry(
     page,
     pageFunction,
@@ -536,6 +614,10 @@ export function comparePerformanceBaselines(
     previousBaseline,
     thresholdPercent = defaultThresholdPercent
 ) {
+    const measurementProfileMismatch = getMeasurementProfileMismatch(
+        currentBaseline,
+        previousBaseline
+    );
     const previousFixtures = new Map(
         getBaselineFixtures(previousBaseline).map((fixture) => [
             getFixtureComparisonKey(fixture),
@@ -549,6 +631,14 @@ export function comparePerformanceBaselines(
 
     for (const currentFixture of getBaselineFixtures(currentBaseline)) {
         const fixtureKey = getFixtureComparisonKey(currentFixture);
+        if (measurementProfileMismatch) {
+            skippedFixtures.push({
+                fixture: fixtureKey,
+                reason: measurementProfileMismatch,
+            });
+            continue;
+        }
+
         const previousFixture = previousFixtures.get(fixtureKey);
         if (!previousFixture) {
             skippedFixtures.push({
@@ -633,6 +723,29 @@ export function comparePerformanceBaselines(
         skippedFixtures,
         thresholdPercent,
     };
+}
+
+function getMeasurementProfileMismatch(currentBaseline, previousBaseline) {
+    const currentMeasurement = currentBaseline?.measurement,
+        previousMeasurement = previousBaseline?.measurement;
+
+    if (!currentMeasurement && !previousMeasurement) {
+        return null;
+    }
+
+    const currentAggregation = currentMeasurement?.aggregation ?? "single",
+        currentSampleCount = currentMeasurement?.sampleCount ?? 1,
+        previousAggregation = previousMeasurement?.aggregation ?? "single",
+        previousSampleCount = previousMeasurement?.sampleCount ?? 1;
+
+    if (
+        currentAggregation === previousAggregation &&
+        currentSampleCount === previousSampleCount
+    ) {
+        return null;
+    }
+
+    return `measurement profile changed (${previousAggregation}/${String(previousSampleCount)} -> ${currentAggregation}/${String(currentSampleCount)})`;
 }
 
 function getFixtureAggregateChangePercent(comparableMetrics) {
@@ -874,6 +987,19 @@ function parseThresholdPercent(value) {
     const parsed = Number.parseFloat(value);
     if (!Number.isFinite(parsed) || parsed < 0) {
         throw new Error("--threshold-percent must be a number >= 0");
+    }
+
+    return parsed;
+}
+
+function parseSampleCount(value) {
+    if (!value) {
+        throw new Error("--sample-count requires a value");
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isSafeInteger(parsed) || parsed < 1) {
+        throw new Error("--sample-count must be an integer >= 1");
     }
 
     return parsed;
