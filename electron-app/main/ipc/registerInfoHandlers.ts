@@ -7,8 +7,11 @@ import { createElectronConf } from "../runtime/electronConfAccess.js";
 
 type InfoInvokeChannel = import("../../shared/ipc").InfoInvokeChannel;
 type InfoPlatformResponse = import("../../shared/ipc").InfoPlatformResponse;
-type InfoResponsePayload = import("../../shared/ipc").InfoResponsePayload;
 type InfoStringResponse = import("../../shared/ipc").InfoStringResponse;
+type InvokeRequestArgs<Channel extends InfoInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends InfoInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 type MapTabSelectionResponse =
     import("../../shared/ipc").MapTabSelectionResponse;
 type ThemePreferenceResponse =
@@ -45,15 +48,32 @@ interface ElectronConfModule {
     Conf: ConfConstructor;
 }
 
-type InfoIpcHandler = (
+type InfoChannelHandler<Channel extends InfoInvokeChannel> = (
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type InfoIpcHandler<Channel extends InfoInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type InfoIpcCallback = (
     event: unknown,
     ...args: unknown[]
-) => InfoResponsePayload | Promise<InfoResponsePayload>;
+) => unknown;
 
 type RegisterInfoIpcHandle = (
     channel: InfoInvokeChannel,
-    handler: InfoIpcHandler
+    handler: InfoIpcCallback
 ) => void;
+
+type InfoHandlerMap = {
+    [Channel in InfoInvokeChannel]: InfoChannelHandler<Channel>;
+};
 
 type LogWithContext = (
     level: "error" | "info" | "warn",
@@ -156,7 +176,7 @@ export function registerInfoHandlers({
             : CONSTANTS.DEFAULT_THEME;
     };
 
-    const handlers: Record<InfoInvokeChannel, InfoIpcHandler> = {
+    const handlers: InfoHandlerMap = {
         getAppVersion: (): InfoStringResponse => {
             const app = appRef();
             return app && typeof app.getVersion === "function"
@@ -208,9 +228,16 @@ export function registerInfoHandlers({
             safeConfGet("theme", CONSTANTS.DEFAULT_THEME, normalizeTheme),
     };
 
+    const registerInfoIpcHandle = <Channel extends InfoInvokeChannel>(
+        channel: Channel,
+        handler: InfoIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as InfoIpcCallback);
+    };
+
     for (const channel of INFO_INVOKE_CHANNELS) {
         const handler = handlers[channel];
-        registerIpcHandle(channel, async (...args) => {
+        registerInfoIpcHandle(channel, async (_event, ...args) => {
             try {
                 return await handler(...args);
             } catch (error) {
