@@ -34,7 +34,6 @@ import { showNotification } from "../notifications/showNotification.js";
 import {
     getCreateInlineZoneColorSelectorRuntime,
     type CreateInlineZoneColorSelectorRuntime,
-    type CreateInlineZoneColorSelectorTimerHandle,
 } from "./createInlineZoneColorSelectorRuntime.js";
 
 type ZoneType = "hr" | "power";
@@ -68,9 +67,6 @@ type ZoneSelectorConfig = {
     zoneData: ZoneDataItem[];
     zoneType: ZoneType;
 };
-
-const zoneColorSelectorTimers =
-    new Set<CreateInlineZoneColorSelectorTimerHandle>();
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -150,12 +146,9 @@ function scheduleZoneColorSelectorTimer(
     delay: number,
     runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
 ): void {
-    const timeout = runtime.setTimeout(() => {
-        zoneColorSelectorTimers.delete(timeout);
+    runtime.setTimeout(() => {
         callback();
     }, delay);
-
-    zoneColorSelectorTimers.add(timeout);
 }
 
 function normalizeZoneIndex(value: unknown): number {
@@ -598,8 +591,7 @@ export function createInlineZoneColorSelector(
                 // If a non-custom scheme is loaded, apply its colors if they haven't been customized
                 if (currentScheme !== "custom") {
                     const hasCustomColors = zoneArray.some((zone, index) => {
-                        const zoneIndex =
-                                ((zone && zone.zone) || index + 1) - 1,
+                        const zoneIndex = (zone?.zone || index + 1) - 1,
                             chartSpecificColor = getChartSpecificZoneColor(
                                 field,
                                 zoneIndex

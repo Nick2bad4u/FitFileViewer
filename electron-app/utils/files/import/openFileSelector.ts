@@ -62,9 +62,6 @@ const FILE_SELECTOR_CONFIG = {
     MULTIPLE_FILES: true,
 };
 
-// Track whether a given input has already been handled by the change listener
-const PROCESSED_INPUTS = new WeakSet<HTMLInputElement>();
-
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
 
 /**
@@ -223,7 +220,6 @@ function createInputProcessingController(
             return done;
         }
         handled = true;
-        PROCESSED_INPUTS.add(input);
 
         try {
             await handleFilesFromInput(input);

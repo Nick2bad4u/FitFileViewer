@@ -10014,7 +10014,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(102);
+        expect.assertions(101);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -10037,9 +10037,6 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(inlineZoneSelectorSource).toContain(
             "createInlineZoneColorSelectorRuntime.js"
-        );
-        expect(inlineZoneSelectorSource).toContain(
-            "type CreateInlineZoneColorSelectorTimerHandle"
         );
         expect(inlineZoneSelectorSource).not.toContain(
             "ReturnType<typeof setTimeout>"

@@ -35,11 +35,7 @@ import { createFieldTogglesSection } from "./createFieldTogglesSection.js";
 import {
     getEnsureChartSettingsDropdownsRuntime,
     type EnsureChartSettingsDropdownsRuntime,
-    type EnsureChartSettingsDropdownsTimerHandle,
 } from "./ensureChartSettingsDropdownsRuntime.js";
-
-const deferredZoneControlTimers =
-    new Set<EnsureChartSettingsDropdownsTimerHandle>();
 
 /**
  * Ensures chart settings dropdowns exist and applies styling.
@@ -201,13 +197,10 @@ function createControlsToggleButton(
 function scheduleDeferredZoneControlMove(
     runtime: EnsureChartSettingsDropdownsRuntime
 ): void {
-    const timeout = runtime.setTimeout(() => {
-        deferredZoneControlTimers.delete(timeout);
+    runtime.setTimeout(() => {
         movePowerZoneControlsToSection();
         moveHRZoneControlsToSection();
     }, 100);
-
-    deferredZoneControlTimers.add(timeout);
 }
 
 /**

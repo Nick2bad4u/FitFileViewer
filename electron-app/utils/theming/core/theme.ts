@@ -3,11 +3,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
-import {
-    getThemeRuntime,
-    type ThemeRuntime,
-    type ThemeRuntimeTimer,
-} from "./themeRuntime.js";
+import { getThemeRuntime, type ThemeRuntime } from "./themeRuntime.js";
 import type { ElectronMenuEventApi } from "../../../shared/preloadApi.js";
 
 /**
@@ -103,7 +99,6 @@ const THEME_TRANSITION_CLASS = "theme-transitioning";
 function themeRuntime(): ThemeRuntime {
     return getThemeRuntime();
 }
-const themeTransitionTimers = new Set<ThemeRuntimeTimer>();
 
 /**
  * Apply the given theme to the document body and persist it.
@@ -167,11 +162,9 @@ export function applyTheme(theme: string, withTransition = true): void {
 
     // Remove transition class after animation completes
     if (withTransition) {
-        const transitionTimer = themeRuntime().setTimeout(() => {
-            themeTransitionTimers.delete(transitionTimer);
+        themeRuntime().setTimeout(() => {
             themeRuntime().removeBodyClasses(THEME_TRANSITION_CLASS);
         }, 300);
-        themeTransitionTimers.add(transitionTimer);
     }
 
     console.log("[Theme] Applying theme:", themePreference);

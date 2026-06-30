@@ -47,7 +47,7 @@ function clearLapSelectorMouseupHandler(
     handler: (event: MouseEvent) => void
 ): void {
     const currentHandler = lapSelectorMouseupHandler;
-    if (!currentHandler || currentHandler.handler !== handler) {
+    if (currentHandler?.handler !== handler) {
         return;
     }
     currentHandler.runtime.removeDocumentMouseupListener(handler);

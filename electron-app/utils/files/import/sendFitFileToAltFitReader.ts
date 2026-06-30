@@ -53,10 +53,7 @@ export function sendFitFileToAltFitReader(
         }
     };
 
-    if (
-        !iframe.src ||
-        !iframe.src.includes(FILE_CONSTANTS.IFRAME_PATHS.ALT_FIT)
-    ) {
+    if (!iframe.src?.includes(FILE_CONSTANTS.IFRAME_PATHS.ALT_FIT)) {
         const abortController = runtimeEnvironment.createAbortController();
         iframe.src = FILE_CONSTANTS.IFRAME_PATHS.ALT_FIT;
         iframe.addEventListener("load", postToIframe, {

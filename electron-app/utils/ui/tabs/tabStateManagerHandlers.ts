@@ -228,7 +228,7 @@ export function handleZwiftTab(): void {
 export async function handleChartTab(
     rawFitData: ActivityData | null | undefined
 ): Promise<void> {
-    if (!rawFitData || !rawFitData.recordMesgs) {
+    if (!rawFitData?.recordMesgs) {
         console.warn("[TabStateManager] No chart data available");
         return;
     }
@@ -314,7 +314,7 @@ export async function handleDataTab(
 export async function handleMapTab(
     rawFitData: ActivityData | null | undefined
 ): Promise<void> {
-    if (!rawFitData || !rawFitData.recordMesgs) {
+    if (!rawFitData?.recordMesgs) {
         return;
     }
 
@@ -324,7 +324,9 @@ export async function handleMapTab(
         return;
     }
 
-    const isMapRendered = isRendererMapRenderedFromState(getStateMgr().getState);
+    const isMapRendered = isRendererMapRenderedFromState(
+        getStateMgr().getState
+    );
     if (!isMapRendered) {
         console.log("[TabStateManager] Rendering map for first time");
         renderMap();

@@ -349,7 +349,7 @@ export class TabStateManager {
         const tabConfig = getTabConfig(tabName);
         if (tabConfig?.requiresData) {
             const rawFitData = getActiveActivityData();
-            if (!rawFitData || !rawFitData.recordMesgs) {
+            if (!rawFitData?.recordMesgs) {
                 void showNotification("Please load a FIT file first", "info");
                 return;
             }
@@ -652,7 +652,7 @@ export class TabStateManager {
      * @param rawFitData - Current activity data.
      */
     updateTabAvailability(rawFitData: ActivityData | null | undefined): void {
-        const hasData = Boolean(rawFitData && rawFitData.recordMesgs);
+        const hasData = Boolean(rawFitData?.recordMesgs);
 
         for (const [, config] of Object.entries(TAB_CONFIG)) {
             if (!config.requiresData) {

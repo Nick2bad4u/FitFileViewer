@@ -78,7 +78,7 @@ function clearMapMeasureEscapeHandler(
     handler: (event: KeyboardEvent) => void
 ): void {
     const currentHandler = mapMeasureEscapeHandler;
-    if (!currentHandler || currentHandler.handler !== handler) {
+    if (currentHandler?.handler !== handler) {
         return;
     }
     currentHandler.runtime.removeDocumentKeydownListener(handler);

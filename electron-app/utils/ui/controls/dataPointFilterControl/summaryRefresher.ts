@@ -64,7 +64,7 @@ export function createSummaryRefresher({
                 return;
             }
             const filter = getMapDataPointFilter();
-            if (!filter || !filter.enabled) {
+            if (!filter?.enabled) {
                 summary.textContent =
                     "Highlight the most intense sections of your ride.";
             }

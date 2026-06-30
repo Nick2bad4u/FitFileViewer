@@ -8,18 +8,12 @@ import { buildDownloadFilename } from "../sanitizeFilename.js";
 import {
     getCreateExportGPXButtonRuntime,
     type CreateExportGPXButtonRuntime,
-    type CreateExportGPXButtonTimer,
 } from "./createExportGPXButtonRuntime.js";
 import {
     buildGpxFromRecords,
     resolveTrackNameFromFileIdentity,
     resolveTrackNameFromLoadedFiles,
 } from "./gpxExport.js";
-
-const downloadCleanupTimers = new WeakMap<
-    HTMLAnchorElement,
-    CreateExportGPXButtonTimer
->();
 
 function createExportIcon(
     runtime: CreateExportGPXButtonRuntime,
@@ -123,12 +117,10 @@ export function createExportGPXButton(): HTMLButtonElement {
             link.download = downloadName;
             runtime.appendToBody(link);
             link.click();
-            const cleanupTimer = runtime.setTimeout(() => {
-                downloadCleanupTimers.delete(link);
+            runtime.setTimeout(() => {
                 runtime.revokeObjectURL(link.href);
                 link.remove();
             }, 100);
-            downloadCleanupTimers.set(link, cleanupTimer);
         },
         { signal: listenerController.signal }
     );

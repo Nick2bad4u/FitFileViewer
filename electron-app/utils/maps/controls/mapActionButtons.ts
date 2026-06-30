@@ -131,7 +131,7 @@ function getMainPolyline(): MapPolyline | null {
 
 function hasValidMainPolylineBounds(): boolean {
     const bounds = getMainMapPolylineOriginalBounds<MapBounds>();
-    return Boolean(bounds?.isValid && bounds.isValid());
+    return Boolean(bounds?.isValid?.());
 }
 
 function resetCenterMapState(): void {

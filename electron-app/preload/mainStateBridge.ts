@@ -136,7 +136,7 @@ export function createMainStateBridge({
         callback: MainStateListener
     ): Promise<MainStateUnlistenResponse> {
         const callbacks = callbacksByPath.get(path);
-        if (!callbacks || !callbacks.has(callback)) {
+        if (!callbacks?.has(callback)) {
             return false;
         }
 
