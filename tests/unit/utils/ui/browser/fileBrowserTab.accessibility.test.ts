@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderFileBrowserTab } from "../../../../../electron-app/utils/ui/browser/fileBrowserTab.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
+    getBrowserCalendarState,
     getBrowserListingState,
     getBrowserScanState,
     getBrowserView,
@@ -41,6 +42,7 @@ function getRequiredElement<T extends Element>(
 
 afterEach(() => {
     document.body.replaceChildren();
+    localStorage.clear();
     __resetStateManagerForTests();
 });
 
@@ -611,5 +613,72 @@ describe("fileBrowserTab accessibility", () => {
         expect(
             document.querySelector("#fit-library-cards")?.textContent
         ).toContain("Files1");
+    });
+
+    it("records Calendar month and selected day in explicit Browser state", async () => {
+        expect.assertions(7);
+
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+        localStorage.setItem("fitLibrary.calendarMonth", "2026-01");
+        localStorage.setItem("fitLibrary.calendarSelectedDay", "2026-01-01");
+
+        const electronApiScope = createElectronApiScope({
+            decodeFitFile: async () => ({
+                sessionMesgs: [
+                    {
+                        sport: "cycling",
+                        start_time: "2026-01-02T03:04:05.000Z",
+                        total_distance: 1234,
+                    },
+                ],
+            }),
+            getFitBrowserFolder: async () => "C:\\rides",
+            listFitBrowserFolder: async () => ({
+                entries: [
+                    {
+                        fullPath: "C:\\rides\\activity.fit",
+                        kind: "file",
+                        name: "activity.fit",
+                        relPath: "activity.fit",
+                    },
+                ],
+                relPath: "",
+                root: "C:\\rides",
+            }),
+            readFile: async () => new ArrayBuffer(4),
+        });
+
+        await renderFileBrowserTab({ electronApiScope });
+        getRequiredElement(
+            "#fit-browser-view-calendar",
+            HTMLButtonElement
+        ).click();
+
+        await vi.waitFor(() => {
+            expect(getBrowserView()).toBe("calendar");
+        });
+
+        getRequiredElement("#fit-calendar-scan", HTMLButtonElement).click();
+
+        await vi.waitFor(() => {
+            expect(
+                document.querySelector('[data-day="2026-01-02"]')
+            ).toBeInstanceOf(HTMLButtonElement);
+        });
+
+        getRequiredElement(
+            '[data-day="2026-01-02"]',
+            HTMLButtonElement
+        ).click();
+
+        expect(getBrowserCalendarState()).toStrictEqual({
+            monthKey: "2026-01",
+            selectedDayKey: "2026-01-02",
+        });
+        expect(
+            document.querySelector("#fit-calendar-panel")?.textContent
+        ).toContain("2026-01-02");
     });
 });

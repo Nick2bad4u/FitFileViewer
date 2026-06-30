@@ -128,6 +128,14 @@ export type TablesState = {
 };
 
 /**
+ * Calendar selection metadata for the Browser tab Calendar view.
+ */
+export type BrowserCalendarState = {
+    monthKey: string;
+    selectedDayKey: string;
+};
+
+/**
  * Browser folder listing lifecycle phase.
  */
 export type BrowserListingStatus =
@@ -180,6 +188,7 @@ export type BrowserScanState = {
  * Folder Browser tab state branch.
  */
 export type BrowserState = {
+    calendar: BrowserCalendarState;
     listing: BrowserListingState;
     relPath: string;
     scan: BrowserScanState;
@@ -291,6 +300,10 @@ export function createDefaultAppState(): AppStateShape {
             startTime: stateManagerDefaultsRuntime().getStartTime(),
         },
         browser: {
+            calendar: {
+                monthKey: "",
+                selectedDayKey: "",
+            },
             listing: {
                 error: null,
                 fileCount: 0,

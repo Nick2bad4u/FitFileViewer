@@ -1,4 +1,5 @@
 import type {
+    BrowserCalendarState,
     BrowserListingState,
     BrowserListingStatus,
     BrowserScanState,
@@ -7,6 +8,11 @@ import type {
 } from "../core/stateManagerDefaults.js";
 
 export type BrowserView = BrowserState["view"];
+
+type BrowserCalendarStateCandidate = Readonly<{
+    readonly monthKey?: unknown;
+    readonly selectedDayKey?: unknown;
+}>;
 
 type BrowserListingStateCandidate = Readonly<{
     readonly error?: unknown;
@@ -35,6 +41,17 @@ export function isBrowserView(value: unknown): value is BrowserView {
 
 export function normalizeBrowserView(value: unknown): BrowserView {
     return isBrowserView(value) ? value : "files";
+}
+
+export function normalizeBrowserCalendarState(
+    value: unknown
+): BrowserCalendarState {
+    const state = toBrowserCalendarStateCandidate(value);
+
+    return {
+        monthKey: asMonthKey(state["monthKey"]),
+        selectedDayKey: asDayKey(state["selectedDayKey"]),
+    };
 }
 
 export function normalizeBrowserListingState(
@@ -89,12 +106,27 @@ export function normalizeBrowserStateBranch(
         );
     }
 
+    if ("calendar" in value) {
+        normalizedBranch ??= { ...value };
+        normalizedBranch["calendar"] = normalizeBrowserCalendarState(
+            value["calendar"]
+        );
+    }
+
     if ("scan" in value) {
         normalizedBranch ??= { ...value };
         normalizedBranch["scan"] = normalizeBrowserScanState(value["scan"]);
     }
 
     return normalizedBranch ?? value;
+}
+
+function toBrowserCalendarStateCandidate(
+    value: unknown
+): BrowserCalendarStateCandidate {
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : {};
 }
 
 function isBrowserListingStatus(value: unknown): value is BrowserListingStatus {
@@ -151,4 +183,16 @@ function asNullableString(value: unknown): null | string {
 
 function asString(value: unknown): string {
     return typeof value === "string" ? value : "";
+}
+
+function asMonthKey(value: unknown): string {
+    return typeof value === "string" && /^\d{4}-\d{2}$/u.test(value)
+        ? value
+        : "";
+}
+
+function asDayKey(value: unknown): string {
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/u.test(value)
+        ? value
+        : "";
 }

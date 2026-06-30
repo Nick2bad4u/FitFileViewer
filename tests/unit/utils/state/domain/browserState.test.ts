@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
+    getBrowserCalendarState,
     getBrowserListingState,
     getBrowserRelPath,
     getBrowserScanState,
     getBrowserView,
+    setBrowserCalendarState,
     setBrowserListingState,
     setBrowserRelPath,
     setBrowserScanState,
@@ -58,6 +60,23 @@ describe("browserState", () => {
         });
     });
 
+    it("normalizes calendar selection updates into the Browser state branch", () => {
+        expect.assertions(1);
+
+        setBrowserCalendarState(
+            {
+                monthKey: "2026-06",
+                selectedDayKey: "2026-06-30",
+            },
+            { source: "test" }
+        );
+
+        expect(getBrowserCalendarState()).toStrictEqual({
+            monthKey: "2026-06",
+            selectedDayKey: "2026-06-30",
+        });
+    });
+
     it("normalizes folder scan updates into the Browser state branch", () => {
         expect.assertions(1);
 
@@ -85,8 +104,16 @@ describe("browserState", () => {
     });
 
     it("falls back to safe defaults for malformed persisted Browser state", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
+        stateManager.setState(
+            "browser.calendar",
+            {
+                monthKey: "bad",
+                selectedDayKey: "bad",
+            },
+            { source: "test" }
+        );
         stateManager.setState("browser.view", "bad", { source: "test" });
         stateManager.setState("browser.listing", "bad", { source: "test" });
         stateManager.setState(
@@ -104,6 +131,10 @@ describe("browserState", () => {
         );
 
         expect(getBrowserView()).toBe("files");
+        expect(getBrowserCalendarState()).toStrictEqual({
+            monthKey: "",
+            selectedDayKey: "",
+        });
         expect(getBrowserListingState()).toStrictEqual({
             error: null,
             fileCount: 0,
@@ -126,11 +157,16 @@ describe("browserState", () => {
     });
 
     it("falls back to safe defaults for array-shaped persisted Browser state", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
+        stateManager.setState("browser.calendar", [], { source: "test" });
         stateManager.setState("browser.listing", [], { source: "test" });
         stateManager.setState("browser.scan", [], { source: "test" });
 
+        expect(getBrowserCalendarState()).toStrictEqual({
+            monthKey: "",
+            selectedDayKey: "",
+        });
         expect(getBrowserListingState()).toStrictEqual({
             error: null,
             fileCount: 0,

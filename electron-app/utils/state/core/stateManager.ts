@@ -17,6 +17,7 @@ import {
     type StateStorageRuntime,
 } from "./stateStorageRuntime.js";
 import {
+    normalizeBrowserCalendarState,
     normalizeBrowserListingState,
     normalizeBrowserScanState,
     normalizeBrowserStateBranch,
@@ -143,6 +144,7 @@ const BROWSER_STATE_PATH_NORMALIZERS = new Map<
     string,
     (value: unknown) => unknown
 >([
+    ["browser.calendar", normalizeBrowserCalendarState],
     ["browser.listing", normalizeBrowserListingState],
     ["browser.scan", normalizeBrowserScanState],
     ["browser.view", normalizeBrowserView],

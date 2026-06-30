@@ -30,8 +30,10 @@ import {
 } from "../../runtime/electronApiRuntime.js";
 import {
     type BrowserView,
+    getBrowserCalendarState,
     getBrowserRelPath,
     getBrowserView,
+    setBrowserCalendarState,
     setBrowserListingState,
     setBrowserRelPath,
     setBrowserScanState,
@@ -561,25 +563,34 @@ function getCalendarState(): CalendarState {
     const now = new Date();
     const defaultMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const defaultSelected = formatLocalDayKey(now);
+    const browserCalendar = getBrowserCalendarState();
+    let storedMonthStart: Date | null = null;
+    let storedSelectedDayKey: null | string = null;
 
     try {
         const runtime = fileBrowserTabRuntime();
         const monthRaw = runtime.getStorageItem(CAL_PREFS_MONTH_KEY);
         const selectedRaw = runtime.getStorageItem(CAL_PREFS_SELECTED_DAY_KEY);
 
-        const monthStart = parseMonthKey(monthRaw) ?? defaultMonthStart;
-        const selectedDayKey =
+        storedMonthStart = parseMonthKey(monthRaw);
+        storedSelectedDayKey =
             typeof selectedRaw === "string" && selectedRaw
                 ? selectedRaw
-                : defaultSelected;
-
-        return { monthStart, selectedDayKey };
+                : null;
     } catch {
-        return {
-            monthStart: defaultMonthStart,
-            selectedDayKey: defaultSelected,
-        };
+        /* ignore */
     }
+
+    return {
+        monthStart:
+            parseMonthKey(browserCalendar.monthKey) ??
+            storedMonthStart ??
+            defaultMonthStart,
+        selectedDayKey:
+            browserCalendar.selectedDayKey ||
+            storedSelectedDayKey ||
+            defaultSelected,
+    };
 }
 
 function getElectronAPI(
@@ -1053,6 +1064,14 @@ function parseMonthKey(raw: unknown): Date | null {
 }
 
 function persistCalendarState(state: CalendarState): void {
+    setBrowserCalendarState(
+        {
+            monthKey: formatMonthKey(state.monthStart),
+            selectedDayKey: state.selectedDayKey,
+        },
+        { source: "fileBrowser.persistCalendarState" }
+    );
+
     try {
         const runtime = fileBrowserTabRuntime();
         runtime.setStorageItem(

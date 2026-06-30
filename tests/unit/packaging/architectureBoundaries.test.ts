@@ -16456,7 +16456,7 @@ describe("architecture boundaries", () => {
         expect(browserStateSource).not.toContain('getState("globalData")');
 
         const rawBrowserStatePathUsagePattern =
-            /["'`]browser\.(?:listing|relPath|scan|view)["'`]/u;
+            /["'`]browser\.(?:calendar|listing|relPath|scan|view)["'`]/u;
         const rawBrowserStatePathViolations = sourceRoots
             .flatMap(collectSourceFiles)
             .filter(

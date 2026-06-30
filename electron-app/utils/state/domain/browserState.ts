@@ -4,6 +4,7 @@ import {
     type StateUpdateOptions,
 } from "../core/stateManager.js";
 import type {
+    BrowserCalendarState,
     BrowserListingState,
     BrowserListingStatus,
     BrowserScanState,
@@ -11,12 +12,14 @@ import type {
 } from "../core/stateManagerDefaults.js";
 export {
     type BrowserView,
+    normalizeBrowserCalendarState,
     normalizeBrowserListingState,
     normalizeBrowserScanState,
     normalizeBrowserView,
 } from "./browserStateContract.js";
 import {
     isBrowserView,
+    normalizeBrowserCalendarState,
     normalizeBrowserListingState,
     normalizeBrowserScanState,
     type BrowserView,
@@ -33,6 +36,11 @@ export type BrowserListingStateUpdate = {
     readonly status: BrowserListingStatus;
 };
 
+export type BrowserCalendarStateUpdate = {
+    readonly monthKey: string;
+    readonly selectedDayKey: string;
+};
+
 export type BrowserScanStateUpdate = {
     readonly decodedActivityCount?: number;
     readonly error?: null | string;
@@ -45,6 +53,7 @@ export type BrowserScanStateUpdate = {
 
 const BROWSER_REL_PATH_STATE_PATH = "browser.relPath";
 const BROWSER_VIEW_STATE_PATH = "browser.view";
+const BROWSER_CALENDAR_STATE_PATH = "browser.calendar";
 const BROWSER_LISTING_STATE_PATH = "browser.listing";
 const BROWSER_SCAN_STATE_PATH = "browser.scan";
 
@@ -76,6 +85,24 @@ export function setBrowserView(
         source: "browserState.setView",
         ...options,
     });
+}
+
+export function getBrowserCalendarState(): BrowserCalendarState {
+    return normalizeBrowserCalendarState(getState(BROWSER_CALENDAR_STATE_PATH));
+}
+
+export function setBrowserCalendarState(
+    update: BrowserCalendarStateUpdate,
+    options: StateUpdateOptions = {}
+): void {
+    setState(
+        BROWSER_CALENDAR_STATE_PATH,
+        normalizeBrowserCalendarState(update),
+        {
+            source: "browserState.calendar",
+            ...options,
+        }
+    );
 }
 
 export function getBrowserListingState(): BrowserListingState {
