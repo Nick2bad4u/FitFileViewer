@@ -3,8 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     clearDomPurifyRuntimeForTests,
     isDomPurifyRuntime,
+    registerDomPurifyRuntime,
     resolveDomPurifyRuntime,
     setDomPurifyRuntime,
+    type DomPurifyRuntime,
 } from "../../../../electron-app/utils/dom/domPurifyRuntime.js";
 
 afterEach(() => {
@@ -12,10 +14,26 @@ afterEach(() => {
 });
 
 describe("domPurifyRuntime", () => {
+    function createDomPurifyRuntime(): DomPurifyRuntime {
+        return {
+            sanitize: vi.fn<DomPurifyRuntime["sanitize"]>(),
+        };
+    }
+
+    it("registers a typed DOMPurify runtime after vendor payload validation", () => {
+        expect.assertions(1);
+
+        const runtime = createDomPurifyRuntime();
+
+        registerDomPurifyRuntime(runtime);
+
+        expect(resolveDomPurifyRuntime()).toBe(runtime);
+    });
+
     it("resolves a registered DOMPurify-compatible runtime", () => {
         expect.assertions(3);
 
-        const registeredRuntime = { sanitize: vi.fn() };
+        const registeredRuntime = createDomPurifyRuntime();
 
         setDomPurifyRuntime(registeredRuntime);
 

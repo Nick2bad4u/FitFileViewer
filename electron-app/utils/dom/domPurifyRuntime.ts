@@ -42,6 +42,10 @@ export function setDomPurifyRuntime(runtime: unknown): void {
         : undefined;
 }
 
+export function registerDomPurifyRuntime(runtime: DomPurifyRuntime): void {
+    registeredDomPurifyRuntime = runtime;
+}
+
 export function clearDomPurifyRuntimeForTests(): void {
     registeredDomPurifyRuntime = undefined;
 }

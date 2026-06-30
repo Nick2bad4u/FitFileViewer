@@ -40,6 +40,10 @@ export function setScreenfullRuntime(runtime: unknown): void {
     screenfullRuntimeRegistry.runtime = runtime;
 }
 
+export function registerScreenfullRuntime(runtime: ScreenfullRuntime): void {
+    screenfullRuntimeRegistry.runtime = runtime;
+}
+
 export function clearScreenfullRuntimeForTests(): void {
     screenfullRuntimeRegistry.runtime = undefined;
 }

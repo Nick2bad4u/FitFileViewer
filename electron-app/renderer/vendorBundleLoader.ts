@@ -24,11 +24,11 @@ import {
 } from "../utils/charts/core/chartRuntime.js";
 import {
     isDomPurifyRuntime,
-    setDomPurifyRuntime,
+    registerDomPurifyRuntime,
 } from "../utils/dom/domPurifyRuntime.js";
 import {
     isExportZipConstructor,
-    setExportZipRuntime,
+    registerExportZipRuntime,
 } from "../utils/files/export/exportZipRuntime.js";
 import {
     isRegisteredLeafletRuntime,
@@ -36,7 +36,7 @@ import {
 } from "../utils/maps/core/leafletRuntime.js";
 import {
     isArqueroRuntime,
-    setArqueroRuntime,
+    registerArqueroRuntime,
 } from "../utils/rendering/helpers/arqueroRuntime.js";
 import {
     isRegisteredDataTableRuntime,
@@ -44,7 +44,7 @@ import {
 } from "../utils/rendering/core/dataTableRuntime.js";
 import {
     isScreenfullRuntime,
-    setScreenfullRuntime,
+    registerScreenfullRuntime,
 } from "../utils/ui/controls/screenfullRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
@@ -120,10 +120,10 @@ function registerCoreRuntimePayload(
         return false;
     }
 
-    setArqueroRuntime(payload.arqueroRuntime);
-    setDomPurifyRuntime(payload.domPurifyRuntime);
-    setExportZipRuntime(payload.exportZipRuntime);
-    setScreenfullRuntime(payload.screenfullRuntime);
+    registerArqueroRuntime(payload.arqueroRuntime);
+    registerDomPurifyRuntime(payload.domPurifyRuntime);
+    registerExportZipRuntime(payload.exportZipRuntime);
+    registerScreenfullRuntime(payload.screenfullRuntime);
     return true;
 }
 

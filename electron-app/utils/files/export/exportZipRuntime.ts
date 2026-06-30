@@ -23,6 +23,12 @@ export function setExportZipRuntime(constructor: unknown): void {
     exportZipRuntimeRegistry.constructor = constructor;
 }
 
+export function registerExportZipRuntime(
+    constructor: ExportZipConstructor
+): void {
+    exportZipRuntimeRegistry.constructor = constructor;
+}
+
 export function clearExportZipRuntimeForTests(): void {
     exportZipRuntimeRegistry.constructor = undefined;
 }

@@ -3,8 +3,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     clearArqueroRuntimeForTests,
     isArqueroRuntime,
+    registerArqueroRuntime,
     resolveArqueroRuntime,
     setArqueroRuntime,
+    type ArqueroRuntime,
 } from "../../../../../electron-app/utils/rendering/helpers/arqueroRuntime.js";
 
 describe("arqueroRuntime", () => {
@@ -12,10 +14,8 @@ describe("arqueroRuntime", () => {
         clearArqueroRuntimeForTests();
     });
 
-    it("resolves a registered Arquero-compatible runtime", () => {
-        expect.assertions(2);
-
-        const runtime = {
+    function createArqueroRuntime(): ArqueroRuntime {
+        return {
             from: () => ({
                 array: () => [],
                 columnNames: () => [],
@@ -23,6 +23,22 @@ describe("arqueroRuntime", () => {
                 numRows: () => 0,
             }),
         };
+    }
+
+    it("registers a typed Arquero runtime after vendor payload validation", () => {
+        expect.assertions(1);
+
+        const runtime = createArqueroRuntime();
+
+        registerArqueroRuntime(runtime);
+
+        expect(resolveArqueroRuntime()).toBe(runtime);
+    });
+
+    it("resolves a registered Arquero-compatible runtime", () => {
+        expect.assertions(2);
+
+        const runtime = createArqueroRuntime();
 
         setArqueroRuntime(runtime);
 

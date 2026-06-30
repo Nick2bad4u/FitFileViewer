@@ -21507,7 +21507,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core vendor runtime adapters off global symbol registries", () => {
-        expect.assertions(22);
+        expect.assertions(35);
 
         const coreRuntimeSources = [
             "electron-app/utils/dom/domPurifyRuntime.ts",
@@ -21524,6 +21524,19 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/utils/rendering/helpers/arqueroRuntime.ts"
             )
+        );
+        const exportZipRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/exportZipRuntime.ts"
+            )
+        );
+        const screenfullRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/screenfullRuntime.ts"
+            )
+        );
+        const vendorBundleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorBundleLoader.ts")
         );
 
         for (const source of coreRuntimeSources) {
@@ -21543,6 +21556,9 @@ describe("architecture boundaries", () => {
         expect(domPurifyRuntimeSource).not.toContain(
             "value as { sanitize?: unknown }"
         );
+        expect(domPurifyRuntimeSource).toContain(
+            "registerDomPurifyRuntime(runtime: DomPurifyRuntime)"
+        );
         expect(arqueroRuntimeSource).toContain(
             "type ArqueroRuntimeCandidate = Readonly<{"
         );
@@ -21556,6 +21572,24 @@ describe("architecture boundaries", () => {
         expect(arqueroRuntimeSource).not.toContain(
             "value as { from?: unknown }"
         );
+        expect(arqueroRuntimeSource).toContain(
+            "registerArqueroRuntime(runtime: ArqueroRuntime)"
+        );
+        expect(exportZipRuntimeSource).toContain("registerExportZipRuntime(");
+        expect(exportZipRuntimeSource).toContain(
+            "constructor: ExportZipConstructor"
+        );
+        expect(screenfullRuntimeSource).toContain(
+            "registerScreenfullRuntime(runtime: ScreenfullRuntime)"
+        );
+        expect(vendorBundleLoaderSource).toContain("registerArqueroRuntime");
+        expect(vendorBundleLoaderSource).toContain("registerDomPurifyRuntime");
+        expect(vendorBundleLoaderSource).toContain("registerExportZipRuntime");
+        expect(vendorBundleLoaderSource).toContain("registerScreenfullRuntime");
+        expect(vendorBundleLoaderSource).not.toContain("setArqueroRuntime");
+        expect(vendorBundleLoaderSource).not.toContain("setDomPurifyRuntime");
+        expect(vendorBundleLoaderSource).not.toContain("setExportZipRuntime");
+        expect(vendorBundleLoaderSource).not.toContain("setScreenfullRuntime");
     });
 
     it("keeps migrated DOM sanitizers on the DOMPurify runtime adapter", () => {

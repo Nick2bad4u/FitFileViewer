@@ -57,6 +57,10 @@ export function setArqueroRuntime(runtime: unknown): void {
     arqueroRuntimeRegistry.runtime = runtime;
 }
 
+export function registerArqueroRuntime(runtime: ArqueroRuntime): void {
+    arqueroRuntimeRegistry.runtime = runtime;
+}
+
 export function clearArqueroRuntimeForTests(): void {
     arqueroRuntimeRegistry.runtime = undefined;
 }

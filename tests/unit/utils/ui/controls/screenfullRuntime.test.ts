@@ -3,8 +3,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     clearScreenfullRuntimeForTests,
     isScreenfullRuntime,
+    registerScreenfullRuntime,
     resolveScreenfullRuntime,
     setScreenfullRuntime,
+    type ScreenfullRuntime,
 } from "../../../../../electron-app/utils/ui/controls/screenfullRuntime.js";
 
 describe("screenfullRuntime", () => {
@@ -12,14 +14,28 @@ describe("screenfullRuntime", () => {
         clearScreenfullRuntimeForTests();
     });
 
-    it("resolves a registered screenfull-compatible runtime", () => {
-        expect.assertions(2);
-
-        const runtime = {
+    function createScreenfullRuntime(): ScreenfullRuntime {
+        return {
             isEnabled: true,
             isFullscreen: false,
             on: () => undefined,
         };
+    }
+
+    it("registers a typed screenfull runtime after vendor payload validation", () => {
+        expect.assertions(1);
+
+        const runtime = createScreenfullRuntime();
+
+        registerScreenfullRuntime(runtime);
+
+        expect(resolveScreenfullRuntime()).toBe(runtime);
+    });
+
+    it("resolves a registered screenfull-compatible runtime", () => {
+        expect.assertions(2);
+
+        const runtime = createScreenfullRuntime();
 
         setScreenfullRuntime(runtime);
 
