@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { sanitizeHtmlAllowlist } from "../../../../electron-app/utils/dom/index.js";
 import {
     clearDomPurifyRuntimeForTests,
-    setDomPurifyRuntime,
+    registerDomPurifyRuntime,
 } from "../../../../electron-app/utils/dom/domPurifyRuntime.js";
 import { getSanitizeHtmlAllowlistRuntime } from "../../../../electron-app/utils/dom/sanitizeHtmlAllowlistRuntime.js";
 
@@ -335,7 +335,7 @@ describe(sanitizeHtmlAllowlist, () => {
         expect.assertions(5);
 
         let receivedHtml = "";
-        setDomPurifyRuntime({
+        registerDomPurifyRuntime({
             sanitize(html) {
                 receivedHtml = html;
                 const fragment = document.createDocumentFragment();

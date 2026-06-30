@@ -36,12 +36,6 @@ function readRuntimeValue(readValue: () => unknown): unknown {
     }
 }
 
-export function setDomPurifyRuntime(runtime: unknown): void {
-    registeredDomPurifyRuntime = isDomPurifyRuntime(runtime)
-        ? runtime
-        : undefined;
-}
-
 export function registerDomPurifyRuntime(runtime: DomPurifyRuntime): void {
     registeredDomPurifyRuntime = runtime;
 }
