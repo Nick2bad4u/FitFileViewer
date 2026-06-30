@@ -14,10 +14,6 @@ type DataTableRuntimeCandidate = ((...args: unknown[]) => unknown) &
 
 const dataTableRuntimeRegistry: DataTableRuntimeRegistry = {};
 
-export function setDataTableRuntime(runtime: RegisteredDataTableRuntime): void {
-    dataTableRuntimeRegistry.runtime = runtime;
-}
-
 export function registerDataTableRuntime(
     runtime: RegisteredDataTableRuntime
 ): void {

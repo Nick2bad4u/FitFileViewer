@@ -71,9 +71,9 @@ describe("renderTable", () => {
                 };
             }
         );
-        const { setDataTableRuntime } =
+        const { registerDataTableRuntime } =
             await import("../../../../../electron-app/utils/rendering/core/dataTableRuntime.js");
-        setDataTableRuntime(dataTableModuleMock.DataTable);
+        registerDataTableRuntime(dataTableModuleMock.DataTable);
         vi.useFakeTimers();
     });
     afterEach(async () => {

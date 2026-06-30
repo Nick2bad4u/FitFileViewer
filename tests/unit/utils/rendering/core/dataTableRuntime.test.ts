@@ -6,7 +6,6 @@ import {
     registerDataTableRuntime,
     type RegisteredDataTableRuntime,
     resolveDataTableRuntime,
-    setDataTableRuntime,
 } from "../../../../../electron-app/utils/rendering/core/dataTableRuntime.js";
 
 function isDataTableRuntime(
@@ -41,21 +40,11 @@ describe("dataTableRuntime", () => {
         expect(resolveDataTableRuntime(isDataTableRuntime)).toBe(runtime);
     });
 
-    it("resolves the registered DataTables runtime", () => {
-        expect.assertions(1);
-
-        const runtime = createDataTableRuntime();
-
-        setDataTableRuntime(runtime);
-
-        expect(resolveDataTableRuntime(isDataTableRuntime)).toBe(runtime);
-    });
-
     it("clears the module-local runtime adapter", () => {
         expect.assertions(1);
 
         const runtime = createDataTableRuntime();
-        setDataTableRuntime(runtime);
+        registerDataTableRuntime(runtime);
 
         clearDataTableRuntimeForTests();
 
