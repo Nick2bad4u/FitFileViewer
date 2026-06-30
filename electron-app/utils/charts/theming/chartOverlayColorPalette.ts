@@ -7,6 +7,8 @@ type RgbColor = readonly [
     number,
 ];
 
+export type ChartOverlayColorPalette = readonly string[];
+
 const DEFAULT_SHUFFLE_SEED = 42;
 const MINIMUM_COLOR_DISTANCE = 80;
 const LINEAR_CONGRUENTIAL_A = 1_664_525;
@@ -92,7 +94,7 @@ function seededShuffle(
  */
 export function getChartOverlayColorPalette(
     inputColors: readonly string[]
-): string[] {
+): ChartOverlayColorPalette {
     const uniqueColors = [...new Set(inputColors)];
     const filteredColors: string[] = [];
 

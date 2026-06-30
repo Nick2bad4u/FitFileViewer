@@ -27540,7 +27540,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(58);
+        expect.assertions(60);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -27622,6 +27622,9 @@ describe("architecture boundaries", () => {
             "../../charts/theming/chartOverlayColorPalette.js"
         );
         expect(createElevationProfileButtonRuntimeSource).toContain(
+            "type ChartOverlayColorPalette"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
             "getChartOverlayColorPalette: () => chartOverlayColorPalette"
         );
         expect(createElevationProfileButtonRuntimeSource).not.toContain(
@@ -27660,7 +27663,10 @@ describe("architecture boundaries", () => {
             "readonly getAbortController: CreateElevationProfileButtonRuntimeProvider<BrowserAbortControllerConstructor>;"
         );
         expect(runtimeScopeSource).toContain(
-            "readonly getChartOverlayColorPalette: CreateElevationProfileButtonRuntimeProvider<unknown>;"
+            "readonly getChartOverlayColorPalette: CreateElevationProfileButtonRuntimeProvider<ChartOverlayColorPalette>;"
+        );
+        expect(runtimeScopeSource).not.toContain(
+            "CreateElevationProfileButtonRuntimeProvider<unknown>"
         );
         expect(runtimeScopeSource).toContain(
             "readonly getDocument: CreateElevationProfileButtonRuntimeProvider<Document>;"

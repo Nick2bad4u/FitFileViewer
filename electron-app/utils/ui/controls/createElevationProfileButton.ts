@@ -333,10 +333,7 @@ function getElevationPoints(file: ElevationFitFile): ElevationPoint[] {
 function getOverlayColor(idx: number): string {
     const chartOverlayColorPalette =
         getCreateElevationProfileButtonRuntime().getChartOverlayColorPalette();
-    if (
-        Array.isArray(chartOverlayColorPalette) &&
-        chartOverlayColorPalette.length > 0
-    ) {
+    if (chartOverlayColorPalette && chartOverlayColorPalette.length > 0) {
         return sanitizeCssColorToken(
             chartOverlayColorPalette[idx % chartOverlayColorPalette.length],
             "#1976d2"

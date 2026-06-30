@@ -4,7 +4,10 @@ import {
     getBrowserDocument,
     getBrowserOpen,
 } from "../../runtime/browserRuntime.js";
-import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
+import {
+    chartOverlayColorPalette,
+    type ChartOverlayColorPalette,
+} from "../../charts/theming/chartOverlayColorPalette.js";
 
 import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
@@ -23,7 +26,7 @@ type CreateElevationProfileButtonRuntimeProvider<T> =
 
 export interface CreateElevationProfileButtonRuntimeScope {
     readonly getAbortController: CreateElevationProfileButtonRuntimeProvider<BrowserAbortControllerConstructor>;
-    readonly getChartOverlayColorPalette: CreateElevationProfileButtonRuntimeProvider<unknown>;
+    readonly getChartOverlayColorPalette: CreateElevationProfileButtonRuntimeProvider<ChartOverlayColorPalette>;
     readonly getDocument: CreateElevationProfileButtonRuntimeProvider<Document>;
     readonly getOpen: CreateElevationProfileButtonRuntimeProvider<CreateElevationProfileOpen>;
 }
@@ -41,7 +44,7 @@ export interface CreateElevationProfileButtonRuntime {
     createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
-    getChartOverlayColorPalette: () => unknown;
+    getChartOverlayColorPalette: () => ChartOverlayColorPalette | undefined;
     isDarkTheme: () => boolean;
     openPopupWindow: (
         url: string,
@@ -150,7 +153,7 @@ export function getCreateElevationProfileButtonRuntime(
         ): SVGElementTagNameMap[K] {
             return createSvgElement(scope, tagName);
         },
-        getChartOverlayColorPalette(): unknown {
+        getChartOverlayColorPalette(): ChartOverlayColorPalette | undefined {
             return getRequiredProvider(
                 scope.getChartOverlayColorPalette,
                 "chartOverlayColorPalette"

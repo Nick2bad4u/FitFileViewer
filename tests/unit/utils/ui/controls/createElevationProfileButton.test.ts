@@ -99,7 +99,8 @@ const getPopupNoDataMessages = (mockWin: MockElevationPopupWindow) =>
     );
 
 const clickElevationButton = async (
-    button: HTMLButtonElement
+    button: HTMLButtonElement,
+    waitForRenderedPopup = true
 ): Promise<void> => {
     button.click();
     await vi.waitFor(() => {
@@ -107,6 +108,15 @@ const clickElevationButton = async (
             throw new Error("Expected elevation profile popup to open");
         }
     });
+
+    if (waitForRenderedPopup) {
+        await vi.waitFor(() => {
+            const popupWindow = getPopupWindow();
+            if (popupWindow.document.body.childElementCount === 0) {
+                throw new Error("Expected elevation profile popup to render");
+            }
+        });
+    }
 };
 
 describe(createElevationProfileButton, () => {
@@ -138,7 +148,10 @@ describe(createElevationProfileButton, () => {
             .spyOn(HTMLCanvasElement.prototype, "getContext")
             .mockReturnValue({} as CanvasRenderingContext2D);
 
-        chartMock = vi.fn<ChartMockImplementation>(function MockChart() {});
+        chartMock = Object.assign(
+            vi.fn<ChartMockImplementation>(function MockChart() {}),
+            { register: vi.fn() }
+        );
         setChartRuntime(chartMock);
 
         // Setup window.open spy
@@ -350,7 +363,7 @@ describe(createElevationProfileButton, () => {
 
         // Create the button and click it
         const button = createElevationProfileButton();
-        await clickElevationButton(button);
+        await clickElevationButton(button, false);
 
         // Verify window.open was called
         expect(openSpy).toHaveBeenCalledOnce();
