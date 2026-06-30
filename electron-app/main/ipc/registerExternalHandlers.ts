@@ -2,8 +2,6 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
 import { z } from "zod";
 
 type ExternalInvokeChannel = import("../../shared/ipc").ExternalInvokeChannel;
-type ExternalResponsePayload =
-    import("../../shared/ipc").ExternalResponsePayload;
 type GyazoServerStartRequest =
     import("../../shared/ipc").GyazoServerStartRequest;
 type GyazoServerStartResponse =
@@ -12,19 +10,30 @@ type GyazoServerStopResponse =
     import("../../shared/ipc").GyazoServerStopResponse;
 type ShellOpenExternalResponse =
     import("../../shared/ipc").ShellOpenExternalResponse;
+type InvokeRequestArgs<Channel extends ExternalInvokeChannel> =
+    import("../../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends ExternalInvokeChannel> =
+    import("../../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 
 interface ExternalShell {
     openExternal: (url: string) => Promise<void>;
 }
 
-type RegisterExternalIpcHandler = (
+type RegisterExternalIpcHandler<Channel extends ExternalInvokeChannel> = (
+    event: unknown,
+    ...args: InvokeRequestArgs<Channel>
+) =>
+    | InvokeResponsePayloadForChannel<Channel>
+    | Promise<InvokeResponsePayloadForChannel<Channel>>;
+
+type RegisterExternalIpcCallback = (
     event: unknown,
     ...args: unknown[]
-) => ExternalResponsePayload | Promise<ExternalResponsePayload>;
+) => unknown;
 
 type RegisterExternalIpcHandle = (
     channel: ExternalInvokeChannel,
-    handler: RegisterExternalIpcHandler
+    handler: RegisterExternalIpcCallback
 ) => void;
 
 type LogWithContext = (
@@ -72,7 +81,14 @@ export function registerExternalHandlers({
         return;
     }
 
-    registerIpcHandle(
+    const registerExternalIpcHandle = <Channel extends ExternalInvokeChannel>(
+        channel: Channel,
+        handler: RegisterExternalIpcHandler<Channel>
+    ): void => {
+        registerIpcHandle(channel, handler as RegisterExternalIpcCallback);
+    };
+
+    registerExternalIpcHandle(
         "shell:openExternal",
         async (_event, url): Promise<ShellOpenExternalResponse> => {
             try {
@@ -95,7 +111,7 @@ export function registerExternalHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerExternalIpcHandle(
         "gyazo:server:start",
         async (
             _event,
@@ -121,7 +137,7 @@ export function registerExternalHandlers({
         }
     );
 
-    registerIpcHandle(
+    registerExternalIpcHandle(
         "gyazo:server:stop",
         async (): Promise<GyazoServerStopResponse> => {
             try {
