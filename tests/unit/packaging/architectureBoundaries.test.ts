@@ -16035,7 +16035,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
-        expect.assertions(27);
+        expect.assertions(33);
 
         const handleOpenFileSource = stripComments(
             readRepositoryFile(
@@ -16087,6 +16087,22 @@ describe("architecture boundaries", () => {
         expect(handleOpenFileSource).toContain("value.openFile");
         expect(handleOpenFileSource).toContain("value.parseFitFile");
         expect(handleOpenFileSource).toContain("value.readFile");
+        expect(handleOpenFileSource).toContain(
+            "fitFileStateManager.startFileLoading(filePath);"
+        );
+        expect(handleOpenFileSource).toContain(
+            "fitFileStateManager.transitionLoadingPhase(phase, options)"
+        );
+        expect(handleOpenFileSource).toContain(
+            "fitFileStateManager.handleFileLoadingError(safeError);"
+        );
+        expect(handleOpenFileSource).not.toContain(
+            "type FitFileStateManagerFacade"
+        );
+        expect(handleOpenFileSource).not.toContain(
+            "resolveFitFileStateManager"
+        );
+        expect(handleOpenFileSource).not.toContain("updateLoadingProgress");
         expect(handleOpenFileSource).not.toContain('value["openFile"]');
         expect(handleOpenFileSource).not.toContain('value["parseFitFile"]');
         expect(handleOpenFileSource).not.toContain('value["readFile"]');

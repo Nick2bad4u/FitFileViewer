@@ -72,21 +72,6 @@ type FileOpenElectronApiMethods = Readonly<{
     readonly readFile?: ElectronFileApi["readFile"];
 }>;
 
-type FitFileStateManagerFacade = {
-    handleFileLoadingError: (error: Error) => void;
-    startFileLoading?: (filePath: string) => void;
-    transitionLoadingPhase?: (
-        phase: FitFileLoadingPhase,
-        options?: {
-            error?: null | string;
-            filePath?: null | string;
-            progress?: number;
-            source?: string;
-        }
-    ) => boolean;
-    updateLoadingProgress?: (progress: number) => void;
-};
-
 // Constants for better maintainability
 const FILE_OPEN_CONSTANTS = {
     ERROR_TIMEOUTS: {
@@ -154,21 +139,6 @@ function showFileOpenErrorNotification(
 
     showNotification(message, "error", duration);
 }
-
-const resolveFitFileStateManager = (): FitFileStateManagerFacade | null => {
-    const candidate = fitFileStateManager;
-
-    if (
-        candidate &&
-        typeof candidate === "object" &&
-        "handleFileLoadingError" in candidate &&
-        typeof candidate.handleFileLoadingError === "function"
-    ) {
-        return candidate;
-    }
-
-    return null;
-};
 
 /**
  * Handles file opening with Electron file IO and renderer state updates.
@@ -419,12 +389,7 @@ function notifyFileLoadPhase(
     } = {}
 ): boolean {
     try {
-        const manager = resolveFitFileStateManager();
-        if (!manager || typeof manager.transitionLoadingPhase !== "function") {
-            return false;
-        }
-
-        return manager.transitionLoadingPhase(phase, options);
+        return fitFileStateManager.transitionLoadingPhase(phase, options);
     } catch (error) {
         log("warn", "Failed to update file loading phase", {
             error: error instanceof Error ? error.message : String(error),
@@ -436,21 +401,8 @@ function notifyFileLoadPhase(
 
 function notifyFileLoadStarted(filePath: string): boolean {
     try {
-        const manager = resolveFitFileStateManager();
-        if (!manager) {
-            return false;
-        }
-
-        if (typeof manager.startFileLoading === "function") {
-            manager.startFileLoading(filePath);
-            return true;
-        }
-
-        return notifyFileLoadPhase("reading", {
-            filePath,
-            progress: 0,
-            source: "handleOpenFile.reading",
-        });
+        fitFileStateManager.startFileLoading(filePath);
+        return true;
     } catch (error) {
         log("warn", "Failed to propagate file loading start", {
             error: error instanceof Error ? error.message : String(error),
@@ -508,14 +460,9 @@ function handleOpenFileRuntime(): HandleOpenFileRuntime {
 
 function notifyFileLoadError(error: unknown): boolean {
     try {
-        const manager = resolveFitFileStateManager();
-
-        if (!manager || typeof manager.handleFileLoadingError !== "function") {
-            return false;
-        }
         const safeError =
             error instanceof Error ? error : new Error(String(error));
-        manager.handleFileLoadingError(safeError);
+        fitFileStateManager.handleFileLoadingError(safeError);
         return true;
     } catch (notifyError) {
         log("warn", "Failed to propagate file loading error", {
