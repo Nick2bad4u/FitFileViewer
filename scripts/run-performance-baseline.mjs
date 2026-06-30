@@ -289,6 +289,7 @@ export function appendPerformanceBaselineSummary(
             `- Compared fixtures: \`${String(comparison.comparedFixtureCount)}\``,
             `- Threshold: \`${String(comparison.thresholdPercent)}%\``,
             `- Regressions: \`${String(comparison.regressions.length)}\``,
+            `- Filtered metric spikes: \`${String(comparison.filteredRegressions?.length ?? 0)}\``,
             `- Skipped fixtures: \`${String(comparison.skippedFixtures.length)}\``
         );
 
@@ -297,6 +298,18 @@ export function appendPerformanceBaselineSummary(
             for (const regression of comparison.regressions.slice(0, 10)) {
                 lines.push(
                     `- \`${regression.fixture}\` \`${regression.metric}\`: ${regression.previous} -> ${regression.current} (+${regression.changePercent}%, threshold ${regression.thresholdPercent}%)`
+                );
+            }
+        }
+
+        if ((comparison.filteredRegressions ?? []).length > 0) {
+            lines.push("", "### Filtered Metric Spikes");
+            for (const filteredRegression of comparison.filteredRegressions.slice(
+                0,
+                10
+            )) {
+                lines.push(
+                    `- \`${filteredRegression.fixture}\` \`${filteredRegression.metric}\`: ${filteredRegression.previous} -> ${filteredRegression.current} (+${filteredRegression.changePercent}%, fixture aggregate ${filteredRegression.fixtureChangePercent}%)`
                 );
             }
         }
@@ -529,6 +542,7 @@ export function comparePerformanceBaselines(
             fixture,
         ])
     );
+    const filteredRegressions = [];
     const regressions = [];
     const skippedFixtures = [];
     let comparedFixtureCount = 0;
@@ -545,6 +559,7 @@ export function comparePerformanceBaselines(
         }
 
         let fixtureHadComparableMetric = false;
+        const comparableMetrics = [];
         for (const metricName of performanceTrendMetricNames) {
             const currentValue = currentFixture[metricName];
             const previousValue = previousFixture[metricName];
@@ -557,17 +572,46 @@ export function comparePerformanceBaselines(
             }
 
             fixtureHadComparableMetric = true;
+            comparableMetrics.push({
+                currentValue,
+                metricName,
+                previousValue,
+            });
+        }
+
+        const fixtureChangePercent =
+            comparableMetrics.length > 0
+                ? getFixtureAggregateChangePercent(comparableMetrics)
+                : null;
+
+        for (const {
+            currentValue,
+            metricName,
+            previousValue,
+        } of comparableMetrics) {
             const changePercent =
                 ((currentValue - previousValue) / previousValue) * 100;
             if (changePercent > thresholdPercent) {
-                regressions.push({
+                const regression = {
                     changePercent: roundMetricValue(changePercent),
                     current: roundMetricValue(currentValue),
                     fixture: fixtureKey,
+                    fixtureChangePercent: roundMetricValue(
+                        fixtureChangePercent ?? changePercent
+                    ),
                     metric: metricName,
                     previous: roundMetricValue(previousValue),
                     thresholdPercent,
-                });
+                };
+
+                if (
+                    fixtureChangePercent === null ||
+                    fixtureChangePercent > thresholdPercent
+                ) {
+                    regressions.push(regression);
+                } else {
+                    filteredRegressions.push(regression);
+                }
             }
         }
 
@@ -583,11 +627,25 @@ export function comparePerformanceBaselines(
 
     return {
         comparedFixtureCount,
+        filteredRegressions,
         metricNames: performanceTrendMetricNames,
         regressions,
         skippedFixtures,
         thresholdPercent,
     };
+}
+
+function getFixtureAggregateChangePercent(comparableMetrics) {
+    const currentTotal = comparableMetrics.reduce(
+        (total, { currentValue }) => total + currentValue,
+        0
+    );
+    const previousTotal = comparableMetrics.reduce(
+        (total, { previousValue }) => total + previousValue,
+        0
+    );
+
+    return ((currentTotal - previousTotal) / previousTotal) * 100;
 }
 
 export function assertNoPerformanceRegressions(comparison) {

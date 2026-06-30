@@ -176,12 +176,51 @@ describe("run-performance-baseline script", () => {
             {
                 fixtures: [
                     {
-                        chartRenderMs: 100,
-                        dataTableRenderMs: 100,
-                        mapRouteRenderMs: 100,
                         name: "activity.fit",
                         parseMs: 140,
-                        renderMs: 100,
+                    },
+                ],
+            },
+            {
+                fixtures: [
+                    {
+                        name: "activity.fit",
+                        parseMs: 100,
+                    },
+                ],
+            },
+            25
+        );
+
+        expect(comparison.regressions).toStrictEqual([
+            {
+                changePercent: 40,
+                current: 140,
+                fixture: "activity.fit",
+                fixtureChangePercent: 40,
+                metric: "parseMs",
+                previous: 100,
+                thresholdPercent: 25,
+            },
+        ]);
+        expect(() => assertNoPerformanceRegressions(comparison)).toThrow(
+            "Performance baseline exceeded 25% regression threshold"
+        );
+    });
+
+    it("filters isolated metric spikes when the fixture aggregate does not regress", () => {
+        expect.assertions(2);
+
+        const comparison = comparePerformanceBaselines(
+            {
+                fixtures: [
+                    {
+                        chartRenderMs: 90,
+                        dataTableRenderMs: 90,
+                        mapRouteRenderMs: 140,
+                        name: "activity.fit",
+                        parseMs: 140,
+                        renderMs: 90,
                     },
                 ],
             },
@@ -200,19 +239,27 @@ describe("run-performance-baseline script", () => {
             25
         );
 
-        expect(comparison.regressions).toStrictEqual([
+        expect(comparison.regressions).toStrictEqual([]);
+        expect(comparison.filteredRegressions).toStrictEqual([
             {
                 changePercent: 40,
                 current: 140,
                 fixture: "activity.fit",
+                fixtureChangePercent: 10,
                 metric: "parseMs",
                 previous: 100,
                 thresholdPercent: 25,
             },
+            {
+                changePercent: 40,
+                current: 140,
+                fixture: "activity.fit",
+                fixtureChangePercent: 10,
+                metric: "mapRouteRenderMs",
+                previous: 100,
+                thresholdPercent: 25,
+            },
         ]);
-        expect(() => assertNoPerformanceRegressions(comparison)).toThrow(
-            "Performance baseline exceeded 25% regression threshold"
-        );
     });
 
     it("ignores missing fixtures and non-comparable metric values during comparison", () => {
@@ -259,7 +306,7 @@ describe("run-performance-baseline script", () => {
     });
 
     it("appends a GitHub job summary for performance trend comparisons", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const temporaryDirectory = fs.mkdtempSync(
             path.join(os.tmpdir(), "ffv-performance-summary-")
@@ -272,12 +319,24 @@ describe("run-performance-baseline script", () => {
                     baseline: {
                         comparison: {
                             comparedFixtureCount: 1,
+                            filteredRegressions: [
+                                {
+                                    changePercent: 40,
+                                    current: 140,
+                                    fixture: "activity.fit",
+                                    fixtureChangePercent: 10,
+                                    metric: "mapRouteRenderMs",
+                                    previous: 100,
+                                    thresholdPercent: 25,
+                                },
+                            ],
                             metricNames: ["parseMs"],
                             regressions: [
                                 {
                                     changePercent: 40,
                                     current: 140,
                                     fixture: "activity.fit",
+                                    fixtureChangePercent: 40,
                                     metric: "parseMs",
                                     previous: 100,
                                     thresholdPercent: 25,
@@ -306,7 +365,11 @@ describe("run-performance-baseline script", () => {
             const summary = fs.readFileSync(summaryPath, "utf8");
             expect(summary).toContain("## Performance Baseline");
             expect(summary).toContain("- Regressions: `1`");
+            expect(summary).toContain("- Filtered metric spikes: `1`");
             expect(summary).toContain("`activity.fit` `parseMs`: 100 -> 140");
+            expect(summary).toContain(
+                "`activity.fit` `mapRouteRenderMs`: 100 -> 140"
+            );
             expect(summary).toContain("`new.fit`: missing previous fixture");
         } finally {
             fs.rmSync(temporaryDirectory, { force: true, recursive: true });
@@ -314,7 +377,7 @@ describe("run-performance-baseline script", () => {
     });
 
     it("documents and records the release baseline metric contract", () => {
-        expect.assertions(37);
+        expect.assertions(38);
 
         const script = fs.readFileSync(
             path.join(process.cwd(), "scripts", "run-performance-baseline.mjs"),
@@ -337,6 +400,7 @@ describe("run-performance-baseline script", () => {
         expect(script).toContain("dataTableRenderMs");
         expect(script).toContain("comparePerformanceBaselines");
         expect(script).toContain("appendPerformanceBaselineSummary");
+        expect(script).toContain("filteredRegressions");
         expect(script).toContain("GITHUB_STEP_SUMMARY");
         expect(script).toContain("getActiveFitActivityData");
         expect(script).toContain("getRegisteredChartInstanceCount");

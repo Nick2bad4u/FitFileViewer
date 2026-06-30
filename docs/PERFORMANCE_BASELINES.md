@@ -42,8 +42,12 @@ npm run perf:baseline -- --compare artifacts/performance-baseline.previous.json 
 
 The comparison checks `parseMs`, `renderMs`, `mapRouteRenderMs`,
 `chartRenderMs`, and `dataTableRenderMs` for matching fixture names. Regressions
-above the configured threshold fail the command after writing the current JSON,
-including a `comparison` section with skipped fixtures and failing metrics.
+above the configured threshold fail the command after writing the current JSON
+when the fixture's aggregate comparable timing also regresses beyond the
+threshold. Isolated metric spikes are reported as filtered regressions so noisy
+CI runs stay visible without failing config-only or otherwise faster runs. The
+JSON includes a `comparison` section with skipped fixtures, filtered metric
+spikes, and failing metrics.
 
 CI trend checks use:
 
@@ -63,5 +67,5 @@ Every workflow run uploads `artifacts/performance-baseline.log`, the restored
 previous baseline when present, and the current baseline JSON so performance
 regressions can be diagnosed without rerunning the benchmark locally. When
 running in GitHub Actions, the baseline runner also appends the comparison
-status, fixture count, threshold, regressions, skipped fixtures, and output path
-to the job summary through `GITHUB_STEP_SUMMARY`.
+status, fixture count, threshold, regressions, filtered metric spikes, skipped
+fixtures, and output path to the job summary through `GITHUB_STEP_SUMMARY`.
