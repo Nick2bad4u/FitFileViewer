@@ -121,6 +121,15 @@ describe(renderLapZoneCharts, () => {
         // Reset mocks
         vi.clearAllMocks();
         notificationMocks.showNotification.mockReset();
+
+        getZoneColorMock.mockImplementation(
+            (type: string, index: number) => `${type}-zone-${index}`
+        );
+        renderLapZoneChartMock.mockReturnValue({ id: "mock-chart" });
+        renderSingleHRZoneBarMock.mockReturnValue({ id: "mock-hr-bar" });
+        renderSinglePowerZoneBarMock.mockReturnValue({
+            id: "mock-power-bar",
+        });
     });
 
     afterEach(() => {
