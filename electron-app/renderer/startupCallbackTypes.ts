@@ -1,5 +1,10 @@
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
+export type ShowAboutModal = (
+    html?: string,
+    options?: { electronApiScope?: RendererElectronApiScope | undefined }
+) => void;
+
 export type ListenForThemeChange = (
     onThemeChange: (theme: string) => void,
     options?: { electronApiScope?: RendererElectronApiScope | undefined }

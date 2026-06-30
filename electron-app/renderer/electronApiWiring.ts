@@ -4,6 +4,7 @@ import {
     type RendererApplyTheme,
 } from "./electronApiStartupHooks.js";
 import { createRendererElectronMenuActionHandlers } from "./electronMenuActionHandlers.js";
+import type { ShowAboutModal } from "./startupCallbackTypes.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 
 type RendererElectronApiWiringLogger = (
@@ -11,15 +12,13 @@ type RendererElectronApiWiringLogger = (
     ...args: unknown[]
 ) => void;
 
-type RendererElectronApiAboutModal = (html?: string) => void;
-
 type RendererElectronApiWiringOptions = {
     readonly applyTheme: RendererApplyTheme;
     readonly electronApiScope: RendererElectronApiScope;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronApiWiringLogger;
     readonly scheduleStateInitialization: () => void;
-    readonly showAboutModal: RendererElectronApiAboutModal;
+    readonly showAboutModal: ShowAboutModal;
 };
 
 export function installRendererElectronApiWiring(

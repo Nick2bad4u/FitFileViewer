@@ -25129,7 +25129,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer Electron menu actions off the generic function bridge", () => {
-        expect.assertions(47);
+        expect.assertions(49);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -25247,13 +25247,19 @@ describe("architecture boundaries", () => {
             "readonly applyTheme: RendererApplyTheme;"
         );
         expect(menuActionSource).toContain(
-            "readonly showAboutModal: RendererElectronMenuAboutModal;"
+            'import type { ShowAboutModal } from "./startupCallbackTypes.js";'
+        );
+        expect(menuActionSource).toContain(
+            "readonly showAboutModal: ShowAboutModal;"
         );
         expect(wiringSource).toContain(
             "readonly applyTheme: RendererApplyTheme;"
         );
         expect(wiringSource).toContain(
-            "readonly showAboutModal: RendererElectronApiAboutModal;"
+            'import type { ShowAboutModal } from "./startupCallbackTypes.js";'
+        );
+        expect(wiringSource).toContain(
+            "readonly showAboutModal: ShowAboutModal;"
         );
         expect(rendererEntrypointSource).toContain(
             'from "./utils/theming/core/theme.js";'
@@ -25415,7 +25421,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup off the generic function bridge", () => {
-        expect.assertions(63);
+        expect.assertions(65);
 
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
@@ -25506,7 +25512,10 @@ describe("architecture boundaries", () => {
             "[Renderer] Startup notification failed:"
         );
         expect(applicationStartupSource).toContain(
-            "showAboutModal: ((html?: string) => void) | undefined;"
+            "showAboutModal: ShowAboutModal | undefined;"
+        );
+        expect(startupCallbackTypesSource).toContain(
+            "export type ShowAboutModal = ("
         );
         expect(applicationStartupSource).toContain(
             "showUpdateNotification: ShowUpdateNotification | undefined;"
@@ -25528,6 +25537,9 @@ describe("architecture boundaries", () => {
         );
         expect(applicationStartupSource).not.toContain(
             "readonly showAboutModal: ((html?: string) => void) | undefined;"
+        );
+        expect(applicationStartupSource).not.toContain(
+            "showAboutModal: ((html?: string) => void) | undefined;"
         );
         expect(applicationStartupSource).not.toContain(
             "ensureCoreModules: () => Promise<RendererApplicationStartupCoreModules>"
@@ -25582,7 +25594,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer import-time bootstrap off the generic function bridge", () => {
-        expect.assertions(60);
+        expect.assertions(61);
 
         const importTimeBootstrapSource = stripComments(
             readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
@@ -25641,7 +25653,10 @@ describe("architecture boundaries", () => {
             "subscribeToAppStartTime: AppStartTimeSubscriber;"
         );
         expect(importTimeBootstrapSource).toContain(
-            "showAboutModal: ((html?: string) => void) | undefined;"
+            "showAboutModal: ShowAboutModal | undefined;"
+        );
+        expect(importTimeBootstrapSource).toContain(
+            "ShowAboutModal,"
         );
         expect(importTimeBootstrapSource).toContain(
             "showNotification: ShowNotification | undefined;"

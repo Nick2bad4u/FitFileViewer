@@ -16,6 +16,7 @@ import type { RendererAddEventListener } from "./runtimeEnvironment.js";
 import type { RendererElectronApiScope } from "../utils/runtime/electronApiRuntime.js";
 import type {
     ListenForThemeChange,
+    ShowAboutModal,
     ShowNotification,
     ShowUpdateNotification,
 } from "./startupCallbackTypes.js";
@@ -46,7 +47,7 @@ export interface RendererDependencies {
     listenForThemeChange: ListenForThemeChange;
     openFileBtn: HTMLElement | null;
     setLoading: (loading: boolean) => void;
-    showAboutModal: ((html?: string) => void) | undefined;
+    showAboutModal: ShowAboutModal | undefined;
     showNotification: ShowNotification;
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
@@ -72,7 +73,7 @@ interface RendererApplicationStartupOptions {
     performanceMonitor: RendererPerformanceMonitor;
     runtime?: RendererApplicationStartupRuntime | undefined;
     setLoading: (loading: boolean) => void;
-    showAboutModal: ((html?: string) => void) | undefined;
+    showAboutModal: ShowAboutModal | undefined;
     showNotification: ShowNotification;
     showUpdateNotification: ShowUpdateNotification | undefined;
     setupListeners: RendererSetupListeners;

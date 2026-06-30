@@ -2,6 +2,7 @@ import type {
     RendererApplyTheme,
     RendererElectronMenuAction,
 } from "./electronApiStartupHooks.js";
+import type { ShowAboutModal } from "./startupCallbackTypes.js";
 
 type RendererElectronMenuLogLevel = "warn";
 
@@ -10,13 +11,11 @@ type RendererElectronMenuLogger = (
     ...args: unknown[]
 ) => void;
 
-type RendererElectronMenuAboutModal = (html?: string) => void;
-
 type RendererElectronMenuActionHandlersOptions = {
     readonly applyTheme: RendererApplyTheme;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronMenuLogger;
-    readonly showAboutModal: RendererElectronMenuAboutModal;
+    readonly showAboutModal: ShowAboutModal;
 };
 
 type RendererElectronMenuActionHandlers = {

@@ -1,5 +1,6 @@
 import type {
     ListenForThemeChange,
+    ShowAboutModal,
     ShowNotification,
     ShowUpdateNotification,
 } from "./startupCallbackTypes.js";
@@ -30,7 +31,7 @@ interface RendererImportTimeBootstrapOptions {
     isOpeningFileRef: RendererFileOpeningStateRef;
     listenForThemeChange: ListenForThemeChange;
     setLoading: (loading: boolean) => void;
-    showAboutModal: ((html?: string) => void) | undefined;
+    showAboutModal: ShowAboutModal | undefined;
     showNotification: ShowNotification | undefined;
     showUpdateNotification: ShowUpdateNotification | undefined;
     setupListeners: RendererSetupListeners;
