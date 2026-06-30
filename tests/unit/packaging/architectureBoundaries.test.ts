@@ -36192,7 +36192,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer global compatibility modules removed", () => {
-        expect.assertions(97);
+        expect.assertions(98);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const deprecationLedgerSource = readRepositoryFile(
@@ -36876,6 +36876,38 @@ describe("architecture boundaries", () => {
         const deletedCompatibilityFiles = compatibilityFilesThatMustStayDeleted
             .filter(hasRepositoryFile)
             .sort();
+        const deletedCompatibilityImportTargets = new Set(
+            compatibilityFilesThatMustStayDeleted.flatMap((relativeFile) => {
+                const extension = path.posix.extname(relativeFile);
+                if (!sourceExtensions.has(extension)) {
+                    return [];
+                }
+
+                const stem = relativeFile.slice(0, -extension.length);
+                return [...sourceExtensions].map(
+                    (candidateExtension) => `${stem}${candidateExtension}`
+                );
+            })
+        );
+        const deletedCompatibilityImportSpecifiers = scannedFiles
+            .flatMap((relativeFile) => {
+                const importerDirectory = path.posix.dirname(relativeFile);
+                return getImportSpecifiers(
+                    stripComments(readRepositoryFile(relativeFile))
+                ).flatMap((specifier) => {
+                    if (!specifier.startsWith(".")) {
+                        return [];
+                    }
+
+                    const resolvedPath = path.posix.normalize(
+                        path.posix.join(importerDirectory, specifier)
+                    );
+                    return deletedCompatibilityImportTargets.has(resolvedPath)
+                        ? [`${relativeFile} -> ${specifier}`]
+                        : [];
+                });
+            })
+            .sort();
 
         expect(directRuntimeGlobalDataMentions).toStrictEqual([]);
         expect(directGlobalDataWrites).toStrictEqual([]);
@@ -36976,6 +37008,7 @@ describe("architecture boundaries", () => {
         expect(directSettingsModalGlobalLookups).toStrictEqual([]);
         expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);
+        expect(deletedCompatibilityImportSpecifiers).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
         expect(deprecationLedgerSource).toContain(
             "Current status: retired for broad renderer utility globals"
