@@ -355,7 +355,7 @@ function scheduleMapReflowRefresh(): void {
     const raf = (onFrame: FrameRequestCallback): void => {
         const animationFrameHandle = runtime.requestAnimationFrame(onFrame);
         if (animationFrameHandle === undefined) {
-            void runtime.setTimeout(() => {
+            runtime.setTimeout(() => {
                 onFrame(0);
             }, 0);
         }

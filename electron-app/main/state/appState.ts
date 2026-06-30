@@ -43,10 +43,9 @@ type MainAppStatePathCoverage = Exclude<
     MainAppStateKnownPath
 >;
 
-const mainAppStatePathCoverage: MainAppStatePathCoverage extends never
-    ? true
-    : never = true;
-void mainAppStatePathCoverage;
+export type MainAppStatePathCoverageAssertion<
+    T extends never = MainAppStatePathCoverage,
+> = T;
 
 const mainAppStateKnownPathSet = new Set<string>(MAIN_APP_STATE_KNOWN_PATHS);
 

@@ -155,16 +155,12 @@ function scheduleAnimationFrame(
     callback: () => void,
     signal?: AbortSignal
 ): void {
-    const animationFrameId = chartHoverEffectsRuntime().requestAnimationFrame(
-        () => {
-            if (signal?.aborted === true) {
-                return;
-            }
-            callback();
+    chartHoverEffectsRuntime().requestAnimationFrame(() => {
+        if (signal?.aborted === true) {
+            return;
         }
-    );
-
-    void animationFrameId;
+        callback();
+    });
 }
 
 function scheduleTimeout(
@@ -172,14 +168,12 @@ function scheduleTimeout(
     delay: number,
     signal?: AbortSignal
 ): void {
-    const timeoutId = chartHoverEffectsRuntime().setTimeout(() => {
+    chartHoverEffectsRuntime().setTimeout(() => {
         if (signal?.aborted === true) {
             return;
         }
         callback();
     }, delay);
-
-    void timeoutId;
 }
 
 function isChartInstanceLike(value: unknown): value is ChartInstanceLike {

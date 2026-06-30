@@ -91,6 +91,17 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+function hasPromiseCatch(
+    value: unknown
+): value is { catch: (onRejected: (error: unknown) => void) => unknown } {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "catch" in value &&
+        typeof value.catch === "function"
+    );
+}
+
 function defaultGetProcessStringValue(
     property: RegisterUpdateMenuHandlersProcessStringName
 ): string | undefined {
@@ -151,12 +162,23 @@ export function registerUpdateMenuHandlers({
 
         const dialog = dialogRef();
         if (dialog && typeof dialog.showMessageBox === "function") {
-            void dialog.showMessageBox({
+            const messageBoxResult = dialog.showMessageBox({
                 message:
                     "Your Linux Distro does not support auto-updating, please download and install the latest version manually from the website.",
                 title: "Manual Update Required",
                 type: "info",
             });
+            if (hasPromiseCatch(messageBoxResult)) {
+                messageBoxResult.catch((error: unknown) => {
+                    logWithContext(
+                        "error",
+                        "Failed to show Linux manual update message:",
+                        {
+                            error: getErrorMessage(error),
+                        }
+                    );
+                });
+            }
         }
     };
 
@@ -181,7 +203,7 @@ export function registerUpdateMenuHandlers({
             const autoUpdater = await requireAutoUpdater(
                 resolveAutoUpdaterAsync
             );
-            void autoUpdater.checkForUpdates?.();
+            await autoUpdater.checkForUpdates?.();
         } catch (error) {
             logUpdaterError("Failed to check for updates:", error);
         }

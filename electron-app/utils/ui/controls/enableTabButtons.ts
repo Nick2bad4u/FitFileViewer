@@ -298,7 +298,7 @@ function enableButtonWithVerification(
 }
 
 function forceStyleRecalculation(button: HTMLElement): void {
-    void button.offsetHeight;
+    button.getBoundingClientRect();
 }
 
 function getButtonDisabled(button: HTMLElement): boolean {

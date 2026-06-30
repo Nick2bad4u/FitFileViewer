@@ -247,8 +247,7 @@ export function setupFullscreenListeners({
             if (typeof screenfull.off === "function") {
                 try {
                     screenfull.off("change", handleFullscreenStateChange);
-                } catch (error) {
-                    void error;
+                } catch {
                     /* ignore off errors */
                 }
             }
@@ -711,8 +710,7 @@ function logWithContext(
                 console.log(`${prefix} ${message}`);
             }
         }
-    } catch (error) {
-        void error;
+    } catch {
         // Silently fail if logging encounters an error
     }
 }

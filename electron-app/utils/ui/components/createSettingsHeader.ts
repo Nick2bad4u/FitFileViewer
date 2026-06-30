@@ -517,14 +517,13 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
                 const success = resetAllSettings();
 
                 // Re-enable button after reset completes
-                const resetTimer = createSettingsHeaderRuntime().setTimeout(
+                createSettingsHeaderRuntime().setTimeout(
                     () => {
                         resetBtn.style.opacity = "1";
                         resetBtn.disabled = false;
                     },
                     200
                 );
-                void resetTimer;
 
                 if (!success) {
                     console.error("[ResetBtn] Reset failed");

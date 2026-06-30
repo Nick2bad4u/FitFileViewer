@@ -64,8 +64,6 @@ export async function batchDOMReads<T>(readCallback: () => T[]): Promise<T[]> {
                 console.error("[BatchDOMReads] Read error:", error);
                 resolve([]);
             }
-        } else {
-            void animationFrameHandle;
         }
     });
 }
@@ -94,8 +92,6 @@ export async function batchDOMWrites(writeCallback: () => void): Promise<void> {
                 console.error("[BatchDOMWrites] Write error:", error);
                 resolve();
             }
-        } else {
-            void animationFrameHandle;
         }
     });
 }

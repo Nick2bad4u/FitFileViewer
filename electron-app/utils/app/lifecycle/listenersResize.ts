@@ -121,8 +121,6 @@ function scheduleExistingChartResizes(
                 resizeExistingCharts(runtime);
             }, 0)
         );
-    } else {
-        void animationFrameHandle;
     }
 
     timerHandles.push(

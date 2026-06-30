@@ -681,10 +681,9 @@ function toggleAllFields(
             runtime
         );
 
-        const statusTimer = runtime.setTimeout(() => {
+        runtime.setTimeout(() => {
             updateAllChartStatusIndicators();
         }, 100);
-        void statusTimer;
     } catch (error) {
         console.error("[Settings] Error toggling all fields:", error);
         void showNotification("Error updating chart visibility", "error");

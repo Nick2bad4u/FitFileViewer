@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { patchSummaryFields } from "../../../../../electron-app/utils/data/processing/patchSummaryFields.js";
+import {
+    patchSummaryFields,
+    type SummaryRecord,
+} from "../../../../../electron-app/utils/data/processing/patchSummaryFields.js";
 
 describe(patchSummaryFields, () => {
     it("formats common summary metrics in place", () => {
         expect.assertions(13);
 
-        const summary = {
+        const summary: SummaryRecord = {
             avg_cadence: 91.7,
             avg_heart_rate: 142.2,
             avg_left_power_phase: [1.234, 5.678],

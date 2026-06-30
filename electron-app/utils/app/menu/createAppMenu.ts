@@ -221,8 +221,7 @@ function getConf(): ConfLike {
                 return def;
             },
             set(_key: string, _val: unknown): void {
-                void _key;
-                void _val;
+                /* no-op fallback store */
             },
         };
         __confInstance = fallback;

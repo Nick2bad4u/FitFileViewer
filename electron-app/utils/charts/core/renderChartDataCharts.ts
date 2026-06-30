@@ -70,36 +70,34 @@ export function renderChartDataCharts(
         },
         input
     );
-    if (primaryFieldRenderResult.aborted) {
-        return primaryFieldRenderResult;
-    }
-
-    renderSupplementalCharts(
-        {
-            chartContainer: dependencies.chartContainer,
-            labels: input.labels,
-            renderers: dependencies.renderers,
-            visibility: {
-                getFieldVisibility: dependencies.getFieldVisibility,
+    if (!primaryFieldRenderResult.aborted) {
+        renderSupplementalCharts(
+            {
+                chartContainer: dependencies.chartContainer,
+                labels: input.labels,
+                renderers: dependencies.renderers,
+                visibility: {
+                    getFieldVisibility: dependencies.getFieldVisibility,
+                },
             },
-        },
-        {
-            animationStyle: input.animationStyle,
-            chartType: input.chartType,
-            customColors: input.customColors,
-            data: input.recordMesgs,
-            interpolation: input.interpolation,
-            maxPoints: input.normalizedMaxPoints,
-            showFill: input.boolSettings.showFill,
-            showGrid: input.boolSettings.showGrid,
-            showLegend: input.boolSettings.showLegend,
-            showPoints: input.boolSettings.showPoints,
-            showTitle: input.boolSettings.showTitle,
-            smoothing: input.smoothing,
-            startTime: input.startTime,
-            zoomPluginConfig: input.zoomPluginConfig,
-        }
-    );
+            {
+                animationStyle: input.animationStyle,
+                chartType: input.chartType,
+                customColors: input.customColors,
+                data: input.recordMesgs,
+                interpolation: input.interpolation,
+                maxPoints: input.normalizedMaxPoints,
+                showFill: input.boolSettings.showFill,
+                showGrid: input.boolSettings.showGrid,
+                showLegend: input.boolSettings.showLegend,
+                showPoints: input.boolSettings.showPoints,
+                showTitle: input.boolSettings.showTitle,
+                smoothing: input.smoothing,
+                startTime: input.startTime,
+                zoomPluginConfig: input.zoomPluginConfig,
+            }
+        );
+    }
 
     return primaryFieldRenderResult;
 }

@@ -394,8 +394,7 @@ export function createWindow(): BrowserWindowInstance {
             logWithContext("info", "Window displayed successfully");
         });
 
-        void win
-            .loadFile(path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX))
+        win.loadFile(path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX))
             .then(() => {
                 logWithContext("info", "Main HTML file loaded successfully");
             })

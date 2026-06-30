@@ -283,8 +283,7 @@ export function getChartHoverEffectsRuntime(
                 }
 
                 const setTimeoutRef = getRequiredSetTimeout(scope);
-                const timeoutHandle = setTimeoutRef(resolve, 0);
-                void timeoutHandle;
+                setTimeoutRef(resolve, 0);
             });
         },
     };

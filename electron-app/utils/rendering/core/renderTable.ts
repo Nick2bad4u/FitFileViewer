@@ -166,8 +166,6 @@ export function renderTable(
                 } catch {
                     /* ignore */
                 }
-            } else {
-                void animationFrameHandle;
             }
         } catch (error) {
             console.error(
