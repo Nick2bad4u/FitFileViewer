@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     clearDataTableRuntimeForTests,
     isRegisteredDataTableRuntime,
+    type RegisteredDataTableRuntime,
     resolveDataTableRuntime,
     setDataTableRuntime,
 } from "../../../../../electron-app/utils/rendering/core/dataTableRuntime.js";
@@ -21,12 +22,18 @@ describe("dataTableRuntime", () => {
         clearDataTableRuntimeForTests();
     });
 
+    function createDataTableRuntime(): RegisteredDataTableRuntime {
+        return Object.assign(function DataTableRuntime() {}, {
+            isDataTable() {
+                return false;
+            },
+        });
+    }
+
     it("resolves the registered DataTables runtime", () => {
         expect.assertions(1);
 
-        const runtime = Object.assign(function DataTableRuntime() {}, {
-            isDataTable() {},
-        });
+        const runtime = createDataTableRuntime();
 
         setDataTableRuntime(runtime);
 
@@ -36,9 +43,7 @@ describe("dataTableRuntime", () => {
     it("clears the module-local runtime adapter", () => {
         expect.assertions(1);
 
-        const runtime = Object.assign(function DataTableRuntime() {}, {
-            isDataTable() {},
-        });
+        const runtime = createDataTableRuntime();
         setDataTableRuntime(runtime);
 
         clearDataTableRuntimeForTests();
@@ -49,11 +54,7 @@ describe("dataTableRuntime", () => {
     it("validates registered DataTables runtime payloads", () => {
         expect.assertions(4);
 
-        const runtime = Object.assign(function DataTableRuntime() {}, {
-            isDataTable() {
-                return false;
-            },
-        });
+        const runtime = createDataTableRuntime();
 
         expect(isRegisteredDataTableRuntime(runtime)).toBe(true);
         expect(isRegisteredDataTableRuntime({ isDataTable() {} })).toBe(false);
