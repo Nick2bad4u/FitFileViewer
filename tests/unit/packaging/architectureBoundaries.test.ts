@@ -21109,7 +21109,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab content DOM lookups behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(31);
 
         const violations = migratedGetActiveTabContentRuntimeFiles
             .filter((relativeFile) =>
@@ -21154,6 +21154,16 @@ describe("architecture boundaries", () => {
         expect(activeTabContentSource).toContain("queryTabContents");
         expect(activeTabContentSource).toContain("querySelector");
         expect(activeTabContentSource).toContain("getElementByIdFlexible");
+        expect(activeTabContentSource).toContain(
+            "getRendererActiveTabContentFromState"
+        );
+        expect(activeTabContentSource).toContain(
+            "getRendererCoreStateManager"
+        );
+        expect(activeTabContentSource).toContain("getContentIdFromTabName");
+        expect(activeTabContentSource).not.toContain(
+            "legacy + test-friendly"
+        );
         expect(activeTabContentRuntimeSource).toContain(
             "defaultGetActiveTabContentRuntimeScope"
         );

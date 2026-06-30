@@ -1,15 +1,19 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getActiveTabContent } from "../../../../../electron-app/utils/rendering/helpers/getActiveTabContent.js";
+import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 function resetDom(): void {
     document.body.replaceChildren();
 }
 
 describe(getActiveTabContent, () => {
+    beforeEach(() => {
+        resetDom();
+        stateManager.__resetStateManagerForTests();
+    });
+
     it("prefers the first tab content with inline block display", () => {
         expect.assertions(1);
-
-        resetDom();
 
         const hidden = document.createElement("section");
         hidden.className = "tab-content";
@@ -28,10 +32,29 @@ describe(getActiveTabContent, () => {
         expect(getActiveTabContent()).toBe(visible);
     });
 
-    it("falls back to active tab content without requiring inline styles", () => {
+    it("prefers visible active-tab state over stale active DOM classes", () => {
         expect.assertions(1);
 
-        resetDom();
+        const staleSummary = document.createElement("section");
+        staleSummary.className = "tab-content active";
+        staleSummary.id = "content_summary";
+
+        const activeMap = document.createElement("section");
+        activeMap.className = "tab-content";
+        activeMap.id = "content_map";
+        activeMap.style.display = "flex";
+        activeMap.setAttribute("aria-hidden", "false");
+
+        document.body.append(staleSummary, activeMap);
+        stateManager.setState("ui.activeTabContent", "map", {
+            source: "test",
+        });
+
+        expect(getActiveTabContent()).toBe(activeMap);
+    });
+
+    it("falls back to active tab content without requiring inline styles", () => {
+        expect.assertions(1);
 
         const inactive = document.createElement("section");
         inactive.className = "tab-content";
@@ -46,8 +69,6 @@ describe(getActiveTabContent, () => {
 
     it("falls back to aria-visible tab content", () => {
         expect.assertions(1);
-
-        resetDom();
 
         const hidden = document.createElement("section");
         hidden.className = "tab-content";
@@ -65,8 +86,6 @@ describe(getActiveTabContent, () => {
     it("derives active content from active tab button id variants", () => {
         expect.assertions(1);
 
-        resetDom();
-
         const tabContent = document.createElement("section");
         tabContent.className = "tab-content";
         tabContent.id = "content_power_curve";
@@ -83,7 +102,6 @@ describe(getActiveTabContent, () => {
     it("returns null and warns when no tab content exists", () => {
         expect.assertions(2);
 
-        resetDom();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         try {

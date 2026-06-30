@@ -7,9 +7,16 @@ import {
     getGetActiveTabContentRuntime,
     type GetActiveTabContentRuntime,
 } from "./getActiveTabContentRuntime.js";
+import { getRendererActiveTabContentFromState } from "../../state/domain/rendererActiveTabState.js";
+import { getRendererCoreStateManager } from "../../state/domain/rendererStateManagerAccess.js";
+import {
+    extractTabNameFromButtonId,
+    getContentIdFromTabName,
+} from "../../ui/tabs/tabIdUtils.js";
 
 // CSS display states
 const DISPLAY_STATES = {
+    FLEX: "flex",
     HIDDEN: "none",
     VISIBLE: "block",
 } as const;
@@ -24,6 +31,46 @@ function getActiveTabContentRuntime(): GetActiveTabContentRuntime {
     return getGetActiveTabContentRuntime();
 }
 
+function isVisibleTabContentElement(element: HTMLElement): boolean {
+    if (
+        element.style.display === DISPLAY_STATES.HIDDEN ||
+        element.getAttribute("aria-hidden") === "true"
+    ) {
+        return false;
+    }
+
+    return (
+        element.style.display === DISPLAY_STATES.VISIBLE ||
+        element.style.display === DISPLAY_STATES.FLEX ||
+        element.getAttribute("aria-hidden") === "false" ||
+        element.classList.contains("active")
+    );
+}
+
+function getStateBackedActiveTabContent(
+    runtime: GetActiveTabContentRuntime
+): HTMLElement | null {
+    try {
+        const stateManager = getRendererCoreStateManager();
+        if (!stateManager) {
+            return null;
+        }
+
+        const tabName = getRendererActiveTabContentFromState(
+            stateManager.getState
+        );
+        const contentElement = runtime.getElementByIdFlexible(
+            getContentIdFromTabName(tabName)
+        );
+
+        return contentElement && isVisibleTabContentElement(contentElement)
+            ? contentElement
+            : null;
+    } catch {
+        return null;
+    }
+}
+
 /**
  * Gets the currently active (visible) tab content element
  *
@@ -33,17 +80,20 @@ function getActiveTabContentRuntime(): GetActiveTabContentRuntime {
  */
 export function getActiveTabContent(): Element | null {
     try {
-        const tabContents = getActiveTabContentRuntime().queryTabContents(
-            SELECTORS.TAB_CONTENT
-        );
+        const runtime = getActiveTabContentRuntime();
+        const tabContents = runtime.queryTabContents(SELECTORS.TAB_CONTENT);
 
         if (tabContents.length === 0) {
             console.warn(`${LOG_PREFIX} No tab content elements found`);
             return null;
         }
 
-        // Primary strategy (legacy + test-friendly): Find the first visible tab content element
-        // by checking its *inline* display style.
+        const stateBackedContent = getStateBackedActiveTabContent(runtime);
+        if (stateBackedContent) {
+            return stateBackedContent;
+        }
+
+        // Inline display fallback for older callers and narrow test fixtures.
         for (const element of tabContents) {
             if (element.style.display === DISPLAY_STATES.VISIBLE) {
                 return element;
@@ -54,7 +104,7 @@ export function getActiveTabContent(): Element | null {
         // rather than an inline style. These fallbacks intentionally do not use getComputedStyle
         // because JSDOM defaults can cause false positives in unit tests.
         try {
-            const activeByClass = getActiveTabContentRuntime().querySelector(
+            const activeByClass = runtime.querySelector(
                 `${SELECTORS.TAB_CONTENT}.active`
             );
             if (activeByClass) {
@@ -65,7 +115,7 @@ export function getActiveTabContent(): Element | null {
         }
 
         try {
-            const activeByAria = getActiveTabContentRuntime().querySelector(
+            const activeByAria = runtime.querySelector(
                 `${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`
             );
             if (activeByAria) {
@@ -78,24 +128,15 @@ export function getActiveTabContent(): Element | null {
         // Final strategy: derive active content from the active tab button id
         // and map to content-* using flexible ID lookup.
         try {
-            const activeBtn =
-                getActiveTabContentRuntime().querySelector<HTMLElement>(
-                    ".tab-button.active"
+            const activeBtn = runtime.querySelector<HTMLElement>(
+                ".tab-button.active"
+            );
+            const activeId = activeBtn?.id ?? "";
+            const tabName = extractTabNameFromButtonId(activeId);
+            if (tabName !== activeId) {
+                const contentEl = runtime.getElementByIdFlexible(
+                    getContentIdFromTabName(tabName)
                 );
-            const activeId =
-                activeBtn && typeof activeBtn.id === "string"
-                    ? activeBtn.id
-                    : "";
-            const match = /^tab[-_]?(.+)$/iu.exec(activeId);
-            if (match && match[1]) {
-                const rawName = String(match[1]);
-                const normalized = rawName
-                    .replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_")
-                    .toLowerCase();
-                const contentEl =
-                    getActiveTabContentRuntime().getElementByIdFlexible(
-                        `content_${normalized}`
-                    );
                 if (contentEl) {
                     return contentEl;
                 }
