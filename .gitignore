@@ -369,3 +369,5 @@ docusaurus/static/img/screenshots/MapsV2.png
 
 # Docusaurus generated API docs
 docusaurus/docs/api/
+.lychee.report.md
+.lycheecache
