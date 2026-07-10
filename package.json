@@ -283,7 +283,8 @@
             "ajv": "^8.20.0",
             "minimatch": "^9.0.9",
             "yaml": "^2.9.0"
-        }
+        },
+        "yauzl": "^3.4.0"
     },
     "dependencies": {
         "@garmin/fitsdk": "^21.205.0",
