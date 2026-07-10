@@ -155,7 +155,7 @@
         "package.json"
     ],
     "scripts": {
-        "audit": "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=high",
+        "audit": "node scripts/run-audit.mjs",
         "build": "node scripts/build-package.mjs",
         "build:all": "node scripts/build-package.mjs -mwl",
         "build:ci-matrix": "node scripts/build-ci-matrix.mjs",
@@ -174,9 +174,11 @@
         "build:prod": "node scripts/build-package.mjs --node-env production",
         "build:renderer": "vite build --config vite.renderer.config.mjs",
         "build:runtime-ts": "node scripts/build-runtime.mjs",
-        "changelog": "git-cliff --config cliff.toml --output CHANGELOG.md",
         "changelog:check-run": "node scripts/update-changelog-check-run.mjs",
         "changelog:commit": "node scripts/commit-changelog-workflow.mjs",
+        "changelog:generate": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/FitFileViewer --output CHANGELOG.md",
+        "changelog:preview": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/FitFileViewer --unreleased",
+        "changelog:release-notes": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/FitFileViewer --current",
         "changelog:summary": "node scripts/update-changelog-job-summary.mjs",
         "changelog:workflow": "node scripts/generate-changelog-workflow.mjs",
         "clean:workspace": "node scripts/clean-workspace.mjs",
@@ -214,6 +216,9 @@
         "lint:docusaurus:content": "markdownlint \"docusaurus/docs/**/*.{md,mdx}\" \"!docusaurus/docs/api/**/*.md\" \"docusaurus/blog/**/*.{md,mdx}\" \"docusaurus/src/**/*.{md,mdx}\" --config .markdownlint.json",
         "lint:docusaurus:fix": "node scripts/run-eslint.mjs docusaurus --fix && npm run lint:docusaurus:content",
         "lint:fix": "npm run lint:root:fix && npm run lint:app:fix && npm run lint:docusaurus:fix",
+        "lint:jscpd": "jscpd --config node_modules/jscpd-config-nick2bad4u/jscpd.json",
+        "lint:lychee": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml .",
+        "lint:lychee:smoke": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml --dump-inputs README.md",
         "lint:remark": "remark docs docusaurus/docs docusaurus/blog docusaurus/src --quiet --frail --rc-path .remarkrc.mjs --ignore-pattern \"docusaurus/docs/api/**\"",
         "lint:root": "node scripts/run-eslint.mjs root",
         "lint:root:fix": "node scripts/run-eslint.mjs root --fix",
@@ -225,8 +230,8 @@
         "perf:compare": "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --sample-count 3 --compare artifacts/performance-baseline.previous.json --output artifacts/performance-baseline.current.json",
         "perf:trend": "npm run prepare:electron && npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --sample-count 3 --compare-if-exists artifacts/performance-baseline.previous.json --output artifacts/performance-baseline-cache/performance-baseline.json",
         "prepare:electron": "node scripts/ensure-electron-binary.mjs",
-        "prettier": "prettier package.json docusaurus/package.json docusaurus/docusaurus.config.ts docusaurus/sidebars.ts docusaurus/tsconfig.json typedoc.json .markdown-link-check.json .markdownlint.json .ncurc.json .pre-commit-config.yaml .secretlintrc.cjs cliff.toml codecov.yml cspell.json electron-builder.config.cjs flatpak-build.yml mermaid.config.json prettier.config.mjs stylelint.config.mjs .remarkrc.mjs eslint.config.mjs playwright.config.ts vite.renderer.config.mjs vitest.config.ts tsconfig.eslint.json tsconfig.app.base.json tsconfig.app.json tsconfig.runtime.json tsconfig.docusaurus.json tsconfig.vitest-typecheck.json tsconfig.app.eslint.json \"*.yml\" \"*.yaml\" \".github/*.yml\" \".github/workflows/*.yml\" \"scripts/*.mjs\" \"tests/fixtures/**/*.{js,ts}\" \"tests/integration/**/*.ts\" \"tests/unit/**/*.ts\" \"tests/playwright/**/*.ts\" \"tests/vitest/**/*.{cjs,mjs,ts}\" electron-app/renderer/leafletMeasureLite.js electron-app/renderer/leafletMeasureLiteRuntime.js --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
-        "prettier:fix": "prettier package.json docusaurus/package.json docusaurus/docusaurus.config.ts docusaurus/sidebars.ts docusaurus/tsconfig.json typedoc.json .markdown-link-check.json .markdownlint.json .ncurc.json .pre-commit-config.yaml .secretlintrc.cjs cliff.toml codecov.yml cspell.json electron-builder.config.cjs flatpak-build.yml mermaid.config.json prettier.config.mjs stylelint.config.mjs .remarkrc.mjs eslint.config.mjs playwright.config.ts vite.renderer.config.mjs vitest.config.ts tsconfig.eslint.json tsconfig.app.base.json tsconfig.app.json tsconfig.runtime.json tsconfig.docusaurus.json tsconfig.vitest-typecheck.json tsconfig.app.eslint.json \"*.yml\" \"*.yaml\" \".github/*.yml\" \".github/workflows/*.yml\" \"scripts/*.mjs\" \"tests/fixtures/**/*.{js,ts}\" \"tests/integration/**/*.ts\" \"tests/unit/**/*.ts\" \"tests/playwright/**/*.ts\" \"tests/vitest/**/*.{cjs,mjs,ts}\" electron-app/renderer/leafletMeasureLite.js electron-app/renderer/leafletMeasureLiteRuntime.js --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",
+        "prettier": "prettier package.json docusaurus/package.json docusaurus/docusaurus.config.ts docusaurus/sidebars.ts docusaurus/tsconfig.json typedoc.json .markdown-link-check.json .markdownlint.json .ncurc.json .pre-commit-config.yaml .secretlintrc.cjs .release.yml codecov.yml cspell.json electron-builder.config.cjs flatpak-build.yml mermaid.config.json prettier.config.mjs stylelint.config.mjs .remarkrc.mjs eslint.config.mjs playwright.config.ts vite.renderer.config.mjs vitest.config.ts tsconfig.eslint.json tsconfig.app.base.json tsconfig.app.json tsconfig.runtime.json tsconfig.docusaurus.json tsconfig.vitest-typecheck.json tsconfig.app.eslint.json \"*.yml\" \"*.yaml\" \".github/*.yml\" \".github/workflows/*.yml\" \"scripts/*.mjs\" \"tests/fixtures/**/*.{js,ts}\" \"tests/integration/**/*.ts\" \"tests/unit/**/*.ts\" \"tests/playwright/**/*.ts\" \"tests/vitest/**/*.{cjs,mjs,ts}\" electron-app/renderer/leafletMeasureLite.js electron-app/renderer/leafletMeasureLiteRuntime.js --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --check",
+        "prettier:fix": "prettier package.json docusaurus/package.json docusaurus/docusaurus.config.ts docusaurus/sidebars.ts docusaurus/tsconfig.json typedoc.json .markdown-link-check.json .markdownlint.json .ncurc.json .pre-commit-config.yaml .secretlintrc.cjs .release.yml codecov.yml cspell.json electron-builder.config.cjs flatpak-build.yml mermaid.config.json prettier.config.mjs stylelint.config.mjs .remarkrc.mjs eslint.config.mjs playwright.config.ts vite.renderer.config.mjs vitest.config.ts tsconfig.eslint.json tsconfig.app.base.json tsconfig.app.json tsconfig.runtime.json tsconfig.docusaurus.json tsconfig.vitest-typecheck.json tsconfig.app.eslint.json \"*.yml\" \"*.yaml\" \".github/*.yml\" \".github/workflows/*.yml\" \"scripts/*.mjs\" \"tests/fixtures/**/*.{js,ts}\" \"tests/integration/**/*.ts\" \"tests/unit/**/*.ts\" \"tests/playwright/**/*.ts\" \"tests/vitest/**/*.{cjs,mjs,ts}\" electron-app/renderer/leafletMeasureLite.js electron-app/renderer/leafletMeasureLiteRuntime.js --log-level warn --cache --cache-location=.cache/.prettier-cache --cache-strategy=content --write",
         "release:bump-version": "node scripts/bump-app-version.mjs",
         "release:check-signing": "node scripts/check-signing-env.mjs",
         "release:check-signing:required": "node scripts/check-signing-env.mjs --require-signing",
@@ -241,6 +246,7 @@
         "release:rename-windows-latest-yml": "node scripts/rename-windows-latest-yml.mjs",
         "release:summary": "node scripts/update-release-job-summary.mjs",
         "release:verify": "npm run verify:release",
+        "release:verify-assets": "node scripts/verify-release-assets.mjs",
         "release:verify-signing-artifacts": "node scripts/verify-signed-artifacts.mjs",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222",
         "start:prod": "node scripts/start-electron.mjs --electron-is-dev 0",
@@ -268,13 +274,7 @@
         "verify:fast": "npm run sync:node-version-files:check && npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
         "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
         "verify:release": "npm run verify:full",
-        "verify:release:signed": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged",
-        "lint:jscpd": "jscpd --config node_modules/jscpd-config-nick2bad4u/jscpd.json",
-        "changelog:generate": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/FitFileViewer --output CHANGELOG.md",
-        "changelog:preview": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/FitFileViewer --unreleased",
-        "changelog:release-notes": "git cliff --config node_modules/gitcliff-config-nick2bad4u/cliff.toml --github-repo Nick2bad4u/FitFileViewer --current",
-        "lint:lychee": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml .",
-        "lint:lychee:smoke": "lychee --config node_modules/lychee-config-nick2bad4u/lychee.toml --dump-inputs README.md"
+        "verify:release:signed": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package:signed && cross-env REQUIRE_CODE_SIGNING=true npm run release:verify-signing-artifacts && npm run test:packaged"
     },
     "overrides": {
         "esbuild": "^0.28.1",
@@ -355,7 +355,8 @@
         "typedoc-plugin-markdown": "^4.12.0",
         "typescript": "^6.0.3",
         "vite": "^8.0.16",
-        "vitest": "^4.1.8"
+        "vitest": "^4.1.8",
+        "yaml": "^2.9.0"
     },
     "packageManager": "npm@11.16.0",
     "engines": {

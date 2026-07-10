@@ -5,6 +5,7 @@ import type { Mock } from "vitest";
 
 type AutoUpdaterLike = {
     autoDownload: boolean;
+    channel?: string;
     feedURL?: string;
     on: (event: string, listener: (...args: unknown[]) => void) => void;
     removeListener: (
@@ -26,7 +27,12 @@ type MainWindowLike = {
 type SetupAutoUpdaterModule = {
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
-        autoUpdater: AutoUpdaterLike | null
+        autoUpdater: AutoUpdaterLike | null,
+        runtime?: {
+            getProcessStringValue: (
+                property: "arch" | "platform"
+            ) => string | undefined;
+        }
     ) => void;
 };
 
@@ -133,6 +139,30 @@ describe("setupAutoUpdater", () => {
                 "update-not-available",
             ],
             setupResult: undefined,
+        });
+    });
+
+    it("selects the dedicated updater channel for 32-bit Windows installs", async () => {
+        expect.assertions(1);
+
+        const { setupAutoUpdater } = await importSetupAutoUpdater();
+        const autoUpdater: AutoUpdaterLike = {
+            autoDownload: false,
+            on: vi.fn(),
+            removeListener: vi.fn(),
+        };
+
+        setupAutoUpdater(createMainWindow(), autoUpdater, {
+            getProcessStringValue: (property) =>
+                property === "platform" ? "win32" : "ia32",
+        });
+
+        expect({
+            autoDownload: autoUpdater.autoDownload,
+            channel: autoUpdater.channel,
+        }).toStrictEqual({
+            autoDownload: true,
+            channel: "latest-win32",
         });
     });
 });

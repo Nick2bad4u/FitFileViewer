@@ -4,12 +4,14 @@ import { logWithContext } from "../logging/logWithContext.js";
 import { menuRef } from "../runtime/electronAccess.js";
 import { mainProcessState, setAutoUpdaterState } from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
+import { getProcessStringValue } from "../../utils/runtime/processEnvironment.js";
 import electronLog from "electron-log";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
 interface AutoUpdaterLike {
     autoDownload?: boolean;
+    channel?: string;
     checkForUpdatesAndNotify?: () => unknown;
     feedURL?: unknown;
     logger?: unknown;
@@ -28,6 +30,7 @@ interface UpdaterLoggerLike {
 
 type ConfigurableAutoUpdater = AutoUpdaterLike & {
     autoDownload: boolean;
+    channel?: string;
     feedURL?: unknown;
     logger?: UpdaterLoggerLike;
     on: (event: string, listener: (...args: unknown[]) => void) => unknown;
@@ -48,6 +51,16 @@ interface MenuLike {
 interface MenuModuleLike {
     getApplicationMenu?: () => MenuLike | null;
 }
+
+interface SetupAutoUpdaterRuntime {
+    getProcessStringValue: (
+        property: "arch" | "platform"
+    ) => string | undefined;
+}
+
+const defaultSetupAutoUpdaterRuntime: SetupAutoUpdaterRuntime = {
+    getProcessStringValue,
+};
 
 const runtimeMenuRef = menuRef as () => MenuModuleLike | undefined;
 function getErrorMessage(error: unknown): string {
@@ -176,7 +189,8 @@ function logFeedUrl(updater: ConfigurableAutoUpdater): void {
  */
 export function setupAutoUpdater(
     mainWindow?: MainWindowLike | null,
-    providedAutoUpdater?: AutoUpdaterLike | null
+    providedAutoUpdater?: AutoUpdaterLike | null,
+    runtime: SetupAutoUpdaterRuntime = defaultSetupAutoUpdaterRuntime
 ): void {
     // Allow tests to explicitly pass `null` to exercise the "no updater available" path.
     const autoUpdater = providedAutoUpdater;
@@ -203,6 +217,7 @@ export function setupAutoUpdater(
 
     const updater = autoUpdater as ConfigurableAutoUpdater;
     updater.autoDownload = true;
+    configureWindowsUpdaterChannel(updater, runtime);
     updater.logger = resolveLogger();
     applyLoggerFileLevel(updater.logger);
     logFeedUrl(updater);
@@ -266,5 +281,17 @@ export function setupAutoUpdater(
                 handlerId
             );
         }
+    }
+}
+
+function configureWindowsUpdaterChannel(
+    updater: ConfigurableAutoUpdater,
+    runtime: SetupAutoUpdaterRuntime
+): void {
+    const platform = runtime.getProcessStringValue("platform");
+    const arch = runtime.getProcessStringValue("arch");
+
+    if (platform === "win32" && arch === "ia32") {
+        updater.channel = "latest-win32";
     }
 }

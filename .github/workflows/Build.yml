@@ -371,7 +371,7 @@ jobs:
               run: node scripts/rename-squirrel-win32-release-assets.mjs
               continue-on-error: true
 
-            - name: Create or update release with distributable builds
+            - name: Create draft release with distributable builds
               id: release
               uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
               with:
@@ -480,11 +480,25 @@ jobs:
                       _Thank you for using **FitFileViewer**!_
 
                   files: release-dist/**
-                  draft: false
+                  draft: true
                   prerelease: false
-                  make_latest: true
+                  make_latest: false
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Verify uploaded release and updater assets
+              run: >
+                  npm run release:verify-assets --
+                  --tag "v${{ needs.bump-version.outputs.new_version }}"
+                  --version "${{ needs.bump-version.outputs.new_version }}"
+                  --require-draft
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish verified release
+              run: gh release edit "v${{ needs.bump-version.outputs.new_version }}" --draft=false --latest
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: Add Job Summary
               if: always()
               run: node scripts/update-release-job-summary.mjs

@@ -242,7 +242,7 @@ const rendererDependencyInventoryPath = path.posix.join(
 );
 
 const expectedRootToolingScripts = {
-    audit: "npm audit --audit-level=moderate && npm --prefix docusaurus audit --audit-level=high",
+    audit: "node scripts/run-audit.mjs",
     "docs:install": "npm ci --prefix docusaurus --no-audit --no-fund",
     lint: "npm run lint:secretlint && npm run lint:root && npm run lint:app && npm run lint:docusaurus && npm run lint:remark",
     "lint:app": "node scripts/run-eslint.mjs app && npm run typecheck",
@@ -1066,7 +1066,6 @@ describe("workspace package boundaries", () => {
             ...localPackageManagerManifestNames,
             ...localToolingConfigNames,
             ".pre-commit-config.yaml",
-            "cliff.toml",
             "codecov.yml",
             "cspell.json",
             "electron-builder.config.cjs",

@@ -1,0 +1,25 @@
+auto-update:
+    metadata:
+        linux-x64: latest-linux.yml
+        macos-universal: latest-mac.yml
+        windows-ia32: latest-win32.yml
+        windows-x64: latest.yml
+    provider: github
+
+release:
+    asset-verification-command: npm run release:verify-assets
+    draft-first: true
+    publish-after-verification: true
+    trigger: workflow_dispatch
+    verification-command: npm run release:verify
+    workflow: .github/workflows/Build.yml
+
+signing:
+    linux: not-applicable
+    macos: required
+    windows: required
+
+versioning:
+    next-version-command: npm run release:bump-version
+    source: package.json
+    strategy: increment-minor-and-roll-minor-nine-to-next-major

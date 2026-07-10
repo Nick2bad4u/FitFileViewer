@@ -45,6 +45,14 @@ export function isTopLevelDistributable(fileName) {
     );
 }
 
+export function hasUniversalMacZip(topLevelDistributableEntries) {
+    return topLevelDistributableEntries.some(
+        (entry) =>
+            entry.isFile() &&
+            /^Fit-File-Viewer-darwin-universal-.+\.zip$/u.test(entry.name)
+    );
+}
+
 export function organizeDistributables(options = {}) {
     const artifactsDirectory =
         options.artifactsDirectory ?? defaultArtifactsDirectory;
@@ -157,11 +165,25 @@ export function organizeDistributables(options = {}) {
             );
 
             fs.copyFileSync(latestMacPath, renamedLatestMacPath);
-            fs.rmSync(latestMacPath, { force: true });
             copiedFiles.push({
                 from: normalizePath(latestMacPath),
                 to: normalizePath(renamedLatestMacPath),
             });
+
+            if (hasUniversalMacZip(topLevelDistributableEntries)) {
+                const canonicalLatestMacPath = path.join(
+                    outputDirectory,
+                    "latest-mac.yml"
+                );
+
+                fs.copyFileSync(latestMacPath, canonicalLatestMacPath);
+                copiedFiles.push({
+                    from: normalizePath(latestMacPath),
+                    to: normalizePath(canonicalLatestMacPath),
+                });
+            }
+
+            fs.rmSync(latestMacPath, { force: true });
         }
 
         for (const subdirectory of updaterSubdirectories) {

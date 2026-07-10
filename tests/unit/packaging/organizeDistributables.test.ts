@@ -203,7 +203,7 @@ describe("organize-distributables script", () => {
         });
     });
 
-    it("renames mac latest metadata and removes generic latest-mac copies", async () => {
+    it("preserves universal mac metadata as the canonical updater channel", async () => {
         expect.assertions(1);
 
         const { organizeDistributables } = await importOrganizeDistributables();
@@ -222,8 +222,17 @@ describe("organize-distributables script", () => {
             "macos-latest-arm64",
             "latest-macos-latest-arm64.yml"
         );
+        const canonicalLatestMacOutput = "latest-mac.yml";
 
         writeArtifact(artifactsDirectory, latestMacSource, "latest-mac");
+        writeArtifact(
+            artifactsDirectory,
+            path.join(
+                "dist-macos-latest-arm64",
+                "Fit-File-Viewer-darwin-universal-30.0.0.zip"
+            ),
+            "universal"
+        );
 
         const result = organizeDistributables({
             artifactsDirectory,
@@ -235,9 +244,14 @@ describe("organize-distributables script", () => {
                 path.basename(to)
             ),
             outputPathStates: getPathStates(outputDirectory, [
+                canonicalLatestMacOutput,
                 latestMacOutput,
                 renamedLatestMacOutput,
             ]),
+            canonicalLatestMacContent: fs.readFileSync(
+                path.join(outputDirectory, canonicalLatestMacOutput),
+                "utf8"
+            ),
             renamedLatestMacContent: fs.readFileSync(
                 path.join(outputDirectory, renamedLatestMacOutput),
                 "utf8"
@@ -247,13 +261,17 @@ describe("organize-distributables script", () => {
             ]),
         }).toStrictEqual({
             copiedFileNames: [
+                "Fit-File-Viewer-darwin-universal-30.0.0.zip",
                 "latest-mac.yml",
                 "latest-macos-latest-arm64.yml",
+                "latest-mac.yml",
             ],
             outputPathStates: {
+                [canonicalLatestMacOutput]: "present",
                 [latestMacOutput]: "missing",
                 [renamedLatestMacOutput]: "present",
             },
+            canonicalLatestMacContent: "latest-mac",
             renamedLatestMacContent: "latest-mac",
             sourcePathStates: {
                 [latestMacSource]: "missing",

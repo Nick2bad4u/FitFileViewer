@@ -143,6 +143,7 @@ type WorkspacesModule = {
     rootPrettierIgnorePath: string;
     rootPreCommitConfigPath: string;
     rootRemarkConfigPath: string;
+    rootReleaseMetadataPath: string;
     rootReleaseDistPath: string;
     rootReleaseDistAbsolutePath: string;
     rootReleaseDistRelativePath: (...segments: string[]) => string;
@@ -438,12 +439,14 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root tooling metadata paths", async () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const workspaces = await importWorkspaces();
 
         expect(workspaces.rootChangelogPath).toBe("CHANGELOG.md");
-        expect(workspaces.rootCliffConfigPath).toBe("cliff.toml");
+        expect(workspaces.rootCliffConfigPath).toBe(
+            "node_modules/gitcliff-config-nick2bad4u/cliff.toml"
+        );
         expect(workspaces.rootCodecovConfigPath).toBe("codecov.yml");
         expect(workspaces.rootCspellConfigPath).toBe("cspell.json");
         expect(workspaces.rootMarkdownLinkCheckConfigPath).toBe(
@@ -458,6 +461,7 @@ describe("workspace path helpers", () => {
             ".pre-commit-config.yaml"
         );
         expect(workspaces.rootRemarkConfigPath).toBe(".remarkrc.mjs");
+        expect(workspaces.rootReleaseMetadataPath).toBe(".release.yml");
         expect(workspaces.rootSecretlintConfigPath).toBe(".secretlintrc.cjs");
         expect(workspaces.rootToolingConfigPaths).toStrictEqual([
             "typedoc.json",
@@ -466,7 +470,6 @@ describe("workspace path helpers", () => {
             ".ncurc.json",
             ".pre-commit-config.yaml",
             ".secretlintrc.cjs",
-            "cliff.toml",
             "codecov.yml",
             "cspell.json",
             "electron-builder.config.cjs",
@@ -475,6 +478,7 @@ describe("workspace path helpers", () => {
             "prettier.config.mjs",
             "stylelint.config.mjs",
             ".remarkrc.mjs",
+            ".release.yml",
             "eslint.config.mjs",
             "playwright.config.ts",
             "vite.renderer.config.mjs",

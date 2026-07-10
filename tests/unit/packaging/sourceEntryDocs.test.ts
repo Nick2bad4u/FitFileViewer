@@ -19,13 +19,13 @@ import {
     rootApplicationArchitectureDocPath,
     rootApplicationLayoutDocPath,
     rootApplicationOverviewDocPath,
-    rootCliffConfigPath,
     rootCodecovConfigPath,
     rootElectronBuilderConfigPath,
     rootEslintConfigPath,
     rootFitParserMigrationGuideDocPath,
     rootGitignorePath,
     rootPrettierConfigPath,
+    rootReleaseMetadataPath,
     rootStylelintConfigPath,
     rootVitestConfigPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -561,11 +561,11 @@ describe("source entrypoint documentation", () => {
         const layoutGuide = readWorkspaceFile(rootApplicationLayoutDocPath);
         const documentedRootToolingFiles = [
             rootGitignorePath,
-            rootCliffConfigPath,
             rootCodecovConfigPath,
             rootElectronBuilderConfigPath,
             rootEslintConfigPath,
             rootPrettierConfigPath,
+            rootReleaseMetadataPath,
             rootStylelintConfigPath,
             rootVitestConfigPath,
         ];

@@ -8,7 +8,11 @@ export const docusaurusWorkspaceName = "docusaurus";
 export const rootAgentsPath = "AGENTS.md";
 export const rootArtifactsPath = "artifacts";
 export const rootChangelogPath = "CHANGELOG.md";
-export const rootCliffConfigPath = "cliff.toml";
+export const rootCliffConfigPath = path.posix.join(
+    "node_modules",
+    "gitcliff-config-nick2bad4u",
+    "cliff.toml"
+);
 export const rootCodecovConfigPath = "codecov.yml";
 export const rootCachePath = ".cache";
 export const rootCoveragePath = "coverage";
@@ -105,6 +109,7 @@ export const rootGitignorePath = ".gitignore";
 export const rootPrettierConfigPath = "prettier.config.mjs";
 export const rootPrettierIgnorePath = ".prettierignore";
 export const rootRemarkConfigPath = ".remarkrc.mjs";
+export const rootReleaseMetadataPath = ".release.yml";
 export const rootReleaseDistPath = "release-dist";
 export const rootReleaseDistAbsolutePath = repositoryPath(rootReleaseDistPath);
 export const rootRuntimeDistPath = "dist";
@@ -156,7 +161,6 @@ export const rootToolingConfigPaths = [
     rootNcuConfigPath,
     rootPreCommitConfigPath,
     rootSecretlintConfigPath,
-    rootCliffConfigPath,
     rootCodecovConfigPath,
     rootCspellConfigPath,
     rootElectronBuilderConfigPath,
@@ -165,6 +169,7 @@ export const rootToolingConfigPaths = [
     rootPrettierConfigPath,
     rootStylelintConfigPath,
     rootRemarkConfigPath,
+    rootReleaseMetadataPath,
     rootEslintConfigPath,
     rootPlaywrightConfigPath,
     rootViteRendererConfigPath,
@@ -204,15 +209,16 @@ export const appRendererVendorCoreEntryPath = appSourceRepositoryPath(
     "renderer",
     "rendererVendorCore.ts"
 );
-export const appRendererVendorChartDataEntryPath =
-    appSourceRepositoryPath("renderer", "rendererVendorChartData.ts");
+export const appRendererVendorChartDataEntryPath = appSourceRepositoryPath(
+    "renderer",
+    "rendererVendorChartData.ts"
+);
 export const appRendererVendorMapEntryPath = appSourceRepositoryPath(
     "renderer",
     "rendererVendorMap.ts"
 );
 export const rendererVendorBundleName = "renderer-vendor";
-export const rendererVendorChartDataBundleName =
-    "renderer-vendor-chart-data";
+export const rendererVendorChartDataBundleName = "renderer-vendor-chart-data";
 export const rendererVendorCoreBundleName = "renderer-vendor-core";
 export const rendererVendorMapBundleName = "renderer-vendor-map";
 export const rendererVendorChartDataScriptFileName = `${rendererVendorChartDataBundleName}.js`;
