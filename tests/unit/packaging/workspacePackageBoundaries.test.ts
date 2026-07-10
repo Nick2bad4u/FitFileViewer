@@ -500,7 +500,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -527,6 +527,7 @@ describe("workspace package boundaries", () => {
             "node scripts/verify-signed-artifacts.mjs"
         );
         expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
+        expect(releaseWorkflow).toContain("npm install --global npm@11.16.0");
         expect(releaseWorkflow).toContain(
             'echo "Release verification is still running..."'
         );

@@ -4,6 +4,7 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import extractZip from "extract-zip";
 
 const electronPackagePath = fileURLToPath(
     import.meta.resolve("electron/package.json")
@@ -71,34 +72,20 @@ async function runExtractionCommand(archivePath) {
 }
 
 async function runZipExtractionCommand(archivePath) {
-    if (os.platform() === "win32") {
-        await runCommand(
-            "tar",
-            [
-                "-xf",
-                archivePath,
-                "-C",
-                electronDistPath,
-            ],
-            {
-                cwd: process.cwd(),
-            }
-        );
-        return;
-    }
+    await extractZipArchive(archivePath, electronDistPath);
+}
 
-    await runCommand(
-        "unzip",
-        [
-            "-q",
-            archivePath,
-            "-d",
-            electronDistPath,
-        ],
-        {
-            cwd: process.cwd(),
-        }
-    );
+/**
+ * @param {string} archivePath
+ * @param {string} destinationPath
+ * @param {typeof extractZip} [extract]
+ */
+export async function extractZipArchive(
+    archivePath,
+    destinationPath,
+    extract = extractZip
+) {
+    await extract(archivePath, { dir: destinationPath });
 }
 
 function getElectronPlatformPath() {

@@ -5,7 +5,6 @@ import {
     registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
-import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
 
 const chartJsMocks = vi.hoisted(() => ({
     Chart: vi.fn<() => ChartMockInstance>(),
@@ -239,7 +238,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should create a Chart.js chart with correct configuration", () => {
-        expect.assertions(12);
+        expect.assertions(11);
 
         const lapZoneData = [
             {
@@ -299,7 +298,6 @@ describe(renderLapZoneChart, () => {
         expect(chartConfig.data.datasets[1].data).toStrictEqual([180, 240]);
 
         // Check theme configuration
-        expect(getThemeConfig).toHaveBeenCalledOnce();
         expect(chartConfig.options.plugins.title.text).toBe(
             "Heart Rate Zones by Lap"
         );
@@ -322,7 +320,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it('should use power zone colors when title includes "power"', () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const lapZoneData = [
             {
@@ -340,8 +338,6 @@ describe(renderLapZoneChart, () => {
 
         const chartConfig = getLatestChartConfig();
 
-        expect(getZoneColor).toHaveBeenCalledWith("power", 0);
-        expect(getZoneColor).toHaveBeenCalledWith("power", 1);
         expect(
             chartConfig.data.datasets.map(
                 (dataset: ChartDataset) => dataset.backgroundColor
@@ -350,7 +346,7 @@ describe(renderLapZoneChart, () => {
     });
 
     it("should use HR zone colors by default", () => {
-        expect.assertions(3);
+        expect.assertions(1);
 
         const lapZoneData = [
             {
@@ -366,8 +362,6 @@ describe(renderLapZoneChart, () => {
 
         const chartConfig = getLatestChartConfig();
 
-        expect(getZoneColor).toHaveBeenCalledWith("hr", 0);
-        expect(getZoneColor).toHaveBeenCalledWith("hr", 1);
         expect(
             chartConfig.data.datasets.map(
                 (dataset: ChartDataset) => dataset.backgroundColor

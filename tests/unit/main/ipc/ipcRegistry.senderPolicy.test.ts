@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,6 +27,8 @@ type IpcRegistryModule = {
     resetIpcRegistries: () => void;
 };
 
+const mockAppPath = path.join(process.cwd(), "mock-app");
+
 function createIpcMainMock(): IpcMainMock {
     return {
         handle: vi.fn<(channel: string, handler: IpcCallback) => void>(),
@@ -41,7 +44,7 @@ async function loadRegistry(ipcMain: IpcMainMock): Promise<IpcRegistryModule> {
         (await import("../../../../electron-app/main/runtime/electronAccess.js")) as ElectronAccessModule;
     electronAccess.setElectronOverride({
         app: {
-            getAppPath: () => "C:\\mock\\app",
+            getAppPath: () => mockAppPath,
         },
         ipcMain,
     });
@@ -82,7 +85,7 @@ describe("ipcRegistry sender policy", () => {
         const registry = await loadRegistry(ipcMain);
         const handler = vi.fn<IpcCallback>(() => "ok");
         const allowedUrl = pathToFileURL(
-            "C:\\mock\\app\\index.html"
+            path.join(mockAppPath, "index.html")
         ).toString();
         const blockedUrl = "https://example.com/";
 
@@ -113,7 +116,7 @@ describe("ipcRegistry sender policy", () => {
         const registry = await loadRegistry(ipcMain);
         const listener = vi.fn<IpcCallback>(() => undefined);
         const allowedUrl = pathToFileURL(
-            "C:\\mock\\app\\index.html"
+            path.join(mockAppPath, "index.html")
         ).toString();
 
         registry.registerIpcListener("fit-file-loaded", listener);

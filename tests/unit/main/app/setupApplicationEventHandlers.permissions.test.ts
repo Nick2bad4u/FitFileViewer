@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EventEmitter } from "node:events";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Mock } from "vitest";
 
@@ -47,6 +48,8 @@ type WebContentsCreatedHandler = (
     event: unknown,
     contents: MockWebContents
 ) => void;
+
+const mockAppPath = path.join(process.cwd(), "mock-app");
 
 function assertFunction<T extends (...args: unknown[]) => unknown>(
     candidate: unknown,
@@ -259,7 +262,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         await setElectronOverrideForTest({
             app: {
-                getAppPath: vi.fn<() => string>(() => "C:\\mock\\app"),
+                getAppPath: vi.fn<() => string>(() => mockAppPath),
                 on: vi.fn<
                     (eventName: string, callback: AppEventHandler) => void
                 >((eventName, callback) => {
@@ -300,10 +303,10 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         );
 
         const allowedFileUrl = pathToFileURL(
-            "C:\\mock\\app\\index.html"
+            path.join(mockAppPath, "index.html")
         ).toString();
         const disallowedFileUrl = pathToFileURL(
-            "C:\\outside\\index.html"
+            path.join(process.cwd(), "outside", "index.html")
         ).toString();
         const arrayShapedDetails = Object.assign([], {
             requestingUrl: allowedFileUrl,

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,12 +19,12 @@ interface MainProcessStateModule {
     MainProcessState: new () => unknown;
 }
 
-const APP_ROOT = String.raw`C:\Repos\FitFileViewer`;
+const APP_ROOT = process.cwd();
 const APP_INDEX_URL = pathToFileURL(
-    String.raw`C:\Repos\FitFileViewer\static\app\index.html`
+    path.join(APP_ROOT, "static", "app", "index.html")
 ).toString();
 const OUTSIDE_FILE_URL = pathToFileURL(
-    String.raw`C:\Users\Nick\Desktop\index.html`
+    path.join(path.dirname(APP_ROOT), "outside", "index.html")
 ).toString();
 
 function createAllowedIpcEvent(): unknown {

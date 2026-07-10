@@ -16,7 +16,7 @@ function readReleaseRehearsalWorkflow(): string {
 
 describe("release rehearsal workflow", () => {
     it("runs the release gate, signing preflight, packaged smoke, and artifact upload without publishing", () => {
-        expect.assertions(41);
+        expect.assertions(42);
 
         const workflow = readReleaseRehearsalWorkflow();
 
@@ -37,6 +37,7 @@ describe("release rehearsal workflow", () => {
         expect(workflow).toContain("runner-os: Windows");
         expect(workflow).toContain("runner-os: macOS");
         expect(workflow).toContain("node-version-file: .node-version");
+        expect(workflow).toContain("npm install --global npm@11.16.0");
         expect(workflow).toContain(
             'echo "Release verification is still running..."'
         );

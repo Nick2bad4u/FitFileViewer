@@ -152,7 +152,14 @@ function importCreateAppMenuModule(): CreateAppMenuModule {
 }
 
 describe("createAppMenu", () => {
+    let originalPlatformDescriptor: PropertyDescriptor | undefined;
+
     beforeEach(async () => {
+        originalPlatformDescriptor = Object.getOwnPropertyDescriptor(
+            process,
+            "platform"
+        );
+        Object.defineProperty(process, "platform", { value: "win32" });
         capturedTemplate = null;
         vi.resetModules();
         // Default recent files mock for most tests (can be overridden in a specific test)
@@ -229,6 +236,7 @@ describe("createAppMenu", () => {
     });
 
     afterEach(() => {
+        restoreProcessPlatform(originalPlatformDescriptor);
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
         setElectronAccessOverride(null);

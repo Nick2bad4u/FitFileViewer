@@ -64,6 +64,9 @@ jobs:
               with:
                   node-version-file: .node-version
 
+            - name: Setup npm version
+              run: npm install --global npm@11.16.0
+
             - name: Install app and docs dependencies
               run: |
                   mkdir -p artifacts/dependency-validation

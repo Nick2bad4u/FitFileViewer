@@ -1,3 +1,4 @@
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -15,6 +16,8 @@ type MockElectron = {
         openExternal: Mock<(url: string) => Promise<void>>;
     };
 };
+
+const mockAppPath = path.join(process.cwd(), "mock-app");
 
 async function setElectronOverrideForTest(override: unknown): Promise<void> {
     const { setElectronOverride } =
@@ -62,7 +65,7 @@ function createMockElectron(
 ): MockElectron {
     return {
         app: {
-            getAppPath: vi.fn<() => string>(() => "C:\\mock\\app"),
+            getAppPath: vi.fn<() => string>(() => mockAppPath),
             on: vi.fn<(eventName: string, callback: AppEventHandler) => void>(
                 (eventName, callback) => {
                     handlers.set(eventName, callback);
@@ -138,10 +141,10 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         );
 
         const allowedFileUrl = pathToFileURL(
-            "C:\\mock\\app\\index.html"
+            path.join(mockAppPath, "index.html")
         ).toString();
         const disallowedFileUrl = pathToFileURL(
-            "C:\\other\\secret.html"
+            path.join(process.cwd(), "outside", "secret.html")
         ).toString();
 
         expect(windowOpenHandler({ url: allowedFileUrl })).toStrictEqual({
