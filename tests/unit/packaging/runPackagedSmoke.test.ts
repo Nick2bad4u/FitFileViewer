@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     findPackagedElectronExecutable,
     getPackagedExecutableCandidates,
+    getPackagedLaunchArgs,
     parseArgs,
     runPackagedSmoke,
 } from "../../../scripts/run-packaged-smoke.mjs";
@@ -174,6 +175,48 @@ describe("run-packaged-smoke script", () => {
         expect(logger).toHaveBeenCalledWith(
             `[packaged-smoke] Launching ${executablePath} for 10000ms`
         );
+    });
+
+    it("treats a clean timeout shutdown as a healthy startup", () => {
+        expect.assertions(1);
+
+        const releaseDistPath = createTemporaryRoot();
+        const executablePath = path.join(
+            releaseDistPath,
+            "win-unpacked",
+            "Fit File Viewer.exe"
+        );
+        writeExecutable(executablePath);
+
+        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
+            error: Object.assign(new Error("timed out"), {
+                code: "ETIMEDOUT",
+            }),
+            status: 0,
+        });
+
+        expect(
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                {},
+                commandRunner
+            )
+        ).toBe(0);
+    });
+
+    it("disables Chromium's setuid sandbox only on Linux CI runners", () => {
+        expect.assertions(3);
+
+        expect(getPackagedLaunchArgs({ CI: "true" }, "linux")).toStrictEqual([
+            "--disable-http-cache",
+            "--no-sandbox",
+        ]);
+        expect(getPackagedLaunchArgs({}, "linux")).toStrictEqual([
+            "--disable-http-cache",
+        ]);
+        expect(getPackagedLaunchArgs({ CI: "true" }, "darwin")).toStrictEqual([
+            "--disable-http-cache",
+        ]);
     });
 
     it("fails when packaged startup output contains fatal renderer or asset errors", () => {

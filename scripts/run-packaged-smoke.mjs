@@ -215,11 +215,12 @@ export function runPackagedSmoke(
 
     assertNoStartupFailureOutput(output);
 
-    if (result.error && result.error.code !== "ETIMEDOUT") {
+    const timedOut = result.error?.code === "ETIMEDOUT";
+    if (result.error && !timedOut) {
         throw result.error;
     }
 
-    if (result.status !== null && result.status !== undefined) {
+    if (!timedOut && result.status !== null && result.status !== undefined) {
         throw new Error(
             [
                 `Packaged app exited before the ${timeoutMs}ms startup smoke window.`,
@@ -233,6 +234,19 @@ export function runPackagedSmoke(
 
     logger("[packaged-smoke] Packaged app stayed alive without fatal output");
     return 0;
+}
+
+export function getPackagedLaunchArgs(
+    environment = process.env,
+    platform = process.platform
+) {
+    const args = ["--disable-http-cache"];
+
+    if (platform === "linux" && environment.CI === "true") {
+        args.push("--no-sandbox");
+    }
+
+    return args;
 }
 
 function runWithCapturedOutput(
@@ -252,7 +266,7 @@ function runWithCapturedOutput(
     try {
         const result = commandRunner(
             resolvedExecutablePath,
-            ["--disable-http-cache"],
+            getPackagedLaunchArgs(environment),
             {
                 cwd: repositoryRoot,
                 env: {
