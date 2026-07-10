@@ -96,15 +96,16 @@ describe("renderChartPerformanceMonitorRuntime", () => {
     it("fails clearly when explicit providers return unavailable clocks", () => {
         expect.assertions(2);
 
-        const runtime = getRenderChartPerformanceMonitorRuntime({
-            getDateNow: () => undefined,
-            getPerformance: () => undefined,
-        });
+        const { dateNow, nowPerformance } =
+            getRenderChartPerformanceMonitorRuntime({
+                getDateNow: () => undefined,
+                getPerformance: () => undefined,
+            });
 
-        expect(() => runtime.dateNow()).toThrow(
+        expect(() => dateNow()).toThrow(
             "renderChartPerformanceMonitorRuntime requires dateNow"
         );
-        expect(() => runtime.nowPerformance()).toThrow(
+        expect(() => nowPerformance()).toThrow(
             "renderChartPerformanceMonitorRuntime requires performance.now"
         );
     });

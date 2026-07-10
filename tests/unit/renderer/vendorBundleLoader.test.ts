@@ -332,8 +332,10 @@ describe("renderer vendor bundle loader", () => {
         vi.useFakeTimers();
         try {
             let resolved = false;
-            const vendorReadiness = ensureVendorBundle("chart-data");
-            void vendorReadiness.then(() => {
+            const vendorReadiness = {
+                promise: ensureVendorBundle("chart-data"),
+            };
+            void vendorReadiness.promise.then(() => {
                 resolved = true;
             });
             const script = getVendorScript("chart-data");
@@ -381,7 +383,7 @@ describe("renderer vendor bundle loader", () => {
             });
             await vi.advanceTimersByTimeAsync(20);
 
-            await expect(vendorReadiness).resolves.toBeUndefined();
+            await expect(vendorReadiness.promise).resolves.toBeUndefined();
         } finally {
             vi.useRealTimers();
         }
@@ -393,8 +395,10 @@ describe("renderer vendor bundle loader", () => {
         vi.useFakeTimers();
         try {
             let resolved = false;
-            const vendorReadiness = ensureVendorBundle("chart-data");
-            void vendorReadiness.then(() => {
+            const vendorReadiness = {
+                promise: ensureVendorBundle("chart-data"),
+            };
+            void vendorReadiness.promise.then(() => {
                 resolved = true;
             });
             const script = getVendorScript("chart-data");
@@ -437,7 +441,7 @@ describe("renderer vendor bundle loader", () => {
             });
             await vi.advanceTimersByTimeAsync(20);
 
-            await expect(vendorReadiness).resolves.toBeUndefined();
+            await expect(vendorReadiness.promise).resolves.toBeUndefined();
         } finally {
             vi.useRealTimers();
         }
@@ -497,8 +501,10 @@ describe("renderer vendor bundle loader", () => {
         vi.useFakeTimers();
         try {
             let resolved = false;
-            const vendorReadiness = ensureVendorBundle("core");
-            void vendorReadiness.then(() => {
+            const vendorReadiness = {
+                promise: ensureVendorBundle("core"),
+            };
+            void vendorReadiness.promise.then(() => {
                 resolved = true;
             });
             const script = getVendorScript("core");
@@ -570,7 +576,7 @@ describe("renderer vendor bundle loader", () => {
             });
             await vi.advanceTimersByTimeAsync(20);
 
-            await expect(vendorReadiness).resolves.toBeUndefined();
+            await expect(vendorReadiness.promise).resolves.toBeUndefined();
             expect(resolveArqueroRuntime()).toBe(arqueroRuntime);
         } finally {
             vi.useRealTimers();
@@ -610,8 +616,10 @@ describe("renderer vendor bundle loader", () => {
         vi.useFakeTimers();
         try {
             let resolved = false;
-            const vendorReadiness = ensureVendorBundle("map");
-            void vendorReadiness.then(() => {
+            const vendorReadiness = {
+                promise: ensureVendorBundle("map"),
+            };
+            void vendorReadiness.promise.then(() => {
                 resolved = true;
             });
             const script = getVendorScript("map");
@@ -650,7 +658,7 @@ describe("renderer vendor bundle loader", () => {
             });
             await vi.advanceTimersByTimeAsync(20);
 
-            await expect(vendorReadiness).resolves.toBeUndefined();
+            await expect(vendorReadiness.promise).resolves.toBeUndefined();
             expect(
                 resolveLeafletRuntime(
                     (value): value is typeof leafletRuntime =>

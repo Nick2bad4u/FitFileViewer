@@ -17,11 +17,11 @@ describe("syncRendererNotificationsRuntime", () => {
         notification.id = "notification";
         document.body.replaceChildren(notification);
 
-        const runtime = getSyncRendererNotificationsRuntime({
+        const { getNotificationElement } = getSyncRendererNotificationsRuntime({
             getDocument: () => document,
         });
 
-        expect(runtime.getNotificationElement()).toBe(notification);
+        expect(getNotificationElement()).toBe(notification);
     });
 
     it("uses the browser document provider by default", () => {
@@ -41,11 +41,11 @@ describe("syncRendererNotificationsRuntime", () => {
 
         document.body.replaceChildren();
 
-        const runtime = getSyncRendererNotificationsRuntime({
+        const { getNotificationElement } = getSyncRendererNotificationsRuntime({
             getDocument: () => document,
         });
 
-        expect(runtime.getNotificationElement()).toBeNull();
+        expect(getNotificationElement()).toBeNull();
     });
 
     it("requires an explicit document provider", () => {
@@ -61,11 +61,11 @@ describe("syncRendererNotificationsRuntime", () => {
     it("requires a document runtime", () => {
         expect.assertions(1);
 
-        const runtime = getSyncRendererNotificationsRuntime({
+        const { getNotificationElement } = getSyncRendererNotificationsRuntime({
             getDocument: () => undefined,
         });
 
-        expect(() => runtime.getNotificationElement()).toThrow(
+        expect(() => getNotificationElement()).toThrow(
             "syncRendererNotifications requires a document runtime"
         );
     });

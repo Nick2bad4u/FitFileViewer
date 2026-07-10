@@ -279,15 +279,18 @@ describe("getRenderSummaryRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 42);
-        const scope = createRenderSummaryRuntimeScope({
-            getRequestAnimationFrame: () => requestAnimationFrame,
-        });
-        const { requestAnimationFrame: requestFrame } =
-            getRenderSummaryRuntime(scope);
+        const runtimeScope = {
+            value: createRenderSummaryRuntimeScope({
+                getRequestAnimationFrame: () => requestAnimationFrame,
+            }),
+        };
+        const { requestAnimationFrame: requestFrame } = getRenderSummaryRuntime(
+            runtimeScope.value
+        );
 
         expect(requestFrame(callback)).toBe(42);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
-        expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(runtimeScope.value);
     });
 
     it("returns null when animation-frame scheduling is unavailable", () => {
@@ -304,16 +307,19 @@ describe("getRenderSummaryRuntime", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const scope = createRenderSummaryRuntimeScope({
-            getCancelAnimationFrame: () => cancelAnimationFrame,
-        });
-        const { cancelAnimationFrame: cancelFrame } =
-            getRenderSummaryRuntime(scope);
+        const runtimeScope = {
+            value: createRenderSummaryRuntimeScope({
+                getCancelAnimationFrame: () => cancelAnimationFrame,
+            }),
+        };
+        const { cancelAnimationFrame: cancelFrame } = getRenderSummaryRuntime(
+            runtimeScope.value
+        );
 
         cancelFrame(21);
 
         expect(cancelAnimationFrame).toHaveBeenCalledWith(21);
-        expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(runtimeScope.value);
     });
 
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {
@@ -339,10 +345,14 @@ describe("getRenderSummaryRuntime", () => {
             >();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
-        const scope = createRenderSummaryRuntimeScope({
-            getAddEventListener: () => addEventListener,
-        });
-        const { addResizeListener } = getRenderSummaryRuntime(scope);
+        const runtimeScope = {
+            value: createRenderSummaryRuntimeScope({
+                getAddEventListener: () => addEventListener,
+            }),
+        };
+        const { addResizeListener } = getRenderSummaryRuntime(
+            runtimeScope.value
+        );
 
         addResizeListener(listener, options);
 
@@ -351,7 +361,7 @@ describe("getRenderSummaryRuntime", () => {
             listener,
             options
         );
-        expect(addEventListener.mock.contexts[0]).toBe(scope);
+        expect(addEventListener.mock.contexts[0]).toBe(runtimeScope.value);
     });
 
     it("ignores resize listeners when the runtime scope cannot listen", () => {

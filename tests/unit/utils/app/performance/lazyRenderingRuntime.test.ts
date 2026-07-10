@@ -257,26 +257,31 @@ describe("getLazyRenderingRuntime", () => {
     it("fails clearly when explicit runtime provider slots are omitted", () => {
         expect.assertions(7);
 
-        const runtime = getLazyRenderingRuntime(
-            {} as unknown as LazyRenderingRuntimeScope
-        );
+        const {
+            createIntersectionObserver,
+            getViewport,
+            isHTMLElement,
+            requestAnimationFrame,
+            requestIdleCallback,
+            setTimeout: setLazyRenderingTimeout,
+        } = getLazyRenderingRuntime({} as unknown as LazyRenderingRuntimeScope);
 
-        expect(() => runtime.createIntersectionObserver(() => {}, {})).toThrow(
+        expect(() => createIntersectionObserver(() => {}, {})).toThrow(
             "lazyRenderingRuntime requires IntersectionObserver provider"
         );
-        expect(() => runtime.getViewport()).toThrow(
+        expect(() => getViewport()).toThrow(
             "lazyRenderingRuntime requires document provider"
         );
-        expect(() =>
-            runtime.isHTMLElement(document.createElement("div"))
-        ).toThrow("lazyRenderingRuntime requires HTMLElement provider");
-        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+        expect(() => isHTMLElement(document.createElement("div"))).toThrow(
+            "lazyRenderingRuntime requires HTMLElement provider"
+        );
+        expect(() => requestAnimationFrame(() => {})).toThrow(
             "lazyRenderingRuntime requires requestAnimationFrame provider"
         );
-        expect(() =>
-            runtime.requestIdleCallback(() => {}, { timeout: 50 })
-        ).toThrow("lazyRenderingRuntime requires requestIdleCallback provider");
-        expect(() => runtime.setTimeout(() => {})).toThrow(
+        expect(() => requestIdleCallback(() => {}, { timeout: 50 })).toThrow(
+            "lazyRenderingRuntime requires requestIdleCallback provider"
+        );
+        expect(() => setLazyRenderingTimeout(() => {})).toThrow(
             "lazyRenderingRuntime requires setTimeout provider"
         );
         expect(() =>

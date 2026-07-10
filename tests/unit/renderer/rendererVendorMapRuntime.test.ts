@@ -108,7 +108,11 @@ describe("rendererVendorMapRuntime", () => {
             Leaflet: {},
         };
 
-        const runtime = getRendererVendorMapRuntime({
+        const {
+            hasDocumentElement,
+            removeTemporaryLeafletGlobals,
+            setDocumentElementStyleProperty,
+        } = getRendererVendorMapRuntime({
             ...createRendererVendorMapRuntimeScope(),
             document: {
                 documentElement: {
@@ -118,10 +122,10 @@ describe("rendererVendorMapRuntime", () => {
             globalScope,
         } as unknown as RendererVendorMapRuntimeScope);
 
-        runtime.setDocumentElementStyleProperty("--ffv-test", "1");
-        runtime.removeTemporaryLeafletGlobals();
+        setDocumentElementStyleProperty("--ffv-test", "1");
+        removeTemporaryLeafletGlobals();
 
-        expect(runtime.hasDocumentElement()).toBe(false);
+        expect(hasDocumentElement()).toBe(false);
         expect(setProperty).not.toHaveBeenCalled();
         expect(Reflect.has(globalScope, "L")).toBe(true);
         expect(Reflect.has(globalScope, "Leaflet")).toBe(true);

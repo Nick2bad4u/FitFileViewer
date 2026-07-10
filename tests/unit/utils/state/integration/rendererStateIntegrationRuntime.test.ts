@@ -117,17 +117,19 @@ describe("getRendererStateIntegrationRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(2);
 
-        const missingProviderRuntime = getRendererStateIntegrationRuntime(
-            {} as unknown as RendererStateIntegrationRuntimeScope
-        );
-        const unavailableRuntime = getRendererStateIntegrationRuntime(
-            createRendererStateIntegrationRuntimeScope()
-        );
+        const { createAbortController: createMissingProviderAbortController } =
+            getRendererStateIntegrationRuntime(
+                {} as unknown as RendererStateIntegrationRuntimeScope
+            );
+        const { createAbortController: createUnavailableAbortController } =
+            getRendererStateIntegrationRuntime(
+                createRendererStateIntegrationRuntimeScope()
+            );
 
-        expect(() => missingProviderRuntime.createAbortController()).toThrow(
+        expect(() => createMissingProviderAbortController()).toThrow(
             "rendererStateIntegration requires AbortController provider"
         );
-        expect(() => unavailableRuntime.createAbortController()).toThrow(
+        expect(() => createUnavailableAbortController()).toThrow(
             "rendererStateIntegration requires an AbortController runtime"
         );
     });

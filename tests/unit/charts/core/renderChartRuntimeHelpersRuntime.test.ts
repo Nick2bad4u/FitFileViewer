@@ -68,21 +68,22 @@ describe("render chart runtime helpers runtime", () => {
     it("fails clearly when runtime helper provider slots are omitted", () => {
         expect.assertions(3);
 
-        const runtime = getRenderChartRuntimeHelpersRuntime(
-            {} as unknown as RenderChartRuntimeHelpersRuntimeScope
-        );
-        const noSetterRuntime = getRenderChartRuntimeHelpersRuntime({
+        const { getProcessEnvironmentValue, getProcessShim } =
+            getRenderChartRuntimeHelpersRuntime(
+                {} as unknown as RenderChartRuntimeHelpersRuntimeScope
+            );
+        const { ensureProcessShim } = getRenderChartRuntimeHelpersRuntime({
             getProcess: () => undefined,
             getProcessEnvironmentValue: () => undefined,
         } as unknown as RenderChartRuntimeHelpersRuntimeScope);
 
-        expect(() => runtime.getProcessShim()).toThrow(
+        expect(() => getProcessShim()).toThrow(
             "renderChartRuntimeHelpers requires process provider"
         );
-        expect(() => runtime.getProcessEnvironmentValue("NODE_ENV")).toThrow(
+        expect(() => getProcessEnvironmentValue("NODE_ENV")).toThrow(
             "renderChartRuntimeHelpers requires processEnvironmentValue provider"
         );
-        expect(() => noSetterRuntime.ensureProcessShim()).toThrow(
+        expect(() => ensureProcessShim()).toThrow(
             "renderChartRuntimeHelpers requires setProcess provider"
         );
     });
