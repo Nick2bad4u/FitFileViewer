@@ -19,56 +19,6 @@ import {
     setZoneDataByType,
 } from "../../../electron-app/utils/data/zones/zoneDataState.js";
 
-const notificationMocks = vi.hoisted(() => ({
-    showNotification: vi.fn<(message: string, type?: string) => void>(),
-}));
-
-// Mock dependencies
-vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
-    getThemeConfig: vi.fn<() => unknown>(),
-}));
-vi.mock(
-    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
-    () => ({
-        showNotification: notificationMocks.showNotification,
-    })
-);
-
-vi.mock(
-    import("../../../electron-app/utils/charts/rendering/renderLapZoneChart.js"),
-    () => ({
-        renderLapZoneChart: vi.fn<ChartRenderFunction>(),
-    })
-);
-
-vi.mock(
-    import("../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js"),
-    () => ({
-        renderSingleHRZoneBar: vi.fn<ChartRenderFunction>(),
-    })
-);
-
-vi.mock(
-    import("../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js"),
-    () => ({
-        renderSinglePowerZoneBar: vi.fn<ChartRenderFunction>(),
-    })
-);
-
-vi.mock(
-    import("../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
-    () => ({
-        getZoneColor: vi.fn<(type: string, index: number) => string>(),
-    })
-);
-
-// Import mocks for manipulation
-import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
-import { renderLapZoneChart } from "../../../electron-app/utils/charts/rendering/renderLapZoneChart.js";
-import { renderSingleHRZoneBar } from "../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js";
-import { renderSinglePowerZoneBar } from "../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js";
-import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
-
 type ThemeConfigMock = Mock<() => unknown>;
 type GetZoneColorMock = Mock<(type: string, index: number) => string>;
 type ChartRenderFunction = (
@@ -81,13 +31,64 @@ type LapZoneActiveFitData = {
     timeInZoneMesgs?: unknown[] | null;
 };
 
-const getThemeConfigMock = getThemeConfig as unknown as ThemeConfigMock;
-const getZoneColorMock = getZoneColor as unknown as GetZoneColorMock;
-const renderLapZoneChartMock = renderLapZoneChart as unknown as ChartRenderMock;
+const notificationMocks = vi.hoisted(() => ({
+    showNotification: vi.fn<(message: string, type?: string) => void>(),
+}));
+const dependencyMocks = vi.hoisted(() => ({
+    getThemeConfig: vi.fn<() => unknown>(),
+    getZoneColor: vi.fn<(type: string, index: number) => string>(),
+    renderLapZoneChart: vi.fn<ChartRenderFunction>(),
+    renderSingleHRZoneBar: vi.fn<ChartRenderFunction>(),
+    renderSinglePowerZoneBar: vi.fn<ChartRenderFunction>(),
+}));
+
+// Mock dependencies
+vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
+    getThemeConfig: dependencyMocks.getThemeConfig,
+}));
+vi.mock(
+    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: notificationMocks.showNotification,
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/charts/rendering/renderLapZoneChart.js"),
+    () => ({
+        renderLapZoneChart: dependencyMocks.renderLapZoneChart,
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js"),
+    () => ({
+        renderSingleHRZoneBar: dependencyMocks.renderSingleHRZoneBar,
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js"),
+    () => ({
+        renderSinglePowerZoneBar: dependencyMocks.renderSinglePowerZoneBar,
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
+    () => ({
+        getZoneColor: dependencyMocks.getZoneColor,
+    })
+);
+
+const getThemeConfigMock = dependencyMocks.getThemeConfig as ThemeConfigMock;
+const getZoneColorMock = dependencyMocks.getZoneColor as GetZoneColorMock;
+const renderLapZoneChartMock =
+    dependencyMocks.renderLapZoneChart as ChartRenderMock;
 const renderSingleHRZoneBarMock =
-    renderSingleHRZoneBar as unknown as ChartRenderMock;
+    dependencyMocks.renderSingleHRZoneBar as ChartRenderMock;
 const renderSinglePowerZoneBarMock =
-    renderSinglePowerZoneBar as unknown as ChartRenderMock;
+    dependencyMocks.renderSinglePowerZoneBar as ChartRenderMock;
 
 describe(renderLapZoneCharts, () => {
     let container: HTMLElement;
@@ -1151,7 +1152,7 @@ describe(renderLapZoneCharts, () => {
 
             renderLapZoneCharts(container, options);
             expect(getCanvasIds()).toStrictEqual([]);
-            expect(renderLapZoneChart).not.toHaveBeenCalled();
+            expect(renderLapZoneChartMock).not.toHaveBeenCalled();
         });
 
         it("should skip charts when no data available", () => {
@@ -1187,7 +1188,7 @@ describe(renderLapZoneCharts, () => {
 
             getThemeConfigMock.mockReturnValue({ name: "test-theme" });
             renderLapZoneCharts(container);
-            expect(getThemeConfig).toHaveBeenCalledWith();
+            expect(getThemeConfigMock).toHaveBeenCalledWith();
             expect(getCanvasIds()).toEqual([
                 "chartjs-canvas-lap-hr-zones",
                 "chartjs-canvas-single-lap-hr",
@@ -1490,9 +1491,9 @@ describe(renderLapZoneCharts, () => {
             expect(container.querySelectorAll("canvas")).toHaveLength(4);
 
             // Should have called all rendering functions
-            expect(renderLapZoneChart).toHaveBeenCalledTimes(2); // HR and Power stacked
-            expect(renderSingleHRZoneBar).toHaveBeenCalledOnce();
-            expect(renderSinglePowerZoneBar).toHaveBeenCalledOnce();
+            expect(renderLapZoneChartMock).toHaveBeenCalledTimes(2); // HR and Power stacked
+            expect(renderSingleHRZoneBarMock).toHaveBeenCalledOnce();
+            expect(renderSinglePowerZoneBarMock).toHaveBeenCalledOnce();
 
             // Should have logged success
             expect(mockConsoleLog).toHaveBeenCalledWith(

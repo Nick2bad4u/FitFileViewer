@@ -6,7 +6,7 @@ import {
     registerChartRuntime,
 } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { detectCurrentTheme } from "../../../electron-app/utils/charts/theming/chartThemeUtils.js";
-import { showNotification } from "../../../electron-app/utils/ui/notifications/showNotification.js";
+import type { showNotification } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
 type ChartPoint = {
     readonly x: number;
@@ -144,6 +144,9 @@ const chartJsAutoMock = vi.hoisted(() => ({
         return new ChartConstructor(canvas, config);
     }),
 }));
+const notificationMocks = vi.hoisted(() => ({
+    showNotification: vi.fn<ShowNotification>(),
+}));
 
 vi.mock(import("chart.js/auto"), () => ({
     default: chartJsAutoMock.ChartProxy,
@@ -210,7 +213,7 @@ vi.mock(
 vi.mock(
     import("../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
-        showNotification: vi.fn<ShowNotification>(),
+        showNotification: notificationMocks.showNotification,
     })
 );
 
@@ -622,7 +625,7 @@ describe("createEnhancedChart Settings", () => {
             "[ChartJS] Error creating chart for speed:",
             expect.any(Error)
         );
-        expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
+        expect(notificationMocks.showNotification).toHaveBeenCalledWith(
             "Error creating chart for speed",
             "error",
             5000
