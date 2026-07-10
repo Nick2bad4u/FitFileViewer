@@ -177,12 +177,13 @@ describe("apply-electron-fuses script", () => {
                 appOutDir: path.join("release-dist", "linux-unpacked"),
                 electronPlatformName: "linux",
                 packager: {
+                    executableName: "fitfileviewer",
                     appInfo: {
                         productFilename: "Fit File Viewer",
                     },
                 },
             })
-        ).toBe(path.join("release-dist", "linux-unpacked", "Fit File Viewer"));
+        ).toBe(path.join("release-dist", "linux-unpacked", "fitfileviewer"));
         expect(
             getElectronBuilderAfterPackExecutablePath({
                 appOutDir: path.join("release-dist", "mac"),

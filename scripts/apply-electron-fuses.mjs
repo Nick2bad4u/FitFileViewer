@@ -61,6 +61,7 @@ const unpackedBuildDirectoryNames = [
  * @property {string} appOutDir
  * @property {string} [electronPlatformName]
  * @property {{
+ *     executableName?: string;
  *     appInfo?: {
  *         productFilename?: string;
  *         productName?: string;
@@ -195,6 +196,7 @@ export function getElectronBuilderAfterPackExecutablePath(context) {
     }
 
     const productExecutableName =
+        context.packager?.executableName ??
         context.packager?.appInfo?.productFilename ??
         context.packager?.appInfo?.productName ??
         fallbackProductName;

@@ -20,7 +20,7 @@ type CommandRunner = (
         encoding: string;
         env: NodeJS.ProcessEnv;
         killSignal: string;
-        stdio: string;
+        stdio: (number | string)[];
         timeout: number;
     }
 ) => {
@@ -169,7 +169,7 @@ describe("run-packaged-smoke script", () => {
         expect(command).toBe(executablePath);
         expect(args).toStrictEqual(["--disable-http-cache"]);
         expect(options?.env.ELECTRON_IS_DEV).toBe("0");
-        expect(options?.stdio).toBe("pipe");
+        expect(options?.stdio).toHaveLength(3);
         expect(options?.timeout).toBe(10_000);
         expect(logger).toHaveBeenCalledWith(
             `[packaged-smoke] Launching ${executablePath} for 10000ms`

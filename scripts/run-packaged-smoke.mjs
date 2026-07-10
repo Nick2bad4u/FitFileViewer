@@ -1,5 +1,16 @@
 import { spawnSync } from "node:child_process";
-import { accessSync, constants, existsSync, readdirSync } from "node:fs";
+import {
+    accessSync,
+    closeSync,
+    constants,
+    existsSync,
+    mkdtempSync,
+    openSync,
+    readFileSync,
+    readdirSync,
+    rmSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
@@ -187,25 +198,15 @@ export function runPackagedSmoke(
         `[packaged-smoke] Launching ${resolvedExecutablePath} for ${timeoutMs}ms`
     );
 
-    const result = commandRunner(
+    const { outputFiles, result } = runWithCapturedOutput(
+        commandRunner,
         resolvedExecutablePath,
-        ["--disable-http-cache"],
-        {
-            cwd: repositoryRoot,
-            env: {
-                ...environment,
-                ELECTRON_IS_DEV: "0",
-                FFV_DISABLE_WEB_SECURITY: "false",
-                NODE_ENV: "production",
-            },
-            encoding: "utf8",
-            killSignal: "SIGTERM",
-            stdio: "pipe",
-            timeout: timeoutMs,
-        }
+        timeoutMs,
+        environment
     );
-
     const output = [
+        outputFiles.stdout,
+        outputFiles.stderr,
         stringifyProcessOutput(result.stdout),
         stringifyProcessOutput(result.stderr),
     ]
@@ -232,6 +233,71 @@ export function runPackagedSmoke(
 
     logger("[packaged-smoke] Packaged app stayed alive without fatal output");
     return 0;
+}
+
+function runWithCapturedOutput(
+    commandRunner,
+    resolvedExecutablePath,
+    timeoutMs,
+    environment
+) {
+    const captureDirectory = mkdtempSync(
+        path.join(tmpdir(), "ffv-packaged-smoke-")
+    );
+    const stderrPath = path.join(captureDirectory, "stderr.log"),
+        stdoutPath = path.join(captureDirectory, "stdout.log");
+    const stderrDescriptor = openSync(stderrPath, "w"),
+        stdoutDescriptor = openSync(stdoutPath, "w");
+
+    try {
+        const result = commandRunner(
+            resolvedExecutablePath,
+            ["--disable-http-cache"],
+            {
+                cwd: repositoryRoot,
+                env: {
+                    ...environment,
+                    ELECTRON_IS_DEV: "0",
+                    FFV_DISABLE_WEB_SECURITY: "false",
+                    NODE_ENV: "production",
+                },
+                encoding: "utf8",
+                killSignal: "SIGTERM",
+                stdio: [
+                    "ignore",
+                    stdoutDescriptor,
+                    stderrDescriptor,
+                ],
+                timeout: timeoutMs,
+            }
+        );
+
+        return {
+            outputFiles: {
+                stderr: readFileSync(stderrPath, "utf8"),
+                stdout: readFileSync(stdoutPath, "utf8"),
+            },
+            result,
+        };
+    } finally {
+        closeFileDescriptor(stdoutDescriptor);
+        closeFileDescriptor(stderrDescriptor);
+        rmSync(captureDirectory, { force: true, recursive: true });
+    }
+}
+
+function closeFileDescriptor(descriptor) {
+    try {
+        closeSync(descriptor);
+    } catch (error) {
+        if (
+            !(error instanceof Error) ||
+            !("code" in error) ||
+            error.code !== "EBADF"
+        ) {
+            throw error;
+        }
+    }
 }
 
 function assertNoStartupFailureOutput(output) {
