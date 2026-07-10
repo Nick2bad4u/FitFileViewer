@@ -21,7 +21,7 @@ function readDependencyValidationWorkflow(): string {
 
 describe("dependency validation workflow", () => {
     it("uploads release gate diagnostics when dependency validation fails", () => {
-        expect.assertions(66);
+        expect.assertions(67);
 
         const workflow = readDependencyValidationWorkflow();
         const developmentGuide = readFileSync(developmentGuidePath, "utf8");
@@ -43,7 +43,7 @@ describe("dependency validation workflow", () => {
             '".github/workflows/dependency-validation.yml"'
         );
         expect(workflow).toContain("timeout-minutes: 60");
-        expect(workflow).toContain("node-version: 24");
+        expect(workflow).toContain("node-version-file: .node-version");
         expect(workflow).toContain("npm run sync:node-version-files:check");
         expect(workflow).toContain(
             "tee artifacts/dependency-validation/node-version-files-check.log"
@@ -55,6 +55,9 @@ describe("dependency validation workflow", () => {
             "tee artifacts/dependency-validation/npm-ci-docusaurus.log"
         );
         expect(workflow).toContain("xvfb-run -a npm run release:verify");
+        expect(workflow).toContain(
+            'echo "Release verification is still running..."'
+        );
         expect(workflow).toContain("set -o pipefail");
         expect(workflow).toContain(
             "tee artifacts/dependency-validation/release-verify.log"

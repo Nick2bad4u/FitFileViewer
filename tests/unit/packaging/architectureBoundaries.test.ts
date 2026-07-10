@@ -5790,7 +5790,9 @@ describe("architecture boundaries", () => {
             "step-security/harden-runner"
         );
         expect(dependencyValidationWorkflow).toContain("timeout-minutes: 60");
-        expect(dependencyValidationWorkflow).toContain("node-version: 24");
+        expect(dependencyValidationWorkflow).toContain(
+            "node-version-file: .node-version"
+        );
         expect(dependencyValidationWorkflow).toContain('".node-version"');
         expect(dependencyValidationWorkflow).toContain('".nvmrc"');
         expect(dependencyValidationWorkflow).toContain('"package.json"');

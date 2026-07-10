@@ -59,10 +59,10 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Setup Node.js environment (v24)
+            - name: Setup Node.js environment
               uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
               with:
-                  node-version: 24
+                  node-version-file: .node-version
 
             - name: Install app and docs dependencies
               run: |
@@ -76,7 +76,15 @@ jobs:
               run: |
                   mkdir -p artifacts/dependency-validation
                   set -o pipefail
-                  xvfb-run -a npm run release:verify 2>&1 | tee artifacts/dependency-validation/release-verify.log
+                  (xvfb-run -a npm run release:verify 2>&1 | tee artifacts/dependency-validation/release-verify.log) &
+                  verify_pid=$!
+                  while kill -0 "$verify_pid" 2>/dev/null; do
+                      sleep 60
+                      if kill -0 "$verify_pid" 2>/dev/null; then
+                          echo "Release verification is still running..."
+                      fi
+                  done
+                  wait "$verify_pid"
 
             - name: Verify unsigned package artifacts
               run: |

@@ -500,7 +500,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -527,6 +527,9 @@ describe("workspace package boundaries", () => {
             "node scripts/verify-signed-artifacts.mjs"
         );
         expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
+        expect(releaseWorkflow).toContain(
+            'echo "Release verification is still running..."'
+        );
         expect(releaseWorkflow).toContain("npm run release:check-signing");
         expect(releaseWorkflow).toContain(
             "npm run release:verify-signing-artifacts"
@@ -974,7 +977,9 @@ describe("workspace package boundaries", () => {
         expect(dependencyValidationWorkflow).toContain('".node-version"');
         expect(dependencyValidationWorkflow).toContain('".nvmrc"');
         expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
-        expect(dependencyValidationWorkflow).toContain("node-version: 24");
+        expect(dependencyValidationWorkflow).toContain(
+            "node-version-file: .node-version"
+        );
         expect(dependencyValidationWorkflow).toContain(
             "npm run sync:node-version-files:check"
         );
