@@ -1,0 +1,242 @@
+name: Published Windows Upgrade Smoke
+run-name: Published Windows Upgrade Smoke (${{ github.ref_name }})
+
+on:
+    workflow_dispatch:
+        inputs:
+            from-version:
+                description: Previous published version to install
+                required: false
+                type: string
+            to-version:
+                description: Newly published version expected after upgrade
+                required: false
+                type: string
+    workflow_run:
+        workflows: ["Build And Release Electron App"]
+        types:
+            - completed
+        branches:
+            - main
+
+concurrency:
+    group: published-windows-upgrade-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    upgrade:
+        name: Upgrade previous Windows release
+        if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+        runs-on: windows-latest
+        timeout-minutes: 35
+        defaults:
+            run:
+                shell: pwsh
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+              with:
+                  egress-policy: audit
+
+            - name: Checkout repository
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+              with:
+                  node-version-file: .node-version
+
+            - name: Setup npm version
+              run: npm install --global npm@11.16.0
+
+            - name: Install test dependencies
+              run: npm ci --ignore-scripts --no-audit --no-fund
+
+            - name: Resolve published upgrade versions
+              id: versions
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  INPUT_FROM_VERSION: ${{ inputs['from-version'] }}
+                  INPUT_TO_VERSION: ${{ inputs['to-version'] }}
+              run: |
+                  $fromVersion = $env:INPUT_FROM_VERSION
+                  $toVersion = $env:INPUT_TO_VERSION
+
+                  if ([string]::IsNullOrWhiteSpace($fromVersion) -or
+                      [string]::IsNullOrWhiteSpace($toVersion)) {
+                      $releases = gh api "repos/${{ github.repository }}/releases?per_page=20" |
+                        ConvertFrom-Json |
+                        Where-Object { -not $_.draft -and -not $_.prerelease }
+                      if ($releases.Count -lt 2) {
+                          throw "At least two published stable releases are required."
+                      }
+                      $toVersion = $releases[0].tag_name -replace '^v', ''
+                      $fromVersion = $releases[1].tag_name -replace '^v', ''
+                  }
+
+                  foreach ($version in @($fromVersion, $toVersion)) {
+                      if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+                          throw "Invalid release version: $version"
+                      }
+                  }
+                  if ([version]$fromVersion -ge [version]$toVersion) {
+                      throw "Expected from-version to be older than to-version."
+                  }
+
+                  "from_version=$fromVersion" >> $env:GITHUB_OUTPUT
+                  "to_version=$toVersion" >> $env:GITHUB_OUTPUT
+                  "FFV_UPGRADE_FROM_VERSION=$fromVersion" >> $env:GITHUB_ENV
+                  "FFV_UPGRADE_TO_VERSION=$toVersion" >> $env:GITHUB_ENV
+
+            - name: Download previous Windows installer
+              env:
+                  FROM_VERSION: ${{ steps.versions.outputs.from_version }}
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  New-Item -ItemType Directory -Path release-inputs -Force | Out-Null
+                  gh release download "v$env:FROM_VERSION" --pattern "Fit-File-Viewer-nsis-x64-$env:FROM_VERSION.exe" --dir release-inputs
+
+            - name: Install previous release in isolated directory
+              env:
+                  FROM_VERSION: ${{ steps.versions.outputs.from_version }}
+              run: |
+                  $installer = Resolve-Path (
+                    "release-inputs/Fit-File-Viewer-nsis-x64-$env:FROM_VERSION.exe"
+                  )
+                  $installDirectory = Join-Path $env:RUNNER_TEMP "ffv-upgrade-install"
+                  $executable = Join-Path $installDirectory "Fit File Viewer.exe"
+                  $evidence = Join-Path $env:RUNNER_TEMP "upgrade-handoff.json"
+
+                  $process = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installDirectory") -Wait -PassThru
+                  if ($process.ExitCode -ne 0) {
+                      throw "Previous installer exited with $($process.ExitCode)."
+                  }
+                  if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
+                      throw "Installed executable not found: $executable"
+                  }
+                  $installedVersion = (Get-Item -LiteralPath $executable).
+                    VersionInfo.ProductVersion
+                  if ($installedVersion -ne $env:FROM_VERSION) {
+                      throw "Installed $installedVersion instead of $env:FROM_VERSION."
+                  }
+
+                  "FFV_UPGRADE_EXECUTABLE=$executable" >> $env:GITHUB_ENV
+                  "FFV_UPGRADE_EVIDENCE=$evidence" >> $env:GITHUB_ENV
+                  "FFV_UPGRADE_INSTALL_DIR=$installDirectory" >> $env:GITHUB_ENV
+
+            - name: Exercise updater from previous release
+              run: npm run test:upgrade:published
+
+            - name: Verify upgraded installation
+              env:
+                  TO_VERSION: ${{ steps.versions.outputs.to_version }}
+              run: |
+                  $deadline = (Get-Date).AddMinutes(5)
+                  $installedVersion = $null
+                  do {
+                      if (Test-Path -LiteralPath $env:FFV_UPGRADE_EXECUTABLE) {
+                          $installedVersion = (Get-Item -LiteralPath (
+                            $env:FFV_UPGRADE_EXECUTABLE
+                          )).VersionInfo.ProductVersion
+                      }
+                      if ($installedVersion -eq $env:TO_VERSION) {
+                          break
+                      }
+                      Start-Sleep -Seconds 5
+                  } while ((Get-Date) -lt $deadline)
+
+                  if ($installedVersion -ne $env:TO_VERSION) {
+                      throw "Updater left version $installedVersion installed; expected $env:TO_VERSION."
+                  }
+                  if (-not (Test-Path -LiteralPath $env:FFV_UPGRADE_EVIDENCE)) {
+                      throw "Playwright did not record a completed update handoff."
+                  }
+
+                  $registryRoots = @(
+                    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                    "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall",
+                    "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+                  )
+                  $entries = @(
+                    foreach ($root in $registryRoots) {
+                        if (Test-Path -LiteralPath $root) {
+                            Get-ChildItem -LiteralPath $root |
+                                ForEach-Object {
+                                    Get-ItemProperty -LiteralPath $_.PSPath
+                                } |
+                                Where-Object {
+                                    $_.DisplayName -eq "Fit File Viewer"
+                                }
+                        }
+                    }
+                  )
+                  $entries |
+                    Select-Object DisplayName, DisplayVersion, InstallLocation, PSChildName |
+                    ConvertTo-Json -Depth 3 |
+                    Set-Content -LiteralPath (
+                        Join-Path $env:RUNNER_TEMP "upgrade-registry.json"
+                    )
+                  if ($entries.Count -ne 1) {
+                      throw "Expected one Fit File Viewer uninstall entry after upgrade; found $($entries.Count)."
+                  }
+
+            - name: Smoke test upgraded executable
+              run: |
+                  Get-Process -Name "Fit File Viewer" -ErrorAction SilentlyContinue |
+                    Stop-Process -Force -ErrorAction SilentlyContinue
+                  node scripts/run-packaged-smoke.mjs --executable "$env:FFV_UPGRADE_EXECUTABLE" --startup-timeout-ms 15000
+
+            - name: Collect upgrade diagnostics
+              if: always()
+              run: |
+                  $evidenceDirectory = Join-Path $env:RUNNER_TEMP (
+                    "published-upgrade-evidence"
+                  )
+                  New-Item -ItemType Directory -Path $evidenceDirectory -Force |
+                    Out-Null
+                  $sources = @(
+                    @{
+                      Name = "app-logs"
+                      Path = Join-Path $env:APPDATA "Fit File Viewer\logs"
+                    },
+                    @{
+                      Name = "updater-cache"
+                      Path = Join-Path $env:LOCALAPPDATA "fitfileviewer-updater"
+                    }
+                  )
+                  foreach ($source in $sources) {
+                      if (Test-Path -LiteralPath $source.Path) {
+                          Copy-Item -LiteralPath $source.Path -Destination (
+                            Join-Path $evidenceDirectory $source.Name
+                          ) -Recurse -Force
+                      }
+                  }
+
+            - name: Upload upgrade evidence
+              if: always()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: published-windows-upgrade-evidence
+                  if-no-files-found: ignore
+                  path: |
+                      ${{ runner.temp }}/upgrade-handoff.json
+                      ${{ runner.temp }}/upgrade-registry.json
+                      ${{ runner.temp }}/published-upgrade-evidence/
+                      test-results/
+
+            - name: Clean up isolated installation
+              if: always()
+              run: |
+                  Get-Process -Name "Fit File Viewer" -ErrorAction SilentlyContinue |
+                    Stop-Process -Force -ErrorAction SilentlyContinue
+                  if ($env:FFV_UPGRADE_INSTALL_DIR) {
+                      $uninstaller = Join-Path $env:FFV_UPGRADE_INSTALL_DIR (
+                        "Uninstall Fit File Viewer.exe"
+                      )
+                      if (Test-Path -LiteralPath $uninstaller -PathType Leaf) {
+                          Start-Process -FilePath $uninstaller -ArgumentList "/S" -Wait
+                      }
+                  }

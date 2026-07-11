@@ -265,6 +265,7 @@
         "test:tabs": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run --reporter=verbose tests/unit/tabs --maxWorkers 1",
         "test:ui": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
         "test:unit": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run tests/unit --maxWorkers 1",
+        "test:upgrade:published": "cross-env PW_DISABLE_TS_ESM=1 playwright test tests/playwright/published-upgrade.spec.ts --config playwright.config.ts",
         "test:watch": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --watch",
         "test:watch:changed": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --watch --changed",
         "typecheck": "tsc --project tsconfig.app.json --noEmit",
