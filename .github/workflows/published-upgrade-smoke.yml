@@ -110,6 +110,10 @@ jobs:
                   $executable = Join-Path $installDirectory "Fit File Viewer.exe"
                   $evidence = Join-Path $env:RUNNER_TEMP "upgrade-handoff.json"
 
+                  "FFV_UPGRADE_EXECUTABLE=$executable" >> $env:GITHUB_ENV
+                  "FFV_UPGRADE_EVIDENCE=$evidence" >> $env:GITHUB_ENV
+                  "FFV_UPGRADE_INSTALL_DIR=$installDirectory" >> $env:GITHUB_ENV
+
                   $process = Start-Process -FilePath $installer -ArgumentList @("/S", "/D=$installDirectory") -Wait -PassThru
                   if ($process.ExitCode -ne 0) {
                       throw "Previous installer exited with $($process.ExitCode)."
@@ -117,15 +121,15 @@ jobs:
                   if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
                       throw "Installed executable not found: $executable"
                   }
-                  $installedVersion = (Get-Item -LiteralPath $executable).
+                  $productVersion = (Get-Item -LiteralPath $executable).
                     VersionInfo.ProductVersion
-                  if ($installedVersion -ne $env:FROM_VERSION) {
-                      throw "Installed $installedVersion instead of $env:FROM_VERSION."
+                  if ($productVersion -notmatch '^(\d+\.\d+\.\d+)(?:\.\d+)?$') {
+                      throw "Unexpected Windows product version: $productVersion"
                   }
-
-                  "FFV_UPGRADE_EXECUTABLE=$executable" >> $env:GITHUB_ENV
-                  "FFV_UPGRADE_EVIDENCE=$evidence" >> $env:GITHUB_ENV
-                  "FFV_UPGRADE_INSTALL_DIR=$installDirectory" >> $env:GITHUB_ENV
+                  $installedVersion = $Matches[1]
+                  if ($installedVersion -ne $env:FROM_VERSION) {
+                      throw "Installed $productVersion instead of $env:FROM_VERSION."
+                  }
 
             - name: Exercise updater from previous release
               run: npm run test:upgrade:published
@@ -138,9 +142,12 @@ jobs:
                   $installedVersion = $null
                   do {
                       if (Test-Path -LiteralPath $env:FFV_UPGRADE_EXECUTABLE) {
-                          $installedVersion = (Get-Item -LiteralPath (
+                          $productVersion = (Get-Item -LiteralPath (
                             $env:FFV_UPGRADE_EXECUTABLE
                           )).VersionInfo.ProductVersion
+                          if ($productVersion -match '^(\d+\.\d+\.\d+)(?:\.\d+)?$') {
+                              $installedVersion = $Matches[1]
+                          }
                       }
                       if ($installedVersion -eq $env:TO_VERSION) {
                           break
@@ -149,7 +156,7 @@ jobs:
                   } while ((Get-Date) -lt $deadline)
 
                   if ($installedVersion -ne $env:TO_VERSION) {
-                      throw "Updater left version $installedVersion installed; expected $env:TO_VERSION."
+                      throw "Updater left product version $productVersion installed; expected $env:TO_VERSION."
                   }
                   if (-not (Test-Path -LiteralPath $env:FFV_UPGRADE_EVIDENCE)) {
                       throw "Playwright did not record a completed update handoff."

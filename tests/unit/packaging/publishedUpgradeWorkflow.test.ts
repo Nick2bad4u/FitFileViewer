@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("published upgrade smoke workflow", () => {
     it("upgrades the previous Windows release after successful publication", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const workflow = readFileSync(
             path.join(
@@ -31,6 +31,7 @@ describe("published upgrade smoke workflow", () => {
         expect(workflow).toContain("Fit-File-Viewer-nsis-x64-");
         expect(workflow).toContain("npm run test:upgrade:published");
         expect(workflow).toContain("Verify upgraded installation");
+        expect(workflow).toContain("Unexpected Windows product version");
         expect(workflow).toContain(
             "Expected one Fit File Viewer uninstall entry"
         );
