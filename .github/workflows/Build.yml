@@ -404,12 +404,7 @@ jobs:
                       ---
 
                       <details>
-                        <summary><strong>🔍 Merge Commit Details</strong></summary>
-
-                      **Message:**
-                      ```
-                      ${{ steps.release_notes.outputs.notes }}
-                      ```
+                        <summary><strong>🔍 Release Commit Details</strong></summary>
 
                       **Commit SHA:** `${{ needs.bump-version.outputs.bump_sha }}`
                       </details>

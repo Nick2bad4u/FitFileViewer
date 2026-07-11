@@ -7,6 +7,8 @@ import { pathToFileURL } from "node:url";
 import { readInlineOptionValue, readOptionValue } from "./lib/cli-options.mjs";
 import { repositoryRoot as defaultRepositoryRoot } from "./lib/workspaces.mjs";
 
+export const defaultMaxReleaseNoteCommits = 100;
+
 if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
@@ -30,13 +32,37 @@ export function createCommitPrettyFormat(repository) {
     return `- %s%n  - Author: %an <%ae>%n  - Commit: [%h](https://github.com/${repository}/commit/%H)%n  - Date: %ad%n`;
 }
 
-export function createGitLogArgs(rangeSpec, repository) {
+export function createGitLogArgs(
+    rangeSpec,
+    repository,
+    maxCommits = defaultMaxReleaseNoteCommits
+) {
     return [
         "log",
         rangeSpec,
+        `--max-count=${maxCommits}`,
         `--pretty=format:${createCommitPrettyFormat(repository)}`,
         "--date=short",
     ];
+}
+
+export function appendReleaseNotesOverflow(
+    notes,
+    {
+        commitCount,
+        currentTag,
+        maxCommits = defaultMaxReleaseNoteCommits,
+        previousTag,
+        repository,
+    }
+) {
+    const omittedCommitCount = Math.max(commitCount - maxCommits, 0);
+    if (omittedCommitCount === 0 || !previousTag) {
+        return notes;
+    }
+
+    const comparisonUrl = `https://github.com/${repository}/compare/${previousTag}...${currentTag}`;
+    return `${notes}\n\n_${omittedCommitCount.toLocaleString("en-US")} additional commits are included in the [full comparison](${comparisonUrl})._`;
 }
 
 export function createRangeSpec(currentTag, previousTag) {
@@ -70,6 +96,19 @@ export function generateReleaseNotes(options) {
         repositoryRoot: normalizedOptions.repositoryRoot,
     });
     const rangeSpec = createRangeSpec(currentTag, previousTag);
+    const commitCount = parseCommitCount(
+        commandRunner(
+            "git",
+            [
+                "rev-list",
+                "--count",
+                rangeSpec,
+            ],
+            {
+                cwd: normalizedOptions.repositoryRoot,
+            }
+        )
+    );
     const rawNotes = commandRunner(
         "git",
         createGitLogArgs(rangeSpec, normalizedOptions.repository),
@@ -77,14 +116,34 @@ export function generateReleaseNotes(options) {
             cwd: normalizedOptions.repositoryRoot,
         }
     );
-    const notes = normalizeReleaseNotes(rawNotes, rangeSpec);
+    const notes = appendReleaseNotesOverflow(
+        normalizeReleaseNotes(rawNotes, rangeSpec),
+        {
+            commitCount,
+            currentTag,
+            previousTag,
+            repository: normalizedOptions.repository,
+        }
+    );
 
     return {
         currentTag,
+        commitCount,
         notes,
         previousTag,
         rangeSpec,
     };
+}
+
+function parseCommitCount(value) {
+    const commitCount = Number.parseInt(value.trim(), 10);
+    if (!Number.isSafeInteger(commitCount) || commitCount < 0) {
+        throw new Error(
+            `Invalid commit count returned by git: ${value.trim()}`
+        );
+    }
+
+    return commitCount;
 }
 
 export function normalizeReleaseNotes(notes, rangeSpec) {

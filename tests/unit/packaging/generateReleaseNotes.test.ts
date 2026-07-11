@@ -7,6 +7,16 @@ import { describe, expect, it } from "vitest";
 import { repositoryRoot } from "../../../scripts/lib/workspaces.mjs";
 
 type GenerateReleaseNotesModule = {
+    appendReleaseNotesOverflow: (
+        notes: string,
+        options: {
+            commitCount: number;
+            currentTag: string;
+            maxCommits?: number;
+            previousTag: string;
+            repository: string;
+        }
+    ) => string;
     createCommitPrettyFormat: (repository: string) => string;
     createGitLogArgs: (rangeSpec: string, repository: string) => string[];
     createRangeSpec: (currentTag: string, previousTag: string) => string;
@@ -21,6 +31,7 @@ type GenerateReleaseNotesModule = {
         repositoryRoot?: string;
         version: string;
     }) => {
+        commitCount: number;
         currentTag: string;
         notes: string;
         previousTag: string;
@@ -67,9 +78,33 @@ describe("generate-release-notes script", () => {
         ).toStrictEqual([
             "log",
             "v29.9.0..v30.0.0",
+            "--max-count=100",
             "--pretty=format:- %s%n  - Author: %an <%ae>%n  - Commit: [%h](https://github.com/Nick2bad4u/FitFileViewer/commit/%H)%n  - Date: %ad%n",
             "--date=short",
         ]);
+    });
+
+    it("links to omitted release history when the commit range is large", async () => {
+        expect.assertions(2);
+
+        const { appendReleaseNotesOverflow } =
+            await importGenerateReleaseNotes();
+        const options = {
+            commitCount: 5352,
+            currentTag: "v30.0.0",
+            previousTag: "v29.9.0",
+            repository: "Nick2bad4u/FitFileViewer",
+        };
+
+        expect(appendReleaseNotesOverflow("- Recent commit", options)).toBe(
+            "- Recent commit\n\n_5,252 additional commits are included in the [full comparison](https://github.com/Nick2bad4u/FitFileViewer/compare/v29.9.0...v30.0.0)._"
+        );
+        expect(
+            appendReleaseNotesOverflow("- Recent commit", {
+                ...options,
+                commitCount: 100,
+            })
+        ).toBe("- Recent commit");
     });
 
     it("uses a fallback note when git log returns no commits", async () => {
@@ -122,6 +157,10 @@ describe("generate-release-notes script", () => {
                     return "- Commit subject";
                 }
 
+                if (args[0] === "rev-list") {
+                    return "1";
+                }
+
                 return "";
             },
             repository: "Nick2bad4u/FitFileViewer",
@@ -130,6 +169,7 @@ describe("generate-release-notes script", () => {
 
         expect(parseArgs([]).repositoryRoot).toBe(repositoryRoot);
         expect(commandCwds).toStrictEqual([
+            repositoryRoot,
             repositoryRoot,
             repositoryRoot,
             repositoryRoot,
@@ -157,6 +197,10 @@ describe("generate-release-notes script", () => {
                     return "- Commit subject";
                 }
 
+                if (args[0] === "rev-list") {
+                    return "1";
+                }
+
                 return "";
             },
             repository: "Nick2bad4u/FitFileViewer",
@@ -165,6 +209,7 @@ describe("generate-release-notes script", () => {
         });
 
         expect(result).toStrictEqual({
+            commitCount: 1,
             currentTag: "v30.0.0",
             notes: "- Commit subject",
             previousTag: "v29.9.0",
@@ -194,8 +239,18 @@ describe("generate-release-notes script", () => {
             },
             {
                 args: [
+                    "rev-list",
+                    "--count",
+                    "v29.9.0..v30.0.0",
+                ],
+                command: "git",
+                cwd: repositoryRoot,
+            },
+            {
+                args: [
                     "log",
                     "v29.9.0..v30.0.0",
+                    "--max-count=100",
                     "--pretty=format:- %s%n  - Author: %an <%ae>%n  - Commit: [%h](https://github.com/Nick2bad4u/FitFileViewer/commit/%H)%n  - Date: %ad%n",
                     "--date=short",
                 ],
