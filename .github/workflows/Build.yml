@@ -397,6 +397,8 @@ jobs:
                   body: |
                       ## 🚀 Release Notes
 
+                      This is the first FitFileViewer release built from the migrated TypeScript runtime sources for the main process, preload, renderer, and application utilities.
+
                       ${{ steps.release_notes.outputs.notes }}
 
                       **[📄 View Full Changelog](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)**

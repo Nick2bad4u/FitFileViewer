@@ -79,7 +79,7 @@ describe("publish-app-version script", () => {
             await importPublishAppVersion();
 
         expect(createCommitMessage("30.0.0")).toBe(
-            "chore(release): v30.0.0 [skip ci]"
+            "🔖 [chore] Release v30.0.0 [skip ci]"
         );
         expect(createTagName("30.0.0")).toBe("v30.0.0");
         expect(createTagMessage("30.0.0")).toBe("Release v30.0.0");
@@ -136,7 +136,7 @@ describe("publish-app-version script", () => {
                 args: [
                     "commit",
                     "-m",
-                    "chore(release): v30.0.0 [skip ci]",
+                    "🔖 [chore] Release v30.0.0 [skip ci]",
                 ],
                 command: "git",
             },

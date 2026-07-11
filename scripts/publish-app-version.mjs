@@ -78,7 +78,7 @@ export function publishAppVersion(options) {
 }
 
 export function createCommitMessage(version) {
-    return `chore(release): v${version} [skip ci]`;
+    return `🔖 [chore] Release v${version} [skip ci]`;
 }
 
 export function createPublishCommands(options) {
