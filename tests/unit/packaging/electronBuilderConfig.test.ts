@@ -51,8 +51,9 @@ function deriveInstallerGuid(appId: string): string {
     return execFileSync(
         process.execPath,
         [
+            "--input-type=module",
             "--eval",
-            'const { UUID } = require("builder-util-runtime"); const namespace = UUID.parse("50e065bc-3134-11e6-9bab-38c9862bdaf3"); process.stdout.write(UUID.v5(process.argv[1], namespace));',
+            'import { UUID } from "builder-util-runtime"; const namespace = UUID.parse("50e065bc-3134-11e6-9bab-38c9862bdaf3"); process.stdout.write(UUID.v5(process.argv[1], namespace));',
             appId,
         ],
         { encoding: "utf8" }
