@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("published upgrade smoke workflow", () => {
     it("upgrades the previous Windows release after successful publication", () => {
-        expect.assertions(16);
+        expect.assertions(17);
 
         const workflow = readFileSync(
             path.join(
@@ -18,7 +18,7 @@ describe("published upgrade smoke workflow", () => {
             readFileSync(path.join(process.cwd(), "package.json"), "utf8")
         ) as { scripts?: Record<string, string> };
         const upgradeSmoke = readFileSync(
-            path.join(process.cwd(), "tests/playwright/published-upgrade.mts"),
+            path.join(process.cwd(), "tests/integration/publishedUpgrade.mts"),
             "utf8"
         );
 
@@ -42,13 +42,14 @@ describe("published upgrade smoke workflow", () => {
         expect(workflow).toContain("Smoke test upgraded executable");
         expect(workflow).toContain("Collect upgrade diagnostics");
         expect(packageJson.scripts?.["test:upgrade:published"]).toContain(
-            "tests/playwright/published-upgrade.mts"
+            "tests/integration/publishedUpgrade.mts"
         );
         expect(packageJson.scripts?.["test:upgrade:published"]).toContain(
             "--experimental-strip-types"
         );
+        expect(upgradeSmoke).toContain('"/S"');
         expect(upgradeSmoke).toContain(
-            '["--updated", "/S", "--force-run", `/D=${installDirectory}`]'
+            "`/D=${configuration.installDirectory}`"
         );
     });
 });
