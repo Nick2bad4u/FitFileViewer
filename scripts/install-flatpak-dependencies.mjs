@@ -35,8 +35,8 @@ const flatpakDependencyCommands = [
             "-y",
             "--user",
             "flathub",
-            "org.freedesktop.Platform//23.08",
-            "org.freedesktop.Sdk//23.08",
+            "org.freedesktop.Platform//25.08",
+            "org.freedesktop.Sdk//25.08",
         ],
     ],
     [

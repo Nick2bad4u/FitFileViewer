@@ -1,5 +1,5 @@
 app-id: com.nick2bad4u.fitfileviewer
-command: electron
+command: fitfileviewer
 finish-args:
     - --share=network
     - --socket=x11
@@ -10,7 +10,14 @@ finish-args:
 modules:
     - build-commands:
           - cp -r ./node_modules /app/
-          - install -Dm755 ./node_modules/electron/dist/electron /app/bin/electron
+          - mkdir -p /app/bin /app/lib/electron
+          - cp -a ./node_modules/electron/dist/. /app/lib/electron/
+          - rm -rf /app/node_modules/electron/dist
+          - >-
+              printf '%s\n' '#!/bin/sh'
+              'exec /app/lib/electron/electron --no-sandbox /app "$@"'
+              > /app/bin/fitfileviewer
+          - chmod 0755 /app/bin/fitfileviewer
           - cp -r ./dist /app/
           - install -Dm644 ./package.json /app/package.json
           - install -Dm644 ./static/app/index.html /app/index.html
@@ -25,5 +32,5 @@ modules:
           - path: .
             type: dir
 runtime: org.freedesktop.Platform
-runtime-version: "23.08"
+runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
