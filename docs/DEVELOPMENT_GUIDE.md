@@ -448,6 +448,10 @@ missing variable.
   `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`,
   `APPLE_API_KEY`/`APPLE_API_KEY_ID`/`APPLE_API_ISSUER`, or
   `APPLE_KEYCHAIN_PROFILE`.
+- In GitHub Actions, store the base64-encoded `.p8` key in
+  `APPLE_API_KEY_BASE64`. The release and rehearsal workflows materialize it
+  under `RUNNER_TEMP` and expose the resulting path as `APPLE_API_KEY`, which
+  is the filesystem-path value electron-builder requires.
 - Linux builds do not require signing variables, even when the release matrix
   sets `REQUIRE_CODE_SIGNING=true`.
 - Windows 7 compatibility is limited to a carried-forward legacy snapshot in

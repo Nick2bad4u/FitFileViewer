@@ -16,7 +16,7 @@ function readReleaseRehearsalWorkflow(): string {
 
 describe("release rehearsal workflow", () => {
     it("runs the release gate, signing preflight, packaged smoke, and artifact upload without publishing", () => {
-        expect.assertions(42);
+        expect.assertions(43);
 
         const workflow = readReleaseRehearsalWorkflow();
 
@@ -48,7 +48,10 @@ describe("release rehearsal workflow", () => {
             "APPLE_API_ISSUER: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}"
         );
         expect(workflow).toContain(
-            "APPLE_API_KEY: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY || '' }}"
+            "APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}"
+        );
+        expect(workflow).toContain(
+            'echo "APPLE_API_KEY=$APPLE_API_KEY_PATH" >> "$GITHUB_ENV"'
         );
         expect(workflow).toContain(
             "APPLE_API_KEY_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}"

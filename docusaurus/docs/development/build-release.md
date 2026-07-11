@@ -209,6 +209,12 @@ Notarization also requires one of these credential sets:
 - `APPLE_API_KEY`, `APPLE_API_KEY_ID`, and `APPLE_API_ISSUER`
 - `APPLE_KEYCHAIN_PROFILE`
 
+For GitHub Actions, store the base64-encoded `.p8` key as
+`APPLE_API_KEY_BASE64`, plus `APPLE_API_KEY_ID` and `APPLE_API_ISSUER`. The
+workflow writes the decoded key to `RUNNER_TEMP` and exports its path as
+`APPLE_API_KEY`; do not store raw key contents in `APPLE_API_KEY`, because
+electron-builder interprets that variable as a filesystem path.
+
 Linux release builds do not require signing variables. Windows 7 compatibility
 is limited to carried-forward legacy release assets from `build-win7.yml`; the
 current app is not rebuilt for Windows 7.

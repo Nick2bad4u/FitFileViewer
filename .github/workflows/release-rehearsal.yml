@@ -82,13 +82,23 @@ jobs:
                   npm ci --no-audit --no-fund
                   npm ci --prefix docusaurus --no-audit --no-fund
 
+            - name: Prepare Apple API key when configured
+              if: runner.os == 'macOS'
+              env:
+                  APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+                  APPLE_API_KEY_PATH: ${{ runner.temp }}/AuthKey_FitFileViewer.p8
+              run: |
+                  if [ -n "$APPLE_API_KEY_BASE64" ]; then
+                      node --input-type=module -e 'import fs from "node:fs"; const key = Buffer.from(process.env.APPLE_API_KEY_BASE64, "base64").toString("utf8"); if (!key.trim().startsWith("-----BEGIN PRIVATE KEY-----")) throw new Error("APPLE_API_KEY_BASE64 is not a base64-encoded .p8 private key"); fs.writeFileSync(process.env.APPLE_API_KEY_PATH, key, { mode: 0o600 });'
+                      echo "APPLE_API_KEY=$APPLE_API_KEY_PATH" >> "$GITHUB_ENV"
+                  fi
+
             - name: Check signing environment
               run: npm run release:check-signing -- --runner-os "${{ matrix.runner-os }}"
               env:
                   REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
                   RUNNER_OS: ${{ matrix.runner-os }}
                   APPLE_API_ISSUER: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
-                  APPLE_API_KEY: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY || '' }}
                   APPLE_API_KEY_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
                   APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
                   APPLE_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_ID || '' }}

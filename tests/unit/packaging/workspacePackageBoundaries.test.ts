@@ -544,7 +544,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release rehearsal manual and unsigned", () => {
-        expect.assertions(31);
+        expect.assertions(32);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseRehearsalWorkflow = readFileSync(
@@ -565,7 +565,10 @@ describe("workspace package boundaries", () => {
             "APPLE_API_ISSUER: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}"
         );
         expect(releaseRehearsalWorkflow).toContain(
-            "APPLE_API_KEY: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY || '' }}"
+            "APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}"
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            'echo "APPLE_API_KEY=$APPLE_API_KEY_PATH" >> "$GITHUB_ENV"'
         );
         expect(releaseRehearsalWorkflow).toContain(
             "APPLE_API_KEY_ID: ${{ matrix.runner-os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}"
