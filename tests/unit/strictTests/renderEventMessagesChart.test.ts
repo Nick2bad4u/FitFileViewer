@@ -28,6 +28,15 @@ const chartJsMocks = vi.hoisted(() => ({
     Chart: vi.fn<ChartConstructor>(),
 }));
 
+const formatterMocks = vi.hoisted(() => ({
+    formatTime: vi.fn<(value: number, showSeconds?: boolean) => string>(
+        (value, showSeconds) => {
+            if (showSeconds) return `${value}s`;
+            return `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`;
+        }
+    ),
+}));
+
 vi.mock(import("chart.js/auto"), () => ({
     default: chartJsMocks.Chart,
 }));
@@ -177,12 +186,7 @@ vi.mock(
 vi.mock(
     import("../../../electron-app/utils/formatting/formatters/formatTime.js"),
     () => ({
-        formatTime: vi.fn<(value: number, showSeconds?: boolean) => string>(
-            (value, showSeconds) => {
-                if (showSeconds) return `${value}s`;
-                return `${Math.floor(value / 60)}:${(value % 60).toString().padStart(2, "0")}`;
-            }
-        ),
+        formatTime: formatterMocks.formatTime,
     })
 );
 
@@ -891,11 +895,9 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
     });
 
     describe("scale configuration", () => {
-        it("should configure x-axis with time formatting callback", async () => {
+        it("should configure x-axis with time formatting callback", () => {
             expect.assertions(3);
 
-            const { formatTime } =
-                await import("../../../electron-app/utils/formatting/formatters/formatTime.js");
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -904,7 +906,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const xAxisCallback = chartConfig.options.scales.x.ticks.callback;
 
             const result = xAxisCallback(300);
-            expect(formatTime).toHaveBeenCalledWith(300, true);
+            expect(formatterMocks.formatTime).toHaveBeenCalledWith(300, true);
             expect(result).toBe("300s");
             expect(result).not.toBe("");
         });
