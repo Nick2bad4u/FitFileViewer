@@ -178,6 +178,11 @@ And Release Electron App** workflow exposes a `require-code-signing` input;
 leave it disabled for the established release path and enable it only after the
 Windows and macOS signing credentials have been configured.
 
+For a failed run that already created an unpublished version tag, use
+`reuse-current-version=true` only after moving that tag to the exact retry
+commit. The workflow validates the package version, tag, and checked-out commit
+match before rebuilding, preventing an accidental extra version bump.
+
 Both commands force `FFV_FORCE_UNSIGNED_PACKAGE=true`,
 `CSC_IDENTITY_AUTO_DISCOVERY=false`, and `REQUIRE_CODE_SIGNING=false` before
 electron-builder starts. Use them for local package validation and release

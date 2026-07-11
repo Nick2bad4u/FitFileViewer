@@ -213,9 +213,9 @@ export function runPackagedSmoke(
         .filter(Boolean)
         .join("\n");
 
-    assertNoStartupFailureOutput(output);
-
     const timedOut = result.error?.code === "ETIMEDOUT";
+    assertNoStartupFailureOutput(output, { timedOut });
+
     if (result.error && !timedOut) {
         throw result.error;
     }
@@ -314,10 +314,18 @@ function closeFileDescriptor(descriptor) {
     }
 }
 
-function assertNoStartupFailureOutput(output) {
+function assertNoStartupFailureOutput(output, { timedOut = false } = {}) {
     const normalizedOutput = output.toLowerCase();
     for (const marker of failureOutputMarkers) {
         if (!normalizedOutput.includes(marker)) {
+            continue;
+        }
+
+        if (
+            marker === "error loading main html file" &&
+            timedOut &&
+            normalizedOutput.includes("window displayed successfully")
+        ) {
             continue;
         }
 

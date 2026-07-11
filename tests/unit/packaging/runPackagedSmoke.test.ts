@@ -247,6 +247,71 @@ describe("run-packaged-smoke script", () => {
         ).toThrow("Failed to load URL");
     });
 
+    it("accepts a macOS HTML load rejection caused by timeout shutdown after display", () => {
+        expect.assertions(1);
+
+        const releaseDistPath = createTemporaryRoot();
+        const executablePath = path.join(
+            releaseDistPath,
+            "mac",
+            "Fit File Viewer.app",
+            "Contents",
+            "MacOS",
+            "Fit File Viewer"
+        );
+        writeExecutable(executablePath);
+
+        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
+            error: Object.assign(new Error("timed out"), {
+                code: "ETIMEDOUT",
+            }),
+            status: 0,
+            stderr: [
+                "[main.js] Window displayed successfully",
+                "[main.js] Error loading main HTML file ERR_FAILED (-2)",
+            ].join("\n"),
+        });
+
+        expect(
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                {},
+                commandRunner
+            )
+        ).toBe(0);
+    });
+
+    it("rejects an HTML load failure when the packaged window never displayed", () => {
+        expect.assertions(1);
+
+        const releaseDistPath = createTemporaryRoot();
+        const executablePath = path.join(
+            releaseDistPath,
+            "mac",
+            "Fit File Viewer.app",
+            "Contents",
+            "MacOS",
+            "Fit File Viewer"
+        );
+        writeExecutable(executablePath);
+
+        const commandRunner = vi.fn<CommandRunner>().mockReturnValue({
+            error: Object.assign(new Error("timed out"), {
+                code: "ETIMEDOUT",
+            }),
+            status: 0,
+            stderr: "[main.js] Error loading main HTML file ERR_FAILED (-2)",
+        });
+
+        expect(() =>
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                {},
+                commandRunner
+            )
+        ).toThrow('failure marker "error loading main html file"');
+    });
+
     it("fails when the packaged executable exits before the startup window", () => {
         expect.assertions(1);
 

@@ -18,6 +18,11 @@ on:
                 type: boolean
                 required: true
                 default: false
+            reuse-current-version:
+                description: "Reuse the package version and matching tag after a failed unpublished release"
+                type: boolean
+                required: true
+                default: false
 
 permissions:
     actions: read
@@ -34,8 +39,8 @@ jobs:
             run:
                 shell: bash
         outputs:
-            new_version: ${{ steps.bump.outputs.new_version }}
-            bump_sha: ${{ steps.commit_version.outputs.bump_sha }}
+            new_version: ${{ steps.bump.outputs.new_version || steps.reuse_version.outputs.new_version }}
+            bump_sha: ${{ steps.commit_version.outputs.bump_sha || steps.reuse_version.outputs.bump_sha }}
         steps:
             - name: Harden the runner (Audit all outbound calls)
               id: harden_runner
@@ -84,7 +89,22 @@ jobs:
 
             - name: Bump package.json version number
               id: bump
+              if: ${{ !inputs.reuse-current-version }}
               run: node scripts/bump-app-version.mjs --github-output
+
+            - name: Reuse current version after failed release
+              id: reuse_version
+              if: ${{ inputs.reuse-current-version }}
+              run: |
+                  version=$(node --input-type=module -e 'import fs from "node:fs"; const pkg = JSON.parse(fs.readFileSync("package.json", "utf8")); process.stdout.write(pkg.version);')
+                  head_sha=$(git rev-parse HEAD)
+                  tag_sha=$(git rev-list -n 1 "v${version}")
+                  if [ "$tag_sha" != "$head_sha" ]; then
+                      echo "v${version} resolves to $tag_sha instead of checked-out commit $head_sha" >&2
+                      exit 1
+                  fi
+                  echo "new_version=$version" >> "$GITHUB_OUTPUT"
+                  echo "bump_sha=$head_sha" >> "$GITHUB_OUTPUT"
 
             - name: Commit, push, and tag version bump
               id: commit_version

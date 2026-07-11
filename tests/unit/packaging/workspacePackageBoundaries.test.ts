@@ -500,7 +500,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(17);
+        expect.assertions(22);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -533,12 +533,25 @@ describe("workspace package boundaries", () => {
         );
         expect(releaseWorkflow).toContain("npm run release:check-signing");
         expect(releaseWorkflow).toContain("require-code-signing:");
+        expect(releaseWorkflow).toContain("reuse-current-version:");
         expect(releaseWorkflow).toContain("default: false");
         expect(releaseWorkflow).toContain(
             "REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}"
         );
         expect(releaseWorkflow).toContain(
             "runner.os == 'macOS' && inputs.require-code-signing"
+        );
+        expect(releaseWorkflow).toContain(
+            "steps.bump.outputs.new_version || steps.reuse_version.outputs.new_version"
+        );
+        expect(releaseWorkflow).toContain(
+            "steps.commit_version.outputs.bump_sha || steps.reuse_version.outputs.bump_sha"
+        );
+        expect(releaseWorkflow).toContain(
+            'tag_sha=$(git rev-list -n 1 "v${version}")'
+        );
+        expect(releaseWorkflow).toContain(
+            'if [ "$tag_sha" != "$head_sha" ]; then'
         );
         expect(releaseWorkflow).toContain(
             "npm run release:verify-signing-artifacts"
