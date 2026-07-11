@@ -61,7 +61,7 @@ jobs:
                   }
 
                   $installDirectory = Join-Path $env:RUNNER_TEMP (
-                    "ffv-candidate-upgrade-${{ inputs.from-version }}"
+                    "ffv-candidate-upgrade-$env:FROM_VERSION"
                   )
                   "FFV_CANDIDATE_VERSION=$candidateVersion" >> $env:GITHUB_ENV
                   "FFV_UPGRADE_EXECUTABLE=$(Join-Path $installDirectory 'Fit File Viewer.exe')" >> $env:GITHUB_ENV

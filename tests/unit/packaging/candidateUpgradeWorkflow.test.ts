@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("candidate upgrade workflow", () => {
     it("builds and installs the unsigned Windows candidate over a published release", () => {
-        expect.assertions(17);
+        expect.assertions(18);
 
         const workflow = fs.readFileSync(
             path.join(
@@ -17,6 +17,7 @@ describe("candidate upgrade workflow", () => {
 
         expect(workflow).toContain("workflow_dispatch:");
         expect(workflow).toContain("from-version:");
+        expect(workflow).toContain('"ffv-candidate-upgrade-$env:FROM_VERSION"');
         expect(workflow).toContain("runs-on: windows-latest");
         expect(workflow).toContain("permissions:\n    contents: read");
         expect(workflow).toContain("node-version-file: .node-version");
