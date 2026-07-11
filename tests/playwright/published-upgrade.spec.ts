@@ -131,22 +131,31 @@ test("published Windows release upgrades through the previous app", async ({
         });
         const notificationActionVisible = await restartButton.isVisible();
 
-        const closePromise = electronApp.waitForEvent("close", {
-            timeout: updateInstallHandoffTimeoutMs,
-        });
-        const restartTriggered = await page.evaluate(() => {
+        const restartAvailable = await page.evaluate(() => {
             const electronApi = (
                 globalThis as typeof globalThis & {
                     electronAPI?: { installUpdate?: () => void };
                 }
             ).electronAPI;
-            if (typeof electronApi?.installUpdate !== "function") {
-                return false;
-            }
-            electronApi.installUpdate();
-            return true;
+            return typeof electronApi?.installUpdate === "function";
         });
-        expect(restartTriggered).toBe(true);
+        expect(restartAvailable).toBe(true);
+
+        const closePromise = electronApp.waitForEvent("close", {
+            timeout: updateInstallHandoffTimeoutMs,
+        });
+        void page
+            .evaluate(() => {
+                const electronApi = (
+                    globalThis as typeof globalThis & {
+                        electronAPI?: { installUpdate: () => void };
+                    }
+                ).electronAPI;
+                electronApi?.installUpdate();
+            })
+            .catch(() => {
+                /* The expected application shutdown destroys this renderer. */
+            });
         await closePromise;
 
         fs.writeFileSync(
