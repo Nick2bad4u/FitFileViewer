@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("Flatpak workflow", () => {
     it("uses the supported toolchain and explicitly prepares Electron", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const workflow = readFileSync(
             path.join(process.cwd(), ".github/workflows/flatpak-build.yml"),
@@ -19,6 +19,11 @@ describe("Flatpak workflow", () => {
         expect(workflow).toContain("npm install --global npm@11.16.0");
         expect(workflow).not.toContain('node-version: "20"');
         expect(workflow).toContain("npm run build:flatpak");
+        expect(workflow).toContain("Smoke test Flatpak bundle");
+        expect(workflow).toContain(
+            "flatpak install --user --noninteractive --or-update"
+        );
+        expect(workflow).toContain("node scripts/run-packaged-smoke.mjs");
         expect(packageJson.scripts?.["build:flatpak"]).toBe(
             "npm run prepare:electron && npm run build:runtime-ts && node scripts/build-flatpak.mjs"
         );

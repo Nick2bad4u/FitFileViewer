@@ -73,6 +73,18 @@ jobs:
                   CI: true
                   DEBUG: "@malept/flatpak-bundler"
 
+            - name: Smoke test Flatpak bundle
+              run: |
+                  flatpak install --user --noninteractive --or-update ./FitFileViewer.flatpak
+                  smoke_launcher="${RUNNER_TEMP}/run-fitfileviewer-flatpak"
+                  printf '%s\n' '#!/usr/bin/env bash' \
+                    'exec xvfb-run -a flatpak run --user com.nick2bad4u.fitfileviewer' \
+                    > "${smoke_launcher}"
+                  chmod +x "${smoke_launcher}"
+                  node scripts/run-packaged-smoke.mjs \
+                    --executable "${smoke_launcher}" \
+                    --startup-timeout-ms 15000
+
             # Optionally, upload the FlatPak bundle as an artifact
             - name: Upload FlatPak bundle
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
