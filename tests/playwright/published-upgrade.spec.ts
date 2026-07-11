@@ -134,13 +134,16 @@ test("published Windows release upgrades through the previous app", async ({
         const closePromise = electronApp.waitForEvent("close", {
             timeout: updateInstallHandoffTimeoutMs,
         });
-        const restartTriggered = await electronApp.evaluate(({ Menu }) => {
-            const restartItem =
-                Menu.getApplicationMenu()?.getMenuItemById("restart-update");
-            if (!restartItem?.enabled) {
+        const restartTriggered = await page.evaluate(() => {
+            const electronApi = (
+                globalThis as typeof globalThis & {
+                    electronAPI?: { installUpdate?: () => void };
+                }
+            ).electronAPI;
+            if (typeof electronApi?.installUpdate !== "function") {
                 return false;
             }
-            restartItem.click();
+            electronApi.installUpdate();
             return true;
         });
         expect(restartTriggered).toBe(true);
@@ -153,7 +156,7 @@ test("published Windows release upgrades through the previous app", async ({
                     fromVersion: configuration.fromVersion,
                     installHandoffCompleted: true,
                     notificationActionVisible,
-                    restartTrigger: "application-menu",
+                    restartTrigger: "preload-install-update",
                     toVersion: configuration.toVersion,
                 },
                 null,
