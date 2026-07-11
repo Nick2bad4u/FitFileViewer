@@ -135,6 +135,33 @@ export function getElectronBuilderArgs({ arch, matrixOs, runnerOs }) {
     ];
 }
 
+export function getNpmInvocation(
+    environment = process.env,
+    platform = process.platform
+) {
+    const npmExecPath = environment.npm_execpath;
+    if (typeof npmExecPath === "string" && npmExecPath.trim() !== "") {
+        return {
+            args: [npmExecPath],
+            command: process.execPath,
+        };
+    }
+
+    if (platform === "win32") {
+        return {
+            args: [
+                "/d",
+                "/s",
+                "/c",
+                "npm.cmd",
+            ],
+            command: environment.ComSpec ?? "cmd.exe",
+        };
+    }
+
+    return { args: [], command: "npm" };
+}
+
 export function parseArgs(args, environment = process.env) {
     const options = {
         arch: environment.MATRIX_ARCH,
@@ -321,10 +348,6 @@ function getWindowsBuilderArgs(arch) {
     ];
 }
 
-function npmCommand() {
-    return process.platform === "win32" ? "npm.cmd" : "npm";
-}
-
 function printUsage() {
     console.log(`Usage: node scripts/build-ci-matrix.mjs [options]
 
@@ -379,9 +402,18 @@ function runElectronBuilder(builderArgs, { runCommand }) {
 }
 
 function runRuntimeBuild({ runCommand }) {
-    return runCommand(npmCommand(), ["run", "build:runtime-ts"], {
-        cwd: repositoryRoot,
-    });
+    const npmInvocation = getNpmInvocation();
+    return runCommand(
+        npmInvocation.command,
+        [
+            ...npmInvocation.args,
+            "run",
+            "build:runtime-ts",
+        ],
+        {
+            cwd: repositoryRoot,
+        }
+    );
 }
 
 function sleepSync(delaySeconds) {

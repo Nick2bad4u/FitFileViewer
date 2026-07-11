@@ -49,6 +49,10 @@ type BuildCiMatrixModule = {
         matrixOs: string;
         runnerOs: string;
     }) => string[];
+    getNpmInvocation: (
+        environment?: Record<string, string | undefined>,
+        platform?: string
+    ) => { args: string[]; command: string };
     parseArgs: (
         args: string[],
         environment?: Record<string, string | undefined>
@@ -218,8 +222,9 @@ describe("build-ci-matrix script", () => {
     it("runs runtime build before electron-builder for non-retry builds", async () => {
         expect.assertions(1);
 
-        const { buildCiMatrix } = await importBuildCiMatrix();
+        const { buildCiMatrix, getNpmInvocation } = await importBuildCiMatrix();
         const commandCalls: CommandCall[] = [];
+        const npmInvocation = getNpmInvocation();
 
         const exitCode = buildCiMatrix(
             {
@@ -238,8 +243,12 @@ describe("build-ci-matrix script", () => {
         expect({ commandCalls, exitCode }).toStrictEqual({
             commandCalls: [
                 {
-                    args: ["run", "build:runtime-ts"],
-                    command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+                    args: [
+                        ...npmInvocation.args,
+                        "run",
+                        "build:runtime-ts",
+                    ],
+                    command: npmInvocation.command,
                     cwd: repositoryRoot,
                 },
                 {
@@ -260,8 +269,9 @@ describe("build-ci-matrix script", () => {
     it("stops before electron-builder when runtime build fails", async () => {
         expect.assertions(1);
 
-        const { buildCiMatrix } = await importBuildCiMatrix();
+        const { buildCiMatrix, getNpmInvocation } = await importBuildCiMatrix();
         const commandCalls: CommandCall[] = [];
+        const npmInvocation = getNpmInvocation();
 
         const exitCode = buildCiMatrix(
             {
@@ -280,13 +290,45 @@ describe("build-ci-matrix script", () => {
         expect({ commandCalls, exitCode }).toStrictEqual({
             commandCalls: [
                 {
-                    args: ["run", "build:runtime-ts"],
-                    command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+                    args: [
+                        ...npmInvocation.args,
+                        "run",
+                        "build:runtime-ts",
+                    ],
+                    command: npmInvocation.command,
                     cwd: repositoryRoot,
                 },
             ],
             exitCode: 2,
         });
+    });
+
+    it("resolves npm without spawning Windows command shims directly", async () => {
+        expect.assertions(3);
+
+        const { getNpmInvocation } = await importBuildCiMatrix();
+
+        expect(
+            getNpmInvocation({ npm_execpath: "C:\\npm\\npm-cli.js" }, "win32")
+        ).toStrictEqual({
+            args: ["C:\\npm\\npm-cli.js"],
+            command: process.execPath,
+        });
+        expect(getNpmInvocation({}, "linux")).toStrictEqual({
+            args: [],
+            command: "npm",
+        });
+        expect(getNpmInvocation({ ComSpec: "cmd.exe" }, "win32")).toStrictEqual(
+            {
+                args: [
+                    "/d",
+                    "/s",
+                    "/c",
+                    "npm.cmd",
+                ],
+                command: "cmd.exe",
+            }
+        );
     });
 
     it("cleans release output and retries macOS electron-builder failures", async () => {
