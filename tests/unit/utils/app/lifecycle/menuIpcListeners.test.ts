@@ -3,8 +3,9 @@ import {
     registerMenuIpcListeners,
     resetMenuIpcListenerStateForTests,
 } from "../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
-import { openFileSelector } from "../../../../../electron-app/utils/files/import/openFileSelector.js";
 import type { RendererElectronApiScope } from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
+const openFileSelectorMock = vi.hoisted(() => vi.fn<() => Promise<void>>());
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
     moduleHasExport: true,
@@ -23,7 +24,7 @@ const accentColorPickerMock = vi.hoisted(() => ({
 vi.mock(
     import("../../../../../electron-app/utils/files/import/openFileSelector.js"),
     () => ({
-        openFileSelector: vi.fn<() => Promise<void>>(),
+        openFileSelector: openFileSelectorMock,
     })
 );
 
@@ -101,8 +102,6 @@ type MenuFixture = {
     >;
     trackUnsubscribe: ReturnType<typeof vi.fn<(value: unknown) => void>>;
 };
-
-const openFileSelectorMock = vi.mocked(openFileSelector);
 
 function cleanupFixture(): void {
     resetMenuIpcListenerStateForTests();
