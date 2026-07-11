@@ -14,18 +14,23 @@ type BumpAppVersionModule = {
             options: Record<string, unknown>
         ) => void;
         dryRun?: boolean;
+        releaseType?: "major" | "minor" | "patch";
         repositoryRoot?: string;
     }) => {
         currentVersion: string;
         newVersion: string;
         packagePath: string;
     };
-    calculateNextVersion: (version: string) => string;
+    calculateNextVersion: (
+        version: string,
+        releaseType?: "major" | "minor" | "patch"
+    ) => string;
     createNpmVersionArgs: (version: string) => string[];
     parseArgs: (args: string[]) => {
         dryRun: boolean;
         githubOutput: boolean;
         help: boolean;
+        releaseType: string;
     };
     writeGithubOutput: (newVersion: string, outputPath?: string) => void;
 };
@@ -76,29 +81,31 @@ afterEach(() => {
 });
 
 describe("bump-app-version script", () => {
-    it("keeps the release workflow version rollover behavior", async () => {
+    it("calculates explicit semantic version increments", async () => {
         expect.assertions(1);
 
         const { calculateNextVersion } = await importBumpAppVersion();
 
         expect(
-            [
-                "29.8.12",
-                "29.9.0",
-                "30.0.0",
-            ].map((currentVersion) => ({
-                currentVersion,
-                nextVersion: calculateNextVersion(currentVersion),
+            (
+                [
+                    "patch",
+                    "minor",
+                    "major",
+                ] as const
+            ).map((releaseType) => ({
+                nextVersion: calculateNextVersion("30.0.0", releaseType),
+                releaseType,
             }))
         ).toStrictEqual([
-            { currentVersion: "29.8.12", nextVersion: "29.9.0" },
-            { currentVersion: "29.9.0", nextVersion: "30.0.0" },
-            { currentVersion: "30.0.0", nextVersion: "30.1.0" },
+            { nextVersion: "30.0.1", releaseType: "patch" },
+            { nextVersion: "30.1.0", releaseType: "minor" },
+            { nextVersion: "31.0.0", releaseType: "major" },
         ]);
     });
 
     it("rejects unsupported package version strings", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const { calculateNextVersion } = await importBumpAppVersion();
 
@@ -108,6 +115,9 @@ describe("bump-app-version script", () => {
         expect(() =>
             calculateNextVersion(undefined as unknown as string)
         ).toThrow(TypeError);
+        expect(() =>
+            calculateNextVersion("30.0.0", "invalid" as unknown as "patch")
+        ).toThrow("Unsupported release type");
     });
 
     it("builds the root npm version command used by release automation", async () => {
@@ -132,11 +142,13 @@ describe("bump-app-version script", () => {
             dryRun: false,
             githubOutput: true,
             help: false,
+            releaseType: "patch",
         });
-        expect(parseArgs(["--dry-run"])).toStrictEqual({
+        expect(parseArgs(["--dry-run", "--release-type=minor"])).toStrictEqual({
             dryRun: true,
             githubOutput: false,
             help: false,
+            releaseType: "minor",
         });
         expect(() => parseArgs(["--workspace", "docusaurus"])).toThrow(
             "Unknown option: --workspace"
@@ -150,7 +162,7 @@ describe("bump-app-version script", () => {
         expect.assertions(2);
 
         const { bumpAppVersion } = await importBumpAppVersion();
-        const temporaryRoot = makeTemporaryRoot("29.9.0");
+        const temporaryRoot = makeTemporaryRoot("30.0.0");
         const commandRunner = vi.fn<CommandRunner>();
         const result = bumpAppVersion({
             commandRunner,
@@ -159,8 +171,8 @@ describe("bump-app-version script", () => {
         });
 
         expect(result).toStrictEqual({
-            currentVersion: "29.9.0",
-            newVersion: "30.0.0",
+            currentVersion: "30.0.0",
+            newVersion: "30.0.1",
             packagePath: path.join(temporaryRoot, "package.json"),
         });
         expect(commandRunner).not.toHaveBeenCalled();
@@ -171,7 +183,7 @@ describe("bump-app-version script", () => {
 
         const { bumpAppVersion, createNpmVersionArgs } =
             await importBumpAppVersion();
-        const temporaryRoot = makeTemporaryRoot("29.9.0");
+        const temporaryRoot = makeTemporaryRoot("30.0.0");
         const commandRunner = vi.fn<CommandRunner>();
 
         const result = bumpAppVersion({
@@ -197,11 +209,11 @@ describe("bump-app-version script", () => {
                 stdio: "inherit",
             },
             result: {
-                currentVersion: "29.9.0",
-                newVersion: "30.0.0",
+                currentVersion: "30.0.0",
+                newVersion: "30.0.1",
                 packagePath: path.join(temporaryRoot, "package.json"),
             },
-            versionArgs: createNpmVersionArgs("30.0.0"),
+            versionArgs: createNpmVersionArgs("30.0.1"),
         });
         expect(options).not.toHaveProperty("shell");
     });

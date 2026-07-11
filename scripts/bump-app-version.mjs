@@ -38,7 +38,10 @@ export function bumpAppVersion(options = {}) {
     const packagePath = rootPackagePathFromRepository(repositoryRoot);
     const packageJson = readPackageJson(packagePath);
     const currentVersion = packageJson.version;
-    const newVersion = calculateNextVersion(currentVersion);
+    const newVersion = calculateNextVersion(
+        currentVersion,
+        options.releaseType ?? "patch"
+    );
 
     if (!options.dryRun) {
         const commandRunner = options.commandRunner ?? runCommand;
@@ -59,14 +62,20 @@ export function bumpAppVersion(options = {}) {
     };
 }
 
-export function calculateNextVersion(version) {
+export function calculateNextVersion(version, releaseType = "patch") {
     const parsedVersion = parseSemver(version);
 
-    if (parsedVersion.minor < 9) {
+    if (releaseType === "patch") {
+        return `${parsedVersion.major}.${parsedVersion.minor}.${parsedVersion.patch + 1}`;
+    }
+    if (releaseType === "minor") {
         return `${parsedVersion.major}.${parsedVersion.minor + 1}.0`;
     }
+    if (releaseType === "major") {
+        return `${parsedVersion.major + 1}.0.0`;
+    }
 
-    return `${parsedVersion.major + 1}.0.0`;
+    throw new Error(`Unsupported release type: ${releaseType}`);
 }
 
 export function createNpmVersionArgs(version) {
@@ -83,6 +92,7 @@ export function parseArgs(args) {
         dryRun: false,
         githubOutput: false,
         help: false,
+        releaseType: "patch",
     };
 
     for (let index = 0; index < args.length; index += 1) {
@@ -98,12 +108,37 @@ export function parseArgs(args) {
             continue;
         }
 
+        if (arg === "--release-type") {
+            const releaseType = args[index + 1];
+            if (!releaseType) {
+                throw new Error("--release-type requires a value");
+            }
+            options.releaseType = releaseType;
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--release-type=")) {
+            options.releaseType = arg.slice("--release-type=".length);
+            continue;
+        }
+
         if (arg === "--help" || arg === "-h") {
             options.help = true;
             continue;
         }
 
         throw new Error(`Unknown option: ${arg}`);
+    }
+
+    if (
+        ![
+            "major",
+            "minor",
+            "patch",
+        ].includes(options.releaseType)
+    ) {
+        throw new Error(`Unsupported release type: ${options.releaseType}`);
     }
 
     return options;
@@ -148,6 +183,7 @@ function printUsage() {
     console.log(`Usage: node scripts/bump-app-version.mjs [options]
 
 Options:
+  --release-type <type>  SemVer bump: patch, minor, or major. Defaults to patch.
   --github-output    Append new_version to GITHUB_OUTPUT for GitHub Actions.
   --dry-run          Compute the next version without updating package files.
   -h, --help         Show this help text.`);

@@ -18,6 +18,15 @@ on:
                 type: boolean
                 required: true
                 default: false
+            release-type:
+                description: "Semantic version increment"
+                type: choice
+                required: true
+                default: patch
+                options:
+                    - patch
+                    - minor
+                    - major
             reuse-current-version:
                 description: "Reuse the package version and matching tag after a failed unpublished release"
                 type: boolean
@@ -90,7 +99,10 @@ jobs:
             - name: Bump package.json version number
               id: bump
               if: ${{ !inputs.reuse-current-version }}
-              run: node scripts/bump-app-version.mjs --github-output
+              run: >-
+                  node scripts/bump-app-version.mjs
+                  --release-type "${{ inputs.release-type }}"
+                  --github-output
 
             - name: Reuse current version after failed release
               id: reuse_version

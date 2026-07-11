@@ -502,7 +502,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -535,6 +535,10 @@ describe("workspace package boundaries", () => {
         );
         expect(releaseWorkflow).toContain("npm run release:check-signing");
         expect(releaseWorkflow).toContain("require-code-signing:");
+        expect(releaseWorkflow).toContain("release-type:");
+        expect(releaseWorkflow).toContain(
+            '--release-type "${{ inputs.release-type }}"'
+        );
         expect(releaseWorkflow).toContain("reuse-current-version:");
         expect(releaseWorkflow).toContain("default: false");
         expect(releaseWorkflow).toContain(

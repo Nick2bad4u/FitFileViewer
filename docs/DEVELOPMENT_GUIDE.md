@@ -435,6 +435,9 @@ missing variable.
   exposes a `require-code-signing` input; leave it `false` for the normal
   unsigned release path and set it to `true` only after the required Windows
   and macOS credentials have been configured.
+- Select `release-type=patch`, `minor`, or `major` explicitly when dispatching
+  the production workflow. Patch is the default and increments only the final
+  SemVer component.
 - If a production run creates its version commit and tag but fails before
   publishing a release, fix the failure on that same version, move the
   unpublished tag to the exact fix commit, and retry with
