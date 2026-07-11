@@ -22,7 +22,7 @@ jobs:
         name: Upload Linux Distributables
         if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
         runs-on: ubuntu-latest
-        timeout-minutes: 20
+        timeout-minutes: 60
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -117,6 +117,5 @@ jobs:
                   secret-key: ${{ secrets.IA_SECRET_KEY }}
                   identifier: fitfileviewer-linux-${{ steps.download_linux.outputs.tag_name }}
                   files: release-dist/
-              continue-on-error: true
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
