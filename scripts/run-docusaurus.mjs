@@ -44,11 +44,15 @@ export function buildDocusaurusArgs(argv = process.argv.slice(2)) {
 }
 
 export function buildDocusaurusNodeOptions(
-    nodeOptions = process.env.NODE_OPTIONS
+    nodeOptions = process.env.NODE_OPTIONS,
+    allowedNodeEnvironmentFlags = process.allowedNodeEnvironmentFlags
 ) {
-    const localStorageOption = `--localstorage-file=${docusaurusLocalStorageFilePath}`;
     const trimmed = typeof nodeOptions === "string" ? nodeOptions.trim() : "";
+    if (!allowedNodeEnvironmentFlags.has("--localstorage-file")) {
+        return trimmed || undefined;
+    }
 
+    const localStorageOption = `--localstorage-file=${docusaurusLocalStorageFilePath}`;
     return trimmed ? `${trimmed} ${localStorageOption}` : localStorageOption;
 }
 

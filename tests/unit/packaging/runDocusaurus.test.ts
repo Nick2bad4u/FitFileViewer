@@ -64,7 +64,7 @@ describe("run-docusaurus wrapper", () => {
     });
 
     it("builds Docusaurus CLI arguments from the workspace installation", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const args = buildDocusaurusArgs(["build"]);
 
@@ -82,6 +82,12 @@ describe("run-docusaurus wrapper", () => {
         ).toMatchObject({
             NODE_OPTIONS: `--trace-warnings --localstorage-file=${docusaurusLocalStorageFilePath}`,
         });
+        expect(buildDocusaurusNodeOptions("--trace-warnings", new Set())).toBe(
+            "--trace-warnings"
+        );
+        expect(
+            buildDocusaurusNodeOptions(undefined, new Set())
+        ).toBeUndefined();
     });
 
     it("syncs static assets before running build-like commands", () => {
