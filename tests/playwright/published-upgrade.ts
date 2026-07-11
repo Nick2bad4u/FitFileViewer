@@ -1,8 +1,9 @@
-import { expect, test, _electron as electron } from "@playwright/test";
-import type { ElectronApplication } from "@playwright/test";
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { _electron as electron } from "@playwright/test";
+import type { ElectronApplication } from "@playwright/test";
 
 type UpgradeConfiguration = {
     evidencePath: string;
@@ -48,24 +49,40 @@ function getUpgradeConfiguration(): UpgradeConfiguration {
     };
 }
 
-async function closeElectronApp(app: ElectronApplication): Promise<void> {
-    const process = app.process();
-    const exitPromise = new Promise<void>((resolve) =>
-        process.once("exit", () => resolve())
-    );
-    const closePromise = app.close().catch(() => undefined);
+async function waitFor(
+    predicate: () => boolean | Promise<boolean>,
+    timeoutMs: number,
+    failureMessage: string
+): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
 
-    await Promise.race([
-        closePromise,
-        new Promise<void>((resolve) => setTimeout(resolve, 1_000)),
-    ]);
-
-    if (process.exitCode === null && process.signalCode === null) {
-        process.kill();
+    while (Date.now() < deadline) {
+        try {
+            if (await predicate()) {
+                return;
+            }
+        } catch {
+            // The Electron connection can close while an update is handed off.
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250));
     }
 
+    throw new Error(failureMessage);
+}
+
+async function terminateElectronApp(app: ElectronApplication): Promise<void> {
+    const childProcess = app.process();
+
+    if (childProcess.exitCode !== null || childProcess.signalCode !== null) {
+        return;
+    }
+
+    const exitPromise = new Promise<void>((resolve) =>
+        childProcess.once("exit", () => resolve())
+    );
+    childProcess.kill();
+
     await Promise.race([
-        closePromise,
         exitPromise,
         new Promise<void>((resolve) =>
             setTimeout(resolve, electronCleanupTimeoutMs)
@@ -73,19 +90,22 @@ async function closeElectronApp(app: ElectronApplication): Promise<void> {
     ]);
 }
 
-test("published Windows release upgrades through the previous app", async ({
-    browserName,
-}, testInfo) => {
-    test.setTimeout(updateDownloadTimeoutMs + 6 * 60 * 1000);
-    void browserName;
+function exitProcess(exitCode: number): never {
+    // This standalone smoke test must not wait for Playwright to tear down an app that replaced itself.
+    // eslint-disable-next-line n/no-process-exit, unicorn/no-process-exit
+    process.exit(exitCode);
+}
 
+async function runPublishedUpgrade(): Promise<void> {
     const configuration = getUpgradeConfiguration();
-
+    const outputDirectory = path.resolve("test-results", "published-upgrade");
     const userDataDirectory = fs.mkdtempSync(
         path.join(os.tmpdir(), "fitfileviewer-published-upgrade-")
     );
     const mainProcessLogs: string[] = [];
     let electronApp: ElectronApplication | undefined;
+
+    fs.mkdirSync(outputDirectory, { recursive: true });
 
     try {
         const environment = { ...process.env };
@@ -112,34 +132,33 @@ test("published Windows release upgrades through the previous app", async ({
         const runningVersion = await electronApp.evaluate(({ app }) =>
             app.getVersion()
         );
-        expect(runningVersion).toBe(configuration.fromVersion);
+        assert.equal(runningVersion, configuration.fromVersion);
 
         const expectedInstallerPath = path.join(
             configuration.updaterCachePath,
             "Fit-File-Viewer-nsis-x64-" + configuration.toVersion + ".exe"
         );
-        await expect
-            .poll(() => fs.existsSync(expectedInstallerPath), {
-                timeout: updateDownloadTimeoutMs,
-            })
-            .toBe(true);
-        await expect
-            .poll(
-                () =>
-                    electronApp?.evaluate(({ Menu }) => {
-                        const restartItem =
-                            Menu.getApplicationMenu()?.getMenuItemById(
-                                "restart-update"
-                            );
-                        return restartItem?.enabled === true;
-                    }),
-                { timeout: 30_000 }
-            )
-            .toBe(true);
+        await waitFor(
+            () => fs.existsSync(expectedInstallerPath),
+            updateDownloadTimeoutMs,
+            "The published update installer was not downloaded."
+        );
+        await waitFor(
+            () =>
+                electronApp?.evaluate(({ Menu }) => {
+                    const restartItem =
+                        Menu.getApplicationMenu()?.getMenuItemById(
+                            "restart-update"
+                        );
+                    return restartItem?.enabled === true;
+                }) ?? false,
+            30_000,
+            "The restart-and-update menu item was not enabled."
+        );
 
         await page.screenshot({
             fullPage: true,
-            path: testInfo.outputPath("update-downloaded.png"),
+            path: path.join(outputDirectory, "update-downloaded.png"),
         });
 
         const notification = page.locator("#notification");
@@ -160,19 +179,18 @@ test("published Windows release upgrades through the previous app", async ({
                 });
             }
         );
-        expect(restartTriggered).toBe(true);
-        await expect
-            .poll(
-                () =>
-                    electronApp
-                        ?.evaluate(
-                            ({ BrowserWindow }) =>
-                                BrowserWindow.getAllWindows().length
-                        )
-                        .catch(() => 0),
-                { timeout: updateInstallHandoffTimeoutMs }
-            )
-            .toBe(0);
+        assert.equal(restartTriggered, true);
+        await waitFor(
+            () =>
+                electronApp
+                    ?.evaluate(
+                        ({ BrowserWindow }) =>
+                            BrowserWindow.getAllWindows().length === 0
+                    )
+                    .catch(() => true) ?? true,
+            updateInstallHandoffTimeoutMs,
+            "The old application window did not close for the update."
+        );
 
         fs.writeFileSync(
             configuration.evidencePath,
@@ -189,12 +207,19 @@ test("published Windows release upgrades through the previous app", async ({
             ) + "\n"
         );
     } finally {
-        await testInfo.attach("old-app-main-process.log", {
-            body: Buffer.from(mainProcessLogs.join("\n")),
-            contentType: "text/plain",
-        });
+        fs.writeFileSync(
+            path.join(outputDirectory, "old-app-main-process.log"),
+            mainProcessLogs.join("\n")
+        );
         if (electronApp) {
-            await closeElectronApp(electronApp);
+            await terminateElectronApp(electronApp);
         }
     }
-});
+}
+
+void runPublishedUpgrade()
+    .then(() => exitProcess(0))
+    .catch((error: unknown) => {
+        console.error(error);
+        exitProcess(1);
+    });
