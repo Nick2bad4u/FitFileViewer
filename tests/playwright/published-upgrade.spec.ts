@@ -50,17 +50,22 @@ function getUpgradeConfiguration(): UpgradeConfiguration {
 
 async function closeElectronApp(app: ElectronApplication): Promise<void> {
     const process = app.process();
-
-    if (process.exitCode !== null || process.signalCode !== null) {
-        return;
-    }
-
     const exitPromise = new Promise<void>((resolve) =>
         process.once("exit", () => resolve())
     );
-    process.kill();
+    const closePromise = app.close().catch(() => undefined);
 
     await Promise.race([
+        closePromise,
+        new Promise<void>((resolve) => setTimeout(resolve, 1_000)),
+    ]);
+
+    if (process.exitCode === null && process.signalCode === null) {
+        process.kill();
+    }
+
+    await Promise.race([
+        closePromise,
         exitPromise,
         new Promise<void>((resolve) =>
             setTimeout(resolve, electronCleanupTimeoutMs)
