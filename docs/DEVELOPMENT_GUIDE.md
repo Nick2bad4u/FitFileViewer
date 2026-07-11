@@ -466,6 +466,12 @@ missing variable.
   sets `REQUIRE_CODE_SIGNING=true`.
 - Windows 7 compatibility is limited to a carried-forward legacy snapshot in
   `build-win7.yml`; the current app is not rebuilt against Electron 22.
+- Keep the NSIS `guid` in `electron-builder.config.cjs` fixed at
+  `acb439ea-52e6-5f57-a281-e53187b169ce`. Releases through v29 derived that
+  identity from `com.example.fitfileviewer`; changing it prevents silent
+  upgrades from finding existing installations. The installer migration include
+  also recognizes the short-lived v30 identity and removes its stale registry
+  entry after a successful upgrade.
 
 After signed Windows or macOS packaging completes, use
 `npm run release:verify-signing-artifacts` to verify the produced artifacts.
@@ -494,6 +500,14 @@ The rehearsal packaging step sets `FFV_FORCE_UNSIGNED_PACKAGE=true` and
 electron-builder starts. Keep this separate from signed release packaging; use
 the signing preflight to prove credentials are present, then build rehearsal
 artifacts unsigned.
+
+Run **Candidate Windows Upgrade Smoke** from the release branch for both the
+latest published version and the `29.9.0` migration baseline. It builds an
+unsigned NSIS candidate, installs it over the selected published release, and
+requires the original install path, one uninstall entry, the stable installer
+GUID, no transient v30 GUID, and a successful packaged startup smoke. The
+post-release **Published Windows Upgrade Smoke** separately exercises update
+discovery, download, and handoff through the previously published app.
 
 Use `require-code-signing=true` only when the required platform signing secrets
 are configured; the preflight receives the same Windows and macOS secret names

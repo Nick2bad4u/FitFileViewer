@@ -26,6 +26,10 @@ type ElectronBuilderConfig = {
     mac: {
         icon: string;
     };
+    nsis: {
+        guid: string;
+        include: string;
+    };
     productName: string;
     win: {
         icon: string;
@@ -71,7 +75,7 @@ describe("electron-builder config", () => {
     }
 
     it("uses the root app package as the app identity source", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const appPackage = loadAppPackage();
         const builderConfig = loadBuilderConfig();
@@ -96,6 +100,29 @@ describe("electron-builder config", () => {
         expect(builderConfig.forceCodeSigning).toBe(false);
         expect(builderConfig.win.signExecutable).toBe(false);
         expect(builderConfig.productName).not.toBe("FitFileViewer");
+        expect(builderConfig.nsis.guid).toBe(
+            "acb439ea-52e6-5f57-a281-e53187b169ce"
+        );
+        expect(builderConfig.nsis.include).toBe(
+            "packaging/nsis/installer-migration.nsh"
+        );
+    });
+
+    it("migrates the transient v30 NSIS identity", () => {
+        expect.assertions(7);
+
+        const migration = readFileSync(
+            path.join(process.cwd(), "packaging/nsis/installer-migration.nsh"),
+            "utf8"
+        );
+
+        expect(migration).toContain("!macro customInit");
+        expect(migration).toContain("!macro customInstall");
+        expect(migration).toContain("d3d1f287-232f-5429-866d-15b2b1d5fbad");
+        expect(migration).toContain("ReadRegStr $R8 HKCU");
+        expect(migration).toContain("ReadRegStr $R8 HKLM");
+        expect(migration).toContain("DeleteRegKey HKCU");
+        expect(migration).toContain("DeleteRegKey HKLM");
     });
 
     it("requires code signing when the release build environment enables it", () => {

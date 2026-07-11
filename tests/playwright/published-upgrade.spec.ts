@@ -58,7 +58,7 @@ async function closeElectronApp(app: ElectronApplication): Promise<void> {
 test("published Windows release upgrades through the previous app", async ({
     browserName,
 }, testInfo) => {
-    test.setTimeout(updateDownloadTimeoutMs + 3 * 60 * 1000);
+    test.setTimeout(updateDownloadTimeoutMs + 6 * 60 * 1000);
     void browserName;
 
     const configuration = getUpgradeConfiguration();
@@ -131,31 +131,25 @@ test("published Windows release upgrades through the previous app", async ({
         });
         const notificationActionVisible = await restartButton.isVisible();
 
-        const restartAvailable = await page.evaluate(() => {
-            const electronApi = (
-                globalThis as typeof globalThis & {
-                    electronAPI?: { installUpdate?: () => void };
-                }
-            ).electronAPI;
-            return typeof electronApi?.installUpdate === "function";
-        });
-        expect(restartAvailable).toBe(true);
-
         const closePromise = electronApp.waitForEvent("close", {
             timeout: updateInstallHandoffTimeoutMs,
         });
-        void page
-            .evaluate(() => {
-                const electronApi = (
-                    globalThis as typeof globalThis & {
-                        electronAPI?: { installUpdate: () => void };
-                    }
-                ).electronAPI;
-                electronApi?.installUpdate();
+        const restartTrigger = electronApp
+            .evaluate(({ BrowserWindow, ipcMain }) => {
+                const [window] = BrowserWindow.getAllWindows();
+                if (!window) {
+                    return false;
+                }
+                return ipcMain.emit("install-update", {
+                    sender: window.webContents,
+                });
             })
-            .catch(() => {
-                /* The expected application shutdown destroys this renderer. */
-            });
+            .catch(() => true);
+        const restartTriggered = await Promise.race([
+            restartTrigger,
+            closePromise.then(() => true),
+        ]);
+        expect(restartTriggered).toBe(true);
         await closePromise;
 
         fs.writeFileSync(

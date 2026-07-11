@@ -175,7 +175,7 @@ jobs:
                                     Get-ItemProperty -LiteralPath $_.PSPath
                                 } |
                                 Where-Object {
-                                    $_.DisplayName -eq "Fit File Viewer"
+                                    $_.DisplayName -like "Fit File Viewer*"
                                 }
                         }
                     }
