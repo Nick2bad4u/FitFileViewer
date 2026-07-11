@@ -41,8 +41,11 @@ export function fixLatestYmlSha512(
         return summaries;
     }
 
+    const artifactFilesByName = indexArtifactFilesByName(releaseDistDirectory);
     for (const latestYmlFile of findLatestYmlFiles(releaseDistDirectory)) {
-        summaries.push(updateLatestYmlSha512(latestYmlFile));
+        summaries.push(
+            updateLatestYmlSha512(latestYmlFile, artifactFilesByName)
+        );
     }
 
     return summaries;
@@ -118,7 +121,10 @@ export function toSha512Base64(filePath) {
         .digest("base64");
 }
 
-export function updateLatestYmlSha512(latestYmlFile) {
+export function updateLatestYmlSha512(
+    latestYmlFile,
+    artifactFilesByName = new Map()
+) {
     const directory = path.dirname(latestYmlFile);
     const lines = fs.readFileSync(latestYmlFile, "utf8").split(/\r?\n/u);
     const hasTrailingNewline = lines.at(-1) === "";
@@ -149,9 +155,16 @@ export function updateLatestYmlSha512(latestYmlFile) {
             }
 
             if (/^\s*sha512:\s*/u.test(line) && currentUrl) {
-                const filePath = path.join(directory, currentUrl);
+                const directFilePath = path.join(directory, currentUrl);
+                const recursiveMatches =
+                    artifactFilesByName.get(path.basename(currentUrl)) ?? [];
+                const filePath = fs.existsSync(directFilePath)
+                    ? directFilePath
+                    : recursiveMatches.length === 1
+                      ? recursiveMatches[0]
+                      : null;
 
-                if (fs.existsSync(filePath)) {
+                if (filePath) {
                     const sha512 = toSha512Base64(filePath);
 
                     outputLines.push(`    sha512: ${sha512}`);
@@ -226,6 +239,32 @@ export function updateLatestYmlSha512(latestYmlFile) {
         missingCount,
         updatedCount,
     };
+}
+
+function indexArtifactFilesByName(rootDirectory) {
+    const filesByName = new Map();
+
+    function visit(directory) {
+        for (const entry of fs.readdirSync(directory, {
+            withFileTypes: true,
+        })) {
+            const entryPath = path.join(directory, entry.name);
+            if (entry.isDirectory()) {
+                visit(entryPath);
+                continue;
+            }
+            if (!entry.isFile()) {
+                continue;
+            }
+
+            const paths = filesByName.get(entry.name) ?? [];
+            paths.push(entryPath);
+            filesByName.set(entry.name, paths);
+        }
+    }
+
+    visit(rootDirectory);
+    return filesByName;
 }
 
 function normalizePath(filePath) {

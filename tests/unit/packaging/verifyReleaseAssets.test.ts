@@ -16,6 +16,14 @@ type ReleaseAsset = {
 };
 
 type VerifyReleaseAssetsModule = {
+    fetchReleaseByTag: (options: {
+        apiUrl: string;
+        fetchImplementation: typeof fetch;
+        repository: string;
+        requireDraft?: boolean;
+        tag: string;
+        token: string;
+    }) => Promise<unknown>;
     parseArgs: (
         args: string[],
         environment?: Record<string, string | undefined>
@@ -247,5 +255,39 @@ describe("verify-release-assets script", () => {
             tag: "v30.0.0",
             version: "30.0.0",
         });
+    });
+
+    it("finds an authenticated draft when tag lookup returns 404", async () => {
+        expect.assertions(2);
+
+        const { fetchReleaseByTag } = await importVerifyReleaseAssets();
+        const draftRelease = {
+            draft: true,
+            id: 30,
+            tag_name: "v30.0.0",
+        };
+        const fetchImplementation: typeof fetch = async (input) => {
+            const url = String(input);
+            if (url.includes("/releases/tags/")) {
+                return new Response("Not Found", {
+                    status: 404,
+                    statusText: "Not Found",
+                });
+            }
+
+            expect(url).toContain("/releases?per_page=100");
+            return Response.json([draftRelease]);
+        };
+
+        await expect(
+            fetchReleaseByTag({
+                apiUrl: "https://api.github.test",
+                fetchImplementation,
+                repository: "Nick2bad4u/FitFileViewer",
+                requireDraft: true,
+                tag: "v30.0.0",
+                token: "token",
+            })
+        ).resolves.toStrictEqual(draftRelease);
     });
 });

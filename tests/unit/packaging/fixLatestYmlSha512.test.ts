@@ -283,6 +283,59 @@ describe("fix-latest-yml-sha512 script", () => {
         );
     });
 
+    it("resolves uniquely named updater payloads from nested release directories", async () => {
+        expect.assertions(2);
+
+        const { fixLatestYmlSha512 } = await importFixLatestYmlSha512();
+        const releaseDistDirectory = makeTemporaryRoot();
+        const zipName = "Fit-File-Viewer-darwin-universal-30.0.0.zip";
+        const dmgName = "Fit-File-Viewer-dmg-universal-30.0.0.dmg";
+        const latestMacFile = writeFile(
+            releaseDistDirectory,
+            "latest-mac.yml",
+            [
+                "version: 30.0.0",
+                "files:",
+                `  - url: ${zipName}`,
+                "    sha512: ",
+                "    size: 3",
+                `  - url: ${dmgName}`,
+                "    sha512: ",
+                "    size: 3",
+                `path: ${zipName}`,
+                "sha512: old",
+            ].join("\n")
+        );
+
+        writeFile(
+            releaseDistDirectory,
+            path.join("macos-universal", zipName),
+            "zip"
+        );
+        writeFile(
+            releaseDistDirectory,
+            path.join("macos-universal", dmgName),
+            "dmg"
+        );
+
+        expect(fixLatestYmlSha512(releaseDistDirectory)).toStrictEqual([
+            {
+                file: normalizeTestPath(latestMacFile),
+                fileCount: 2,
+                missingCount: 0,
+                updatedCount: 2,
+            },
+        ]);
+        expect(fs.readFileSync(latestMacFile, "utf8")).toContain(
+            [
+                `    sha512: ${sha512Base64("zip")}`,
+                "    size: 3",
+                `  - url: ${dmgName}`,
+                `    sha512: ${sha512Base64("dmg")}`,
+            ].join("\n")
+        );
+    });
+
     it("returns an empty result when release-dist is missing", async () => {
         expect.assertions(1);
 

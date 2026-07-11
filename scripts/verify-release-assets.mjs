@@ -123,26 +123,49 @@ export function parseArgs(args, environment = process.env) {
 export async function fetchReleaseByTag({
     apiUrl,
     repository,
+    requireDraft = false,
     tag,
     token,
     fetchImplementation = fetch,
 }) {
-    const requestUrl = `${apiUrl.replace(/\/$/u, "")}/repos/${repository}/releases/tags/${encodeURIComponent(tag)}`;
-    const response = await fetchImplementation(requestUrl, {
-        headers: {
-            Accept: "application/vnd.github+json",
-            Authorization: `Bearer ${token}`,
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-    });
+    const normalizedApiUrl = apiUrl.replace(/\/$/u, "");
+    const headers = {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+    };
+    const requestUrl = `${normalizedApiUrl}/repos/${repository}/releases/tags/${encodeURIComponent(tag)}`;
+    const response = await fetchImplementation(requestUrl, { headers });
 
-    if (!response.ok) {
-        throw new Error(
-            `GitHub release lookup failed (${response.status} ${response.statusText}) for ${tag}`
-        );
+    if (response.ok) {
+        return response.json();
     }
 
-    return response.json();
+    if (response.status === 404 && requireDraft) {
+        const releasesUrl = `${normalizedApiUrl}/repos/${repository}/releases?per_page=100`;
+        const releasesResponse = await fetchImplementation(releasesUrl, {
+            headers,
+        });
+        if (!releasesResponse.ok) {
+            throw new Error(
+                `GitHub release list lookup failed (${releasesResponse.status} ${releasesResponse.statusText}) for ${tag}`
+            );
+        }
+
+        const releases = await releasesResponse.json();
+        if (Array.isArray(releases)) {
+            const matchingDraft = releases.find(
+                (release) => release?.draft === true && release.tag_name === tag
+            );
+            if (matchingDraft) {
+                return matchingDraft;
+            }
+        }
+    }
+
+    throw new Error(
+        `GitHub release lookup failed (${response.status} ${response.statusText}) for ${tag}`
+    );
 }
 
 export function verifyReleaseAssets({
