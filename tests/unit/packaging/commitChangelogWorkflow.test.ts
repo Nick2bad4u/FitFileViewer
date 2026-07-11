@@ -79,7 +79,7 @@ describe("commit-changelog-workflow script", () => {
             await importCommitChangelogWorkflow();
 
         expect(createChangelogCommitMessage("30.0.0")).toBe(
-            "chore: update changelogs for v30.0.0 [skip ci]"
+            "📝 [docs] Update changelog for v30.0.0 [skip ci]"
         );
     });
 
@@ -151,7 +151,7 @@ describe("commit-changelog-workflow script", () => {
                 "config user.email 41898282+github-actions[bot]@users.noreply.github.com",
                 `add ${rootChangelogPath}`,
                 "diff --staged --quiet",
-                "commit -m chore: update changelogs for v30.0.0 [skip ci]",
+                "commit -m 📝 [docs] Update changelog for v30.0.0 [skip ci]",
                 "push origin release",
             ],
             didCommit: true,

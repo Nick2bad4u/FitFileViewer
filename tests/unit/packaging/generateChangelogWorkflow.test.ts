@@ -29,6 +29,7 @@ type GenerateChangelogWorkflowModule = {
     }) => string;
     formatDirectoryListing: (entries: DirectoryEntry[]) => string;
     buildChangelogArgs: (options?: { verbose?: boolean }) => string[];
+    currentReleaseChangelogBody: string;
     parseArgs: (args: string[]) => {
         help: boolean;
         verbose: boolean;
@@ -228,12 +229,19 @@ describe("generate-changelog-workflow script", () => {
     it("builds git-cliff arguments for the root changelog", async () => {
         expect.assertions(2);
 
-        const { buildChangelogArgs } = await importGenerateChangelogWorkflow();
+        const { buildChangelogArgs, currentReleaseChangelogBody } =
+            await importGenerateChangelogWorkflow();
 
         expect(buildChangelogArgs({ verbose: false }).slice(1)).toStrictEqual([
             "--config",
             rootCliffConfigPath,
-            "--output",
+            "--latest",
+            "--current",
+            "--github-repo",
+            "Nick2bad4u/FitFileViewer",
+            "--body",
+            currentReleaseChangelogBody,
+            "--prepend",
             rootChangelogPath,
         ]);
         expect(buildChangelogArgs({ verbose: true }).slice(-1)).toStrictEqual([

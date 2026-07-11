@@ -13,6 +13,16 @@ import {
 const gitCliffCliPath = fileURLToPath(
     await import.meta.resolve("git-cliff/cli")
 );
+const githubRepository = "Nick2bad4u/FitFileViewer";
+
+export const currentReleaseChangelogBody = [
+    '{% if version %}## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}{% endif %}',
+    '{% for group, commits in commits | group_by(attribute="group") %}',
+    "### {{ group | striptags | trim | upper_first }}",
+    String.raw`{% for commit in commits %}{% set message_lines = commit.message | split(pat="\n") %}`,
+    '- [`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/commit/{{ commit.id }}) {{ message_lines | first | upper_first }}',
+    "{% endfor %}{% endfor %}",
+].join("\n");
 
 if (
     process.argv[1] &&
@@ -103,7 +113,13 @@ export function buildChangelogArgs({ verbose = true } = {}) {
         gitCliffCliPath,
         "--config",
         rootCliffConfigPath,
-        "--output",
+        "--latest",
+        "--current",
+        "--github-repo",
+        githubRepository,
+        "--body",
+        currentReleaseChangelogBody,
+        "--prepend",
         rootChangelogPath,
         ...(verbose ? ["--verbose"] : []),
     ];

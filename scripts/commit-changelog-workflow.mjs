@@ -27,7 +27,7 @@ if (
 }
 
 export function createChangelogCommitMessage(version) {
-    return `chore: update changelogs for v${version} [skip ci]`;
+    return `📝 [docs] Update changelog for v${version} [skip ci]`;
 }
 
 export function commitChangelogWorkflow(options) {
