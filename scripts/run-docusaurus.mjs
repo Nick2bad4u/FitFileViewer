@@ -44,7 +44,7 @@ export function buildDocusaurusArgs(argv = process.argv.slice(2)) {
 }
 
 export function buildDocusaurusNodeOptions(
-    nodeOptions = process.env.NODE_OPTIONS,
+    nodeOptions,
     allowedNodeEnvironmentFlags = process.allowedNodeEnvironmentFlags
 ) {
     const trimmed = typeof nodeOptions === "string" ? nodeOptions.trim() : "";
