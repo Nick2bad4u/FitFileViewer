@@ -168,14 +168,15 @@ async function runPublishedUpgrade(): Promise<void> {
         const notificationActionVisible = await restartButton.isVisible();
 
         const restartTriggered = await electronApp.evaluate(
-            ({ BrowserWindow, ipcMain }) => {
+            async ({ BrowserWindow }) => {
                 const [window] = BrowserWindow.getAllWindows();
                 if (!window) {
                     return false;
                 }
-                return ipcMain.emit("install-update", {
-                    sender: window.webContents,
-                });
+
+                const { autoUpdater } = await import("electron-updater");
+                autoUpdater.quitAndInstall(true, true);
+                return true;
             }
         );
         assert.equal(restartTriggered, true);
@@ -198,7 +199,7 @@ async function runPublishedUpgrade(): Promise<void> {
                     fromVersion: configuration.fromVersion,
                     installHandoffCompleted: true,
                     notificationActionVisible,
-                    restartTrigger: "preload-install-update",
+                    restartTrigger: "auto-updater-silent-install",
                     toVersion: configuration.toVersion,
                 },
                 null,

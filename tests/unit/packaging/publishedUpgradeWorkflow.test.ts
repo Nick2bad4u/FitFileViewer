@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("published upgrade smoke workflow", () => {
     it("upgrades the previous Windows release after successful publication", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const workflow = readFileSync(
             path.join(
@@ -17,6 +17,10 @@ describe("published upgrade smoke workflow", () => {
         const packageJson = JSON.parse(
             readFileSync(path.join(process.cwd(), "package.json"), "utf8")
         ) as { scripts?: Record<string, string> };
+        const upgradeSmoke = readFileSync(
+            path.join(process.cwd(), "tests/playwright/published-upgrade.mts"),
+            "utf8"
+        );
 
         expect(workflow).toContain("workflow_run:");
         expect(workflow).toContain(
@@ -38,7 +42,11 @@ describe("published upgrade smoke workflow", () => {
         expect(workflow).toContain("Smoke test upgraded executable");
         expect(workflow).toContain("Collect upgrade diagnostics");
         expect(packageJson.scripts?.["test:upgrade:published"]).toContain(
-            "tests/playwright/published-upgrade.spec.ts"
+            "tests/playwright/published-upgrade.mts"
         );
+        expect(packageJson.scripts?.["test:upgrade:published"]).toContain(
+            "--experimental-strip-types"
+        );
+        expect(upgradeSmoke).toContain("quitAndInstall(true, true)");
     });
 });
