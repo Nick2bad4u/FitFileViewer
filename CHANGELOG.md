@@ -4,6 +4,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.0.1] - 2026-07-11
+
+### 🛠️ Bug Fixes
+
+- [`de43414`](https://github.com/Nick2bad4u/FitFileViewer/commit/de43414b0511c0feabb74c053d181b80ff155ed7) 🐛 [fix] Keep docs NODE_OPTIONS inputs deterministic
+
+- [`0be8ba4`](https://github.com/Nick2bad4u/FitFileViewer/commit/0be8ba4bb34186d426fbd55874f2c600a0710ef5) 🐛 [fix] Run npm version reliably on Windows
+
+- [`38699af`](https://github.com/Nick2bad4u/FitFileViewer/commit/38699afd009d149b9fbe3c181e636e2f523d1a4e) 🐛 [fix] Support explicit release version increments
+
+- [`55d46ba`](https://github.com/Nick2bad4u/FitFileViewer/commit/55d46ba95699907ba2e40cab6877d65df12b3a90) 🐛 [fix] Match shipped Windows installer identities
+
+- [`d20088d`](https://github.com/Nick2bad4u/FitFileViewer/commit/d20088dab2b829096f2eed9cf479f0873afb534c) 🐛 [fix] Preserve Windows installer upgrades
+
+- [`19f5db0`](https://github.com/Nick2bad4u/FitFileViewer/commit/19f5db085cb01a84de90344eac16874ef542c888) 🐛 [fix] Make upgrade smoke discoverable
+
+- [`667033c`](https://github.com/Nick2bad4u/FitFileViewer/commit/667033cd1e201ed47294f22635a209bc32b3ae10) 🐛 [fix] Normalize Windows upgrade versions
+
+- [`afd08aa`](https://github.com/Nick2bad4u/FitFileViewer/commit/afd08aa923490c974cce033d5c4868813278b230) 🐛 [fix] Package a runnable Flatpak runtime
+
+- [`8e4af33`](https://github.com/Nick2bad4u/FitFileViewer/commit/8e4af339501b877c7b0089732fe9b0fa97a44d95) 🐛 [fix] Let release archive uploads finish
+
+- [`dad1221`](https://github.com/Nick2bad4u/FitFileViewer/commit/dad1221b0a9171bb2771fd9ad26b2b62b93ce22b) 🐛 [fix] Restore Flatpak release packaging
+
+- [`86f5f47`](https://github.com/Nick2bad4u/FitFileViewer/commit/86f5f47e8b0b0dd79f60de1a0c39305f21a6cfa2) 🐛 [fix] Support Node 20 docs builds
+
+- [`00d97e5`](https://github.com/Nick2bad4u/FitFileViewer/commit/00d97e594990e0043b7b74ff84a594290e676c97) 🐛 [fix] Harden release asset verification
+
+### 🛡️ Security
+
+- [`75933e0`](https://github.com/Nick2bad4u/FitFileViewer/commit/75933e0f0c12f438bd2c0e468cc4a03fba51277a) 🔒️ [ci] Validate upgrade inputs before shell use
+
+### 🧪 Testing
+
+- [`ca320bb`](https://github.com/Nick2bad4u/FitFileViewer/commit/ca320bbb889df7f31da70db01257a3e9c57a4183) 🧪 [test] Use ESM for installer GUID validation
+
+- [`2e10c80`](https://github.com/Nick2bad4u/FitFileViewer/commit/2e10c8073eeba343ed215066e763a91aa0682d1f) 🧪 [test] Let the updater close its renderer
+
+- [`67a5f87`](https://github.com/Nick2bad4u/FitFileViewer/commit/67a5f87217ba5cc20f9b9bed48be8d1753422ac9) 🧪 [test] Trigger published upgrades through preload
+
+- [`589db97`](https://github.com/Nick2bad4u/FitFileViewer/commit/589db9787e186e1c10e89497c6e237daad3928eb) 🧪 [test] Drive upgrades through the app menu
+
+- [`e06ad98`](https://github.com/Nick2bad4u/FitFileViewer/commit/e06ad98b2530a41e57ae2c3884c3ae698ea1c3ec) 🧪 [test] Exercise published Windows upgrades
+
+- [`7f3efc4`](https://github.com/Nick2bad4u/FitFileViewer/commit/7f3efc46f63ad5b17097b3fa7334453182e2d9a6) 🧪 [test] Smoke test Flatpak releases
+
+### 🧹 Chores
+
+- [`7287d26`](https://github.com/Nick2bad4u/FitFileViewer/commit/7287d263b9a3cab126dd2f41410408f8785db430) 🔖 [chore] Release v30.0.1
+
+### 👷 CI/CD
+
+- [`22d2850`](https://github.com/Nick2bad4u/FitFileViewer/commit/22d2850269e9645f867269e6b2fd2ebff4592330) 👷 [ci] Repair post-release changelog updates
 ## [29.9.0] - 2026-02-25
 
 
