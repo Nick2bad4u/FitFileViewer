@@ -29,8 +29,8 @@ describe("candidate upgrade workflow", () => {
         expect(workflow).toContain('REQUIRE_CODE_SIGNING: "false"');
         expect(workflow).toContain('@("/S", "--updated")');
         expect(workflow).toContain("Fit File Viewer*");
-        expect(workflow).toContain("acb439ea-52e6-5f57-a281-e53187b169ce");
-        expect(workflow).toContain("d3d1f287-232f-5429-866d-15b2b1d5fbad");
+        expect(workflow).toContain("141b3184-244b-5640-abaf-338415dd90dc");
+        expect(workflow).toContain("2eccf151-6603-512f-93c6-ea96e8d92a75");
         expect(workflow).toContain("node scripts/run-packaged-smoke.mjs");
         expect(workflow).not.toContain("softprops/action-gh-release");
     });

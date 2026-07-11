@@ -161,8 +161,8 @@ jobs:
                       throw "Expected one Fit File Viewer uninstall entry; found $($entries.Count)."
                   }
 
-                  $stableGuid = "acb439ea-52e6-5f57-a281-e53187b169ce"
-                  $transientGuid = "d3d1f287-232f-5429-866d-15b2b1d5fbad"
+                  $stableGuid = "141b3184-244b-5640-abaf-338415dd90dc"
+                  $transientGuid = "2eccf151-6603-512f-93c6-ea96e8d92a75"
                   $stableKeys = @(
                     "HKCU:\Software\$stableGuid",
                     "HKLM:\Software\$stableGuid"

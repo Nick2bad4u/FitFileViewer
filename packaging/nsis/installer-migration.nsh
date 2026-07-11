@@ -1,6 +1,6 @@
 !include "LogicLib.nsh"
 
-!define FFV_V30_INSTALLER_GUID "d3d1f287-232f-5429-866d-15b2b1d5fbad"
+!define FFV_V30_INSTALLER_GUID "2eccf151-6603-512f-93c6-ea96e8d92a75"
 !define FFV_V30_INSTALL_REGISTRY_KEY "Software\${FFV_V30_INSTALLER_GUID}"
 !define FFV_V30_UNINSTALL_REGISTRY_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${FFV_V30_INSTALLER_GUID}"
 

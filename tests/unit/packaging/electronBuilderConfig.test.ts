@@ -47,6 +47,18 @@ function loadAppPackage(): AppPackage {
     ) as AppPackage;
 }
 
+function deriveInstallerGuid(appId: string): string {
+    return execFileSync(
+        process.execPath,
+        [
+            "--eval",
+            'const { UUID } = require("builder-util-runtime"); const namespace = UUID.parse("50e065bc-3134-11e6-9bab-38c9862bdaf3"); process.stdout.write(UUID.v5(process.argv[1], namespace));',
+            appId,
+        ],
+        { encoding: "utf8" }
+    );
+}
+
 describe("electron-builder config", () => {
     function loadBuilderConfig(
         requireCodeSigning?: string
@@ -101,7 +113,7 @@ describe("electron-builder config", () => {
         expect(builderConfig.win.signExecutable).toBe(false);
         expect(builderConfig.productName).not.toBe("FitFileViewer");
         expect(builderConfig.nsis.guid).toBe(
-            "acb439ea-52e6-5f57-a281-e53187b169ce"
+            deriveInstallerGuid("com.example.fitfileviewer")
         );
         expect(builderConfig.nsis.include).toBe(
             "packaging/nsis/installer-migration.nsh"
@@ -118,7 +130,9 @@ describe("electron-builder config", () => {
 
         expect(migration).toContain("!macro customInit");
         expect(migration).toContain("!macro customInstall");
-        expect(migration).toContain("d3d1f287-232f-5429-866d-15b2b1d5fbad");
+        expect(migration).toContain(
+            deriveInstallerGuid("io.github.nick2bad4u.fitfileviewer")
+        );
         expect(migration).toContain("ReadRegStr $R8 HKCU");
         expect(migration).toContain("ReadRegStr $R8 HKLM");
         expect(migration).toContain("DeleteRegKey HKCU");

@@ -25,7 +25,7 @@ const appPackage = /** @type {AppPackage} */ (require("./package.json"));
 const rootPackageFiles = ["dist/**", "package.json"];
 // Version 29 and earlier derived this GUID from com.example.fitfileviewer. Keep it
 // stable so existing NSIS installs remain discoverable after the appId change.
-const legacyWindowsInstallerGuid = "acb439ea-52e6-5f57-a281-e53187b169ce";
+const legacyWindowsInstallerGuid = "141b3184-244b-5640-abaf-338415dd90dc";
 const shouldCodeSign = isEnvironmentFlagEnabled(
     process.env.REQUIRE_CODE_SIGNING
 );

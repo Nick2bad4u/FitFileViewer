@@ -467,7 +467,7 @@ missing variable.
 - Windows 7 compatibility is limited to a carried-forward legacy snapshot in
   `build-win7.yml`; the current app is not rebuilt against Electron 22.
 - Keep the NSIS `guid` in `electron-builder.config.cjs` fixed at
-  `acb439ea-52e6-5f57-a281-e53187b169ce`. Releases through v29 derived that
+  `141b3184-244b-5640-abaf-338415dd90dc`. Releases through v29 derived that
   identity from `com.example.fitfileviewer`; changing it prevents silent
   upgrades from finding existing installations. The installer migration include
   also recognizes the short-lived v30 identity and removes its stale registry
