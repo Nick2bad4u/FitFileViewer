@@ -168,13 +168,33 @@ async function runPublishedUpgrade(): Promise<void> {
         const notificationActionVisible = await restartButton.isVisible();
 
         const restartTriggered = await electronApp.evaluate(
-            async ({ BrowserWindow }) => {
+            ({ BrowserWindow }) => {
                 const [window] = BrowserWindow.getAllWindows();
                 if (!window) {
                     return false;
                 }
 
-                const { autoUpdater } = await import("electron-updater");
+                const runtimeGlobal = globalThis as typeof globalThis & {
+                    module?: { require: (moduleId: string) => unknown };
+                    require?: (moduleId: string) => unknown;
+                };
+                const requireModule =
+                    runtimeGlobal.require ??
+                    runtimeGlobal.module?.require.bind(runtimeGlobal.module);
+                if (!requireModule) {
+                    throw new Error(
+                        "Electron main-process module loader is unavailable."
+                    );
+                }
+
+                const { autoUpdater } = requireModule("electron-updater") as {
+                    autoUpdater: {
+                        quitAndInstall: (
+                            isSilent?: boolean,
+                            isForceRunAfter?: boolean
+                        ) => void;
+                    };
+                };
                 autoUpdater.quitAndInstall(true, true);
                 return true;
             }
