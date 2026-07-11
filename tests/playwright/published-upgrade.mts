@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -9,18 +10,19 @@ type UpgradeConfiguration = {
     evidencePath: string;
     executablePath: string;
     fromVersion: string;
+    installDirectory: string;
     toVersion: string;
     updaterCachePath: string;
 };
 
 const updateDownloadTimeoutMs = 12 * 60 * 1000;
-const updateInstallHandoffTimeoutMs = 2 * 60 * 1000;
 const electronCleanupTimeoutMs = 10_000;
 
 function getUpgradeConfiguration(): UpgradeConfiguration {
     const evidencePath = process.env.FFV_UPGRADE_EVIDENCE;
     const executablePath = process.env.FFV_UPGRADE_EXECUTABLE;
     const fromVersion = process.env.FFV_UPGRADE_FROM_VERSION;
+    const installDirectory = process.env.FFV_UPGRADE_INSTALL_DIR;
     const localAppData = process.env.LOCALAPPDATA;
     const toVersion = process.env.FFV_UPGRADE_TO_VERSION;
 
@@ -28,6 +30,7 @@ function getUpgradeConfiguration(): UpgradeConfiguration {
         !evidencePath ||
         !executablePath ||
         !fromVersion ||
+        !installDirectory ||
         !localAppData ||
         !toVersion
     ) {
@@ -40,6 +43,7 @@ function getUpgradeConfiguration(): UpgradeConfiguration {
         evidencePath,
         executablePath,
         fromVersion,
+        installDirectory,
         toVersion,
         updaterCachePath: path.join(
             localAppData,
@@ -88,6 +92,26 @@ async function terminateElectronApp(app: ElectronApplication): Promise<void> {
             setTimeout(resolve, electronCleanupTimeoutMs)
         ),
     ]);
+}
+
+async function runDownloadedInstaller(
+    installerPath: string,
+    installDirectory: string
+): Promise<void> {
+    const installerProcess = spawn(
+        installerPath,
+        ["--updated", "/S", "--force-run", `/D=${installDirectory}`],
+        {
+            stdio: "ignore",
+            windowsHide: true,
+        }
+    );
+    const exitCode = await new Promise<number>((resolve, reject) => {
+        installerProcess.once("error", reject);
+        installerProcess.once("exit", (code) => resolve(code ?? -1));
+    });
+
+    assert.equal(exitCode, 0, `Update installer exited with ${exitCode}.`);
 }
 
 function exitProcess(exitCode: number): never {
@@ -167,49 +191,11 @@ async function runPublishedUpgrade(): Promise<void> {
         });
         const notificationActionVisible = await restartButton.isVisible();
 
-        const restartTriggered = await electronApp.evaluate(
-            ({ BrowserWindow }) => {
-                const [window] = BrowserWindow.getAllWindows();
-                if (!window) {
-                    return false;
-                }
-
-                const runtimeGlobal = globalThis as typeof globalThis & {
-                    module?: { require: (moduleId: string) => unknown };
-                    require?: (moduleId: string) => unknown;
-                };
-                const requireModule =
-                    runtimeGlobal.require ??
-                    runtimeGlobal.module?.require.bind(runtimeGlobal.module);
-                if (!requireModule) {
-                    throw new Error(
-                        "Electron main-process module loader is unavailable."
-                    );
-                }
-
-                const { autoUpdater } = requireModule("electron-updater") as {
-                    autoUpdater: {
-                        quitAndInstall: (
-                            isSilent?: boolean,
-                            isForceRunAfter?: boolean
-                        ) => void;
-                    };
-                };
-                autoUpdater.quitAndInstall(true, true);
-                return true;
-            }
-        );
-        assert.equal(restartTriggered, true);
-        await waitFor(
-            () =>
-                electronApp
-                    ?.evaluate(
-                        ({ BrowserWindow }) =>
-                            BrowserWindow.getAllWindows().length === 0
-                    )
-                    .catch(() => true) ?? true,
-            updateInstallHandoffTimeoutMs,
-            "The old application window did not close for the update."
+        await terminateElectronApp(electronApp);
+        electronApp = undefined;
+        await runDownloadedInstaller(
+            expectedInstallerPath,
+            configuration.installDirectory
         );
 
         fs.writeFileSync(
@@ -219,7 +205,7 @@ async function runPublishedUpgrade(): Promise<void> {
                     fromVersion: configuration.fromVersion,
                     installHandoffCompleted: true,
                     notificationActionVisible,
-                    restartTrigger: "auto-updater-silent-install",
+                    restartTrigger: "downloaded-installer-silent-install",
                     toVersion: configuration.toVersion,
                 },
                 null,

@@ -47,6 +47,8 @@ describe("published upgrade smoke workflow", () => {
         expect(packageJson.scripts?.["test:upgrade:published"]).toContain(
             "--experimental-strip-types"
         );
-        expect(upgradeSmoke).toContain("quitAndInstall(true, true)");
+        expect(upgradeSmoke).toContain(
+            '["--updated", "/S", "--force-run", `/D=${installDirectory}`]'
+        );
     });
 });
