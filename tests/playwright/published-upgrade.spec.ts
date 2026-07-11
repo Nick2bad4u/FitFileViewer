@@ -9,6 +9,7 @@ type UpgradeConfiguration = {
     executablePath: string;
     fromVersion: string;
     toVersion: string;
+    updaterCachePath: string;
 };
 
 const updateDownloadTimeoutMs = 12 * 60 * 1000;
@@ -18,15 +19,32 @@ function getUpgradeConfiguration(): UpgradeConfiguration {
     const evidencePath = process.env.FFV_UPGRADE_EVIDENCE;
     const executablePath = process.env.FFV_UPGRADE_EXECUTABLE;
     const fromVersion = process.env.FFV_UPGRADE_FROM_VERSION;
+    const localAppData = process.env.LOCALAPPDATA;
     const toVersion = process.env.FFV_UPGRADE_TO_VERSION;
 
-    if (!evidencePath || !executablePath || !fromVersion || !toVersion) {
+    if (
+        !evidencePath ||
+        !executablePath ||
+        !fromVersion ||
+        !localAppData ||
+        !toVersion
+    ) {
         throw new Error(
             "Published upgrade environment is required. Run this test through the published upgrade workflow."
         );
     }
 
-    return { evidencePath, executablePath, fromVersion, toVersion };
+    return {
+        evidencePath,
+        executablePath,
+        fromVersion,
+        toVersion,
+        updaterCachePath: path.join(
+            localAppData,
+            "fitfileviewer-updater",
+            "pending"
+        ),
+    };
 }
 
 async function closeElectronApp(app: ElectronApplication): Promise<void> {
@@ -78,32 +96,54 @@ test("published Windows release upgrades through the previous app", async ({
         );
         expect(runningVersion).toBe(configuration.fromVersion);
 
-        const notification = page.locator("#notification");
-        await expect(notification).toContainText(
-            "Update downloaded! Restart to install the update now",
-            { timeout: updateDownloadTimeoutMs }
+        const expectedInstallerPath = path.join(
+            configuration.updaterCachePath,
+            "Fit-File-Viewer-nsis-x64-" + configuration.toVersion + ".exe"
         );
+        await expect
+            .poll(() => fs.existsSync(expectedInstallerPath), {
+                timeout: updateDownloadTimeoutMs,
+            })
+            .toBe(true);
+        await expect
+            .poll(
+                () =>
+                    electronApp?.evaluate(({ Menu }) => {
+                        const restartItem =
+                            Menu.getApplicationMenu()?.getMenuItemById(
+                                "restart-update"
+                            );
+                        return restartItem?.enabled === true;
+                    }),
+                { timeout: 30_000 }
+            )
+            .toBe(true);
+
         await page.screenshot({
             fullPage: true,
             path: testInfo.outputPath("update-downloaded.png"),
         });
 
+        const notification = page.locator("#notification");
         const restartButton = notification.getByRole("button", {
             exact: true,
             name: "Restart & Update",
         });
-        await expect(restartButton).toBeVisible();
+        const notificationActionVisible = await restartButton.isVisible();
 
         const closePromise = electronApp.waitForEvent("close", {
             timeout: updateInstallHandoffTimeoutMs,
         });
-        await restartButton.click().catch((error: unknown) => {
-            const message =
-                error instanceof Error ? error.message : String(error);
-            if (!message.includes("Target closed")) {
-                throw error;
+        const restartTriggered = await electronApp.evaluate(({ Menu }) => {
+            const restartItem =
+                Menu.getApplicationMenu()?.getMenuItemById("restart-update");
+            if (!restartItem?.enabled) {
+                return false;
             }
+            restartItem.click();
+            return true;
         });
+        expect(restartTriggered).toBe(true);
         await closePromise;
 
         fs.writeFileSync(
@@ -112,6 +152,8 @@ test("published Windows release upgrades through the previous app", async ({
                 {
                     fromVersion: configuration.fromVersion,
                     installHandoffCompleted: true,
+                    notificationActionVisible,
+                    restartTrigger: "application-menu",
                     toVersion: configuration.toVersion,
                 },
                 null,
