@@ -37,9 +37,11 @@ async function closeElectronApp(app: ElectronApplication): Promise<void> {
     }
 }
 
-test("published Windows release upgrades through the previous app", async (fixtures, testInfo) => {
+test("published Windows release upgrades through the previous app", async ({
+    browserName,
+}, testInfo) => {
     test.setTimeout(updateDownloadTimeoutMs + 3 * 60 * 1000);
-    void fixtures;
+    void browserName;
 
     const configuration = getUpgradeConfiguration();
 
