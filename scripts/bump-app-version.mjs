@@ -8,8 +8,6 @@ import {
     repositoryRoot as defaultRepositoryRoot,
     rootPackageJsonPath,
 } from "./lib/workspaces.mjs";
-import { resolveCommandForPlatform } from "./lib/child-process.mjs";
-
 if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
@@ -45,9 +43,13 @@ export function bumpAppVersion(options = {}) {
 
     if (!options.dryRun) {
         const commandRunner = options.commandRunner ?? runCommand;
+        const npmInvocation = getNpmInvocation(
+            options.environment,
+            options.platform
+        );
         commandRunner(
-            resolveCommandForPlatform("npm"),
-            createNpmVersionArgs(newVersion),
+            npmInvocation.command,
+            [...npmInvocation.args, ...createNpmVersionArgs(newVersion)],
             {
                 cwd: repositoryRoot,
                 stdio: "inherit",
@@ -60,6 +62,33 @@ export function bumpAppVersion(options = {}) {
         newVersion,
         packagePath,
     };
+}
+
+export function getNpmInvocation(
+    environment = process.env,
+    platform = process.platform
+) {
+    const npmExecPath = environment.npm_execpath;
+    if (typeof npmExecPath === "string" && npmExecPath.trim() !== "") {
+        return {
+            args: [npmExecPath],
+            command: process.execPath,
+        };
+    }
+
+    if (platform === "win32") {
+        return {
+            args: [
+                "/d",
+                "/s",
+                "/c",
+                "npm.cmd",
+            ],
+            command: environment.ComSpec ?? "cmd.exe",
+        };
+    }
+
+    return { args: [], command: "npm" };
 }
 
 export function calculateNextVersion(version, releaseType = "patch") {

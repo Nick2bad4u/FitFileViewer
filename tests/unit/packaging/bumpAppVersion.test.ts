@@ -14,6 +14,8 @@ type BumpAppVersionModule = {
             options: Record<string, unknown>
         ) => void;
         dryRun?: boolean;
+        environment?: NodeJS.ProcessEnv;
+        platform?: NodeJS.Platform;
         releaseType?: "major" | "minor" | "patch";
         repositoryRoot?: string;
     }) => {
@@ -26,6 +28,10 @@ type BumpAppVersionModule = {
         releaseType?: "major" | "minor" | "patch"
     ) => string;
     createNpmVersionArgs: (version: string) => string[];
+    getNpmInvocation: (
+        environment?: NodeJS.ProcessEnv,
+        platform?: NodeJS.Platform
+    ) => { args: string[]; command: string };
     parseArgs: (args: string[]) => {
         dryRun: boolean;
         githubOutput: boolean;
@@ -188,6 +194,8 @@ describe("bump-app-version script", () => {
 
         const result = bumpAppVersion({
             commandRunner,
+            environment: {},
+            platform: "linux",
             repositoryRoot: temporaryRoot,
         });
         const [
@@ -203,7 +211,7 @@ describe("bump-app-version script", () => {
             result,
             versionArgs,
         }).toStrictEqual({
-            command: expect.stringMatching(/^npm(?:\.cmd)?$/u),
+            command: "npm",
             options: {
                 cwd: temporaryRoot,
                 stdio: "inherit",
@@ -216,6 +224,30 @@ describe("bump-app-version script", () => {
             versionArgs: createNpmVersionArgs("30.0.1"),
         });
         expect(options).not.toHaveProperty("shell");
+    });
+
+    it("avoids spawning Windows command shims directly", async () => {
+        expect.assertions(2);
+
+        const { getNpmInvocation } = await importBumpAppVersion();
+
+        expect(
+            getNpmInvocation({ npm_execpath: "C:\\npm\\npm-cli.js" }, "win32")
+        ).toStrictEqual({
+            args: ["C:\\npm\\npm-cli.js"],
+            command: process.execPath,
+        });
+        expect(getNpmInvocation({ ComSpec: "cmd.exe" }, "win32")).toStrictEqual(
+            {
+                args: [
+                    "/d",
+                    "/s",
+                    "/c",
+                    "npm.cmd",
+                ],
+                command: "cmd.exe",
+            }
+        );
     });
 
     it("normalizes relative package roots before running npm version", async () => {
