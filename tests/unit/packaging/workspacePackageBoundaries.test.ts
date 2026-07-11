@@ -500,7 +500,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(12);
+        expect.assertions(17);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -532,6 +532,14 @@ describe("workspace package boundaries", () => {
             'echo "Release verification is still running..."'
         );
         expect(releaseWorkflow).toContain("npm run release:check-signing");
+        expect(releaseWorkflow).toContain("require-code-signing:");
+        expect(releaseWorkflow).toContain("default: false");
+        expect(releaseWorkflow).toContain(
+            "REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}"
+        );
+        expect(releaseWorkflow).toContain(
+            "runner.os == 'macOS' && inputs.require-code-signing"
+        );
         expect(releaseWorkflow).toContain(
             "npm run release:verify-signing-artifacts"
         );
@@ -540,6 +548,9 @@ describe("workspace package boundaries", () => {
             "release-dist/signing-verification-report.json"
         );
         expect(releaseWorkflow).toContain("npm run test:packaged");
+        expect(releaseWorkflow).toContain(
+            "Release artifacts are intentionally unsigned"
+        );
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
 

@@ -430,6 +430,11 @@ missing variable.
   builds are unsigned by default. The electron-builder wrapper strips signing
   variables and disables Windows executable signing unless
   `REQUIRE_CODE_SIGNING=true`.
+- Production releases are also unsigned by default, matching the project's
+  historical release policy. The **Build And Release Electron App** workflow
+  exposes a `require-code-signing` input; leave it `false` for the normal
+  unsigned release path and set it to `true` only after the required Windows
+  and macOS credentials have been configured.
 - Use `npm run package:signed` for a signed current-platform release package.
   It runs the required signing preflight, then starts electron-builder with
   `REQUIRE_CODE_SIGNING=true`.

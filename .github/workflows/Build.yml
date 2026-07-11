@@ -13,6 +13,11 @@ on:
                 type: string
                 required: true
                 default: "main"
+            require-code-signing:
+                description: "Require Windows and macOS release artifacts to be signed"
+                type: boolean
+                required: true
+                default: false
 
 permissions:
     actions: read
@@ -213,7 +218,7 @@ jobs:
               run: npm run build:macos-deps
 
             - name: Prepare Apple API key when configured
-              if: runner.os == 'macOS'
+              if: runner.os == 'macOS' && inputs.require-code-signing
               shell: bash
               env:
                   APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
@@ -229,7 +234,7 @@ jobs:
               shell: bash
               run: npm run release:check-signing -- --runner-os "$RUNNER_OS"
               env:
-                  REQUIRE_CODE_SIGNING: true
+                  REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
                   RUNNER_OS: ${{ runner.os }}
                   APPLE_API_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
                   APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
@@ -254,7 +259,7 @@ jobs:
                   DEBUG: "@malept/flatpak-bundler"
                   MATRIX_ARCH: ${{ matrix.arch }}
                   MATRIX_OS: ${{ matrix.os }}
-                  REQUIRE_CODE_SIGNING: true
+                  REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
                   RUNNER_OS: ${{ runner.os }}
                   APPLE_API_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
                   APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
@@ -268,13 +273,13 @@ jobs:
                   CSC_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
                   WIN_CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
 
-            - name: Verify signed release artifacts
+            - name: Verify release artifact signing policy
               id: verify_signed_artifacts
               if: runner.os == 'Windows' || runner.os == 'macOS'
               shell: bash
               run: npm run release:verify-signing-artifacts -- --runner-os "$RUNNER_OS"
               env:
-                  REQUIRE_CODE_SIGNING: true
+                  REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
                   RUNNER_OS: ${{ runner.os }}
 
             - name: Smoke test packaged build
@@ -408,6 +413,8 @@ jobs:
                       ## 🚀 Release Notes
 
                       This is the first FitFileViewer release built from the migrated TypeScript runtime sources for the main process, preload, renderer, and application utilities.
+
+                      ${{ inputs.require-code-signing && 'Windows and macOS release artifacts were built with required code signing.' || 'Release artifacts are intentionally unsigned, consistent with previous FitFileViewer releases.' }}
 
                       ${{ steps.release_notes.outputs.notes }}
 
