@@ -27,6 +27,7 @@
         "tests/**/*.cjs",
         "tests/**/*.js",
         "tests/**/*.mjs",
+        "tests/**/*.mts",
         "tests/**/*.ts",
         "utils/**/*.js"
     ]

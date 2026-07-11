@@ -161,8 +161,7 @@ async function runPublishedUpgrade(): Promise<void> {
             path: path.join(outputDirectory, "update-downloaded.png"),
         });
 
-        const notification = page.locator("#notification");
-        const restartButton = notification.getByRole("button", {
+        const restartButton = page.getByRole("button", {
             exact: true,
             name: "Restart & Update",
         });

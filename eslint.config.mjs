@@ -684,7 +684,7 @@ const config = [
         },
     },
     {
-        files: ["tests/playwright/**/*.ts"],
+        files: ["tests/playwright/**/*.{mts,ts}"],
         languageOptions: {
             globals: globals.node,
         },
