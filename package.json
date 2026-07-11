@@ -166,7 +166,7 @@
         "build:dev:package:prod": "node scripts/build-package.mjs --node-env production --dir",
         "build:dev:package:prod:all": "node scripts/build-package.mjs --node-env production -l --dir",
         "build:dev:package:prod:all:zip": "node scripts/build-package.mjs --node-env production -l --dir --win --x64 --ia32 --mac --linux --zip",
-        "build:flatpak": "npm run build:runtime-ts && node scripts/build-flatpak.mjs",
+        "build:flatpak": "npm run prepare:electron && npm run build:runtime-ts && node scripts/build-flatpak.mjs",
         "build:flatpak-deps": "node scripts/install-flatpak-dependencies.mjs",
         "build:install-deps": "node scripts/install-build-dependencies.mjs",
         "build:macos-deps": "node scripts/ensure-macos-builder-deps.mjs",
