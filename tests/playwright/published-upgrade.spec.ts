@@ -14,6 +14,7 @@ type UpgradeConfiguration = {
 
 const updateDownloadTimeoutMs = 12 * 60 * 1000;
 const updateInstallHandoffTimeoutMs = 2 * 60 * 1000;
+const electronCleanupTimeoutMs = 10_000;
 
 function getUpgradeConfiguration(): UpgradeConfiguration {
     const evidencePath = process.env.FFV_UPGRADE_EVIDENCE;
@@ -48,11 +49,23 @@ function getUpgradeConfiguration(): UpgradeConfiguration {
 }
 
 async function closeElectronApp(app: ElectronApplication): Promise<void> {
-    try {
-        await app.close();
-    } catch {
-        /* The updater may already have closed the old application. */
+    const process = app.process();
+
+    if (process.exitCode !== null || process.signalCode !== null) {
+        return;
     }
+
+    const exitPromise = new Promise<void>((resolve) =>
+        process.once("exit", () => resolve())
+    );
+    process.kill();
+
+    await Promise.race([
+        exitPromise,
+        new Promise<void>((resolve) =>
+            setTimeout(resolve, electronCleanupTimeoutMs)
+        ),
+    ]);
 }
 
 test("published Windows release upgrades through the previous app", async ({
@@ -131,11 +144,8 @@ test("published Windows release upgrades through the previous app", async ({
         });
         const notificationActionVisible = await restartButton.isVisible();
 
-        const closePromise = electronApp.waitForEvent("close", {
-            timeout: updateInstallHandoffTimeoutMs,
-        });
-        const restartTrigger = electronApp
-            .evaluate(({ BrowserWindow, ipcMain }) => {
+        const restartTriggered = await electronApp.evaluate(
+            ({ BrowserWindow, ipcMain }) => {
                 const [window] = BrowserWindow.getAllWindows();
                 if (!window) {
                     return false;
@@ -143,14 +153,21 @@ test("published Windows release upgrades through the previous app", async ({
                 return ipcMain.emit("install-update", {
                     sender: window.webContents,
                 });
-            })
-            .catch(() => true);
-        const restartTriggered = await Promise.race([
-            restartTrigger,
-            closePromise.then(() => true),
-        ]);
+            }
+        );
         expect(restartTriggered).toBe(true);
-        await closePromise;
+        await expect
+            .poll(
+                () =>
+                    electronApp
+                        ?.evaluate(
+                            ({ BrowserWindow }) =>
+                                BrowserWindow.getAllWindows().length
+                        )
+                        .catch(() => 0),
+                { timeout: updateInstallHandoffTimeoutMs }
+            )
+            .toBe(0);
 
         fs.writeFileSync(
             configuration.evidencePath,
