@@ -1,5 +1,5 @@
 # Title for the gitleaks configuration file.
-title = "Custom Gitleaks configuration"
+title = "FitFileViewer Gitleaks configuration"
 
 # You have basically two options for your custom configuration:
 #
@@ -18,18 +18,9 @@ title = "Custom Gitleaks configuration"
 #    together multiple configuration files to a depth of 2. Allowlist arrays are
 #    appended and can contain duplicates.
 
-# useDefault and path can NOT be used at the same time. Choose one.
 [extend]
-# useDefault will extend the default gitleaks config built in to the binary
-# the latest version is located at:
-# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
-useDefault = true
-# or you can provide a path to a configuration to extend from.
-# The path is relative to where gitleaks was invoked,
-# not the location of the base config.
-# path = "common_config.toml"
-# If there are any rules you don't want to inherit, they can be specified here.
-disabledRules = [ "generic-api-key" ]
+# Extend the maintained shared repository rules.
+path = "node_modules/gitleaks-config-nick2bad4u/gitleaks.toml"
 
 # An array of tables that contain information that define instructions
 # on how to detect secrets

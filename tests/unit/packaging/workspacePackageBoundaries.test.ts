@@ -15,7 +15,6 @@ import {
     rootGitignorePath,
     rootGlobalTypesPath,
     rootDocsPath,
-    rootNcuConfigPath,
     rootPackageLockPath,
     rootPackageRepositoryPath,
     rootPlaywrightAppUiSpecPath,
@@ -250,8 +249,7 @@ const expectedRootToolingScripts = {
     "lint:app": "node scripts/run-eslint.mjs app && npm run typecheck",
     "lint:app:fix":
         "node scripts/run-eslint.mjs app --fix && npm run typecheck",
-    "lint:remark":
-        'remark docs docusaurus/docs docusaurus/blog docusaurus/src --quiet --frail --rc-path .remarkrc.mjs --ignore-pattern "docusaurus/docs/api/**"',
+    "lint:remark": "remark . --frail --ignore-path .remarkignore",
     "lint:secretlint":
         'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
     "perf:baseline":
@@ -275,12 +273,12 @@ const expectedRootToolingScripts = {
     "test:ui":
         "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
     "test:playwright":
-        "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts",
+        "npm run build:runtime-ts && playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts",
     "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
     "sync:node-version-files:check":
         "node scripts/sync-node-version-files.mjs --check",
     "update-deps":
-        "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
+        "ncu --configFileName .ncurc.json --configFilePath node_modules/ncu-config-nick2bad4u && npm update --force && npm install --force && npm run sync:node-version-files",
     "verify:fast":
         "npm run sync:node-version-files:check && npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
     "verify:full":
@@ -966,9 +964,8 @@ describe("workspace package boundaries", () => {
     it("keeps dependency update configuration rooted at the app package", () => {
         expect.assertions(26);
 
-        const ncuConfig = JSON.parse(
-            readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
-        ) as Record<string, unknown>;
+        const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const updateDepsScript = rootPackage.scripts?.["update-deps"] ?? "";
         const dependencyValidationWorkflow = readFileSync(
             path.join(
                 process.cwd(),
@@ -977,44 +974,15 @@ describe("workspace package boundaries", () => {
             "utf8"
         );
 
-        expect(ncuConfig).toMatchObject({
-            cache: true,
-            concurrency: 8,
-            dep: [
-                "prod",
-                "dev",
-                "optional",
-                "packageManager",
-            ],
-            deprecated: true,
-            format: [
-                "group",
-                "dep",
-                "ownerChanged",
-                "time",
-                "homepage",
-            ],
-            install: "never",
-            interactive: true,
-            packageFile: "./package.json",
-            packageManager: "npm",
-            peer: false,
-            root: true,
-            target: "latest",
-            workspaces: true,
-        });
-        expect(path.posix.normalize(String(ncuConfig["packageFile"]))).toBe(
-            "package.json"
+        expect(updateDepsScript).toContain("ncu --configFileName .ncurc.json");
+        expect(updateDepsScript).toContain(
+            "--configFilePath node_modules/ncu-config-nick2bad4u"
         );
-        expect(
-            [ncuConfig["cacheFile"], ncuConfig["packageFile"]].filter(
-                (configPath) => String(configPath).startsWith("electron-app/")
-            )
-        ).toStrictEqual([]);
+        expect(updateDepsScript).not.toContain("electron-app/");
         expect(dependencyValidationWorkflow).toContain("schedule:");
         expect(dependencyValidationWorkflow).toContain('".node-version"');
         expect(dependencyValidationWorkflow).toContain('".nvmrc"');
-        expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
+        expect(dependencyValidationWorkflow).not.toContain('".ncurc.json"');
         expect(dependencyValidationWorkflow).toContain(
             "node-version-file: .node-version"
         );

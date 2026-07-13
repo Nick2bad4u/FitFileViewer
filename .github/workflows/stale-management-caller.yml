@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
 
-name: "Stale Issues And Pull Requests"
+name: "Stale Issues and Pull Requests"
 
 run-name: >-
     ${{

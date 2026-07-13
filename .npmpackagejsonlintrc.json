@@ -1,0 +1,8 @@
+{
+    "extends": "npm-package-json-lint-config-nick2bad4u",
+    "rules": {
+        "no-tilde-version-devDependencies": "off",
+        "prefer-caret-version-devDependencies": "off",
+        "valid-values-author": "off"
+    }
+}

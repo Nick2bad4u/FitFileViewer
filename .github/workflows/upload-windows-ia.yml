@@ -1,5 +1,5 @@
-name: Upload Windows Distributables To Archive Org
-run-name: Upload Windows Distributables To Archive Org (${{ github.ref_name }})
+name: Upload Windows Distributables to Archive Org
+run-name: Upload Windows Distributables to Archive Org (${{ github.ref_name }})
 
 on:
     workflow_dispatch:

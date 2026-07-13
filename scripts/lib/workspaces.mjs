@@ -28,7 +28,6 @@ export const rootReadmePath = "README.md";
 export const rootMarkdownLinkCheckConfigPath = ".markdown-link-check.json";
 export const rootMarkdownlintConfigPath = ".markdownlint.json";
 export const rootMermaidConfigPath = "mermaid.config.json";
-export const rootNcuConfigPath = ".ncurc.json";
 export const rootPlaywrightConfigPath = "playwright.config.ts";
 export const rootPreCommitConfigPath = ".pre-commit-config.yaml";
 export const rootPrettierCachePath = path.posix.join(
@@ -158,7 +157,6 @@ export const rootToolingConfigPaths = [
     rootTypedocConfigPath,
     rootMarkdownLinkCheckConfigPath,
     rootMarkdownlintConfigPath,
-    rootNcuConfigPath,
     rootPreCommitConfigPath,
     rootSecretlintConfigPath,
     rootCodecovConfigPath,

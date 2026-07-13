@@ -90,7 +90,7 @@ This config:
 
 ## Structure
 
-```
+```text
 docusaurus/
 ├── docs/                    # Documentation files
 │   ├── getting-started/     # Getting started guides

@@ -1,0 +1,210 @@
+### Docusaurus ###
+# Docusaurus cache and generated files
+.docusaurus
+
+# =========================
+# AI Tools
+# =========================
+.agentic-tools*
+.gemini/
+.jscpd/
+repomix-output.xml
+_ZENTASKS
+
+# =========================
+# Build Output & Distribution
+# =========================
+build/
+dist/
+dist-benchmark/
+dist-configs/
+dist-playwright/
+dist/test/
+html/
+release/
+**/dist/
+**/dist/test/
+**/dist/** */
+
+# =========================
+# Coverage & Reports
+# =========================
+assets/prettier-plugin-multiline-arrays/
+codeql-agent-results/
+coverage-results.json
+gha-creds-*.json
+reports/
+test-results/
+TODO.md
+temp/
+
+# =========================
+# Docusaurus
+# =========================
+!docs/docusaurus/static/manifest.json
+docs/docusaurus/.docusaurus
+docs/docusaurus/build
+docs/docusaurus/docs/.nojekyll
+docs/docusaurus/docs/assets
+docs/docusaurus/docs/coverage.svg
+docs/docusaurus/docs/documents
+docs/docusaurus/docs/documents/ADR-*
+docs/docusaurus/docs/electron
+docs/docusaurus/docs/index.md
+docs/docusaurus/docs/modules.md
+docs/docusaurus/docs/src
+docs/docusaurus/docs/_media
+docs/docusaurus/docs/typedoc.json
+docs/docusaurus/docs/typedoc-sidebar.cjs
+docs/docusaurus/static/eslint-inspector/
+docs/docusaurus/static/stylelint-inspector/
+docs/docusaurus/static/*-inspector/
+docs/docusaurus/static/storybook/
+docs/docusaurus/stylelintcache
+docs/typedoc.json
+**/docs/docusaurus/.docusaurus
+**/docs/docusaurus/build
+**/docs/docusaurus/docs/_media
+**/docs/docusaurus/docs/assets
+**/docs/docusaurus/docs/documents
+**/docs/docusaurus/docs/electron
+**/docs/docusaurus/docs/shared
+**/docs/docusaurus/docs/src
+**/docs/docusaurus/docusaurus.config.ts
+**/docs/docusaurus/sidebars.ts
+**/docs/docusaurus/src/js/modern-enhancements.ts
+**/docs/docusaurus/src/pages/index.tsx
+**/docs/docusaurus/static/eslint-inspector
+**/docs/docusaurus/static/storybook/**
+**/site-docs/developer/api/
+docs/docusaurus/static/.well-known/appspecific/com.chrome.devtools.json
+
+# =========================
+# Downloads
+# =========================
+!downloads/
+!src/utils/downloads/
+!src/utils/downloads/**
+
+# =========================
+# Linting & Code Inspection
+# =========================
+.eslint-config-inspector/
+eslint.config.bundled_**
+
+# =========================
+# Node & NPM
+# =========================
+node_modules/
+node_modules_backup/
+.npmrc
+
+# =========================
+# OhMyPosh
+# =========================
+!.vscode/OhMyPosh-Atomic-Custom.json
+
+# =========================
+# Playwright
+# =========================
+/blob-report/
+/playwright-report/
+/playwright/.cache/
+/playwright/reports/
+/playwright/test-results/
+playwright-report/
+
+# =========================
+# Stryker
+# =========================
+.stryker-tmp/
+stryker-issues.json
+stryker_prompts_by_mutator/
+
+# =========================
+# Storybook
+# =========================
+*storybook.log
+storybook-static
+storybook/stories/__screenshots__/
+
+# =========================
+# VS Code
+# =========================
+!.vscode/mcp.json
+.vscode/
+.vscode/settings.json
+
+# =========================
+# TypeScript Declaration Files (not style sources)
+# =========================
+**/*.d.cts
+**/*.d.mts
+**/*.d.ts
+
+# =========================
+# Scripts, Benchmarks, Icons (non-CSS sources)
+# =========================
+benchmarks/**/*.js
+benchmarks/**/*.jsx
+benchmarks/**/*.ts
+benchmarks/**/*.tsx
+scripts/
+scripts/**/*.js
+scripts/**/*.jsx
+scripts/**/*.ts
+scripts/**/*.tsx
+**/icons/**
+
+# =========================
+# Non-CSS File Types
+# =========================
+**/*.cjs
+**/*.crt
+**/*.desktop
+**/*.disabled
+**/*.env
+**/*.gif
+**/*.ico
+**/*.jpg
+**/*.jpeg
+**/*.json
+**/*.key
+**/*.log
+**/*.md
+**/*.mdx
+**/*.mjs
+**/*.pdf
+**/*.pem
+**/*.png
+**/*.properties
+**/*.ps1
+**/*.pub
+**/*.svg
+**/*.tar.gz
+**/*.toml
+**/*.txt
+**/*.wasm
+**/*.xml
+**/*.yaml
+**/*.yml
+**/*.zip
+
+# =========================
+# Stylelint Cache & Config
+# =========================
+**/.stylelintignore
+**/stylelint.config.mjs
+**/stylelintcache
+
+# =========================
+# Package & License Files
+# =========================
+license
+package-lock.json
+package.json
+
+# =========================
+# CNAME for GitHub Pages
+# =========================
+CNAME

@@ -456,7 +456,7 @@ describe("workspace path helpers", () => {
             ".markdownlint.json"
         );
         expect(workspaces.rootMermaidConfigPath).toBe("mermaid.config.json");
-        expect(workspaces.rootNcuConfigPath).toBe(".ncurc.json");
+        expect(workspaces).not.toHaveProperty("rootNcuConfigPath");
         expect(workspaces.rootPreCommitConfigPath).toBe(
             ".pre-commit-config.yaml"
         );
@@ -467,7 +467,6 @@ describe("workspace path helpers", () => {
             "typedoc.json",
             ".markdown-link-check.json",
             ".markdownlint.json",
-            ".ncurc.json",
             ".pre-commit-config.yaml",
             ".secretlintrc.cjs",
             "codecov.yml",

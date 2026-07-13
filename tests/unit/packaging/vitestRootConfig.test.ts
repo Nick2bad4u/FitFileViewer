@@ -77,7 +77,7 @@ describe("vitest root config", () => {
             "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run --reporter=verbose tests/unit/tabs --maxWorkers 1"
         );
         expect(getRootScripts()["test:playwright"]).toBe(
-            "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts"
+            "npm run build:runtime-ts && playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts"
         );
     });
 

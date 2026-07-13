@@ -1,5 +1,5 @@
-name: Upload macOS Distributables To Archive Org
-run-name: Upload macOS Distributables To Archive Org (${{ github.ref_name }})
+name: Upload macOS Distributables to Archive Org
+run-name: Upload macOS Distributables to Archive Org (${{ github.ref_name }})
 
 on:
     workflow_dispatch:

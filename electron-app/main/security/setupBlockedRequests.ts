@@ -63,8 +63,8 @@ export function setupBlockedRequests(): void {
             return;
         }
 
-        webRequest.onBeforeRequest?.((details, callback) => {
-            callback(shouldBlockRequest(details) ? { cancel: true } : {});
+        webRequest.onBeforeRequest?.((details, respond) => {
+            respond(shouldBlockRequest(details) ? { cancel: true } : {});
         });
     } catch {
         /* ignore */

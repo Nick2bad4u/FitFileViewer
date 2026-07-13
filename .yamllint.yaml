@@ -1,28 +1,28 @@
 ---
-extends: default
+extends: "node_modules/yamllint-config-nick2bad4u/.yamllint"
 
 rules:
     braces:
-        level: warning
+        level: "warning"
         max-spaces-inside: 5
     brackets:
-        level: warning
+        level: "warning"
         max-spaces-inside: 20
     colons:
-        level: warning
+        level: "warning"
     commas:
-        level: warning
-    comments: disable
-    comments-indentation: disable
-    document-start: disable
+        level: "warning"
+    comments: "disable"
+    comments-indentation: "disable"
+    document-start: "disable"
     empty-lines:
-        level: warning
+        level: "warning"
     hyphens:
-        level: warning
+        level: "warning"
     indentation:
-        indent-sequences: consistent
-        level: warning
+        indent-sequences: "consistent"
+        level: "warning"
     line-length:
         allow-non-breakable-inline-mappings: true
-        level: warning
-    truthy: disable
+        level: "warning"
+    truthy: "disable"

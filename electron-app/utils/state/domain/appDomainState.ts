@@ -44,12 +44,12 @@ export function getAppStartTime(): null | number {
 /** Subscribes to app-domain state through the renderer-facing facade. */
 export function subscribeAppDomain(
     event: string,
-    callback: AppDomainStateListener
+    listener: AppDomainStateListener
 ): Unsubscribe {
     const path = normalizeAppDomainEventPath(event);
 
     return subscribeCoreAppDomainPath(path, (newValue, oldValue) => {
-        callback({
+        listener({
             newValue,
             oldValue,
             path,

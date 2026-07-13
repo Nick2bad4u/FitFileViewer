@@ -5797,7 +5797,7 @@ describe("architecture boundaries", () => {
         expect(dependencyValidationWorkflow).toContain('".nvmrc"');
         expect(dependencyValidationWorkflow).toContain('"package.json"');
         expect(dependencyValidationWorkflow).toContain('"package-lock.json"');
-        expect(dependencyValidationWorkflow).toContain('".ncurc.json"');
+        expect(dependencyValidationWorkflow).not.toContain('".ncurc.json"');
         expect(dependencyValidationWorkflow).toContain(
             '"docusaurus/package.json"'
         );

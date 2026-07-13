@@ -19,7 +19,6 @@ on:
             - ".nvmrc"
             - "package.json"
             - "package-lock.json"
-            - ".ncurc.json"
             - "docusaurus/package.json"
             - "docusaurus/package-lock.json"
             - ".github/dependabot.yml"

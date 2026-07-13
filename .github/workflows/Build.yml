@@ -1,5 +1,5 @@
-name: Build And Release Electron App
-run-name: Build And Release Electron App (${{ github.ref_name }})
+name: Build and Release Electron App
+run-name: Build and Release Electron App (${{ github.ref_name }})
 
 concurrency:
     group: build-${{ github.ref }}

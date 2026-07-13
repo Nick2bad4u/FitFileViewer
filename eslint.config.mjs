@@ -14,7 +14,7 @@ const rootDirectory = fileURLToPath(new URL(".", import.meta.url));
 const sharedConfig = nickTwoBadFourU.createConfig({
     allowDefaultProjectFilePatterns: [],
     rootDirectory,
-    tsconfigPaths: ["./tsconfig.eslint.json"],
+    tsconfigPaths: ["./tsconfig.eslint.json", "./tsconfig.docusaurus.json"],
 });
 const dependPlugin = sharedConfig.find((entry) => entry.plugins?.depend)
     ?.plugins.depend;

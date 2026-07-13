@@ -35,7 +35,7 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain('".nvmrc"');
         expect(workflow).toContain('"package.json"');
         expect(workflow).toContain('"package-lock.json"');
-        expect(workflow).toContain('".ncurc.json"');
+        expect(workflow).not.toContain('".ncurc.json"');
         expect(workflow).toContain('"docusaurus/package.json"');
         expect(workflow).toContain('"docusaurus/package-lock.json"');
         expect(workflow).toContain('".github/dependabot.yml"');

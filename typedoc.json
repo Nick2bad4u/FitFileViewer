@@ -1,54 +1,5 @@
 {
     "$schema": "https://typedoc.org/schema.json",
-    "blockTags": [
-        "@fileoverview",
-        "@version",
-        "@ts-check",
-        "@defaultValue",
-        "@description",
-        "@deprecated",
-        "@example",
-        "@jsx",
-        "@param",
-        "@privateRemarks",
-        "@remarks",
-        "@returns",
-        "@see",
-        "@throws",
-        "@typeParam",
-        "@author",
-        "@callback",
-        "@category",
-        "@categoryDescription",
-        "@default",
-        "@document",
-        "@extends",
-        "@augments",
-        "@yields",
-        "@group",
-        "@groupDescription",
-        "@import",
-        "@inheritDoc",
-        "@license",
-        "@module",
-        "@mergeModuleWith",
-        "@prop",
-        "@property",
-        "@return",
-        "@satisfies",
-        "@since",
-        "@sortStrategy",
-        "@template",
-        "@this",
-        "@type",
-        "@typedef",
-        "@summary",
-        "@preventInline",
-        "@inlineType",
-        "@preventExpand",
-        "@expandType",
-        "@exports"
-    ],
     "categoryOrder": [
         "UI Components",
         "Visualization",
@@ -63,14 +14,11 @@
         "Constants",
         "*"
     ],
-    "cleanOutputDir": true,
-    "commentStyle": "all",
     "compilerOptions": {
         "noErrorTruncation": false,
         "skipDefaultLibCheck": true,
         "skipLibCheck": true
     },
-    "emit": "docs",
     "entryPointStrategy": "expand",
     "entryPoints": [
         "electron-app/**/*.{ts,mts,cts,tsx,js,jsx}"
@@ -98,12 +46,9 @@
         "**/assets/**",
         "**/utils/files/export/gpxExport.js"
     ],
-    "excludeInternal": false,
-    "excludeNotDocumented": false,
-    "excludePrivate": false,
-    "excludeProtected": false,
-    "expandObjects": true,
-    "expandParameters": true,
+    "extends": [
+        "typedoc-config-nick2bad4u/typedoc.json"
+    ],
     "externalSymbolLinkMappings": {
         "chart.js": {
             "Chart": "https://www.chartjs.org/docs/latest/getting-started/"
@@ -116,68 +61,18 @@
             "ipcMain": "https://www.electronjs.org/docs/latest/api/ipc-main",
             "ipcRenderer": "https://www.electronjs.org/docs/latest/api/ipc-renderer"
         },
-        "javascript": {
-            "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
-            "Date": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
-            "Error": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
-            "Map": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
-            "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
-            "Set": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set"
-        },
         "leaflet": {
             "L": "https://leafletjs.com/reference.html",
             "Map": "https://leafletjs.com/reference.html#map"
-        },
-        "node": {
-            "Buffer": "https://nodejs.org/docs/latest/api/buffer.html#class-buffer",
-            "fs": "https://nodejs.org/docs/latest/api/fs.html",
-            "path": "https://nodejs.org/docs/latest/api/path.html"
         }
     },
     "gitRevision": "main",
     "githubPages": true,
     "hideGenerator": false,
-    "includeVersion": true,
-    "intentionallyNotExported": [
-        "FitFileRecord"
-    ],
-    "jsDocCompatibility": {
-        "defaultTag": true,
-        "exampleTag": true,
-        "ignoreUnescapedBraces": true,
-        "inheritDocTag": true
-    },
-    "kindSortOrder": [
-        "Document",
-        "Module",
-        "Namespace",
-        "Class",
-        "Interface",
-        "TypeAlias",
-        "Function",
-        "Variable",
-        "Property",
-        "Method"
-    ],
+    "intentionallyNotExported": ["ZoneData"],
     "name": "FitFileViewer - API Documentation",
     "out": "docusaurus/docs/api",
-    "plugin": [
-        "typedoc-plugin-markdown"
-    ],
-    "preserveLinkText": true,
     "pretty": true,
-    "readme": "none",
     "searchInComments": true,
-    "skipErrorChecking": true,
-    "sort": [
-        "source-order",
-        "alphabetical"
-    ],
-    "treatWarningsAsErrors": false,
-    "tsconfig": "tsconfig.app.json",
-    "validation": {
-        "invalidLink": false,
-        "notDocumented": false,
-        "notExported": false
-    }
+    "tsconfig": "tsconfig.app.json"
 }
