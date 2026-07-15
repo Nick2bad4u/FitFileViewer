@@ -617,7 +617,43 @@ jobs:
             - name: Install dependencies
               run: npm ci --ignore-scripts --no-audit --no-fund
 
+            - name: Verify changelog release tag
+              env:
+                  EXPECTED_TAG: v${{ needs.bump-version.outputs.new_version }}
+              run: |
+                  set -euo pipefail
+
+                  if [ -z "$EXPECTED_TAG" ]; then
+                    echo "::error::The release version step did not provide an expected tag."
+                    exit 1
+                  fi
+
+                  tag_ref="refs/tags/${EXPECTED_TAG}"
+                  if ! git show-ref --verify --quiet "$tag_ref"; then
+                    echo "::error::Expected local tag ${EXPECTED_TAG} does not exist."
+                    exit 1
+                  fi
+
+                  tag_commit=$(git rev-parse "${tag_ref}^{commit}")
+                  head_commit=$(git rev-parse HEAD)
+                  if [ "$tag_commit" != "$head_commit" ]; then
+                    echo "::error::Tag ${EXPECTED_TAG} points to ${tag_commit}, but HEAD is ${head_commit}."
+                    exit 1
+                  fi
+
+                  head_tags=$(git tag --points-at HEAD --sort=refname)
+                  if [ "$head_tags" != "$EXPECTED_TAG" ]; then
+                    displayed_head_tags=${head_tags//$'\n'/, }
+                    if [ -z "$displayed_head_tags" ]; then
+                      displayed_head_tags="(none)"
+                    fi
+                    echo "::error::Expected ${EXPECTED_TAG} to be the only tag at HEAD, but found: ${displayed_head_tags}."
+                    exit 1
+                  fi
+
             - name: Generate root CHANGELOG.md
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: npm run changelog:workflow
 
             - name: Commit and push changelog updates
