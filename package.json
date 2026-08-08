@@ -320,7 +320,7 @@
         "cross-env": "^10.1.0",
         "datatables.net-dt": "^2.3.8",
         "date-fns": "^4.4.0",
-        "dompurify": "^3.4.12",
+        "dompurify": "^3.4.13",
         "electron": "^43.1.0",
         "electron-builder": "^26.15.3",
         "electron-builder-squirrel-windows": "^26.15.3",
