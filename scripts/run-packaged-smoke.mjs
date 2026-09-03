@@ -258,7 +258,10 @@ export function findForbiddenWindowsPackagingArtifacts(directoryPath) {
             const entryPath = path.join(currentDirectoryPath, entry.name);
             const normalizedName = entry.name.toLowerCase();
             if (
-                normalizedName.includes("squirrel") ||
+                normalizedName === "squirrel.exe" ||
+                normalizedName.includes("squirrel-windows") ||
+                normalizedName.startsWith("fit-file-viewer-squirrel-") ||
+                normalizedName.endsWith(".nupkg") ||
                 normalizedName.endsWith("_executionstub.exe")
             ) {
                 matches.push(entryPath);
@@ -285,7 +288,7 @@ function assertNoForbiddenWindowsPackagingArtifacts(directoryPath) {
 
     throw new Error(
         [
-            "Packaged app contains forbidden Squirrel packaging artifacts:",
+            "Packaged app contains forbidden Squirrel.Windows packaging artifacts:",
             ...forbiddenArtifacts.map((filePath) => `- ${filePath}`),
         ].join("\n")
     );
