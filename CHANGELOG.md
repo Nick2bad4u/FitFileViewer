@@ -1,5 +1,76 @@
 <!-- markdownlint-disable -->
 <!-- eslint-disable markdown/no-missing-label-refs -->
+# 📜 Changelog
+
+## [30.0.2] - 2026-09-03
+
+### 🛠️ Bug Fixes
+
+- [`9566afc`](https://github.com/Nick2bad4u/FitFileViewer/commit/9566afcea8fbb9498c1e5a8e4463e6bd3ca4cdc8) 🐛 [fix] Scope Squirrel artifact gate to Windows
+
+- [`a6222ab`](https://github.com/Nick2bad4u/FitFileViewer/commit/a6222abcab5355bdb3fb56fc21e476afe1e23ca8) 🐛 [fix] (packaging) Enforce artifact rejection on every runner
+
+- [`cf3d47c`](https://github.com/Nick2bad4u/FitFileViewer/commit/cf3d47cf2256f0a1af0be5e33d9eefb9ade520f9) 🐛 [fix] (packaging) Remove Squirrel from Windows releases
+
+### 🚜 Refactor
+
+- [`4d0abdc`](https://github.com/Nick2bad4u/FitFileViewer/commit/4d0abdc5ce60701a2cb34b57eb9546acbc666b1b) ♻️ [refactor] Split Squirrel packaging regressions
+
+- [`86c40bc`](https://github.com/Nick2bad4u/FitFileViewer/commit/86c40bc00b1c5d5428957bddedb2b0fb9f9b2b9a) ♻️ [refactor] (tooling) Split release validation helpers
+
+### 📝 Documentation
+
+- [`333e212`](https://github.com/Nick2bad4u/FitFileViewer/commit/333e212411193d42e03e35fa58b16d1e3a9c7bb4) 📝 [docs] Update changelog for v30.0.1 [skip ci]
+
+### 🧪 Testing
+
+- [`6101b90`](https://github.com/Nick2bad4u/FitFileViewer/commit/6101b90be6cc4a1c51def75ce9f510f4a2662fc7) 🧪 [test] Launch published upgrades without instrumentation
+
+- [`c56b5f8`](https://github.com/Nick2bad4u/FitFileViewer/commit/c56b5f8ee640af37613eb0f6675d8ba03fea9538) 🧪 [test] Apply downloaded upgrade artifact directly
+
+- [`ad1b4c5`](https://github.com/Nick2bad4u/FitFileViewer/commit/ad1b4c5b684b7b669342f722f90e19c28317078d) 🧪 [test] Resolve updater through Electron module loader
+
+- [`da7c17c`](https://github.com/Nick2bad4u/FitFileViewer/commit/da7c17c42b293c2c5a36c5e87f42a8ac92822d0a) 🧪 [test] Run assisted updater smoke silently
+
+- [`6e3a00e`](https://github.com/Nick2bad4u/FitFileViewer/commit/6e3a00e931b81e1e1b5650fba83a7aaa9582a548) 🧪 [test] Execute upgrade smoke as native ESM
+
+- [`20d9ad6`](https://github.com/Nick2bad4u/FitFileViewer/commit/20d9ad6b6270edce829e492321c2d8971b6561d7) 🧪 [test] Run published upgrades outside test workers
+
+- [`08790eb`](https://github.com/Nick2bad4u/FitFileViewer/commit/08790eb75f14cdcf390e61ecd828aa38d87fa16b) 🧪 [test] Close updater app through Playwright
+
+- [`99c86b4`](https://github.com/Nick2bad4u/FitFileViewer/commit/99c86b4938c8a1b14d687903f8bdf69c151661b0) 🧪 [test] Bound published updater handoff cleanup
+
+### 🧹 Chores
+
+- [`5940413`](https://github.com/Nick2bad4u/FitFileViewer/commit/5940413f5f3b0aac1ea2a98c6af155b7aa87a77c) 🔖 [chore] Release v30.0.2 [skip ci]
+
+- [`e22bc9c`](https://github.com/Nick2bad4u/FitFileViewer/commit/e22bc9c3632251c7b4dd218b1c5e19c462935e27) 🔧 [chore] (tooling) Adopt shared package configs
+
+### 👷 CI/CD
+
+- [`4b03e68`](https://github.com/Nick2bad4u/FitFileViewer/commit/4b03e6832576abb6a346ad6d2ff9f6f48c19161e) 👷 [ci] (release) Guard git-cliff note generation
+
+### 📦 Dependencies
+
+- [`05c3e87`](https://github.com/Nick2bad4u/FitFileViewer/commit/05c3e876a534836ef7d010187e2c22a90353f402) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`9b86f45`](https://github.com/Nick2bad4u/FitFileViewer/commit/9b86f45e796c5054877477b62ff1eb6fe49bb56c) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`baa0e97`](https://github.com/Nick2bad4u/FitFileViewer/commit/baa0e97a278594ccbb1803063c3b6fd3bfd00525) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`5d1db41`](https://github.com/Nick2bad4u/FitFileViewer/commit/5d1db41d7223bdbef236573539bad42668e8352d) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`e81bc0c`](https://github.com/Nick2bad4u/FitFileViewer/commit/e81bc0cf6b524612bdbfbcd964245497e1130ae7) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`10ba6c8`](https://github.com/Nick2bad4u/FitFileViewer/commit/10ba6c86cbc02bfa1eb6ae4688baadbc1d52a7ed) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`207b4df`](https://github.com/Nick2bad4u/FitFileViewer/commit/207b4df1ff7c8162a2a090e06e64f07e064ce2ff) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`bc671b9`](https://github.com/Nick2bad4u/FitFileViewer/commit/bc671b937c09caf3fad49f517063466c259d6f46) ⬆️ [build] Update npm_and_yarn dependencies
+
+- [`7c5b368`](https://github.com/Nick2bad4u/FitFileViewer/commit/7c5b368db790ebbe008592da42728a835100f030) ⬆️ [build] Update npm_and_yarn dependencies
+<!-- markdownlint-disable -->
+<!-- eslint-disable markdown/no-missing-label-refs -->
 # Changelog
 
 All notable changes to this project will be documented in this file.
