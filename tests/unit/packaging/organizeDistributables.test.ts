@@ -195,11 +195,7 @@ describe("organize-distributables script", () => {
                 )]: "present",
             },
             processedArtifactCount: 1,
-            selectedUpdaterDirectories: [
-                "nsis-web",
-                "squirrel-windows",
-                "squirrel-windows-ia32",
-            ],
+            selectedUpdaterDirectories: ["nsis-web"],
         });
     });
 

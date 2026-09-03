@@ -55,7 +55,6 @@ No installation required:
 | NSIS Installer | `Fit-File-Viewer-nsis-x64-X.X.X.exe`     | Standard Windows installer |
 | MSI            | `Fit-File-Viewer-msi-x64-X.X.X.msi`      | Windows Installer package  |
 | Portable       | `Fit-File-Viewer-portable-x64-X.X.X.exe` | No installation required   |
-| Squirrel       | `Fit-File-Viewer-squirrel-x64-X.X.X.exe` | Auto-updating installer    |
 
 :::tip 32-bit Windows
 Replace `x64` with `ia32` for 32-bit Windows versions.
@@ -159,7 +158,7 @@ flatpak install FitFileViewer-vX.X.X.flatpak
 
 ### Windows
 
-- **NSIS/Squirrel**: Auto-update notifications when available
+- **NSIS**: Auto-update notifications when available
 - **MSI/Portable**: Download and install the new version
 
 ### macOS

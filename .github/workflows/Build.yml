@@ -72,7 +72,7 @@ jobs:
 
             - name: Setup npm version
               shell: bash
-              run: npm install --global npm@11.16.0
+              run: npm install --global npm@12.0.2
 
             - name: Install app and docs dependencies
               run: |
@@ -199,7 +199,7 @@ jobs:
 
             - name: Setup npm version
               shell: bash
-              run: npm install --global npm@11.16.0
+              run: npm install --global npm@12.0.2
 
             - name: Install platform build dependencies
               shell: bash
@@ -342,7 +342,6 @@ jobs:
                       release-dist/Fit-File-Viewer-*
                       release-dist/latest*.yml
                       release-dist/signing-verification-report.json
-                      release-dist/squirrel*/*
                       release-dist/nsis-web/*
                   include-hidden-files: true
 
@@ -387,7 +386,7 @@ jobs:
                   node-version-file: .node-version
 
             - name: Setup npm version
-              run: npm install --global npm@11.16.0
+              run: npm install --global npm@12.0.2
 
             - name: Install release verification dependencies
               run: npm ci --ignore-scripts --no-audit --no-fund
@@ -441,11 +440,6 @@ jobs:
               shell: bash
               continue-on-error: true
 
-            - name: Rename Squirrel win32 nupkg and RELEASES for release
-              shell: bash
-              run: node scripts/rename-squirrel-win32-release-assets.mjs
-              continue-on-error: true
-
             - name: Create draft release with distributable builds
               id: release
               uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
@@ -455,7 +449,7 @@ jobs:
                   body: |
                       ## 🚀 Release Notes
 
-                      This is the first FitFileViewer release built from the migrated TypeScript runtime sources for the main process, preload, renderer, and application utilities.
+                      This release removes the unused Squirrel.Windows packaging path so the Windows installers and portable build no longer bundle its ExecutionStub helper.
 
                       ${{ inputs.require-code-signing && 'Windows and macOS release artifacts were built with required code signing.' || 'Release artifacts are intentionally unsigned, consistent with previous FitFileViewer releases.' }}
 
@@ -612,7 +606,7 @@ jobs:
                   node-version-file: .node-version
 
             - name: Setup npm version
-              run: npm install --global npm@11.16.0
+              run: npm install --global npm@12.0.2
 
             - name: Install dependencies
               run: npm ci --ignore-scripts --no-audit --no-fund

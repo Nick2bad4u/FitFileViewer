@@ -180,13 +180,21 @@ export function runPackagedSmoke(
 ) {
     const { executablePath, releaseDistPath, startupTimeoutMs } =
         parseArgs(argv);
+    const configuredExecutablePath =
+        executablePath ?? environment.FFV_PACKAGED_APP;
+    const resolvedReleaseDistPath =
+        releaseDistPath === undefined
+            ? rootReleaseDistAbsolutePath
+            : path.resolve(releaseDistPath);
     const resolvedExecutablePath = findPackagedElectronExecutable({
-        executablePath: executablePath ?? environment.FFV_PACKAGED_APP,
-        releaseDistPath:
-            releaseDistPath === undefined
-                ? rootReleaseDistAbsolutePath
-                : path.resolve(releaseDistPath),
+        executablePath: configuredExecutablePath,
+        releaseDistPath: resolvedReleaseDistPath,
     });
+    const packagingInspectionPath = configuredExecutablePath
+        ? path.dirname(resolvedExecutablePath)
+        : resolvedReleaseDistPath;
+
+    assertNoForbiddenWindowsPackagingArtifacts(packagingInspectionPath);
     const timeoutMs =
         startupTimeoutMs ??
         parseStartupTimeoutMs(
@@ -234,6 +242,53 @@ export function runPackagedSmoke(
 
     logger("[packaged-smoke] Packaged app stayed alive without fatal output");
     return 0;
+}
+
+export function findForbiddenWindowsPackagingArtifacts(directoryPath) {
+    if (!existsSync(directoryPath)) {
+        return [];
+    }
+
+    const matches = [];
+
+    function visit(currentDirectoryPath) {
+        for (const entry of readdirSync(currentDirectoryPath, {
+            withFileTypes: true,
+        })) {
+            const entryPath = path.join(currentDirectoryPath, entry.name);
+            const normalizedName = entry.name.toLowerCase();
+            if (
+                normalizedName.includes("squirrel") ||
+                normalizedName.endsWith("_executionstub.exe")
+            ) {
+                matches.push(entryPath);
+                continue;
+            }
+
+            if (entry.isDirectory()) {
+                visit(entryPath);
+                continue;
+            }
+        }
+    }
+
+    visit(directoryPath);
+    return matches.sort();
+}
+
+function assertNoForbiddenWindowsPackagingArtifacts(directoryPath) {
+    const forbiddenArtifacts =
+        findForbiddenWindowsPackagingArtifacts(directoryPath);
+    if (forbiddenArtifacts.length === 0) {
+        return;
+    }
+
+    throw new Error(
+        [
+            "Packaged app contains forbidden Squirrel packaging artifacts:",
+            ...forbiddenArtifacts.map((filePath) => `- ${filePath}`),
+        ].join("\n")
+    );
 }
 
 export function getPackagedLaunchArgs(

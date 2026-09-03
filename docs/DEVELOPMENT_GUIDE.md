@@ -283,10 +283,11 @@ export class FeatureManager {
 
 ### Test Organization
 
-```typescript
-// Test file naming convention
-[ModuleName].test.ts[ModuleName].comprehensive.test.ts[ModuleName].integration // Basic tests // Comprehensive tests
- .test.ts[ModuleName].performance.test.ts; // Integration tests // Performance tests
+```text
+[ModuleName].test.ts                # Basic tests
+[ModuleName].comprehensive.test.ts  # Comprehensive tests
+[ModuleName].integration.test.ts    # Integration tests
+[ModuleName].performance.test.ts    # Performance tests
 ```
 
 ### Writing Tests
@@ -568,7 +569,7 @@ module.exports = {
   target: ["dmg", "zip", "pkg"],
  },
  win: {
-  target: ["nsis", "portable", "squirrel", "msi"],
+  target: ["nsis", "portable", "msi"],
  },
 };
 ```

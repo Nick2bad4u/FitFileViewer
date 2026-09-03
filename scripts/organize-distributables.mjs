@@ -8,11 +8,7 @@ import { rootArtifactsPath, rootReleaseDistPath } from "./lib/workspaces.mjs";
 
 export const defaultArtifactsDirectory = rootArtifactsPath;
 export const defaultOutputDirectory = rootReleaseDistPath;
-export const artifactSubdirectories = [
-    "nsis-web",
-    "squirrel-windows",
-    "squirrel-windows-ia32",
-];
+export const artifactSubdirectories = ["nsis-web"];
 
 if (
     process.argv[1] &&

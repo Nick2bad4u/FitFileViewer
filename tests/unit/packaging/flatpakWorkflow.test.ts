@@ -16,7 +16,7 @@ describe("Flatpak workflow", () => {
         ) as { scripts?: Record<string, string> };
 
         expect(workflow).toContain("node-version-file: .node-version");
-        expect(workflow).toContain("npm install --global npm@11.16.0");
+        expect(workflow).toContain("npm install --global npm@12.0.2");
         expect(workflow).not.toContain('node-version: "20"');
         expect(workflow).toContain("npm run build:flatpak");
         expect(workflow).toContain("Smoke test Flatpak bundle");

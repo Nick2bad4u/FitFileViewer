@@ -6,6 +6,7 @@ import process from "node:process";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+    findForbiddenWindowsPackagingArtifacts,
     findPackagedElectronExecutable,
     getPackagedExecutableCandidates,
     getPackagedLaunchArgs,
@@ -131,6 +132,43 @@ describe("run-packaged-smoke script", () => {
                 executablePath: path.join(releaseDistPath, "missing"),
             })
         ).toThrow("Packaged Electron executable not found");
+    });
+
+    it("rejects Squirrel artifacts or helper executables leaked into Windows packages", () => {
+        expect.assertions(3);
+
+        const releaseDistPath = createTemporaryRoot();
+        const squirrelDirectoryPath = path.join(
+            releaseDistPath,
+            "squirrel-windows"
+        );
+        const executablePath = path.join(
+            releaseDistPath,
+            "win-unpacked",
+            "Fit File Viewer.exe"
+        );
+        const executionStubPath = path.join(
+            releaseDistPath,
+            "win-unpacked",
+            "Fit File Viewer_ExecutionStub.exe"
+        );
+        mkdirSync(squirrelDirectoryPath, { recursive: true });
+        writeExecutable(executablePath);
+        writeExecutable(executionStubPath);
+
+        const commandRunner = vi.fn<CommandRunner>();
+
+        expect(
+            findForbiddenWindowsPackagingArtifacts(releaseDistPath)
+        ).toStrictEqual([executionStubPath, squirrelDirectoryPath].sort());
+        expect(() =>
+            runPackagedSmoke(
+                ["--executable", executablePath],
+                {},
+                commandRunner
+            )
+        ).toThrow("forbidden Squirrel packaging artifacts");
+        expect(commandRunner).not.toHaveBeenCalled();
     });
 
     it("launches the packaged executable and treats timeout as a healthy startup", () => {
