@@ -134,10 +134,18 @@ describe("run-packaged-smoke script", () => {
         ).toThrow("Packaged Electron executable not found");
     });
 
-    it("rejects Squirrel artifacts or helper executables leaked into Windows packages", () => {
+    it("rejects Squirrel.Windows artifacts without rejecting Electron's macOS updater framework", () => {
         expect.assertions(3);
 
         const releaseDistPath = createTemporaryRoot();
+        const macSquirrelFrameworkPath = path.join(
+            releaseDistPath,
+            "mac-arm64",
+            "Fit File Viewer.app",
+            "Contents",
+            "Frameworks",
+            "Squirrel.framework"
+        );
         const squirrelDirectoryPath = path.join(
             releaseDistPath,
             "squirrel-windows"
@@ -152,22 +160,47 @@ describe("run-packaged-smoke script", () => {
             "win-unpacked",
             "Fit File Viewer_ExecutionStub.exe"
         );
+        const squirrelExecutablePath = path.join(
+            releaseDistPath,
+            "win-unpacked",
+            "Squirrel.exe"
+        );
+        const squirrelPackagePath = path.join(
+            releaseDistPath,
+            "FitFileViewer-30.0.1-full.nupkg"
+        );
+        const renamedSquirrelInstallerPath = path.join(
+            releaseDistPath,
+            "Fit-File-Viewer-squirrel-x64-30.0.1.exe"
+        );
+        mkdirSync(macSquirrelFrameworkPath, { recursive: true });
         mkdirSync(squirrelDirectoryPath, { recursive: true });
         writeExecutable(executablePath);
         writeExecutable(executionStubPath);
+        writeExecutable(squirrelExecutablePath);
+        writeExecutable(renamedSquirrelInstallerPath);
+        writeFileSync(squirrelPackagePath, "Squirrel.Windows package");
 
         const commandRunner = vi.fn<CommandRunner>();
 
         expect(
             findForbiddenWindowsPackagingArtifacts(releaseDistPath)
-        ).toStrictEqual([executionStubPath, squirrelDirectoryPath].sort());
+        ).toStrictEqual(
+            [
+                executionStubPath,
+                renamedSquirrelInstallerPath,
+                squirrelDirectoryPath,
+                squirrelExecutablePath,
+                squirrelPackagePath,
+            ].sort()
+        );
         expect(() =>
             runPackagedSmoke(
                 ["--executable", executablePath],
                 {},
                 commandRunner
             )
-        ).toThrow("forbidden Squirrel packaging artifacts");
+        ).toThrow("forbidden Squirrel.Windows packaging artifacts");
         expect(commandRunner).not.toHaveBeenCalled();
     });
 
