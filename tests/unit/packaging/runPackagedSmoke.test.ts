@@ -134,66 +134,53 @@ describe("run-packaged-smoke script", () => {
         ).toThrow("Packaged Electron executable not found");
     });
 
-    it("rejects Squirrel.Windows artifacts without rejecting Electron's macOS updater framework", () => {
-        expect.assertions(3);
+    it("finds known Squirrel.Windows package artifacts", () => {
+        expect.assertions(1);
 
         const releaseDistPath = createTemporaryRoot();
-        const macSquirrelFrameworkPath = path.join(
-            releaseDistPath,
-            "mac-arm64",
-            "Fit File Viewer.app",
-            "Contents",
-            "Frameworks",
-            "Squirrel.framework"
-        );
-        const squirrelDirectoryPath = path.join(
-            releaseDistPath,
-            "squirrel-windows"
-        );
+        const forbiddenPaths = [
+            path.join(releaseDistPath, "squirrel-windows"),
+            path.join(
+                releaseDistPath,
+                "win-unpacked",
+                "Fit File Viewer_ExecutionStub.exe"
+            ),
+            path.join(releaseDistPath, "win-unpacked", "Squirrel.exe"),
+            path.join(releaseDistPath, "FitFileViewer-30.0.1-full.nupkg"),
+            path.join(
+                releaseDistPath,
+                "Fit-File-Viewer-squirrel-x64-30.0.1.exe"
+            ),
+        ];
+        mkdirSync(forbiddenPaths[0], { recursive: true });
+        for (const forbiddenPath of forbiddenPaths.slice(1)) {
+            writeExecutable(forbiddenPath);
+        }
+
+        expect(
+            findForbiddenWindowsPackagingArtifacts(releaseDistPath)
+        ).toStrictEqual(forbiddenPaths.sort());
+    });
+
+    it("rejects Squirrel.Windows artifacts before launching an app", () => {
+        expect.assertions(2);
+
+        const releaseDistPath = createTemporaryRoot();
         const executablePath = path.join(
             releaseDistPath,
             "win-unpacked",
             "Fit File Viewer.exe"
         );
-        const executionStubPath = path.join(
-            releaseDistPath,
-            "win-unpacked",
-            "Fit File Viewer_ExecutionStub.exe"
-        );
-        const squirrelExecutablePath = path.join(
-            releaseDistPath,
-            "win-unpacked",
-            "Squirrel.exe"
-        );
-        const squirrelPackagePath = path.join(
-            releaseDistPath,
-            "FitFileViewer-30.0.1-full.nupkg"
-        );
-        const renamedSquirrelInstallerPath = path.join(
-            releaseDistPath,
-            "Fit-File-Viewer-squirrel-x64-30.0.1.exe"
-        );
-        mkdirSync(macSquirrelFrameworkPath, { recursive: true });
-        mkdirSync(squirrelDirectoryPath, { recursive: true });
         writeExecutable(executablePath);
-        writeExecutable(executionStubPath);
-        writeExecutable(squirrelExecutablePath);
-        writeExecutable(renamedSquirrelInstallerPath);
-        writeFileSync(squirrelPackagePath, "Squirrel.Windows package");
-
+        writeExecutable(
+            path.join(
+                releaseDistPath,
+                "win-unpacked",
+                "Fit File Viewer_ExecutionStub.exe"
+            )
+        );
         const commandRunner = vi.fn<CommandRunner>();
 
-        expect(
-            findForbiddenWindowsPackagingArtifacts(releaseDistPath)
-        ).toStrictEqual(
-            [
-                executionStubPath,
-                renamedSquirrelInstallerPath,
-                squirrelDirectoryPath,
-                squirrelExecutablePath,
-                squirrelPackagePath,
-            ].sort()
-        );
         expect(() =>
             runPackagedSmoke(
                 ["--executable", executablePath],
@@ -202,6 +189,27 @@ describe("run-packaged-smoke script", () => {
             )
         ).toThrow("forbidden Squirrel.Windows packaging artifacts");
         expect(commandRunner).not.toHaveBeenCalled();
+    });
+
+    it("allows Electron's macOS Squirrel updater framework", () => {
+        expect.assertions(1);
+
+        const releaseDistPath = createTemporaryRoot();
+        mkdirSync(
+            path.join(
+                releaseDistPath,
+                "mac-arm64",
+                "Fit File Viewer.app",
+                "Contents",
+                "Frameworks",
+                "Squirrel.framework"
+            ),
+            { recursive: true }
+        );
+
+        expect(
+            findForbiddenWindowsPackagingArtifacts(releaseDistPath)
+        ).toStrictEqual([]);
     });
 
     it("launches the packaged executable and treats timeout as a healthy startup", () => {
