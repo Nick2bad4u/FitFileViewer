@@ -122,7 +122,7 @@ runtime renderer output:
 - Root `electron-builder` wrappers (`build`, `build:all`, `package`) handle
   packaging for Windows/Mac/Linux.
 - Auto-update events (`update-available`, `update-downloaded`, etc.) surface in both renderer UI and application menu items.
-- NSIS, Squirrel, AppImage, Debian, and other targets are preconfigured in the
+- NSIS, AppImage, Debian, and other targets are preconfigured in the
   root `electron-builder.config.cjs`; packaged file inclusion is centralized in
   that config's `files` list.
 
@@ -170,7 +170,7 @@ Common scripts:
 - `npm run build:all` – Cross-platform artifacts
 - `npm run package` – Unpacked directories for manual inspection
 
-Artifacts are configured via `electron-builder` to include NSIS, Squirrel, AppImage, Debian, RPM, snap, and more.
+Artifacts are configured via `electron-builder` to include NSIS, AppImage, Debian, RPM, snap, and more.
 
 ## Error Handling & Fallbacks
 

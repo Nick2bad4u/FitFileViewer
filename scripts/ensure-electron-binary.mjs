@@ -1,10 +1,12 @@
 import { downloadArtifact } from "@electron/get";
 import { spawn } from "node:child_process";
+import { createWriteStream } from "node:fs";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { pipeline } from "node:stream/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import extractZip from "extract-zip";
+import yauzl from "yauzl";
 
 const electronPackagePath = fileURLToPath(
     import.meta.resolve("electron/package.json")
@@ -78,14 +80,132 @@ async function runZipExtractionCommand(archivePath) {
 /**
  * @param {string} archivePath
  * @param {string} destinationPath
- * @param {typeof extractZip} [extract]
  */
-export async function extractZipArchive(
-    archivePath,
-    destinationPath,
-    extract = extractZip
+export async function extractZipArchive(archivePath, destinationPath) {
+    await fs.mkdir(destinationPath, { recursive: true });
+    const canonicalDestinationPath = await fs.realpath(destinationPath);
+    const zipFile = await yauzl.openPromise(archivePath, {
+        strictFileNames: true,
+    });
+    const symlinkPaths = [];
+
+    for await (const entry of zipFile.eachEntry()) {
+        if (entry.fileName.startsWith("__MACOSX/")) {
+            continue;
+        }
+
+        const destinationEntryPath = resolveArchiveEntryPath(
+            canonicalDestinationPath,
+            entry.fileName
+        );
+        const mode = Math.floor(entry.externalFileAttributes / 65_536) % 65_536;
+        const entryType = mode - (mode % 4096);
+        const isSymlink = entryType === 40_960;
+        const isDirectory =
+            entryType === 16_384 ||
+            entry.fileName.endsWith("/") ||
+            (Math.floor(entry.versionMadeBy / 256) === 0 &&
+                entry.externalFileAttributes === 16);
+
+        if (isDirectory) {
+            await fs.mkdir(destinationEntryPath, {
+                mode: getExtractedMode(mode, true),
+                recursive: true,
+            });
+            continue;
+        }
+
+        const parentPath = path.dirname(destinationEntryPath);
+        await fs.mkdir(parentPath, { recursive: true });
+        assertPathWithinDirectory(
+            await fs.realpath(parentPath),
+            canonicalDestinationPath,
+            entry.fileName
+        );
+
+        const readStream = await zipFile.openReadStreamPromise(entry);
+        if (isSymlink) {
+            const symlinkTarget = await readStreamAsString(readStream);
+            assertSafeSymlinkTarget(
+                symlinkTarget,
+                destinationEntryPath,
+                canonicalDestinationPath,
+                entry.fileName
+            );
+            await fs.symlink(symlinkTarget, destinationEntryPath);
+            symlinkPaths.push(destinationEntryPath);
+            continue;
+        }
+
+        await pipeline(
+            readStream,
+            createWriteStream(destinationEntryPath, {
+                flags: "wx",
+                mode: getExtractedMode(mode, false),
+            })
+        );
+    }
+
+    for (const symlinkPath of symlinkPaths) {
+        assertPathWithinDirectory(
+            await fs.realpath(symlinkPath),
+            canonicalDestinationPath,
+            path.relative(canonicalDestinationPath, symlinkPath)
+        );
+    }
+}
+
+function assertPathWithinDirectory(candidatePath, directoryPath, entryName) {
+    const relativePath = path.relative(directoryPath, candidatePath);
+    if (
+        relativePath === ".." ||
+        relativePath.startsWith(`..${path.sep}`) ||
+        path.isAbsolute(relativePath)
+    ) {
+        throw new Error(
+            `Archive entry escapes the extraction directory: ${entryName}`
+        );
+    }
+}
+
+function assertSafeSymlinkTarget(
+    symlinkTarget,
+    symlinkPath,
+    directoryPath,
+    entryName
 ) {
-    await extract(archivePath, { dir: destinationPath });
+    if (!symlinkTarget || path.isAbsolute(symlinkTarget)) {
+        throw new Error(`Archive contains an unsafe symlink: ${entryName}`);
+    }
+
+    const resolvedTarget = path.resolve(
+        path.dirname(symlinkPath),
+        symlinkTarget
+    );
+    assertPathWithinDirectory(resolvedTarget, directoryPath, entryName);
+}
+
+function getExtractedMode(entryMode, isDirectory) {
+    return (entryMode || (isDirectory ? 0o755 : 0o644)) % 512;
+}
+
+async function readStreamAsString(readStream) {
+    const chunks = [];
+    for await (const chunk of readStream) {
+        chunks.push(Buffer.from(chunk));
+    }
+
+    return Buffer.concat(chunks).toString("utf8");
+}
+
+function resolveArchiveEntryPath(directoryPath, entryName) {
+    const entryPath = path.resolve(
+        directoryPath,
+        ...entryName.split("/").filter(Boolean)
+    );
+    assertPathWithinDirectory(entryPath, directoryPath, entryName);
+
+    return entryPath;
 }
 
 function getElectronPlatformPath() {

@@ -44,7 +44,7 @@ describe("dependency validation workflow", () => {
         );
         expect(workflow).toContain("timeout-minutes: 60");
         expect(workflow).toContain("node-version-file: .node-version");
-        expect(workflow).toContain("npm install --global npm@11.16.0");
+        expect(workflow).toContain("npm install --global npm@12.0.2");
         expect(workflow).toContain("npm run sync:node-version-files:check");
         expect(workflow).toContain(
             "tee artifacts/dependency-validation/node-version-files-check.log"

@@ -207,7 +207,6 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | x64           | Installer EXE | Fit-File-Viewer-nsis-x64-X.X.X.exe      |
 | Windows  | x64           | Installer Web | Fit-File-Viewer-nsis-web-x64-X.X.X.exe  |
 | Windows  | x64           | Installer 7z  | fitfileviewer-X.X.X-x64.nsis.7z         |
-| Windows  | x64           | Squirrel EXE  | Fit-File-Viewer-squirrel-x64-X.X.X.exe  |
 | Windows  | x64           | MSI           | Fit-File-Viewer-msi-x64-X.X.X.msi       |
 | Windows  | x64           | MSI 7z        | Fit-File-Viewer-msi-x64-X.X.X.7z        |
 | Windows  | x64           | MSI TAR.BZ2   | Fit-File-Viewer-msi-x64-X.X.X.tar.bz2   |
@@ -218,7 +217,6 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | ia32 / win32  | Installer EXE | Fit-File-Viewer-nsis-ia32-X.X.X.exe     |
 | Windows  | ia32 / win32  | Installer Web | Fit-File-Viewer-nsis-web-ia32-X.X.X.exe |
 | Windows  | ia32 / win32  | Installer 7z  | fitfileviewer-X.X.X-ia32.nsis.7z        |
-| Windows  | ia32 / win32  | Squirrel EXE  | Fit-File-Viewer-squirrel-ia32-X.X.X.exe |
 | Windows  | ia32 / win32  | MSI           | Fit-File-Viewer-msi-ia32-X.X.X.msi      |
 | Windows  | ia32 / win32  | MSI 7z        | Fit-File-Viewer-msi-ia32-X.X.X.7z       |
 | Windows  | ia32 / win32  | MSI TAR.BZ2   | Fit-File-Viewer-msi-ia32-X.X.X.tar.bz2  |
@@ -235,10 +233,6 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | :------- | :----------- | :---------------- | :------------------------------------------- |
 | Windows  | x64          | Blockmap          | Fit-File-Viewer-nsis-x64-X.X.X.exe.blockmap  |
 | Windows  | ia32 / win32 | Blockmap          | Fit-File-Viewer-nsis-ia32-X.X.X.exe.blockmap |
-| Windows  | x64          | Squirrel Nupkg    | fitfileviewer-X.X.X-full.nupkg               |
-| Windows  | ia32 / win32 | Squirrel Nupkg    | fitfileviewer-X.X.X-win32-full.nupkg         |
-| Windows  | x64          | Squirrel RELEASES | RELEASES                                     |
-| Windows  | ia32 / win32 | Squirrel RELEASES | RELEASES-win32                               |
 
 </details>
 
@@ -246,7 +240,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 - Most users should download the "Installer EXE", "MSI" or "Portable" for a standard installation experience.
 - "Portable" builds do not require installation--just extract and run.
-- "Squirrel Nupkg/RELEASES" and "Blockmap" files are used for automatic updates and are not intended for manual installation.
+- "Blockmap" files are used for automatic updates and are not intended for manual installation.
 - For Windows 7, use the **Win7 (legacy)** portable asset (`Fit-File-Viewer-win7-*.exe` or `.exe.zip`) from the latest GitHub release. This is a carried-forward legacy snapshot, not a freshly rebuilt current-version binary.
 
 ### 🍏 Mac Builds

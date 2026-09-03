@@ -680,16 +680,10 @@ describe("workspace path helpers", () => {
         });
         expect(
             workspaces.rootReleaseDistRelativePath(
-                "windows-latest-ia32",
-                "squirrel-windows-ia32"
+                "windows-latest-x64",
+                "nsis-web"
             )
-        ).toBe(
-            path.join(
-                "release-dist",
-                "windows-latest-ia32",
-                "squirrel-windows-ia32"
-            )
-        );
+        ).toBe(path.join("release-dist", "windows-latest-x64", "nsis-web"));
     });
 
     it("centralizes the Docusaurus workspace root and package paths", async () => {

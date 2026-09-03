@@ -116,7 +116,6 @@ module.exports = {
             "nsis",
             "nsis-web",
             "portable",
-            "squirrel",
             "msi",
             "zip",
             "7z",
@@ -143,9 +142,6 @@ module.exports = {
     },
     portable: {
         artifactName: "Fit-File-Viewer-portable-${arch}-${version}.${ext}",
-    },
-    squirrelWindows: {
-        artifactName: "Fit-File-Viewer-squirrel-${arch}-${version}.${ext}",
     },
     msi: {
         artifactName: "Fit-File-Viewer-msi-${arch}-${version}.${ext}",

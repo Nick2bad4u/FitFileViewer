@@ -384,6 +384,7 @@ describe("workspace package boundaries", () => {
                 "serialize-javascript": "7.0.5",
             },
             joi: "18.2.1",
+            qs: "6.16.0",
             sockjs: {
                 uuid: "11.1.1",
             },
@@ -527,7 +528,7 @@ describe("workspace package boundaries", () => {
             "node scripts/verify-signed-artifacts.mjs"
         );
         expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
-        expect(releaseWorkflow).toContain("npm install --global npm@11.16.0");
+        expect(releaseWorkflow).toContain("npm install --global npm@12.0.2");
         expect(releaseWorkflow).toContain(
             'echo "Release verification is still running..."'
         );

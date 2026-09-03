@@ -21,7 +21,7 @@ describe("candidate upgrade workflow", () => {
         expect(workflow).toContain("runs-on: windows-latest");
         expect(workflow).toContain("permissions:\n    contents: read");
         expect(workflow).toContain("node-version-file: .node-version");
-        expect(workflow).toContain("npm install --global npm@11.16.0");
+        expect(workflow).toContain("npm install --global npm@12.0.2");
         expect(workflow).toContain("gh release download");
         expect(workflow).toContain("node scripts/build-package.mjs");
         expect(workflow).toContain("--win nsis");

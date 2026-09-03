@@ -1,8 +1,9 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import JSZip from "jszip";
 
 import { extractZipArchive } from "../../../scripts/ensure-electron-binary.mjs";
 
@@ -16,23 +17,6 @@ describe("ensure Electron binary", () => {
                 .map(async (directory) =>
                     rm(directory, { force: true, recursive: true })
                 )
-        );
-    });
-
-    it("extracts Windows archive paths without passing them through tar", async () => {
-        expect.assertions(1);
-
-        const extract = vi.fn(async () => undefined);
-
-        await extractZipArchive(
-            String.raw`C:\npm\cache\electron-v42.3.3-win32-x64.zip`,
-            String.raw`D:\a\FitFileViewer\node_modules\electron\dist`,
-            extract
-        );
-
-        expect(extract).toHaveBeenCalledExactlyOnceWith(
-            String.raw`C:\npm\cache\electron-v42.3.3-win32-x64.zip`,
-            { dir: String.raw`D:\a\FitFileViewer\node_modules\electron\dist` }
         );
     });
 
@@ -59,5 +43,34 @@ describe("ensure Electron binary", () => {
         await expect(
             readFile(join(destination, "version"), "utf8")
         ).resolves.toBe("42.3.3");
+    });
+
+    it("rejects symlink targets outside the extraction directory", async () => {
+        expect.assertions(2);
+
+        const temporaryDirectory = await mkdtemp(
+            join(tmpdir(), "ffv-electron-zip-")
+        );
+        const archivePath = join(temporaryDirectory, "electron.zip");
+        const destination = join(temporaryDirectory, "dist");
+        const outsidePath = join(temporaryDirectory, "outside.txt");
+        const archive = new JSZip();
+        archive.file("unsafe-link", "../outside.txt", {
+            unixPermissions: 0o120777,
+        });
+        temporaryDirectories.push(temporaryDirectory);
+
+        await writeFile(
+            archivePath,
+            await archive.generateAsync({
+                platform: "UNIX",
+                type: "nodebuffer",
+            })
+        );
+
+        await expect(
+            extractZipArchive(archivePath, destination)
+        ).rejects.toThrow("unsafe-link");
+        await expect(access(outsidePath)).rejects.toThrow(/ENOENT/u);
     });
 });

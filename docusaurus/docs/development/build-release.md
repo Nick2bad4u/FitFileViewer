@@ -83,7 +83,6 @@ module.exports = {
 | NSIS     | Standard installer |
 | MSI      | Windows Installer  |
 | Portable | No installation    |
-| Squirrel | Auto-updating      |
 
 ### macOS
 

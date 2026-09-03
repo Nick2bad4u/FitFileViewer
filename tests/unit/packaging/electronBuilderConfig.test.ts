@@ -31,9 +31,11 @@ type ElectronBuilderConfig = {
         include: string;
     };
     productName: string;
+    squirrelWindows?: unknown;
     win: {
         icon: string;
         signExecutable: boolean;
+        target: string[];
     };
 };
 
@@ -147,6 +149,15 @@ describe("electron-builder config", () => {
 
         expect(builderConfig.forceCodeSigning).toBe(true);
         expect(builderConfig.win.signExecutable).toBe(true);
+    });
+
+    it("does not package the unsupported Squirrel updater", () => {
+        expect.assertions(2);
+
+        const builderConfig = loadBuilderConfig();
+
+        expect(builderConfig.win.target).not.toContain("squirrel");
+        expect(builderConfig.squirrelWindows).toBeUndefined();
     });
 
     it("applies Electron fuses through afterPack before signing", async () => {

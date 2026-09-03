@@ -37,7 +37,7 @@ describe("release rehearsal workflow", () => {
         expect(workflow).toContain("runner-os: Windows");
         expect(workflow).toContain("runner-os: macOS");
         expect(workflow).toContain("node-version-file: .node-version");
-        expect(workflow).toContain("npm install --global npm@11.16.0");
+        expect(workflow).toContain("npm install --global npm@12.0.2");
         expect(workflow).toContain(
             'echo "Release verification is still running..."'
         );
