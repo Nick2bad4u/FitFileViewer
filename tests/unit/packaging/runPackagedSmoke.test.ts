@@ -159,7 +159,7 @@ describe("run-packaged-smoke script", () => {
         const commandRunner = vi.fn<CommandRunner>();
 
         expect(
-            findForbiddenWindowsPackagingArtifacts(releaseDistPath, "win32")
+            findForbiddenWindowsPackagingArtifacts(releaseDistPath)
         ).toStrictEqual([executionStubPath, squirrelDirectoryPath].sort());
         expect(() =>
             runPackagedSmoke(

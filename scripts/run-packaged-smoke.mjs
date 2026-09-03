@@ -244,11 +244,8 @@ export function runPackagedSmoke(
     return 0;
 }
 
-export function findForbiddenWindowsPackagingArtifacts(
-    directoryPath,
-    platform = process.platform
-) {
-    if (platform !== "win32" || !existsSync(directoryPath)) {
+export function findForbiddenWindowsPackagingArtifacts(directoryPath) {
+    if (!existsSync(directoryPath)) {
         return [];
     }
 
