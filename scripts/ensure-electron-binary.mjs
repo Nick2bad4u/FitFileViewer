@@ -90,67 +90,110 @@ export async function extractZipArchive(archivePath, destinationPath) {
     const symlinkPaths = [];
 
     for await (const entry of zipFile.eachEntry()) {
-        if (entry.fileName.startsWith("__MACOSX/")) {
-            continue;
-        }
-
-        const destinationEntryPath = resolveArchiveEntryPath(
-            canonicalDestinationPath,
-            entry.fileName
+        const symlinkPath = await extractArchiveEntry(
+            zipFile,
+            entry,
+            canonicalDestinationPath
         );
-        const mode = Math.floor(entry.externalFileAttributes / 65_536) % 65_536;
-        const entryType = mode - (mode % 4096);
-        const isSymlink = entryType === 40_960;
-        const isDirectory =
-            entryType === 16_384 ||
-            entry.fileName.endsWith("/") ||
-            (Math.floor(entry.versionMadeBy / 256) === 0 &&
-                entry.externalFileAttributes === 16);
-
-        if (isDirectory) {
-            await fs.mkdir(destinationEntryPath, {
-                mode: getExtractedMode(mode, true),
-                recursive: true,
-            });
-            continue;
+        if (symlinkPath) {
+            symlinkPaths.push(symlinkPath);
         }
-
-        const parentPath = path.dirname(destinationEntryPath);
-        await fs.mkdir(parentPath, { recursive: true });
-        assertPathWithinDirectory(
-            await fs.realpath(parentPath),
-            canonicalDestinationPath,
-            entry.fileName
-        );
-
-        const readStream = await zipFile.openReadStreamPromise(entry);
-        if (isSymlink) {
-            const symlinkTarget = await readStreamAsString(readStream);
-            assertSafeSymlinkTarget(
-                symlinkTarget,
-                destinationEntryPath,
-                canonicalDestinationPath,
-                entry.fileName
-            );
-            await fs.symlink(symlinkTarget, destinationEntryPath);
-            symlinkPaths.push(destinationEntryPath);
-            continue;
-        }
-
-        await pipeline(
-            readStream,
-            createWriteStream(destinationEntryPath, {
-                flags: "wx",
-                mode: getExtractedMode(mode, false),
-            })
-        );
     }
 
+    await verifyExtractedSymlinks(symlinkPaths, canonicalDestinationPath);
+}
+
+async function extractArchiveEntry(zipFile, entry, directoryPath) {
+    if (entry.fileName.startsWith("__MACOSX/")) {
+        return undefined;
+    }
+
+    const destinationEntryPath = resolveArchiveEntryPath(
+        directoryPath,
+        entry.fileName
+    );
+    const mode = Math.floor(entry.externalFileAttributes / 65_536) % 65_536;
+    const entryType = mode - (mode % 4096);
+
+    if (isArchiveDirectory(entry, entryType)) {
+        await fs.mkdir(destinationEntryPath, {
+            mode: getExtractedMode(mode, true),
+            recursive: true,
+        });
+        return undefined;
+    }
+
+    await prepareArchiveEntryParent(
+        destinationEntryPath,
+        directoryPath,
+        entry.fileName
+    );
+    const readStream = await zipFile.openReadStreamPromise(entry);
+    if (entryType === 40_960) {
+        await extractArchiveSymlink(
+            readStream,
+            destinationEntryPath,
+            directoryPath,
+            entry.fileName
+        );
+        return destinationEntryPath;
+    }
+
+    await pipeline(
+        readStream,
+        createWriteStream(destinationEntryPath, {
+            flags: "wx",
+            mode: getExtractedMode(mode, false),
+        })
+    );
+    return undefined;
+}
+
+async function extractArchiveSymlink(
+    readStream,
+    destinationEntryPath,
+    directoryPath,
+    entryName
+) {
+    const symlinkTarget = await readStreamAsString(readStream);
+    assertSafeSymlinkTarget(
+        symlinkTarget,
+        destinationEntryPath,
+        directoryPath,
+        entryName
+    );
+    await fs.symlink(symlinkTarget, destinationEntryPath);
+}
+
+function isArchiveDirectory(entry, entryType) {
+    return (
+        entryType === 16_384 ||
+        entry.fileName.endsWith("/") ||
+        (Math.floor(entry.versionMadeBy / 256) === 0 &&
+            entry.externalFileAttributes === 16)
+    );
+}
+
+async function prepareArchiveEntryParent(
+    destinationEntryPath,
+    directoryPath,
+    entryName
+) {
+    const parentPath = path.dirname(destinationEntryPath);
+    await fs.mkdir(parentPath, { recursive: true });
+    assertPathWithinDirectory(
+        await fs.realpath(parentPath),
+        directoryPath,
+        entryName
+    );
+}
+
+async function verifyExtractedSymlinks(symlinkPaths, directoryPath) {
     for (const symlinkPath of symlinkPaths) {
         assertPathWithinDirectory(
             await fs.realpath(symlinkPath),
-            canonicalDestinationPath,
-            path.relative(canonicalDestinationPath, symlinkPath)
+            directoryPath,
+            path.relative(directoryPath, symlinkPath)
         );
     }
 }

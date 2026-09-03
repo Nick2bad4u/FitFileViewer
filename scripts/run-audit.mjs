@@ -7,6 +7,13 @@ delete environment.npm_config_allow_scripts;
 delete environment.NPM_CONFIG_ALLOW_SCRIPTS;
 
 const npmCliPath = process.env.npm_execpath;
+const severityRank = {
+    critical: 4,
+    high: 3,
+    info: 0,
+    low: 1,
+    moderate: 2,
+};
 
 export const allowedDocusaurusAuditAdvisories = new Set([
     "GHSA-5p2g-fcmc-qvqq",
@@ -18,6 +25,23 @@ export function getBlockingAuditVulnerabilities(
     allowedAdvisories,
     minimumSeverity = "high"
 ) {
+    const vulnerabilities = getAuditVulnerabilities(auditReport);
+    const minimumRank = severityRank[minimumSeverity] ?? severityRank.high;
+
+    return Object.entries(vulnerabilities)
+        .filter(([, vulnerability]) =>
+            isBlockingVulnerability(
+                vulnerability,
+                vulnerabilities,
+                allowedAdvisories,
+                minimumRank
+            )
+        )
+        .map(([name]) => name)
+        .sort();
+}
+
+function getAuditVulnerabilities(auditReport) {
     if (
         !auditReport ||
         typeof auditReport !== "object" ||
@@ -39,41 +63,29 @@ export function getBlockingAuditVulnerabilities(
         throw new Error("npm audit report is missing vulnerability results");
     }
 
-    const severityRank = {
-        critical: 4,
-        high: 3,
-        info: 0,
-        low: 1,
-        moderate: 2,
-    };
-    const minimumRank = severityRank[minimumSeverity] ?? severityRank.high;
+    return vulnerabilities;
+}
 
-    return Object.entries(vulnerabilities)
-        .filter(([, vulnerability]) => {
-            const rank = severityRank[vulnerability.severity] ?? 0;
-            return (
-                rank >= minimumRank &&
-                !isAllowedVulnerability(
-                    vulnerability,
-                    vulnerabilities,
-                    allowedAdvisories,
-                    new Set()
-                )
-            );
-        })
-        .map(([name]) => name)
-        .sort();
+function isBlockingVulnerability(
+    vulnerability,
+    vulnerabilities,
+    allowedAdvisories,
+    minimumRank
+) {
+    const rank = severityRank[vulnerability.severity] ?? 0;
+    return (
+        rank >= minimumRank &&
+        !isAllowedVulnerability(
+            vulnerability,
+            vulnerabilities,
+            allowedAdvisories,
+            new Set()
+        )
+    );
 }
 
 function runNpmAudit(arguments_, options = {}) {
-    const command = npmCliPath
-        ? process.execPath
-        : process.platform === "win32"
-          ? "npm.cmd"
-          : "npm";
-    const commandArguments = npmCliPath
-        ? [npmCliPath, ...arguments_]
-        : arguments_;
+    const { command, commandArguments } = resolveNpmCommand(arguments_);
     const result = spawnSync(command, commandArguments, {
         cwd: process.cwd(),
         encoding: options.captureJson ? "utf8" : undefined,
@@ -95,28 +107,48 @@ function runNpmAudit(arguments_, options = {}) {
         return;
     }
 
-    if (options.captureJson) {
-        const auditReport = parseAuditReport(result.stdout);
-        const blockingVulnerabilities = getBlockingAuditVulnerabilities(
-            auditReport,
-            options.allowedAdvisories,
-            options.minimumSeverity
-        );
-        if (blockingVulnerabilities.length === 0) {
-            console.warn(
-                "Docusaurus audit contains only explicitly accepted, unpatched image-size advisories (GHSA-5p2g-fcmc-qvqq and GHSA-w3rx-r6r6-pgpr)."
-            );
-            return;
-        }
-
-        process.stderr.write(result.stderr ?? "");
-        process.stdout.write(result.stdout ?? "");
+    if (!options.captureJson) {
         throw new Error(
-            `npm audit found blocking vulnerabilities: ${blockingVulnerabilities.join(", ")}`
+            `npm audit failed with exit code ${result.status ?? 1}`
         );
     }
 
-    throw new Error(`npm audit failed with exit code ${result.status ?? 1}`);
+    handleCapturedAuditFailure(result, options);
+}
+
+function resolveNpmCommand(arguments_) {
+    if (npmCliPath) {
+        return {
+            command: process.execPath,
+            commandArguments: [npmCliPath, ...arguments_],
+        };
+    }
+
+    return {
+        command: process.platform === "win32" ? "npm.cmd" : "npm",
+        commandArguments: arguments_,
+    };
+}
+
+function handleCapturedAuditFailure(result, options) {
+    const auditReport = parseAuditReport(result.stdout);
+    const blockingVulnerabilities = getBlockingAuditVulnerabilities(
+        auditReport,
+        options.allowedAdvisories,
+        options.minimumSeverity
+    );
+    if (blockingVulnerabilities.length === 0) {
+        console.warn(
+            "Docusaurus audit contains only explicitly accepted, unpatched image-size advisories (GHSA-5p2g-fcmc-qvqq and GHSA-w3rx-r6r6-pgpr)."
+        );
+        return;
+    }
+
+    process.stderr.write(result.stderr ?? "");
+    process.stdout.write(result.stdout ?? "");
+    throw new Error(
+        `npm audit found blocking vulnerabilities: ${blockingVulnerabilities.join(", ")}`
+    );
 }
 
 function isAllowedVulnerability(
