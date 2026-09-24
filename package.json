@@ -351,7 +351,7 @@
         "leaflet.locatecontrol": "^0.90.1",
         "lychee-config-nick2bad4u": "^2.0.0",
         "makensis": "^3.0.6",
-        "maplibre-gl": "^5.24.0",
+        "maplibre-gl": "^6.11.2",
         "markdownlint-cli": "^0.49.1",
         "ncu-config-nick2bad4u": "^0.2.1",
         "npm-check-updates": "^22.2.9",
