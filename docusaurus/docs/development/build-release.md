@@ -103,55 +103,39 @@ module.exports = {
 
 ## CI/CD Pipeline
 
-Builds are automated via GitHub Actions:
+The manual **Release Rehearsal** workflow runs the full release gate and builds
+the real distribution matrix without publishing: Linux x64, Windows x64 and
+ia32, and macOS ARM64, Intel, and Universal. The production workflow is
+**Build and Release Electron App** in `.github/workflows/Build.yml`.
 
-```yaml
-# .github/workflows/Build.yml
-name: Build
-on:
- push:
-  branches: [main]
- release:
-  types: [published]
-
-jobs:
- build:
-  runs-on: ${{ matrix.os }}
-  strategy:
-   matrix:
-    os: [ubuntu-latest, windows-latest, macos-latest]
-  steps:
-   - uses: actions/checkout@v4
-   - uses: actions/setup-node@v4
-   - run: npm ci
-   - run: npm run build
-```
+Each platform verifies its build output and exercises the distributable:
+macOS mounts the DMG, copies the app to a fresh location, verifies every
+architecture's signature, and launches through both the executable and
+LaunchServices. Universal builds exercise ARM64 and x64. Windows checks its
+ZIP, NSIS installer, and portable executable; Linux checks its tarball and
+extracted AppImage. Reports, screenshots, logs, and artifact hashes are saved
+as workflow diagnostics.
 
 ## Release Process
 
-### 1. Update Version
+### 1. Validate the Candidate
 
-```bash
-# Update the Electron app version
-npm run release:bump-version
-```
+Run `npm run release:verify`, then dispatch **Release Rehearsal** on the
+candidate branch. Check every platform result and the Windows installer
+upgrade workflow before publishing.
 
-### 2. Update Changelog
+The packaged smoke test requires a fresh completion report after renderer
+initialization, preload IPC, real FIT decoding, and visible map rendering.
+Crashes, signals, timeouts, and missing or stale reports fail the test.
 
-```bash
-npm run changelog
-```
+### 2. Publish
 
-### 3. Create Release
+Dispatch **Build and Release Electron App** with the target `branch` and
+`release-type` (`patch`, `minor`, or `major`). The workflow creates the version
+commit and tag, builds and verifies the artifacts, publishes the release, and
+updates the changelog on that branch.
 
-```bash
-# Push tag
-git push --tags
-
-# GitHub Actions builds and publishes
-```
-
-### 4. Verify Release
+### 3. Verify Release
 
 Check GitHub Releases for:
 
@@ -159,21 +143,29 @@ Check GitHub Releases for:
 - Checksums
 - Release notes
 
+The release asset verifier checks updater metadata references, including
+architecture-specific web installer payloads, against asset sizes and hashes.
+The published upgrade workflow verifies installation over previous releases.
+
 ## Code Signing
 
 Run `npm run release:check-signing` before signed packaging when
 `REQUIRE_CODE_SIGNING=true`. The command reports missing variables before
 electron-builder starts.
 
-Local and rehearsal builds are unsigned by default:
+Local and rehearsal builds do not use publisher credentials by default:
 
 ```bash
 npm run package
 npm run package:unsigned
 ```
 
-Production releases follow the same unsigned-by-default policy. The **Build
-And Release Electron App** workflow exposes a `require-code-signing` input;
+macOS bundles still receive ad hoc signatures after fuse changes and the final
+Universal merge. Apple Silicon requires valid signature integrity; ad hoc
+signing does not provide a trusted publisher identity or notarization.
+
+Production releases follow the same default policy. The **Build
+and Release Electron App** workflow exposes a `require-code-signing` input;
 leave it disabled for the established release path and enable it only after the
 Windows and macOS signing credentials have been configured.
 
@@ -228,7 +220,7 @@ Linux release builds do not require signing variables. Windows 7 compatibility
 is limited to carried-forward legacy release assets from `build-win7.yml`; the
 current app is not rebuilt for Windows 7.
 
-After signed Windows or macOS packaging, run:
+After macOS packaging or signed Windows packaging, run:
 
 ```bash
 npm run release:verify-signing-artifacts
@@ -244,9 +236,13 @@ That command runs fast checks, the docs build, audit, Playwright smoke, signed
 packaging, signature artifact verification, and packaged smoke in order.
 
 The verifier checks Windows `.exe` and `.msi` files with
-`Get-AuthenticodeSignature`, checks macOS `.app` bundles with `codesign`, and
-writes `release-dist/signing-verification-report.json`. The primary release
-workflow uploads that report with the platform artifacts.
+`Get-AuthenticodeSignature` when publisher signing is required. It always
+checks macOS `.app` bundles with
+`codesign --verify --deep --strict --all-architectures`; required publisher
+builds additionally verify the Apple Developer ID certificate requirement.
+It writes `release-dist/signing-verification-report.json`. The primary release
+workflow uploads that report with the platform artifacts. Removing quarantine
+attributes with `xattr` cannot repair an invalid executable signature.
 
 ## Troubleshooting Builds
 

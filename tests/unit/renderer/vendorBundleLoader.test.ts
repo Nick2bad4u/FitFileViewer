@@ -33,6 +33,10 @@ import {
     resolveLeafletRuntime,
 } from "../../../electron-app/utils/maps/core/leafletRuntime.js";
 import {
+    clearMapLibreLayerFactoryForTests,
+    resolveMapLibreLayerFactory,
+} from "../../../electron-app/utils/maps/layers/mapLibreLayerRuntime.js";
+import {
     clearArqueroRuntimeForTests,
     resolveArqueroRuntime,
 } from "../../../electron-app/utils/rendering/helpers/arqueroRuntime.js";
@@ -119,6 +123,7 @@ describe("renderer vendor bundle loader", () => {
         clearDomPurifyRuntimeForTests();
         clearExportZipRuntimeForTests();
         clearLeafletRuntimeForTests();
+        clearMapLibreLayerFactoryForTests();
         clearDataTableRuntimeForTests();
         clearScreenfullRuntimeForTests();
         resetRendererVendorBundleState();
@@ -583,8 +588,8 @@ describe("renderer vendor bundle loader", () => {
         }
     });
 
-    it("registers the Leaflet payload from the split map vendor event", async () => {
-        expect.assertions(2);
+    it("registers Leaflet and the MapLibre factory from the split map vendor event", async () => {
+        expect.assertions(3);
 
         const leafletRuntime = {
             Layer: class Layer {},
@@ -595,9 +600,10 @@ describe("renderer vendor bundle loader", () => {
         };
         const vendorReadiness = [ensureVendorBundle("map")];
         const script = getVendorScript("map");
+        const mapLibreLayerFactory = () => ({});
 
         markRendererVendorEntryLoaded("map", {
-            map: { leafletRuntime },
+            map: { leafletRuntime, mapLibreLayerFactory },
         });
         script.dispatchEvent(new Event("load"));
 
@@ -608,10 +614,11 @@ describe("renderer vendor bundle loader", () => {
                     value === leafletRuntime
             )
         ).toBe(leafletRuntime);
+        expect(resolveMapLibreLayerFactory()).toBe(mapLibreLayerFactory);
     });
 
     it("waits for a valid map payload instead of accepting malformed readiness", async () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         vi.useFakeTimers();
         try {
@@ -653,8 +660,20 @@ describe("renderer vendor bundle loader", () => {
                 map() {},
                 tileLayer() {},
             };
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv-renderer-vendor-entry-loaded", {
+                    detail: {
+                        entryName: "map",
+                        map: { leafletRuntime },
+                    },
+                })
+            );
+            await vi.advanceTimersByTimeAsync(20);
+            expect(resolved).toBe(false);
+            expect(resolveMapLibreLayerFactory()).toBeNull();
+
             markRendererVendorEntryLoaded("map", {
-                map: { leafletRuntime },
+                map: { leafletRuntime, mapLibreLayerFactory: () => ({}) },
             });
             await vi.advanceTimersByTimeAsync(20);
 

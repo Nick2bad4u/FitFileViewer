@@ -137,6 +137,54 @@ function createReleaseAsset(filePath: string, name: string): ReleaseAsset {
     };
 }
 
+function addWebInstallerFixture(
+    fixture: ReleaseFixture,
+    packageOverrides: Record<string, unknown> = {},
+    installerUrl = "Fit-File-Viewer-nsis-web-x64-30.0.0.exe"
+): { metadataPath: string; packagePath: string } {
+    const installerName = "Fit-File-Viewer-nsis-web-x64-30.0.0.exe";
+    const packageName = "fitfileviewer-30.0.0-x64.nsis.7z";
+    const installerPath = path.join(
+        fixture.releaseDistDirectory,
+        installerName
+    );
+    const packagePath = path.join(fixture.releaseDistDirectory, packageName);
+    const metadataName = "latest-nsis-web.yml";
+    const metadataPath = path.join(fixture.releaseDistDirectory, metadataName);
+    const installerContents = "web installer";
+    const packageContents = "web installer payload";
+    const installerSha512 = createHash("sha512")
+        .update(installerContents)
+        .digest("base64");
+    const packageEntry = {
+        file: packageName,
+        path: packageName,
+        sha512: createHash("sha512").update(packageContents).digest("base64"),
+        size: packageContents.length,
+        ...packageOverrides,
+    };
+
+    fs.writeFileSync(installerPath, installerContents);
+    fs.writeFileSync(packagePath, packageContents);
+    fs.writeFileSync(
+        metadataPath,
+        stringifyYaml({
+            files: [{ sha512: installerSha512, url: installerUrl }],
+            // Shared package objects exercise YAML aliases and duplicate references.
+            packages: { ia32: packageEntry, x64: packageEntry },
+            path: installerUrl,
+            sha512: installerSha512,
+            version: "30.0.0",
+        })
+    );
+    fixture.assets.push(
+        createReleaseAsset(installerPath, installerName),
+        createReleaseAsset(packagePath, packageName),
+        createReleaseAsset(metadataPath, metadataName)
+    );
+    return { metadataPath, packagePath };
+}
+
 afterEach(() => {
     for (const temporaryRoot of temporaryRoots.splice(0)) {
         fs.rmSync(temporaryRoot, { force: true, recursive: true });
@@ -144,6 +192,133 @@ afterEach(() => {
 });
 
 describe("verify-release-assets script", () => {
+    it("verifies optional web channels and aliased payloads without double counting", async () => {
+        expect.assertions(1);
+        const { verifyReleaseAssets } = await importVerifyReleaseAssets();
+        const fixture = createReleaseFixture();
+        addWebInstallerFixture(fixture);
+
+        expect(
+            verifyReleaseAssets({
+                expectedVersion: "30.0.0",
+                release: { assets: fixture.assets, draft: true },
+                releaseDistDirectory: fixture.releaseDistDirectory,
+            })
+        ).toStrictEqual({ metadataCount: 5, referencedAssetCount: 6 });
+    });
+
+    it.each([
+        [
+            "hash",
+            { sha512: "incorrect" },
+            "sha512 mismatch",
+        ],
+        [
+            "size",
+            { size: 999 },
+            "size mismatch",
+        ],
+        [
+            "invalid size",
+            { size: "21" },
+            "invalid ia32 package",
+        ],
+        [
+            "conflicting filename",
+            { file: "different.nsis.7z" },
+            "invalid ia32 package",
+        ],
+        [
+            "unsafe path",
+            { file: "../payload.7z", path: "../payload.7z" },
+            "invalid files entry",
+        ],
+    ])(
+        "rejects a web package with an invalid %s",
+        async (_label, overrides, message) => {
+            expect.assertions(1);
+            const { verifyReleaseAssets } = await importVerifyReleaseAssets();
+            const fixture = createReleaseFixture();
+            addWebInstallerFixture(
+                fixture,
+                overrides as Record<string, unknown>
+            );
+
+            expect(() =>
+                verifyReleaseAssets({
+                    expectedVersion: "30.0.0",
+                    release: { assets: fixture.assets, draft: true },
+                    releaseDistDirectory: fixture.releaseDistDirectory,
+                })
+            ).toThrow(String(message));
+        }
+    );
+
+    it.each(["metadata", "payload"])(
+        "rejects web %s omitted from uploaded assets",
+        async (missing) => {
+            expect.assertions(1);
+            const { verifyReleaseAssets } = await importVerifyReleaseAssets();
+            const fixture = createReleaseFixture();
+            addWebInstallerFixture(fixture);
+            const missingName =
+                missing === "metadata"
+                    ? "latest-nsis-web.yml"
+                    : "fitfileviewer-30.0.0-x64.nsis.7z";
+
+            expect(() =>
+                verifyReleaseAssets({
+                    expectedVersion: "30.0.0",
+                    release: {
+                        assets: fixture.assets.filter(
+                            ({ name }) => name !== missingName
+                        ),
+                        draft: true,
+                    },
+                    releaseDistDirectory: fixture.releaseDistDirectory,
+                })
+            ).toThrow("not uploaded");
+        }
+    );
+
+    it("rejects a web payload missing locally", async () => {
+        expect.assertions(1);
+        const { verifyReleaseAssets } = await importVerifyReleaseAssets();
+        const fixture = createReleaseFixture();
+        const { packagePath } = addWebInstallerFixture(fixture);
+        fs.unlinkSync(packagePath);
+
+        expect(() =>
+            verifyReleaseAssets({
+                expectedVersion: "30.0.0",
+                release: { assets: fixture.assets, draft: true },
+                releaseDistDirectory: fixture.releaseDistDirectory,
+            })
+        ).toThrow(
+            "Expected exactly one local fitfileviewer-30.0.0-x64.nsis.7z, found 0"
+        );
+    });
+
+    it.each([
+        "../installer.exe",
+        "https://example.test/installer.exe",
+        "..\\installer.exe",
+        "installer.exe?download=1",
+    ])("rejects non-filename update references: %s", async (url) => {
+        expect.assertions(1);
+        const { verifyReleaseAssets } = await importVerifyReleaseAssets();
+        const fixture = createReleaseFixture();
+        addWebInstallerFixture(fixture, {}, url);
+
+        expect(() =>
+            verifyReleaseAssets({
+                expectedVersion: "30.0.0",
+                release: { assets: fixture.assets, draft: true },
+                releaseDistDirectory: fixture.releaseDistDirectory,
+            })
+        ).toThrow("invalid files entry");
+    });
+
     it("verifies canonical updater metadata against local and uploaded artifacts", async () => {
         expect.assertions(1);
 

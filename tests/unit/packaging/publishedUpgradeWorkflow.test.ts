@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("published upgrade smoke workflow", () => {
     it("upgrades the previous Windows release after successful publication", () => {
-        expect.assertions(17);
+        expect.assertions(23);
 
         const workflow = readFileSync(
             path.join(
@@ -22,9 +22,23 @@ describe("published upgrade smoke workflow", () => {
             "utf8"
         );
 
+        expect(workflow).toContain("--startup-timeout-ms 60000");
+        expect(workflow).toContain("FFV_SMOKE_EXPECTED_ARCH: x64");
+        expect(workflow).toContain(
+            "FFV_SMOKE_EXPECTED_VERSION: ${{ env.FFV_UPGRADE_TO_VERSION }}"
+        );
+        expect(workflow).toContain(
+            "FFV_SMOKE_DIAGNOSTICS_DIRECTORY: ${{ runner.temp }}/published-upgrade-smoke"
+        );
+        expect(workflow).toContain(
+            "${{ runner.temp }}/published-upgrade-smoke/"
+        );
+        expect(workflow).toContain(
+            "ref: ${{ github.event.workflow_run.head_sha || github.sha }}"
+        );
         expect(workflow).toContain("workflow_run:");
         expect(workflow).toContain(
-            'workflows: ["Build And Release Electron App"]'
+            'workflows: ["Build and Release Electron App"]'
         );
         expect(workflow).toContain(
             "github.event.workflow_run.conclusion == 'success'"

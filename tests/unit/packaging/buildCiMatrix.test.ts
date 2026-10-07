@@ -90,6 +90,30 @@ async function importBuildCiMatrix(): Promise<BuildCiMatrixModule> {
 }
 
 describe("build-ci-matrix script", () => {
+    it("uses the requested architecture independently of the runner label and rejects unsupported Windows architectures", async () => {
+        expect.assertions(2);
+        const { getElectronBuilderArgs } = await importBuildCiMatrix();
+        expect(
+            getElectronBuilderArgs({
+                runnerOs: "macOS",
+                matrixOs: "macos-latest",
+                arch: "arm64",
+            })
+        ).toStrictEqual([
+            "--mac",
+            "--arm64",
+            "--publish",
+            "never",
+        ]);
+        expect(() =>
+            getElectronBuilderArgs({
+                runnerOs: "Windows",
+                matrixOs: "windows-latest",
+                arch: "arm64",
+            })
+        ).toThrow("Unsupported build matrix");
+    });
+
     it("selects electron-builder args for the GitHub build matrix", async () => {
         expect.assertions(1);
 
@@ -99,6 +123,7 @@ describe("build-ci-matrix script", () => {
                 arch: "x64",
                 builderArgs: [
                     "--win",
+                    "--x64",
                     "--publish",
                     "never",
                 ],
@@ -119,6 +144,7 @@ describe("build-ci-matrix script", () => {
             {
                 arch: "arm64",
                 builderArgs: [
+                    "--mac",
                     "--arm64",
                     "--publish",
                     "never",
@@ -129,6 +155,7 @@ describe("build-ci-matrix script", () => {
             {
                 arch: "universal",
                 builderArgs: [
+                    "--mac",
                     "--universal",
                     "--publish",
                     "never",
@@ -172,6 +199,7 @@ describe("build-ci-matrix script", () => {
             {
                 arch: "arm64",
                 builderArgs: [
+                    "--linux",
                     "--arm64",
                     "--publish",
                     "never",
@@ -255,6 +283,7 @@ describe("build-ci-matrix script", () => {
                     args: [
                         runElectronBuilderScriptPath,
                         "--win",
+                        "--x64",
                         "--publish",
                         "never",
                     ],

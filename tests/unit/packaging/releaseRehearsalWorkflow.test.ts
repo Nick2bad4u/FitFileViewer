@@ -16,7 +16,7 @@ function readReleaseRehearsalWorkflow(): string {
 
 describe("release rehearsal workflow", () => {
     it("runs the release gate, signing preflight, packaged smoke, and artifact upload without publishing", () => {
-        expect.assertions(43);
+        expect.assertions(46);
 
         const workflow = readReleaseRehearsalWorkflow();
 
@@ -84,9 +84,10 @@ describe("release rehearsal workflow", () => {
             "WIN_CSC_LINK: ${{ matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}"
         );
         expect(workflow).toContain("xvfb-run -a npm run release:verify");
-        expect(workflow).toContain(
-            "release-verify-command: npm run release:verify"
-        );
+        expect(workflow).toContain("npm run build:ci-matrix");
+        expect(workflow).toContain("node scripts/run-distributable-smoke.mjs");
+        expect(workflow).toContain("arch: universal");
+        expect(workflow).toContain("arch: ia32");
         expect(workflow).toContain("FFV_PACKAGED_SMOKE_TIMEOUT_MS:");
         expect(workflow).toContain('FFV_FORCE_UNSIGNED_PACKAGE: "true"');
         expect(workflow).toContain('CSC_IDENTITY_AUTO_DISCOVERY: "false"');
@@ -94,9 +95,9 @@ describe("release rehearsal workflow", () => {
         expect(workflow).toContain('REQUIRE_CODE_SIGNING: "false"');
         expect(workflow).toContain("actions/upload-artifact@");
         expect(workflow).toContain(
-            "name: release-rehearsal-${{ matrix.runner-os }}"
+            "name: release-rehearsal-${{ matrix.os }}-${{ matrix.arch }}"
         );
-        expect(workflow).toContain("path: release-dist/**");
+        expect(workflow).toContain("release-dist/distributable-smoke-*.json");
         expect(workflow).not.toContain("softprops/action-gh-release");
         expect(workflow).not.toContain("npm run package:signed");
     });

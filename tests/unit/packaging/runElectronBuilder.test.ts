@@ -134,6 +134,7 @@ describe("run-electron-builder script", () => {
             options: {
                 cwd: path.resolve(process.cwd()),
                 env: {
+                    CSC_FOR_PULL_REQUEST: "true",
                     CSC_IDENTITY_AUTO_DISCOVERY: "false",
                     FFV_TEST_ENV: "1",
                     NODE_ENV: "production",
@@ -184,6 +185,7 @@ describe("run-electron-builder script", () => {
         }).toStrictEqual({
             cwd: path.resolve(process.cwd()),
             env: {
+                CSC_FOR_PULL_REQUEST: "true",
                 CSC_IDENTITY_AUTO_DISCOVERY: "false",
                 FFV_TEST_ENV: "1",
                 REQUIRE_CODE_SIGNING: "false",
@@ -201,6 +203,7 @@ describe("run-electron-builder script", () => {
         expect(
             getElectronBuilderEnvironment({ FFV_TEST_ENV: "1" }, "win32")
         ).toStrictEqual({
+            CSC_FOR_PULL_REQUEST: "true",
             CSC_IDENTITY_AUTO_DISCOVERY: "false",
             FFV_TEST_ENV: "1",
             REQUIRE_CODE_SIGNING: "false",
@@ -216,6 +219,7 @@ describe("run-electron-builder script", () => {
                 "win32"
             )
         ).toStrictEqual({
+            CSC_FOR_PULL_REQUEST: "true",
             CSC_IDENTITY_AUTO_DISCOVERY: "false",
             FFV_TEST_ENV: "1",
             REQUIRE_CODE_SIGNING: "false",
@@ -241,6 +245,7 @@ describe("run-electron-builder script", () => {
             WIN_CSC_LINK: "windows.pfx",
         };
         const unsignedEnvironment = {
+            CSC_FOR_PULL_REQUEST: "true",
             CSC_IDENTITY_AUTO_DISCOVERY: "false",
             FFV_FORCE_UNSIGNED_PACKAGE: "true",
             FFV_TEST_ENV: "1",
@@ -253,6 +258,39 @@ describe("run-electron-builder script", () => {
         expect(
             getElectronBuilderEnvironment(environment, "darwin")
         ).toStrictEqual(unsignedEnvironment);
+    });
+
+    it("allows credential-free ad hoc signing on pull requests while preserving publisher restrictions", async () => {
+        expect.assertions(4);
+
+        const { getElectronBuilderEnvironment } =
+            await importRunElectronBuilder();
+        const environment = {
+            APPLE_KEYCHAIN_PROFILE: "notary-profile",
+            CSC_FOR_PULL_REQUEST: "false",
+            CSC_INSTALLER_KEY_PASSWORD: "installer-password",
+            CSC_INSTALLER_LINK: "installer.p12",
+            CSC_KEY_PASSWORD: "password",
+            CSC_LINK: "application.p12",
+            GITHUB_EVENT_NAME: "pull_request",
+            REQUIRE_CODE_SIGNING: "true",
+        };
+        const unsignedEnvironment = getElectronBuilderEnvironment(
+            { ...environment, REQUIRE_CODE_SIGNING: "false" },
+            "darwin"
+        );
+
+        expect(unsignedEnvironment).toStrictEqual({
+            CSC_FOR_PULL_REQUEST: "true",
+            CSC_IDENTITY_AUTO_DISCOVERY: "false",
+            GITHUB_EVENT_NAME: "pull_request",
+            REQUIRE_CODE_SIGNING: "false",
+        });
+        expect(getElectronBuilderEnvironment(environment, "darwin")).toBe(
+            environment
+        );
+        expect(environment.CSC_FOR_PULL_REQUEST).toBe("false");
+        expect(environment.CSC_LINK).toBe("application.p12");
     });
 
     it("validates required Windows signing secrets for release builds", async () => {

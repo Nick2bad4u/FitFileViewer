@@ -19,7 +19,7 @@ on:
             smoke-timeout-ms:
                 description: "Packaged app smoke timeout in milliseconds"
                 required: true
-                default: "15000"
+                default: "60000"
                 type: string
             fail-fast:
                 description: "Cancel remaining platform rehearsals after the first failure"
@@ -35,7 +35,7 @@ permissions:
 
 jobs:
     release-rehearsal:
-        name: Verify Unsigned Release Package (${{ matrix.runner-os }})
+        name: Verify Unsigned Release Package (${{ matrix.os }}, ${{ matrix.arch }})
         runs-on: ${{ matrix.os }}
         timeout-minutes: 60
         strategy:
@@ -44,13 +44,23 @@ jobs:
                 include:
                     - os: ubuntu-latest
                       runner-os: Linux
+                      arch: x64
                       release-verify-command: xvfb-run -a npm run release:verify
                     - os: windows-latest
                       runner-os: Windows
-                      release-verify-command: npm run release:verify
+                      arch: x64
+                    - os: windows-latest
+                      runner-os: Windows
+                      arch: ia32
                     - os: macos-latest
                       runner-os: macOS
-                      release-verify-command: npm run release:verify
+                      arch: universal
+                    - os: macos-15
+                      runner-os: macOS
+                      arch: arm64
+                    - os: macos-15-intel
+                      runner-os: macOS
+                      arch: x64
         env:
             CI: true
             NODE_OPTIONS: --max_old_space_size=8192
@@ -111,6 +121,7 @@ jobs:
                   WIN_CSC_LINK: ${{ matrix.runner-os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
 
             - name: Run release verification and packaged smoke
+              if: runner.os == 'Linux'
               run: |
                   ${{ matrix.release-verify-command }} &
                   verify_pid=$!
@@ -128,6 +139,57 @@ jobs:
                   REQUIRE_CODE_SIGNING: "false"
                   RUNNER_OS: ${{ matrix.runner-os }}
 
+            - name: Install platform build dependencies
+              run: node scripts/install-build-dependencies.mjs
+
+            - name: Install dmg-license workaround for Mac Builder
+              if: runner.os == 'macOS'
+              run: npm run build:macos-deps
+
+            - name: Build actual release distributables without publishing
+              run: npm run build:ci-matrix
+              env:
+                  MATRIX_ARCH: ${{ matrix.arch }}
+                  MATRIX_OS: ${{ matrix.os }}
+                  RUNNER_OS: ${{ matrix.runner-os }}
+                  REQUIRE_CODE_SIGNING: "false"
+                  CSC_IDENTITY_AUTO_DISCOVERY: "false"
+                  FFV_FORCE_UNSIGNED_PACKAGE: "true"
+
+            - name: Verify release artifact signing policy
+              if: runner.os == 'Windows' || runner.os == 'macOS'
+              run: npm run release:verify-signing-artifacts -- --runner-os "$RUNNER_OS"
+              env:
+                  REQUIRE_CODE_SIGNING: "false"
+                  RUNNER_OS: ${{ matrix.runner-os }}
+
+            - name: Enable Intel slice testing on Apple Silicon
+              if: runner.os == 'macOS' && matrix.arch == 'universal'
+              run: softwareupdate --install-rosetta --agree-to-license
+
+            - name: Smoke test installed distributable artifacts
+              run: |
+                  if [ "$RUNNER_OS" = "Linux" ]; then
+                      xvfb-run -a node scripts/run-distributable-smoke.mjs
+                  else
+                      node scripts/run-distributable-smoke.mjs
+                  fi
+              env:
+                  FFV_PACKAGED_SMOKE_TIMEOUT_MS: ${{ inputs.smoke-timeout-ms }}
+                  MATRIX_ARCH: ${{ matrix.arch }}
+                  RUNNER_OS: ${{ matrix.runner-os }}
+
+            - name: Upload distributable smoke diagnostics
+              if: always()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: smoke-diagnostics-${{ matrix.os }}-${{ matrix.arch }}
+                  path: |
+                      release-dist/distributable-smoke-*.json
+                      release-dist/smoke-diagnostics/**
+                  if-no-files-found: ignore
+                  retention-days: 14
+
             - name: List unsigned rehearsal artifacts
               if: always()
               run: npm run release:list-release-dist-files
@@ -136,7 +198,12 @@ jobs:
               if: success()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
-                  name: release-rehearsal-${{ matrix.runner-os }}
-                  path: release-dist/**
+                  name: release-rehearsal-${{ matrix.os }}-${{ matrix.arch }}
+                  path: |
+                      release-dist/Fit-File-Viewer-*
+                      release-dist/latest*.yml
+                      release-dist/*-report.json
+                      release-dist/distributable-smoke-*.json
+                  retention-days: 7
                   if-no-files-found: error
                   include-hidden-files: true

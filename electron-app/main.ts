@@ -11,6 +11,7 @@ import { setupMenuAndEventHandlers } from "./main/menu/setupMenuAndEventHandlers
 import { appRef, browserWindowRef } from "./main/runtime/electronAccess.js";
 import { initializeApplication } from "./main/runtime/initializeApplication.js";
 import { primeTestEnvironment } from "./main/runtime/primeTestEnvironment.js";
+import { configurePackagedSmoke } from "./main/runtime/packagedSmoke.js";
 import { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
 import { getMainWindow } from "./main/state/appState.js";
 
@@ -72,6 +73,7 @@ const setupIPCHandlersForLifecycle: LifecycleDependencies["setupIPCHandlers"] =
         setupIPCHandlers(win as Parameters<typeof setupIPCHandlers>[0]);
     };
 
+configurePackagedSmoke(appRef());
 primeTestEnvironment(initializeApplicationForPrime);
 
 setupMainLifecycle({

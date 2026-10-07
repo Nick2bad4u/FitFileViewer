@@ -3,7 +3,7 @@ run-name: Build and Release Electron App (${{ github.ref_name }})
 
 concurrency:
     group: build-${{ github.ref }}
-    cancel-in-progress: true
+    cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 on:
     workflow_dispatch:
@@ -137,48 +137,21 @@ jobs:
             # Keep this aligned with the known-good workflow pattern.
             NODE_OPTIONS: --max_old_space_size=8192
         strategy:
+            fail-fast: ${{ github.event_name == 'pull_request' }}
             matrix:
-                os:
-                    - ubuntu-latest
-                    - ubuntu-24.04-arm
-                    - windows-latest
-                    - macos-15
-                    - macos-latest
-                    - macos-15-intel
-
-                arch: [x64, ia32, arm64]
-                exclude:
-                    # Exclude macOS with ia32 architecture as it is not supported by Electron
-                    - os: macos-latest
-                      arch: ia32
-                    - os: macos-latest
-                      arch: arm64
-                    - os: macos-15
-                      arch: ia32
-                    - os: macos-15
-                      arch: x64
-                    - os: macos-15-intel
-                      arch: ia32
-                    - os: macos-15-intel
-                      arch: arm64
-                    # Exclude Ubuntu with ia32 and arm64 architectures as they are not commonly used and not officially supported except for ubuntu-24.04-arm/arm64
+                include:
                     - os: ubuntu-latest
-                      arch: ia32
-                    - os: ubuntu-latest
-                      arch: arm64
-                    # Exclude ubuntu-24.04-arm with x64 and ia32
-                    - os: ubuntu-24.04-arm
                       arch: x64
-                    - os: ubuntu-24.04-arm
-                      arch: ia32
-                    - os: ubuntu-24.04-arm
-                      arch: arm64
-                    # Exclude Windows with arm64 (not supported)
                     - os: windows-latest
+                      arch: x64
+                    - os: windows-latest
+                      arch: ia32
+                    - os: macos-15
                       arch: arm64
-                    # Exclude Windows with ia32 (if not supported, uncomment)
-                    # - os: windows-latest
-                    #   arch: ia32
+                    - os: macos-latest
+                      arch: universal
+                    - os: macos-15-intel
+                      arch: x64
         steps:
             - name: Harden the runner (Audit all outbound calls)
               uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -324,8 +297,38 @@ jobs:
                       npm run test:packaged
                   fi
               env:
-                  FFV_PACKAGED_SMOKE_TIMEOUT_MS: "15000"
+                  FFV_PACKAGED_SMOKE_TIMEOUT_MS: "60000"
                   RUNNER_OS: ${{ runner.os }}
+
+            - name: Enable Intel slice testing on Apple Silicon
+              if: runner.os == 'macOS' && matrix.arch == 'universal'
+              shell: bash
+              run: softwareupdate --install-rosetta --agree-to-license
+
+            - name: Smoke test installed distributable artifacts
+              shell: bash
+              run: |
+                  if [ "$RUNNER_OS" = "Linux" ]; then
+                      xvfb-run -a node scripts/run-distributable-smoke.mjs
+                  else
+                      node scripts/run-distributable-smoke.mjs
+                  fi
+              env:
+                  CI: true
+                  FFV_PACKAGED_SMOKE_TIMEOUT_MS: "60000"
+                  MATRIX_ARCH: ${{ matrix.arch }}
+                  RUNNER_OS: ${{ runner.os }}
+
+            - name: Upload distributable smoke diagnostics
+              if: always()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: smoke-diagnostics-${{ matrix.os }}-${{ matrix.arch }}
+                  path: |
+                      release-dist/distributable-smoke-*.json
+                      release-dist/smoke-diagnostics/**
+                  if-no-files-found: ignore
+                  retention-days: 14
 
             - name: Print distributable hashes (debug)
               id: print_hashes
@@ -394,6 +397,7 @@ jobs:
             - name: Download all build artifacts from build job
               uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
               with:
+                  pattern: dist-*
                   path: ./artifacts
 
             - name: Print artifact hashes (debug)
@@ -448,8 +452,6 @@ jobs:
                   name: FitFileViewer v${{ needs.bump-version.outputs.new_version }}
                   body: |
                       ## 🚀 Release Notes
-
-                      This release removes the unused Squirrel.Windows packaging path so the Windows installers and portable build no longer bundle its ExecutionStub helper.
 
                       ${{ inputs.require-code-signing && 'Windows and macOS release artifacts were built with required code signing.' || 'Release artifacts are intentionally unsigned, consistent with previous FitFileViewer releases.' }}
 
@@ -591,7 +593,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
               with:
-                  ref: main
+                  ref: ${{ needs.bump-version.outputs.bump_sha }}
                   fetch-depth: 0
                   fetch-tags: true
 

@@ -417,25 +417,28 @@ npm run build -- --mac
 npm run build -- --linux
 
 # Publish release (automated via GitHub Actions)
-# Triggered by creating a new release tag
+# Dispatch Build and Release Electron App with the target branch and release type.
 ```
 
 ### Signing Preflight
 
-`npm run verify:release` runs `npm run release:check-signing` before unsigned
-local packaging. Use `npm run release:check-signing:required` before ad hoc
-signed packaging; it fails before electron-builder starts and lists each
-missing variable.
+`npm run verify:release` runs `npm run release:check-signing` before local
+packaging. Use `npm run release:check-signing:required` before packaging with
+Windows publisher or Apple Developer ID certificates; it fails before
+electron-builder starts and lists each missing variable. macOS ad hoc signing
+does not need publisher credentials.
 
 - Local `npm run package`, `npm run package:unsigned`, and release rehearsal
-  builds are unsigned by default. The electron-builder wrapper strips signing
-  variables and disables Windows executable signing unless
-  `REQUIRE_CODE_SIGNING=true`.
-- Production releases are also unsigned by default, matching the project's
-  historical release policy. The **Build And Release Electron App** workflow
-  exposes a `require-code-signing` input; leave it `false` for the normal
-  unsigned release path and set it to `true` only after the required Windows
-  and macOS credentials have been configured.
+  builds do not use publisher credentials by default. The electron-builder
+  wrapper strips those credentials and disables Windows executable signing
+  unless `REQUIRE_CODE_SIGNING=true`. macOS bundles receive an ad hoc signature
+  after all executable changes, including the final Universal merge. This
+  maintains the signature integrity required by Apple Silicon; it does not
+  provide a trusted publisher identity or notarization.
+- Production releases follow the same default policy. The **Build and Release
+  Electron App** workflow exposes a `require-code-signing` input; leave it
+  `false` for the normal release path and set it to `true` only after the
+  required Windows and macOS credentials have been configured.
 - Select `release-type=patch`, `minor`, or `major` explicitly when dispatching
   the production workflow. Patch is the default and increments only the final
   SemVer component.
@@ -450,6 +453,11 @@ missing variable.
 - Electron fuses are applied from the electron-builder `afterPack` hook. That
   keeps fuse mutation before signing and artifact creation, so signed builds are
   not modified by a separate post-packaging step.
+- The ad hoc macOS entitlement file enables Electron's JIT and allows its
+  nested libraries to load without a publisher Team ID. Signature integrity
+  verification remains mandatory for ad hoc bundles and every architecture
+  inside Universal bundles. Removing quarantine attributes with `xattr` cannot
+  repair a signature invalidated by later binary changes.
 - Use `npm run verify:release:signed` when signing credentials are available
   and you want the full signed release path in one command: fast verification,
   docs build, audit, Playwright smoke, signed packaging, signature artifact
@@ -477,13 +485,16 @@ missing variable.
   also recognizes the short-lived v30 identity and removes its stale registry
   entry after a successful upgrade.
 
-After signed Windows or macOS packaging completes, use
+After macOS packaging or signed Windows packaging completes, use
 `npm run release:verify-signing-artifacts` to verify the produced artifacts.
 `npm run verify:release:signed` runs that verifier automatically after signed
 packaging.
 The release matrix runs this automatically after `build:ci-matrix`: Windows
 artifacts are checked with `Get-AuthenticodeSignature`, and macOS `.app`
-bundles are checked with `codesign --verify --deep --strict`. The verifier
+bundles are checked with `codesign --verify --deep --strict --all-architectures`.
+macOS integrity verification also runs when publisher signing is disabled;
+required publisher builds additionally verify an Apple Developer ID certificate
+requirement. The verifier
 writes `release-dist/signing-verification-report.json`, and the release
 workflow uploads that report with the platform artifacts so the signed files,
 status, platform, verifier command, sanitized verifier arguments, and per-file
@@ -494,16 +505,27 @@ results to the job summary through `GITHUB_STEP_SUMMARY`.
 ### Release Rehearsal
 
 Before tagging a release, run the manual GitHub Actions workflow **Release
-Rehearsal** from the target branch or tag. It runs the full release gate across
-Linux, Windows, and macOS, checks signing availability without publishing,
-builds unsigned artifacts, runs packaged startup smoke checks, and uploads the
-`release-dist` outputs as workflow artifacts.
+Rehearsal** from the target branch or tag. It runs the full release gate and
+builds the distribution matrix without publishing: Linux x64, Windows x64 and
+ia32, and macOS ARM64, Intel, and Universal. Artifact checks install or extract
+the resulting distributions into fresh temporary directories and launch those
+copies. macOS DMG copies are signature-verified before launch, and Universal
+checks exercise both architectures.
 
 The rehearsal packaging step sets `FFV_FORCE_UNSIGNED_PACKAGE=true` and
 `CSC_IDENTITY_AUTO_DISCOVERY=false`, so it strips signing variables before
 electron-builder starts. Keep this separate from signed release packaging; use
 the signing preflight to prove credentials are present, then build rehearsal
-artifacts unsigned.
+artifacts without publisher credentials. macOS ad hoc signing and integrity
+verification still run.
+
+The packaged smoke test uses an isolated application profile and an explicit
+self-test mode. A successful process exit must be accompanied by a matching
+structured report confirming a visible window, initialized renderer, working
+file IPC, and a parsed FIT fixture. Unexpected signals, early exits, missing
+reports, and timeouts fail the check. Logs, a window screenshot, and the report
+are retained for diagnosis. This test does not enable remote debugging or
+weaken the production Electron fuses.
 
 Run **Candidate Windows Upgrade Smoke** from the release branch for both the
 latest published version and the `29.9.0` migration baseline. It builds an

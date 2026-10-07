@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 describe("candidate upgrade workflow", () => {
     it("builds and installs the unsigned Windows candidate over a published release", () => {
-        expect.assertions(18);
+        expect.assertions(23);
 
         const workflow = fs.readFileSync(
             path.join(
@@ -15,6 +15,17 @@ describe("candidate upgrade workflow", () => {
             "utf8"
         );
 
+        expect(workflow).toContain("--startup-timeout-ms 60000");
+        expect(workflow).toContain("FFV_SMOKE_EXPECTED_ARCH: x64");
+        expect(workflow).toContain(
+            "FFV_SMOKE_EXPECTED_VERSION: ${{ env.FFV_CANDIDATE_VERSION }}"
+        );
+        expect(workflow).toContain(
+            "FFV_SMOKE_DIAGNOSTICS_DIRECTORY: ${{ runner.temp }}/candidate-upgrade-smoke"
+        );
+        expect(workflow).toContain(
+            "${{ runner.temp }}/candidate-upgrade-smoke/"
+        );
         expect(workflow).toContain("workflow_dispatch:");
         expect(workflow).toContain("from-version:");
         expect(workflow).toContain('"ffv-candidate-upgrade-$env:FROM_VERSION"');

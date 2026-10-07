@@ -146,7 +146,11 @@ export function collectSigningVerificationArtifacts(releaseDir, platform) {
     return [];
 }
 
-export function createSigningVerificationCommand(artifactPath, platform) {
+export function createSigningVerificationCommand(
+    artifactPath,
+    platform,
+    { signingRequired = false } = {}
+) {
     if (platform === "win32") {
         return {
             args: [
@@ -167,7 +171,14 @@ export function createSigningVerificationCommand(artifactPath, platform) {
                 "--verify",
                 "--deep",
                 "--strict",
+                "--all-architectures",
                 "--verbose=2",
+                ...(signingRequired
+                    ? [
+                          "--test-requirement",
+                          "=anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists",
+                      ]
+                    : []),
                 artifactPath,
             ],
             command: "codesign",
@@ -184,13 +195,16 @@ export function verifySignedArtifacts(
     logger = console.log
 ) {
     const { platform, releaseDir, reportPath } = parseArgs(argv);
+    const signingRequired = environment.REQUIRE_CODE_SIGNING === "true";
 
-    if (environment.REQUIRE_CODE_SIGNING !== "true" || platform === "linux") {
+    // Apple Silicon requires intact code signatures even without a publisher
+    // certificate. Unsigned Windows artifacts have no equivalent requirement.
+    if ((!signingRequired && platform !== "darwin") || platform === "linux") {
         const report = writeSigningVerificationReport(reportPath, {
             artifacts: [],
             platform,
             releaseDir,
-            signingRequired: environment.REQUIRE_CODE_SIGNING === "true",
+            signingRequired,
             status: "skipped",
         });
         appendSigningVerificationSummary(
@@ -209,7 +223,7 @@ export function verifySignedArtifacts(
             error: `No signed artifact candidates found in ${releaseDir} for ${platform}`,
             platform,
             releaseDir,
-            signingRequired: true,
+            signingRequired,
             status: "failed",
         });
         appendSigningVerificationSummary(
@@ -224,7 +238,8 @@ export function verifySignedArtifacts(
     for (const artifactPath of artifacts) {
         const { args, command } = createSigningVerificationCommand(
             artifactPath,
-            platform
+            platform,
+            { signingRequired }
         );
         const result = commandRunner(command, args, {
             cwd: repositoryRoot,
@@ -252,7 +267,7 @@ export function verifySignedArtifacts(
                 error: result.error.message,
                 platform,
                 releaseDir,
-                signingRequired: true,
+                signingRequired,
                 status: "failed",
                 verificationResults,
             });
@@ -269,7 +284,7 @@ export function verifySignedArtifacts(
                 error: `Signing verification command exited with status ${result.status ?? 1}`,
                 platform,
                 releaseDir,
-                signingRequired: true,
+                signingRequired,
                 status: "failed",
                 verificationResults,
             });
@@ -285,7 +300,7 @@ export function verifySignedArtifacts(
         artifacts,
         platform,
         releaseDir,
-        signingRequired: true,
+        signingRequired,
         status: "verified",
         verificationResults,
     });
@@ -304,7 +319,7 @@ export function appendSigningVerificationSummary(summaryPath, report) {
         "",
         `- Status: \`${report.status}\``,
         `- Platform: \`${report.platform}\``,
-        `- Signing required: \`${String(report.signingRequired)}\``,
+        `- Publisher signing required: \`${String(report.signingRequired)}\``,
         `- Artifact count: \`${String(report.artifactCount)}\``,
     ];
 

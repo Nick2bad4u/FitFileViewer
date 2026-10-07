@@ -27,10 +27,11 @@ describe("rendererVendorShared", () => {
         const vendorSharedRuntime: RendererVendorSharedRuntime = {
             dispatchRendererVendorEntryLoadedEvent: vi.fn(() => true),
         };
+        const mapLibreLayerFactory = () => ({});
 
         markRendererVendorEntryLoaded(
             "map",
-            { map: { leafletRuntime } },
+            { map: { leafletRuntime, mapLibreLayerFactory } },
             { runtime: vendorSharedRuntime }
         );
 
@@ -44,7 +45,7 @@ describe("rendererVendorShared", () => {
             vendorSharedRuntime.dispatchRendererVendorEntryLoadedEvent
         ).toHaveBeenCalledWith(rendererVendorEntryLoadedEventName, {
             entryName: "map",
-            map: { leafletRuntime },
+            map: { leafletRuntime, mapLibreLayerFactory },
         });
         expect(
             vendorSharedRuntime.dispatchRendererVendorEntryLoadedEvent

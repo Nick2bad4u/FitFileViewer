@@ -181,6 +181,18 @@ module.exports = {
     },
     mac: {
         icon: appPackageExportPath("./icons/favicon-512x512.icns"),
+        // Even releases without an Apple certificate need valid Mach-O signatures
+        // after fuse changes. Let builder sign the final app, including universal
+        // merges, instead of resetting signatures in each afterPack invocation.
+        ...(shouldCodeSign
+            ? {}
+            : {
+                  identity: "-",
+                  entitlements: "packaging/macos/entitlements.adhoc.plist",
+                  entitlementsInherit:
+                      "packaging/macos/entitlements.adhoc.plist",
+                  notarize: false,
+              }),
         target: [
             "dmg",
             "zip",

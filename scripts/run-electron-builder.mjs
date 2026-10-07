@@ -159,6 +159,9 @@ export function getUnsignedElectronBuilderEnvironment(environment) {
 
     return {
         ...unsignedEnvironment,
+        // Builder otherwise skips even ad hoc signing on pull requests. This
+        // environment has no publisher credentials and identity discovery is off.
+        CSC_FOR_PULL_REQUEST: "true",
         CSC_IDENTITY_AUTO_DISCOVERY: "false",
         REQUIRE_CODE_SIGNING: "false",
     };
