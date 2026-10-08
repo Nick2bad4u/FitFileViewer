@@ -2,6 +2,51 @@
 <!-- eslint-disable markdown/no-missing-label-refs -->
 # 📜 Changelog
 
+## [30.0.3] - 2026-10-08
+
+### 🛠️ Bug Fixes
+
+- [`e6f27e0`](https://github.com/Nick2bad4u/FitFileViewer/commit/e6f27e088ee87307393f5b7f0f94efe89d74d66f) 🔧 [fix] Make audit metadata rejection explicit
+
+- [`85df650`](https://github.com/Nick2bad4u/FitFileViewer/commit/85df650e7a64be52449f9a23c3b5181394b91819) 🐛 [fix] Harden native smoke execution and failure diagnostics
+
+- [`69d3e23`](https://github.com/Nick2bad4u/FitFileViewer/commit/69d3e2342e2b6d54643721aa39c608bf27a35821) 🐛 [fix] Repair macOS signatures and verify packaged startup
+
+### 🚜 Refactor
+
+- [`ef32086`](https://github.com/Nick2bad4u/FitFileViewer/commit/ef320866a5a8330c34273c05f9ab2243fc5b9189) 🚜 [refactor] Clarify packaged smoke validation and diagnostics
+
+### 📝 Documentation
+
+- [`c8b75bd`](https://github.com/Nick2bad4u/FitFileViewer/commit/c8b75bd672883659e91d6551f4ab9e504479bfb3) 📝 [docs] Update changelog for v30.0.2 [skip ci]
+
+### 🧪 Testing
+
+- [`e7fd53c`](https://github.com/Nick2bad4u/FitFileViewer/commit/e7fd53c04c8f246bd0fe22fa9bc5e61b3f2a0df8) 🧪 [test] Configure Linux CI WebGL and retain startup diagnostics
+
+- [`59892a9`](https://github.com/Nick2bad4u/FitFileViewer/commit/59892a9feeee24af1c176c16a53213b82f8fd94e) 🧪 [test] Isolate empty-folder smoke fixtures and recover transient CDP replies
+
+- [`502a114`](https://github.com/Nick2bad4u/FitFileViewer/commit/502a114fdaf5016544727d71571138d1c442958a) 🧪 [test] Split native smoke assertions into focused suites
+
+- [`cfc03d8`](https://github.com/Nick2bad4u/FitFileViewer/commit/cfc03d807b69ca453aadd5797b5902ec1840f492) 🧪 [test] Require native verification of both Universal DMG slices
+
+- [`8844c5f`](https://github.com/Nick2bad4u/FitFileViewer/commit/8844c5fa7689768230acc92315ed4f528734b273) 🧪 [test] Verify existing Mac packages on macOS 27
+
+### 🧹 Chores
+
+- [`f50dc72`](https://github.com/Nick2bad4u/FitFileViewer/commit/f50dc72e5603d2ad3392c411397481fd292f4584) 🔖 [chore] Release v30.0.3 [skip ci]
+
+### 🔧 Build System
+
+- [`ff64834`](https://github.com/Nick2bad4u/FitFileViewer/commit/ff64834f38003cb43acf1afd0bba8593f7910514) 👷 [build] Align workflow lint with native verification jobs
+
+- [`eda089c`](https://github.com/Nick2bad4u/FitFileViewer/commit/eda089cf1a9c24ddd16b4c079b2dc32a5f309646) 👷 [build] Test macOS compatibility against each rehearsal artifact
+
+### 🛡️ Security
+
+- [`d097494`](https://github.com/Nick2bad4u/FitFileViewer/commit/d097494f2552c8f9cf64c37857757b7ea742a5d4) 🔒 [build] Scope approved build-tool audit exceptions
+
+- [`5e98453`](https://github.com/Nick2bad4u/FitFileViewer/commit/5e984530ce7ae439ca1daf011de599ab9574903e) 🔒 [ci] Make VirusTotal scans fail closed
 ## [30.0.2] - 2026-09-03
 
 ### 🛠️ Bug Fixes
