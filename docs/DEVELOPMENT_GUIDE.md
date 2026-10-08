@@ -290,6 +290,13 @@ export class FeatureManager {
 [ModuleName].performance.test.ts    # Performance tests
 ```
 
+The offline MapLibre Playwright test selects Chromium's software WebGL driver
+with `--use-gl=angle --use-angle=swiftshader` on Linux when `CI=true`, because
+hosted runners do not provide a usable hardware WebGL context. This affects
+only that test's Electron launch. The test still requires production `file://`
+loading, enabled web security, a real blob worker, rendered GeoJSON features,
+and successful map recreation. Production launch settings are unchanged.
+
 ### Writing Tests
 
 ```typescript

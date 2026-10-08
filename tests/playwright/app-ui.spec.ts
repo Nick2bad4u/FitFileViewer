@@ -592,8 +592,13 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
 
 test("renders offline MapLibre GeoJSON under the production file CSP after map recreation", async () => {
     const profile = createElectronLaunchProfile();
+    // Hosted Linux runners need an explicit WebGL driver for this render test.
+    const graphicsArgs =
+        process.platform === "linux" && process.env.CI === "true"
+            ? ["--use-gl=angle", "--use-angle=swiftshader"]
+            : [];
     const app = await electron.launch({
-        args: profile.args,
+        args: [...profile.args, ...graphicsArgs],
         cwd: repositoryRoot,
         env: createElectronLaunchEnv(),
     });
@@ -731,8 +736,8 @@ test("renders offline MapLibre GeoJSON under the production file CSP after map r
                                     "offline-worker"
                             ).length
                     );
-                } finally {
                     map.remove();
+                } finally {
                     container.remove();
                 }
             }

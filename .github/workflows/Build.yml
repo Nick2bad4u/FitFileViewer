@@ -91,6 +91,18 @@ jobs:
                   done
                   wait "$verify_pid"
 
+            - name: Upload failed release verification diagnostics
+              if: failure()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: release-verification-diagnostics
+                  path: |
+                      release-dist/smoke-diagnostics/**
+                      test-results/**
+                      playwright-report/**
+                  if-no-files-found: ignore
+                  retention-days: 14
+
             - name: Show git diff for app source (debug)
               id: git_diff
               run: node scripts/print-app-diff.mjs
