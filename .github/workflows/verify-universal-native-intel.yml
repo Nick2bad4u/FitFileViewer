@@ -1,4 +1,5 @@
-name: Verify Universal DMG on Native Intel
+name: Verify Universal Package
+run-name: Verify Universal DMG on Native Intel (${{ inputs.source-sha }})
 
 on:
     workflow_call:
