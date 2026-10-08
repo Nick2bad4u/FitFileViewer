@@ -20,7 +20,7 @@
   <a href="https://github.com/nick2bad4u/fitfileviewer/pulls" title="View or submit pull requests">
     <img alt="Badge: PRs Welcome (green, flat-square style)" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square&logo=github" title="PRs Welcome">
   </a>
-  <a href="https://github.com/nick2bad4u/fitfileviewer/blob/master/CONTRIBUTING.md" title="Read the contributing guidelines">
+  <a href="https://github.com/Nick2bad4u/FitFileViewer/blob/main/docusaurus/docs/development/setup.md" title="Read the development setup guide">
     <img alt="Badge: Contributions Accepted (dark green, flat-square style)" src="https://img.shields.io/badge/Contributions-Accepted-darkgreen?style=flat-square&logo=contributorcovenant" title="Contributions Accepted">
   </a>
   <a href="https://github.com/nick2bad4u/fitfileviewer/graphs/contributors" title="View project contributors">
@@ -80,14 +80,12 @@
 [![Docusaurus](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/docusaurus.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/docusaurus.yml) 📚
 [![Clean Old Releases](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml) 🧹
 [![CodeQL-Advanced](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/codeql.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/codeql.yml) 🛡️
-[![Dependency Review](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review.yml) 🔍
-[![GitLeaks Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks.yml) 🔑
+[![Dependency Review](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review-enhanced-caller.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/dependency-review-enhanced-caller.yml) 🔍
+[![GitLeaks Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks-scan-enhanced-caller.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/gitleaks-scan-enhanced-caller.yml) 🔑
 [![Greetings](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/greetings.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/greetings.yml) 👋
-[![Mark stale issues and pull requests](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale.yml) 💤
+[![Mark stale issues and pull requests](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale-management-caller.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/stale-management-caller.yml) 💤
 [![Automatic Rebase](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/rebase.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/rebase.yml) 🔄
-[![Repo Stats](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/repo-stats.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/repo-stats.yml) 📊
-[![TruffleHog Secret Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog.yml) 🔑
-[![Update ChangeLogs](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/updateChangeLogs.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/updateChangeLogs.yml) 📝
+[![TruffleHog Secret Scan](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog-scan-caller.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/trufflehog-scan-caller.yml) 🔑
 [![Upload Linux Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-linux-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-linux-ia.yml) 🐧
 [![Upload Mac Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-macos-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-macos-ia.yml) 🍏
 [![Upload Windows Distributables to Archive.org](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-windows-ia.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/upload-windows-ia.yml) 🪟
@@ -203,7 +201,6 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 | Platform | Architecture  | Format        | Filename Example                        |
 | -------- | ------------- | ------------- | --------------------------------------- |
-| :------- | :-----------  | :------------ | :-------------------------------------- |
 | Windows  | x64           | Installer EXE | Fit-File-Viewer-nsis-x64-X.X.X.exe      |
 | Windows  | x64           | Installer Web | Fit-File-Viewer-nsis-web-x64-X.X.X.exe  |
 | Windows  | x64           | Installer 7z  | fitfileviewer-X.X.X-x64.nsis.7z         |
@@ -226,13 +223,12 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | ia32 / win32  | Portable      | Fit-File-Viewer-portable-ia32-X.X.X.exe |
 | Windows  | Win7 (legacy) | Portable EXE  | Fit-File-Viewer-win7-\*.exe\[.zip]      |
 
-<details><summary>🗂️ Update Files (Nupkg &amp; Blockmap)</summary>
+<details><summary>🗂️ Update Files (Blockmap)</summary>
 
-| Platform | Architecture | Format            | Filename Example                             |
-| -------- | ------------ | ----------------- | -------------------------------------------- |
-| :------- | :----------- | :---------------- | :------------------------------------------- |
-| Windows  | x64          | Blockmap          | Fit-File-Viewer-nsis-x64-X.X.X.exe.blockmap  |
-| Windows  | ia32 / win32 | Blockmap          | Fit-File-Viewer-nsis-ia32-X.X.X.exe.blockmap |
+| Platform | Architecture | Format   | Filename Example                             |
+| -------- | ------------ | -------- | -------------------------------------------- |
+| Windows  | x64          | Blockmap | Fit-File-Viewer-nsis-x64-X.X.X.exe.blockmap  |
+| Windows  | ia32 / win32 | Blockmap | Fit-File-Viewer-nsis-ia32-X.X.X.exe.blockmap |
 
 </details>
 
@@ -249,12 +245,12 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 | Platform | Architecture | Format  | Filename Example                               |
 | -------- | ------------ | ------- | ---------------------------------------------- |
-| :------- | :----------- | :------ | :--------------------------------------------- |
 | macOS    | x64          | DMG     | Fit-File-Viewer-dmg-x64-X.X.X.dmg              |
 | macOS    | x64          | PKG     | Fit-File-Viewer-pkg-x64-X.X.X.pkg              |
-| macOS    | x64          | TAR.BZ2 | Fit-File-Viewer-darwin-X.X.X.tar.bz2           |
-| macOS    | x64          | TAR.GZ  | Fit-File-Viewer-darwin-X.X.X.tar.gz            |
-| macOS    | x64          | TAR.XZ  | Fit-File-Viewer-darwin-X.X.X.tar.xz            |
+| macOS    | x64          | TAR.BZ2 | Fit-File-Viewer-darwin-x64-X.X.X.tar.bz2       |
+| macOS    | x64          | TAR.GZ  | Fit-File-Viewer-darwin-x64-X.X.X.tar.gz        |
+| macOS    | x64          | TAR.XZ  | Fit-File-Viewer-darwin-x64-X.X.X.tar.xz        |
+| macOS    | x64          | ZIP     | Fit-File-Viewer-darwin-x64-X.X.X.zip           |
 | macOS    | universal    | DMG     | Fit-File-Viewer-dmg-universal-X.X.X.dmg        |
 | macOS    | universal    | PKG     | Fit-File-Viewer-pkg-universal-X.X.X.pkg        |
 | macOS    | universal    | TAR.BZ2 | Fit-File-Viewer-darwin-universal-X.X.X.tar.bz2 |
@@ -272,10 +268,10 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 | Platform | Architecture | Format       | Filename Example                                    |
 | -------- | ------------ | ------------ | --------------------------------------------------- |
-| :------- | :----------- | :----------- | :-------------------------------------------------- |
 | macOS    | x64          | DMG Blockmap | Fit-File-Viewer-dmg-x64-X.X.X.dmg.blockmap          |
 | macOS    | universal    | DMG Blockmap | Fit-File-Viewer-dmg-universal-X.X.X.dmg.blockmap    |
 | macOS    | arm64        | DMG Blockmap | Fit-File-Viewer-dmg-arm64-X.X.X.dmg.blockmap        |
+| macOS    | x64          | ZIP Blockmap | Fit-File-Viewer-darwin-x64-X.X.X.zip.blockmap       |
 | macOS    | universal    | ZIP Blockmap | Fit-File-Viewer-darwin-universal-X.X.X.zip.blockmap |
 | macOS    | arm64        | ZIP Blockmap | Fit-File-Viewer-darwin-arm64-X.X.X.zip.blockmap     |
 
@@ -293,7 +289,6 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 
 | Platform | Architecture | Format       | Filename Example                               |
 | -------- | ------------ | ------------ | ---------------------------------------------- |
-| :------- | :----------- | :----------- | :--------------------------------------------- |
 | Linux    | x64          | AppImage     | Fit-File-Viewer-appimage-x86_64-X.X.X.AppImage |
 | Linux    | x64          | DEB          | Fit-File-Viewer-deb-amd64-X.X.X.deb            |
 | Linux    | x64          | RPM          | Fit-File-Viewer-rpm-x86_64-X.X.X.rpm           |
@@ -301,10 +296,10 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Linux    | x64          | SNAP         | Fit-File-Viewer-snap-amd64-X.X.X.snap          |
 | Linux    | x64          | FLATPAK      | FitFileViewer-vX.X.X.flatpak                   |
 | Linux    | x64          | FLATPAK ZIP  | FitFileViewer-vX.X.X.flatpak.zip               |
-| Linux    | x64          | TAR.BZ2      | Fit-File-Viewer-linux-X.X.X.tar.bz2            |
-| Linux    | x64          | TAR.GZ       | Fit-File-Viewer-linux-X.X.X.tar.gz             |
-| Linux    | x64          | TAR.XZ       | Fit-File-Viewer-linux-X.X.X.tar.xz             |
-| Linux    | x64          | ZIP          | Fit-File-Viewer-linux-X.X.X.zip                |
+| Linux    | x64          | TAR.BZ2      | Fit-File-Viewer-linux-x64-X.X.X.tar.bz2        |
+| Linux    | x64          | TAR.GZ       | Fit-File-Viewer-linux-x64-X.X.X.tar.gz         |
+| Linux    | x64          | TAR.XZ       | Fit-File-Viewer-linux-x64-X.X.X.tar.xz         |
+| Linux    | x64          | ZIP          | Fit-File-Viewer-linux-x64-X.X.X.zip            |
 | Linux    | x64          | APK (Alpine) | Fit-File-Viewer-apk-x64-X.X.X.apk              |
 | Linux    | x64          | FreeBSD      | Fit-File-Viewer-freebsd-x64-X.X.X.freebsd      |
 
@@ -371,11 +366,3 @@ See [LICENSE.md](LICENSE.md) for details.
 ---
 
 For more information, documentation, and updates, visit the [GitHub repository](https://github.com/Nick2bad4u/FitFileViewer). 📦
-
-<div align="center">
-    <img
-      src="https://raw.githubusercontent.com/Nick2bad4u/FitFileViewer/main/metrics.repository.svg"
-      alt="Repo Metrics"
-      width="100%"
-    />
-</div>
