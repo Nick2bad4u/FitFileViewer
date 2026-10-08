@@ -74,16 +74,27 @@ jobs:
                   DEBUG: "@malept/flatpak-bundler"
 
             - name: Smoke test Flatpak bundle
+              env:
+                  FFV_SMOKE_DIAGNOSTICS_DIRECTORY: ${{ runner.temp }}/flatpak-smoke
               run: |
                   flatpak install --user --noninteractive --or-update ./FitFileViewer.flatpak
                   smoke_launcher="${RUNNER_TEMP}/run-fitfileviewer-flatpak"
                   printf '%s\n' '#!/usr/bin/env bash' \
-                    'exec xvfb-run -a flatpak run --user com.nick2bad4u.fitfileviewer' \
+                    'exec xvfb-run -a flatpak run --user com.nick2bad4u.fitfileviewer "$@"' \
                     > "${smoke_launcher}"
                   chmod +x "${smoke_launcher}"
                   node scripts/run-packaged-smoke.mjs \
                     --executable "${smoke_launcher}" \
                     --startup-timeout-ms 15000
+
+            - name: Upload Flatpak smoke diagnostics
+              if: always()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: flatpak-smoke-diagnostics
+                  path: ${{ runner.temp }}/flatpak-smoke/**
+                  if-no-files-found: ignore
+                  retention-days: 14
 
             # Optionally, upload the FlatPak bundle as an artifact
             - name: Upload FlatPak bundle
