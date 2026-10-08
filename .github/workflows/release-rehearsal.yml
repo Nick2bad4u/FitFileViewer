@@ -34,6 +34,17 @@ permissions:
     contents: read
 
 jobs:
+    verify-universal-intel:
+        name: Verify Universal DMG on native Intel
+        needs: release-rehearsal
+        if: always() && !cancelled()
+        permissions:
+            actions: read
+            contents: read
+        uses: ./.github/workflows/verify-universal-native-intel.yml
+        with:
+            source-sha: ${{ github.sha }}
+
     macos-compatibility:
         name: Verify existing ARM64 package on macOS 27
         needs: release-rehearsal
@@ -216,18 +227,10 @@ jobs:
                   REQUIRE_CODE_SIGNING: "false"
                   RUNNER_OS: ${{ matrix.runner-os }}
 
-            - name: Enable Intel slice testing on Apple Silicon
-              if: runner.os == 'macOS' && matrix.arch == 'universal'
-              run: |
-                  softwareupdate --install-rosetta --agree-to-license
-                  node scripts/run-macos-smoke-diagnostics.mjs --probe-rosetta
-
             - name: Smoke test installed distributable artifacts
               run: |
                   if [ "$RUNNER_OS" = "Linux" ]; then
                       xvfb-run -a node scripts/run-distributable-smoke.mjs
-                  elif [ "$RUNNER_OS" = "macOS" ] && [ "$MATRIX_ARCH" = "universal" ]; then
-                      node scripts/run-macos-smoke-diagnostics.mjs
                   else
                       node scripts/run-distributable-smoke.mjs
                   fi
@@ -235,6 +238,29 @@ jobs:
                   FFV_PACKAGED_SMOKE_TIMEOUT_MS: ${{ inputs.smoke-timeout-ms }}
                   MATRIX_ARCH: ${{ matrix.arch }}
                   RUNNER_OS: ${{ matrix.runner-os }}
+
+            - name: Record Universal native verification source
+              if: runner.os == 'macOS' && matrix.arch == 'universal'
+              env:
+                  SOURCE_SHA: ${{ github.sha }}
+              run: |
+                  test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+                  version=$(node -p 'require("./package.json").version')
+                  jq -n --arg sha "$SOURCE_SHA" --arg version "$version" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" \
+                    '{sourceSha: $sha, version: $version, runId: $run, runAttempt: $attempt}' > release-dist/universal-native-source.json
+
+            - name: Upload Universal DMG for required native Intel verification
+              if: runner.os == 'macOS' && matrix.arch == 'universal'
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: universal-native-verification-${{ github.run_attempt }}
+                  path: |
+                      release-dist/Fit-File-Viewer-dmg-universal-*.dmg
+                      release-dist/distributable-smoke-darwin-universal.json
+                      release-dist/signing-verification-report.json
+                      release-dist/universal-native-source.json
+                  retention-days: 7
+                  if-no-files-found: error
 
             - name: Upload distributable smoke diagnostics
               if: always()

@@ -138,10 +138,61 @@ export function assertNoWindowsInstallRegistrations(
     }
 }
 
+export function parseDistributableSmokeArguments(args) {
+    if (
+        args.length > 1 ||
+        (args.length === 1 && args[0] !== "--include-rosetta")
+    ) {
+        throw new Error(
+            "Usage: node scripts/run-distributable-smoke.mjs [--include-rosetta]"
+        );
+    }
+    return { includeRosetta: args.length === 1 };
+}
+
+function assertValidRosettaRequest({
+    platform,
+    arch,
+    hostArch,
+    includeRosetta,
+}) {
+    if (typeof includeRosetta !== "boolean") {
+        throw new TypeError("includeRosetta must be a boolean");
+    }
+    if (
+        includeRosetta &&
+        (platform !== "darwin" || arch !== "universal" || hostArch !== "arm64")
+    ) {
+        throw new Error(
+            "--include-rosetta requires a Universal macOS artifact and an ARM64 host"
+        );
+    }
+}
+
+export function getSmokeArchitectures(options) {
+    assertValidRosettaRequest(options);
+    const { platform, arch, hostArch, includeRosetta } = options;
+    if (platform !== "darwin") return [arch];
+    if (!["arm64", "x64"].includes(hostArch)) {
+        throw new Error(`Unsupported macOS host architecture: ${hostArch}`);
+    }
+    if (arch === "universal") {
+        return includeRosetta ? ["arm64", "x64"] : [hostArch];
+    }
+    if (arch !== hostArch) {
+        throw new Error(
+            `macOS ${arch} distributable requires a native ${arch} host; received ${hostArch}`
+        );
+    }
+    return [arch];
+}
+
 export function runDistributableSmoke(
     {
         arch = process.env.MATRIX_ARCH ?? process.arch,
         platform = process.platform,
+        hostArch = process.arch,
+        includeRosetta = false,
         version = JSON.parse(
             fs.readFileSync(path.join(repositoryRoot, "package.json"), "utf8")
         ).version,
@@ -156,6 +207,12 @@ export function runDistributableSmoke(
         dependencies.inspectWindowsRegistrations ??
         getWindowsInstallRegistrations;
     const names = getDistributableNames({ platform, arch, version });
+    const architectures = getSmokeArchitectures({
+        platform,
+        arch,
+        hostArch,
+        includeRosetta,
+    });
     const evidence = [];
     const reportPath = path.join(
         releaseDirectory,
@@ -290,10 +347,6 @@ export function runDistributableSmoke(
                       releaseDistPath: destination,
                       platform,
                   });
-            const architectures =
-                platform === "darwin" && arch === "universal"
-                    ? ["arm64", "x64"]
-                    : [arch];
             for (const architecture of architectures) {
                 let launchPath = executable;
                 if (platform === "darwin") {
@@ -338,7 +391,7 @@ export function runDistributableSmoke(
                     smoke(["--executable", launchPath], {
                         ...environment,
                         FFV_SMOKE_EXPECTED_ARCH:
-                            arch === "universal" ? process.arch : arch,
+                            arch === "universal" ? hostArch : arch,
                         FFV_SMOKE_EXPECTED_VERSION: version,
                         FFV_SMOKE_DIAGNOSTICS_DIRECTORY: path.join(
                             releaseDirectory,
@@ -383,5 +436,7 @@ if (
     process.argv[1] &&
     import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-    process.exitCode = runDistributableSmoke();
+    process.exitCode = runDistributableSmoke(
+        parseDistributableSmokeArguments(process.argv.slice(2))
+    );
 }

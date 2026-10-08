@@ -135,6 +135,31 @@ describe("macOS smoke diagnostics", () => {
         });
     });
 
+    it.each([false, true])(
+        "forwards Rosetta opt-in %s without changing the harness result",
+        async (includeRosetta) => {
+            expect.assertions(2);
+            const child = Object.assign(new EventEmitter(), { pid: 10 });
+            const spawn = vi
+                .fn<(...args: unknown[]) => typeof child>()
+                .mockReturnValue(child);
+            const running = runMacosSmokeDiagnostics(
+                {
+                    platform: "darwin",
+                    directory: createDirectory(),
+                    includeRosetta,
+                },
+                { spawn, capture: successfulCapture() }
+            );
+            expect(spawn.mock.calls[0]?.[1]).toEqual([
+                expect.stringContaining("run-distributable-smoke.mjs"),
+                ...(includeRosetta ? ["--include-rosetta"] : []),
+            ]);
+            child.emit("close", 0, null);
+            await expect(running).resolves.toBe(0);
+        }
+    );
+
     it("preserves harness spawn errors while collecting system diagnostics", async () => {
         expect.assertions(2);
         const directory = createDirectory();

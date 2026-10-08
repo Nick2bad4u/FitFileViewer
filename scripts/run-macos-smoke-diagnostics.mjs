@@ -200,7 +200,10 @@ export async function runMacosSmokeDiagnostics(
     fs.mkdirSync(directory, { recursive: true });
     const child = spawnHarness(
         process.execPath,
-        [path.join(repositoryRoot, "scripts/run-distributable-smoke.mjs")],
+        [
+            path.join(repositoryRoot, "scripts/run-distributable-smoke.mjs"),
+            ...(options.includeRosetta ? ["--include-rosetta"] : []),
+        ],
         {
             cwd: repositoryRoot,
             env: environment,
@@ -266,6 +269,8 @@ if (
             )
         );
     } else {
-        process.exitCode = await runMacosSmokeDiagnostics();
+        process.exitCode = await runMacosSmokeDiagnostics({
+            includeRosetta: process.argv.includes("--include-rosetta"),
+        });
     }
 }

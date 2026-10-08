@@ -509,14 +509,24 @@ Rehearsal** from the target branch or tag. It runs the full release gate and
 builds the distribution matrix without publishing: Linux x64, Windows x64 and
 ia32, and macOS ARM64, Intel, and Universal. Artifact checks install or extract
 the resulting distributions into fresh temporary directories and launch those
-copies. macOS DMG copies are signature-verified before launch, and Universal
-checks exercise both architectures.
+copies. macOS DMG copies are signature-verified before launch. The Universal
+DMG must pass on native ARM64 and native Intel runners; the Intel job verifies
+the hash of the exact DMG already tested on ARM64 before testing its x64 slice.
+Both native results are required before publication.
 
 After the platform matrix finishes, an additional macOS 27 compatibility job
 checks the rehearsal's successful ARM64 artifact provenance and original DMG
 hash. It tests that same DMG on GitHub's `xcode-27` preview runner through direct
 launch and LaunchServices, recording the exact OS version and fresh smoke
 evidence. The complete release gate and normal platform matrix remain required.
+
+Rosetta cold translation on hosted ARM runners can dominate startup: even an
+unchanged upstream Electron binary exceeded the normal 60-second process
+budget. Native startup remains limited to 60 seconds. To investigate translation
+separately on an Apple Silicon Mac, install Rosetta, set `MATRIX_ARCH=universal`,
+and run `node scripts/run-macos-smoke-diagnostics.mjs --include-rosetta`. This
+explicit diagnostic exercises both slices and retains process samples; a timeout
+still fails and is never counted as a successful app startup.
 
 The rehearsal packaging step sets `FFV_FORCE_UNSIGNED_PACKAGE=true` and
 `CSC_IDENTITY_AUTO_DISCOVERY=false`, so it strips signing variables before

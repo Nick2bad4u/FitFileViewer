@@ -111,7 +111,8 @@ ia32, and macOS ARM64, Intel, and Universal. The production workflow is
 Each platform verifies its build output and exercises the distributable:
 macOS mounts the DMG, copies the app to a fresh location, verifies every
 architecture's signature, and launches through both the executable and
-LaunchServices. Universal builds exercise ARM64 and x64. Windows checks its
+LaunchServices. The same Universal DMG must pass on native ARM64 and native Intel
+runners, with its hash verified before testing the x64 slice. Windows checks its
 ZIP, NSIS installer, and portable executable; Linux checks its tarball and
 extracted AppImage. Reports, screenshots, logs, and artifact hashes are saved
 as workflow diagnostics.
