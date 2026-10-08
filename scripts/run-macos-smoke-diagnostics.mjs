@@ -168,10 +168,7 @@ export async function sampleHungSmokeProcesses(
     }
 }
 
-export async function runMacosSmokeDiagnostics(
-    options = {},
-    dependencies = {}
-) {
+function resolveDiagnosticOptions(options) {
     const platform = options.platform ?? process.platform;
     if (platform !== "darwin")
         throw new Error("macOS smoke diagnostics require macOS");
@@ -182,22 +179,38 @@ export async function runMacosSmokeDiagnostics(
             "smoke-diagnostics",
             "native-processes"
         );
+    return { directory, environment: options.environment ?? process.env };
+}
+
+function resolveDiagnosticDependencies(dependencies) {
+    return {
+        spawnHarness: dependencies.spawn ?? spawn,
+        capture: dependencies.capture ?? captureDiagnosticCommand,
+        inspect: dependencies.inspect ?? sampleHungSmokeProcesses,
+    };
+}
+
+export async function runMacosSmokeDiagnostics(
+    options = {},
+    dependencies = {}
+) {
+    const { directory, environment } = resolveDiagnosticOptions(options);
+    const { spawnHarness, capture, inspect } =
+        resolveDiagnosticDependencies(dependencies);
     fs.mkdirSync(directory, { recursive: true });
-    const spawnHarness = dependencies.spawn ?? spawn;
-    const capture = dependencies.capture ?? captureDiagnosticCommand;
     const child = spawnHarness(
         process.execPath,
         [path.join(repositoryRoot, "scripts/run-distributable-smoke.mjs")],
         {
             cwd: repositoryRoot,
-            env: options.environment ?? process.env,
+            env: environment,
             stdio: "inherit",
             timeout: 15 * 60 * 1000,
         }
     );
     const stopMonitor = startSmokeProcessMonitor(child, directory, {
         capture,
-        inspect: dependencies.inspect ?? sampleHungSmokeProcesses,
+        inspect,
     });
     try {
         const [status, signal] = await once(child, "close");

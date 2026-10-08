@@ -468,7 +468,7 @@ jobs:
                   body: |
                       ## 🚀 Release Notes
 
-                      ${{ inputs.require-code-signing && 'Windows and macOS release artifacts were built with required code signing.' || 'Release artifacts are intentionally unsigned, consistent with previous FitFileViewer releases.' }}
+                      ${{ inputs.require-code-signing && 'Windows and macOS release artifacts were built with required publisher code signing.' || 'Release artifacts do not have trusted publisher signatures. macOS apps have verified ad hoc signatures for executable integrity, but are not notarized by Apple.' }}
 
                       ${{ steps.release_notes.outputs.notes }}
 

@@ -574,7 +574,7 @@ describe("workspace package boundaries", () => {
         );
         expect(releaseWorkflow).toContain("npm run test:packaged");
         expect(releaseWorkflow).toContain(
-            "Release artifacts are intentionally unsigned"
+            "macOS apps have verified ad hoc signatures for executable integrity, but are not notarized by Apple."
         );
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });

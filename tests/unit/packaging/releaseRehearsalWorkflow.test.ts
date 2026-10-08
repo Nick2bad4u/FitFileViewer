@@ -16,6 +16,29 @@ function readReleaseRehearsalWorkflow(): string {
 }
 
 describe("release rehearsal workflow", () => {
+    it("adds optional macOS compatibility without bypassing the release gates", () => {
+        expect.assertions(6);
+        const { jobs } = parseYaml(readReleaseRehearsalWorkflow()) as {
+            jobs: Record<string, Record<string, unknown>>;
+        };
+        const compatibility = jobs["macos-compatibility"];
+        expect(compatibility?.if).toBe(
+            "inputs.compatibility-rehearsal-run-id != ''"
+        );
+        expect(compatibility?.uses).toBe(
+            "./.github/workflows/macos-compatibility-smoke.yml"
+        );
+        expect(compatibility?.with).toEqual({
+            "rehearsal-run-id": "${{ inputs.compatibility-rehearsal-run-id }}",
+        });
+        expect(compatibility?.permissions).toEqual({
+            actions: "read",
+            contents: "read",
+        });
+        expect(jobs["release-verification"]).not.toHaveProperty("if");
+        expect(jobs["release-rehearsal"]).not.toHaveProperty("if");
+    });
+
     it("requires the complete gate independently of all six native artifact jobs", () => {
         expect.assertions(9);
         type RehearsalJob = {

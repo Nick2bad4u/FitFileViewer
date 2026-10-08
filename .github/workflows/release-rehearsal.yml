@@ -8,6 +8,11 @@ concurrency:
 on:
     workflow_dispatch:
         inputs:
+            compatibility-rehearsal-run-id:
+                description: Optional completed ARM64 rehearsal source for macOS 27 compatibility testing
+                required: false
+                default: ""
+                type: string
             require-code-signing:
                 description: "Fail if the configured signing environment is incomplete"
                 required: true
@@ -34,6 +39,16 @@ permissions:
     contents: read
 
 jobs:
+    macos-compatibility:
+        name: Verify existing ARM64 package on macOS 27
+        if: inputs.compatibility-rehearsal-run-id != ''
+        permissions:
+            actions: read
+            contents: read
+        uses: ./.github/workflows/macos-compatibility-smoke.yml
+        with:
+            rehearsal-run-id: ${{ inputs.compatibility-rehearsal-run-id }}
+
     release-verification:
         name: Verify Complete Release Gate
         runs-on: ubuntu-latest
