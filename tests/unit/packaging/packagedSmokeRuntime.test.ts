@@ -78,6 +78,27 @@ describe("packaged smoke runtime", () => {
         ).toThrow("requires an absolute report directory");
     });
 
+    it.each([
+        ["FFV_SMOKE_DIRECTORY", undefined],
+        ["FFV_SMOKE_DIRECTORY", "relative-directory"],
+        ["FFV_SMOKE_FIXTURE", ""],
+        ["FFV_SMOKE_FIXTURE", "relative.fit"],
+    ])("rejects invalid %s before creating a profile", (name, value) => {
+        expect.assertions(2);
+        vi.stubEnv(name, value);
+        expect(() =>
+            configurePackagedSmoke(createApp() as unknown as App)
+        ).toThrow("requires an absolute report directory");
+        expect(existsSync(path.join(directory, "user-data"))).toBe(false);
+    });
+
+    it("requires Electron when smoke mode is explicitly requested", () => {
+        expect.assertions(1);
+        expect(() => configurePackagedSmoke()).toThrow(
+            "requires an absolute report directory"
+        );
+    });
+
     it("isolates the profile, prevents updates and writes a successful visible FIT report", async () => {
         expect.assertions(6);
         const app = createApp();
@@ -171,5 +192,36 @@ describe("packaged smoke runtime", () => {
             status: "failed",
             error: "Renderer terminated: crashed (11)",
         });
+    });
+
+    it("does not publish success when the renderer crashes during capture", async () => {
+        expect.assertions(3);
+        const app = createApp();
+        const mainWindow = createWindow();
+        mainWindow.webContents.capturePage.mockImplementation(async () => {
+            mainWindow.webContents.emit(
+                "render-process-gone",
+                {},
+                { reason: "crashed", exitCode: 11 }
+            );
+            return { toPNG: () => Buffer.from("stale screenshot") };
+        });
+        configurePackagedSmoke(app as unknown as App);
+        app.emit(
+            "browser-window-created",
+            {},
+            mainWindow as unknown as BrowserWindow
+        );
+        await vi.waitUntil(() => app.exit.mock.calls.length > 0);
+        expect(app.exit).toHaveBeenCalledWith(1);
+        expect(
+            JSON.parse(
+                readFileSync(path.join(directory, "report.json"), "utf8")
+            )
+        ).toMatchObject({
+            status: "failed",
+            error: "Renderer terminated: crashed (11)",
+        });
+        expect(existsSync(path.join(directory, "screenshot.png"))).toBe(false);
     });
 });

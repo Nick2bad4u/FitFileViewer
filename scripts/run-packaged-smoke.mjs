@@ -286,13 +286,15 @@ export function runPackagedSmoke(
         report.nonce !== nonce ||
         report.status !== "passed" ||
         report.visible !== true ||
-        !Number.isSafeInteger(report.activity?.recordCount) ||
+        report.activity === null ||
+        typeof report.activity !== "object" ||
+        !Number.isSafeInteger(report.activity.recordCount) ||
         report.activity.recordCount < 1 ||
         report.activity.appInitialized !== true ||
         report.activity.mapReady !== true ||
         !Number.isSafeInteger(report.activity.routeCount) ||
         report.activity.routeCount < 1 ||
-        !Number.isSafeInteger(report.activity?.sessionCount) ||
+        !Number.isSafeInteger(report.activity.sessionCount) ||
         report.activity.sessionCount < 1
     ) {
         throw new Error(

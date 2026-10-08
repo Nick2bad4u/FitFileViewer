@@ -27,6 +27,22 @@ function makeRelease(platform: string, arch: string): string {
     return directory;
 }
 
+function readSmokeReport(
+    releaseDirectory: string,
+    platform: string,
+    arch: string
+): unknown {
+    return JSON.parse(
+        fs.readFileSync(
+            path.join(
+                releaseDirectory,
+                `distributable-smoke-${platform}-${arch}.json`
+            ),
+            "utf8"
+        )
+    );
+}
+
 function createExecutable(destination: string, platform: string): void {
     const executable =
         platform === "darwin"
@@ -314,15 +330,7 @@ describe("final distributable smoke", () => {
         ]);
         expect(wrappers[2]).toContain('"FFV_SMOKE_NONCE=$FFV_SMOKE_NONCE"');
         expect(
-            JSON.parse(
-                fs.readFileSync(
-                    path.join(
-                        releaseDirectory,
-                        "distributable-smoke-darwin-universal.json"
-                    ),
-                    "utf8"
-                )
-            )
+            readSmokeReport(releaseDirectory, "darwin", "universal")
         ).toMatchObject({
             artifacts: [
                 {

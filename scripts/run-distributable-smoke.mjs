@@ -18,28 +18,17 @@ import {
 // These are the artifacts users install or extract, rather than the builder's
 // intermediate unpacked tree. Exact names prevent silently testing stale builds.
 export function getDistributableNames({ platform, arch, version }) {
-    const separator = version.indexOf("-");
-    const core = separator === -1 ? version : version.slice(0, separator);
-    const prerelease =
-        separator === -1 ? undefined : version.slice(separator + 1);
-    if (
-        !/^\d+\.\d+\.\d+$/u.test(core) ||
-        (prerelease !== undefined && !/^[\dA-Za-z.-]+$/u.test(prerelease))
-    ) {
-        throw new Error(`Invalid package version: ${version}`);
-    }
+    assertValidVersion(version);
     const supported =
-        platform === "darwin"
-            ? [
-                  "arm64",
-                  "x64",
-                  "universal",
-              ]
-            : platform === "win32"
-              ? ["x64", "ia32"]
-              : platform === "linux"
-                ? ["x64"]
-                : [];
+        {
+            darwin: [
+                "arm64",
+                "x64",
+                "universal",
+            ],
+            win32: ["x64", "ia32"],
+            linux: ["x64"],
+        }[platform] ?? [];
     if (!supported.includes(arch)) {
         throw new Error(
             `Unsupported distributable smoke platform/architecture: ${platform}/${arch}`
@@ -59,6 +48,19 @@ export function getDistributableNames({ platform, arch, version }) {
         `Fit-File-Viewer-linux-${arch}-${version}.tar.gz`,
         `Fit-File-Viewer-appimage-${arch === "x64" ? "x86_64" : arch}-${version}.AppImage`,
     ];
+}
+
+function assertValidVersion(version) {
+    const separator = version.indexOf("-");
+    const core = separator === -1 ? version : version.slice(0, separator);
+    const prerelease =
+        separator === -1 ? undefined : version.slice(separator + 1);
+    if (
+        !/^\d+\.\d+\.\d+$/u.test(core) ||
+        (prerelease !== undefined && !/^[\dA-Za-z.-]+$/u.test(prerelease))
+    ) {
+        throw new Error(`Invalid package version: ${version}`);
+    }
 }
 
 export function runChecked(command, args, options = {}, runner = spawnSync) {

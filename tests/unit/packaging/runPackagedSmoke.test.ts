@@ -1,7 +1,6 @@
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import process from "node:process";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -300,6 +299,20 @@ describe("run-packaged-smoke script", () => {
 
     it.each([
         undefined,
+        {
+            status: "passed",
+            visible: true,
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: null,
+        },
+        {
+            status: "passed",
+            visible: true,
+            activity: "untrusted report data",
+        },
         {
             nonce: "forged",
             status: "passed",

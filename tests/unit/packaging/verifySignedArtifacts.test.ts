@@ -101,6 +101,13 @@ function createTemporaryReleaseDir() {
     return releaseDir;
 }
 
+function readSigningReport(
+    releaseDir: string,
+    fileName = "signing-verification-report.json"
+): ReturnType<VerifySignedArtifactsModule["writeSigningVerificationReport"]> {
+    return JSON.parse(fs.readFileSync(path.join(releaseDir, fileName), "utf8"));
+}
+
 afterEach(() => {
     for (const temporaryDirectory of temporaryDirectories.splice(0)) {
         fs.rmSync(temporaryDirectory, { force: true, recursive: true });
@@ -206,14 +213,11 @@ describe("verify-signed-artifacts script", () => {
         expect(macosCommand.args).toContain("--verify");
     });
 
-    it("runs Windows verification when publisher signing is required and skips Linux", async () => {
-        expect.assertions(7);
+    it("skips Linux verification even when publisher signing is required", async () => {
+        expect.assertions(3);
 
         const releaseDir = createTemporaryReleaseDir();
-        const reportPath = path.join(releaseDir, "signing-report.json");
-        fs.writeFileSync(path.join(releaseDir, "Fit-File-Viewer.exe"), "");
         const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
-        const logger = vi.fn<(message: string) => void>();
         const { verifySignedArtifacts } = await importVerifySignedArtifacts();
 
         expect(
@@ -223,14 +227,29 @@ describe("verify-signed-artifacts script", () => {
                     "linux",
                     "--release-dir",
                     releaseDir,
-                    "--report",
-                    reportPath,
                 ],
                 { REQUIRE_CODE_SIGNING: "true" },
-                commandRunner,
-                logger
+                commandRunner
             )
         ).toBe(0);
+        expect(commandRunner).not.toHaveBeenCalled();
+        expect(readSigningReport(releaseDir)).toMatchObject({
+            platform: "linux",
+            signingRequired: true,
+            status: "skipped",
+        });
+    });
+
+    it("runs Windows verification when publisher signing is required", async () => {
+        expect.assertions(6);
+
+        const releaseDir = createTemporaryReleaseDir();
+        const reportPath = path.join(releaseDir, "signing-report.json");
+        fs.writeFileSync(path.join(releaseDir, "Fit-File-Viewer.exe"), "");
+        const commandRunner = vi.fn<CommandRunner>(() => ({ status: 0 }));
+        const logger = vi.fn<(message: string) => void>();
+        const { verifySignedArtifacts } = await importVerifySignedArtifacts();
+
         expect(
             verifySignedArtifacts(
                 [
@@ -248,18 +267,17 @@ describe("verify-signed-artifacts script", () => {
         ).toBe(0);
         expect(commandRunner).toHaveBeenCalledOnce();
         expect(commandRunner.mock.calls[0]?.[0]).toBe("powershell.exe");
-        expect(JSON.parse(fs.readFileSync(reportPath, "utf8"))).toMatchObject({
+        const report = readSigningReport(releaseDir, "signing-report.json");
+        expect(report).toMatchObject({
             artifactCount: 1,
             platform: "win32",
             signingRequired: true,
             status: "verified",
         });
-        expect(
-            JSON.parse(fs.readFileSync(reportPath, "utf8")).artifacts
-        ).toStrictEqual([{ path: "Fit-File-Viewer.exe", type: "file" }]);
-        expect(
-            JSON.parse(fs.readFileSync(reportPath, "utf8")).verificationResults
-        ).toStrictEqual([
+        expect(report.artifacts).toStrictEqual([
+            { path: "Fit-File-Viewer.exe", type: "file" },
+        ]);
+        expect(report.verificationResults).toStrictEqual([
             expect.objectContaining({
                 command: "powershell.exe",
                 path: "Fit-File-Viewer.exe",
@@ -313,17 +331,7 @@ describe("verify-signed-artifacts script", () => {
                 ],
                 expect.objectContaining({ stdio: "inherit" }),
             ]);
-            expect(
-                JSON.parse(
-                    fs.readFileSync(
-                        path.join(
-                            releaseDir,
-                            "signing-verification-report.json"
-                        ),
-                        "utf8"
-                    )
-                )
-            ).toMatchObject({
+            expect(readSigningReport(releaseDir)).toMatchObject({
                 artifactCount: 1,
                 signingRequired: false,
                 status: "verified",
