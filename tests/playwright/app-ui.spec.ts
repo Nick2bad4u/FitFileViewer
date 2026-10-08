@@ -114,9 +114,13 @@ async function closeElectronApp(app: ElectronApplication): Promise<void> {
 
 function isTransientElectronEvaluateError(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error);
-    return message.includes("Execution context was destroyed");
+    return (
+        message.includes("Execution context was destroyed") ||
+        message.includes("Resulting promise was garbage collected.")
+    );
 }
 
+// Callbacks must be idempotent: a lost CDP reply can follow completed execution.
 async function evaluateElectronAppWithRetry<T>(
     evaluate: () => Promise<T>
 ): Promise<T> {
@@ -1574,11 +1578,8 @@ test.describe("FitFileViewer Electron UI", () => {
             activeFileName: sampleFitActivityState.activeFileName,
         });
 
-        const emptyBrowserFolder = path.join(
-            repositoryRoot,
-            "tests",
-            "fixtures"
-        );
+        const emptyBrowserFolder = test.info().outputPath("empty-browser");
+        fs.mkdirSync(emptyBrowserFolder, { recursive: true });
         await armFitBrowserStatusRecorder();
         await mockOpenFileDialog({
             canceled: false,
