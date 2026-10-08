@@ -303,13 +303,17 @@ jobs:
             - name: Enable Intel slice testing on Apple Silicon
               if: runner.os == 'macOS' && matrix.arch == 'universal'
               shell: bash
-              run: softwareupdate --install-rosetta --agree-to-license
+              run: |
+                  softwareupdate --install-rosetta --agree-to-license
+                  node scripts/run-macos-smoke-diagnostics.mjs --probe-rosetta
 
             - name: Smoke test installed distributable artifacts
               shell: bash
               run: |
                   if [ "$RUNNER_OS" = "Linux" ]; then
                       xvfb-run -a node scripts/run-distributable-smoke.mjs
+                  elif [ "$RUNNER_OS" = "macOS" ] && [ "$MATRIX_ARCH" = "universal" ]; then
+                      node scripts/run-macos-smoke-diagnostics.mjs
                   else
                       node scripts/run-distributable-smoke.mjs
                   fi
@@ -329,6 +333,17 @@ jobs:
                       release-dist/smoke-diagnostics/**
                   if-no-files-found: ignore
                   retention-days: 14
+
+            - name: Preserve failed Universal package for diagnosis
+              if: failure() && runner.os == 'macOS' && matrix.arch == 'universal'
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: failed-universal-package-${{ github.run_attempt }}
+                  path: |
+                      release-dist/Fit-File-Viewer-dmg-universal-*.dmg
+                      release-dist/signing-verification-report.json
+                  if-no-files-found: ignore
+                  retention-days: 7
 
             - name: Print distributable hashes (debug)
               id: print_hashes

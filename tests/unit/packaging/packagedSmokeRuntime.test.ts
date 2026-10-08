@@ -30,6 +30,7 @@ beforeEach(() => {
 
 afterEach(() => {
     process.argv = originalArguments;
+    vi.restoreAllMocks();
     vi.unstubAllEnvs();
     rmSync(directory, { recursive: true, force: true });
 });
@@ -159,6 +160,62 @@ describe("packaged smoke runtime", () => {
             status: "failed",
             error: "FIT smoke failed: read denied",
         });
+    });
+
+    it("reports an explicit readiness deadline failure without loading a fixture", async () => {
+        expect.assertions(3);
+        const app = createApp();
+        const mainWindow = createWindow();
+        mainWindow.isVisible.mockReturnValue(false);
+        configurePackagedSmoke(app as unknown as App);
+        app.emit(
+            "browser-window-created",
+            {},
+            mainWindow as unknown as BrowserWindow
+        );
+        await vi.waitUntil(() => app.exit.mock.calls.length > 0, {
+            timeout: 35_000,
+        });
+        expect(app.exit).toHaveBeenCalledWith(1);
+        expect(
+            JSON.parse(
+                readFileSync(path.join(directory, "report.json"), "utf8")
+            )
+        ).toMatchObject({
+            status: "failed",
+            error: "Visible renderer UI did not initialize",
+        });
+        expect(mainWindow.webContents.executeJavaScript).not.toHaveBeenCalled();
+    }, 40_000);
+
+    it("preserves the original failure and exits if the report directory disappears", async () => {
+        expect.assertions(4);
+        const errorLogger = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+        const app = createApp();
+        const mainWindow = createWindow();
+        mainWindow.webContents.executeJavaScript
+            .mockReset()
+            .mockImplementationOnce(async () => {
+                rmSync(directory, { recursive: true, force: true });
+                throw new Error("Original renderer failure");
+            });
+        configurePackagedSmoke(app as unknown as App);
+        app.emit(
+            "browser-window-created",
+            {},
+            mainWindow as unknown as BrowserWindow
+        );
+        await vi.waitUntil(() => app.exit.mock.calls.length > 0);
+        expect(app.exit).toHaveBeenCalledWith(1);
+        expect(errorLogger).toHaveBeenCalledWith(
+            "[packaged-smoke] Original renderer failure"
+        );
+        expect(errorLogger).toHaveBeenCalledWith(
+            expect.stringContaining("Unable to write failure report:")
+        );
+        expect(existsSync(path.join(directory, "report.json"))).toBe(false);
     });
 
     it("fails renderer crashes even if the load probe later resolves", async () => {

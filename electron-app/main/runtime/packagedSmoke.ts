@@ -122,7 +122,7 @@ function assertWindowHealthy(
 async function waitForRendererReady(
     mainWindow: SmokeWindow,
     failures: readonly string[]
-): Promise<void> {
+): Promise<boolean> {
     // did-finish-load alone does not prove module initialization.
     for (let attempt = 0; attempt < 200; attempt += 1) {
         assertWindowHealthy(
@@ -140,12 +140,12 @@ async function waitForRendererReady(
                 return getState('app.initialized') === true && Boolean(document.querySelector('#open_file_btn') && !document.querySelector('#open_file_btn').disabled && document.querySelector('#tab_map'));
             })()`);
             if (ready) {
-                return;
+                return true;
             }
         }
         await delay(100);
     }
-    throw new Error("Visible renderer UI did not initialize");
+    return false;
 }
 
 // Only fixed, packaged modules are imported. The fixture is a JSON string,
@@ -249,14 +249,25 @@ function reportFailure(
     error: unknown
 ): void {
     const message = error instanceof Error ? error.message : String(error);
-    writeReport(configuration.directory, {
-        nonce: configuration.nonce,
-        status: "failed",
-        error: message,
-        failures,
-    });
-    console.error(`[packaged-smoke] ${message}`);
-    app.exit(1);
+    try {
+        console.error(`[packaged-smoke] ${message}`);
+        writeReport(configuration.directory, {
+            nonce: configuration.nonce,
+            status: "failed",
+            error: message,
+            failures,
+        });
+    } catch (reportError) {
+        const diagnosticMessage =
+            reportError instanceof Error
+                ? reportError.message
+                : String(reportError);
+        console.error(
+            `[packaged-smoke] Unable to write failure report: ${diagnosticMessage}`
+        );
+    } finally {
+        app.exit(1);
+    }
 }
 
 async function verifyPackagedWindow(
@@ -266,7 +277,10 @@ async function verifyPackagedWindow(
 ): Promise<void> {
     const failures = observeWindowFailures(mainWindow);
     try {
-        await waitForRendererReady(mainWindow, failures);
+        const ready = await waitForRendererReady(mainWindow, failures);
+        if (!ready) {
+            throw new Error("Visible renderer UI did not initialize");
+        }
         const activity: unknown =
             await mainWindow.webContents.executeJavaScript(
                 createActivityProbeScript(configuration.fixture)

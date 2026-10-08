@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     assertNoWindowsInstallRegistrations,
+    getArchiveExtractionCommand,
     getDistributableNames,
     getWindowsInstallRegistrations,
     runChecked,
@@ -13,6 +14,10 @@ import {
 } from "../../../scripts/run-distributable-smoke.mjs";
 
 const directories: string[] = [];
+const windowsSmokeEnvironment = { SystemRoot: "C:\\Windows" };
+const nativeWindowsTar = "C:\\Windows\\System32\\tar.exe";
+const archiveExtractorExists = (command: string): boolean =>
+    command === nativeWindowsTar;
 
 function makeRelease(platform: string, arch: string): string {
     const directory = fs.mkdtempSync(path.join(tmpdir(), "ffv-artifact-test-"));
@@ -52,6 +57,24 @@ function createExecutable(destination: string, platform: string): void {
     fs.writeFileSync(executable, "fixture executable");
 }
 
+function makeWindowsArtifactRunner(
+    calls: string[][]
+): (command: string, args: string[]) => void {
+    return (command, args) => {
+        calls.push([command, ...args]);
+        if (command === nativeWindowsTar)
+            createExecutable(args[3] ?? "", "win32");
+        if (command.includes("-nsis-")) {
+            const destination = args[2]?.slice(3) ?? "";
+            createExecutable(destination, "win32");
+            fs.writeFileSync(
+                path.join(destination, "Uninstall Fit File Viewer.exe"),
+                "fixture uninstaller"
+            );
+        }
+    };
+}
+
 afterEach(() => {
     for (const directory of directories.splice(0)) {
         fs.rmSync(directory, { recursive: true, force: true });
@@ -59,6 +82,58 @@ afterEach(() => {
 });
 
 describe("final distributable smoke", () => {
+    it("uses native Windows tar and preserves D drive archive paths under a Git Bash environment", () => {
+        expect.assertions(1);
+        expect(
+            getArchiveExtractionCommand(
+                {
+                    platform: "win32",
+                    environment: {
+                        ...windowsSmokeEnvironment,
+                        PATH: "C:\\Program Files\\Git\\usr\\bin",
+                    },
+                    artifact:
+                        "D:\\a\\release-dist\\Fit-File-Viewer-msi-x64-30.0.3.zip",
+                    destination: "D:\\a\\_temp\\installed",
+                },
+                archiveExtractorExists
+            )
+        ).toStrictEqual({
+            command: nativeWindowsTar,
+            args: [
+                "-xf",
+                "D:\\a\\release-dist\\Fit-File-Viewer-msi-x64-30.0.3.zip",
+                "-C",
+                "D:\\a\\_temp\\installed",
+            ],
+        });
+    });
+
+    it("fails clearly without a native Windows archive extractor and preserves Linux tar", () => {
+        expect.assertions(3);
+        const options = {
+            platform: "win32",
+            environment: windowsSmokeEnvironment,
+            artifact: "fixture.zip",
+            destination: "installed",
+        };
+        expect(() => getArchiveExtractionCommand(options, () => false)).toThrow(
+            "Native Windows archive extractor is unavailable"
+        );
+        expect(() =>
+            getArchiveExtractionCommand(
+                { ...options, environment: {} },
+                () => true
+            )
+        ).toThrow("An absolute SystemRoot is required");
+        expect(
+            getArchiveExtractionCommand(
+                { ...options, platform: "linux", environment: {} },
+                () => false
+            ).command
+        ).toBe("tar");
+    });
+
     it.each([
         [
             "CurrentUser",
@@ -107,19 +182,22 @@ describe("final distributable smoke", () => {
         const calls: string[] = [];
         const run = (command: string, args: string[]): void => {
             calls.push(command);
-            if (command === "tar") createExecutable(args[3] ?? "", "win32");
+            if (command === nativeWindowsTar)
+                createExecutable(args[3] ?? "", "win32");
         };
         expect(() =>
             runDistributableSmoke(
                 {
                     arch: "x64",
                     platform: "win32",
+                    environment: windowsSmokeEnvironment,
                     version: "30.0.3",
                     releaseDirectory,
                 },
                 {
                     run,
                     smoke: () => 0,
+                    archiveExtractorExists,
                     inspectWindowsRegistrations: () => [
                         {
                             Key: "Software\\fixture",
@@ -130,7 +208,7 @@ describe("final distributable smoke", () => {
                 }
             )
         ).toThrow("Refusing NSIS smoke installation");
-        expect(calls).toStrictEqual(["tar"]);
+        expect(calls).toStrictEqual([nativeWindowsTar]);
     });
 
     it("preserves a partial install if registration cleanup cannot be verified", () => {
@@ -142,7 +220,8 @@ describe("final distributable smoke", () => {
             .mockReturnValueOnce([])
             .mockReturnValue([{ Key: "Software\\fixture" }]);
         const run = (command: string, args: string[]): void => {
-            if (command === "tar") createExecutable(args[3] ?? "", "win32");
+            if (command === nativeWindowsTar)
+                createExecutable(args[3] ?? "", "win32");
             if (command.includes("-nsis-")) {
                 installation = args[2]?.slice(3) ?? "";
                 directories.push(path.dirname(installation));
@@ -155,10 +234,16 @@ describe("final distributable smoke", () => {
                 {
                     arch: "x64",
                     platform: "win32",
+                    environment: windowsSmokeEnvironment,
                     version: "30.0.3",
                     releaseDirectory,
                 },
-                { run, smoke: () => 0, inspectWindowsRegistrations }
+                {
+                    run,
+                    smoke: () => 0,
+                    inspectWindowsRegistrations,
+                    archiveExtractorExists,
+                }
             )
         ).toThrow("cleanup failed; preserved");
         expect(
@@ -384,27 +469,22 @@ describe("final distributable smoke", () => {
         const smoke = vi.fn(() => 0);
         const calls: string[][] = [];
         const inspectWindowsRegistrations = vi.fn(() => []);
-        const run = (command: string, args: string[]): void => {
-            calls.push([command, ...args]);
-            if (command === "tar") createExecutable(args[3] ?? "", "win32");
-            if (command.includes("-nsis-")) {
-                const destination = args[2]?.slice(3) ?? "";
-                createExecutable(destination, "win32");
-                fs.writeFileSync(
-                    path.join(destination, "Uninstall Fit File Viewer.exe"),
-                    "fixture uninstaller"
-                );
-            }
-        };
+        const run = makeWindowsArtifactRunner(calls);
         expect(
             runDistributableSmoke(
                 {
                     arch: "ia32",
                     platform: "win32",
+                    environment: windowsSmokeEnvironment,
                     version: "30.0.3",
                     releaseDirectory,
                 },
-                { run, smoke, inspectWindowsRegistrations }
+                {
+                    run,
+                    smoke,
+                    inspectWindowsRegistrations,
+                    archiveExtractorExists,
+                }
             )
         ).toBe(0);
         expect(smoke).toHaveBeenCalledTimes(3);

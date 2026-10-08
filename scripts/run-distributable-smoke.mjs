@@ -78,6 +78,36 @@ export function runChecked(command, args, options = {}, runner = spawnSync) {
     return result;
 }
 
+export function getArchiveExtractionCommand(
+    { platform, environment, artifact, destination },
+    exists = fs.existsSync
+) {
+    let command = "tar";
+    if (platform === "win32") {
+        const systemRoot = environment.SystemRoot;
+        if (!systemRoot || !path.win32.isAbsolute(systemRoot)) {
+            throw new Error(
+                "An absolute SystemRoot is required to locate the native Windows archive extractor"
+            );
+        }
+        command = path.win32.join(systemRoot, "System32", "tar.exe");
+        if (!exists(command)) {
+            throw new Error(
+                `Native Windows archive extractor is unavailable: ${command}`
+            );
+        }
+    }
+    return {
+        command,
+        args: [
+            "-xf",
+            artifact,
+            "-C",
+            destination,
+        ],
+    };
+}
+
 export function getWindowsInstallRegistrations(run = runChecked) {
     const result = run("powershell.exe", [
         "-NoProfile",
@@ -248,12 +278,11 @@ export function runDistributableSmoke(
                 fs.chmodSync(artifact, 0o755);
                 run(artifact, ["--appimage-extract"], { cwd: destination });
             } else if (!name.includes("-portable-")) {
-                run("tar", [
-                    "-xf",
-                    artifact,
-                    "-C",
-                    destination,
-                ]);
+                const extraction = getArchiveExtractionCommand(
+                    { platform, environment, artifact, destination },
+                    dependencies.archiveExtractorExists
+                );
+                run(extraction.command, extraction.args);
             }
             const executable = name.includes("-portable-")
                 ? artifact
